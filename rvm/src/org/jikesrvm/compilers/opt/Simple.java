@@ -28,6 +28,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
@@ -35,6 +36,7 @@ import org.jikesrvm.compilers.opt.controlflow.BranchSimplifier;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
+import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
 import org.jikesrvm.compilers.opt.ir.GuardedUnary;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -76,6 +78,10 @@ public final class Simple extends CompilerPhase {
    * Fold conditional branches with constant operands?
    */
   private final boolean foldBranches;
+  /**
+   * Sort registers used by commutative operators
+   */
+  private final boolean sortRegisters;
 
   public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= level;
@@ -99,14 +105,16 @@ public final class Simple extends CompilerPhase {
    * @param typeProp should type propagation be peformed?
    * @param foldChecks should we attempt to eliminate boundscheck?
    * @param foldBranches should we attempt to constant fold conditional
+   * @param sortRegisters should we sort use operands?
    * branches?
    */
-  public Simple(int level, boolean typeProp, boolean foldChecks, boolean foldBranches) {
-    super(new Object[]{level, typeProp, foldChecks, foldBranches});
+  public Simple(int level, boolean typeProp, boolean foldChecks, boolean foldBranches, boolean sortRegisters) {
+    super(new Object[]{level, typeProp, foldChecks, foldBranches, sortRegisters});
     this.level = level;
     this.typeProp = typeProp;
     this.foldChecks = foldChecks;
     this.foldBranches = foldBranches;
+    this.sortRegisters = sortRegisters;
   }
 
   /**
@@ -114,7 +122,7 @@ public final class Simple extends CompilerPhase {
    */
   private static final Constructor<CompilerPhase> constructor =
       getCompilerPhaseConstructor(Simple.class,
-                                  new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
+                                  new Class[]{Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE});
 
   /**
    * Get a constructor object for this compiler phase
@@ -164,6 +172,48 @@ public final class Simple extends CompilerPhase {
     // this pass will recompute the DU
     if (foldBranches) {
       simplifyConstantBranches(ir);
+    }
+    // Should we sort commutative use operands
+    if (sortRegisters) {
+      sortCommutativeRegisterUses(ir);
+    }
+  }
+
+  /**
+   * Sort commutative use operands so that those defined most are on the lhs
+   *
+   * @param ir the IR to work on
+   */
+  private static void sortCommutativeRegisterUses(IR ir) {
+    // Pass over instructions
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
+      // Sort most frequently defined operands onto lhs
+      if (Binary.conforms(s) && s.operator.isCommutative() &&
+          Binary.getVal1(s).isRegister() && Binary.getVal2(s).isRegister()) {
+        RegisterOperand rop1 = Binary.getVal1(s).asRegister();
+        RegisterOperand rop2 = Binary.getVal2(s).asRegister();
+        // Simple SSA based test
+        if (rop1.register.isSSA()) {
+          if(rop2.register.isSSA()) {
+            // ordering is arbitrary, ignore
+          } else {
+            // swap
+            Binary.setVal1(s, rop2);
+            Binary.setVal2(s, rop1);
+          }
+        } else if (rop2.register.isSSA()) {
+          // already have prefered ordering
+        } else {
+          // neither registers are SSA so place registers used more on the RHS
+          // (we don't have easy access to a count of the number of definitions)
+          if (rop1.register.useCount > rop2.register.useCount) {
+            // swap
+            Binary.setVal1(s, rop2);
+            Binary.setVal2(s, rop1);
+          }
+        }
+      }
     }
   }
 

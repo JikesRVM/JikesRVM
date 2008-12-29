@@ -53,7 +53,7 @@ public class EscapeTransformations extends CompilerPhase {
     OptimizationPlanCompositeElement.compose("Clean up escape transformations",
                                              new Object[]{new LocalCopyProp(),
                                                           new LocalConstantProp(),
-                                                          new Simple(0, true, false, false)});
+                                                          new Simple(0, true, false, false, false)});
 
   /**
    * Return this instance of this phase. This phase contains no

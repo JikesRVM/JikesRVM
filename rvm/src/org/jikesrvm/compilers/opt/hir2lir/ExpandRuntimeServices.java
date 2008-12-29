@@ -532,7 +532,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
       }
       branchOpts.perform(ir, true);
       if (_os == null) {
-        _os = new Simple(1, false, false, false);
+        _os = new Simple(1, false, false, false, false);
       }
       _os.perform(ir);
     }

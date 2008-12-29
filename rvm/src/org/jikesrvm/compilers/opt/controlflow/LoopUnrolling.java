@@ -96,7 +96,7 @@ public class LoopUnrolling extends CompilerPhase {
 
     if (ir.hasReachableExceptionHandlers()) return;
     DefUse.computeDU(ir);
-    new Simple(1, true, true, true).perform(ir);
+    new Simple(1, true, true, true, false).perform(ir);
     new BranchOptimizations(-1, true, true).perform(ir, true);
 
     //new CFGTransformations().perform(ir);

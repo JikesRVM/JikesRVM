@@ -815,7 +815,7 @@ class SimpleEscape extends CompilerPhase {
   private static OptimizationPlanElement initEscapePlan() {
     return OptimizationPlanCompositeElement.compose("Escape Analysis",
                                                         new Object[]{new ConvertBCtoHIR(),
-                                                                     new Simple(1, true, true, false),
+                                                                     new Simple(1, true, true, false, false),
                                                                      new SimpleEscape()});
   }
 

@@ -164,7 +164,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   private void cleanUp(IR ir) {
 
     // Clean up the ir with simple optimizations
-    Simple simple = new Simple(-1, false, false, false);
+    Simple simple = new Simple(-1, false, false, false, false);
     simple.perform(ir);
 
     // Perform branch optimizations (level 0 is passed because if we

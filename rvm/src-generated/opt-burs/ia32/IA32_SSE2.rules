@@ -28,14 +28,9 @@ PRODUCTION
 # ADD
 #####
 r: FLOAT_ADD(r, r)
-p.child1.isREGISTERNode() ? 11 : 13
+13
 EMIT_INSTRUCTION
 SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-r: FLOAT_ADD(r, r)
-p.child2.isREGISTERNode() ? 11 : 13
-EMIT_INSTRUCTION
-SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
 r: FLOAT_ADD(r, float_load)
 15
@@ -48,12 +43,7 @@ EMIT_INSTRUCTION
 SSE2_COP(IA32_ADDSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 r: DOUBLE_ADD(r, r)
-p.child1.isREGISTERNode() ? 11 : 13
-EMIT_INSTRUCTION
-SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-r: DOUBLE_ADD(r, r)
-p.child2.isREGISTERNode() ? 11 : 13
+13
 EMIT_INSTRUCTION
 SSE2_COP(IA32_ADDSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
@@ -94,14 +84,9 @@ SSE2_NCOP(IA32_SUBSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consum
 # MUL
 #####
 r: FLOAT_MUL(r, r)
-p.child1.isREGISTERNode() ? 11 : 13
+13
 EMIT_INSTRUCTION
 SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-r: FLOAT_MUL(r, r)
-p.child2.isREGISTERNode() ? 11 : 13
-EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
 r: FLOAT_MUL(r, float_load)
 15
@@ -114,14 +99,9 @@ EMIT_INSTRUCTION
 SSE2_COP(IA32_MULSS, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
 
 r: DOUBLE_MUL(r, r)
-p.child1.isREGISTERNode() ? 11 : 13
+13
 EMIT_INSTRUCTION
 SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
-
-r: DOUBLE_MUL(r, r)
-p.child2.isREGISTERNode() ? 11 : 13
-EMIT_INSTRUCTION
-SSE2_COP(IA32_MULSD, P(p), Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
 
 r: DOUBLE_MUL(r, double_load)
 15

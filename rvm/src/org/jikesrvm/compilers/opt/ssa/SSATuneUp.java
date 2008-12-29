@@ -42,7 +42,7 @@ public final class SSATuneUp extends OptimizationPlanCompositeElement {
         // 2. Get the desired SSA form
         new OptimizationPlanAtomicElement(new EnterSSA()),
         // 3. Perform simple optimizations
-        new OptimizationPlanAtomicElement(new Simple(1, true, true, false)),
+        new OptimizationPlanAtomicElement(new Simple(1, true, true, false, false)),
         // 4. Perform expression simplification
         new OptimizationPlanAtomicElement(new FoldingDriver())});
   }
