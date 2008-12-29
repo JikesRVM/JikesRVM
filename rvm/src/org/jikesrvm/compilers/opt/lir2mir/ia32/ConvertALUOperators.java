@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simplifier;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
@@ -47,16 +49,15 @@ public class ConvertALUOperators extends CompilerPhase implements Operators, Arc
     // in normalized form. This reduces the number of cases we have to
     // worry about (and does last minute constant folding on the off
     // chance we've missed an opportunity...)
-    // BURS assumes that this has been done, so we must do it even if
-    // OPTIMIZE is false.
+    // BURS assumes that this has been done
     for (InstructionEnumeration instrs = ir.forwardInstrEnumerator(); instrs.hasMoreElements();) {
       Instruction s = instrs.next();
       Simplifier.simplify(false, ir.regpool, ir.options, s);
     }
 
-    // Reverse pass over instructions supports simple live analysis.
-    for (Instruction next, s = ir.lastInstructionInCodeOrder(); s != null; s = next) {
-      next = s.prevInstructionInCodeOrder();
+    // Pass over instructions
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
 
       switch (s.getOpcode()) {
       case REF_ADD_opcode:
