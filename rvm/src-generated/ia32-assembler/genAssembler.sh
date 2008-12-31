@@ -2948,6 +2948,14 @@ emitSSE2Op none none PSLLQ 0xF3 none none MM MM
 emitSSE2Op none none PSRLQ 0xD3 none none MM MM
 emitSSE2Op 0x66 none PSLLQ 0xF3 none
 emitSSE2Op 0x66 none PSRLQ 0xD3 none
+emitSSE2Op none none ANDPS 0x54 none
+emitSSE2Op 0x66 none ANDPD 0x54 none
+emitSSE2Op none none ANDNPS 0x55 none
+emitSSE2Op 0x66 none ANDNPD 0x55 none
+emitSSE2Op none none ORPS 0x56 none
+emitSSE2Op 0x66 none ORPD 0x56 none
+emitSSE2Op none none XORPS 0x57 none
+emitSSE2Op 0x66 none XORPD 0x57 none
 
 emitFloatMemAcc() {
     local acronym=$1

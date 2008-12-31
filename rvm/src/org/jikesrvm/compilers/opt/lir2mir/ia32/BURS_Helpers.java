@@ -12,40 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ir.Binary;
-import org.jikesrvm.compilers.opt.ir.CacheOp;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.CondMove;
-import org.jikesrvm.compilers.opt.ir.GuardedBinary;
-import org.jikesrvm.compilers.opt.ir.IfCmp;
-import org.jikesrvm.compilers.opt.ir.LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
-import org.jikesrvm.compilers.opt.ir.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.MIR_Compare;
-import org.jikesrvm.compilers.opt.ir.MIR_CompareExchange;
-import org.jikesrvm.compilers.opt.ir.MIR_CompareExchange8B;
-import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
-import org.jikesrvm.compilers.opt.ir.MIR_CondMove;
-import org.jikesrvm.compilers.opt.ir.MIR_ConvertDW2QW;
-import org.jikesrvm.compilers.opt.ir.MIR_Divide;
-import org.jikesrvm.compilers.opt.ir.MIR_Lea;
-import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Multiply;
-import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
-import org.jikesrvm.compilers.opt.ir.MIR_RDTSC;
-import org.jikesrvm.compilers.opt.ir.MIR_Set;
-import org.jikesrvm.compilers.opt.ir.MIR_TrapIf;
-import org.jikesrvm.compilers.opt.ir.MIR_Unary;
-import org.jikesrvm.compilers.opt.ir.MIR_UnaryAcc;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.Nullary;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_CMPL;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_CMPL;
@@ -53,10 +19,21 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADC;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_AND;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDNPD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDNPS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDPD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDPS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CDQ;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMP;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPEQSD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPEQSS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLESD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLESS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLTSD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLTSS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTSS2SD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCMOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCOMI;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCOMIP;
@@ -92,6 +69,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MUL;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_NEG;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_NOT;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_OR;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ORPD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ORPS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_RCR;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_RDTSC;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SAR;
@@ -110,10 +89,45 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH;
-import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.CacheOp;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.CondMove;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.LowTableSwitch;
+import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
+import org.jikesrvm.compilers.opt.ir.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.MIR_Compare;
+import org.jikesrvm.compilers.opt.ir.MIR_CompareExchange;
+import org.jikesrvm.compilers.opt.ir.MIR_CompareExchange8B;
+import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
+import org.jikesrvm.compilers.opt.ir.MIR_CondMove;
+import org.jikesrvm.compilers.opt.ir.MIR_ConvertDW2QW;
+import org.jikesrvm.compilers.opt.ir.MIR_Divide;
+import org.jikesrvm.compilers.opt.ir.MIR_Lea;
+import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
+import org.jikesrvm.compilers.opt.ir.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.MIR_Multiply;
+import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
+import org.jikesrvm.compilers.opt.ir.MIR_RDTSC;
+import org.jikesrvm.compilers.opt.ir.MIR_Set;
+import org.jikesrvm.compilers.opt.ir.MIR_TrapIf;
+import org.jikesrvm.compilers.opt.ir.MIR_Unary;
+import org.jikesrvm.compilers.opt.ir.MIR_UnaryAcc;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.Nullary;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.Prologue;
+import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.TrapIf;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
@@ -1026,6 +1040,76 @@ Operand value, boolean signExtend) {
     EMIT(s); // ComplexLIR2MIRExpansion will handle rest of the work.
   }
 
+  private static Operator SSE2_CMP_OP(ConditionOperand cond, boolean single) {
+    switch(cond.value) {
+    case ConditionOperand.CMPL_EQUAL:
+      return single ? IA32_CMPEQSS : IA32_CMPEQSD;
+    case ConditionOperand.CMPG_LESS:
+      return single ? IA32_CMPLTSS : IA32_CMPLTSD;
+    case ConditionOperand.CMPG_LESS_EQUAL:
+      return single ? IA32_CMPLESS : IA32_CMPLESD;
+    default:
+      return null;
+    }
+  }
+
+  protected final void SSE2_FCMP_FCMOV(Instruction s) {
+    Operand lhsCmp = CondMove.getVal1(s);
+    Operand rhsCmp = CondMove.getVal2(s);
+    RegisterOperand result = CondMove.getResult(s);
+    Operand falseValue = CondMove.getFalseValue(s);
+    Operand trueValue = CondMove.getTrueValue(s);
+    ConditionOperand cond = CondMove.getCond(s);
+    final boolean single = result.isFloat();
+
+    // TODO: support for the MAXSS/MAXSD instructions taking care of NaN cases
+    // find cmpOperator flipping code or operands as necessary
+    Operator cmpOperator=SSE2_CMP_OP(cond, single);
+    boolean needFlipOperands = false;
+    boolean needFlipCode = false;
+    if (cmpOperator == null) {
+      needFlipOperands = !needFlipOperands;
+      cmpOperator = SSE2_CMP_OP(cond.flipOperands(), single);
+      if (cmpOperator == null) {
+        needFlipCode = !needFlipCode;
+        cmpOperator = SSE2_CMP_OP(cond.flipCode(), single);
+        if (cmpOperator == null) {
+          needFlipOperands = !needFlipOperands;
+          cmpOperator = SSE2_CMP_OP(cond.flipOperands(), single);
+          if (VM.VerifyAssertions) VM._assert(cmpOperator != null);
+        }
+      }
+    }
+    if (needFlipOperands) {
+      Operand temp = lhsCmp;
+      lhsCmp = rhsCmp;
+      rhsCmp = temp;
+    }
+    if (needFlipCode) {
+      Operand temp = falseValue;
+      falseValue = trueValue;
+      trueValue = temp;
+    }
+    // place true value in a temporary register to be used for generation of result
+    RegisterOperand temp = regpool.makeTemp(result);
+    EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, temp, trueValue)));
+    // do compare ensuring size is >= size of result
+    if (!single && lhsCmp.isFloat()) {
+      RegisterOperand temp2 = regpool.makeTemp(result);
+      EMIT(CPOS(s, MIR_Unary.create(IA32_CVTSS2SD, temp2, rhsCmp)));
+      EMIT(CPOS(s, MIR_Unary.create(IA32_CVTSS2SD, result.copyRO(), lhsCmp)));
+      rhsCmp = temp2;
+    } else {
+      if (!result.similar(lhsCmp)) {
+        EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, result.copyRO(), lhsCmp)));
+      }
+    }
+    EMIT(MIR_BinaryAcc.mutate(s, cmpOperator, result, rhsCmp));
+    // result contains all 1s or 0s, use masks and OR to perform conditional move
+    EMIT(CPOS(s, MIR_Move.create(single ? IA32_ANDPS : IA32_ANDPD, temp.copyRO(), result.copyRO())));
+    EMIT(CPOS(s, MIR_Move.create(single ? IA32_ANDNPS : IA32_ANDNPD, result.copyRO(), falseValue)));
+    EMIT(CPOS(s, MIR_Move.create(single ? IA32_ORPS : IA32_ORPD, result.copyRO(), temp.copyRO())));
+  }
   /**
    * Expansion of SSE2 floating point constant loads
    */
@@ -2932,7 +3016,11 @@ Operand value, boolean signExtend) {
             // result = cond ? -1 : 0
             EMIT(CPOS(s, MIR_BinaryAcc.mutate(s, IA32_SBB, result, result.copyRO())));
             if (true_const - false_const != -1) {
-              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(true_const - false_const))));
+              if (true_const - false_const == 1) {
+                EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+              } else {
+                EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(true_const - false_const))));
+              }
             }
             if (false_const != 0) {
               EMIT(MIR_BinaryAcc.create(IA32_ADD, result.copyRO(), IC(false_const)));
@@ -2942,7 +3030,11 @@ Operand value, boolean signExtend) {
             // result = cond ? 0 : -1
             EMIT(CPOS(s, MIR_BinaryAcc.mutate(s, IA32_SBB, result, result.copyRO())));
             if (false_const - true_const != -1) {
-              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(false_const - true_const))));
+              if (false_const - true_const == 1) {
+                EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+              } else {
+                EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(false_const - true_const))));
+              }
             }
             if (true_const != 0) {
               EMIT(MIR_BinaryAcc.create(IA32_ADD, result, IC(true_const)));

@@ -437,6 +437,25 @@ EMIT_INSTRUCTION
 IfCmp.getCond(P(p)).flipOperands(); \
 SSE2_IFCMP(IA32_UCOMISD, P(p), IfCmp.getClearVal2(P(p)), consumeMO());
 
+#####
+# FCMP_CMOV
+#####
+r: FCMP_CMOV(r, OTHER_OPERAND(r, any))
+13
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(CondMove.getVal1(P(p)).isFloat() ? IA32_UCOMISS : IA32_UCOMISD, \
+     CondMove.getVal1(P(p)), CondMove.getVal2(P(p))))); \
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+#####
+# FCMP_FCMOV
+#####
+r: FCMP_FCMOV(r, OTHER_OPERAND(r, any))
+13
+EMIT_INSTRUCTION
+SSE2_FCMP_FCMOV(P(p));
+
 ######
 # Long operations that can use wider registers
 #####

@@ -219,16 +219,42 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
       }
       break;
 
+      // Instructions that require 16byte alignment (not guaranteed by our
+      // spills) must be forced to always use registers
+      case IA32_ANDPS_opcode:
+      case IA32_ANDNPS_opcode:
+      case IA32_ORPS_opcode:
+      case IA32_XORPS_opcode:
+      case IA32_ANDPD_opcode:
+      case IA32_ANDNPD_opcode:
+      case IA32_ORPD_opcode:
+      case IA32_XORPD_opcode:
+        return true;
+
       case IA32_ADDSS_opcode:
+      case IA32_CMPEQSS_opcode:
+      case IA32_CMPLTSS_opcode:
+      case IA32_CMPLESS_opcode:
+      case IA32_CMPUNORDSS_opcode:
+      case IA32_CMPNESS_opcode:
+      case IA32_CMPNLTSS_opcode:
+      case IA32_CMPNLESS_opcode:
+      case IA32_CMPORDSS_opcode:
       case IA32_DIVSS_opcode:
       case IA32_MULSS_opcode:
       case IA32_SUBSS_opcode:
-      case IA32_XORPS_opcode:
       case IA32_ADDSD_opcode:
+      case IA32_CMPEQSD_opcode:
+      case IA32_CMPLTSD_opcode:
+      case IA32_CMPLESD_opcode:
+      case IA32_CMPUNORDSD_opcode:
+      case IA32_CMPNESD_opcode:
+      case IA32_CMPNLTSD_opcode:
+      case IA32_CMPNLESD_opcode:
+      case IA32_CMPORDSD_opcode:
       case IA32_DIVSD_opcode:
       case IA32_MULSD_opcode:
-      case IA32_SUBSD_opcode:
-      case IA32_XORPD_opcode: {
+      case IA32_SUBSD_opcode: {
         RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
         if (op.getRegister() == r) return true;
       }

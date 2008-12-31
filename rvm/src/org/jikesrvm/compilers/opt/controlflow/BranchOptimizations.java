@@ -12,30 +12,13 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ir.BooleanCmp;
-import org.jikesrvm.compilers.opt.ir.CondMove;
-import org.jikesrvm.compilers.opt.ir.Goto;
-import org.jikesrvm.compilers.opt.ir.IfCmp;
-import org.jikesrvm.compilers.opt.ir.IfCmp2;
-import org.jikesrvm.compilers.opt.ir.InlineGuard;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
 import static org.jikesrvm.compilers.opt.ir.IRTools.CPOS;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
-import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_NOT;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_MOVE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_2BYTE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_2SHORT_opcode;
@@ -67,6 +50,27 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_SUB_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_USHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_XOR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
+
+import java.util.HashMap;
+import java.util.HashSet;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.BasicBlock;
+import org.jikesrvm.compilers.opt.ir.BooleanCmp;
+import org.jikesrvm.compilers.opt.ir.CondMove;
+import org.jikesrvm.compilers.opt.ir.Goto;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.IfCmp2;
+import org.jikesrvm.compilers.opt.ir.InlineGuard;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Return;
 import org.jikesrvm.compilers.opt.ir.Unary;
@@ -674,44 +678,64 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * @return true if the transformation succeeds, false otherwise
    */
   private boolean generateCondMove(IR ir, BasicBlock bb, Instruction cb) {
+    final boolean VERBOSE=false;
     if (!VM.BuildForIA32) return false;
     if (!IfCmp.conforms(cb)) return false;
 
+    if (VERBOSE) System.out.println("CondMove: Looking to optimize "+cb);
+    // Don't generate CMOVs for branches that can be folded.
+    if (IfCmp.getVal1(cb).isConstant() && IfCmp.getVal2(cb).isConstant()) {
+      if (VERBOSE) System.out.println("CondMove: fail - could be folded");
+      return false;
+    }
+
     // see if bb is the root of an if-then-else.
     Diamond diamond = Diamond.buildDiamond(bb);
-    if (diamond == null) return false;
+    if (diamond == null) {
+      if (VERBOSE) System.out.println("CondMove: fail - no diamond");
+      return false;
+    }
     BasicBlock taken = diamond.getTaken();
     BasicBlock notTaken = diamond.getNotTaken();
 
     // do not perform the transformation if either branch of the diamond
     // has a taboo instruction (eg., a PEI, store or divide).
-    if (taken != null && hasCMTaboo(taken)) return false;
-    if (notTaken != null && hasCMTaboo(notTaken)) return false;
+    if (taken != null && hasCMTaboo(taken)) {
+      if (VERBOSE) System.out.println("CondMove: fail - taken branch has taboo instruction");
+      return false;
+    }
+    if (notTaken != null && hasCMTaboo(notTaken)) {
+      if (VERBOSE) System.out.println("CondMove: fail - not taken branch has taboo instruction");
+      return false;
+    }
 
     // Do not generate when we don't know the branch probability or
     // when branch probability is high. CMOVs reduce performance of
     // the out-of-order engine (Intel Optimization Guide -
     // Assembly/Compiler Coding Rule 2)
     BranchProfileOperand profile = IfCmp.getBranchProfile(cb);
-    if (!VM.runningVM ||
-        (profile.takenProbability >= BranchProfileOperand.LIKELY) ||
+    if ((profile.takenProbability >= BranchProfileOperand.LIKELY) ||
         (profile.takenProbability <= BranchProfileOperand.UNLIKELY)) {
+      if (VERBOSE)
+        System.out.println("CondMove: fail - branch could be well predicted by branch predictor: "+
+            profile.takenProbability);
       return false;
     }
 
     // if we must generate FCMP, make sure the condition code is OK
     ConditionOperand cond = IfCmp.getCond(cb);
     if (cond.isFLOATINGPOINT()) {
-      if (VM.BuildForSSE2Full) {
-        // No conditional FP moves with SSE2
-        return false;
-      }
       if (!fpConditionOK(cond)) {
         // Condition not OK, but maybe if we flip the operands
         if (!fpConditionOK(cond.flipOperands())) {
-          // still not ok so flip operands back and give up
+          // still not ok so flip operands back
           cond.flipOperands();
-          return false;
+          // give up or for SSE2 check if this is a floating point compare
+          // controlling just floating point moves
+          if (!VM.BuildForSSE2Full || hasFloatingPointDef(taken, true) || hasFloatingPointDef(notTaken, true)) {
+            if (VERBOSE) System.out.println("CondMove: fail - fp condition not OK: "+cond);
+            return false;
+          }
         } else {
           // flip operands
           Operand val1 = IfCmp.getVal1(cb);
@@ -722,16 +746,16 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
       }
     }
 
-    // Can only generate FMOV instructions for FP and unsigned int compares
-    if (!cond.isFLOATINGPOINT() || !cond.isUNSIGNED()) {
-      if (hasFloatingPointDef(taken) || hasFloatingPointDef(notTaken)) {
-        return false;
+    if (!cond.isFLOATINGPOINT()) {
+      // Can only generate moves of floating point values for floating point
+      // compares or for unsigned compares in x87
+      if (VM.BuildForSSE2Full || !cond.isUNSIGNED()) {
+        if (hasFloatingPointDef(taken, false) || hasFloatingPointDef(notTaken, false)) {
+          if (VERBOSE)
+            System.out.println("CondMove: fail - not allowed integer condition controlling floating conditional move");
+          return false;
+        }
       }
-    }
-
-    // Don't generate CMOVs for branches that can be folded.
-    if (IfCmp.getVal1(cb).isConstant() && IfCmp.getVal2(cb).isConstant()) {
-      return false;
     }
 
     // For now, do not generate CMOVs for longs.
@@ -750,7 +774,10 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     int shortestCost = Math.min(takenCost, notTakenCost);
     int xformCost = 2 * (takenCost + notTakenCost);
     int k = ir.options.CONTROL_COND_MOVE_CUTOFF;
-    if (xformCost - shortestCost > k) return false;
+    if (xformCost - shortestCost > k) {
+      if (VERBOSE) System.out.println("CondMove: fail - cost too high");
+      return false;
+    }
 
     // Perform the transformation!
     doCondMove(ir, diamond, cb);
@@ -769,45 +796,48 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     // left == right         1      0       0
     // UNORDERED             1      1       1
     switch (c.value) {
-      case ConditionOperand.CMPL_EQUAL:
-        return false; // (ZF == 1) but ordered
-      case ConditionOperand.CMPL_NOT_EQUAL:
-        return false; // (ZF == 0) but unordered
-      case ConditionOperand.CMPG_LESS:
-        return false; // (CF == 1) but ordered
-      case ConditionOperand.CMPG_GREATER_EQUAL:
-        return false; // (CF == 0) but unordered
-      case ConditionOperand.CMPG_LESS_EQUAL:
-        return false; // (CF == 1 || ZF == 1) but ordered
-      case ConditionOperand.CMPG_GREATER:
-        return false; // (CF == 0 && ZF == 0) but unordered
+    case ConditionOperand.CMPL_EQUAL:
+      return false; // (ZF == 1) but ordered
+    case ConditionOperand.CMPL_NOT_EQUAL:
+      return false; // (ZF == 0) but unordered
+    case ConditionOperand.CMPG_LESS:
+      return false; // (CF == 1) but ordered
+    case ConditionOperand.CMPG_GREATER_EQUAL:
+      return false; // (CF == 0) but unordered
+    case ConditionOperand.CMPG_LESS_EQUAL:
+      return false; // (CF == 1 || ZF == 1) but ordered
+    case ConditionOperand.CMPG_GREATER:
+      return false; // (CF == 0 && ZF == 0) but unordered
 
-      case ConditionOperand.CMPL_GREATER:
-        return true; // (CF == 0 && ZF == 0) and ordered
-      case ConditionOperand.CMPL_LESS_EQUAL:
-        return true; // (CF == 1 || ZF == 1) and unordered
-      case ConditionOperand.CMPL_GREATER_EQUAL:
-        return true; // (CF == 0) and ordered
-      case ConditionOperand.CMPL_LESS:
-        return true; // (CF == 1) and unordered
-      default:
-        OptimizingCompilerException.UNREACHABLE();
-        return false; // keep jikes happy
+    case ConditionOperand.CMPL_GREATER:
+      return true; // (CF == 0 && ZF == 0) and ordered
+    case ConditionOperand.CMPL_LESS_EQUAL:
+      return true; // (CF == 1 || ZF == 1) and unordered
+    case ConditionOperand.CMPL_GREATER_EQUAL:
+      return true; // (CF == 0) and ordered
+    case ConditionOperand.CMPL_LESS:
+      return true; // (CF == 1) and unordered
+    default:
+      OptimizingCompilerException.UNREACHABLE();
+    return false; // keep jikes happy
     }
   }
 
   /**
    * Do any of the instructions in a basic block define a floating-point
    * register?
+   *
+   * @param bb basic block to search
+   * @param invert invert the sense of the search
    */
-  private boolean hasFloatingPointDef(BasicBlock bb) {
+  private static boolean hasFloatingPointDef(BasicBlock bb, boolean invert) {
     if (bb == null) return false;
     for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       for (OperandEnumeration d = s.getDefs(); d.hasMoreElements();) {
         Operand def = d.nextElement();
         if (def.isRegister()) {
-          if (def.asRegister().getRegister().isFloatingPoint()) return true;
+          if (def.asRegister().getRegister().isFloatingPoint() != invert) return true;
         }
       }
     }
@@ -851,6 +881,8 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
       switch (s.operator.opcode) {
         case INT_MOVE_opcode:
         case REF_MOVE_opcode:
+        case DOUBLE_MOVE_opcode:
+        case FLOAT_MOVE_opcode:
         case INT_ADD_opcode:
         case REF_ADD_opcode:
         case INT_SUB_opcode:

@@ -2085,39 +2085,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   ////////////////////////////////////////////
 
   /**
-   * XOR XMM register with other XMM register treating sub-words as floats
-   * <PRE>
-   * dstReg ^= srcReg
-   * </PRE>
-   */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  public final void emitXORPS_Reg_Reg(XMM dstReg, XMM srcReg) {
-    int miStart = mi;
-    generateREXprefix(false, srcReg, null, dstReg);
-    setMachineCodes(mi++, (byte) 0x0F);
-    setMachineCodes(mi++, (byte) 0x57);
-    emitRegRegOperands(dstReg, srcReg);
-    if (lister != null) lister.RR(miStart, "XORPS", dstReg, srcReg);
-  }
-
-  /**
-   * XOR XMM register with other XMM register treating sub-words as doubles
-   * <PRE>
-   * dstReg ^= srcReg
-   * </PRE>
-   */
-  @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
-  public final void emitXORPD_Reg_Reg(XMM dstReg, XMM srcReg) {
-    int miStart = mi;
-    generateREXprefix(false, srcReg, null, dstReg);
-    setMachineCodes(mi++, (byte) 0x66);
-    setMachineCodes(mi++, (byte) 0x0F);
-    setMachineCodes(mi++, (byte) 0x57);
-    emitRegRegOperands(dstReg, srcReg);
-    if (lister != null) lister.RR(miStart, "XORPD", dstReg, srcReg);
-  }
-
-  /**
    * Empty MMX technology state
    * <PRE>
    * emms
