@@ -448,13 +448,80 @@ EMIT(CPOS(P(p), MIR_Compare.create(CondMove.getVal1(P(p)).isFloat() ? IA32_UCOMI
 CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
+r: FCMP_CMOV(r, OTHER_OPERAND(float_load, any))
+13+15
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISS, CondMove.getVal1(P(p)), consumeMO()))); \
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: FCMP_CMOV(r, OTHER_OPERAND(double_load, any))
+13+15
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISD, CondMove.getVal1(P(p)), consumeMO()))); \
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: FCMP_CMOV(float_load, OTHER_OPERAND(r, any))
+13+15
+EMIT_INSTRUCTION
+CondMove.getCond(P(p)).flipOperands(); \
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISS, CondMove.getVal1(P(p)), consumeMO()))); \
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: FCMP_CMOV(double_load, OTHER_OPERAND(r, any))
+13+15
+EMIT_INSTRUCTION
+CondMove.getCond(P(p)).flipOperands(); \
+EMIT(CPOS(P(p), MIR_Compare.create(IA32_UCOMISD, CondMove.getVal1(P(p)), consumeMO()))); \
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNED(), \
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
 #####
 # FCMP_FCMOV
 #####
 r: FCMP_FCMOV(r, OTHER_OPERAND(r, any))
 13*4
 EMIT_INSTRUCTION
-SSE2_FCMP_FCMOV(P(p));
+SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
+                CondMove.getCond(P(p)), CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+r: FCMP_FCMOV(r, OTHER_OPERAND(r, OTHER_OPERAND(r, float_load)))
+15+13*3
+EMIT_INSTRUCTION
+SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
+                CondMove.getCond(P(p)), CondMove.getTrueValue(P(p)), consumeMO());
+
+r: FCMP_FCMOV(r, OTHER_OPERAND(r, OTHER_OPERAND(r, double_load)))
+15+13*3
+EMIT_INSTRUCTION
+SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
+                CondMove.getCond(P(p)), CondMove.getTrueValue(P(p)), consumeMO());
+
+r: FCMP_FCMOV(r, OTHER_OPERAND(r, OTHER_OPERAND(float_load, r)))
+15+13*3
+EMIT_INSTRUCTION
+SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
+                CondMove.getCond(P(p)), consumeMO(), CondMove.getFalseValue(P(p)));
+
+r: FCMP_FCMOV(r, OTHER_OPERAND(r, OTHER_OPERAND(double_load, r)))
+15+13*3
+EMIT_INSTRUCTION
+SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), CondMove.getVal2(P(p)), \
+                CondMove.getCond(P(p)), consumeMO(), CondMove.getFalseValue(P(p)));
+
+r: FCMP_FCMOV(r, OTHER_OPERAND(float_load, any))
+SSE2_CMP_OP(CondMove.getCond(P(p)), true) != null ? 15+13*3 : INFINITE
+EMIT_INSTRUCTION
+SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), consumeMO(), \
+                CondMove.getCond(P(p)), CondMove.getFalseValue(P(p)), CondMove.getTrueValue(P(p)));
+
+r: FCMP_FCMOV(r, OTHER_OPERAND(double_load, any))
+SSE2_CMP_OP(CondMove.getCond(P(p)), false) != null ? 15+13*3 : INFINITE
+EMIT_INSTRUCTION
+SSE2_FCMP_FCMOV(P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)), consumeMO(), \
+                CondMove.getCond(P(p)), CondMove.getFalseValue(P(p)), CondMove.getTrueValue(P(p)));
 
 #####
 # Absolute

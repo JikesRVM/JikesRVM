@@ -1063,7 +1063,7 @@ Operand value, boolean signExtend) {
     EMIT(s); // ComplexLIR2MIRExpansion will handle rest of the work.
   }
 
-  private static Operator SSE2_CMP_OP(ConditionOperand cond, boolean single) {
+  protected static Operator SSE2_CMP_OP(ConditionOperand cond, boolean single) {
     switch(cond.value) {
     case ConditionOperand.CMPL_EQUAL:
       return single ? IA32_CMPEQSS : IA32_CMPEQSD;
@@ -1076,29 +1076,25 @@ Operand value, boolean signExtend) {
     }
   }
 
-  protected final void SSE2_FCMP_FCMOV(Instruction s) {
-    Operand lhsCmp = CondMove.getVal1(s);
-    Operand rhsCmp = CondMove.getVal2(s);
-    RegisterOperand result = CondMove.getResult(s);
-    Operand falseValue = CondMove.getFalseValue(s);
-    Operand trueValue = CondMove.getTrueValue(s);
-    ConditionOperand cond = CondMove.getCond(s);
-    final boolean single = result.isFloat();
+  protected final void SSE2_FCMP_FCMOV(Instruction s, RegisterOperand result, Operand lhsCmp, Operand rhsCmp,
+      ConditionOperand cond, Operand trueValue, Operand falseValue) {
+    final boolean singleResult = result.isFloat();
+    final boolean singleCmp = lhsCmp.isFloat();
 
     // TODO: support for the MAXSS/MAXSD instructions taking care of NaN cases
     // find cmpOperator flipping code or operands as necessary
-    Operator cmpOperator=SSE2_CMP_OP(cond, single);
+    Operator cmpOperator=SSE2_CMP_OP(cond, singleCmp);
     boolean needFlipOperands = false;
     boolean needFlipCode = false;
     if (cmpOperator == null) {
       needFlipOperands = !needFlipOperands;
-      cmpOperator = SSE2_CMP_OP(cond.flipOperands(), single);
+      cmpOperator = SSE2_CMP_OP(cond.flipOperands(), singleCmp);
       if (cmpOperator == null) {
         needFlipCode = !needFlipCode;
-        cmpOperator = SSE2_CMP_OP(cond.flipCode(), single);
+        cmpOperator = SSE2_CMP_OP(cond.flipCode(), singleCmp);
         if (cmpOperator == null) {
           needFlipOperands = !needFlipOperands;
-          cmpOperator = SSE2_CMP_OP(cond.flipOperands(), single);
+          cmpOperator = SSE2_CMP_OP(cond.flipOperands(), singleCmp);
           if (VM.VerifyAssertions) VM._assert(cmpOperator != null);
         }
       }
@@ -1115,23 +1111,24 @@ Operand value, boolean signExtend) {
     }
     // place true value in a temporary register to be used for generation of result
     RegisterOperand temp = regpool.makeTemp(result);
-    EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, temp, trueValue)));
+    EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_MOVSS : IA32_MOVSD, temp, trueValue)));
     // do compare ensuring size is >= size of result
-    if (!single && lhsCmp.isFloat()) {
+    if (!singleResult && singleCmp) {
       RegisterOperand temp2 = regpool.makeTemp(result);
       EMIT(CPOS(s, MIR_Unary.create(IA32_CVTSS2SD, temp2, rhsCmp)));
       EMIT(CPOS(s, MIR_Unary.create(IA32_CVTSS2SD, result.copyRO(), lhsCmp)));
       rhsCmp = temp2;
+      cmpOperator = SSE2_CMP_OP(cond, false);
     } else {
       if (!result.similar(lhsCmp)) {
-        EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, result.copyRO(), lhsCmp)));
+        EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_MOVSS : IA32_MOVSD, result.copyRO(), lhsCmp)));
       }
     }
     EMIT(MIR_BinaryAcc.mutate(s, cmpOperator, result, rhsCmp));
     // result contains all 1s or 0s, use masks and OR to perform conditional move
-    EMIT(CPOS(s, MIR_Move.create(single ? IA32_ANDPS : IA32_ANDPD, temp.copyRO(), result.copyRO())));
-    EMIT(CPOS(s, MIR_Move.create(single ? IA32_ANDNPS : IA32_ANDNPD, result.copyRO(), falseValue)));
-    EMIT(CPOS(s, MIR_Move.create(single ? IA32_ORPS : IA32_ORPD, result.copyRO(), temp.copyRO())));
+    EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_ANDPS : IA32_ANDPD, temp.copyRO(), result.copyRO())));
+    EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_ANDNPS : IA32_ANDNPD, result.copyRO(), falseValue)));
+    EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_ORPS : IA32_ORPD, result.copyRO(), temp.copyRO())));
   }
 
   protected final boolean IS_MATERIALIZE_ZERO(Instruction s) {
