@@ -431,7 +431,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
       innermostElementType = elementType;
     }
     innermostElementTypeDimension = innermostElementType.dimension;
-    if (VM.BuildForIA32 && this == RVMArray.CodeArrayType) {
+    if (VM.BuildForIA32 && typeRef == TypeReference.CodeArray) {
       this.alignment = 16;
     } else if (BYTES_IN_DOUBLE != BYTES_IN_ADDRESS) {
       // Desired alignment on 32bit architectures
