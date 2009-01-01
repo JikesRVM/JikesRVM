@@ -949,9 +949,16 @@ public class BootImageWriter extends BootImageWriterMessages
     //
     if (verbose >= 1) say("copying jtoc");
     // Pointer to middle of JTOC
-    Address jtocImageAddress = Address.zero();
+    Address jtocImageAddress = Address.max();
     try {
-      jtocImageAddress = copyToBootImage(Statics.getSlotsAsIntArray(), false, Address.max(), null, false);
+      if (VM.BuildForIA32) {
+        // Force 16byte alignment of the JTOC on Intel
+        int[] slots = Statics.getSlotsAsIntArray();
+        jtocImageAddress = bootImage.allocateArray(RVMArray.IntArray, slots.length, false, 0, 16);
+        BootImageMap.Entry jtocEntry = BootImageMap.findOrCreateEntry(slots);
+        jtocEntry.imageAddress = jtocImageAddress;
+      }
+      jtocImageAddress = copyToBootImage(Statics.getSlotsAsIntArray(), false, jtocImageAddress, null, false);
       if (jtocImageAddress.EQ(OBJECT_NOT_PRESENT)) {
         fail("can't copy jtoc");
       }
@@ -1374,14 +1381,14 @@ public class BootImageWriter extends BootImageWriterMessages
       // allocations and then reset the boot image allocator.
       BootRecord bootRecord = BootRecord.the_boot_record;
       RVMClass rvmBRType = getRvmType(bootRecord.getClass()).asClass();
-      RVMArray intArrayType =  RVMArray.getPrimitiveArrayType(10);
+      RVMArray intArrayType =  RVMArray.IntArray;
       // allocate storage for boot record
       bootImage.allocateDataStorage(rvmBRType.getInstanceSize(),
                                     ObjectModel.getAlignment(rvmBRType),
                                     ObjectModel.getOffsetForAlignment(rvmBRType, false));
-      // allocate storeage for JTOC
+      // allocate storage for JTOC (force 16byte alignment of the JTOC on Intel)
       Address jtocAddress = bootImage.allocateDataStorage(intArrayType.getInstanceSize(0),
-                                                          ObjectModel.getAlignment(intArrayType),
+                                                          VM.BuildForIA32 ? 16 : ObjectModel.getAlignment(intArrayType),
                                                           ObjectModel.getOffsetForAlignment(intArrayType, false));
       bootImage.resetAllocator();
       bootRecord.tocRegister = jtocAddress.plus(intArrayType.getInstanceSize(Statics.middleOfTable));

@@ -254,6 +254,22 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param array RVMArray object of array being allocated.
    * @param numElements number of elements
+   * @param needsIdentityHash needs an identity hash value
+   * @param identityHashValue the value for the identity hash
+   * @param alignment special alignment value
+   * @return address of object within bootimage
+   */
+  public Address allocateArray(RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue, int alignment) {
+    numObjects++;
+    BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
+    return ObjectModel.allocateArray(this, array, numElements, needsIdentityHash, identityHashValue, alignment);
+  }
+
+  /**
+   * Allocate an array object.
+   *
+   * @param array RVMArray object of array being allocated.
+   * @param numElements number of elements
    * @return address of object within bootimage
    */
   public Address allocateCode(RVMArray array, int numElements) {

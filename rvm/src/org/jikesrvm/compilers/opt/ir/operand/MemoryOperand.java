@@ -193,6 +193,9 @@ public final class MemoryOperand extends Operand {
       case 8:
         addr += ">QW";
         break;
+      case 16:
+        addr += ">PARAGRAPH";
+        break;
       default:
         OptimizingCompilerException.UNREACHABLE();
     }

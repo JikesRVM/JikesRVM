@@ -808,6 +808,24 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    */
   @Interruptible
   public static Address allocateArray(BootImageInterface bootImage, RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue) {
+    int align = getAlignment(array);
+    return allocateArray(bootImage, array, numElements, needsIdentityHash, identityHashValue, align);
+  }
+
+  /**
+   * Allocate and initialize space in the bootimage (at bootimage writing time)
+   * to be an uninitialized instance of the (array) type specified by array.
+   * NOTE: TIB is set by BootimageWriter2
+   *
+   * @param bootImage the bootimage to put the object in
+   * @param array RVMArray object of array being allocated.
+   * @param numElements number of elements
+   * @param needsIdentityHash needs an identity hash value
+   * @param identityHashValue the value for the identity hash
+   * @return Address of object in bootimage (in bytes)
+   */
+  @Interruptible
+  public static Address allocateArray(BootImageInterface bootImage, RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue, int align) {
     TIB tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     if (needsIdentityHash) {
@@ -819,7 +837,6 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
         throw new Error("Unsupported allocation");
       }
     }
-    int align = getAlignment(array);
     int offset = getOffsetForAlignment(array, needsIdentityHash);
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
     Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size, numElements, needsIdentityHash, identityHashValue);
