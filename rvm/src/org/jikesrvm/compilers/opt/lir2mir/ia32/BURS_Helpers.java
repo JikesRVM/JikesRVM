@@ -154,6 +154,7 @@ import org.jikesrvm.compilers.opt.lir2mir.BURS_MemOp_Helpers;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -175,6 +176,30 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   /** Constant log2(10), supported as an x87 constant */
   private static final double L2T = Double
       .parseDouble("3.3219280948873623478083405569094566090");
+
+  /** Mask to flip sign bits in XMM registers */
+  private static final Offset floatSignMask =
+    VM.BuildForSSE2Full ?
+      Offset.fromIntSignExtend(Statics.findOrCreate16ByteSizeLiteral(0x8000000080000000L, 0x8000000080000000L)) :
+      Offset.zero();
+
+  /** Mask to flip sign bits in XMM registers */
+  private static final Offset doubleSignMask =
+    VM.BuildForSSE2Full ?
+      Offset.fromIntSignExtend(Statics.findOrCreate16ByteSizeLiteral(0x8000000000000000L, 0x8000000000000000L)) :
+      Offset.zero();
+
+  /** Mask to abs an XMM registers */
+  private static final Offset floatAbsMask =
+    VM.BuildForSSE2Full ?
+      Offset.fromIntSignExtend(Statics.findOrCreate16ByteSizeLiteral(0x7FFFFFFF7FFFFFFFL, 0x7FFFFFFF7FFFFFFFL)) :
+      Offset.zero();
+
+  /** Mask to abs an XMM registers */
+  private static final Offset doubleAbsMask =
+    VM.BuildForSSE2Full ?
+      Offset.fromIntSignExtend(Statics.findOrCreate16ByteSizeLiteral(0x7FFFFFFFFFFFFFFFL, 0x7FFFFFFFFFFFFFFFL)) :
+      Offset.zero();
 
   /**
    * When emitting certain rules this holds the condition code state to be
@@ -1011,17 +1036,15 @@ Operand value, boolean signExtend) {
   /**
    * Expansion of SSE2 negation ops
    */
-  protected final void SSE2_NEG(Operator xorOp, Operator subOp, Instruction s, Operand result, Operand value) {
+  protected final void SSE2_NEG(boolean single, Instruction s, Operand result, Operand value) {
     if(VM.VerifyAssertions) VM._assert(result.isRegister());
     if (!result.similar(value)) {
-      EMIT(CPOS(s, MIR_BinaryAcc.create(xorOp, result.copy(), result.copy())));
-      EMIT(MIR_BinaryAcc.mutate(s, subOp, result, value));
-    } else {
-      RegisterOperand temp = regpool.makeTemp(value.getType());
-      EMIT(CPOS(s, MIR_BinaryAcc.create(xorOp, temp.copyRO(), temp)));
-      EMIT(MIR_BinaryAcc.mutate(s, subOp, temp.copyRO(), value));
-      EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), result, temp.copyRO())));
+      EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, result.copy(), value)));
     }
+    Offset signMaskOffset = single ? floatSignMask : doubleSignMask;
+    EMIT(MIR_BinaryAcc.mutate(s, single ? IA32_XORPS : IA32_XORPD, result,
+        MemoryOperand.D(Magic.getTocPointer().plus(signMaskOffset), PARAGRAPH,
+            new LocationOperand(signMaskOffset), TG())));
   }
 
   /**
@@ -1110,6 +1133,57 @@ Operand value, boolean signExtend) {
     EMIT(CPOS(s, MIR_Move.create(single ? IA32_ANDNPS : IA32_ANDNPD, result.copyRO(), falseValue)));
     EMIT(CPOS(s, MIR_Move.create(single ? IA32_ORPS : IA32_ORPD, result.copyRO(), temp.copyRO())));
   }
+
+  protected final boolean IS_MATERIALIZE_ZERO(Instruction s) {
+    Operand val = Binary.getVal2(s); // float or double value
+    return (val.isFloatConstant() && Float.floatToRawIntBits(val.asFloatConstant().value) == 0) ||
+           (val.isDoubleConstant() && Double.doubleToRawLongBits(val.asDoubleConstant().value) == 0L);
+  }
+
+  protected final boolean SIMILAR_REGISTERS(Operand... ops) {
+    Operand last = null;
+    for (Operand op : ops) {
+      if (!op.isRegister() || (last != null && !op.similar(last))) {
+        return false;
+      }
+      last = op;
+    }
+    return true;
+  }
+
+  protected final boolean SSE2_IS_GT_OR_GE(ConditionOperand cond) {
+    switch(cond.value) {
+    case ConditionOperand.CMPG_GREATER:
+    case ConditionOperand.CMPG_GREATER_EQUAL:
+    case ConditionOperand.CMPL_GREATER:
+    case ConditionOperand.CMPL_GREATER_EQUAL:
+      return true;
+    }
+    return false;
+  }
+
+  protected final boolean SSE2_IS_LT_OR_LE(ConditionOperand cond) {
+    switch(cond.value) {
+    case ConditionOperand.CMPG_LESS:
+    case ConditionOperand.CMPG_LESS_EQUAL:
+    case ConditionOperand.CMPL_LESS:
+    case ConditionOperand.CMPL_LESS_EQUAL:
+      return true;
+    }
+    return false;
+  }
+
+  protected final void SSE2_ABS(boolean single, Instruction s, Operand result, Operand value) {
+    if(VM.VerifyAssertions) VM._assert(result.isRegister());
+    if (!result.similar(value)) {
+      EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, result.copy(), value)));
+    }
+    Offset absMaskOffset = single ? floatAbsMask : doubleAbsMask;
+    EMIT(MIR_BinaryAcc.mutate(s, single ? IA32_ANDPS : IA32_ANDPD, result,
+        MemoryOperand.D(Magic.getTocPointer().plus(absMaskOffset), PARAGRAPH,
+            new LocationOperand(absMaskOffset), TG())));
+  }
+
   /**
    * Expansion of SSE2 floating point constant loads
    */

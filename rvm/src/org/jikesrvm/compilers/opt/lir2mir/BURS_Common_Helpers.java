@@ -276,6 +276,10 @@ public abstract class BURS_Common_Helpers extends PhysicalRegisterTools {
     return p.child2.child2.child1.getInstruction();
   }
 
+  protected static Instruction PRRR(BURS_TreeNode p) {
+    return p.child2.child2.child2.getInstruction();
+  }
+
   protected static int V(BURS_TreeNode p) {
     return ((BURS_IntConstantTreeNode) p).value;
   }

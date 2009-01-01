@@ -142,12 +142,12 @@ SSE2_NCOP(IA32_DIVSD, P(p), Binary.getResult(P(p)), Binary.getVal1(P(p)), consum
 r: FLOAT_NEG(r)
 26
 EMIT_INSTRUCTION
-SSE2_NEG(IA32_XORPS, IA32_SUBSS, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+SSE2_NEG(true, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
 r: DOUBLE_NEG(r)
 26
 EMIT_INSTRUCTION
-SSE2_NEG(IA32_XORPD, IA32_SUBSD, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+SSE2_NEG(false, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
 #####
 # SQRT
@@ -441,7 +441,7 @@ SSE2_IFCMP(IA32_UCOMISD, P(p), IfCmp.getClearVal2(P(p)), consumeMO());
 # FCMP_CMOV
 #####
 r: FCMP_CMOV(r, OTHER_OPERAND(r, any))
-13
+13*2
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), MIR_Compare.create(CondMove.getVal1(P(p)).isFloat() ? IA32_UCOMISS : IA32_UCOMISD, \
      CondMove.getVal1(P(p)), CondMove.getVal2(P(p))))); \
@@ -452,9 +452,68 @@ CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)).translateUNSIGNE
 # FCMP_FCMOV
 #####
 r: FCMP_FCMOV(r, OTHER_OPERAND(r, any))
-13
+13*4
 EMIT_INSTRUCTION
 SSE2_FCMP_FCMOV(P(p));
+
+#####
+# Absolute
+#####
+# x > 0 ? x : -x
+r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, FLOAT_NEG(r))))
+IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
+SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
+EMIT_INSTRUCTION
+SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+
+# x < 0 ? -x : x
+r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(FLOAT_NEG(r), r)))
+IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
+SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
+EMIT_INSTRUCTION
+SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+
+# 0 > x ? -x : x
+r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(FLOAT_NEG(r), r)))
+IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
+SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
+EMIT_INSTRUCTION
+SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+
+# 0 < x ? x : -x
+r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(r, FLOAT_NEG(r))))
+IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
+SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
+EMIT_INSTRUCTION
+SSE2_ABS(true, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+
+# x > 0 ? x : -x
+r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, DOUBLE_NEG(r))))
+IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
+SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
+EMIT_INSTRUCTION
+SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+
+# x < 0 ? -x : x
+r: FCMP_FCMOV(r, OTHER_OPERAND(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(DOUBLE_NEG(r), r)))
+IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
+SIMILAR_REGISTERS(CondMove.getVal1(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
+EMIT_INSTRUCTION
+SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal1(P(p)));
+
+# 0 > x ? -x : x
+r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(DOUBLE_NEG(r), r)))
+IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_GT_OR_GE(CondMove.getCond(P(p))) && \
+SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getFalseValue(P(p)), Unary.getVal(PRRL(p))) ? 11 : INFINITE 
+EMIT_INSTRUCTION
+SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
+
+# 0 < x ? x : -x
+r: FCMP_FCMOV(MATERIALIZE_FP_CONSTANT(INT_CONSTANT), OTHER_OPERAND(r, OTHER_OPERAND(r, DOUBLE_NEG(r))))
+IS_MATERIALIZE_ZERO(PRL(p)) && SSE2_IS_LT_OR_LE(CondMove.getCond(P(p))) && \
+SIMILAR_REGISTERS(CondMove.getVal2(P(p)), CondMove.getTrueValue(P(p)), Unary.getVal(PRRR(p))) ? 11 : INFINITE 
+EMIT_INSTRUCTION
+SSE2_ABS(false, P(p), CondMove.getResult(P(p)), CondMove.getVal2(P(p)));
 
 ######
 # Long operations that can use wider registers

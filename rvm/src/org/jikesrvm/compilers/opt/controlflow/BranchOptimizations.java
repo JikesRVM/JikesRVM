@@ -17,8 +17,18 @@ import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_NOT;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2FLOAT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ADD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_MUL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_NEG_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_SUB_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_2DOUBLE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ADD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_MOVE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_MUL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_NEG_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_SUB_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_2BYTE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_2SHORT_opcode;
@@ -885,10 +895,18 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
         case FLOAT_MOVE_opcode:
         case INT_ADD_opcode:
         case REF_ADD_opcode:
+        case FLOAT_ADD_opcode:
+        case DOUBLE_ADD_opcode:
         case INT_SUB_opcode:
         case REF_SUB_opcode:
+        case FLOAT_SUB_opcode:
+        case DOUBLE_SUB_opcode:
         case INT_MUL_opcode:
+        case FLOAT_MUL_opcode:
+        case DOUBLE_MUL_opcode:
         case INT_NEG_opcode:
+        case FLOAT_NEG_opcode:
+        case DOUBLE_NEG_opcode:
         case REF_SHL_opcode:
         case INT_SHL_opcode:
         case REF_SHR_opcode:
@@ -906,6 +924,8 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
         case INT_2BYTE_opcode:
         case INT_2USHORT_opcode:
         case INT_2SHORT_opcode:
+        case FLOAT_2DOUBLE_opcode:
+        case DOUBLE_2FLOAT_opcode:
           // these are OK.
           break;
         default:
