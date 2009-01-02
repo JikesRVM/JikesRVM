@@ -65,6 +65,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -95,6 +96,11 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * Perform simple peephole optimizations for branches.
  */
 public final class BranchOptimizations extends BranchOptimizationDriver {
+
+  /**
+   * Name of abs method used as a special case in conditional moves
+   */
+  private static final Atom ABS = Atom.findOrCreateAsciiAtom("abs");
 
   /**
    * Is branch optimizations allowed to change the code order to
@@ -719,13 +725,17 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
       return false;
     }
 
+    ConditionOperand cond = IfCmp.getCond(cb);
+
     // Do not generate when we don't know the branch probability or
     // when branch probability is high. CMOVs reduce performance of
     // the out-of-order engine (Intel Optimization Guide -
-    // Assembly/Compiler Coding Rule 2)
+    // Assembly/Compiler Coding Rule 2).
+    // Ignore in the case of an abs() method as we can create tighter
+    // instructions.
     BranchProfileOperand profile = IfCmp.getBranchProfile(cb);
-    if ((profile.takenProbability >= BranchProfileOperand.LIKELY) ||
-        (profile.takenProbability <= BranchProfileOperand.UNLIKELY)) {
+    if ((Math.abs(profile.takenProbability - 0.5) >= ir.options.CONTROL_WELL_PREDICTED_CUTOFF) &&
+        !(cb.position != null && cb.position.method.getName() == ABS && cond.isFLOATINGPOINT())) {
       if (VERBOSE)
         System.out.println("CondMove: fail - branch could be well predicted by branch predictor: "+
             profile.takenProbability);
@@ -733,7 +743,6 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     }
 
     // if we must generate FCMP, make sure the condition code is OK
-    ConditionOperand cond = IfCmp.getCond(cb);
     if (cond.isFLOATINGPOINT()) {
       if (!fpConditionOK(cond)) {
         // Condition not OK, but maybe if we flip the operands

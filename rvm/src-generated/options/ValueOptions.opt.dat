@@ -91,6 +91,10 @@ V CONTROL_STATIC_SPLITTING_MAX_COST int 10
 Upper bound on the number of instructions duplicated per block when trying to create hot traces with static splitting
 
 
+V CONTROL_WELL_PREDICTED_CUTOFF double 1/6
+Don't replace branches with conditional moves if they are outside of the range of 0.5 +- this value
+
+
 V INLINE_MAX_TARGET_SIZE int (4*org.jikesrvm.classloader.NormalMethod.CALL_COST-org.jikesrvm.classloader.NormalMethod.SIMPLE_OPERATION_COST)
 Static inlining heuristic: Upper bound on callee size
 
