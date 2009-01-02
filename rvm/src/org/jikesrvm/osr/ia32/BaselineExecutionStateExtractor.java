@@ -197,6 +197,11 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
         Word content = Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
         VM.sysWrite("0x", vOffset.minus(BYTES_IN_ADDRESS), "    0x");
         VM.sysWriteln(content);
+        if ((types[i] == LongTypeCode) || (types[i] == DoubleTypeCode)) {
+          content = Magic.getWordAtOffset(stack, vOffset.minus(2 * BYTES_IN_ADDRESS));
+          VM.sysWrite("0x", vOffset.minus(2 * BYTES_IN_ADDRESS), "    0x");
+          VM.sysWriteln(content);
+        }
       }
 
       switch (types[i]) {
