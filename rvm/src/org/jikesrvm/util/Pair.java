@@ -10,18 +10,14 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.util;
 
-public final class Pair {
-  public final Object first;
-  public final Object second;
+package org.jikesrvm.util;
 
-  /**
-   * Constructor
-   * @param    f  The first element in the pair.
-   * @param    s  The second element in the pair.
-   */
-  public Pair(Object f, Object s) {
+public class Pair<X, Y> {
+  public final X first;
+  public final Y second;
+
+  public Pair(X f, Y s) {
     first = f;
     second = s;
   }
@@ -31,9 +27,11 @@ public final class Pair {
   }
 
   public boolean equals(Object o) {
-    return (o instanceof Pair) && first == ((Pair) o).first && second == ((Pair) o).second;
+    if (o instanceof Pair<?, ?>) {
+      Pair<?, ?> p = (Pair<?, ?>) o;
+      return (first == p.first) && (second == p.second);
+    } else {
+      return false;
+    }
   }
 }
-
-
-

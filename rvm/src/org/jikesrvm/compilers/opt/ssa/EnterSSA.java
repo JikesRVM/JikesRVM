@@ -61,9 +61,9 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.UnreachableOperand;
 import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
 import org.jikesrvm.compilers.opt.liveness.LiveSet;
-import org.jikesrvm.compilers.opt.util.Pair;
 import org.jikesrvm.compilers.opt.util.TreeNode;
 import org.jikesrvm.util.BitVector;
+import org.jikesrvm.util.Pair;
 
 /**
  * This compiler phase constructs SSA form.
@@ -274,7 +274,7 @@ public class EnterSSA extends CompilerPhase {
     // this only applies if there are exception handlers
     if (!ir.hasReachableExceptionHandlers()) return;
 
-    HashSet<Pair> needed = new HashSet<Pair>(4);
+    HashSet<Pair<BasicBlock, RegisterOperand>> needed = new HashSet<Pair<BasicBlock,RegisterOperand>>(4);
     BasicBlockEnumeration blocks = ir.getBasicBlocks();
     while (blocks.hasMoreElements()) {
       BasicBlock block = blocks.next();
@@ -301,7 +301,7 @@ public class EnterSSA extends CompilerPhase {
               BasicBlockEnumeration out = block.getApplicableExceptionalOut(pei);
               while (out.hasMoreElements()) {
                 BasicBlock exp = out.next();
-                needed.add(new Pair(exp, v));
+                needed.add(new Pair<BasicBlock, RegisterOperand>(exp, v));
               }
             }
           }
@@ -310,9 +310,9 @@ public class EnterSSA extends CompilerPhase {
     }
     // having determine where copies should be inserted, now insert them.
     if (!needed.isEmpty()) {
-      for (Pair copy : needed) {
-        BasicBlock inBlock = (BasicBlock) copy.first;
-        RegisterOperand registerOp = (RegisterOperand) copy.second;
+      for (Pair<BasicBlock, RegisterOperand> copy : needed) {
+        BasicBlock inBlock = copy.first;
+        RegisterOperand registerOp = copy.second;
         TypeReference type = registerOp.getType();
         Register register = registerOp.getRegister();
         Register temp = ir.regpool.getReg(register);
