@@ -149,6 +149,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     ExceptionHandlerMap tmp_exceptionHandlerMap = null;
     TypeReference[] tmp_exceptionTypes = null;
     int[] tmp_lineNumberMap = null;
+    LocalVariableTable tmp_localVariableTable = null;
     Atom tmp_signature = null;
     RVMAnnotation[] annotations = null;
     RVMAnnotation[][] parameterAnnotations = null;
@@ -182,6 +183,8 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                 tmp_lineNumberMap[k] = (lineNumber << BITS_IN_SHORT) | startPC;
               }
             }
+          } else if (attName == RVMClassLoader.localVariableTableAttributeName) {
+            tmp_localVariableTable = LocalVariableTable.readLocalVariableTable(input, constantPool);
           } else {
             // All other entries in the attribute portion of the code attribute are boring.
             int skippedAmount = input.skipBytes(attLength);
@@ -257,6 +260,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                               tmp_bytecodes,
                               tmp_exceptionHandlerMap,
                               tmp_lineNumberMap,
+                              tmp_localVariableTable,
                               constantPool,
                               tmp_signature,
                               annotations,
@@ -296,6 +300,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                (short) 1,
                                (short) 2,
                                bytecodes,
+                               null,
                                null,
                                null,
                                constantPool,
@@ -352,6 +357,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                (short) 2,
                                (short) 3,
                                bytecode,
+                               null,
                                null,
                                null,
                                constantPool,
@@ -901,6 +907,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                new byte[]{(byte)JBC_return},
                                null,
                                null,
+                               null,
                                new int[0],
                                null,
                                null,
@@ -1069,6 +1076,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                (short) 3,
                                (short) (getParameterWords() + 2),
                                bytecodes,
+                               null,
                                null,
                                null,
                                constantPool,
