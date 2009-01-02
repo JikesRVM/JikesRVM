@@ -1126,9 +1126,9 @@ Operand value, boolean signExtend) {
     }
     EMIT(MIR_BinaryAcc.mutate(s, cmpOperator, result, rhsCmp));
     // result contains all 1s or 0s, use masks and OR to perform conditional move
-    EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_ANDPS : IA32_ANDPD, temp.copyRO(), result.copyRO())));
-    EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_ANDNPS : IA32_ANDNPD, result.copyRO(), falseValue)));
-    EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_ORPS : IA32_ORPD, result.copyRO(), temp.copyRO())));
+    EMIT(CPOS(s, MIR_BinaryAcc.create(singleResult ? IA32_ANDPS : IA32_ANDPD, temp.copyRO(), result.copyRO())));
+    EMIT(CPOS(s, MIR_BinaryAcc.create(singleResult ? IA32_ANDNPS : IA32_ANDNPD, result.copyRO(), falseValue)));
+    EMIT(CPOS(s, MIR_BinaryAcc.create(singleResult ? IA32_ORPS : IA32_ORPD, result.copyRO(), temp.copyRO())));
   }
 
   protected final boolean IS_MATERIALIZE_ZERO(Instruction s) {
