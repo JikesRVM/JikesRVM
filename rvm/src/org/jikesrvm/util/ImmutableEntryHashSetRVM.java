@@ -59,4 +59,9 @@ public final class ImmutableEntryHashSetRVM<T> extends AbstractHashSetRVM<T> {
   public ImmutableEntryHashSetRVM(int size) {
     super(size);
   }
+
+  @Override
+  public void remove(T key) {
+    throw new UnsupportedOperationException();
+  }
 }

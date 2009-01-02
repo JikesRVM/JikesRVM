@@ -129,7 +129,7 @@ abstract class AbstractHashMapRVM<K, V> {
     buckets = newBuckets;
   }
 
-  public final V remove(K key) {
+  public V remove(K key) {
     if (VM.VerifyAssertions) VM._assert(key != null);
     int bucketIdx = bucketIndex(key, buckets.length);
     AbstractBucket<K, V> cur = buckets[bucketIdx];

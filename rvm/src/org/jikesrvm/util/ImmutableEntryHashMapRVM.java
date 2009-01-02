@@ -68,6 +68,10 @@ public final class ImmutableEntryHashMapRVM<K, V> extends AbstractHashMapRVM<K,V
     super(size);
   }
 
+  public V remove(K key) {
+    throw new UnsupportedOperationException();
+  }
+
   @Override
   protected boolean same(K k1, K k2) {
     return k1.equals(k2);
