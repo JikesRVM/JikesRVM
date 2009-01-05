@@ -3162,23 +3162,17 @@ Operand value, boolean signExtend) {
    */
   protected final void CMOV_FMOV(Instruction s, RegisterOperand result, ConditionOperand cond,
                                  Operand trueValue, Operand falseValue) {
-    if (result.similar(trueValue)) {
-      // in this case, only need a conditional move for the false branch.
-      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result, asReg(s, IA32_FMOV, falseValue), COND(cond.flipCode())));
-    } else if (result.similar(falseValue)) {
-      // in this case, only need a conditional move for the true branch.
-      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result, asReg(s, IA32_FMOV, trueValue), COND(cond)));
+    RegisterOperand FP0 = new RegisterOperand(burs.ir.regpool.getPhysicalRegisterSet().getFPR(0), result.getType());
+    // need to handle both possible assignments. Unconditionally
+    // assign one value then conditionally assign the other.
+    if (falseValue.isRegister()) {
+      EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, FP0, trueValue)));
+      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, FP0.copyRO(), falseValue, COND(cond.flipCode())));
     } else {
-      // need to handle both possible assignments. Unconditionally
-      // assign one value then conditionally assign the other.
-      if (falseValue.isRegister()) {
-        EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, result, trueValue)));
-        EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result.copyRO(), falseValue, COND(cond.flipCode())));
-      } else {
-        EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, result, falseValue)));
-        EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result.copyRO(), asReg(s, IA32_FMOV, trueValue), COND(cond)));
-      }
+      EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, FP0, falseValue)));
+      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, FP0.copyRO(), asReg(s, IA32_FMOV, trueValue), COND(cond)));
     }
+    EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, result.copyRO(), FP0.copyRO())));
   }
 
   /**
