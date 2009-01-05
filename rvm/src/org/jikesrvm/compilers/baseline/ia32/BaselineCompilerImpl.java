@@ -2071,6 +2071,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_fcmpl() {
+    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
       asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
@@ -2082,13 +2083,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*2, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT);
-    asm.emitSBB_Reg_Reg(T0, T0);                        // T0 = XMM0 < XMM1 ? -1 : 0
+    asm.emitSET_Cond_Reg_Byte(Assembler.LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
+    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
     asm.emitPUSH_Reg(T0);                               // push result on stack
-    ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    fr2.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
@@ -2099,6 +2096,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_fcmpg() {
+    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
       asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
@@ -2110,15 +2108,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*2, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT); // if > goto push 1
-    ForwardReference fr2 = asm.forwardJcc(Assembler.PE);  // if unordered goto push 1
-    asm.emitSBB_Reg_Reg(T0, T0);                         // T0 = XMM0 < XMM1 ? -1 : 0
-    asm.emitPUSH_Reg(T0);                                // push result on stack
-    ForwardReference fr3 = asm.forwardJMP();
+    ForwardReference fr1 = asm.forwardJcc(Assembler.PE);// if unordered goto push 1
+    asm.emitSET_Cond_Reg_Byte(Assembler.LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
+    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
+    asm.emitPUSH_Reg(T0);                               // push result on stack
+    ForwardReference fr2 = asm.forwardJMP();
     fr1.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push 1 on stack
     fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    fr3.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
@@ -2129,6 +2126,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_dcmpl() {
+    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
     if (SSE2_BASE) {
       asm.emitMOVLPD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
       asm.emitMOVLPD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
@@ -2140,13 +2138,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*4, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT);
-    asm.emitSBB_Reg_Reg(T0, T0);                        // T0 = XMM0 < XMM1 ? -1 : 0
+    asm.emitSET_Cond_Reg_Byte(Assembler.LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
+    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
     asm.emitPUSH_Reg(T0);                               // push result on stack
-    ForwardReference fr2 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    fr2.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
@@ -2157,6 +2151,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_dcmpg() {
+    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
     if (SSE2_BASE) {
       asm.emitMOVLPD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
       asm.emitMOVLPD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
@@ -2168,15 +2163,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*4, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT); // if > goto push 1
-    ForwardReference fr2 = asm.forwardJcc(Assembler.PE);  // if unordered goto push 1
-    asm.emitSBB_Reg_Reg(T0, T0);                         // T0 = XMM0 < XMM1 ? -1 : 0
-    asm.emitPUSH_Reg(T0);                                // push result on stack
-    ForwardReference fr3 = asm.forwardJMP();
+    ForwardReference fr1 = asm.forwardJcc(Assembler.PE);// if unordered goto push 1
+    asm.emitSET_Cond_Reg_Byte(Assembler.LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
+    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
+    asm.emitPUSH_Reg(T0);                               // push result on stack
+    ForwardReference fr2 = asm.forwardJMP();
     fr1.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push 1 on stack
     fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    fr3.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
