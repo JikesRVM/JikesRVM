@@ -41,6 +41,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.StackTrace;
 
 final class VMAccessController
 {
@@ -181,6 +182,7 @@ final class VMAccessController
      * Handle the default getStack() implementation gracefully
      */
     if (classes.length == 0) {
+      inGetContext.set(Boolean.FALSE);
       return DEFAULT_CONTEXT;
     }
 
@@ -276,7 +278,8 @@ final class VMAccessController
    * <i>i</i>. The arrays are clean; it will only contain Java methods,
    * and no element of the list should be null.
    * 
-   * <p>JikesRVM implementation
+   * <p>JikesRVM implementation, uses org.jikesrvm.runtime.StackTrace
+   * for efficiency.
    *
    * @return A pair of arrays describing the current call stack. The first
    *    element is an array of Class objects, and the second is an array
@@ -284,21 +287,18 @@ final class VMAccessController
    */
   private static Object[][] getStack()
   {
-    StackTraceElement[] stack = new Throwable().getStackTrace();
     ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
     ArrayList<String> methods = new ArrayList<String>();
-    
+
+    StackTrace.Element[] stack = new StackTrace().getStackTrace(new Throwable());
     for (int i=1; i < stack.length; i++) {
-      final String className = stack[i].getClassName();
       final String methodName = stack[i].getMethodName();
-      
+      final Class<?> elementClass = stack[i].getElementClass();
+
       /* Filter out invalid classnames */
-      if (className.length() > 0) {
-        try {
-          classes.add(Class.forName(className));
-          methods.add(methodName);
-        } catch (ClassNotFoundException e) {
-        }
+      if (elementClass != null) {
+        classes.add(elementClass);
+        methods.add(methodName);
       }
     }
     return new Object[][] { classes.toArray(new Class[0]), methods.toArray(new String[0]) };

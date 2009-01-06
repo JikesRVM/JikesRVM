@@ -281,6 +281,13 @@ public class StackTrace {
         return method.getDeclaringClass().toString();
       }
     }
+    /** Get class */
+    public Class<?> getElementClass() {
+      if (isInvisible || isTrap) {
+        return null;
+      }
+      return method.getDeclaringClass().getClassForType();
+    }
     /** Get method name */
     public String getMethodName() {
       if (isInvisible) {
