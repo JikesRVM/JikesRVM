@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.ClassFileReader;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
@@ -456,7 +456,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
             currBBStkTop++;
             int cpi = bcodes.getConstantIndex();
             int type = bcodes.getConstantType(cpi);
-            if (type == RVMClass.CP_STRING || type == RVMClass.CP_CLASS) {
+            if (type == ClassFileReader.CP_STRING || type == ClassFileReader.CP_CLASS) {
               currBBMap[currBBStkTop] = REFERENCE;
             } else {
               currBBMap[currBBStkTop] = NON_REFERENCE;
@@ -467,7 +467,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
             currBBStkTop++;
             int cpi = bcodes.getWideConstantIndex();
             int type = bcodes.getConstantType(cpi);
-            if (type == RVMClass.CP_STRING || type == RVMClass.CP_CLASS) {
+            if (type == ClassFileReader.CP_STRING || type == ClassFileReader.CP_CLASS) {
               currBBMap[currBBStkTop] = REFERENCE;
             } else {
               currBBMap[currBBStkTop] = NON_REFERENCE;

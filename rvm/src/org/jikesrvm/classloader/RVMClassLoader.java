@@ -333,7 +333,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
       if (VM.TraceClassLoading && VM.runningVM) {
         VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
       }
-      RVMClass ans = RVMClass.readClass(tRef, new DataInputStream(is));
+      RVMClass ans = ClassFileReader.readClass(tRef, new DataInputStream(is));
       tRef.setType(ans);
       return ans;
     } catch (IOException e) {
@@ -343,7 +343,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
     }
   }
 
-  // Shamelessly cloned & owned from RVMClass constructor....
+  // Shamelessly cloned & owned from ClassFileReader.readClass constructor....
   private static TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
       throws IOException, ClassFormatError {
     int magic = input.readInt();
@@ -351,7 +351,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
       throw new ClassFormatError("bad magic number " + Integer.toHexString(magic));
     }
 
-    // Drop class file version number on floor. RVMClass constructor will do the check later.
+    // Drop class file version number on floor. readClass will do the check later.
     input.readUnsignedShort(); // minor ID
     input.readUnsignedShort(); // major ID
 

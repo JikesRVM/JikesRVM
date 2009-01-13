@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.classloader;
 
-interface ClassLoaderConstants {
+public interface ClassLoaderConstants {
   // Attribute modifiers for class-, method-, and field- descriptions.
   //
   //                                      applicability
@@ -116,4 +116,20 @@ interface ClassLoaderConstants {
   byte FloatTypeCode = (byte) 'F';
   byte DoubleTypeCode = (byte) 'D';
   byte CharTypeCode = (byte) 'C';
+
+  // Constants for our internal encoding of constant pools.
+  /** Constant pool entry for int literal */
+  byte CP_INT = 1;
+  /** Constant pool entry for long literal */
+  byte CP_LONG = 2;
+  /** Constant pool entry for float literal */
+  byte CP_FLOAT = 3;
+  /** Constant pool entry for double literal */
+  byte CP_DOUBLE = 4;
+  /** Constant pool entry for string literal (for annotations, may be other objects) */
+  byte CP_STRING = 5;
+  /** Constant pool entry for member (field or method) reference */
+  byte CP_MEMBER = 6;
+  /** Constant pool entry for type reference or class literal */
+  byte CP_CLASS = 7;
 }

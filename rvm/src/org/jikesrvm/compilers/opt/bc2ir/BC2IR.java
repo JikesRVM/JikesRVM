@@ -23,6 +23,7 @@ import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
+import org.jikesrvm.classloader.ClassFileReader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.RVMField;
@@ -2948,17 +2949,17 @@ public final class BC2IR
     byte desc = bcodes.getConstantType(index);
     RVMClass declaringClass = bcodes.getDeclaringClass();
     switch (desc) {
-      case RVMClass.CP_INT:
+      case ClassFileReader.CP_INT:
         return ClassLoaderProxy.getIntFromConstantPool(declaringClass, index);
-      case RVMClass.CP_FLOAT:
+      case ClassFileReader.CP_FLOAT:
         return ClassLoaderProxy.getFloatFromConstantPool(declaringClass, index);
-      case RVMClass.CP_STRING:
+      case ClassFileReader.CP_STRING:
         return ClassLoaderProxy.getStringFromConstantPool(declaringClass, index);
-      case RVMClass.CP_LONG:
+      case ClassFileReader.CP_LONG:
         return ClassLoaderProxy.getLongFromConstantPool(declaringClass, index);
-      case RVMClass.CP_DOUBLE:
+      case ClassFileReader.CP_DOUBLE:
         return ClassLoaderProxy.getDoubleFromConstantPool(declaringClass, index);
-      case RVMClass.CP_CLASS:
+      case ClassFileReader.CP_CLASS:
         return ClassLoaderProxy.getClassFromConstantPool(declaringClass, index);
       default:
         VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + Integer.toHexString(desc));

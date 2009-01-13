@@ -78,7 +78,7 @@ public final class RVMAnnotation {
     TypeReference type;
     // Read type
     int typeIndex = input.readUnsignedShort();
-    type = TypeReference.findOrCreate(classLoader, RVMClass.getUtf(constantPool, typeIndex));
+    type = TypeReference.findOrCreate(classLoader, ClassFileReader.getUtf(constantPool, typeIndex));
     // Read values
     int numAnnotationMembers = input.readUnsignedShort();
     AnnotationMember[] elementValuePairs = new AnnotationMember[numAnnotationMembers];
@@ -149,75 +149,75 @@ public final class RVMAnnotation {
     switch (elementValue_tag) {
       case'B': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Byte);
-        Offset offset = RVMClass.getLiteralOffset(constantPool, input.readUnsignedShort());
+        Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (byte) Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'C': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Char);
-        Offset offset = RVMClass.getLiteralOffset(constantPool, input.readUnsignedShort());
+        Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (char) Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'D': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Double);
-        Offset offset = RVMClass.getLiteralOffset(constantPool, input.readUnsignedShort());
+        Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         long longValue = Statics.getSlotContentsAsLong(offset);
         value = Double.longBitsToDouble(longValue);
         break;
       }
       case'F': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Float);
-        Offset offset = RVMClass.getLiteralOffset(constantPool, input.readUnsignedShort());
+        Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         int intValue = Statics.getSlotContentsAsInt(offset);
         value = Float.intBitsToFloat(intValue);
         break;
       }
       case'I': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Int);
-        Offset offset = RVMClass.getLiteralOffset(constantPool, input.readUnsignedShort());
+        Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'J': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Long);
-        Offset offset = RVMClass.getLiteralOffset(constantPool, input.readUnsignedShort());
+        Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = Statics.getSlotContentsAsLong(offset);
         break;
       }
       case'S': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Short);
-        Offset offset = RVMClass.getLiteralOffset(constantPool, input.readUnsignedShort());
+        Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = (short) Statics.getSlotContentsAsInt(offset);
         break;
       }
       case'Z': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.Boolean);
-        Offset offset = RVMClass.getLiteralOffset(constantPool, input.readUnsignedShort());
+        Offset offset = ClassFileReader.getLiteralOffset(constantPool, input.readUnsignedShort());
         value = Statics.getSlotContentsAsInt(offset) == 1;
         break;
       }
       case's': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangString);
-        value = RVMClass.getUtf(constantPool, input.readUnsignedShort()).toString();
+        value = ClassFileReader.getUtf(constantPool, input.readUnsignedShort()).toString();
         break;
       }
       case'e': {
         int typeNameIndex = input.readUnsignedShort();
         @SuppressWarnings("unchecked") Class enumType =
             TypeReference.findOrCreate(classLoader,
-                                          RVMClass.getUtf(constantPool, typeNameIndex)).resolve().getClassForType();
+                                          ClassFileReader.getUtf(constantPool, typeNameIndex)).resolve().getClassForType();
         int constNameIndex = input.readUnsignedShort();
 
         //noinspection unchecked
-        value = Enum.valueOf(enumType, RVMClass.getUtf(constantPool, constNameIndex).toString());
+        value = Enum.valueOf(enumType, ClassFileReader.getUtf(constantPool, constNameIndex).toString());
         break;
       }
       case'c': {
         if(VM.VerifyAssertions) VM._assert(type == null || type == TypeReference.JavaLangClass);
         int classInfoIndex = input.readUnsignedShort();
         // Value should be a class but resolving the class at this point could cause infinite recursion in class loading
-        TypeReference unresolvedValue = TypeReference.findOrCreate(classLoader, RVMClass.getUtf(constantPool, classInfoIndex));
+        TypeReference unresolvedValue = TypeReference.findOrCreate(classLoader, ClassFileReader.getUtf(constantPool, classInfoIndex));
         if (unresolvedValue.peekType() != null) {
           value = unresolvedValue.peekType().getClassForType();
         } else {
@@ -639,7 +639,7 @@ public final class RVMAnnotation {
         throws IOException, ClassNotFoundException {
       // Read name of pair
       int elemNameIndex = input.readUnsignedShort();
-      Atom name = RVMClass.getUtf(constantPool, elemNameIndex);
+      Atom name = ClassFileReader.getUtf(constantPool, elemNameIndex);
       MethodReference meth;
       Object value;
       if (type.isResolved()) {

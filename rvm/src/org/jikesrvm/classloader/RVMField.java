@@ -89,14 +89,14 @@ public final class RVMField extends RVMMember {
     Atom signature = null;
     RVMAnnotation[] annotations = null;
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
-      Atom attName = RVMClass.getUtf(constantPool, input.readUnsignedShort());
+      Atom attName = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
       int attLength = input.readInt();
       if (attName == RVMClassLoader.constantValueAttributeName) {
         cvi = input.readUnsignedShort();
       } else if (attName == RVMClassLoader.syntheticAttributeName) {
         modifiers |= ACC_SYNTHETIC;
       } else if (attName == RVMClassLoader.signatureAttributeName) {
-        signature = RVMClass.getUtf(constantPool, input.readUnsignedShort());
+        signature = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
         annotations = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else {

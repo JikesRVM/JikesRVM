@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
+import org.jikesrvm.classloader.ClassFileReader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.FieldReference;
@@ -384,16 +385,16 @@ public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
           int cpoolidx = (bcode == JBC_ldc) ? bytecodes.getConstantIndex() : bytecodes.getWideConstantIndex();
           byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
           switch (tdesc) {
-            case RVMClass.CP_INT:
+            case ClassFileReader.CP_INT:
               S.push(IntTypeCode);
               break;
-            case RVMClass.CP_FLOAT:
+            case ClassFileReader.CP_FLOAT:
               S.push(FloatTypeCode);
               break;
-            case RVMClass.CP_STRING:
+            case ClassFileReader.CP_STRING:
               S.push(ClassTypeCode);
               break;
-            case RVMClass.CP_CLASS:
+            case ClassFileReader.CP_CLASS:
               S.push(ClassTypeCode);
               break;
             default:
@@ -408,10 +409,10 @@ public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
           byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
           S.push(VoidTypeCode);
           switch (tdesc) {
-            case RVMClass.CP_LONG:
+            case ClassFileReader.CP_LONG:
               S.push(LongTypeCode);
               break;
-            case RVMClass.CP_DOUBLE:
+            case ClassFileReader.CP_DOUBLE:
               S.push(DoubleTypeCode);
               break;
             default:
