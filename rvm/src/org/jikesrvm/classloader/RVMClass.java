@@ -652,14 +652,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Return true if the SynchronizedObject annotation is present.
-   * @see org.vmmagic.pragma.SynchronizedObject
-   */
-  boolean hasSynchronizedObjectAnnotation() {
-    return isAnnotationDeclared(TypeReference.SynchronizedObject);
-  }
-
-  /**
    * Should the methods of this class be compiled with special
    * register save/restore logic?
    * @see org.vmmagic.pragma.DynamicBridge
@@ -1081,7 +1073,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
       alignment = superClass.alignment;
     }
 
-    if (hasSynchronizedObjectAnnotation() || this == RVMType.JavaLangClassType) {
+    if (this == RVMType.JavaLangClassType) {
       ObjectModel.allocateThinLock(this);
     }
 

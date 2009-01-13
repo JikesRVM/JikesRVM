@@ -155,7 +155,6 @@ public final class TypeReference {
 
   public static final TypeReference NativeBridge = findOrCreate(org.vmmagic.pragma.NativeBridge.class);
   public static final TypeReference DynamicBridge = findOrCreate(org.vmmagic.pragma.DynamicBridge.class);
-  public static final TypeReference SynchronizedObject = findOrCreate(org.vmmagic.pragma.SynchronizedObject.class);
   public static final TypeReference SaveVolatile = findOrCreate(org.vmmagic.pragma.SaveVolatile.class);
   public static final TypeReference Interruptible = findOrCreate(org.vmmagic.pragma.Interruptible.class);
   public static final TypeReference LogicallyUninterruptible =

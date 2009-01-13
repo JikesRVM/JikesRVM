@@ -12,12 +12,11 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.TIB;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -40,7 +39,6 @@ import org.vmmagic.unboxed.Offset;
  * @see RVMArray
  */
 @NonMoving
-@SynchronizedObject
 public final class Primitive extends RVMType implements Constants, ClassLoaderConstants {
   /**
    * The pretty (external) name for this primitive.

@@ -18,7 +18,6 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.StackBrowser;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -27,7 +26,6 @@ import org.vmmagic.unboxed.Offset;
  * Information associated with artifical stackframe inserted by hardware
  * trap handler.
  */
-@SynchronizedObject
 final class HardwareTrapCompiledMethod extends CompiledMethod {
 
   public HardwareTrapCompiledMethod(int id, RVMMethod m) {

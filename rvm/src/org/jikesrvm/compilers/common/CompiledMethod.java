@@ -25,7 +25,6 @@ import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.Scheduler;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
@@ -37,7 +36,6 @@ import org.vmmagic.unboxed.Word;
  * We implement SynchronizedObject because we need to synchronize
  * on the CompiledMethod object as part of the invalidation protocol.
  */
-@SynchronizedObject
 public abstract class CompiledMethod implements SizeConstants {
 
   /*

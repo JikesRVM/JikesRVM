@@ -39,7 +39,6 @@ import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -52,7 +51,6 @@ import org.vmmagic.unboxed.Offset;
  * state that is really required to be persistent.  Anything
  * transitory should be stored on the IR object.
  */
-@SynchronizedObject
 @Uninterruptible
 public final class OptCompiledMethod extends CompiledMethod {
 

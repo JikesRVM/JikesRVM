@@ -12,15 +12,15 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.PrintLN;
+import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.BaselineExceptionDeliverer;
-import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
-import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -28,7 +28,6 @@ import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.StackBrowser;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -37,7 +36,6 @@ import org.vmmagic.unboxed.Offset;
  * Compiler-specific information associated with a method's machine
  * instructions.
  */
-@SynchronizedObject
 public final class BaselineCompiledMethod extends CompiledMethod implements BaselineConstants {
 
   /** Does the baseline compiled method have a counters array? */

@@ -19,7 +19,6 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.StackBrowser;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -35,7 +34,6 @@ import org.vmmagic.unboxed.Offset;
  * frame with a pending exception. JNI causes an athrow to happen as if it
  * was called at the call site of the call to the native method.
  */
-@SynchronizedObject
 public final class JNICompiledMethod extends CompiledMethod {
 
   /** Architecture specific deliverer of exceptions */
