@@ -241,7 +241,7 @@ public class DynamicTypeCheck implements TIBLayoutConstants {
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
     int LHSId = LHSclass.getId();
-    return superclassIds[LHSDepth] == LHSId;
+    return (superclassIds[LHSDepth] & 0xFFFF) == LHSId;
   }
 
   /**
