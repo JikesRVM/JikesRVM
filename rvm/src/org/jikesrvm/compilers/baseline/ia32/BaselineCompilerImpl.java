@@ -17,7 +17,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.adaptive.recompilation.InvocationCounts;
 import org.jikesrvm.classloader.Atom;
-import org.jikesrvm.classloader.ClassFileReader;
 import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.InterfaceInvocation;
@@ -369,7 +368,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_ldc(Offset offset, byte type) {
-      if (VM.BuildFor32Addr || (type == ClassFileReader.CP_CLASS) || (type == ClassFileReader.CP_STRING)) {
+      if (VM.BuildFor32Addr || (type == CP_CLASS) || (type == CP_STRING)) {
       asm.emitPUSH_Abs(Magic.getTocPointer().plus(offset));
     } else {
       asm.emitMOV_Reg_Abs(T0, Magic.getTocPointer().plus(offset));

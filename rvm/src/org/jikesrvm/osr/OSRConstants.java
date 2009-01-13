@@ -13,12 +13,13 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.SizeConstants;
+import org.jikesrvm.classloader.ClassLoaderConstants;
 
 /**
  * OSRConstants defines constants used for on-stack-replacement mapping,
  * VM scope descriptor, and pseudo bytecodes.
  */
-public interface OSRConstants extends SizeConstants {
+public interface OSRConstants extends SizeConstants, ClassLoaderConstants {
 
   ////////////////////////////////////////////
   // Part I  constants used for opt compilation with OSR points
@@ -155,25 +156,16 @@ public interface OSRConstants extends SizeConstants {
   int PSEUDO_InvokeStatic = 7;
   int PSEUDO_CheckCast = 8;
 
-  /* followed by compiled method ID */ int PSEUDO_InvokeCompiledMethod = 9;
+  /* followed by compiled method ID */
+  int PSEUDO_InvokeCompiledMethod = 9;
 
-  /* indicate local initialization ends, for baselike compiler */ int PSEUDO_ParamInitEnd = 10;
+  /* indicate local initialization ends, for baselike compiler */
+  int PSEUDO_ParamInitEnd = 10;
 
-  /* special method id for PSEUDO_InvokeStatic, target must be listed here */ int GETREFAT =
-      0;  // ObjectHolder.getRefAt
+  /* special method id for PSEUDO_InvokeStatic, target must be listed here */
+  int GETREFAT = 0;  // ObjectHolder.getRefAt
   int CLEANREFS = 1;  // ObjectHolder.cleanRefAt
 
-  byte ClassTypeCode = (byte) 'L';
-  byte ArrayTypeCode = (byte) '[';
-  byte VoidTypeCode = (byte) 'V';
-  byte BooleanTypeCode = (byte) 'Z';
-  byte ByteTypeCode = (byte) 'B';
-  byte ShortTypeCode = (byte) 'S';
-  byte IntTypeCode = (byte) 'I';
-  byte LongTypeCode = (byte) 'J';
-  byte FloatTypeCode = (byte) 'F';
-  byte DoubleTypeCode = (byte) 'D';
-  byte CharTypeCode = (byte) 'C';
   byte ReturnAddressTypeCode = (byte) 'R';
   byte WordTypeCode = (byte) 'W';  //'A'
 }

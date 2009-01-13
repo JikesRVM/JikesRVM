@@ -336,7 +336,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       if (value != null) {
         bytecode[(j * 7) + 5 + 0] = (byte) JBC_aload_0;    // stack[0] = this
         byte literalType = ClassFileReader.getLiteralDescription(constantPool, defaultConstants[j]);
-        if (literalType != ClassFileReader.CP_LONG && literalType != ClassFileReader.CP_DOUBLE) {
+        if (literalType != CP_LONG && literalType != CP_DOUBLE) {
           bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc_w; // stack[1] = value
         } else {
           bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc2_w;// stack[1&2] = value
@@ -957,7 +957,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       if (!parameters[i].isPrimitiveType()) {
         bytecodes[curBC+5] = (byte)JBC_checkcast;
         if (VM.VerifyAssertions) VM._assert(parameters[i].getId() != 0);
-        constantPool[i+1] = ClassFileReader.packCPEntry(ClassFileReader.CP_CLASS, parameters[i].getId());
+        constantPool[i+1] = ClassFileReader.packCPEntry(CP_CLASS, parameters[i].getId());
         bytecodes[curBC+6] = (byte)((i+1) >>> 8);
         bytecodes[curBC+7] = (byte)(i+1);
       } else if (parameters[i].isWordType()) {
@@ -1002,7 +1002,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                                         Atom.findOrCreateUnicodeAtom("unboxAsDouble"),
                                                         Atom.findOrCreateUnicodeAtom("(Ljava/lang/Object;)D"));
         }
-        constantPool[i+1] = ClassFileReader.packCPEntry(ClassFileReader.CP_MEMBER, unboxMethod.getId());
+        constantPool[i+1] = ClassFileReader.packCPEntry(CP_MEMBER, unboxMethod.getId());
         bytecodes[curBC+6] = (byte)((i+1) >>> 8);
         bytecodes[curBC+7] = (byte)(i+1);
       }
@@ -1015,7 +1015,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     } else {
       bytecodes[curBC] = (byte)JBC_invokevirtual;
     }
-    constantPool[numParams+1] = ClassFileReader.packCPEntry(ClassFileReader.CP_MEMBER, getId());
+    constantPool[numParams+1] = ClassFileReader.packCPEntry(CP_MEMBER, getId());
     bytecodes[curBC+1] = (byte)((numParams+1) >>> 8);
     bytecodes[curBC+2] = (byte)(numParams+1);
     TypeReference returnType = getReturnType();
@@ -1063,7 +1063,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                                     Atom.findOrCreateUnicodeAtom("boxAsDouble"),
                                                     Atom.findOrCreateUnicodeAtom("(D)Ljava/lang/Object;"));
       }
-      constantPool[numParams+2] = ClassFileReader.packCPEntry(ClassFileReader.CP_MEMBER, boxMethod.getId());
+      constantPool[numParams+2] = ClassFileReader.packCPEntry(CP_MEMBER, boxMethod.getId());
       bytecodes[curBC+3] = (byte)JBC_invokestatic;
       bytecodes[curBC+4] = (byte)((numParams+2) >>> 8);
       bytecodes[curBC+5] = (byte)(numParams+2);

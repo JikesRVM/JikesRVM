@@ -206,7 +206,7 @@ public final class RVMAnnotation {
         int typeNameIndex = input.readUnsignedShort();
         @SuppressWarnings("unchecked") Class enumType =
             TypeReference.findOrCreate(classLoader,
-                                          ClassFileReader.getUtf(constantPool, typeNameIndex)).resolve().getClassForType();
+                                       ClassFileReader.getUtf(constantPool, typeNameIndex)).resolve().getClassForType();
         int constNameIndex = input.readUnsignedShort();
 
         //noinspection unchecked

@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.ClassFileReader;
+import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
@@ -33,7 +33,7 @@ import org.jikesrvm.classloader.TypeReference;
  * java operand stack or a C-like stack?; when processing java bytecodes it
  * seemed best to use "stack" for java operand stack.)
  */
-final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
+final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstants, BBConstants {
 
   static final byte NON_REFERENCE = 0;
   static final byte REFERENCE = 1;
@@ -456,7 +456,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
             currBBStkTop++;
             int cpi = bcodes.getConstantIndex();
             int type = bcodes.getConstantType(cpi);
-            if (type == ClassFileReader.CP_STRING || type == ClassFileReader.CP_CLASS) {
+            if (type == CP_STRING || type == CP_CLASS) {
               currBBMap[currBBStkTop] = REFERENCE;
             } else {
               currBBMap[currBBStkTop] = NON_REFERENCE;
@@ -467,7 +467,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
             currBBStkTop++;
             int cpi = bcodes.getWideConstantIndex();
             int type = bcodes.getConstantType(cpi);
-            if (type == ClassFileReader.CP_STRING || type == ClassFileReader.CP_CLASS) {
+            if (type == CP_STRING || type == CP_CLASS) {
               currBBMap[currBBStkTop] = REFERENCE;
             } else {
               currBBMap[currBBStkTop] = NON_REFERENCE;

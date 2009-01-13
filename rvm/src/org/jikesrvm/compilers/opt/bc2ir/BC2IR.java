@@ -23,7 +23,7 @@ import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.ClassFileReader;
+import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.RVMField;
@@ -149,7 +149,7 @@ import org.vmmagic.unboxed.Offset;
  * @see ConvertBCtoHIR
  */
 public final class BC2IR
-    implements IRGenOptions, Operators, BytecodeConstants, OptConstants, OSRConstants {
+    implements IRGenOptions, Operators, BytecodeConstants, ClassLoaderConstants, OptConstants, OSRConstants {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take
@@ -2949,17 +2949,17 @@ public final class BC2IR
     byte desc = bcodes.getConstantType(index);
     RVMClass declaringClass = bcodes.getDeclaringClass();
     switch (desc) {
-      case ClassFileReader.CP_INT:
+      case CP_INT:
         return ClassLoaderProxy.getIntFromConstantPool(declaringClass, index);
-      case ClassFileReader.CP_FLOAT:
+      case CP_FLOAT:
         return ClassLoaderProxy.getFloatFromConstantPool(declaringClass, index);
-      case ClassFileReader.CP_STRING:
+      case CP_STRING:
         return ClassLoaderProxy.getStringFromConstantPool(declaringClass, index);
-      case ClassFileReader.CP_LONG:
+      case CP_LONG:
         return ClassLoaderProxy.getLongFromConstantPool(declaringClass, index);
-      case ClassFileReader.CP_DOUBLE:
+      case CP_DOUBLE:
         return ClassLoaderProxy.getDoubleFromConstantPool(declaringClass, index);
-      case ClassFileReader.CP_CLASS:
+      case CP_CLASS:
         return ClassLoaderProxy.getClassFromConstantPool(declaringClass, index);
       default:
         VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + Integer.toHexString(desc));

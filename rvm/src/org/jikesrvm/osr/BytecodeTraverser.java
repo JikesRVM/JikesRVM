@@ -16,7 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.ClassFileReader;
+import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.FieldReference;
@@ -54,7 +54,7 @@ import org.jikesrvm.compilers.common.CompiledMethods;
  *      the summary of local types. Thus, after analysis, local
  *      types are same for all PCs.
  */
-public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
+public class BytecodeTraverser implements BytecodeConstants, ClassLoaderConstants, OSRConstants {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
@@ -385,16 +385,16 @@ public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
           int cpoolidx = (bcode == JBC_ldc) ? bytecodes.getConstantIndex() : bytecodes.getWideConstantIndex();
           byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
           switch (tdesc) {
-            case ClassFileReader.CP_INT:
+            case CP_INT:
               S.push(IntTypeCode);
               break;
-            case ClassFileReader.CP_FLOAT:
+            case CP_FLOAT:
               S.push(FloatTypeCode);
               break;
-            case ClassFileReader.CP_STRING:
+            case CP_STRING:
               S.push(ClassTypeCode);
               break;
-            case ClassFileReader.CP_CLASS:
+            case CP_CLASS:
               S.push(ClassTypeCode);
               break;
             default:
@@ -409,10 +409,10 @@ public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
           byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
           S.push(VoidTypeCode);
           switch (tdesc) {
-            case ClassFileReader.CP_LONG:
+            case CP_LONG:
               S.push(LongTypeCode);
               break;
-            case ClassFileReader.CP_DOUBLE:
+            case CP_DOUBLE:
               S.push(DoubleTypeCode);
               break;
             default:

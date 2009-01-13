@@ -56,7 +56,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * constant pool isn't that from the class file, instead it has been
    * processed during class loading (see {@link ClassFileReader#readClass}). The loaded
    * class' constant pool has 3 bits of type information (such as
-   * (see {@link ClassFileReader#CP_INT})), the rest of the int holds data as follows:
+   * (see {@link ClassLoaderConstants#CP_INT})), the rest of the int holds data as follows:
    *
    * <ul>
    * <li>utf: value is a UTF atom identifier</li>
@@ -637,7 +637,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Uninterruptible
   public FieldReference getFieldRef(int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
-    if (VM.VerifyAssertions) VM._assert(ClassFileReader.unpackCPType(cpValue) == ClassFileReader.CP_MEMBER);
+    if (VM.VerifyAssertions) VM._assert(ClassFileReader.unpackCPType(cpValue) == CP_MEMBER);
     return (FieldReference) MemberReference.getMemberRef(ClassFileReader.unpackUnsignedCPValue(cpValue));
   }
 
@@ -647,7 +647,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Uninterruptible
   Atom getUtf(int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
-    if (VM.VerifyAssertions) VM._assert(ClassFileReader.unpackCPType(cpValue) == ClassFileReader.CP_UTF);
+    if (VM.VerifyAssertions) VM._assert(ClassFileReader.unpackCPType(cpValue) == CP_UTF);
     return Atom.getAtom(ClassFileReader.unpackUnsignedCPValue(cpValue));
   }
 

@@ -19,7 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.Services;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.adaptive.AosEntrypoints;
-import org.jikesrvm.classloader.ClassFileReader;
+import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
@@ -45,7 +45,7 @@ import org.vmmagic.unboxed.Offset;
  * seen. It is the common base class of the base compiler.
  */
 public abstract class TemplateCompilerFramework
-    implements BytecodeConstants, SizeConstants, StackframeLayoutConstants {
+    implements BytecodeConstants, ClassLoaderConstants, SizeConstants, StackframeLayoutConstants {
 
   /**
    * has fullyBootedVM been called by VM.boot?
@@ -1879,7 +1879,7 @@ public abstract class TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(value));
-                emit_ldc(offset, ClassFileReader.CP_INT);
+                emit_ldc(offset, CP_INT);
 
                 break;
               }
@@ -1889,7 +1889,7 @@ public abstract class TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(value));
-                emit_ldc2(offset, ClassFileReader.CP_LONG);
+                emit_ldc2(offset, CP_LONG);
 
                 break;
               }
@@ -1900,14 +1900,14 @@ public abstract class TemplateCompilerFramework
                   if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
 
                   Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(value));
-                  emit_ldc(offset, ClassFileReader.CP_INT);
+                  emit_ldc(offset, CP_INT);
                 } else {
                   long value = bcodes.readLongConst();
 
                   if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
 
                   Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(value));
-                  emit_ldc2(offset, ClassFileReader.CP_LONG);
+                  emit_ldc2(offset, CP_LONG);
                   emit_l2i(); //dirty hack
                 }
                 break;
@@ -1918,7 +1918,7 @@ public abstract class TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(ibits));
-                emit_ldc(offset, ClassFileReader.CP_FLOAT);
+                emit_ldc(offset, CP_FLOAT);
 
                 break;
               }
@@ -1928,7 +1928,7 @@ public abstract class TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(lbits));
-                emit_ldc2(offset, ClassFileReader.CP_DOUBLE);
+                emit_ldc2(offset, CP_DOUBLE);
 
                 break;
               }

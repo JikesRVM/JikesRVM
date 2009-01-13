@@ -118,6 +118,8 @@ public interface ClassLoaderConstants {
   byte CharTypeCode = (byte) 'C';
 
   // Constants for our internal encoding of constant pools.
+  /** Constant pool entry for a UTF-8 encoded atom */
+  byte CP_UTF = 0;
   /** Constant pool entry for int literal */
   byte CP_INT = 1;
   /** Constant pool entry for long literal */
