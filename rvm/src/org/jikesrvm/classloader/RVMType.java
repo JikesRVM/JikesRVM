@@ -105,17 +105,17 @@ public abstract class RVMType extends AnnotatedElement
   public static final RVMClass JavaLangRefReferenceType;
   public static final RVMField JavaLangRefReferenceReferenceField;
   public static final RVMClass MagicType;
-  public static final Primitive WordType;
+  public static final UnboxedType WordType;
   public static final RVMArray WordArrayType;
-  public static final Primitive AddressType;
+  public static final UnboxedType AddressType;
   public static final RVMArray AddressArrayType;
   public static final RVMClass ObjectReferenceType;
   public static final RVMArray ObjectReferenceArrayType;
-  public static final Primitive OffsetType;
+  public static final UnboxedType OffsetType;
   public static final RVMArray OffsetArrayType;
-  public static final Primitive ExtentType;
+  public static final UnboxedType ExtentType;
   public static final RVMArray ExtentArrayType;
-  public static final Primitive CodeType;
+  public static final UnboxedType CodeType;
   public static final RVMArray CodeArrayType;
   public static final RVMClass TIBType;
   public static final RVMClass ITableType;
@@ -137,11 +137,11 @@ public abstract class RVMType extends AnnotatedElement
     DoubleType = TypeReference.Double.resolve().asPrimitive();
     CharType = TypeReference.Char.resolve().asPrimitive();
     // Jikes RVM primitives
-    AddressType = TypeReference.Address.resolve().asPrimitive();
-    WordType = TypeReference.Word.resolve().asPrimitive();
-    OffsetType = TypeReference.Offset.resolve().asPrimitive();
-    ExtentType = TypeReference.Extent.resolve().asPrimitive();
-    CodeType = TypeReference.Code.resolve().asPrimitive();
+    AddressType = TypeReference.Address.resolve().asUnboxedType();
+    WordType = TypeReference.Word.resolve().asUnboxedType();
+    OffsetType = TypeReference.Offset.resolve().asUnboxedType();
+    ExtentType = TypeReference.Extent.resolve().asUnboxedType();
+    CodeType = TypeReference.Code.resolve().asUnboxedType();
     ObjectReferenceType = TypeReference.ObjectReference.resolve().asClass();
     // Jikes RVM classes
     MagicType = TypeReference.Magic.resolve().asClass();
@@ -399,6 +399,13 @@ public abstract class RVMType extends AnnotatedElement
     return (Primitive) this;
   }
 
+  /**
+   * @return this cast to a UnboxedType
+   */
+  @Uninterruptible
+  public final UnboxedType asUnboxedType() {
+    return (UnboxedType) this;
+  }
   // Convenience methods.
   //
   /** @return is this type void? */
@@ -702,6 +709,12 @@ public abstract class RVMType extends AnnotatedElement
    */
   @Uninterruptible
   public abstract boolean isPrimitiveType();
+
+  /**
+   * @return whether or not this is an unboxed type
+   */
+  @Uninterruptible
+  public abstract boolean isUnboxedType();
 
   /**
    * @return whether or not this is a reference (ie non-primitive) type.

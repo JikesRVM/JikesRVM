@@ -745,7 +745,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       RVMArray LHSArray = (RVMArray) LHStype.peekType();
       if (LHSArray != null) {
         RVMType innermostElementType = LHSArray.getInnermostElementType();
-        if (innermostElementType.isPrimitiveType() ||
+        if (innermostElementType.isPrimitiveType() || innermostElementType.isUnboxedType() ||
             (innermostElementType.asClass().isResolved() && innermostElementType.asClass().isFinal())) {
           // [^k of primitive or [^k of final class. Just like final classes,
           // a PTR compare of rhsTIB and the TIB of the class gives the answer.
@@ -980,7 +980,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       if (LHSArray != null) {
         Operand classTIB = getTIB(continueAt, ir, LHSArray);
         RVMType innermostElementType = LHSArray.getInnermostElementType();
-        if (innermostElementType.isPrimitiveType() ||
+        if (innermostElementType.isPrimitiveType() || innermostElementType.isUnboxedType() ||
             (innermostElementType.asClass().isResolved() && innermostElementType.asClass().isFinal())) {
           // [^k of primitive or [^k of final class. Just like final classes,
           // a PTR compare of rhsTIB and the TIB of the class gives the answer.

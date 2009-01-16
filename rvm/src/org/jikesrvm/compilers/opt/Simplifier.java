@@ -756,7 +756,8 @@ public abstract class Simplifier extends IRTools {
       RVMType typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
       if (typeOfIMElem != null) {
         RVMType typeOfVal = val.getType().peekType();
-        if ((typeOfIMElem == typeOfVal) && (typeOfIMElem.isPrimitiveType() || typeOfIMElem.asClass().isFinal())) {
+        if ((typeOfIMElem == typeOfVal) &&
+            (typeOfIMElem.isPrimitiveType() || typeOfIMElem.isUnboxedType() || typeOfIMElem.asClass().isFinal())) {
           // Writing something of a final type to an array of that
           // final type is safe
           Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
@@ -799,7 +800,8 @@ public abstract class Simplifier extends IRTools {
     RVMType typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
     if (typeOfIMElem != null) {
       RVMType typeOfVal = val.getType().peekType();
-      if ((typeOfIMElem == typeOfVal) && (typeOfIMElem.isPrimitiveType() || typeOfIMElem.asClass().isFinal())) {
+      if ((typeOfIMElem == typeOfVal) &&
+          (typeOfIMElem.isPrimitiveType() || typeOfIMElem.isUnboxedType() || typeOfIMElem.asClass().isFinal())) {
         // Writing something of a final type to an array of that
         // final type is safe
         Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));

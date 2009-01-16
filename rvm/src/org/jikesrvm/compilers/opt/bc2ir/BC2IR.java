@@ -3826,7 +3826,7 @@ public final class BC2IR
         } while (elemType2.isArrayType());
         RVMType et2 = elemType2.peekType();
         if (et2 != null) {
-          if (et2.isPrimitiveType() || ((RVMClass) et2).isFinal()) {
+          if (et2.isPrimitiveType() || et2.isUnboxedType() || ((RVMClass) et2).isFinal()) {
             TypeReference myElemType = getRefTypeOf(elem);
             if (myElemType == elemType) {
               if (DBG_TYPE) {

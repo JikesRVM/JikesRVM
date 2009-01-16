@@ -40,6 +40,7 @@ import org.vmmagic.unboxed.Offset;
  * @see RVMType
  * @see RVMClass
  * @see Primitive
+ * @see UnboxedType
  */
 @NonMoving
 public final class RVMArray extends RVMType implements Constants, ClassLoaderConstants {
@@ -415,6 +416,16 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
+   * @return whether or not this is an unboxed type
+   */
+  @Override
+  @Pure
+  @Uninterruptible
+  public boolean isUnboxedType() {
+    return false;
+  }
+
+  /**
    * Constructor
    * @param typeRef
    * @param elementType
@@ -492,7 +503,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     allocatedTib.setType(this);
     allocatedTib.setSuperclassIds(superclassIds);
     allocatedTib.setDoesImplement(doesImplement);
-    if (!elementType.isPrimitiveType()) {
+    if (!(elementType.isPrimitiveType()||elementType.isUnboxedType())) {
       allocatedTib.setArrayElementTib(elementType.getTypeInformationBlock());
     }
     typeInformationBlock = allocatedTib;

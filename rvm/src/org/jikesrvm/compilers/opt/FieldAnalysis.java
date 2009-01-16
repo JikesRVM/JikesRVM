@@ -72,7 +72,7 @@ public final class FieldAnalysis extends CompilerPhase {
   private static boolean isCandidate(TypeReference tref) {
     RVMType t = tref.peekType();
     if (t == null) return false;
-    if (t.isPrimitiveType()) {
+    if (t.isPrimitiveType() || t.isUnboxedType()) {
       return false;
     }
     if (t.isClassType() && t.asClass().isFinal()) {

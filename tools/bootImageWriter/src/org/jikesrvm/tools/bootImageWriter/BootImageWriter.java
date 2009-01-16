@@ -3109,7 +3109,7 @@ public class BootImageWriter extends BootImageWriterMessages
     for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < RVMType.numTypes(); ++i) {
       RVMType type = RVMType.getType(i);
       if (type == null) continue;
-      if (type.isPrimitiveType())
+      if (type.isPrimitiveType() || type.isUnboxedType())
         continue;
       if (!type.isResolved())
         continue;

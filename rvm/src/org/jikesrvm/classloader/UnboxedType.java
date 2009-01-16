@@ -21,30 +21,19 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Description of a java "primitive" type (int, float, etc.)
+ * Description of an Unboxed Magic type.
  *
- * <p> This description is not read from a ".class" file, but rather
- * is manufactured by the vm before execution begins.
- *
- * <p> Note that instances of primitives are not objects:
- * <ul>
- * <li> they are never heap allocated in the virtual machine
- * <li> they have no virtual methods
- * <li> they appear only in the virtual machine's stack, in its registers,
- *   or in fields/elements of class/array instances.
- * </ul>
+ * Currently, unboxed types are restricted to be values that can fit in a single machines word.
  *
  * @see RVMType
  * @see RVMClass
  * @see RVMArray
- * @see UnboxedType
+ * @see Primitive
  */
 @NonMoving
-public final class Primitive extends RVMType implements Constants, ClassLoaderConstants {
+public final class UnboxedType extends RVMType implements Constants, ClassLoaderConstants {
   /**
-   * The pretty (external) name for this primitive.
-   * For example, for a long the name is 'long'
-   * and the descriptor is 'J'
+   * The pretty (external) name for this Unboxed type.
    */
   private final Atom name;
 
@@ -77,7 +66,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
    * @param stackWords The stack slots used by this primitive
    * @param memoryBytes The bytes in memory used by this primitive
    */
-  private Primitive(TypeReference tr, Class<?> classForType, Atom name, int stackWords, int memoryBytes) {
+  private UnboxedType(TypeReference tr, Class<?> classForType, Atom name, int stackWords, int memoryBytes) {
     super(tr,    // type reference
           classForType, // j.l.Class representation
           -1,    // dimensionality
@@ -90,73 +79,33 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Create an instance of a {@link Primitive}
+   * Create an instance of a {@link UnboxedType}
    * @param tr   The canonical type reference for this primitive
    */
-  static Primitive createPrimitive(TypeReference tr) {
+  static UnboxedType createUnboxedType(TypeReference tr) {
     Atom name;
-    int stackWords;
+    int stackWords = 1;
     int memoryBytes;
     Class<?> classForType;
-    switch (tr.getName().parseForTypeCode()) {
-      case VoidTypeCode:
-        stackWords = 0;
-        memoryBytes = 0;
-        name = Atom.findOrCreateAsciiAtom("void");
-        classForType = Void.TYPE;
-        break;
-      case BooleanTypeCode:
-        stackWords = 1;
-        memoryBytes = BYTES_IN_BOOLEAN;
-        name = Atom.findOrCreateAsciiAtom("boolean");
-        classForType = Boolean.TYPE;
-        break;
-      case ByteTypeCode:
-        stackWords = 1;
-        memoryBytes = BYTES_IN_BYTE;
-        name = Atom.findOrCreateAsciiAtom("byte");
-        classForType = Byte.TYPE;
-        break;
-      case CharTypeCode:
-        stackWords = 1;
-        memoryBytes = BYTES_IN_CHAR;
-        name = Atom.findOrCreateAsciiAtom("char");
-        classForType = Character.TYPE;
-        break;
-      case ShortTypeCode:
-        stackWords = 1;
-        memoryBytes = BYTES_IN_SHORT;
-        name = Atom.findOrCreateAsciiAtom("short");
-        classForType = Short.TYPE;
-        break;
-      case IntTypeCode:
-        stackWords = 1;
-        memoryBytes = BYTES_IN_INT;
-        name = Atom.findOrCreateAsciiAtom("int");
-        classForType = Integer.TYPE;
-        break;
-      case LongTypeCode:
-        stackWords = 2;
-        memoryBytes = BYTES_IN_LONG;
-        name = Atom.findOrCreateAsciiAtom("long");
-        classForType = Long.TYPE;
-        break;
-      case FloatTypeCode:
-        stackWords = 1;
-        memoryBytes = BYTES_IN_FLOAT;
-        name = Atom.findOrCreateAsciiAtom("float");
-        classForType = Float.TYPE;
-        break;
-      case DoubleTypeCode:
-        stackWords = 2;
-        memoryBytes = BYTES_IN_DOUBLE;
-        name = Atom.findOrCreateAsciiAtom("double");
-        classForType = Double.TYPE;
-        break;
-      default:
-        throw new Error("Unknown primitive "+tr.getName().classFileNameFromDescriptor());
+
+    name = tr.getName();
+    if (tr == TypeReference.Address ||
+        tr == TypeReference.Word ||
+        tr == TypeReference.Offset ||
+        tr == TypeReference.Extent) {
+      memoryBytes = BYTES_IN_ADDRESS;
+    } else if (tr == TypeReference.Code) {
+      memoryBytes = VM.BuildForIA32 ? BYTES_IN_BYTE : BYTES_IN_INT;
+    } else {
+      throw new Error("Unknown unboxed type " + tr.getName());
     }
-    return new Primitive(tr, classForType, name, stackWords, memoryBytes);
+    try {
+      classForType = Class.forName(name.classNameFromDescriptor());
+    } catch (Exception e) {
+      throw new Error("Error getting java.lang.Class wrapper for type " + name.classNameFromDescriptor());
+    }
+
+    return new UnboxedType(tr, classForType, name, stackWords, memoryBytes);
   }
 
   /**
@@ -286,7 +235,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   @Pure
   @Uninterruptible
   public boolean isPrimitiveType() {
-    return true;
+    return false;
   }
 
   /**
@@ -306,7 +255,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   @Pure
   @Uninterruptible
   public boolean isUnboxedType() {
-    return false;
+    return true;
   }
 
   /**

@@ -272,7 +272,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Type[] getGenericInterfaces()  {
-    if (type.isPrimitiveType()) {
+    if (type.isPrimitiveType() || type.isUnboxedType()) {
       return new Type[0];
     } else if (type.isArrayType()) {
       // arrays implement JavaLangSerializable & JavaLangCloneable
@@ -292,7 +292,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Type getGenericSuperclass() {
     if (type.isArrayType()) {
       return Object.class;
-     } else if (type.isPrimitiveType() ||
+     } else if (type.isPrimitiveType() || type.isUnboxedType() ||
                (type.isClassType() && type.asClass().isInterface()) ||
                this == Object.class) {
       return null;

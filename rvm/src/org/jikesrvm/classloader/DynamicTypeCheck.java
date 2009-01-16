@@ -282,10 +282,10 @@ public class DynamicTypeCheck implements TIBLayoutConstants {
       if (RHSDimension < LHSDimension) return false;
       if (RHSDimension > LHSDimension) return true;
       return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive
-    } else if (!LHSInnermostElementType.isPrimitiveType()) {
+    } else if (!(LHSInnermostElementType.isPrimitiveType() || LHSInnermostElementType.isUnboxedType())) {
       if (RHSDimension == LHSDimension) {
         RVMType RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
-        if (RHSInnermostElementType.isPrimitiveType()) return false;
+        if ((RHSInnermostElementType.isPrimitiveType() || RHSInnermostElementType.isUnboxedType())) return false;
         return instanceOfNonArray(LHSInnermostElementType.asClass(), RHSInnermostElementType.getTypeInformationBlock());
       } else {
         // All array types implicitly implement java.lang.Cloneable and java.io.Serializable

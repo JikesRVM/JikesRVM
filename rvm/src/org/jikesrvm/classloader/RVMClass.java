@@ -43,6 +43,7 @@ import org.vmmagic.unboxed.Offset;
  * @see RVMType
  * @see RVMArray
  * @see Primitive
+ * @see UnboxedType
  */
 @NonMoving
 public final class RVMClass extends RVMType implements Constants, ClassLoaderConstants {
@@ -1927,6 +1928,16 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Uninterruptible
   public boolean isReferenceType() {
     return true;
+  }
+
+  /**
+   * @return whether or not this is an unboxed type
+   */
+  @Override
+  @Pure
+  @Uninterruptible
+  public boolean isUnboxedType() {
+    return false;
   }
 
   /**
