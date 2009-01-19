@@ -562,7 +562,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     } else {
       typeString = "(";
       for (int i=0; i < parameterTypes.length-1; i++) {
-        Class c = parameterTypes[i];
+        Class<?> c = parameterTypes[i];
         typeString += c.toString() + ", ";
       }
       typeString += parameterTypes[parameterTypes.length-1].toString() + ")";
