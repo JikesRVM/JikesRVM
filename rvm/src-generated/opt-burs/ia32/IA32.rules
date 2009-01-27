@@ -538,6 +538,20 @@ EMIT_INSTRUCTION
 pushCOND(BooleanCmp.getCond(P(p))); \\
 EMIT(CPOS(P(p),MIR_Test.create(IA32_TEST, BooleanCmp.getVal1(P(p)), BooleanCmp.getVal1(P(p)).copy())));
 
+# Case where we can fold address calculation with compare
+boolcmp: BOOLEAN_CMP_INT(address1reg,INT_CONSTANT)
+13
+EMIT_INSTRUCTION
+ConditionOperand cond = BooleanCmp.getCond(P(p)); \\
+pushCOND(cond); \\
+MemoryOperand mo = consumeAddress((byte)0, null, null); \\
+int constant = BooleanCmp.getVal2(P(p)).asIntConstant().value - mo.disp.toInt(); \\
+if (constant == 0 && CMP_TO_TEST(cond)) { \\
+  EMIT(MIR_Test.mutate(P(p), IA32_TEST, mo.base, mo.base.copy())); \\
+} else { \\
+  EMIT(MIR_Compare.mutate(P(p), IA32_CMP, mo.base, IC(constant))); \\
+}
+
 # Special case where a boolean_cmp can become a shift
 r:	BOOLEAN_CMP_INT(r,INT_CONSTANT)
 VR(p) == 0 && BooleanCmp.getCond(P(p)).isLESS() ? 11 : INFINITE
@@ -685,6 +699,22 @@ r: CMP_CMOV(r, OTHER_OPERAND(INT_CONSTANT, any))
 VRL(p) == 0 && CMP_TO_TEST(CondMove.getCond(P(p))) ? (11 + 30):INFINITE
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), MIR_Test.create(IA32_TEST, CondMove.getVal1(P(p)), CondMove.getVal1(P(p)).copy()))); \\
+CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
+         CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
+
+# Case where we can fold address calculation with compare
+r: CMP_CMOV(address1reg, OTHER_OPERAND(INT_CONSTANT, any))
+(13 + 30)
+EMIT_INSTRUCTION
+ConditionOperand cond = CondMove.getCond(P(p)); \\
+pushCOND(cond); \\
+MemoryOperand mo = consumeAddress((byte)0, null, null); \\
+int constant = CondMove.getVal2(P(p)).asIntConstant().value - mo.disp.toInt(); \\
+if (constant == 0 && CMP_TO_TEST(cond)) { \\
+  EMIT(MIR_Test.mutate(P(p), IA32_TEST, mo.base, mo.base.copy())); \\
+} else { \\
+  EMIT(MIR_Compare.mutate(P(p), IA32_CMP, mo.base, IC(constant))); \\
+} \\
 CMOV_MOV(P(p), CondMove.getResult(P(p)), CondMove.getCond(P(p)), \\
          CondMove.getTrueValue(P(p)), CondMove.getFalseValue(P(p)));
 
@@ -2412,6 +2442,20 @@ VR(p) == 0 && CMP_TO_TEST(IfCmp.getCond(P(p))) ? 24:INFINITE
 EMIT_INSTRUCTION
 EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \\
 EMIT(CPOS(P(p), MIR_Test.create(IA32_TEST, IfCmp.getVal1(P(p)), IfCmp.getVal1(P(p)).copy()))); \\
+EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(IfCmp.getCond(P(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
+
+# Case where we can fold address calculation with compare
+stm: INT_IFCMP(address1reg,INT_CONSTANT)
+26
+EMIT_INSTRUCTION
+EMIT(CPOS(P(p), Move.create(GUARD_MOVE, IfCmp.getGuardResult(P(p)), new TrueGuardOperand()))); \\
+MemoryOperand mo = consumeAddress((byte)0, null, null); \\
+int constant = IfCmp.getVal2(P(p)).asIntConstant().value - mo.disp.toInt(); \\
+if (constant == 0 && CMP_TO_TEST(IfCmp.getCond(P(p)))) { \\
+  EMIT(CPOS(P(p), MIR_Test.create(IA32_TEST, mo.base, mo.base.copy()))); \\
+} else { \\
+  EMIT(CPOS(P(p), MIR_Compare.create(IA32_CMP, mo.base, IC(constant)))); \\
+} \\
 EMIT(MIR_CondBranch.mutate(P(p), IA32_JCC, COND(IfCmp.getCond(P(p))), IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p))));
 
 # Because uload is only used for booleans (0/1) we can get away
