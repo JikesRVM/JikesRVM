@@ -87,7 +87,7 @@ import org.vmmagic.unboxed.*;
   @Entrypoint
   protected Address tail; // the location in the buffer
   protected Address tailBufferEnd; // the end of the buffer
-  protected SharedDeque queue; // the shared queue
+  protected final SharedDeque queue; // the shared queue
 
   /**
    * Reset the local buffer (throwing away any local entries).

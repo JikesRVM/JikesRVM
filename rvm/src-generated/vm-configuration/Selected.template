@@ -41,7 +41,7 @@ public class Selected {
   @Uninterruptible
   public static class Collector extends @_PLAN_@Collector
   {
-    private Processor processor;
+    private final Processor processor;
     public Collector(Processor parent) { processor = parent; }
     @Inline
     public final Processor getProcessor() { return processor; }
