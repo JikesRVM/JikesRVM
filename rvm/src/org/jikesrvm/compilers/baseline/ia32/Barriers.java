@@ -166,15 +166,6 @@ class Barriers implements BaselineConstants {
     BaselineCompilerImpl.baselineEmitLoadTIB(asm, T1, T1);
   }
 
-  /**
-   * Generate a cheap nullcheck by attempting at offset 0 from the object
-   * in reg
-   */
-  private static void genNullCheck(Assembler asm, GPR reg) {
-    // do load from reg, without clobbering any registers and using a short encoding
-    asm.emitTEST_RegInd_Reg(reg, reg);
-  }
-
   static void compileModifyCheck(Assembler asm, int offset) {
     if (!Configuration.ExtremeAssertions) return;
     // on entry java stack contains ... [SP+offset] -> target_ref
