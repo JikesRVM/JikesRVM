@@ -707,16 +707,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     genParameterRegisterLoad(asm, 2);    // pass 2 parameter
     // call checkstore(array ref, value)
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.checkstoreMethod.getOffset()));
+    asm.emitPOP_Reg(T1); // T1 is the value
+    asm.emitPOP_Reg(T0); // T0 is array index
+    asm.emitPOP_Reg(S0); // S0 is array ref
+    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-      stackMoveHelper(T0, ONE_SLOT);  // T0 is array index
-      stackMoveHelper(S0, TWO_SLOTS); // S0 is array ref
-      genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
-      Barriers.compileArrayStoreBarrier(asm);
+      Barriers.compileArrayStoreBarrier(asm, S0, T0, T1);
     } else {
-      asm.emitPOP_Reg(T1); // T1 is the value
-      asm.emitPOP_Reg(T0); // T0 is array index
-      asm.emitPOP_Reg(S0); // S0 is array ref
-      genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
       if (VM.BuildFor32Addr) {
         asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
       } else {
@@ -2866,11 +2863,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
+      asm.emitPOP_Reg(T1);  // T1 is the value to be stored
+      asm.emitPOP_Reg(S0);  // S0 is the object reference
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-        Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
+        Barriers.compilePutfieldBarrier(asm, S0, T0, T1, fieldRef.getId());
       } else {
-        asm.emitPOP_Reg(T1);  // T1 is the value to be stored
-        asm.emitPOP_Reg(S0);  // S0 is the object reference
         if (VM.BuildFor32Addr) {
           asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
         } else {
@@ -2937,11 +2934,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     Barriers.compileModifyCheck(asm, 4);
     if (field.isReferenceType()) {
       // 32/64bit reference store
+      asm.emitPOP_Reg(T0);  // T0 is the value to be stored
+      asm.emitPOP_Reg(S0);  // S0 is the object reference
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
-        Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
+        Barriers.compilePutfieldBarrierImm(asm, S0, fieldOffset, T0, fieldRef.getId());
       } else {
-        asm.emitPOP_Reg(T0);  // T0 is the value to be stored
-        asm.emitPOP_Reg(S0);  // S0 is the object reference
         // [S0+fieldOffset] <- T0
         if (VM.BuildFor32Addr) {
           asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);
@@ -3665,7 +3662,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     } else {
       asm.emitMOV_Reg_RegInd_Quad(T0, SP); // T0 is object reference
     }
-    genExplicitNullCheck(asm, T0);
+    genNullCheck(asm, T0);
     genParameterRegisterLoad(asm, 1);      // pass 1 parameter word
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.lockMethod.getOffset()));
   }
@@ -3922,15 +3919,21 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * @param objRefReg the register containing the array reference
    */
   @Inline
-  private void genExplicitNullCheck(Assembler asm, GPR objRefReg) {
-    // compare to zero
-    asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
-    // Jmp around trap if index is OK
-    asm.emitBranchLikelyNextInstruction();
-    ForwardReference fr = asm.forwardJcc(Assembler.NE);
-    // trap
-    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_NULL_POINTER + RVM_TRAP_BASE);
-    fr.resolve(asm);
+  static void genNullCheck(Assembler asm, GPR objRefReg) {
+    boolean cheapTest = true;
+    if (cheapTest) {
+      // perform load to cause trap
+      asm.emitTEST_RegInd_Reg(objRefReg, objRefReg);
+    } else {
+      // compare to zero
+      asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
+      // Jmp around trap if index is OK
+      asm.emitBranchLikelyNextInstruction();
+      ForwardReference fr = asm.forwardJcc(Assembler.NE);
+      // trap
+      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_NULL_POINTER + RVM_TRAP_BASE);
+      fr.resolve(asm);
+    }
   }
 
 
