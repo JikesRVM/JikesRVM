@@ -2662,7 +2662,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && fieldRef.getFieldContentsType().isReferenceType()) {
       Barriers.compilePutstaticBarrier(asm, T0, fieldRef.getId());
-      adjustStack(WORDSIZE, true);
     } else {
       if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
         if (VM.BuildFor32Addr) {
@@ -2696,7 +2695,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     Offset fieldOffset = field.getOffset();
     if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && field.isReferenceType() && !field.isUntraced()) {
       Barriers.compilePutstaticBarrierImm(asm, fieldOffset, fieldRef.getId());
-      adjustStack(WORDSIZE, true);
     } else {
       if (field.getSize() <= BYTES_IN_INT) { // field is one word
         if (VM.BuildFor32Addr) {
@@ -2870,7 +2868,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       // 32/64bit reference store
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
         Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
-        adjustStack(2*WORDSIZE, true); // complete popping the value and reference
       } else {
         asm.emitPOP_Reg(T1);  // T1 is the value to be stored
         asm.emitPOP_Reg(S0);  // S0 is the object reference
@@ -2942,7 +2939,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       // 32/64bit reference store
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
         Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
-        adjustStack(WORDSIZE * 2, true); // complete popping the value and reference
       } else {
         asm.emitPOP_Reg(T0);  // T0 is the value to be stored
         asm.emitPOP_Reg(S0);  // S0 is the object reference
