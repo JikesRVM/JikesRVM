@@ -47,7 +47,7 @@ public class Map {
   private static final FreeListPageResource[] sharedFLMap;
   private static int totalAvailableDiscontiguousChunks = 0;
 
-  private static Lock lock = VM.newLock("Map lock");
+  private static final Lock lock = VM.newLock("Map lock");
 
   /****************************************************************************
    *

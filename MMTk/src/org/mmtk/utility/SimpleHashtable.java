@@ -35,19 +35,19 @@ import org.vmmagic.unboxed.*;
   private static final Offset DATA_OFFSET = Offset.fromIntSignExtend(BYTES_IN_WORD);
 
   /** The size of each entry in the table */
-  private Extent entrySize;
+  private final Extent entrySize;
 
   /** The mask to use to get the hash code */
-  private Word mask;
+  private final Word mask;
 
   /** The start address of the data table */
   private Address base;
 
   /** The full size of the table */
-  private Extent size;
+  private final Extent size;
 
   /** The space to use for allocating the data structure */
-  private RawPageSpace space;
+  private final RawPageSpace space;
 
   /** Is this table valid (created) */
   private boolean valid;

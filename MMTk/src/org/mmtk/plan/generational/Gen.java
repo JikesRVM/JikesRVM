@@ -77,12 +77,12 @@ public abstract class Gen extends StopTheWorld {
    */
 
   /* Statistics */
-  protected static BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
-  private static Timer fullHeapTime = new Timer("majorGCTime", false, true);
-  protected static EventCounter wbFast;
-  protected static EventCounter wbSlow;
-  public static SizeCounter nurseryMark;
-  public static SizeCounter nurseryCons;
+  protected static final BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
+  private static final Timer fullHeapTime = new Timer("majorGCTime", false, true);
+  protected static final EventCounter wbFast;
+  protected static final EventCounter wbSlow;
+  public static final SizeCounter nurseryMark;
+  public static final SizeCounter nurseryCons;
 
   /** The nursery space is where all new objects are allocated by default */
   private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.create() : VMRequest.create(0.15f, true);
@@ -116,10 +116,16 @@ public abstract class Gen extends StopTheWorld {
     if (GATHER_WRITE_BARRIER_STATS) {
       wbFast = new EventCounter("wbFast");
       wbSlow = new EventCounter("wbSlow");
+    } else {
+      wbFast = null;
+      wbSlow = null;
     }
     if (Stats.GATHER_MARK_CONS_STATS) {
       nurseryMark = new SizeCounter("nurseryMark", true, true);
       nurseryCons = new SizeCounter("nurseryCons", true, true);
+    } else {
+      nurseryMark = null;
+      nurseryCons = null;
     }
   }
 

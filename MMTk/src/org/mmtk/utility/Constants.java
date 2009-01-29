@@ -19,10 +19,12 @@ import org.mmtk.vm.VM;
  * MMTk follows the pattern set by Jikes RVM for defining sizes of
  * primitive types thus:
  *
- *  static final int LOG_BYTES_IN_INT = 2;
- *  static final int BYTES_IN_INT = 1<<LOG_BYTES_IN_INT;
+ * <pre>
+ * static final int LOG_BYTES_IN_INT = 2;
+ * static final int BYTES_IN_INT = 1<<LOG_BYTES_IN_INT;
  * static final int LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
  * static final int BITS_IN_INT = 1<<LOG_BITS_IN_INT;
+ * </pre>
  */
 public interface Constants {
 

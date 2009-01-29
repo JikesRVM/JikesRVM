@@ -43,8 +43,8 @@ public class CopyMSMutator extends StopTheWorldMutator {
    * Instance fields
    */
 
-  private MarkSweepLocal mature;
-  private CopyLocal nursery;
+  private final MarkSweepLocal mature;
+  private final CopyLocal nursery;
 
   /****************************************************************************
    *

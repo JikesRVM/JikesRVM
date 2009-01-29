@@ -95,25 +95,25 @@ public abstract class MutatorContext implements Constants {
    */
 
   /** Unique mutator identifier */
-  protected int id = VM.activePlan.registerMutator(this);
+  protected final int id = VM.activePlan.registerMutator(this);
 
   /** Used for printing log information in a thread safe manner */
   protected final Log log = new Log();
 
   /** Per-mutator allocator into the immortal space */
-  protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
+  protected final BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
 
   /** Per-mutator allocator into the large object space */
-  protected LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
+  protected final LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
 
   /** Per-mutator allocator into the small code space */
-  private MarkSweepLocal smcode = Plan.USE_CODE_SPACE ? new MarkSweepLocal(Plan.smallCodeSpace) : null;
+  private final MarkSweepLocal smcode = Plan.USE_CODE_SPACE ? new MarkSweepLocal(Plan.smallCodeSpace) : null;
 
   /** Per-mutator allocator into the large code space */
-  private LargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new LargeObjectLocal(Plan.largeCodeSpace) : null;
+  private final LargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new LargeObjectLocal(Plan.largeCodeSpace) : null;
 
   /** Per-mutator allocator into the non moving space */
-  private MarkSweepLocal nonmove = new MarkSweepLocal(Plan.nonMovingSpace);
+  private final MarkSweepLocal nonmove = new MarkSweepLocal(Plan.nonMovingSpace);
 
 
   /****************************************************************************
@@ -145,7 +145,7 @@ public abstract class MutatorContext implements Constants {
    * @param bytes The number of bytes to be allocated
    * @param align The requested alignment.
    * @param allocator The allocator statically assigned to this allocation
-   * @return The allocator dyncamically assigned to this allocation
+   * @return The allocator dynamically assigned to this allocation
    */
   @Inline
   public int checkAllocator(int bytes, int align, int allocator) {
@@ -325,7 +325,7 @@ public abstract class MutatorContext implements Constants {
    * @param tgt The target of the new reference
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
+   * @param mode The context in which the store occurred
    */
   public void writeBarrier(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
@@ -349,7 +349,7 @@ public abstract class MutatorContext implements Constants {
    * @param tgt The target of the new reference
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
+   * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
   public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,

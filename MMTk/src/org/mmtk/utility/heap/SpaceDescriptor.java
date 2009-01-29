@@ -58,7 +58,7 @@ import org.vmmagic.unboxed.*;
   private static final int BASE_EXPONENT = BITS_IN_INT - MANTISSA_BITS;
 
   private static int discontiguousSpaceIndex = 0;
-  private static int DISCONTIG_INDEX_INCREMENT = 1<<TYPE_BITS;
+  private static final int DISCONTIG_INDEX_INCREMENT = 1<<TYPE_BITS;
 
   /****************************************************************************
    *

@@ -84,7 +84,7 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * @param tgt The target of the new reference
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
+   * @param mode The context in which the store occurred
    */
   @Inline
   public void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
@@ -106,7 +106,7 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * @param tgt The target of the new reference
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
+   * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
   @Inline
@@ -168,15 +168,4 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * @param ref The reference to check.
    */
   protected abstract void checkAndEnqueueReference(ObjectReference ref);
-
-  /****************************************************************************
-   *
-   * Miscellaneous
-   */
-
-  /** @return The active global plan as a <code>Gen</code> instance. */
-  @Inline
-  private static Concurrent global() {
-    return (Concurrent) VM.activePlan.global();
-  }
 }

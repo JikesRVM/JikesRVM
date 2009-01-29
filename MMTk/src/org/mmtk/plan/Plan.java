@@ -152,7 +152,7 @@ public abstract class Plan implements Constants {
   public static final Timer totalTime = new Timer("time");
 
   /** Performance counters */
-  public static PerfCounter totalPerfCnt = new PerfCounter("perf");
+  public static final PerfCounter totalPerfCnt = new PerfCounter("perf");
 
   /** Support for time-limited GCs */
   protected static long timeCap;
