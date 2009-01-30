@@ -634,41 +634,30 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     }
 
     /* test validity of virtual processor address */
+    if (!inRVMAddressSpace(localVirtualProcessorAddress))
     {
-        unsigned int vp_hn;  /* the high nibble of the vp address value */
-        vp_hn = localVirtualProcessorAddress >> 28;
-        if (vp_hn < 3 || !inRVMAddressSpace(localVirtualProcessorAddress))
-        {
-            writeErr("invalid vp address (not an address - high nibble %d)\n",
-                     vp_hn);
-            signal(signo, SIG_DFL);
-            raise(signo);
-            // We should never get here.
-            _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-        }
+        writeErr("invalid vp address (not an address %x)\n",
+                 localVirtualProcessorAddress);
+        signal(signo, SIG_DFL);
+        raise(signo);
+        // We should never get here.
+        _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
     }
-
 
     /* get the frame pointer from processor object  */
     localFrameAddress =
         *(unsigned *) (localVirtualProcessorAddress + Processor_framePointer_offset);
 
     /* test validity of frame address */
+    if (!inRVMAddressSpace(localFrameAddress))
     {
-        unsigned int fp_hn;
-        fp_hn = localFrameAddress >> 28;
-        if (fp_hn < 3 || !inRVMAddressSpace(localFrameAddress))
-        {
-            writeErr("invalid frame address %x"
-            " (not an address - high nibble %d)\n",
-                                 localFrameAddress, fp_hn);
-            signal(signo, SIG_DFL);
-            raise(signo);
-            // We should never get here.
-            _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
-        }
+        writeErr("invalid frame address (not an address %x)\n",
+                 localFrameAddress);
+        signal(signo, SIG_DFL);
+        raise(signo);
+        // We should never get here.
+        _exit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
     }
-
 
     int HardwareTrapMethodId = bootRecord->hardwareTrapMethodId;
     unsigned int javaExceptionHandlerAddress =
