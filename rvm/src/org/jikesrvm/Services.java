@@ -17,6 +17,7 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Synchronization;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -327,12 +328,14 @@ public class Services implements SizeConstants {
 
   /**
    * Sets an element of a object array without possibly losing control.
+   * NB doesn't perform checkstore or array index checking.
    *
    * @param dst the destination array
    * @param index the index of the element to set
    * @param value the new value for the element
    */
   @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
+  @Inline
   public static void setArrayUninterruptible(Object[] dst, int index, Object value) {
     if (VM.runningVM) {
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {

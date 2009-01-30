@@ -74,7 +74,7 @@ public interface Constants {
    *
    * Java-specific sizes currently required by MMTk
    *
-   * TODO MMTk should really become independant of these Java types
+   * TODO MMTk should really become independent of these Java types
    */
   byte LOG_BYTES_IN_SHORT = 1;
   int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;

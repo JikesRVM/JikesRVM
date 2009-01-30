@@ -619,7 +619,7 @@ public class Statics implements Constants {
     // VM. We suppress the warning as we know the error can't happen.
 
     if (VM.runningVM && MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
-      MemoryManager.putstaticWriteBarrier(offset, object, 0);
+      MemoryManager.putstaticWriteBarrier(object, offset, 0);
     } else {
       setSlotContents(offset, Magic.objectAsAddress(object).toWord());
     }

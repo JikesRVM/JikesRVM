@@ -178,13 +178,13 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Write barrier for putfield operations.
    *
    * @param ref the object which is the subject of the putfield
-   * @param offset the offset of the field to be modified
    * @param value the new value for the field
+   * @param offset the offset of the field to be modified
    * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
   @Entrypoint
-  public static void putfieldWriteBarrier(Object ref, Offset offset, Object value, int locationMetadata) {
+  public static void putfieldWriteBarrier(Object ref, Object value, Offset offset, int locationMetadata) {
     ObjectReference src = ObjectReference.fromObject(ref);
     Selected.Mutator.get().writeBarrier(src,
                                         src.toAddress().plus(offset),
@@ -217,13 +217,13 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   /**
    * Write barrier for putstatic operations.
    *
-   * @param offset the offset of the field to be modified
    * @param value the new value for the field
+   * @param offset the offset of the field to be modified
    * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
   @Entrypoint
-  public static void putstaticWriteBarrier(Offset offset, Object value, int locationMetadata) {
+  public static void putstaticWriteBarrier(Object value, Offset offset, int locationMetadata) {
     ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
     Selected.Mutator.get().writeBarrier(src,
                                         src.toAddress().plus(offset),

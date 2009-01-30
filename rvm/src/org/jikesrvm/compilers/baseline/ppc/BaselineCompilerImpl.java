@@ -1061,18 +1061,16 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_aastore() {
-    asm.emitLAddrToc(T0, Entrypoints.checkstoreMethod.getOffset());
-    asm.emitMTCTR(T0);
-    peekAddr(T1, 0);    // T1 is value to store
-    peekAddr(T0, 2);    // T0 is array ref
-    asm.emitBCCTRL();   // checkstore(arrayref, value)
-    popAddr(T2);        // T2 is value to store
-    genBoundsCheck();
     if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
       Barriers.compileArrayStoreBarrier(this);
+      discardSlots(3);
     } else {
-      asm.emitSLWI(T1, T1, LOG_BYTES_IN_ADDRESS);  // convert index to offset
-      asm.emitSTAddrX(T2, T0, T1);  // store ref value in array
+      asm.emitLAddrToc(T0, Entrypoints.aastoreMethod.getOffset());
+      asm.emitMTCTR(T0);
+      popAddr(T2);    // T2 is value to store
+      popInt(T1);     // T1 is the index
+      popAddr(T0);    // T0 is array ref
+      asm.emitBCCTRL();   // aastore(arrayref, index, value)
     }
   }
 
@@ -2535,26 +2533,26 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
-    emitDynamicLinkingSequence(T0, fieldRef, true);
+    emitDynamicLinkingSequence(T1, fieldRef, true);
     if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       Barriers.compilePutstaticBarrier(this, fieldRef.getId()); // NOTE: offset is in T0 from emitDynamicLinkingSequence
       discardSlots(1);
       return;
     }
     if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
-      popInt(T1);
-      asm.emitSTWX(T1, T0, JTOC);
+      popInt(T0);
+      asm.emitSTWX(T0, T1, JTOC);
     } else { // field is two words (double or long (or address on PPC64))
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
       if (VM.BuildFor64Addr) {
         if (fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
-          popAddr(T1);
-          asm.emitSTDX(T1, T0, JTOC);
+          popAddr(T0);
+          asm.emitSTDX(T0, T1, JTOC);
           return;
         }
       }
       popDouble(F0);
-      asm.emitSTFDX(F0, T0, JTOC);
+      asm.emitSTFDX(F0, T1, JTOC);
     }
   }
 
@@ -2692,51 +2690,51 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   protected final void emit_unresolved_putfield(FieldReference fieldRef) {
     TypeReference fieldType = fieldRef.getFieldContentsType();
-    // T1 = field offset from emitDynamicLinkingSequence()
-    emitDynamicLinkingSequence(T1, fieldRef, true);
+    // T2 = field offset from emitDynamicLinkingSequence()
+    emitDynamicLinkingSequence(T2, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-        // NOTE: offset is in T1 from emitDynamicLinkingSequence
+        // NOTE: offset is in T2 from emitDynamicLinkingSequence
         Barriers.compilePutfieldBarrier(this, fieldRef.getId());
         discardSlots(2);
       } else {
         popAddr(T0);                // T0 = address value
-        popAddr(T2);                // T2 = object reference
-        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-        asm.emitSTAddrX(T0, T2, T1);
+        popAddr(T1);                // T1 = object reference
+        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+        asm.emitSTAddrX(T0, T1, T2);
       }
     } else if (fieldType.isWordType()) {
       // 32/64bit word store
       popAddr(T0);                // T0 = value
-      popAddr(T2);                // T2 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-      asm.emitSTAddrX(T0, T2, T1);
+      popAddr(T1);                // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+      asm.emitSTAddrX(T0, T1, T2);
     } else if (fieldType.isBooleanType() || fieldType.isByteType()) {
       // 8bit store
       popInt(T0); // T0 = value
-      popAddr(T2); // T2 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-      asm.emitSTBX(T0, T2, T1);
+      popAddr(T1); // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+      asm.emitSTBX(T0, T1, T2);
     } else if (fieldType.isShortType() || fieldType.isCharType()) {
       // 16bit store
       popInt(T0); // T0 = value
-      popAddr(T2); // T2 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-      asm.emitSTHX(T0, T2, T1);
+      popAddr(T1); // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+      asm.emitSTHX(T0, T1, T2);
     } else if (fieldType.isIntType() || fieldType.isFloatType()) {
       // 32bit store
       popInt(T0); // T0 = value
-      popAddr(T2); // T2 = object reference
+      popAddr(T1); // T1 = object reference
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-      asm.emitSTWX(T0, T2, T1);
+      asm.emitSTWX(T0, T1, T2);
     } else {
       // 64bit store
       if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
       popDouble(F0);     // F0 = doubleword value
-      popAddr(T2);       // T2 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-      asm.emitSTFDX(F0, T2, T1);
+      popAddr(T1);       // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+      asm.emitSTFDX(F0, T1, T2);
     }
   }
 

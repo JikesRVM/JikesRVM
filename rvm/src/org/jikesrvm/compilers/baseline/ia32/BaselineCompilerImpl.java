@@ -702,23 +702,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_aastore() {
     Barriers.compileModifyCheck(asm, 8);
-    asm.emitPUSH_RegDisp(SP, TWO_SLOTS); // duplicate array ref
-    asm.emitPUSH_RegDisp(SP, ONE_SLOT);  // duplicate object value
-    genParameterRegisterLoad(asm, 2);    // pass 2 parameter
-    // call checkstore(array ref, value)
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.checkstoreMethod.getOffset()));
-    asm.emitPOP_Reg(T1); // T1 is the value
-    asm.emitPOP_Reg(T0); // T0 is array index
-    asm.emitPOP_Reg(S0); // S0 is array ref
-    genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
     if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-      Barriers.compileArrayStoreBarrier(asm, S0, T0, T1);
+      Barriers.compileArrayStoreBarrier(asm);
     } else {
-      if (VM.BuildFor32Addr) {
-        asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
-      } else {
-        asm.emitMOV_RegIdx_Reg_Quad(S0, T0, Assembler.LONG, NO_SLOT, T1); // [S0 + T0<<3] <- T1
-      }
+      genParameterRegisterLoad(asm, 3);
+      asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.aastoreMethod.getOffset()));
     }
   }
 
@@ -2863,11 +2851,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
-      asm.emitPOP_Reg(T1);  // T1 is the value to be stored
-      asm.emitPOP_Reg(S0);  // S0 is the object reference
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-        Barriers.compilePutfieldBarrier(asm, S0, T0, T1, fieldRef.getId());
+        Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
       } else {
+        asm.emitPOP_Reg(T1);  // T1 is the value to be stored
+        asm.emitPOP_Reg(S0);  // S0 is the object reference
         if (VM.BuildFor32Addr) {
           asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
         } else {
@@ -2934,11 +2922,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     Barriers.compileModifyCheck(asm, 4);
     if (field.isReferenceType()) {
       // 32/64bit reference store
-      asm.emitPOP_Reg(T0);  // T0 is the value to be stored
-      asm.emitPOP_Reg(S0);  // S0 is the object reference
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
-        Barriers.compilePutfieldBarrierImm(asm, S0, fieldOffset, T0, fieldRef.getId());
+        Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
       } else {
+        asm.emitPOP_Reg(T0);  // T0 is the value to be stored
+        asm.emitPOP_Reg(S0);  // S0 is the object reference
         // [S0+fieldOffset] <- T0
         if (VM.BuildFor32Addr) {
           asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);
@@ -4017,7 +4005,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   /**
    * Copy parameters from operand stack into registers.
-   * Assumption: parameters are layed out on the stack in order
+   * Assumption: parameters are laid out on the stack in order
    * with SP pointing to the last parameter.
    * Also, this method is called before the generation of a "helper" method call.
    * Assumption: no floating-point parameters.
@@ -4133,7 +4121,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * Store parameters into local space of the callee's stackframe.
    * Taken: srcOffset - offset from frame pointer of first parameter in caller's stackframe.
    * Assumption: although some parameters may be passed in registers,
-   * space for all parameters is layed out in order on the caller's stackframe.
+   * space for all parameters is laid out in order on the caller's stackframe.
    */
   private void genParameterCopy(Offset srcOffset) {
     int gpr = 0;  // number of general purpose registers unloaded

@@ -16,6 +16,7 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
+import org.jikesrvm.Services;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.DynamicTypeCheck;
@@ -165,9 +166,24 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
+   * Perform aastore bytecode
+   */
+  @Entrypoint
+  static void aastore(Object[] arrayRef, int index, Object value) throws ArrayStoreException, ArrayIndexOutOfBoundsException {
+    checkstore(arrayRef, value);
+    int nelts = ObjectModel.getArrayLength(arrayRef);
+    if (index < nelts) {
+      Services.setArrayUninterruptible(arrayRef, index, value);
+    } else {
+      throw new ArrayIndexOutOfBoundsException(index);
+    }
+  }
+
+  /**
    * Throw exception iff array assignment is illegal.
    */
   @Entrypoint
+  @Inline
   static void checkstore(Object array, Object arrayElement) throws ArrayStoreException {
     if (arrayElement == null) {
       return; // null may be assigned to any type

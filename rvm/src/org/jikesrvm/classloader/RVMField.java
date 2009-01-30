@@ -391,13 +391,13 @@ public final class RVMField extends RVMMember {
   public void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
       if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && !isUntraced()) {
-        MemoryManager.putstaticWriteBarrier(getOffset(), ref, getId());
+        MemoryManager.putstaticWriteBarrier(ref, getOffset(), getId());
       } else {
         Statics.setSlotContents(getOffset(), ref);
       }
     } else {
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !isUntraced()) {
-        MemoryManager.putfieldWriteBarrier(obj, getOffset(), ref, getId());
+        MemoryManager.putfieldWriteBarrier(obj, ref, getOffset(), getId());
       } else {
         Magic.setObjectAtOffset(obj, getOffset(), ref);
       }

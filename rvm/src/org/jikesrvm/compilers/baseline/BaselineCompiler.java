@@ -102,7 +102,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     // of method to print option so extra classes needed to process
     // matching will be loaded and compiled upfront. Thus avoiding getting
     // stuck looping by just asking if we have a match in the middle of
-    // compilation. Pick an obsure string for the check.
+    // compilation. Pick an obscure string for the check.
     if (options.hasMETHOD_TO_PRINT() && options.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
@@ -204,8 +204,8 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     /* reference map and stackheights were computed using original bytecodes
      * and possibly new operand words
      * recompute the stack height, but keep the operand words of the code
-     * generation consistant with reference map
-     * TODO: revist this code as part of OSR redesign
+     * generation consistent with reference map
+     * TODO: revisit this code as part of OSR redesign
      */
     // Phase 2: OSR setup\
     boolean edge_counters = options.EDGE_COUNTERS;

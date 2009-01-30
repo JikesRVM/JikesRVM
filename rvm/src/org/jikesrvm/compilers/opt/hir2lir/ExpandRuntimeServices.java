@@ -427,8 +427,8 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                  MethodOperand.STATIC(target),
                                  PutField.getClearGuard(inst),
                                  PutField.getRef(inst).copy(),
-                                 PutField.getOffset(inst).copy(),
                                  PutField.getValue(inst).copy(),
+                                 PutField.getOffset(inst).copy(),
                                  IRTools.IC(fieldRef.getId()));
                 wb.bcIndex = RUNTIME_SERVICES_BCI;
                 wb.position = inst.position;
@@ -482,8 +482,8 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                null,
                                IRTools.AC(target.getOffset()),
                                MethodOperand.STATIC(target),
-                               PutStatic.getOffset(inst).copy(),
                                PutStatic.getValue(inst).copy(),
+                               PutStatic.getOffset(inst).copy(),
                                IRTools.IC(field.getId()));
               wb.bcIndex = RUNTIME_SERVICES_BCI;
               wb.position = inst.position;
