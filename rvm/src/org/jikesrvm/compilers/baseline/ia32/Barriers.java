@@ -87,9 +87,7 @@ class Barriers implements BaselineConstants {
 
   static void compilePutstaticBarrierImm(Assembler asm, Offset fieldOffset, int locationMetadata) {
     //  on entry java stack contains ...|ref_to_store|
-    asm.emitPOP_Reg(S0);   // S0 = ref_to_store
     asm.emitPUSH_Imm(fieldOffset.toInt());
-    asm.emitPUSH_Reg(S0);  // ref_to_store
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.putstaticWriteBarrierMethod.getOffset()));
