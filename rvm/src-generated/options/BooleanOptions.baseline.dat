@@ -18,7 +18,7 @@ DESCRIP
 # First all the non-printing, non-debugging options
 # Should not start with PRINT_ or DEBUG_ prefix
 ##########
-EDGE_COUNTERS -1 VM.BuildForAdaptiveSystem
+PROFILE_EDGE_COUNTERS -1 VM.BuildForAdaptiveSystem
 Insert edge counters on all bytecode-level conditional branches
 
 INVOCATION_COUNTERS -1 false

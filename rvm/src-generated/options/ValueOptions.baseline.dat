@@ -18,7 +18,7 @@ DESCRIP
 ENUMS
 #Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
 
-V EDGE_COUNTER_FILE String \"EdgeCounters\"
+V PROFILE_EDGE_COUNTER_FILE String \"EdgeCounters\"
 File into which to dump edge counter data
 
 

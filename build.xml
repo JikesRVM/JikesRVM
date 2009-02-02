@@ -1963,10 +1963,10 @@ target.jni-suffix=${target.jni-suffix}
 	<ant inheritAll="false" target="create-bootimage-profile">
 	  <property name="config.with-profile" value="true"/>
 	  <property name="config.bootimage.compiler" value="base"/>
-	  <property name="config.bootimage.compiler.args" value="-X:bc:edge_counters=true"/>
+	  <property name="config.bootimage.compiler.args" value="-X:bc:profile_edge_counters=true"/>
 	</ant>
   	<ant inheritAll="false" target="runtime">
-	  <property name="config.bootimage.compiler.args" value="-X:bc:edge_count_input_file=${build.profiles}/profile.ec ${config.bootimage.compiler.args}"/>
+	  <property name="config.bootimage.compiler.args" value="-X:bc:profile_edge_count_input_file=${build.profiles}/profile.ec ${config.bootimage.compiler.args}"/>
 	</ant>
   </target>
 
@@ -1976,8 +1976,8 @@ target.jni-suffix=${target.jni-suffix}
 	<mkdir dir="${build.profiles}"/>
 	<exec executable="${dist.base}/rvm"
     dir="${build.profiles}">
-    <arg value="-X:base:edge_counters=true"/>
-	  <arg value="-X:base:edge_counter_file=${build.profiles}/profile.ec"/>
+    <arg value="-X:base:profile_edge_counters=true"/>
+	  <arg value="-X:base:profile_edge_counter_file=${build.profiles}/profile.ec"/>
 	  <arg value="-X:aos:final_report_level=2"/>
 	  <arg line="-jar ${dacapo.jar} -n 3 fop"/>
 	</exec>

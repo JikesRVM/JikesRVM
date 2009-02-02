@@ -208,13 +208,13 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
      * TODO: revisit this code as part of OSR redesign
      */
     // Phase 2: OSR setup\
-    boolean edge_counters = options.EDGE_COUNTERS;
+    boolean edge_counters = options.PROFILE_EDGE_COUNTERS;
     try {
       if (VM.MeasureCompilationPhases) {
         start = Scheduler.getCurrentThread().startTimedInterval();
       }
       if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
-        options.EDGE_COUNTERS = false;
+        options.PROFILE_EDGE_COUNTERS = false;
         // we already allocated enough space for stackHeights, shift it back first
         System.arraycopy(stackHeights,
                          0,
@@ -242,7 +242,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       }
 
       // determine if we are going to insert edge counters for this method
-      if (options.EDGE_COUNTERS &&
+      if (options.PROFILE_EDGE_COUNTERS &&
           !method.getDeclaringClass().hasBridgeFromNativeAnnotation() &&
           (method.hasCondBranch() || method.hasSwitch())) {
         ((BaselineCompiledMethod) compiledMethod).setHasCounterArray(); // yes, we will inject counters for this method.
@@ -278,7 +278,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
         // switch back to original state
         method.finalizeOsrSpecialization();
         // restore options
-        options.EDGE_COUNTERS = edge_counters;
+        options.PROFILE_EDGE_COUNTERS = edge_counters;
       }
     } finally {
       if (VM.MeasureCompilationPhases) {

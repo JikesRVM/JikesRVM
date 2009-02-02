@@ -95,10 +95,10 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
   }
 
   /**
-   * Dump all the profile data to the file BaselineCompiler.options.EDGE_COUNTER_FILE
+   * Dump all the profile data to the file BaselineCompiler.options.PROFILE_EDGE_COUNTER_FILE
    */
   public static void dumpCounts() {
-    dumpCounts(BaselineCompiler.options.EDGE_COUNTER_FILE);
+    dumpCounts(BaselineCompiler.options.PROFILE_EDGE_COUNTER_FILE);
   }
 
   /**
