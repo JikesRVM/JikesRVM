@@ -1063,14 +1063,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_aastore() {
     if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
       Barriers.compileArrayStoreBarrier(this);
-      discardSlots(3);
     } else {
-      asm.emitLAddrToc(T0, Entrypoints.aastoreMethod.getOffset());
-      asm.emitMTCTR(T0);
-      popAddr(T2);    // T2 is value to store
-      popInt(T1);     // T1 is the index
-      popAddr(T0);    // T0 is array ref
-      asm.emitBCCTRL();   // aastore(arrayref, index, value)
+      emit_resolved_invokestatic((MethodReference)Entrypoints.aastoreMethod.getMemberRef());
     }
   }
 
@@ -2305,9 +2299,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
     int n = high - low + 1;       // n = number of normal cases (0..n-1)
-    int firstCounter = edgeCounterIdx; // only used if options.EDGE_COUNTERS;
+    int firstCounter = edgeCounterIdx; // only used if options.PROFILE_EDGE_COUNTERS;
 
-    if (options.EDGE_COUNTERS) {
+    if (options.PROFILE_EDGE_COUNTERS) {
       edgeCounterIdx += n + 1; // allocate n+1 counters
 
       // Load counter array for this method
@@ -2324,7 +2318,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitLVAL(T3, n);
     asm.emitCMPL(T0, T3);
 
-    if (options.EDGE_COUNTERS) {
+    if (options.PROFILE_EDGE_COUNTERS) {
       ForwardReference fr = asm.emitForwardBC(LT); // jump around jump to default target
       incEdgeCounter(T2, S0, firstCounter + n);
       asm.emitB(mTarget, bTarget);
@@ -2348,7 +2342,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     fr1.resolve(asm);
     asm.emitMFLR(T1);         // T1 is base of table
     asm.emitSLWI(T0, T0, LOG_BYTES_IN_INT); // convert to bytes
-    if (options.EDGE_COUNTERS) {
+    if (options.PROFILE_EDGE_COUNTERS) {
       incEdgeCounterIdx(T2, S0, firstCounter, T0);
     }
     asm.emitLIntX(T0, T0, T1); // T0 is relative offset of desired case
@@ -2363,7 +2357,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param npairs number of pairs in the lookup switch
    */
   protected final void emit_lookupswitch(int defaultval, int npairs) {
-    if (options.EDGE_COUNTERS) {
+    if (options.PROFILE_EDGE_COUNTERS) {
       // Load counter array for this method
       loadCounterArray(T2);
     }
@@ -2380,7 +2374,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       int offset = bcodes.getLookupSwitchOffset(i);
       int bTarget = biStart + offset;
       int mTarget = bytecodeMap[bTarget];
-      if (options.EDGE_COUNTERS) {
+      if (options.PROFILE_EDGE_COUNTERS) {
         // Flip conditions so we can jump over the increment of the taken counter.
         ForwardReference fr = asm.emitForwardBC(NE);
         // Increment counter & jump to target
@@ -2398,7 +2392,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     bcodes.skipLookupSwitchPairs(npairs);
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
-    if (options.EDGE_COUNTERS) {
+    if (options.PROFILE_EDGE_COUNTERS) {
       incEdgeCounter(T2, S0, edgeCounterIdx++);
     }
     asm.emitB(mTarget, bTarget);
@@ -3769,7 +3763,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param bTarget the target bytecode index
    */
   private void genCondBranch(int cc, int bTarget) {
-    if (options.EDGE_COUNTERS) {
+    if (options.PROFILE_EDGE_COUNTERS) {
       // Allocate 2 counters, taken and not taken
       int entry = edgeCounterIdx;
       edgeCounterIdx += 2;

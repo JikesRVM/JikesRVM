@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.baseline.ppc;
 
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.Entrypoints;
@@ -26,13 +27,7 @@ class Barriers implements BaselineConstants {
 
   // on entry java stack contains ...|array_ref|index|value|
   static void compileArrayStoreBarrier(BaselineCompilerImpl comp) {
-    Assembler asm = comp.asm;
-    asm.emitLAddrToc(T0, Entrypoints.aastoreMethod.getOffset());
-    asm.emitMTCTR(T0);
-    comp.peekAddr(T0, 2); // T0 is array ref
-    comp.peekInt(T1, 1);  // T1 is the index
-    comp.peekAddr(T2, 0); // T2 is value to store
-    asm.emitBCCTRL();   // aastore(arrayref, index, value)
+    comp.emit_resolved_invokestatic((MethodReference)Entrypoints.aastoreMethod.getMemberRef());
   }
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
