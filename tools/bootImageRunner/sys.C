@@ -768,7 +768,7 @@ extern "C" void processTimerTick(void) {
 
 #ifndef RVM_WITH_GCSPY
     /*
-     * After 500 timer intervals (often == 10 seconds), print a message
+     * After 1000 timer intervals (often == 10 seconds), print a message
      * every 100 timer intervals (often == 2 second), so we don't
      * just appear to be hung.
      */
@@ -777,8 +777,8 @@ extern "C" void processTimerTick(void) {
         fprintf(stderr, "%s: Exiting VM due to suspected deadlock\n", Me);
         sysExit(EXIT_STATUS_TIMER_TROUBLE); }
 #endif
-    if (longest_stuck_ticks >= 500 && (longest_stuck_ticks % 100) == 0) {
-      /* When performing tracing, delays will often last more than 5
+    if (longest_stuck_ticks >= 1000 && (longest_stuck_ticks % 100) == 0) {
+      /* When performing tracing, delays will often last more than 10
        * seconds and can take much, much longer (on a fairly fast
        * machine I've seen delays above 1 minute).  This is due to a
        * GC possibly needing to include additional processing and
