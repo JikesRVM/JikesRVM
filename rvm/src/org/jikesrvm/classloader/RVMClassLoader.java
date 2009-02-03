@@ -312,7 +312,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
     TypeReference tRef;
     if (className == null) {
       // NUTS: Our caller hasn't bothered to tell us what this class is supposed
-      //       to be called, so we must read the input stream and discover it overselves
+      //       to be called, so we must read the input stream and discover it ourselves
       //       before we actually can create the RVMClass instance.
       try {
         is.mark(is.available());

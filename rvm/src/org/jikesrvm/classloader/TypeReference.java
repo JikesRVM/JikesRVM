@@ -774,8 +774,7 @@ public final class TypeReference {
         } catch (ClassNotFoundException cnf) {
           NoClassDefFoundError ncdfe =
               new NoClassDefFoundError("Could not find the class " + myName + ":\n\t" + cnf.getMessage());
-          ncdfe.initCause(cnf); // in dubious taste, but helps us debug Jikes
-          // RVM
+          ncdfe.initCause(cnf); // in dubious taste, but helps us debug Jikes RVM
           throw ncdfe;
         }
 
