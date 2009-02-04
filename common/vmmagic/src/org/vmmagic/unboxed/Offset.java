@@ -16,7 +16,8 @@ import org.vmmagic.Unboxed;
 import org.vmmagic.pragma.RawStorage;
 
 /**
- * To be commented
+ * Represents a pointer-sized signed integer used for describing an offset in bytes.
+ * Can be used to refer to a field in a type-unsafe way.
  */
 @Unboxed
 @RawStorage(lengthInWords = true, length = 1)

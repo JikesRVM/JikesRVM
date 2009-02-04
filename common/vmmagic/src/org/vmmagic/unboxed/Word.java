@@ -16,16 +16,15 @@ import org.vmmagic.Unboxed;
 import org.vmmagic.pragma.RawStorage;
 
 /**
- * (Mistakes in) comments by Robin Garner
- * @see Address
+ * A generic pointer-sized integer. Can be converted to/from other pointer-sized types, and
+ * provides shifting and masking operations.
  */
 @Unboxed
 @RawStorage(lengthInWords = true, length = 1)
 public final class Word {
 
   /**
-   * Convert an into to a word.  On 64-bit machines, sign-extend the
-   * high order bit.
+   * Convert an int to a word. On 64-bit machines, sign-extend the high order bit.
    *
    * @param val
    * @return A word instance whose value is val, sign-extended on 64 bit machines
@@ -35,8 +34,7 @@ public final class Word {
   }
 
   /**
-   * Convert an int to a word.  On 64-bit machines, zero-extend the
-   * high order bit.
+   * Convert an int to a word. On 64-bit machines, zero-extend the high order bit.
    *
    * @param val
    * @return A word instance whose value is val, zero-extended on 64 bit machines
@@ -46,8 +44,7 @@ public final class Word {
   }
 
   /**
-   * Convert a long to a word.  On 64-bit this is a no-op.
-   * TODO document behaviour on 32-bit.  Truncate ?
+   * Convert a long to a word. On 64-bit this is a no-op, on 32-bit the long is truncated.
    *
    * @param val
    * @return A word instance whose value is val on 32 bit machine this truncates the upper 32 bits.
