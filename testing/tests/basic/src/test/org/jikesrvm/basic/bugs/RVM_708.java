@@ -14,19 +14,19 @@ package test.org.jikesrvm.basic.bugs;
 
 public class RVM_708 {
   public static void main(String[] args) {
+    System.out.println("Creating loop thread and waiting for 1 second...");
     createThread();
-    System.out.println("Sleeping for 1 seconds");
     try {
       Thread.sleep(1000);
     } catch (InterruptedException i) {
       System.err.println(i);
     }
-    System.out.println("Going to call System.gc()");
+    System.out.println("Calling System.gc()");
     System.gc();
   }
 
   private static void infiniteLoop() {
-    System.out.println("Waiting...");
+    System.out.println("Loop thread waiting...");
     while (true);
   }
 
