@@ -1974,7 +1974,7 @@ target.jni-suffix=${target.jni-suffix}
   <target name="create-bootimage-profile" depends="runtime">
 	<ant antfile="build/components/dacapo.xml" target="ensure" inheritall="false" inheritrefs="false"/>
 	<mkdir dir="${build.profiles}"/>
-	<exec executable="${dist.base}/rvm"
+        <exec executable="${dist.base}/rvm" failonerror="true"
     dir="${build.profiles}">
     <arg value="-X:base:profile_edge_counters=true"/>
 	  <arg value="-X:base:profile_edge_counter_file=${build.profiles}/profile.ec"/>
