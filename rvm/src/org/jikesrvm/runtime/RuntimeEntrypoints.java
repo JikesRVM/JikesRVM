@@ -172,7 +172,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   static void aastore(Object[] arrayRef, int index, Object value) throws ArrayStoreException, ArrayIndexOutOfBoundsException {
     checkstore(arrayRef, value);
     int nelts = ObjectModel.getArrayLength(arrayRef);
-    if (index < nelts) {
+    if (index >=0 && index < nelts) {
       Services.setArrayUninterruptible(arrayRef, index, value);
     } else {
       throw new ArrayIndexOutOfBoundsException(index);
