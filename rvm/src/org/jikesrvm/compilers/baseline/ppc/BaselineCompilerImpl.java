@@ -2720,7 +2720,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       // 32bit store
       popInt(T0); // T0 = value
       popAddr(T1); // T1 = object reference
-      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTWX(T0, T1, T2);
     } else {
       // 64bit store
