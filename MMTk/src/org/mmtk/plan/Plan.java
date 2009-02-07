@@ -18,7 +18,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
-import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
@@ -587,48 +586,6 @@ public abstract class Plan implements Constants {
    */
   public static void setCollectionTrigger(int trigger) {
     collectionTrigger = trigger;
-  }
-
-  /****************************************************************************
-   * Space - Allocator mapping. See description for getOwnAllocator in PlanLocal
-   * for a description of why this is important.
-   */
-
-  /**
-   * Return the name of the space into which an allocator is
-   * allocating.  The allocator, <code>a</code> may be assocaited with
-   * any plan instance.
-   *
-   * @param a An allocator
-   * @return The name of the space into which <code>a</code> is
-   * allocating, or "<null>" if there is no space associated with
-   * <code>a</code>.
-   */
-  public static String getSpaceNameFromAllocatorAnyLocal(Allocator a) {
-    Space space = getSpaceFromAllocatorAnyLocal(a);
-    if (space == null)
-      return "<null>";
-    else
-      return space.getName();
-  }
-
-  /**
-   * Return the space into which an allocator is allocating.  The
-   * allocator, <code>a</code> may be assocaited with any plan
-   * instance.
-   *
-   * @param a An allocator
-   * @return The space into which <code>a</code> is allocating, or
-   *         <code>null</code> if there is no space associated with
-   *         <code>a</code>.
-   */
-  public static Space getSpaceFromAllocatorAnyLocal(Allocator a) {
-    for (int i = 0; i < VM.activePlan.mutatorCount(); i++) {
-      Space space = VM.activePlan.mutator(i).getSpaceFromAllocator(a);
-      if (space != null)
-        return space;
-    }
-    return null;
   }
 
   /****************************************************************************

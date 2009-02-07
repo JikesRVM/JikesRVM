@@ -41,6 +41,13 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public abstract class Allocator implements Constants {
 
   /**
+   * Return the space this allocator is currently bound to.
+   *
+   * @return The Space.
+   */
+  protected abstract Space getSpace();
+
+  /**
    * Aligns up an allocation request. The allocation request accepts a
    * region, that must be at least particle aligned, an alignment
    * request (some power of two number of particles) and an offset (a
@@ -225,6 +232,7 @@ import org.vmmagic.pragma.*;
   public final Address allocSlowInline(int bytes, int alignment, int offset) {
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
+    Space space = current.getSpace();
     for (int i = 0; i < Plan.MAX_COLLECTION_ATTEMPTS; i++) {
       Address result = current.allocSlowOnce(bytes, alignment, offset);
       if (!result.isZero()) {
@@ -236,13 +244,13 @@ import org.vmmagic.pragma.*;
          * current thread and the mutator context. This is possible for
          * VMs that dynamically multiplex Java threads onto multiple mutator
          * contexts, */
-        current = VM.activePlan.mutator().getOwnAllocator(current);
+        current = VM.activePlan.mutator().getAllocatorFromSpace(space);
       }
     }
     Log.write("GC Error: Allocator.allocSlow failed on request of ");
     Log.write(bytes);
     Log.write(" on space ");
-    Log.writeln(Plan.getSpaceNameFromAllocatorAnyLocal(this));
+    Log.writeln(space.getName());
     Log.write("gcCountStart = ");
     Log.writeln(gcCountStart);
     Log.write("gcCount (now) = ");

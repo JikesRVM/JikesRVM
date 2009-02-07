@@ -17,7 +17,6 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -56,8 +55,6 @@ public abstract class Phase implements Constants {
   protected static final short SCHEDULE_COLLECTOR = 2;
   /** Run the phase on mutators. */
   protected static final short SCHEDULE_MUTATOR = 3;
-  /** Run this phase concurrently with the mutators */
-  protected static final short SCHEDULE_CONCURRENT = 4;
   /** Don't run this phase. */
   protected static final short SCHEDULE_PLACEHOLDER = 100;
   /** This is a complex phase. */
@@ -105,7 +102,6 @@ public abstract class Phase implements Constants {
       case SCHEDULE_GLOBAL:      return "Global";
       case SCHEDULE_COLLECTOR:   return "Collector";
       case SCHEDULE_MUTATOR:     return "Mutator";
-      case SCHEDULE_CONCURRENT:  return "Concurrent";
       case SCHEDULE_PLACEHOLDER: return "Placeholder";
       case SCHEDULE_COMPLEX:     return "Complex";
       default:                   return "UNKNOWN!";
@@ -156,29 +152,6 @@ public abstract class Phase implements Constants {
   }
 
   /**
-   * Construct a phase.
-   *
-   * @param name Display name of the phase
-   * @param atomicScheduledPhase The corresponding atomic phase to run in a stop the world collection
-   */
-  @Interruptible
-  public static final short createConcurrent(String name, int atomicScheduledPhase) {
-    return new ConcurrentPhase(name, atomicScheduledPhase).getId();
-  }
-
-  /**
-   * Construct a phase, re-using a specified timer.
-   *
-   * @param name Display name of the phase
-   * @param timer Timer for this phase to contribute to
-   * @param atomicScheduledPhase The corresponding atomic phase to run in a stop the world collection
-   */
-  @Interruptible
-  public static final short createConcurrent(String name, Timer timer, int atomicScheduledPhase) {
-    return new ConcurrentPhase(name, timer, atomicScheduledPhase).getId();
-  }
-
-  /**
    * Take the passed phase and return an encoded phase to
    * run that phase as a complex phase.
    *
@@ -188,18 +161,6 @@ public abstract class Phase implements Constants {
   public static int scheduleComplex(short phaseId) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Phase.getPhase(phaseId) instanceof ComplexPhase);
     return (SCHEDULE_COMPLEX << 16) + phaseId;
-  }
-
-  /**
-   * Take the passed phase and return an encoded phase to
-   * run that phase as a concurrent phase.
-   *
-   * @param phaseId The phase to run as concurrent
-   * @return The encoded phase value.
-   */
-  public static int scheduleConcurrent(short phaseId) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Phase.getPhase(phaseId) instanceof ConcurrentPhase);
-    return (SCHEDULE_CONCURRENT << 16) + phaseId;
   }
 
   /**
@@ -391,20 +352,6 @@ public abstract class Phase implements Constants {
   }
 
   /**
-   * Continue the execution of a phase stack. Used for incremental
-   * and concurrent collection.
-   *
-   * @return True if the phase stack is exhausted.
-   */
-  public static boolean continuePhaseStack() {
-    if (concurrentPhaseActive() && Plan.collectionTrigger != Collection.INTERNAL_PHASE_GC_TRIGGER) {
-      resetConcurrentWorkers();
-    }
-
-    return processPhaseStack(true);
-  }
-
-  /**
    * Process the phase stack. This method is called by multiple threads.
    */
   private static boolean processPhaseStack(boolean resume) {
@@ -487,23 +434,6 @@ public abstract class Phase implements Constants {
             mutator.collectionPhase(phaseId, primary);
           }
           break;
-        }
-
-        /* Concurrent phase */
-        case SCHEDULE_CONCURRENT: {
-          /* We are yielding to a concurrent collection phase */
-          if (logDetails) Log.writeln(" as Concurrent, yielding...");
-          if (primary) {
-            concurrentPhaseId = phaseId;
-            scheduleConcurrentWorkers();
-            /* Concurrent phase, we need to stop gc */
-            Plan.setGCStatus(Plan.NOT_IN_GC);
-          }
-          VM.collection.rendezvous(1003);
-          if (primary) {
-            pauseComplexTimers();
-          }
-          return false;
         }
 
         default: {
@@ -605,24 +535,6 @@ public abstract class Phase implements Constants {
         case SCHEDULE_MUTATOR: {
           /* Simple phases are just popped off the stack and executed */
           popScheduledPhase();
-          return scheduledPhase;
-        }
-
-        case SCHEDULE_CONCURRENT: {
-          /* Concurrent phases are either popped off or we forward to
-           * an associated non-concurrent phase. */
-          if (!allowConcurrentPhase) {
-            popScheduledPhase();
-            ConcurrentPhase cp = (ConcurrentPhase)getPhase(phaseId);
-            int alternateScheduledPhase = cp.getAtomicScheduledPhase();
-            if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(getSchedule(alternateScheduledPhase) != SCHEDULE_CONCURRENT);
-            pushScheduledPhase(alternateScheduledPhase);
-            continue;
-          }
-          if (VM.VERIFY_ASSERTIONS) {
-            /* Concurrent phases can not have a timer */
-            VM.assertions._assert(getPhase(getPhaseId(scheduledPhase)).timer == null);
-          }
           return scheduledPhase;
         }
 
@@ -734,156 +646,5 @@ public abstract class Phase implements Constants {
   @Inline
   private static int peekScheduledPhase() {
     return phaseStack[phaseStackPointer];
-  }
-
-  /** The concurrent phase being executed */
-  private static short concurrentPhaseId;
-  /** An atomic counter used to determine the threads performing gc work. */
-  private static Lock concurrentWorkersLock = VM.newLock("Active Concurrent Workers");
-  /** The number of concurrent workers currently active */
-  private static int concurrentWorkersActive;
-  /** Do we want to allow new concurrent workers to become active */
-  private static boolean allowConcurrentWorkersActive;
-
-  /**
-   * Get the current phase Id.
-   */
-  public static short getConcurrentPhaseId() {
-    return concurrentPhaseId;
-  }
-
-  /**
-   * @return True if there is an active concurrent phase.
-   */
-  public static boolean concurrentPhaseActive() {
-    return (concurrentPhaseId > 0);
-  }
-
-  /**
-   * Attempt to begin execution of a concurrent collection phase.
-   */
-  public static boolean startConcurrentPhase() {
-    boolean result = false;
-    concurrentWorkersLock.acquire();
-    if (concurrentPhaseActive()) {
-      if (allowConcurrentWorkersActive) {
-        concurrentWorkersActive++;
-        result = true;
-      }
-      VM.activePlan.collector().clearResetConcurrentWork();
-    }
-    if (Options.verbose.getValue() >= 2) {
-      if (result) {
-        Log.write("< Concurrent worker ");
-        Log.write(concurrentWorkersActive-1);
-        Log.write(" started phase ");
-        Log.write(getName(concurrentPhaseId));
-        Log.writeln(" >");
-      } else {
-        Log.writeln("< worker failed in attempt to start phase >");
-      }
-    }
-    concurrentWorkersLock.release();
-    return result;
-  }
-
-  /**
-   * Reset the workers that believe they are in the middle of
-   * a concurrent phase but have been pre-empted by a collection.
-   */
-  public static void resetConcurrentWorkers() {
-    for (int i=0; i < VM.activePlan.collectorCount(); i++) {
-      VM.activePlan.collector(i).resetConcurrentWork();
-    }
-    concurrentWorkersActive = 0;
-    concurrentPhaseId = 0;
-    allowConcurrentWorkersActive = false;
-  }
-
-  /**
-   * Notify that the current thread believes that a
-   * concurrent collection phase is complete.
-   *
-   * @return True if this was the last thread.
-   */
-  public static boolean completeConcurrentPhase() {
-    boolean result = false;
-    concurrentWorkersLock.acquire();
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allowConcurrentWorkersActive);
-    concurrentWorkersActive--;
-    if (concurrentWorkersActive == 0) {
-      allowConcurrentWorkersActive = false;
-      result = true;
-    }
-    if (Options.verbose.getValue() >= 3) {
-      Log.write("< Concurrent worker ");
-      Log.write(concurrentWorkersActive);
-      Log.write(" completed phase ");
-      Log.write(getName(concurrentPhaseId));
-      Log.writeln(" >");
-    }
-    concurrentWorkersLock.release();
-    return result;
-  }
-
-  /**
-   * Notify that the concurrent phase has completed successfully. This must
-   * only be called by a single thread after it has determined that the
-   * phase has been completed successfully.
-   */
-  public static void notifyConcurrentPhaseComplete() {
-    if (Options.verbose.getValue() >= 2) {
-      Log.write("< Concurrent phase ");
-      Log.write(getName(concurrentPhaseId));
-      Log.writeln(" complete >");
-    }
-    /* Concurrent phase is complete*/
-    concurrentPhaseId = 0;
-    /* Remove it from the stack */
-    popScheduledPhase();
-    /* Pop the next phase off the stack */
-    int nextScheduledPhase = getNextPhase();
-
-    if (nextScheduledPhase > 0) {
-      short schedule = getSchedule(nextScheduledPhase);
-
-      /* A concurrent phase, lets wake up and do it all again */
-      if (schedule == SCHEDULE_CONCURRENT) {
-        concurrentPhaseId = getPhaseId(nextScheduledPhase);
-        scheduleConcurrentWorkers();
-        return;
-      }
-
-      /* Push phase back on and resume atomic collection */
-      pushScheduledPhase(nextScheduledPhase);
-      VM.collection.triggerAsyncCollection(Collection.INTERNAL_PHASE_GC_TRIGGER);
-    }
-  }
-
-  /**
-   * Notify that the concurrent phase has not finished, and must be
-   * re-attempted.
-   */
-  public static void notifyConcurrentPhaseIncomplete() {
-    if (Options.verbose.getValue() >= 2) {
-      Log.write("< Concurrent phase ");
-      Log.write(getName(concurrentPhaseId));
-      Log.writeln(" incomplete >");
-    }
-    scheduleConcurrentWorkers();
-  }
-
-  /**
-   * Schedule the concurrent collector threads. If this is called from within a collection
-   * interval the threads must not be started until after the interval is complete.
-   */
-  private static void scheduleConcurrentWorkers() {
-    concurrentWorkersLock.acquire();
-    if (!allowConcurrentWorkersActive) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(concurrentWorkersActive == 0);
-      allowConcurrentWorkersActive = true;
-    }
-    concurrentWorkersLock.release();
-    VM.collection.scheduleConcurrentWorkers();
   }
 }

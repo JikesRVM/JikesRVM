@@ -294,13 +294,6 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   }
 
   /**
-   * Ensure all concurrent worker threads are scheduled.
-   */
-  public void scheduleConcurrentWorkers() {
-    scheduleConcurrentThreads();
-  }
-
-  /**
    * Request each mutator flush remembered sets. This method
    * will trigger the flush and then yield until all processors have
    * flushed.
@@ -340,12 +333,5 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
     if (finalizedCount > 0) {
       Scheduler.scheduleFinalizer();
     }
-  }
-
-  /**
-   * Schedule the concurrent collector threads.
-   */
-  public static void scheduleConcurrentThreads() {
-    Scheduler.scheduleConcurrentCollectorThreads();
   }
 }

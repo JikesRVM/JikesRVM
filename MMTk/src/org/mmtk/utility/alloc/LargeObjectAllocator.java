@@ -53,6 +53,15 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
     this.space = space;
   }
 
+  /**
+   * Return the space this allocator is currently bound to.
+   *
+   * @return The Space.
+   */
+  protected final BaseLargeObjectSpace getSpace() {
+    return this.space;
+  }
+
   /****************************************************************************
    *
    * Allocation

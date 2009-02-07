@@ -108,7 +108,6 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   public static void init() {
     if (VM.VerifyAssertions) VM._assert(!Selected.Constraints.get().needsStaticReadBarrier());
     CollectorThread.init();
-    ConcurrentCollectorThread.init();
     org.jikesrvm.mm.mmtk.Collection.init();
   }
 

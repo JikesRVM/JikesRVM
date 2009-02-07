@@ -130,25 +130,6 @@ public class RCBaseMutator extends StopTheWorldMutator {
   }
 
   /**
-   * Return the space into which an allocator is allocating.  This
-   * particular method will match against those spaces defined at this
-   * level of the class hierarchy.  Subclasses must deal with spaces
-   * they define and refer to superclasses appropriately.
-   *
-   * @param a An allocator
-   * @return The space into which <code>a</code> is allocating, or
-   *         <code>null</code> if there is no space associated with
-   *         <code>a</code>.
-   */
-  public Space getSpaceFromAllocator(Allocator a) {
-    if (a == rc) return RCBase.rcSpace;
-    if (a == rclos) return RCBase.rcloSpace;
-
-    // a does not belong to this plan instance
-    return super.getSpaceFromAllocator(a);
-  }
-
-  /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.
    *

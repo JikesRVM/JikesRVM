@@ -114,24 +114,6 @@ public class GenCopyMutator extends GenMutator {
   }
 
   /**
-   * Return the space into which an allocator is allocating.  This
-   * particular method will match against those spaces defined at this
-   * level of the class hierarchy.  Subclasses must deal with spaces
-   * they define and refer to superclasses appropriately.  This exists
-   * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.
-   *
-   * @see org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)
-   * @param a An allocator
-   * @return The space into which <code>a</code> is allocating, or
-   *         <code>null</code> if there is no space associated with
-   *         <code>a</code>.
-   */
-  public final Space getSpaceFromAllocator(Allocator a) {
-    if (a == mature) return GenCopy.toSpace();
-    return super.getSpaceFromAllocator(a);
-  }
-
-  /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.  This exists
    * to support {@link org.mmtk.plan.MutatorContext#getOwnAllocator(Allocator)}.

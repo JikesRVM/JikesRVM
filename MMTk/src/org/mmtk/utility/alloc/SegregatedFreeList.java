@@ -29,7 +29,7 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
    * Instance variables
    */
 
-  /** The space, only required to call size class calculation methods */
+  /** The space */
   protected final S space;
 
   /** The current free lists for the size classes */
@@ -48,6 +48,15 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
   public SegregatedFreeList(S space) {
     this.space = space;
     this.freeList = AddressArray.create(sizeClassCount());
+  }
+
+  /**
+   * Return the space this allocator is currently bound to.
+   *
+   * @return The Space.
+   */
+  protected final S getSpace() {
+    return this.space;
   }
 
   /****************************************************************************
@@ -91,7 +100,7 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
    */
   @Inline
   private int sizeClassCount() {
-    return space.sizeClassCount();
+    return SegregatedFreeListSpace.sizeClassCount();
   }
 
   /**

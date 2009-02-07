@@ -61,7 +61,6 @@
 [Lorg/jikesrvm/util/AbstractHashSetRVM$AbstractBucket;
 
 [Lorg/jikesrvm/mm/mminterface/CollectorThread;
-[Lorg/jikesrvm/mm/mminterface/ConcurrentCollectorThread;
 [Lorg/jikesrvm/mm/mminterface/Selected$Collector;
 [Lorg/jikesrvm/mm/mminterface/Selected$Mutator;
 
