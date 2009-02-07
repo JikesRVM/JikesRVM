@@ -34,6 +34,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
+import org.jikesrvm.ArchitectureSpecific.Registers;
 
 /**
  * Class that supports scanning thread stacks for references during
@@ -122,7 +123,14 @@ import org.vmmagic.unboxed.Offset;
   public static void scanThread(RVMThread thread, TraceLocal trace,
                                 boolean processCodeLocations) {
     /* get the gprs associated with this thread */
-    Address gprs = Magic.objectAsAddress(thread.getContextRegisters().gprs);
+    Registers regs=thread.getContextRegisters();
+    Address gprs = Magic.objectAsAddress(regs.gprs);
+
+    Address ip=regs.getInnermostInstructionAddress();
+    Address fp=regs.getInnermostFramePointer();
+    regs.clear();
+    regs.setInnermost(ip,fp);
+
     scanThread(thread, trace, processCodeLocations, gprs, Address.zero());
   }
 
@@ -148,9 +156,9 @@ import org.vmmagic.unboxed.Offset;
    * @param topFrame The top frame of the stack being scanned, or zero
    * if this is to be inferred from the thread (normally the case).
    */
-  public static void scanThread(RVMThread thread, TraceLocal trace,
-                                boolean processCodeLocations,
-                                Address gprs, Address topFrame) {
+  private static void scanThread(RVMThread thread, TraceLocal trace,
+                                 boolean processCodeLocations,
+                                 Address gprs, Address topFrame) {
     // figure out if the thread should be scanned at all; if not, exit
     if (thread.getExecStatus()==RVMThread.NEW || thread.getIsAboutToTerminate()) {
       return;

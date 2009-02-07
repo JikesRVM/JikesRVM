@@ -13,8 +13,6 @@
 package org.jikesrvm.scheduler;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
-import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.VM;
 
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
@@ -146,7 +144,7 @@ public class HeavyCondLock {
   @BaselineSaveLSRegisters
   @Unpreemptible
   private void lockNicelyNoRec() {
-    Magic.saveThreadState(RVMThread.getCurrentThread().contextRegisters);
+    RVMThread.saveThreadState();
     lockNicelyNoRecImpl();
   }
   @NoInline
@@ -171,7 +169,7 @@ public class HeavyCondLock {
   @BaselineSaveLSRegisters
   @Unpreemptible("If the lock cannot be reacquired, this method may allow the thread to be asynchronously blocked")
   public void relockNicely(int recCount) {
-    Magic.saveThreadState(RVMThread.getCurrentThread().contextRegisters);
+    RVMThread.saveThreadState();
     relockNicelyImpl(recCount);
   }
   @NoInline
@@ -280,13 +278,8 @@ public class HeavyCondLock {
   @BaselineSaveLSRegisters
   @Unpreemptible("While the thread is waiting, this method may allow the thread to be asynchronously blocked")
   public void waitNicely() {
-    RVMThread t=RVMThread.getCurrentThread();
-    Magic.saveThreadState(t.contextRegisters);
-    if (VM.VerifyAssertions && VM.BuildForIA32) t.contextRegistersSave.copyFrom(t.contextRegisters);
+    RVMThread.saveThreadState();
     waitNicelyImpl();
-    // assert that moving GC didn't modify the context registers, as that would
-    // indicate that we failed to save that register on the stack.
-    if (VM.VerifyAssertions && VM.BuildForIA32) t.contextRegistersSave.assertSame(t.contextRegisters);
   }
   @NoInline
   @Unpreemptible
@@ -317,7 +310,7 @@ public class HeavyCondLock {
   @BaselineSaveLSRegisters
   @Unpreemptible("While the thread is waiting, this method may allow the thread to be asynchronously blocked")
   public void timedWaitAbsoluteNicely(long whenWakeupNanos) {
-    Magic.saveThreadState(RVMThread.getCurrentThread().contextRegisters);
+    RVMThread.saveThreadState();
     timedWaitAbsoluteNicelyImpl(whenWakeupNanos);
   }
   @NoInline
@@ -349,7 +342,7 @@ public class HeavyCondLock {
   @BaselineSaveLSRegisters
   @Unpreemptible("While the thread is waiting, this method may allow the thread to be asynchronously blocked")
   public void timedWaitRelativeNicely(long delayNanos) {
-    Magic.saveThreadState(RVMThread.getCurrentThread().contextRegisters);
+    RVMThread.saveThreadState();
     timedWaitRelativeNicelyImpl(delayNanos);
   }
   @NoInline

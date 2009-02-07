@@ -15,6 +15,8 @@ package org.jikesrvm.jni;
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -338,6 +340,18 @@ public final class JNIEnvironment implements SizeConstants {
     Address callersFP = Magic.getCallerFramePointer(Magic.getFramePointer());
     basePointerOnEntryToNative = callersFP; // NB old value saved on call stack
     JNITopJavaFP = callersFP;
+
+    if (VM.traceJNI) {
+      RVMMethod m=
+        CompiledMethods.getCompiledMethod(
+          Magic.getCompiledMethodID(callersFP)).getMethod();
+      VM.sysWrite("calling JNI from ");
+      VM.sysWrite(m.getDeclaringClass().getDescriptor());
+      VM.sysWrite(" ");
+      VM.sysWrite(m.getName());
+      VM.sysWrite(m.getDescriptor());
+      VM.sysWriteln();
+    }
 
     // Save current JNI ref stack pointer
     int oldJNIRefsSavedFP = JNIRefsSavedFP;

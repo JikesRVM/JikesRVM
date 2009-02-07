@@ -20,8 +20,13 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import org.jikesrvm.VM;
 import org.jikesrvm.Callbacks;
+import org.jikesrvm.scheduler.RVMThread;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.util.StringUtilities;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.NoOptCompile;
+import org.vmmagic.pragma.BaselineSaveLSRegisters;
+import org.vmmagic.pragma.Unpreemptible;
 
 /**
  * Interface to filesystem of underlying operating system.  Historically
@@ -96,23 +101,102 @@ public class FileSystem {
 
   /**
    * Read single byte from file.
-   * FIXME: should throw an IOException to indicate an error?
    *
    * @param fd file descriptor
-   * @return byte that was read (< -1: i/o error, -1: eof, >= 0: data)
+   * @return byte that was read (< -2: i/o error, -2: timeout, -1: eof, >= 0: data)
    */
+  @NoInline
+  @NoOptCompile
+  @BaselineSaveLSRegisters
+  @Unpreemptible
   public static int readByte(int fd) {
-    int b = sysCall.sysReadByte(fd);
-    if (b >= -1) {
-      // Either a valid read, or we reached EOF
-      return b;
-    } else {
-      // Read returned with a genuine error
-      return -2;
-    }
+    RVMThread.saveThreadState();
+    RVMThread.enterNative();
+    int result=sysCall.sysReadByte(fd);
+    RVMThread.leaveNative();
+    return result;
   }
 
-  // PNT: not sure if this is the right place to have this.
+  /**
+   * Write single byte to file
+   *
+   * @param fd file descriptor
+   * @param b  byte to be written
+   * @return  -2: i/o error, -1: timeout, 0: ok
+   */
+  @NoInline
+  @NoOptCompile
+  @BaselineSaveLSRegisters
+  @Unpreemptible
+  public static int writeByte(int fd, int b) {
+    RVMThread.saveThreadState();
+    RVMThread.enterNative();
+    int result=sysCall.sysWriteByte(fd,b);
+    RVMThread.leaveNative();
+    return result;
+  }
+
+  /**
+   * Read multiple bytes.
+   *
+   * @param buf a pinned byte array to read into
+   * @return -2: i/o error, -1: timeout, >=0: number of bytes read
+   */
+  @NoInline
+  @NoOptCompile
+  @BaselineSaveLSRegisters
+  @Unpreemptible
+  public static int readBytes(int fd, byte[] buf, int off, int cnt) {
+    RVMThread.saveThreadState();
+    RVMThread.enterNative();
+    int result=sysCall.sysReadBytes(fd,Magic.objectAsAddress(buf).plus(off),cnt);
+    RVMThread.leaveNative();
+    return result;
+  }
+
+  /**
+   * Write multiple bytes.
+   *
+   * @param buf a pinned byte array to write from
+   * @return -2: i/o error, -1: timeout, >=0: number of bytes written
+   */
+  @NoInline
+  @NoOptCompile
+  @BaselineSaveLSRegisters
+  @Unpreemptible
+  public static int writeBytes(int fd, byte[] buf, int off, int cnt) {
+    RVMThread.saveThreadState();
+    RVMThread.enterNative();
+    int result=sysCall.sysWriteBytes(fd,Magic.objectAsAddress(buf).plus(off),cnt);
+    RVMThread.leaveNative();
+    return result;
+  }
+
+  @NoInline
+  @NoOptCompile
+  @BaselineSaveLSRegisters
+  @Unpreemptible
+  public static boolean sync(int fd) {
+    RVMThread.saveThreadState();
+    RVMThread.enterNative();
+    boolean result=sysCall.sysSyncFile(fd) == 0;
+    RVMThread.leaveNative();
+    return result;
+  }
+
+  @NoInline
+  @NoOptCompile
+  @BaselineSaveLSRegisters
+  @Unpreemptible
+  public static int bytesAvailable(int fd) {
+    RVMThread.saveThreadState();
+    RVMThread.enterNative();
+    int result=sysCall.sysBytesAvailable(fd);
+    RVMThread.leaveNative();
+    return result;
+  }
+
+  // not sure if this is the right place to have this.
   /**
    * Called from VM.boot to set up java.lang.System.in, java.lang.System.out,
    * and java.lang.System.err

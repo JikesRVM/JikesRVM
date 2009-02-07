@@ -22,6 +22,7 @@ import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.WordArray;
+import org.vmmagic.unboxed.Word;
 
 /**
  * The machine state comprising a thread's execution context.
@@ -53,6 +54,17 @@ public abstract class Registers implements ArchConstants {
     gprs = gprsShadow = MemoryManager.newNonMovingWordArray(NUM_GPRS);
     fprs = fprsShadow = MemoryManager.newNonMovingDoubleArray(NUM_FPRS);
     ip = invalidIP;
+  }
+
+  public final void clear() {
+    for (int i=0;i<NUM_GPRS;++i) {
+      gprs.set(i,Word.zero());
+    }
+    for (int i=0;i<NUM_FPRS;++i) {
+      fprs[i]=0.;
+    }
+    ip=Address.zero();
+    lr=Address.zero();
   }
 
   public final void copyFrom(Registers other) {

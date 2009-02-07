@@ -21,6 +21,7 @@ import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.WordArray;
 
@@ -66,6 +67,16 @@ public abstract class Registers implements RegisterConstants {
     }
     ip=other.ip;
     fp=other.fp;
+  }
+  public final void clear() {
+    for (int i=0;i<NUM_GPRS;++i) {
+      gprs.set(i,Word.zero());
+    }
+    for (int i=0;i<NUM_FPRS;++i) {
+      fprs[i]=0.;
+    }
+    ip=Address.zero();
+    fp=Address.zero();
   }
   public final void assertSame(Registers other) {
     boolean fail=false;

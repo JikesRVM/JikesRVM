@@ -1657,7 +1657,7 @@ public class RVMThread extends ThreadContext {
   @BaselineSaveLSRegisters
   @Unpreemptible("May block if asked to do so, but otherwise does not actions that would block")
   final void checkBlock() {
-    Magic.saveThreadState(contextRegisters);
+    saveThreadState();
     checkBlockNoSaveContext();
   }
 
@@ -1907,6 +1907,17 @@ public class RVMThread extends ThreadContext {
   }
 
   /**
+   * Save the current thread state.  Call this prior to calling enterNative().  You must
+   * be in a method that is marked BaselineSaveLSRegisters.
+   */
+  @NoInline
+  public static void saveThreadState() {
+    Address curFP=Magic.getFramePointer();
+    getCurrentThread().contextRegisters.setInnermost(Magic.getReturnAddress(curFP),
+                                                     Magic.getCallerFramePointer(curFP));
+  }
+
+  /**
    * Indicate that we'd like the current thread to be executing privileged code that
    * does not require synchronization with the GC.  This call may be made on a thread
    * that is IN_JAVA or IN_JAVA_TO_BLOCK, and will result in the thread being either
@@ -1920,6 +1931,7 @@ public class RVMThread extends ThreadContext {
    * mutator flushes and running isync) that IN_NATIVE code will not perform until
    * returning to IN_JAVA by way of a leaveNative() call.
    */
+  @NoInline // so we can get the fp
   public static void enterNative() {
     RVMThread t = getCurrentThread();
     if (ALWAYS_LOCK_ON_STATE_TRANSITION) {

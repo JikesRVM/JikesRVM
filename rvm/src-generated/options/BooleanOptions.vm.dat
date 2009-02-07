@@ -32,3 +32,6 @@ More detailed tracing then -verbose:class
 ErrorsFatal false errorsFatal
 Exit when non-fatal errors are detected; used for regression testing
 
+traceJNI false
+Trace when calls into JNI happen
+
