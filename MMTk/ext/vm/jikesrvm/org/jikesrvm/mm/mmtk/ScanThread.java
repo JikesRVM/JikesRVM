@@ -26,7 +26,6 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
@@ -91,7 +90,7 @@ import org.vmmagic.unboxed.Offset;
    * MULTIPLE GC THREADS WILL PRODUCE SCRAMBLED OUTPUT so only
    * use these when running with PROCESSORS=1
    */
-  static final int DEFAULT_VERBOSITY = 0;
+  static final int DEFAULT_VERBOSITY = 0 /*0*/;
   static final int FAILURE_VERBOSITY = 3;
 
   /***********************************************************************
@@ -152,6 +151,10 @@ import org.vmmagic.unboxed.Offset;
   public static void scanThread(RVMThread thread, TraceLocal trace,
                                 boolean processCodeLocations,
                                 Address gprs, Address topFrame) {
+    // figure out if the thread should be scanned at all; if not, exit
+    if (thread.getExecStatus()==RVMThread.NEW || thread.getIsAboutToTerminate()) {
+      return;
+    }
     /* establish ip and fp for the stack to be scanned */
     Address ip, fp, initialIPLoc;
     if (topFrame.isZero()) { /* implicit top of stack, inferred from thread */
@@ -165,19 +168,19 @@ import org.vmmagic.unboxed.Offset;
     }
 
     /* Registers */
-    reportDelayedRootEdge(trace, Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersField.getOffset()));
-    reportDelayedRootEdge(trace, Magic.objectAsAddress(thread).plus(Entrypoints.threadExceptionRegistersField.getOffset()));
+    reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersField.getOffset()));
+    reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersSaveField.getOffset()));
+    reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.threadExceptionRegistersField.getOffset()));
 
     /* Scan the JNI Env field */
     if (thread.getJNIEnv() != null) {
-      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread).plus(Entrypoints.jniEnvField.getOffset()));
-      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIRefsField.getOffset()));
-      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIEnvSavedPRField.getOffset()));
-      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIPendingExceptionField.getOffset()));
+      reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.jniEnvField.getOffset()));
+      reportDelayedRootEdge(trace,Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIRefsField.getOffset()));
+      reportDelayedRootEdge(trace,Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIPendingExceptionField.getOffset()));
     }
 
     /* Grab the ScanThread instance associated with this thread */
-    ScanThread scanner = Magic.threadAsCollectorThread(Scheduler.getCurrentThread()).getThreadScanner();
+    ScanThread scanner = Magic.threadAsCollectorThread(RVMThread.getCurrentThread()).getThreadScanner();
 
     /* scan the stack */
     scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame);
@@ -236,7 +239,14 @@ import org.vmmagic.unboxed.Offset;
    * performing the scan.
    */
   private void scanThreadInternal(Address gprs, int verbosity) {
-    if (verbosity >= 1) Log.writeln("--- Start Of Stack Scan ---\n");
+    if (false) {
+      VM.sysWriteln("Scanning thread ",thread.getThreadSlot()," from thread ",RVMThread.getCurrentThreadSlot());
+    }
+    if (verbosity >= 1) {
+      Log.writeln("--- Start Of Stack Scan ---\n");
+      Log.write("Thread #");
+      Log.writeln(thread.getThreadSlot());
+    }
     if (VM.VerifyAssertions) assertImmovableInCurrentCollection();
 
     /* first find any references to exception handlers in the registers */
@@ -254,6 +264,9 @@ import org.vmmagic.unboxed.Offset;
          fp -> frame for method invocation being processed
          ip -> instruction pointer in the method (normally a call site) */
       while (Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+        if (false) {
+          VM.sysWriteln("Thread ",RVMThread.getCurrentThreadSlot()," at fp = ",fp);
+        }
         prevFp = scanFrame(verbosity);
         ip = Magic.getReturnAddress(fp);
         fp = Magic.getCallerFramePointer(fp);
@@ -631,11 +644,11 @@ import org.vmmagic.unboxed.Offset;
       dumpStackFrame(verbosity);
       Log.writeln();
       Log.writeln("Dumping stack starting at frame with bad ref:");
-      Scheduler.dumpStack(ip, fp);
+      RVMThread.dumpStack(ip, fp);
       /* dump stack starting at top */
       Address top_ip = thread.getContextRegisters().getInnermostInstructionAddress();
       Address top_fp = thread.getContextRegisters().getInnermostFramePointer();
-      Scheduler.dumpStack(top_ip, top_fp);
+      RVMThread.dumpStack(top_ip, top_fp);
       Log.writeln("Failing iterators:");
       Offset offset = compiledMethod.getInstructionOffset(ip);
       iterator = iteratorGroup.selectIterator(compiledMethod);
@@ -644,9 +657,9 @@ import org.vmmagic.unboxed.Offset;
       for (Address addr = iterator.getNextReferenceAddress();
            !addr.isZero();
            addr = iterator.getNextReferenceAddress()) {
-         ObjectReference ref2 = addr.loadObjectReference();
-         Log.write("Iterator "); Log.write(i++); Log.write(": "); Log.write(addr);
-         Log.write(": "); Log.flush(); MemoryManager.dumpRef(ref2);
+        ObjectReference ref2 = addr.loadObjectReference();
+        Log.write("Iterator "); Log.write(i++); Log.write(": "); Log.write(addr);
+        Log.write(": "); Log.flush(); MemoryManager.dumpRef(ref2);
       }
       VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
@@ -666,11 +679,10 @@ import org.vmmagic.unboxed.Offset;
       Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
       Log.writeln();
       Log.writeln("Dumping stack:");
-      Scheduler.dumpStack();
+      RVMThread.dumpStack();
       VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }
-
   /**
    * Print out the name of a method
    *

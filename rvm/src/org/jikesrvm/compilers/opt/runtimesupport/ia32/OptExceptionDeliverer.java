@@ -20,8 +20,6 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Processor;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
@@ -44,7 +42,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
                                Throwable exceptionObject, Registers registers) {
     OptCompiledMethod optMethod = (OptCompiledMethod) compiledMethod;
     Address fp = registers.getInnermostFramePointer();
-    RVMThread myThread = Scheduler.getCurrentThread();
+    RVMThread myThread = RVMThread.getCurrentThread();
 
     if (TRACE) {
       VM.sysWrite("Frame size of ");
@@ -108,7 +106,6 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too.
     myThread.stackLimit = Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
-    Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
 
     // "branches" to catchBlockInstructionAddress
     Magic.restoreHardwareExceptionState(registers);

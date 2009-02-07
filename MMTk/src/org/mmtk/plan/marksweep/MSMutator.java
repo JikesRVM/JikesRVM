@@ -148,4 +148,14 @@ public class MSMutator extends StopTheWorldMutator {
 
     super.collectionPhase(phaseId, primary);
   }
+
+  /**
+   * Flush mutator context, in response to a requestMutatorFlush.
+   * Also called by the default implementation of deinitMutator.
+   */
+  @Override
+  public void flush() {
+    super.flush();
+    ms.flush();
+  }
 }

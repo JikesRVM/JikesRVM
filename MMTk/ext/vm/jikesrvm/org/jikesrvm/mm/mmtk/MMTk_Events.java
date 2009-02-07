@@ -13,7 +13,7 @@
 
 package org.jikesrvm.mm.mmtk;
 
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.tuningfork.TraceEngine;
 import org.mmtk.policy.Space;
 import org.vmmagic.pragma.Uninterruptible;
@@ -56,14 +56,14 @@ public class MMTk_Events extends org.mmtk.vm.MMTk_Events {
   }
 
   public void tracePageAcquired(Space space, Address startAddress, int numPages) {
-    Processor.getCurrentFeedlet().addEvent(pageAction, space.getIndex(), startAddress.toInt(), numPages, 0);
+    RVMThread.getCurrentFeedlet().addEvent(pageAction, space.getIndex(), startAddress.toInt(), numPages, 0);
   }
 
   public void tracePageReleased(Space space, Address startAddress, int numPages) {
-    Processor.getCurrentFeedlet().addEvent(pageAction, space.getIndex(), startAddress.toInt(), numPages, 1);
+    RVMThread.getCurrentFeedlet().addEvent(pageAction, space.getIndex(), startAddress.toInt(), numPages, 1);
   }
 
   public void heapSizeChanged(Extent heapSize) {
-    Processor.getCurrentFeedlet().addEvent(heapSizeChanged, heapSize.toInt());
+    RVMThread.getCurrentFeedlet().addEvent(heapSizeChanged, heapSize.toInt());
   }
 }

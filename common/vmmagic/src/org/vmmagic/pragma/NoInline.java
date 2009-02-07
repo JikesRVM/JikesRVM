@@ -23,6 +23,6 @@ import org.vmmagic.Pragma;
  * by the optimizing compiler.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD,ElementType.CONSTRUCTOR})
 @Pragma
 public @interface NoInline { }

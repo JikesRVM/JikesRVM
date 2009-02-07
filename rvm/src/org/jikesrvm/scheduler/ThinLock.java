@@ -79,7 +79,7 @@ public final class ThinLock implements ThinLockConstants {
     Word old = Magic.prepareWord(o, lockOffset);
     if (old.rshl(TL_THREAD_ID_SHIFT).isZero()) {
       // implies that fatbit == 0 & threadid == 0
-      int threadId = Processor.getCurrentProcessor().threadId;
+      int threadId = RVMThread.getCurrentThread().getLockingId();
       if (Magic.attemptWord(o, lockOffset, old, old.or(Word.fromIntZeroExtend(threadId)))) {
         Magic.isync(); // don't use stale prefetched data in monitor
         if (STATS) fastLocks++;
@@ -104,7 +104,7 @@ public final class ThinLock implements ThinLockConstants {
   @Unpreemptible("No preemption normally, but may raise exceptions")
   static void inlineUnlock(Object o, Offset lockOffset) {
     Word old = Magic.prepareWord(o, lockOffset);
-    Word threadId = Word.fromIntZeroExtend(Processor.getCurrentProcessor().threadId);
+    Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
     if (old.xor(threadId).rshl(TL_LOCK_COUNT_SHIFT).isZero()) { // implies that fatbit == 0 && count == 0 && lockid == me
       Magic.sync(); // memory barrier: subsequent locker will see previous writes
       if (Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK))) {
@@ -128,7 +128,7 @@ public final class ThinLock implements ThinLockConstants {
     major:
     while (true) { // repeat only if attempt to lock a promoted lock fails
       int retries = retryLimit;
-      Word threadId = Word.fromIntZeroExtend(Processor.getCurrentProcessor().threadId);
+      Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
       while (0 != retries--) { // repeat if there is contention for thin lock
         Word old = Magic.prepareWord(o, lockOffset);
         Word id = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
@@ -144,9 +144,7 @@ public final class ThinLock implements ThinLockConstants {
           Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord(); // update count
           if (changed.and(TL_LOCK_COUNT_MASK).isZero()) { // count wrapped around (most unlikely), make heavy lock
             while (!inflateAndLock(o, lockOffset)) { // wait for a lock to become available
-              if (Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-                Scheduler.yield();
-              }
+              RVMThread.yield();
             }
             break major;  // lock succeeds (note that lockHeavy has issued an isync)
           }
@@ -164,9 +162,7 @@ public final class ThinLock implements ThinLockConstants {
             break major; // lock succeeds (note that lockHeavy has issued an isync)
           }
           // heavy lock failed (deflated or contention for system lock)
-          if (Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-            Scheduler.yield(); // wait, hope o gets unlocked
-          }
+          RVMThread.yield();
           continue major;    // try again
         }
         // real contention: wait (hope other thread unlocks o), try again
@@ -179,10 +175,10 @@ public final class ThinLock implements ThinLockConstants {
           mid = Magic.getCompiledMethodID(fp);
           RVMMethod m2 = CompiledMethods.getCompiledMethod(mid).getMethod();
           String s = m1.getDeclaringClass() + "." + m1.getName() + " " + m2.getDeclaringClass() + "." + m2.getName();
-          Scheduler.trace(Magic.getObjectType(o).toString(), s, -2 - retries);
+          RVMThread.trace(Magic.getObjectType(o).toString(), s, -2 - retries);
         }
-        if (0 != retries && Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-          Scheduler.yield(); // wait, hope o gets unlocked
+        if (0 != retries) {
+          RVMThread.yield(); // wait, hope o gets unlocked
         }
       }
       // create a heavy lock for o and lock it
@@ -206,16 +202,16 @@ public final class ThinLock implements ThinLockConstants {
     while (true) { // spurious contention detected
       Word old = Magic.prepareWord(o, lockOffset);
       Word id = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
-      Word threadId = Word.fromIntZeroExtend(Processor.getCurrentProcessor().threadId);
+      Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
       if (id.NE(threadId)) { // not normal case
         if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
           Lock.getLock(getLockIndex(old)).unlockHeavy(o);
           // note that unlockHeavy has issued a sync
           return;
         }
-        Scheduler.trace("Lock", "unlock error: thin lock word = ", old.toAddress());
-        Scheduler.trace("Lock", "unlock error: thin lock word = ", Magic.objectAsAddress(o));
-        // Scheduler.trace("Lock", Thread.getCurrentThread().toString(), 0);
+        RVMThread.trace("Lock", "unlock error: thin lock word = ", old.toAddress());
+        RVMThread.trace("Lock", "unlock error: thin lock word = ", Magic.objectAsAddress(o));
+        // RVMThread.trace("Lock", RVMThread.getCurrentThread().toString(), 0);
         RVMThread.raiseIllegalMonitorStateException("thin unlocking", o);
       }
       if (old.and(TL_LOCK_COUNT_MASK).isZero()) { // get count, 0 is the last lock
@@ -248,10 +244,12 @@ public final class ThinLock implements ThinLockConstants {
    * @param lockOffset the offset of the thin lock word in the object.
    * @return the heavy-weight lock on this object
    */
+  @Unpreemptible
   private static Lock inflate(Object o, Offset lockOffset) {
     if (VM.VerifyAssertions) {
-      VM._assert(holdsLock(o, lockOffset, Scheduler.getCurrentThread()));
-      VM._assert((Magic.getWordAtOffset(o, lockOffset).and(TL_FAT_LOCK_MASK).isZero()));
+      VM._assert(holdsLock(o, lockOffset, RVMThread.getCurrentThread()));
+      // this assertions is just plain wrong.
+      //VM._assert((Magic.getWordAtOffset(o, lockOffset).and(TL_FAT_LOCK_MASK).isZero()));
     }
     Lock l = Lock.allocate();
     if (VM.VerifyAssertions) {
@@ -273,37 +271,16 @@ public final class ThinLock implements ThinLockConstants {
    * @param lockOffset the offset of the thin lock word in the object.
    * @return whether the object was successfully locked
    */
+  @Unpreemptible
   private static boolean inflateAndLock(Object o, Offset lockOffset) {
     Lock l = Lock.allocate();
     if (l == null) return false; // can't allocate locks during GC
     Lock rtn = attemptToInflate(o, lockOffset, l);
     if (l != rtn) {
-      l.mutex.lock("looking at heavy weight lock in thin lock");
-      if (l.getLockedObject() != o) {
-        l.mutex.unlock();
-        return false;  /* lock must have been deflated while we've been trying */
-      }
       l = rtn;
+      l.mutex.lock();
     }
-    int threadId = Processor.getCurrentProcessor().threadId;
-    if (l.getOwnerId() == 0) {
-      l.setOwnerId(threadId);
-      l.setRecursionCount(1);
-    } else if (l.getOwnerId() == threadId) {
-      l.setRecursionCount(l.getRecursionCount()+1);
-    } else if (Processor.getCurrentProcessor().threadSwitchingEnabled()) {
-      Scheduler.yieldToOtherThreadWaitingOnLock(l);
-      // when this thread next gets scheduled, it will be entitled to the lock,
-      // but another thread might grab it first.
-      return false; // caller will try again
-    } else { // can't yield - must spin and let caller retry
-      // potential deadlock if user thread is contending for a lock with thread switching disabled
-      if (VM.VerifyAssertions) VM._assert(Scheduler.getCurrentThread().isGCThread());
-      l.mutex.unlock(); // thread-switching benign
-      return false; // caller will try again
-    }
-    l.mutex.unlock(); // thread-switching benign
-    return true;
+    return l.lockHeavyLocked(o);
   }
 
   /**
@@ -315,11 +292,16 @@ public final class ThinLock implements ThinLockConstants {
    */
   private static Lock attemptToInflate(Object o, Offset lockOffset, Lock l) {
     Word old;
-    l.mutex.lock("inflating lightweight lock");
+    l.mutex.lock();
     do {
       old = Magic.prepareWord(o, lockOffset);
       // check to see if another thread has already created a fat lock
       if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
+        if (Lock.trace) {
+          VM.sysWriteln("Thread #",RVMThread.getCurrentThreadSlot(),
+                        ": freeing lock ",Magic.objectAsAddress(l),
+                        " because we had a double-inflate");
+        }
         Lock.free(l);
         l.mutex.unlock();
         l = Lock.getLock(getLockIndex(old));
@@ -387,6 +369,7 @@ public final class ThinLock implements ThinLockConstants {
    * @param create if true, create heavy lock if none found
    * @return the heavy-weight lock on the object (if any)
    */
+  @Unpreemptible
   public static Lock getHeavyLock(Object o, Offset lockOffset, boolean create) {
     Word old = Magic.getWordAtOffset(o, lockOffset);
     if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
@@ -444,3 +427,4 @@ public final class ThinLock implements ThinLockConstants {
   }
 
 }
+

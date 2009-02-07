@@ -15,7 +15,6 @@ package org.mmtk.harness.vm;
 import org.mmtk.harness.Mutator;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
@@ -150,7 +149,7 @@ public class Scanning extends org.mmtk.vm.Scanning {
         myIndex = threadCounter++;
       }
 
-      if (myIndex >= VM.activePlan.mutatorCount()) {
+      if (myIndex >= Mutator.count()) {
         break;
       }
 

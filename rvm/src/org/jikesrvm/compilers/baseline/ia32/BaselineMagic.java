@@ -24,7 +24,7 @@ import static org.jikesrvm.ia32.BaselineConstants.EBX_SAVE_OFFSET;
 import static org.jikesrvm.ia32.BaselineConstants.EDI_SAVE_OFFSET;
 import static org.jikesrvm.ia32.BaselineConstants.FPU_SAVE_OFFSET;
 import static org.jikesrvm.ia32.BaselineConstants.LG_WORDSIZE;
-import static org.jikesrvm.ia32.BaselineConstants.PR;
+import static org.jikesrvm.ia32.BaselineConstants.TR;
 import static org.jikesrvm.ia32.BaselineConstants.S0;
 import static org.jikesrvm.ia32.BaselineConstants.SP;
 import static org.jikesrvm.ia32.BaselineConstants.T0;
@@ -74,10 +74,7 @@ import org.jikesrvm.runtime.EntrypointHelper;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.MagicNames;
-import org.jikesrvm.scheduler.Processor;
-import org.jikesrvm.scheduler.ProcessorTable;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -1024,8 +1021,6 @@ final class BaselineMagic {
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsType, Object.class, RVMType.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsShortArray, Object.class, short[].class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsIntArray, Object.class, int[].class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.objectAsProcessor, Object.class, Processor.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.processorAsGreenProcessor, Processor.class, GreenProcessor.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsThread, Object.class, RVMThread.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.threadAsCollectorThread, RVMThread.class, CollectorThread.class), g);
   }
@@ -1499,10 +1494,10 @@ final class BaselineMagic {
     }
   }
   static {
-    generators.put(getMethodReference(Magic.class, MagicNames.setESIAsProcessor, Processor.class, void.class),
+    generators.put(getMethodReference(Magic.class, MagicNames.setESIAsThread, RVMThread.class, void.class),
         new SetRegister(ESI));
-    generators.put(getMethodReference(Magic.class, MagicNames.setProcessorRegister, Processor.class, void.class),
-        new SetRegister(PR));
+    generators.put(getMethodReference(Magic.class, MagicNames.setThreadRegister, RVMThread.class, void.class),
+        new SetRegister(TR));
   }
 
   /**
@@ -1519,10 +1514,10 @@ final class BaselineMagic {
     }
   }
   static {
-    generators.put(getMethodReference(Magic.class, MagicNames.getESIAsProcessor, Processor.class),
+    generators.put(getMethodReference(Magic.class, MagicNames.getESIAsThread, RVMThread.class),
         new GetRegister(ESI));
-    generators.put(getMethodReference(Magic.class, MagicNames.getProcessorRegister, Processor.class),
-        new GetRegister(PR));
+    generators.put(getMethodReference(Magic.class, MagicNames.getThreadRegister, RVMThread.class),
+        new GetRegister(TR));
   }
 
   /**
@@ -1707,7 +1702,7 @@ final class BaselineMagic {
       }
 
       // pop frame
-      asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset()); // FP<-previous FP
+      asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset()); // FP<-previous FP
 
       // branch
       asm.emitJMP_Reg(S0);
@@ -1736,7 +1731,7 @@ final class BaselineMagic {
         asm.emitMOV_Reg_RegDisp_Quad(EBX, SP, EBX_SAVE_OFFSET);
       }
       // discard current stack frame
-      asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
+      asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
 
       // return to caller- pop parameters from stack
       int parameterWords = cm.getParameterWords() + (cm.isStatic() ? 0 : 1); // add 1 for this pointer
@@ -1799,7 +1794,7 @@ final class BaselineMagic {
         new GetValueAtDisplacement(Offset.fromIntSignExtend(STACKFRAME_METHOD_ID_OFFSET)));
     MagicGenerator g = new GetValueAtDisplacement(ObjectModel.getArrayLengthOffset());
     generators.put(getMethodReference(Magic.class, MagicNames.getArrayLength, Object.class, int.class), g);
-    Class<?>[] unboxedTypes = new Class<?>[]{AddressArray.class, CodeArray.class, ExtentArray.class, FunctionTable.class, IMT.class, ObjectReferenceArray.class, OffsetArray.class, ProcessorTable.class, TIB.class, WordArray.class};
+    Class<?>[] unboxedTypes = new Class<?>[]{AddressArray.class, CodeArray.class, ExtentArray.class, FunctionTable.class, IMT.class, ObjectReferenceArray.class, OffsetArray.class, TIB.class, WordArray.class};
     for (Class<?> type : unboxedTypes) {
       generators.put(getMethodReference(type, MagicNames.addressArrayLength, int.class), g);
     }
@@ -1904,11 +1899,11 @@ final class BaselineMagic {
     MagicGenerator g = VM.BuildFor32Addr ? new Load32_Array() : new Load64_Array();
     Class<?>[] unboxedTypes = new Class<?>[] { AddressArray.class,
         ExtentArray.class, FunctionTable.class, IMT.class,
-        ObjectReferenceArray.class, OffsetArray.class, ProcessorTable.class,
+        ObjectReferenceArray.class, OffsetArray.class,
         TIB.class, WordArray.class };
     Class<?>[] resultTypes = new Class<?>[] { Address.class, Extent.class,
         CodeArray.class, CodeArray.class, ObjectReference.class, Offset.class,
-        Processor.class, Object.class, Word.class };
+        Object.class, Word.class };
     for (int i=0; i < unboxedTypes.length; i++) {
       Class<?> type = unboxedTypes[i];
       Class<?> result = resultTypes[i];
@@ -1969,11 +1964,11 @@ final class BaselineMagic {
     MagicGenerator g = VM.BuildFor32Addr ? new Store32_Array() : new Store64_Array();
     Class<?>[] unboxedTypes = new Class<?>[] { AddressArray.class,
         ExtentArray.class, FunctionTable.class, IMT.class,
-        ObjectReferenceArray.class, OffsetArray.class, ProcessorTable.class,
+        ObjectReferenceArray.class, OffsetArray.class,
         TIB.class, WordArray.class };
     Class<?>[] operandTypes = new Class<?>[] { Address.class, Extent.class,
         CodeArray.class, CodeArray.class, ObjectReference.class, Offset.class,
-        Processor.class, Object.class, Word.class };
+        Object.class, Word.class };
     for (int i=0; i < unboxedTypes.length; i++) {
       Class<?> type = unboxedTypes[i];
       Class<?> operand = operandTypes[i];

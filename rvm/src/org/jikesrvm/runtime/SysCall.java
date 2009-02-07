@@ -14,9 +14,10 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.apt.annotations.GenerateImplementation;
 import org.jikesrvm.apt.annotations.SysCallTemplate;
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 
@@ -67,14 +68,9 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysConsoleWriteDouble(double value, int postDecimalDigits);
 
-  // Register offsets of static fields in the JTOC
-  @SysCallTemplate
-  public abstract void sysRegisterStaticFieldOffsets(int gcStatusOffset, int timerTickOffset, int reportedTimerTickOffset);
-
   // startup/shutdown
   @SysCallTemplate
   public abstract void sysExit(int value);
-
   @SysCallTemplate
   public abstract int sysArg(int argno, byte[] buf, int buflen);
 
@@ -162,51 +158,89 @@ public abstract class SysCall {
   public abstract int sysNumProcessors();
 
   /**
-   * Create a virtual processor (aka "unix kernel thread", "pthread").
-   * @param pr
+   * Create a native thread (aka "unix kernel thread", "pthread").
+   * @param tr
    * @param ip
    * @param fp
-   * @return virtual processor's o/s handle
+   * @return native thread's o/s handle
    */
   @SysCallTemplate
-  public abstract int sysVirtualProcessorCreate(Address pr, Address ip, Address fp);
+  public abstract int sysNativeThreadCreate(Address tr, Address ip, Address fp);
 
   /**
-   * Bind execution of current virtual processor to specified physical cpu.
-   * @param cpuid  physical cpu id (0, 1, 2, ...)
+   * Tells you if the current system supportes sysNativeThreadBind().
+   * @return 1 if it's supported, 0 if it isn't
    */
   @SysCallTemplate
-  public abstract void sysVirtualProcessorBind(int cpuid);
+  public abstract int sysNativeThreadBindSupported();
 
   @SysCallTemplate
-  public abstract void sysVirtualProcessorYield();
-
-  /**
-   * Start interrupt generator for thread timeslicing.
-   * The interrupt will be delivered to whatever virtual processor happens
-   * to be running when the timer expires.
-   */
-  @SysCallTemplate
-  public abstract void sysVirtualProcessorEnableTimeSlicing(int timeSlice);
+  public abstract void sysNativeThreadBind(int cpuId);
 
   @SysCallTemplate
-  public abstract int sysPthreadSelf();
+  public abstract void sysSchedYield();
+
+  @SysCallTemplate
+  public abstract Word sysPthreadSelf();
 
   @SysCallTemplate
   public abstract void sysPthreadSetupSignalHandling();
 
+  // wait... isn't pthread actually an address?
   @SysCallTemplate
-  public abstract int sysPthreadSignal(int pthread);
+  public abstract int sysPthreadSignal(Word pthread);
 
   @SysCallTemplate
   public abstract void sysPthreadExit();
 
   @SysCallTemplate
-  public abstract int sysPthreadJoin(int pthread);
+  public abstract int sysPthreadJoin(Word pthread);
 
+  // This implies that the RVMThread is somehow pinned, or else the
+  // pthread key value gets moved.  (hence RVMThread is @NonMoving)
   @SysCallTemplate
-  public abstract int sysStashVmProcessorInPthread(Processor vmProcessor);
-
+  public abstract int sysStashVmThreadInPthread(RVMThread vmThread);
+  @SysCallTemplate
+  public abstract void sysTerminatePthread();
+  /**
+   * Allocate the space for a pthread_mutex (using malloc) and initialize
+   * it using pthread_mutex_init with the recursive mutex options.  Note:
+   * it is perfectly OK for the C/C++ code that implements this syscall to
+   * use some other locking mechanism (for example, on systems that don't
+   * have recursive mutexes you could imagine the recursive feature to be
+   * emulated).
+   */
+  @SysCallTemplate
+  public abstract Word sysPthreadMutexCreate();
+  /**
+   * Destroy the mutex pointed to by the argument and free its memory
+   * by calling free.
+   */
+  @SysCallTemplate
+  public abstract void sysPthreadMutexDestroy(Word mutex);
+  @SysCallTemplate
+  public abstract void sysPthreadMutexLock(Word mutex);
+  @SysCallTemplate
+  public abstract void sysPthreadMutexUnlock(Word mutex);
+  /**
+   * Allocate the space for a pthread_cond (using malloc) and initialize
+   * it using pthread_cond_init with the default options.
+   */
+  @SysCallTemplate
+  public abstract Word sysPthreadCondCreate();
+  /**
+   * Destroy the condition variable pointed to by the argument and free
+   * its memory by calling free.
+   */
+  @SysCallTemplate
+  public abstract void sysPthreadCondDestroy(Word cond);
+  @SysCallTemplate
+  public abstract void sysPthreadCondTimedWait(Word cond,Word mutex,
+                                               long whenWakeupNanos);
+  @SysCallTemplate
+  public abstract void sysPthreadCondWait(Word cond,Word mutex);
+  @SysCallTemplate
+  public abstract void sysPthreadCondBroadcast(Word cond);
   // arithmetic
   @SysCallTemplate
   public abstract long sysLongDivide(long x, long y);
@@ -288,68 +322,9 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract Address sysDlsym(Address libHandler, byte[] symbolName);
 
-  // network
-  @SysCallTemplate
-  public abstract int sysNetSocketCreate(int isStream);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketPort(int fd);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketSndBuf(int fd);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketFamily(int fd);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketLocalAddress(int fd);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketBind(int fd, int family, int localAddress, int localPort);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketListen(int fd, int backlog);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketAccept(int fd, java.net.SocketImpl connectionObject);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketLinger(int fd, int enable, int timeout);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketNoDelay(int fd, int enable);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketNoBlock(int fd, int enable);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketClose(int fd);
-
-  @SysCallTemplate
-  public abstract int sysNetSocketShutdown(int fd, int how);
-
-  @SysCallTemplate
-  public abstract int sysNetSelect(int[] allFds, int rc, int wc, int ec);
-
-  // process management
-  @SysCallTemplate
-  public abstract void sysWaitPids(Address pidArray, Address exitStatusArray, int numPids);
-
   // system startup pthread sync. primitives
   @SysCallTemplate
   public abstract void sysCreateThreadSpecificDataKeys();
-
-  @SysCallTemplate
-  public abstract void sysInitializeStartupLocks(int howMany);
-
-  @SysCallTemplate
-  public abstract void sysWaitForVirtualProcessorInitialization();
-
-  @SysCallTemplate
-  public abstract void sysWaitForMultithreadingStart();
 
   // system calls for alignment checking
   @SysCallTemplate
@@ -451,3 +426,4 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract int gcspySprintf(Address str, Address format, Address value);
 }
+

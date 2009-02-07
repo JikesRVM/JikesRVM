@@ -157,10 +157,4 @@ import org.vmmagic.pragma.*;
    * flushed.
    */
   public abstract void requestMutatorFlush();
-
-  /**
-   * Possibly yield the current concurrent collector thread. Return
-   * true if yielded.
-   */
-  public abstract boolean yieldpoint();
 }

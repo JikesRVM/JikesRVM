@@ -72,7 +72,7 @@ import org.vmmagic.unboxed.*;
    * Instance fields
    */
   /** Unique collector identifier */
-  protected final int id = VM.activePlan.registerCollector(this);
+  private int id;
 
   /** Per-collector allocator into the immortal space */
   protected final BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
@@ -87,7 +87,17 @@ import org.vmmagic.unboxed.*;
    *
    * Initialization
    */
-  protected CollectorContext() {}
+  protected CollectorContext() {
+  }
+
+  /**
+   * Notify that the collector context is registered and ready to execute.
+   *
+   * @param id The id of this collector context.
+   */
+  public void initCollector(int id) {
+    this.id = id;
+  }
 
   /****************************************************************************
    * Collection-time allocation.

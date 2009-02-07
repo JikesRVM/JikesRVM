@@ -108,6 +108,10 @@ public abstract class TemplateCompilerFramework
    * Is the method currently being compiled interruptible?
    */
   protected final boolean isInterruptible;
+  /**
+   * Does this method do checkstore?
+   */
+  protected final boolean doesCheckStore;
 
   /**
    * Is the method currently being compiled uninterruptible?
@@ -144,6 +148,7 @@ public abstract class TemplateCompilerFramework
       isUninterruptible = method.isUninterruptible();
       isUnpreemptible = method.isUnpreemptible();
     }
+    doesCheckStore = !method.hasNoCheckStoreAnnotation();
 
     // Double check logically uninterruptible methods have been annotated as
     // uninterruptible
@@ -744,7 +749,7 @@ public abstract class TemplateCompilerFramework
           if (shouldPrint) asm.noteBytecode(biStart, "aastore");
           // Forbidden from uninterruptible code as may cause an {@link
           // ArrayStoreException}
-          if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("aastore", bcodes.index());
+          if (VM.VerifyUnint && isUninterruptible && doesCheckStore) forbiddenBytecode("aastore", bcodes.index());
           emit_aastore();
           break;
         }

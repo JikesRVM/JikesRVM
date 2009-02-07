@@ -21,13 +21,8 @@ import org.jikesrvm.mm.mmtk.ScanThread;
 import org.jikesrvm.mm.mmtk.Scanning;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Time;
-import org.jikesrvm.scheduler.Processor;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
-import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
-import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
@@ -43,10 +38,10 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * System thread used to perform garbage collections.
+ * System thread used to preform garbage collections.
  *
  * These threads are created by VM.boot() at runtime startup. One is created for
- * each Processor that will (potentially) participate in garbage collection.
+ * each processor that will (potentially) participate in garbage collection.
  *
  * <pre>
  * Its &quot;run&quot; method does the following:
@@ -57,11 +52,11 @@ import org.vmmagic.unboxed.Offset;
  *    5. goto 1
  * </pre>
  *
- * Between collections, the collector threads reside on the Scheduler
- * collectorQueue. A collection in initiated by a call to the static
- * {@link #collect} method, which calls
- * {@link Handshake#requestAndAwaitCompletion} to dequeue the collector
- * threads and schedule them for execution. The collection commences when all
+ * Between collections, the collector threads are parked on a pthread
+ * condition variable.  A collection in initiated by a call to the static
+ * {@link #collect()} method, which calls
+ * {@link Handshake#requestAndAwaitCompletion} to signal the threads.
+ * The collection commences when all
  * scheduled collector threads arrive at the first "rendezvous" in the run
  * methods run loop.
  *
@@ -72,7 +67,7 @@ import org.vmmagic.unboxed.Offset;
  * @see Handshake
  */
 @NonMoving
-public final class CollectorThread extends GreenThread {
+public final class CollectorThread extends RVMThread {
 
   /***********************************************************************
    *
@@ -109,9 +104,6 @@ public final class CollectorThread extends GreenThread {
   /** array of size 1 to count arriving collector threads */
   static final int[] participantCount;
 
-  /** maps processor id to assoicated collector thread */
-  static CollectorThread[] collectorThreads;
-
   /** number of collections */
   static int collectionCount;
 
@@ -133,8 +125,6 @@ public final class CollectorThread extends GreenThread {
    *
    * Instance variables
    */
-  /** are we an "active participant" in gc? */
-  boolean isActive;
   /** arrival order of collectorThreads participating in a collection */
   private int gcOrdinal;
 
@@ -171,19 +161,18 @@ public final class CollectorThread extends GreenThread {
    * Constructor
    *
    * @param stack The stack this thread will run on
-   * @param isActive Whether or not this thread will participate in GC
    * @param processorAffinity The processor with which this thread is
    * associated.
    */
-  CollectorThread(byte[] stack, boolean isActive, GreenProcessor processorAffinity) {
+  CollectorThread(byte[] stack) {
     super(stack, myName);
+    this.collectorContext = new Selected.Collector(this);
+    this.collectorContext.initCollector(nextId++);
     makeDaemon(true); // this is redundant, but harmless
-    this.isActive          = isActive;
-    this.processorAffinity = processorAffinity;
-
-    /* associate this collector thread with its affinity processor */
-    collectorThreads[processorAffinity.id] = this;
   }
+
+  /** Next collector thread id. Collector threads are not created concurrently. */
+  private static int nextId = 0;
 
   /**
    * Is this the GC thread?
@@ -227,7 +216,10 @@ public final class CollectorThread extends GreenThread {
   @Interruptible
   public static void init() {
     gcBarrier = new SynchronizationBarrier();
-    collectorThreads = new CollectorThread[1 + GreenScheduler.MAX_PROCESSORS];
+  }
+  public static void boot() {
+    handshake.boot();
+    gcBarrier.boot();
   }
 
   /**
@@ -236,29 +228,12 @@ public final class CollectorThread extends GreenThread {
    * Note: the new thread's stack must be in pinned memory: currently
    * done by allocating it in immortal memory.
    *
-   * @param processorAffinity processor to run on
    * @return a new collector thread
    */
   @Interruptible
-  public static CollectorThread createActiveCollectorThread(GreenProcessor processorAffinity) {
-    byte[] stack = MemoryManager.newStack(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_COLLECTOR, true);
-    return new CollectorThread(stack, true, processorAffinity);
-  }
-
-  /**
-   * Make a collector thread that will not participate in gc. It will
-   * serve only to lock out mutators from the current processor.
-   *
-   * Note: the new thread's stack must be in pinned memory: currently
-   * done by allocating it in immortal memory.
-   *
-   * @param stack stack to run on
-   * @param processorAffinity processor to run on
-   * @return a new non-particpating collector thread
-   */
-  @Interruptible
-  static CollectorThread createPassiveCollectorThread(byte[] stack, GreenProcessor processorAffinity) {
-    return new CollectorThread(stack, false, processorAffinity);
+  public static CollectorThread createActiveCollectorThread() {
+    byte[] stack = MemoryManager.newStack(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_COLLECTOR);
+    return new CollectorThread(stack);
   }
 
   /**
@@ -271,11 +246,10 @@ public final class CollectorThread extends GreenThread {
    */
   @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void collect(Handshake handshake, int why) {
-    Processor.getCurrentFeedlet().addEvent(MMTk_Events.events.gcStart, why);
+    RVMThread.getCurrentFeedlet().addEvent(MMTk_Events.events.gcStart, why);
     handshake.requestAndAwaitCompletion(why);
-    Processor.getCurrentFeedlet().addEvent(MMTk_Events.events.gcStop);
+    RVMThread.getCurrentFeedlet().addEvent(MMTk_Events.events.gcStop);
   }
-
   /**
    * Initiate a garbage collection at next GC safe point.  Called by a
    * mutator thread at any time.  The caller should pass the
@@ -334,7 +308,7 @@ public final class CollectorThread extends GreenThread {
   }
 
   /**
-   * Run method for collector thread (one per Processor).  Enters
+   * Run method for collector thread (one per processor).  Enters
    * an infinite loop, waiting for collections to be requested,
    * performing those collections, and then waiting again.  Calls
    * Collection.collect to perform the collection, which will be
@@ -349,24 +323,20 @@ public final class CollectorThread extends GreenThread {
   // and store all registers from previous method in prologue, so that we can stack access them while scanning this thread.
   @Unpreemptible
   public void run() {
+    // this is kind of stupid.
+    gcOrdinal = Synchronization.fetchAndAdd(participantCount, Offset.zero(), 1) + GC_ORDINAL_BASE;
+    RVMThread.getCurrentThread().disableYieldpoints();
     for (int count = 0; ; count++) {
+      // wait for collection to start
+
+      RVMThread.getCurrentThread().enableYieldpoints();
       /* suspend this thread: it will resume when scheduled by
-       * Handshake initiateCollection().  while suspended,
-       * collector threads reside on the schedulers collectorQueue */
-      GreenScheduler.collectorMutex.lock("collector mutex");
-      if (verbose >= 1) VM.sysWriteln("GC Message: CT.run yielding");
-      if (count > 0) { // resume normal scheduling
-        GreenProcessor.getCurrentProcessor().enableThreadSwitching();
-      }
-      GreenScheduler.getCurrentThread().yield(GreenScheduler.collectorQueue,
-          GreenScheduler.collectorMutex);
+       * Handshake.request(). */
+      handshake.parkCollectorThread();
 
-      /* block mutators from running on the current processor */
-      GreenProcessor.getCurrentProcessor().disableThreadSwitching("Disabled in collector to stop mutators from running on current processor");
-
+      RVMThread.getCurrentThread().disableYieldpoints();
       if (verbose >= 2) VM.sysWriteln("GC Message: CT.run waking up");
 
-      gcOrdinal = Synchronization.fetchAndAdd(participantCount, Offset.zero(), 1) + GC_ORDINAL_BASE;
       long startTime = Time.nanoTime();
 
       if (verbose > 2) VM.sysWriteln("GC Message: CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);
@@ -376,15 +346,74 @@ public final class CollectorThread extends GreenThread {
       if (gcOrdinal == GC_ORDINAL_BASE) {
         Plan.setCollectionTrigger(handshake.gcTrigger);
       }
+      /* block all threads.  note that some threads will have already blocked
+         themselves (if they had made their own GC requests). */
+      if (gcOrdinal == GC_ORDINAL_BASE) {
+        if (verbose>=2) VM.sysWriteln("Thread #",getThreadSlot()," is about to block a bunch of threads.");
+        RVMThread.handshakeLock.lock();
+        // fixpoint until there are no threads that we haven't blocked.
+        // fixpoint is needed in case some thread spawns another thread
+        // while we're waiting.  that is unlikely but possible.
+        for (;;) {
+          RVMThread.acctLock.lock();
+          int numToHandshake=0;
+          for (int i=0;i<RVMThread.numThreads;++i) {
+            RVMThread t=threads[i];
+            if (!(t.isGCThread()) &&
+                !t.ignoreHandshakesAndGC()) {
+              RVMThread.handshakeThreads[numToHandshake++]=t;
+            }
+          }
+          RVMThread.acctLock.unlock();
+
+          for (int i=0;i<numToHandshake;++i) {
+            RVMThread t=RVMThread.handshakeThreads[i];
+            t.monitor().lock();
+            if (t.blockedFor(RVMThread.gcBlockAdapter) ||
+                RVMThread.notRunning(t.asyncBlock(RVMThread.gcBlockAdapter))) {
+              // already blocked or not running, remove
+              RVMThread.handshakeThreads[i--]=
+                RVMThread.handshakeThreads[--numToHandshake];
+              RVMThread.handshakeThreads[numToHandshake]=null; // help GC
+            }
+            t.monitor().unlock();
+          }
+          // quit trying to block threads if all threads are either blocked
+          // or not running (a thread is "not running" if it is NEW or TERMINATED;
+          // in the former case it means that the thread has not had start()
+          // called on it while in the latter case it means that the thread
+          // is either in the TERMINATED state or is about to be in that state
+          // real soon now, and will not perform any heap-related stuff before
+          // terminating).
+          if (numToHandshake==0) break;
+          for (int i=0;i<numToHandshake;++i) {
+            if (verbose>=2) VM.sysWriteln("waiting for ",RVMThread.handshakeThreads[i].getThreadSlot()," to block");
+            RVMThread.handshakeThreads[i].block(RVMThread.gcBlockAdapter);
+            RVMThread.handshakeThreads[i]=null; // help GC
+          }
+        }
+        RVMThread.handshakeLock.unlock();
+
+        RVMThread.processAboutToTerminate(); /*
+                                              * ensure that any threads that died while
+                                              * we were stopping the world notify the
+                                              * GC that they had stopped.
+                                              */
+
+        if (verbose>=2) {
+          VM.sysWriteln("Thread #",getThreadSlot()," just blocked a bunch of threads.");
+          RVMThread.dumpAcct();
+        }
+      }
 
       /* wait for other collector threads to arrive or be made
        * non-participants */
       if (verbose >= 2) VM.sysWriteln("GC Message: CT.run  initializing rendezvous");
       gcBarrier.startupRendezvous();
-      do {
+      for (;;) {
         /* actually perform the GC... */
         if (verbose >= 2) VM.sysWriteln("GC Message: CT.run  starting collection");
-        if (isActive) Selected.Collector.get().collect(); // gc
+        Selected.Collector.get().collect(); // gc
         if (verbose >= 2) VM.sysWriteln("GC Message: CT.run  finished collection");
 
         gcBarrier.rendezvous(5200);
@@ -422,7 +451,13 @@ public final class CollectorThread extends GreenThread {
 
         startTime = Time.nanoTime();
         gcBarrier.rendezvous(5201);
-      } while (Selected.Plan.get().lastCollectionFailed() && !Plan.isEmergencyCollection());
+        boolean cont=Selected.Plan.get().lastCollectionFailed() && !Plan.isEmergencyCollection();
+        if (!cont) break;
+      }
+
+      /* wait for other collector threads to arrive here */
+      rendezvous(5210);
+      if (verbose > 2) VM.sysWriteln("CollectorThread: past rendezvous 1 after collection");
 
       if (gcOrdinal == GC_ORDINAL_BASE && !internalPhaseTriggered) {
         /* If the collection failed, we may need to throw OutOfMemory errors.
@@ -432,11 +467,11 @@ public final class CollectorThread extends GreenThread {
          * anything right after a GC, but that case is unlikely (we can
          * not make it happen) and is a lot of work to get around. */
         if (Plan.isEmergencyCollection()) {
-          Scheduler.getCurrentThread().setEmergencyAllocation();
+          RVMThread.getCurrentThread().setEmergencyAllocation();
           boolean gcFailed = Selected.Plan.get().lastCollectionFailed();
           // Allocate OOMEs (some of which *may* not get used)
-          for(int t=0; t <= Scheduler.getThreadHighWatermark(); t++) {
-            RVMThread thread = Scheduler.threads[t];
+          for(int t=0; t < RVMThread.numThreads; t++) {
+            RVMThread thread = RVMThread.threads[t];
             if (thread != null) {
               if (thread.getCollectionAttempt() > 0) {
                 /* this thread was allocating */
@@ -446,7 +481,7 @@ public final class CollectorThread extends GreenThread {
               }
             }
           }
-          Scheduler.getCurrentThread().clearEmergencyAllocation();
+          RVMThread.getCurrentThread().clearEmergencyAllocation();
         }
       }
 
@@ -456,38 +491,44 @@ public final class CollectorThread extends GreenThread {
        * is enabled, so no mutators can possibly arrive at old
        * handshake object: it's safe to replace it with a new one. */
       if (gcOrdinal == GC_ORDINAL_BASE) {
-        collectionAttemptBase = 0;
-        /* notify mutators waiting on previous handshake object -
-         * actually we don't notify anymore, mutators are simply in
-         * processor ready queues waiting to be dispatched. */
-        handshake.notifyCompletion();
+
+        // reset the handshake.  this ensures that once threads are awakened,
+        // any new GC requests that they make actually result in GC activity.
         handshake.reset();
+        if (verbose>=2) VM.sysWriteln("Thread #",getThreadSlot()," just reset the handshake.");
+
+        Plan.collectionComplete();
+        if (verbose>=2) VM.sysWriteln("Marked the collection as complete.");
+
+        collectionAttemptBase = 0;
+
+        if (verbose>=2) VM.sysWriteln("Thread #",getThreadSlot()," is unblocking a bunch of threads.");
+        // and now unblock all threads
+        RVMThread.handshakeLock.lock();
+        RVMThread.acctLock.lock();
+        int numToHandshake=0;
+        for (int i=0;i<RVMThread.numThreads;++i) {
+          RVMThread t=threads[i];
+          if (!(t.isGCThread()) &&
+              !t.ignoreHandshakesAndGC()) {
+            RVMThread.handshakeThreads[numToHandshake++]=t;
+          }
+        }
+        RVMThread.acctLock.unlock();
+        for (int i=0;i<numToHandshake;++i) {
+          RVMThread.handshakeThreads[i].unblock(RVMThread.gcBlockAdapter);
+          RVMThread.handshakeThreads[i]=null; // help GC
+        }
+        RVMThread.handshakeLock.unlock();
+        if (verbose>=2) VM.sysWriteln("Thread #",getThreadSlot()," just unblocked a bunch of threads.");
 
         /* schedule the FinalizerThread, if there is work to do & it is idle */
         Collection.scheduleFinalizerThread();
       }
 
-      /* wait for other collector threads to arrive here */
-      rendezvous(5210);
-      if (verbose > 2) VM.sysWriteln("CollectorThread: past rendezvous 1 after collection");
-
       /* final cleanup for initial collector thread */
       if (gcOrdinal == GC_ORDINAL_BASE) {
-        /* It is VERY unlikely, but possible that some RVM processors
-         * were found in C, and were BLOCKED_IN_NATIVE, during the
-         * collection, and now need to be unblocked. */
-        if (verbose >= 2) VM.sysWriteln("GC Message: CT.run unblocking procs blocked in native during GC");
-        for (int i = 1; i <= GreenScheduler.numProcessors; i++) {
-          GreenProcessor vp = GreenScheduler.getProcessor(i);
-          if (VM.VerifyAssertions) VM._assert(vp != null);
-          if (vp.vpStatus == GreenProcessor.BLOCKED_IN_NATIVE) {
-            vp.vpStatus = GreenProcessor.IN_NATIVE;
-            if (verbose >= 2) VM.sysWriteln("GC Message: CT.run unblocking RVM Processor", vp.id);
-          }
-        }
-
         /* clear the GC flags */
-        Plan.collectionComplete();
         gcThreadRunning = false;
       } // if designated thread
       rendezvous(9999);
@@ -522,34 +563,5 @@ public final class CollectorThread extends GreenThread {
     this.clearThreadForStackTrace();
   }
 
-  /*
-  @Uninterruptible
-  public static void printThreadWaitTimes() {
-    VM.sysWrite("*** Collector Thread Wait Times (in micro-secs)\n");
-    for (int i = 1; i <= Scheduler.numProcessors; i++) {
-      CollectorThread ct = Magic.threadAsCollectorThread(Scheduler.processors[i].activeThread );
-      VM.sysWrite(i);
-      VM.sysWrite(" SBW ");
-      if (ct.bufferWaitCount1 > 0)
-        VM.sysWrite(ct.bufferWaitCount1-1);  // subtract finish wait
-      else
-        VM.sysWrite(0);
-      VM.sysWrite(" SBWT ");
-      VM.sysWrite(ct.bufferWaitTime1*1000000.0);
-      VM.sysWrite(" SFWT ");
-      VM.sysWrite(ct.finishWaitTime1*1000000.0);
-      VM.sysWrite(" FBW ");
-      if (ct.bufferWaitCount > 0)
-        VM.sysWrite(ct.bufferWaitCount-1);  // subtract finish wait
-      else
-        VM.sysWrite(0);
-      VM.sysWrite(" FBWT ");
-      VM.sysWrite(ct.bufferWaitTime*1000000.0);
-      VM.sysWrite(" FFWT ");
-      VM.sysWrite(ct.finishWaitTime*1000000.0);
-      VM.sysWriteln();
-
-    }
-  }
-  */
 }
+

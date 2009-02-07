@@ -112,7 +112,7 @@ public abstract class CallingConvention extends IRTools
         if (mo.isInterface()) {
           InterfaceMethodSignature sig = InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
           MemoryOperand M =
-              MemoryOperand.BD(ir.regpool.makePROp(),
+              MemoryOperand.BD(ir.regpool.makeTROp(),
                                    ArchEntrypoints.hiddenSignatureIdField.getOffset(),
                                    (byte) WORDSIZE,
                                    null,
@@ -204,7 +204,7 @@ public abstract class CallingConvention extends IRTools
           byte size = (byte)(result1.getType().isFloatType() ? 4 : 8);
           RegisterOperand st0 = new RegisterOperand(phys.getST0(), result1.getType());
           MIR_Call.setResult(call, st0); // result is in st0, set it to avoid extending the live range of st0
-          RegisterOperand pr = ir.regpool.makePROp();
+          RegisterOperand pr = ir.regpool.makeTROp();
           MemoryOperand scratch = new MemoryOperand(pr, null, (byte)0, Entrypoints.scratchStorageField.getOffset(), size, new LocationOperand(Entrypoints.scratchStorageField), null);
 
           Instruction pop = MIR_Move.create(IA32_FSTP, scratch, st0.copyRO());
@@ -387,9 +387,9 @@ public abstract class CallingConvention extends IRTools
       location += WORDSIZE;
     }
 
-    // save the processor register
+    // save the thread register
     Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
-    call.insertBefore(MIR_Move.create(IA32_MOV, M, ir.regpool.makePROp()));
+    call.insertBefore(MIR_Move.create(IA32_MOV, M, ir.regpool.makeTROp()));
   }
 
   /**
@@ -419,9 +419,9 @@ public abstract class CallingConvention extends IRTools
       location += WORDSIZE;
     }
 
-    // restore the processor register
+    // restore the thread register
     Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
-    call.insertAfter(MIR_Move.create(IA32_MOV, ir.regpool.makePROp(), M));
+    call.insertAfter(MIR_Move.create(IA32_MOV, ir.regpool.makeTROp(), M));
   }
 
   /**

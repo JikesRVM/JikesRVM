@@ -13,11 +13,11 @@
 package java.lang;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.DynamicLibrary;
-import org.jikesrvm.scheduler.greenthreads.VMProcess;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.mm.mminterface.*;
 
 /**
@@ -31,7 +31,7 @@ public final class VMRuntime {
   private VMRuntime() { }
 
   static int availableProcessors() {
-    return Scheduler.availableProcessors();
+    return RVMThread.numProcessors;
   }
 
   static long freeMemory() {
@@ -96,9 +96,9 @@ public final class VMRuntime {
     return VMCommonLibrarySupport.mapLibraryName(libname);
   }
 
-  static Process exec(String[] cmd, String[] env, File dir) {
-    String dirPath = (dir != null) ? dir.getPath() : null;
-    return new VMProcess(cmd[0], cmd, env, dirPath);
+  static Process exec(String[] cmd, String[] env, File dir)
+    throws IOException {
+    return VMProcess.exec(cmd,env,dir);
   }
 
   /**

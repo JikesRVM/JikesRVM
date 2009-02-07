@@ -267,8 +267,8 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
     if (Plan.USE_CODE_SPACE && Space.isInSpace(Plan.LARGE_CODE, object))
       return Plan.largeCodeSpace.traceObject(this, object);
     if (VM.VERIFY_ASSERTIONS) {
-      Space.printVMMap();
       Log.write("Failing object => "); Log.writeln(object);
+      Space.printVMMap();
       VM.assertions._assert(false, "No special case for space in traceObject");
     }
     return ObjectReference.nullReference();
@@ -524,12 +524,15 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * returning to MMTk.
    */
   private void assertMutatorRemsetsFlushed() {
+    /* FIXME: PNT
     if (VM.VERIFY_ASSERTIONS) {
       for (int m = 0; m < VM.activePlan.mutatorCount(); m++) {
         VM.activePlan.mutator(m).assertRemsetsFlushed();
       }
     }
+    */
   }
+
   /**
    * This method logs a message with preprended thread id, if the
    * verbosity level is greater or equal to the passed level.

@@ -49,7 +49,7 @@ import org.vmmagic.unboxed.*;
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
+ * threads" (aka CPUs).  Thus instance
  * methods of PlanLocal allow fast, unsynchronized access to functions such as
  * allocation and collection.
  *
@@ -92,7 +92,6 @@ public abstract class Plan implements Constants {
   public static final int ALLOC_HOT_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
   public static final int ALLOC_COLD_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
   public static final int ALLOC_STACK = ALLOC_LOS;
-  public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
   public static final int ALLOCATORS = 9;
   public static final int DEFAULT_SITE = -1;
 

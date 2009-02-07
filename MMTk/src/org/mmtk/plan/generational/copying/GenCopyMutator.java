@@ -69,8 +69,8 @@ public class GenCopyMutator extends GenMutator {
    * Called before the MutatorContext is used, but after the context has been
    * fully registered and is visible to collection.
    */
-  public void initMutator() {
-    super.initMutator();
+  public void initMutator(int id) {
+    super.initMutator(id);
     mature.rebind(GenCopy.toSpace());
   }
 

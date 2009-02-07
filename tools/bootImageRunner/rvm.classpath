@@ -27,7 +27,7 @@ if ((( $# >= 2 )) && [[ $1 == -wrap ]] ); then
 fi
 
 if (( $# == 0 )) || ((( $# >= 1 )) && [[ $1 != -gdb ]] ); then
-  LD_PRELOAD="$LD_PRELOAD $RVM_HOME/@PRELOAD@" $WRAP "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
+  $WRAP "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
   exit
 fi
 
@@ -55,14 +55,12 @@ echo "" >> $TMP_GDB_COMMANDS
 # SIGSEGV is a null pointer exception
 echo "handle SIGSEGV nostop noprint pass" >> $TMP_GDB_COMMANDS
 
-echo "set env LD_PRELOAD = $LD_PRELOAD $RVM_HOME/@PRELOAD@" >> $TMP_GDB_COMMANDS
-
 # Include symbols if available
 if [[ -e $RVM_HOME/JikesRVM-symbols.o ]]; then
   echo "add-symbol-file $RVM_HOME/JikesRVM-symbols.o 0x0" >> $TMP_GDB_COMMANDS
 fi
 
-# Set an initial breakpoint right before we start the jump into VM.boot
-echo "break bootThread" >> $TMP_GDB_COMMANDS
+echo "break sysCreateThreadSpecificDataKeys" >> $TMP_GDB_COMMANDS
+echo "set pagination no" >> $TMP_GDB_COMMANDS
 
 gdb "${gdb_args[@]}" "$RVM_HOME/JikesRVM" "--command=$TMP_GDB_COMMANDS"

@@ -63,15 +63,6 @@ public class Properties extends Options {
   public static boolean safeToAllocateJavaThread = false;
 
   /**
-   * If true, don't exit from the process. As of July, 2003, this has not worked
-   * in a couple of years, nor has there been much interest in using it. If it
-   * is resurrected, we need to check the code that calls
-   * dieAbruptlyRecursiveSystemTrouble(), to make sure that instead we just kill
-   * the proper threads.
-   */
-  public static boolean runningAsSubsystem = false;
-
-  /**
    * The following is set on by -X:verboseBoot= command line arg.
    * When true, it generates messages to the sysWrite stream summarizing
    * progress during the execution of VM.boot

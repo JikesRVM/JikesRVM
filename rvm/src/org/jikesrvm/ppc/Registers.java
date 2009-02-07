@@ -15,6 +15,8 @@ package org.jikesrvm.ppc;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
@@ -45,7 +47,7 @@ public abstract class Registers implements ArchConstants {
   public Address lr;     // link register
   public boolean inuse; // do exception registers currently contain live values?
 
-  static Address invalidIP = Address.max();
+  private static final Address invalidIP = Address.max();
 
   public Registers() {
     gprs = gprsShadow = MemoryManager.newNonMovingWordArray(NUM_GPRS);
@@ -53,39 +55,77 @@ public abstract class Registers implements ArchConstants {
     ip = invalidIP;
   }
 
-  // Return framepointer for the deepest stackframe
-  //
+  public final void copyFrom(Registers other) {
+    for (int i=0;i<NUM_GPRS;++i) {
+      gprs.set(i,other.gprs.get(i));
+    }
+    for (int i=0;i<NUM_FPRS;++i) {
+      fprs[i]=other.fprs[i];
+    }
+    ip=other.ip;
+    lr=other.lr;
+  }
+
+  public final void assertSame(Registers other) {
+    boolean fail=false;
+    for (int i=0;i<NUM_GPRS;++i) {
+      if (gprs.get(i).NE(other.gprs.get(i))) {
+        VM.sysWriteln("Registers not equal: GPR #",i);
+        fail=true;
+      }
+    }
+    for (int i=0;i<NUM_FPRS;++i) {
+      if (fprs[i]!=other.fprs[i]) {
+        VM.sysWriteln("Registers not equal: FPR #",i);
+        fail=true;
+      }
+    }
+    if (ip.NE(other.ip)) {
+      VM.sysWriteln("Registers not equal: IP");
+      fail=true;
+    }
+    if (lr.NE(other.lr)) {
+      VM.sysWriteln("Registers not equal: LR");
+      fail=true;
+    }
+    if (fail) {
+      RVMThread.dumpStack();
+      VM.sysFail("Registers.assertSame() failed");
+    }
+  }
+
+  /** @return framepointer for the deepest stackframe */
   public final Address getInnermostFramePointer() {
     return gprs.get(FRAME_POINTER).toAddress();
   }
 
-  // Return next instruction address for the deepest stackframe
-  //
+  /** @return next instruction address for the deepest stackframe */
   public final Address getInnermostInstructionAddress() {
     if (ip.NE(invalidIP)) return ip; // ip set by hardware exception handler or Magic.threadSwitch
     return Magic.getNextInstructionAddress(getInnermostFramePointer()); // ip set to -1 because we're unwinding
   }
 
-  // update the machine state to unwind the deepest stackframe.
-  //
+  /** Update the machine state to unwind the deepest stackframe. */
   public final void unwindStackFrame() {
     ip = invalidIP; // if there was a valid value in ip, it ain't valid anymore
     gprs.set(FRAME_POINTER, Magic.getCallerFramePointer(getInnermostFramePointer()).toWord());
   }
 
-  // set ip & fp. used to control the stack frame at which a scan of
-  // the stack during GC will start, for ex., the top java frame for
-  // a thread that is blocked in native code during GC.
-  //
+  /**
+   * Set ip &amp; fp. used to control the stack frame at which a scan of
+   * the stack during GC will start, for ex., the top java frame for
+   * a thread that is blocked in native code during GC.
+   */
   public final void setInnermost(Address newip, Address newfp) {
     ip = newip;
     gprs.set(FRAME_POINTER, newfp.toWord());
   }
 
-  // set ip and fp values to those of the caller. used just prior to entering
-  // sigwait to set fp & ip so that GC will scan the threads stack
-  // starting at the frame of the method that called sigwait.
-  //
+  /**
+   * Set ip and fp values to those of the caller. used just prior to entering
+   * sigwait to set fp &amp; ip so that GC will scan the threads stack
+   * starting at the frame of the method that called sigwait.
+   */
   public final void setInnermost() {
     Address fp = Magic.getFramePointer();
     ip = Magic.getReturnAddress(fp);

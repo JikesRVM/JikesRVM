@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 
 import org.mmtk.utility.Log;
 
@@ -41,24 +41,20 @@ public class Selected {
   @Uninterruptible
   public static class Collector extends @_PLAN_@Collector
   {
-    private final Processor processor;
-    public Collector(Processor parent) { processor = parent; }
+    private final RVMThread thread;
+    public Collector(RVMThread parent) { thread = parent; }
     @Inline
-    public final Processor getProcessor() { return processor; }
+    public final RVMThread getThread() { return thread; }
     @Inline
-    public static Collector get() { return Processor.getCurrentProcessor().collectorContext; }
+    public static Collector get() { return RVMThread.getCurrentThread().collectorContext; }
   }
 
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
-    protected Mutator() { initMutator(); }
-    private final Log log = new Log(); 
     @Inline
-    public final Log getLog() { return log; }
+    public final RVMThread getThread() { return (RVMThread) this; }
     @Inline
-    public final Processor getProcessor() { return (Processor) this; }
-    @Inline
-    public static Mutator get() { return Processor.getCurrentProcessor(); }
+    public static Mutator get() { return RVMThread.getCurrentThread(); }
   }
 }

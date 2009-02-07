@@ -1467,10 +1467,6 @@ Check to make sure all required properties are specified. This includes properti
            classpath="${build.vm.jar}">
       <class name="org.jikesrvm.runtime.DynamicLibrary"/>
     </javah>
-    <javah outputFile="${build.native}/org_jikesrvm_scheduler_greenthreads_VMProcess.h"
-           classpath="${build.vm.jar}">
-      <class name="org.jikesrvm.scheduler.greenthreads.VMProcess"/>
-    </javah>
   </target>
 
   <target name="gen-runbootimage" depends="check-properties">
@@ -1495,13 +1491,6 @@ Check to make sure all required properties are specified. This includes properti
 
     <condition property="gen-ppc-bootThread" value="true">
       <equals arg1="${target.arch}" arg2="ppc"/>
-    </condition>
-
-    <condition property="include.syswrap" value="true">
-      <or>
-        <equals arg1="${target.os}" arg2="Linux"/>
-        <equals arg1="${target.os}" arg2="Solaris"/>
-      </or>
     </condition>
 
     <condition property="gcspy.includes.dir" value="-I${jikesrvm.dir}/tools/gcspy-stub/src">
@@ -1556,19 +1545,6 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.src" value="${bl.dir}/RunBootImage.C ${bl.dir}/sys.C ${rvm.arch.src} ${perfctr.src}"/>
   </target>
 
-  <target name="build-syswrap" depends="check-bootloader-properties" if="include.syswrap">
-    <!-- create syswrap shared library -->
-    <mkdir dir="${build.base}"/>
-    <property name="syswrap.dll" value="${target.dll-prefix}syswrap${target.dll-ext}"/>
-    <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${rvm.c++.args}"/>
-      <arg line="-nostartfiles -shared"/>
-      <arg value="-o"/>
-      <arg value="${build.base}/${syswrap.dll}"/>
-      <arg value="${bl.dir}/syswrap.C"/>
-    </exec>
-  </target>
-
   <target name="build-ppc-bootThread" depends="check-bootloader-properties" if="gen-ppc-bootThread">
     <test-file name="cpp.exe" location="${host.file}"/>
     <exec executable="${cpp.exe}" failonerror="true" output="${build.native}/bootThread.s">
@@ -1587,7 +1563,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
   </target>
 
-  <target name="build-bootloader" depends="build-gcspy-stub,build-syswrap,build-ppc-bootThread">
+  <target name="build-bootloader" depends="build-gcspy-stub,build-ppc-bootThread">
 
     <!-- rdynamic flag used to control the exporting of symbols into an ELF -->
     <condition property="c++.rdynamic" value="" else="-rdynamic">
@@ -1630,15 +1606,6 @@ Check to make sure all required properties are specified. This includes properti
         </exec>
       </sequential>
     </if>
-
-    <!-- create rvmexec shared library -->
-    <property name="rvmexec.dll" value="${target.dll-prefix}rvmexec${target.jni-suffix}"/>
-    <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${rvm.c++.args}"/>
-      <arg value="-o"/>
-      <arg value="${build.base}/${rvmexec.dll}"/>
-      <arg value="${bl.dir}/org_jikesrvm_scheduler_greenthreads_VMProcess.c"/>
-    </exec>
 
     <!-- create rvmdynlib shared library -->
     <property name="rvmdynlib.dll" value="${target.dll-prefix}rvmdynlib${target.jni-suffix}"/>
@@ -1733,10 +1700,6 @@ Check to make sure all required properties are specified. This includes properti
       </fileset>
     </copy>
     <copy file="${basedir}/tools/bootImageRunner/rvm.classpath" tofile="${dist.base}/rvm">
-      <filterset>
-        <filter token="PRELOAD"
-                value="${target.dll-prefix}syswrap${target.dll-ext}"/>
-      </filterset>
     </copy>
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
@@ -1974,7 +1937,7 @@ target.jni-suffix=${target.jni-suffix}
   <target name="create-bootimage-profile" depends="runtime">
 	<ant antfile="build/components/dacapo.xml" target="ensure" inheritall="false" inheritrefs="false"/>
 	<mkdir dir="${build.profiles}"/>
-        <exec executable="${dist.base}/rvm" failonerror="true"
+	<exec executable="${dist.base}/rvm" failonerror="true"
     dir="${build.profiles}">
     <arg value="-X:base:profile_edge_counters=true"/>
 	  <arg value="-X:base:profile_edge_counter_file=${build.profiles}/profile.ec"/>
@@ -2241,7 +2204,7 @@ target.jni-suffix=${target.jni-suffix}
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
-  <target name="mmtk-harness-eclipse-project" depends="mmtk-harness">
+  <target name="mmtk-harness-eclipse-project">
     <delete dir="eclipse"/>
     <delete file=".project"/>
     <delete file=".classpath"/>

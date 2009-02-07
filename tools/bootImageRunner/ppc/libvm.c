@@ -341,7 +341,6 @@ int HardwareTrapMethodId;
 /* TOC offset of Runtime.deliverHardwareException */
 Offset DeliverHardwareExceptionOffset;
 Offset DumpStackAndDieOffset;      // TOC offset of Scheduler.dumpStackAndDie
-static Offset ProcessorsOffset;    // TOC offset of Scheduler.processors[]
 Offset DebugRequestedOffset;       // TOC offset of Scheduler.debugRequested
 
 typedef void (*SIGNAL_HANDLER)(int); // Standard unix signal handler.
@@ -351,7 +350,7 @@ typedef void (*SIGNAL_HANDLER)(int); // Standard unix signal handler.
 pthread_t vm_pthreadid;         // pthread id of the main RVM pthread
 
 
-static int
+int
 inRVMAddressSpace(Address addr)
 {
     /* get the boot record */
@@ -460,14 +459,6 @@ cSignalHandler(int signum, siginfo_t * UNUSED zero, struct ucontext *context)
     Word iar  =  save->srr0;
 #endif
     // UNUSED: // Address jtoc =  GET_GPR(save, Constants_JTOC_POINTER);
-
-    if (signum == SIGALRM) {
-        processTimerTick();
-#ifdef RVM_FOR_OSX
-        sigreturn((struct sigcontext*) context);
-#endif
-        return;
-    }
 
     if (signum == SIGHUP) { /* asynchronous signal used to awaken external
                                debugger  */
@@ -610,6 +601,8 @@ getFaultingAddress(mstsave *save)
 
 
 
+static const int noise = 0;
+
 /** Now we define the start of the hardware trap handler.  It needs
  * a different prologue for each operating system. */
 
@@ -667,6 +660,10 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     Address jtoc =  save->gpr[Constants_JTOC_POINTER];
 #endif // RVM_FOR_AIX
 
+    if (noise) fprintf(stderr,"just got into cTrapHandler, my jtoc = %p, while the real jtoc = %p\n",jtoc,getJTOC());
+    
+    jtoc=(Address)getJTOC();
+
     // fetch address of java exception handler
     //
     Address javaExceptionHandler
@@ -675,6 +672,8 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     const int FP  = Constants_FRAME_POINTER;
     const int P0  = Constants_FIRST_VOLATILE_GPR;
     const int P1  = Constants_FIRST_VOLATILE_GPR+1;
+
+    if (noise) fprintf(stderr,"just got into cTrapHandler (1)\n");
 
     // We are prepared to handle these kinds of "recoverable" traps.
     // (Anything else indicates some sort of unrecoverable vm error)
@@ -698,6 +697,9 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
       uintptr_t faultMask = 0xffffffffffff0000;
 #endif
       if (!(((faultingAddress & faultMask) == faultMask) || ((faultingAddress & faultMask) == 0))) {
+        if (lib_verbose) {
+          fprintf(SysTraceFile, "assuming that this is not a null pointer exception because the faulting address does not lie in the first or last page.\n");
+        }
 	isNullPtrExn = 0;
       }
     }
@@ -707,13 +709,15 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 
     unsigned instruction   = *((unsigned *)ip);
 
+    if (noise) fprintf(stderr,"just got into cTrapHandler (2)\n");
+
     if (lib_verbose || !isRecoverable) {
         fprintf(SysTraceFile,"            mem=" FMTrvmPTR "\n",
                 rvmPTR_ARG(faultingAddress));
         fprintf(SysTraceFile,"             fp=" FMTrvmPTR "\n",
                 rvmPTR_ARG(GET_GPR(save,FP)));
-       fprintf(SysTraceFile,"             pr=" FMTrvmPTR "\n",
-               rvmPTR_ARG(GET_GPR(save,Constants_PROCESSOR_REGISTER)));
+       fprintf(SysTraceFile,"             tr=" FMTrvmPTR "\n",
+               rvmPTR_ARG(GET_GPR(save,Constants_THREAD_REGISTER)));
        fprintf(SysTraceFile,"trap/exception: type=%s\n", strsignal(signum));
        fprintf(SysTraceFile,"             ip=" FMTrvmPTR "\n", rvmPTR_ARG(ip));
        fprintf(SysTraceFile,"          instr=0x%08x\n", instruction);
@@ -738,9 +742,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 
    /* Copy the trapped register set into the current thread's "hardware
       exception registers" save area. */
-    Address thread =
-      *(Address *)(GET_GPR(save,Constants_PROCESSOR_REGISTER) +
-                      Processor_activeThread_offset);
+    Address thread = GET_GPR(save,Constants_THREAD_REGISTER);
     Address *registers = *(Address **)
         ((char *)thread + RVMThread_exceptionRegisters_offset);
 
@@ -748,6 +750,9 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
         = *(Word **)((char *)registers + Registers_gprs_offset);
     double   *fprs
         = *(double   **)((char *)registers + Registers_fprs_offset);
+
+    if (noise) fprintf(stderr,"just got into cTrapHandler (3)\n");
+
     Word *ipLoc
         =  (Word  *)((char *)registers + Registers_ip_offset);
     Word *lrLoc
@@ -756,7 +761,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
         =  (unsigned  char*)((char *)registers + Registers_inuse_offset);
 
     if (*inuse) {
-        fprintf(SysTraceFile, "%s: internal error: recursive use of hardware exception registers (exiting)\n", Me);
+      fprintf(SysTraceFile, "%s: internal error: recursive use of hardware exception registers in thread %p (exiting)\n", Me, thread);
         /* Things went badly wrong, so attempt to generate a useful error
            dump before exiting by returning to Scheduler.dumpStackAndDie,
            passing it the fp of the offending thread.
@@ -784,6 +789,8 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     }
 
 #ifdef RVM_FOR_LINUX
+    if (noise) fprintf(stderr,"just got into cTrapHandler (4)\n");
+
     for (int i = 0; i < NGPRS; ++i)
       gprs[i] = save->gpr[i];
     for (int i = 0; i < NFPRS; ++i)
@@ -806,6 +813,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #ifdef RVM_FOR_AIX
     for (int i = 0; i < NGPRS; ++i)
         gprs[i] = save->gpr[i];
+    if (noise) fprintf(stderr,"just got into cTrapHandler (5)\n");
     for (int i = 0; i < NFPRS; ++i)
         fprs[i] = save->fpr[i];
     *ipLoc = save->iar+ 4; // +4 so it looks like return address
@@ -829,6 +837,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #ifdef RVM_FOR_AIX
     *(Address *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->iar + 4; // +4 so it looks like return address
 #endif
+    if (noise) fprintf(stderr,"just got into cTrapHandler (6)\n");
     *(int *)(newFp + Constants_STACKFRAME_METHOD_ID_OFFSET)
         = HardwareTrapMethodId;
     *(Address *)(newFp + Constants_STACKFRAME_FRAME_POINTER_OFFSET)
@@ -850,6 +859,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
         siginfo->si_addr = (void *) context->uc_mcontext->es.dar;
     }
 #endif
+    if (noise) fprintf(stderr,"just got into cTrapHandler (7)\n");
     switch (signum) {
     case SIGSEGV:
         if (isNullPtrExn) {  // touched top segment of memory, presumably by wrapping negatively off 0
@@ -959,11 +969,6 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
             }
             *(Address *)((char *)thread + RVMThread_stackLimit_offset)
                 = stackLimit;
-            Address *limit_address =
-                (Address *)(GET_GPR(save,Constants_PROCESSOR_REGISTER) +
-                               Processor_activeThreadStackLimit_offset);
-
-            *limit_address = stackLimit;
 
             break;
         }
@@ -977,6 +982,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
         break;
     }
 
+    if (noise) fprintf(stderr,"just got into cTrapHandler (8)\n");
     /* Pass arguments to the Java exception handler.
      */
     SET_GPR(save, P0, trapCode);
@@ -1022,6 +1028,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #endif
     }
 
+    if (noise) fprintf(stderr,"just got into cTrapHandler (9)\n");
     /* Resume execution at the Java exception handler.
      */
 #ifdef RVM_FOR_LINUX
@@ -1031,6 +1038,8 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #elif defined RVM_FOR_AIX
     save->iar = javaExceptionHandler;
 #endif
+
+    if (noise) fprintf(stderr,"just got into cTrapHandler (10)\n");
 
 #ifdef RVM_FOR_OSX
     sigreturn((struct sigcontext*)context);
@@ -1216,7 +1225,6 @@ createVM(int vmInSeparateThread)
     //    Scheduler.threads[], Scheduler.DebugRequested
     //
     DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
-    ProcessorsOffset = bootRecord.greenProcessorsOffset;
     DebugRequestedOffset = bootRecord.debugRequestedOffset;
 
     if (lib_verbose) {
@@ -1349,17 +1357,10 @@ createVM(int vmInSeparateThread)
     // set up initial stack frame
     //
     Address  jtoc = bootRecord.tocRegister;
-    Address *processors = *(Address **)(bootRecord.tocRegister +
-                                              bootRecord.greenProcessorsOffset);
-    Address  pr = processors[GreenScheduler_PRIMORDIAL_PROCESSOR_ID];
+    Address  tr = *(Address *) (bootRecord.tocRegister + bootRecord.bootThreadOffset);
     Address tid = bootRecord.tiRegister;
     Address  ip = bootRecord.ipRegister;
     Address  sp = bootRecord.spRegister;
-
-    // initialize the thread id in the primordial processor object.
-    //
-    *(unsigned int *) (pr + Processor_threadId_offset)
-      = Scheduler_PRIMORDIAL_THREAD_INDEX << ThinLockConstants_TL_THREAD_ID_SHIFT;
 
     // Set up thread stack
     Address  fp = sp - Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
@@ -1389,7 +1390,7 @@ createVM(int vmInSeparateThread)
         /* Try starting the VM in a separate pthread.  We need to synchronize
            before exiting. */
         startupRegs[0] = jtoc;
-        startupRegs[1] = pr;
+        startupRegs[1] = tr;
         startupRegs[2] = tid;
         startupRegs[3] = fp;
 
@@ -1409,14 +1410,20 @@ createVM(int vmInSeparateThread)
 
         return 0;
     } else {
-        if (lib_verbose) {
-            fprintf(SysTraceFile, "%s: calling boot thread: jtoc = " FMTrvmPTR
-                    "   pr = " FMTrvmPTR "   tid = %d   fp = " FMTrvmPTR "\n",
-                    Me, rvmPTR_ARG(jtoc), rvmPTR_ARG(pr), tid, rvmPTR_ARG(fp));
+        if (setjmp(primordial_jb)) {
+            *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
+            // cannot return or else the process will exit
+            for (;;) pause();
+        } else {
+            if (lib_verbose) {
+                fprintf(SysTraceFile, "%s: calling boot thread: jtoc = " FMTrvmPTR
+                        "   tr = " FMTrvmPTR "   tid = %d   fp = " FMTrvmPTR "\n",
+                        Me, rvmPTR_ARG(jtoc), rvmPTR_ARG(tr), tid, rvmPTR_ARG(fp));
+            }
+            bootThread(jtoc, tr, tid, fp);
+            fprintf(SysErrorFile, "Unexpected return from bootThread\n");
+            return 1;
         }
-        bootThread(jtoc, pr, tid, fp);
-        fprintf(SysErrorFile, "Unexpected return from bootThread\n");
-        return 1;
     }
 
 }
@@ -1449,13 +1456,6 @@ extern "C" void *
 getJTOC()
 {
     return (void*) VmToc;
-}
-
-// Get offset of Scheduler.processors in JTOC.
-extern "C" Offset
-getProcessorsOffset()
-{
-    return ProcessorsOffset;
 }
 
 

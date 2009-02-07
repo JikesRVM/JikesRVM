@@ -69,7 +69,6 @@ import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.Scheduler;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -1033,7 +1032,7 @@ public class BootImageWriter extends BootImageWriterMessages
     bootRecord.spRegister  = BootImageMap.getImageAddress(startupStack, true).plus(startupStack.length);
     bootRecord.ipRegister  = BootImageMap.getImageAddress(startupCode.getBacking(), true);
 
-    bootRecord.greenProcessorsOffset = Entrypoints.greenProcessorsField.getOffset();
+    bootRecord.bootThreadOffset = Entrypoints.bootThreadField.getOffset();
 
     bootRecord.bootImageDataStart = bootImageDataAddress;
     bootRecord.bootImageDataEnd   = bootImageDataAddress.plus(bootImage.getDataSize());
@@ -1534,7 +1533,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       // Create stack, thread, and processor context in which rvm will begin
       // execution.
-      startupThread = Scheduler.setupBootThread();
+      startupThread = RVMThread.setupBootThread();
       byte[] stack = startupThread.getStack();
       // sanity check for bootstrap loader
       int idx = stack.length - 1;

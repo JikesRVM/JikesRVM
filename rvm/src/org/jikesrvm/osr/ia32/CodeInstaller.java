@@ -75,7 +75,7 @@ public abstract class CodeInstaller implements BaselineConstants {
       // restore saved EBX
       asm.emitMOV_Reg_RegDisp(EBX, SP, EBX_SAVE_OFFSET);
       // restore frame pointer
-      asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
+      asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
       // do not pop return address and parameters,
       // we make a faked call to newly compiled method
       asm.emitJMP_Reg(S0);
@@ -103,7 +103,7 @@ public abstract class CodeInstaller implements BaselineConstants {
       // adjust SP to frame pointer
       asm.emitADD_Reg_Imm(SP, sp2fpOffset.toInt());
       // restore frame pointer
-      asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
+      asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
 
       // branch to the newly compiled instructions
       asm.emitJMP_Abs(Magic.getTocPointer().plus(cm.getOsrJTOCoffset()));
@@ -116,8 +116,8 @@ public abstract class CodeInstaller implements BaselineConstants {
       VM.sysWrite("JTOC register ");
       VM.sysWriteHex(Magic.getTocPointer());
       VM.sysWriteln();
-      VM.sysWrite("Processor register ");
-      VM.sysWriteHex(Magic.objectAsAddress(Magic.getProcessorRegister()));
+      VM.sysWrite("Thread register ");
+      VM.sysWriteHex(Magic.objectAsAddress(Magic.getThreadRegister()));
       VM.sysWriteln();
 
       VM.sysWriteln("tsfromFPOffset ", tsfromFPOffset);

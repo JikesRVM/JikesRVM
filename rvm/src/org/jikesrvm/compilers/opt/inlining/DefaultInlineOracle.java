@@ -27,7 +27,7 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * The default inlining oracle used by the optimizing compiler.
@@ -449,7 +449,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
     byte guard = state.getOptions().INLINE_GUARD_KIND;
     if (codePatchSupported) {
       if (VM.VerifyAssertions && VM.runningVM) {
-        VM._assert(ObjectModel.holdsLock(RVMClass.classLoadListener, Scheduler.getCurrentThread()));
+        VM._assert(ObjectModel.holdsLock(RVMClass.classLoadListener, RVMThread.getCurrentThread()));
       }
       if (guard == OptOptions.INLINE_GUARD_CODE_PATCH) {
         ClassLoadingDependencyManager cldm = (ClassLoadingDependencyManager) RVMClass.classLoadListener;

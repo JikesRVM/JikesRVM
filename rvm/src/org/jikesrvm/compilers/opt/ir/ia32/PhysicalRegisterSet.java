@@ -158,7 +158,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     reg[C1].setSpansBasicBlock();
     reg[C2].setSpansBasicBlock();
     reg[C3].setSpansBasicBlock();
-    reg[PROCESSOR_REGISTER.value()].setSpansBasicBlock();
+    reg[THREAD_REGISTER.value()].setSpansBasicBlock();
 
     // For SSE2
     reg[ST0].setDouble();
@@ -198,14 +198,14 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
    * Is a particular register subject to allocation?
    */
   public boolean isAllocatable(Register r) {
-    return (r.number < FIRST_SPECIAL && r != getPR() && r != getESP());
+    return (r.number < FIRST_SPECIAL && r != getTR() && r != getESP());
   }
 
   /**
    * @return the processor register
    */
-  public Register getPR() {
-    return getGPR(PROCESSOR_REGISTER);
+  public Register getTR() {
+    return getGPR(THREAD_REGISTER);
   }
 
   /**
@@ -469,7 +469,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
         regName[r.ordinal() + FIRST_DOUBLE] = r.toString();
       }
     }
-    regName[PROCESSOR_REGISTER.value()] = "PR";
+    regName[THREAD_REGISTER.value()] = "TR";
     regName[AF] = "AF";
     regName[CF] = "CF";
     regName[OF] = "OF";

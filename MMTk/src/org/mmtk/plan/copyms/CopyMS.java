@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
+ * threads" (aka CPUs).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
  * allocation and collection.
  *

@@ -21,8 +21,6 @@ import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Processor;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
@@ -43,7 +41,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
                                Throwable exceptionObject, ArchitectureSpecific.Registers registers) {
     Address fp = registers.getInnermostFramePointer();
     NormalMethod method = (NormalMethod) compiledMethod.getMethod();
-    RVMThread myThread = Scheduler.getCurrentThread();
+    RVMThread myThread = RVMThread.getCurrentThread();
 
     // reset sp to "empty expression stack" state
     //
@@ -71,8 +69,6 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too.
     myThread.stackLimit = Magic.objectAsAddress(myThread.getStack()).plus(STACK_SIZE_GUARD);
-    Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
-
     Magic.restoreHardwareExceptionState(registers);
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
@@ -97,7 +93,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
               Magic.addressAsObject(fp.plus(BaselineCompilerImpl.locationToOffset(((BaselineCompiledMethod) compiledMethod).getGeneralLocalLocation(
                   0)) - BYTES_IN_ADDRESS).loadAddress());
         }
-        if (ObjectModel.holdsLock(lock, Scheduler.getCurrentThread())) {
+        if (ObjectModel.holdsLock(lock, RVMThread.getCurrentThread())) {
           ObjectModel.genericUnlock(lock);
         }
       }
@@ -106,7 +102,12 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
     if (VM.VerifyAssertions) VM._assert(SAVED_GPRS == 2);
     registers.gprs.set(EDI.value(), fp.plus(EDI_SAVE_OFFSET).loadWord());
     registers.gprs.set(EBX.value(), fp.plus(EBX_SAVE_OFFSET).loadWord());
+    if (method.hasBaselineSaveLSRegistersAnnotation()) {
+      registers.gprs.set(EBP.value(), fp.plus(EBP_SAVE_OFFSET).toWord());
+    }
 
     registers.unwindStackFrame();
   }
 }
+
+

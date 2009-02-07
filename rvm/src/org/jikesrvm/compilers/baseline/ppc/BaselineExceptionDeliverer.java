@@ -21,7 +21,7 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -92,7 +92,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
             lock = Magic.addressAsObject(addr.loadAddress());
           }
         }
-        if (ObjectModel.holdsLock(lock, Scheduler.getCurrentThread())) {
+        if (ObjectModel.holdsLock(lock, RVMThread.getCurrentThread())) {
           ObjectModel.genericUnlock(lock);
         }
       }

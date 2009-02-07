@@ -15,9 +15,7 @@ package org.jikesrvm.runtime;
 import java.util.Iterator;
 import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.FileSystem;
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 import org.jikesrvm.util.StringUtilities;
 import org.vmmagic.unboxed.Address;
@@ -73,7 +71,7 @@ public final class DynamicLibrary {
 
     // make sure we have enough stack to load the library.
     // This operation has been known to require more than 20K of stack.
-    RVMThread myThread = Scheduler.getCurrentThread();
+    RVMThread myThread = RVMThread.getCurrentThread();
     Offset remaining = Magic.getFramePointer().diff(myThread.stackLimit);
     int stackNeededInBytes = StackframeLayoutConstants.STACK_SIZE_DLOPEN - remaining.toInt();
     if (stackNeededInBytes > 0) {
@@ -152,7 +150,7 @@ public final class DynamicLibrary {
   /**
    * Method call to run the onload method. Performed as a native
    * method as the JNI_OnLoad method may contain JNI calls and we need
-   * the Processor of the JNIEnv to be correctly populated (this
+   * the RVMThread of the JNIEnv to be correctly populated (this
    * wouldn't happen with a SysCall)
    *
    * @param JNI_OnLoadAddress address of JNI_OnLoad function

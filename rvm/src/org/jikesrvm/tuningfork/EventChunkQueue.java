@@ -14,7 +14,7 @@
 package org.jikesrvm.tuningfork;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.ProcessorLock;
+import org.jikesrvm.scheduler.SpinLock;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
 
@@ -35,7 +35,7 @@ public class EventChunkQueue {
   private EventChunk head = null;
   @Untraced
   private EventChunk tail = null;
-  private final ProcessorLock lock = new ProcessorLock();
+  private final SpinLock lock = new SpinLock();
 
 
   public void enqueue(EventChunk c) {

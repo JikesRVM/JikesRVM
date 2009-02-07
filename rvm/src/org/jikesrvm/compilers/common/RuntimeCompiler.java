@@ -39,7 +39,7 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.runtime.Time;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Harness to select which compiler to dynamically
@@ -287,13 +287,13 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
     CompiledMethod cm = null;
     try {
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
 
       cm = BaselineCompiler.compile(method);
     } finally {
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         if (cm != null) {
           double compileTime = Time.nanosToMillis(end - start);
           cm.setCompilationTime(compileTime);
@@ -353,12 +353,12 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
       CompiledMethod cm = null;
       try {
         if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-          start = Scheduler.getCurrentThread().startTimedInterval();
+          start = Time.nanoTime();
         }
         cm = OptimizingCompiler.compile(plan);
       } finally {
         if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-          long end = Scheduler.getCurrentThread().endTimedInterval();
+          long end = Time.nanoTime();
           if (cm != null) {
             double compileTime = Time.nanosToMillis(end - start);
             cm.setCompilationTime(compileTime);
@@ -671,7 +671,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
               // exception in progress. can't use opt compiler:
               // it uses exceptions and runtime doesn't support
               // multiple pending (undelivered) exceptions [--DL]
-              Scheduler.getCurrentThread().getExceptionRegisters().inuse) {
+              RVMThread.getCurrentThread().getExceptionRegisters().inuse) {
             // compile with baseline compiler
             cm = baselineCompile(method);
             ControllerMemory.incrementNumBase();
@@ -766,7 +766,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
     CompiledMethod cm = null;
     try {
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
 
       cm = JNICompiler.compile(method);
@@ -780,7 +780,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
       }
     } finally {
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         if (cm != null) {
           double compileTime = Time.nanosToMillis(end - start);
           cm.setCompilationTime(compileTime);

@@ -19,7 +19,7 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.Mmapper;
 import org.vmmagic.pragma.Interruptible;
@@ -69,7 +69,7 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
    */
   @Uninterruptible
   public static void dumpAllThreadStacks() {
-    Scheduler.dumpVirtualMachine();
+    RVMThread.dumpVirtualMachine();
   }  // dumpAllThreadStacks
 
   /**

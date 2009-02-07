@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import org.mmtk.plan.Plan;
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.MutatorContext;
+import org.mmtk.utility.options.Options;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
@@ -21,16 +26,12 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.Scheduler;
-import org.mmtk.plan.CollectorContext;
-import org.mmtk.plan.MutatorContext;
-import org.mmtk.plan.Plan;
-import org.mmtk.utility.options.Options;
+import org.jikesrvm.scheduler.FinalizerThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 
@@ -85,12 +86,11 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   public final void joinCollection() {
     if (Options.verbose.getValue() >= 4) {
       VM.sysWriteln("Entered Collection.joinCollection().  Stack:");
-      Scheduler.dumpStack();
+      RVMThread.dumpStack();
     }
 
     while (Plan.isCollectionTriggered()) {
-      /* allow a gc thread to run */
-      Scheduler.yield();
+      CollectorThread.handshake.waitForGCToFinish();
     }
     checkForOutOfMemoryError(true);
   }
@@ -107,12 +107,11 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
 
     if (Options.verbose.getValue() >= 4) {
       VM.sysWriteln("Entered Collection.triggerCollection().  Stack:");
-      Scheduler.dumpStack();
+      RVMThread.dumpStack();
     }
 
     checkForOutOfMemoryError(false);
 
-    Plan.setCollectionTriggered();
     if (why == EXTERNAL_GC_TRIGGER) {
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Forced GC]");
@@ -120,7 +119,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
       if (Options.verbose.getValue() == 1 || Options.verbose.getValue() == 2)
         VM.sysWrite("[Phase GC]");
     } else {
-      Scheduler.getCurrentThread().reportCollectionAttempt();
+      RVMThread.getCurrentThread().reportCollectionAttempt();
     }
 
     CollectorThread.collect(CollectorThread.handshake, why);
@@ -137,7 +136,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   @Inline
   @Unpreemptible("Exceptions may possibly cause yields")
   private static void checkForOutOfMemoryError(boolean afterCollection) {
-    RVMThread myThread = Scheduler.getCurrentThread();
+    RVMThread myThread = RVMThread.getCurrentThread();
     OutOfMemoryError oome = myThread.getOutOfMemoryError();
     if (oome != null && (!afterCollection || !myThread.physicalAllocationFailed())) {
       if (Options.verbose.getValue() >= 4) {
@@ -154,13 +153,13 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    */
   public int maximumCollectionAttempt() {
     int max = 1;
-    for(int t=0; t <= Scheduler.getThreadHighWatermark(); t++) {
-      RVMThread thread = Scheduler.threads[t];
-      if (thread != null) {
-        int current = thread.getCollectionAttempt();
-        if (current > max) max = current;
-      }
+    RVMThread.acctLock.lock();
+    for(int t=0; t < RVMThread.numThreads; t++) {
+      RVMThread thread = RVMThread.threads[t];
+      int current = thread.getCollectionAttempt();
+      if (current > max) max = current;
     }
+    RVMThread.acctLock.unlock();
     return max + CollectorThread.collectionAttemptBase;
   }
 
@@ -168,7 +167,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * Report that the the physical allocation has succeeded.
    */
   public void reportAllocationSuccess() {
-    RVMThread myThread = Scheduler.getCurrentThread();
+    RVMThread myThread = RVMThread.getCurrentThread();
     myThread.clearOutOfMemoryError();
     myThread.resetCollectionAttempts();
     myThread.clearPhysicalAllocationFailed();
@@ -178,7 +177,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * Report that a physical allocation has failed.
    */
   public void reportPhysicalAllocationFailed() {
-    Scheduler.getCurrentThread().setPhysicalAllocationFailed();
+    RVMThread.getCurrentThread().setPhysicalAllocationFailed();
   }
 
   /**
@@ -186,7 +185,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * heap size rules can be ignored.
    */
   public boolean isEmergencyAllocation() {
-    return Scheduler.getCurrentThread().emergencyAllocation();
+    return RVMThread.getCurrentThread().emergencyAllocation();
   }
 
   /**
@@ -195,7 +194,6 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    */
   @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public final void triggerAsyncCollection(int why) {
-    Plan.setCollectionTriggered();
     if (Options.verbose.getValue() >= 1) {
       if (why == INTERNAL_PHASE_GC_TRIGGER) {
         VM.sysWrite("[Async-Phase GC]");
@@ -229,18 +227,31 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
      * The collector threads of processors currently running threads
      * off in JNI-land cannot run.
      */
-    Processor vp = ((Selected.Mutator) m).getProcessor();
-    int vpStatus = vp.vpStatus;
-    if (vpStatus == Processor.BLOCKED_IN_NATIVE) {
+    RVMThread t = ((Selected.Mutator) m).getThread();
+    t.monitor().lock();
+    // are these the only unexpected states?
+    t.assertUnacceptableStates(RVMThread.IN_JNI,RVMThread.IN_NATIVE);
+    int execStatus = t.getExecStatus();
+    // these next assertions are not redundant given the ability of the
+    // states to change asynchronously, even when we're holding the lock, since
+    // the thread may change its own state.  of course that shouldn't happen,
+    // but having more assertions never hurts...
+    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_JNI);
+    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_NATIVE);
+    if (execStatus == RVMThread.BLOCKED_IN_JNI) {
+      if (false) {
+        VM.sysWriteln("for thread #",t.getThreadSlot()," setting up JNI stack scan");
+        VM.sysWriteln("thread #",t.getThreadSlot()," has top java fp = ",t.jniEnv.topJavaFP());
+      }
 
-      /* processor & its running thread are blocked in C for this GC.
+      /* thread is blocked in C for this GC.
        Its stack needs to be scanned, starting from the "top" java
        frame, which has been saved in the running threads JNIEnv.  Put
        the saved frame pointer into the threads saved context regs,
        which is where the stack scan starts. */
-      RVMThread t = vp.activeThread;
       t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
     }
+    t.monitor().unlock();
   }
 
   /**
@@ -249,10 +260,12 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * @param c the collector to prepare
    */
   public final void prepareCollector(CollectorContext c) {
-    Processor vp = ((Selected.Collector) c).getProcessor();
-    int vpStatus = vp.vpStatus;
-    if (VM.VerifyAssertions) VM._assert(vpStatus != Processor.BLOCKED_IN_NATIVE);
-    RVMThread t = Scheduler.getCurrentThread();
+    RVMThread t = ((Selected.Collector) c).getThread();
+    if (false) {
+      VM.sysWriteln("prepareCollector called for ",t.getThreadSlot());
+    }
+    int execStatus = t.getExecStatus();
+    if (VM.VerifyAssertions) VM._assert(execStatus == RVMThread.IN_JAVA);
     Address fp = Magic.getFramePointer();
     while (true) {
       Address caller_ip = Magic.getReturnAddress(fp);
@@ -265,6 +278,10 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
       Atom cls = method.getDeclaringClass().getDescriptor();
       Atom name = method.getName();
       if (name == runAtom && cls == collectorThreadAtom) {
+        if (false) {
+          VM.sysWriteln("preparing GC thread ",RVMThread.getCurrentThreadSlot()," with ip = ",caller_ip);
+          VM.sysWriteln("preparing GC thread ",RVMThread.getCurrentThreadSlot()," with fp = ",caller_fp);
+        }
         t.contextRegisters.setInnermost(caller_ip, caller_fp);
         break;
       }
@@ -280,6 +297,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
     return CollectorThread.gcBarrier.rendezvous(where);
   }
 
+  // REVIEW: what are the semantics of this method in a concurrent collector?
   /** @return The number of active collector threads */
   public final int activeGCThreads() {
     return CollectorThread.numCollectors();
@@ -290,30 +308,33 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * the set of active collector threads (zero based)
    */
   public final int activeGCThreadOrdinal() {
-    return Magic.threadAsCollectorThread(Scheduler.getCurrentThread()).getGCOrdinal() - CollectorThread.GC_ORDINAL_BASE;
+    return Magic.threadAsCollectorThread(RVMThread.getCurrentThread()).getGCOrdinal() - CollectorThread.GC_ORDINAL_BASE;
   }
+
+  private static RVMThread.SoftHandshakeVisitor mutatorFlushVisitor =
+    new RVMThread.SoftHandshakeVisitor() {
+      @Uninterruptible
+      public boolean checkAndSignal(RVMThread t) {
+        // PNT: maybe we should return false if it's a GC thread?
+        t.flushRequested=true;
+        return true;
+      }
+      @Uninterruptible
+      public void notifyStuckInNative(RVMThread t) {
+        t.flush();
+        t.flushRequested=false;
+      }
+    };
 
   /**
    * Request each mutator flush remembered sets. This method
    * will trigger the flush and then yield until all processors have
    * flushed.
    */
+  @UninterruptibleNoWarn("This method is really unpreemptible, since it involves blocking")
   public void requestMutatorFlush() {
-    Scheduler.requestMutatorFlush();
-  }
-
-  /**
-   * Possibly yield the current concurrent collector thread. Return
-   * true if yielded.
-   */
-  @Inline
-  @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
-  public boolean yieldpoint() {
-    if (Processor.getCurrentProcessor().takeYieldpoint != 0) {
-      RVMThread.yieldpointFromBackedge();
-      return true;
-    }
-    return false;
+    Selected.Mutator.get().flush();
+    RVMThread.softHandshake(mutatorFlushVisitor);
   }
 
   /***********************************************************************
@@ -331,7 +352,8 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   public static void scheduleFinalizerThread() {
     int finalizedCount = FinalizableProcessor.countReadyForFinalize();
     if (finalizedCount > 0) {
-      Scheduler.scheduleFinalizer();
+      FinalizerThread.schedule();
     }
   }
 }
+

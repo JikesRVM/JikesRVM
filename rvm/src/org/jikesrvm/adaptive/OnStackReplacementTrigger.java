@@ -16,11 +16,9 @@ import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.NoInline;
-import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -32,10 +30,10 @@ public class OnStackReplacementTrigger {
    * Trigger an OSR from a running thread.
    */
   @NoInline
-  @Uninterruptible
+  @Unpreemptible
   public static void trigger(int ypTakenInCMID, Offset tsFromFPoff, Offset ypTakenFPoff, int whereFrom) {
 
-    RVMThread thread = Scheduler.getCurrentThread();
+    RVMThread thread = RVMThread.getCurrentThread();
     CompiledMethod ypTakenInCM = CompiledMethods.getCompiledMethod(ypTakenInCMID);
     RVMMethod ypTakenInMethod = ypTakenInCM.getMethod();
     boolean isInBootImage = ypTakenInMethod.getDeclaringClass().isInBootImage();
@@ -48,23 +46,17 @@ public class OnStackReplacementTrigger {
     event.tsFromFPoff = tsFromFPoff;
     event.ypTakenFPoff = ypTakenFPoff;
 
-    // make sure that the above stores don't get ordered after the flagging
-    // this thread is requesting OSR.
-    Magic.sync();
-
-    // consumer:
+    thread.monitor().lock();
     thread.requesting_osr = true;
+    thread.monitor().unlock();
 
-    // make sure that the flag is set to activate the OSR organizer after
-    // this thread has flagged its request for OSR.
-    Magic.sync();
-
-    // osr organizer must be initialized already
-    if (!Controller.osrOrganizer.osr_flag) {
-      Controller.osrOrganizer.osr_flag = true;
-      Controller.osrOrganizer.activate();
+    Controller.osrOrganizer.activate();
+    // PNT: Assumes that OSR doesn't need access to our context regs
+    thread.monitor().lock();
+    while (!thread.osr_done) {
+      thread.monitor().waitNicely();
     }
-
-    thread.osrPark();
+    thread.osr_done=false;
+    thread.monitor().unlock();
   }
 }

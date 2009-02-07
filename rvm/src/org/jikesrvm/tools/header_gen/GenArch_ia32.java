@@ -47,17 +47,17 @@ final class GenArch_ia32 extends GenArch {
     p("static const int Constants_RVM_TRAP_BASE  = " + TrapConstants.RVM_TRAP_BASE + ";\n");
 
     offset = ArchEntrypoints.framePointerField.getOffset();
-    pln("Processor_framePointer_offset = ", offset);
+    pln("Thread_framePointer_offset = ", offset);
     offset = ArchEntrypoints.arrayIndexTrapParamField.getOffset();
-    pln("Processor_arrayIndexTrapParam_offset = ", offset);
+    pln("Thread_arrayIndexTrapParam_offset = ", offset);
 
     p("static const int ArchConstants_SSE2 = " + (ArchConstants.SSE2_BASE ? "1;\n" : "0;\n"));
   }
 
   public void emitArchAssemblerDeclarations() {
-    if (BaselineConstants.PR != BaselineConstants.ESI) {
-      throw new Error("Unexpected PR value");
+    if (BaselineConstants.TR != BaselineConstants.ESI) {
+      throw new Error("Unexpected TR value");
     }
-    p("#define PR %ESI;\n");
+    p("#define TR %ESI;\n");
   }
 }

@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * <i>thread-local</i> activities.  Global activities must be
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  Instances of Plan map 1:1 to "kernel
- * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
+ * threads" (aka CPUs).  Thus instance
  * methods allow fast, unsychronized access to Plan utilities such as
  * allocation and collection.  Each instance rests on static resources
  * (such as memory and virtual memory resources) which are "global"

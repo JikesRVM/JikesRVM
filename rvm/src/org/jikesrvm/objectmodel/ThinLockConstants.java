@@ -13,7 +13,7 @@
 package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.Word;
  */
 public interface ThinLockConstants extends SizeConstants {
 
-  int NUM_BITS_TID = Scheduler.LOG_MAX_THREADS;
+  int NUM_BITS_TID = RVMThread.LOG_MAX_THREADS;
   int NUM_BITS_RC = JavaHeader.NUM_THIN_LOCK_BITS - NUM_BITS_TID;
 
   int TL_LOCK_COUNT_SHIFT = JavaHeader.THIN_LOCK_SHIFT;

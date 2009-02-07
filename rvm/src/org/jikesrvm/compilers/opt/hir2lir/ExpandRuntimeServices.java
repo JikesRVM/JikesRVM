@@ -320,6 +320,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                          MonitorOp.getClearGuard(inst),
                          ref,
                          IRTools.AC(refType.getThinLockOffset()));
+            next = inst.prevInstructionInCodeOrder();
             if (inst.getBasicBlock().getInfrequent()) container.counter1++;
             container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
@@ -351,6 +352,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                          MonitorOp.getClearGuard(inst),
                          ref,
                          IRTools.AC(refType.getThinLockOffset()));
+            next = inst.prevInstructionInCodeOrder();
             if (inst.getBasicBlock().getInfrequent()) container.counter1++;
             container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {

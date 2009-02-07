@@ -67,3 +67,8 @@ Stride between each CBS method sample (any yieldpoint) within a sampling window
 V TuningForkTraceFile String null tfTraceFile
 Filename to use for TuningFork trace generation
 
+
+V forceOneCPU int -1
+Force all threads to run on one CPU.  The argument specifies which CPU (starting from 0).
+
+

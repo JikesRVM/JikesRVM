@@ -17,7 +17,7 @@ import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * A class for managing various callbacks from the VM.
@@ -1148,7 +1148,7 @@ public final class Callbacks {
   @SuppressWarnings("unused")
   private static int getThread() {
     if (VM.runningVM) {
-      return Scheduler.getCurrentThread().getIndex();
+      return RVMThread.getCurrentThread().getThreadSlot();
     } else {
       return System.identityHashCode(Thread.currentThread());
     }
@@ -1160,7 +1160,7 @@ public final class Callbacks {
   @SuppressWarnings("unused")
   private static void printStack(String message) {
     if (VM.runningVM) {
-      Scheduler.traceback(message);
+      RVMThread.traceback(message);
     } else {
       new Throwable(message).printStackTrace();
     }

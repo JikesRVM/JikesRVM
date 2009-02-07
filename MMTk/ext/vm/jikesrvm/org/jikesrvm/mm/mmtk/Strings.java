@@ -14,7 +14,7 @@ package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.Services;
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 
 import org.vmmagic.pragma.*;
 
@@ -37,7 +37,7 @@ public final class Strings extends org.mmtk.vm.Strings {
    * @param len number of characters in message
    */
   public void writeThreadId(char [] c, int len) {
-    VM.psysWrite(c, len);
+    VM.tsysWrite(c, len);
   }
 
   /**
@@ -58,7 +58,6 @@ public final class Strings extends org.mmtk.vm.Strings {
     else
       return safeCopyStringToChars(str, dst, dstBegin, dstEnd);
   }
-
   /**
    * Copies characters from the string into the character array.
    * Thread switching is disabled during this method's execution.
@@ -74,10 +73,10 @@ public final class Strings extends org.mmtk.vm.Strings {
    * @return the number of characters copied.
    */
   private int safeCopyStringToChars(String str, char [] dst,
-                                   int dstBegin, int dstEnd) {
+                                    int dstBegin, int dstEnd) {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     // FIXME Why do we need to disable thread switching here, in uninterruptible code??
-    Processor.getCurrentProcessor().disableThreadSwitching("Disabled for MMTk string copy");
+    RVMThread.getCurrentThread().disableYieldpoints();
     char[] str_backing = java.lang.JikesRVMSupport.getBackingCharArray(str);
     int str_length = java.lang.JikesRVMSupport.getStringLength(str);
     int str_offset = java.lang.JikesRVMSupport.getStringOffset(str);
@@ -85,10 +84,9 @@ public final class Strings extends org.mmtk.vm.Strings {
     for (int i = 0; i < n; i++) {
       Services.setArrayNoBarrier(dst, dstBegin + i, str_backing[str_offset+i]);
     }
-    Processor.getCurrentProcessor().enableThreadSwitching();
+    RVMThread.getCurrentThread().enableYieldpoints();
     return n;
   }
-
   /**
    * Copies characters from the string into the character array.
    * Thread switching is disabled during this method's execution.
@@ -102,7 +100,7 @@ public final class Strings extends org.mmtk.vm.Strings {
    */
   @UninterruptibleNoWarn
   private int naiveCopyStringToChars(String str, char [] dst,
-                                      int dstBegin, int dstEnd) {
+                                     int dstBegin, int dstEnd) {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     int len = str.length();
     int n = (dstBegin + len <= dstEnd) ? len : (dstEnd - dstBegin);

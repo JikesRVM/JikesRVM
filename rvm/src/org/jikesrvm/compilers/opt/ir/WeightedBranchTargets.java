@@ -152,6 +152,6 @@ public final class WeightedBranchTargets {
   }
 
   private boolean epsilon(float a, float b) {
-    return Math.abs(a - b) < 0.003;
+    return Math.abs(a - b) < 0.1;
   }
 }

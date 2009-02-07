@@ -49,7 +49,7 @@ public abstract class PhysicalDefUse {
   /** C3 in the x87 FPU is used/defined */
   public static final int maskC3 = 0x0200;
   /** The processor register is used/defined */
-  public static final int maskPR = 0x0400;
+  public static final int maskTR = 0x0400;
   /** The ESP register is used/defined */
   public static final int maskESP= 0x0800;
   /* Meta mask for the enumeration. */
@@ -70,7 +70,7 @@ public abstract class PhysicalDefUse {
   /** Uses mask used by dependence graph to show a yield point */
   public static final int maskTSPUses = maskESP;
   /** Definitions mask used by dependence graph to show a yield point */
-  public static final int maskTSPDefs = maskAF_CF_OF_PF_SF_ZF | maskPR | maskESP;
+  public static final int maskTSPDefs = maskAF_CF_OF_PF_SF_ZF | maskTR | maskESP;
 
   /**
    * @return whether or not an Operator uses the EFLAGS
@@ -111,7 +111,7 @@ public abstract class PhysicalDefUse {
     if ((code & maskC1) != 0) s += " C1";
     if ((code & maskC2) != 0) s += " C2";
     if ((code & maskC3) != 0) s += " C3";
-    if ((code & maskPR) != 0) s += " PR";
+    if ((code & maskTR) != 0) s += " TR";
     if ((code & maskESP) != 0) s += " ESP";
     return s;
   }
@@ -185,8 +185,8 @@ public abstract class PhysicalDefUse {
           return phys.getC2();
         case maskC3:
           return phys.getC3();
-        case maskPR:
-          return phys.getPR();
+        case maskTR:
+          return phys.getTR();
         case maskESP:
           return phys.getESP();
       }

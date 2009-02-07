@@ -28,7 +28,7 @@ import org.jikesrvm.objectmodel.MiscHeader;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
@@ -79,7 +79,7 @@ import org.vmmagic.unboxed.Word;
    * @return True if the RVM is ready for GC, false otherwise.
    */
   public boolean gcEnabled() {
-    return Scheduler.gcEnabled();
+    return RVMThread.gcEnabled();
   }
 
   /**
@@ -151,7 +151,7 @@ import org.vmmagic.unboxed.Word;
     Address fp = Magic.getFramePointer();
     Address ip = Magic.getReturnAddress(fp);
     fp = Magic.getCallerFramePointer(fp);
-    // This code borrows heavily from Scheduler.dumpStack
+    // This code borrows heavily from RVMThread.dumpStack
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       compiledMethodID = Magic.getCompiledMethodID(fp);
       if (compiledMethodID != INVISIBLE_METHOD_ID) {

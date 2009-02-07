@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.osr.BytecodeTraverser;
 import org.jikesrvm.runtime.Time;
-import org.jikesrvm.scheduler.Scheduler;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -191,12 +190,12 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     ReferenceMaps refMaps;
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
       refMaps = new ReferenceMaps((BaselineCompiledMethod) compiledMethod, stackHeights, localTypes);
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         gcMapNanos += end - start;
       }
     }
@@ -211,7 +210,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     boolean edge_counters = options.PROFILE_EDGE_COUNTERS;
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
       if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
         options.PROFILE_EDGE_COUNTERS = false;
@@ -227,7 +226,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       }
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         osrSetupNanos += end - start;
       }
     }
@@ -238,7 +237,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     CodeArray instructions;
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
 
       // determine if we are going to insert edge counters for this method
@@ -256,7 +255,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       bcMap = machineCode.getBytecodeMap();
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         codeGenNanos += end - start;
       }
     }
@@ -268,7 +267,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     // Phase 4: OSR part 2
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
       if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
         int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
@@ -282,7 +281,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       }
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         osrSetupNanos += end - start;
       }
     }
@@ -290,7 +289,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     // Phase 5: Encode machine code maps
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
       if (method.isSynchronized()) {
         ((BaselineCompiledMethod) compiledMethod).setLockAcquisitionOffset(lockOffset);
@@ -306,7 +305,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       }
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         encodingNanos += end - start;
       }
     }

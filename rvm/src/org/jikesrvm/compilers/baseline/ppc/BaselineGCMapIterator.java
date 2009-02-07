@@ -101,7 +101,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     mapIndex = 0;
     if (mapId < 0) {
       // lock the jsr lock to serialize jsr processing
-      ReferenceMaps.jsrLock.lock("jsr lock");
+      ReferenceMaps.jsrLock.lock();
       int JSRindex = maps.setupJSRSubroutineMap(mapId);
       while (JSRindex != 0) {
         Address nextCallerAddress;

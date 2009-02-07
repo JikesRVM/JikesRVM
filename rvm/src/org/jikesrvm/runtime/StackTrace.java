@@ -26,9 +26,9 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -53,6 +53,7 @@ public class StackTrace {
    * Create a trace for the call stack of RVMThread.getThreadForStackTrace
    * (normally the current thread unless we're in GC)
    */
+  @NoInline
   public StackTrace() {
     boolean isVerbose = false;
     int traceIndex = 0;
@@ -63,8 +64,8 @@ public class StackTrace {
       }
       isVerbose = (traceIndex % VM.VerboseStackTracePeriod == 0);
     }
-    RVMThread stackTraceThread = Scheduler.getCurrentThread().getThreadForStackTrace();
-    if (stackTraceThread != Scheduler.getCurrentThread()) {
+    RVMThread stackTraceThread = RVMThread.getCurrentThread().getThreadForStackTrace();
+    if (stackTraceThread != RVMThread.getCurrentThread()) {
       // (1) Count the number of frames comprising the stack.
       int numFrames = countFramesNoGC(stackTraceThread);
       // (2) Construct arrays to hold raw data
@@ -85,7 +86,7 @@ public class StackTrace {
     if (isVerbose) {
       VM.disableGC();
       VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of creating StackTrace # ", traceIndex);
-      Scheduler.dumpStack();
+      RVMThread.dumpStack();
       VM.sysWriteln("END Verbosely dumping stack at time of creating StackTrace # ", traceIndex, " ]");
       VM.enableGC();
     }
@@ -166,6 +167,7 @@ public class StackTrace {
    * @return number of stack frames encountered
    */
   @Uninterruptible
+  @NoInline
   private int countFramesUninterruptible(RVMThread stackTraceThread) {
     int stackFrameCount = 0;
     Address fp;
@@ -190,6 +192,7 @@ public class StackTrace {
       ip = Magic.getReturnAddress(fp);
       fp = Magic.getCallerFramePointer(fp);
     }
+    //VM.sysWriteln("stack frame count = ",stackFrameCount);
     return stackFrameCount;
   }
 
@@ -199,6 +202,7 @@ public class StackTrace {
    * stack moving.
    */
   @Uninterruptible
+  @NoInline
   private void recordFramesUninterruptible(RVMThread stackTraceThread) {
     int stackFrameCount = 0;
     Address fp;
@@ -208,6 +212,7 @@ public class StackTrace {
     ip = Magic.getReturnAddress(fp);
     fp = Magic.getCallerFramePointer(fp);
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      //VM.sysWriteln("at stackFrameCount = ",stackFrameCount);
       int compiledMethodId = Magic.getCompiledMethodID(fp);
       compiledMethods[stackFrameCount] = compiledMethodId;
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
@@ -217,11 +222,16 @@ public class StackTrace {
           instructionOffsets[stackFrameCount] =
             compiledMethod.getInstructionOffset(ip).toInt();
           if (compiledMethod.hasBridgeFromNativeAnnotation()) {
+            //VM.sysWriteln("native!");
             // skip native frames, stopping at last native frame preceeding the
             // Java To C transition frame
             fp = RuntimeEntrypoints.unwindNativeStackFrame(fp);
           }
+        } else {
+          //VM.sysWriteln("trap!");
         }
+      } else {
+        //VM.sysWriteln("invisible method!");
       }
       stackFrameCount++;
       ip = Magic.getReturnAddress(fp);
@@ -315,7 +325,7 @@ public class StackTrace {
    * Get the compiled method at element
    */
   private CompiledMethod getCompiledMethod(int element) {
-    if ((element > 0) && (element < compiledMethods.length)) {
+    if ((element >= 0) && (element < compiledMethods.length)) {
       int mid = compiledMethods[element];
       if (mid != INVISIBLE_METHOD_ID) {
         return CompiledMethods.getCompiledMethod(mid);
@@ -438,8 +448,7 @@ public class StackTrace {
      * at java.lang.ExceptionInInitializerError.<init>(ExceptionInInitializerError.java:75)
      *
      * and an OutOfMemoryError to look like:
-     * at org.jikesrvm.scheduler.Processor.dispatch(Processor.java:211)
-     * at org.jikesrvm.scheduler.RVMThread.morph(RVMThread.java:1125)
+     * ???
      * ...
      * at org.jikesrvm.mm.mminterface.MemoryManager.allocateSpace(MemoryManager.java:613)
      * ...
@@ -495,7 +504,7 @@ public class StackTrace {
       }
       // (4) remove frames belonging to exception constructors upto the causes constructor
       while((element < compiledMethods.length) &&
-          (compiledMethod != null) &&
+            (compiledMethod != null) &&
             (compiledMethod.getMethod().getDeclaringClass().getClassForType() != cause.getClass()) &&
             compiledMethod.getMethod().isObjectInitializer() &&
             compiledMethod.getMethod().getDeclaringClass().isThrowable()) {
@@ -574,3 +583,4 @@ public class StackTrace {
     }
   }
 }
+

@@ -477,7 +477,7 @@ public abstract class StackManager extends GenericStackManager {
   public final void insertNormalPrologue() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
-    Register PR = phys.getPR();
+    Register TR = phys.getTR();
     Register TSR = phys.getTSR();
     Register R0 = phys.getTemp();
     Register S0 = phys.getGPR(FIRST_SCRATCH_GPR);
@@ -502,15 +502,15 @@ public abstract class StackManager extends GenericStackManager {
     if (yp) {
       Offset offset = Entrypoints.takeYieldpointField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(PR), IC(Bits.PPCMaskLower16(offset)))); // 2
+      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(TR), IC(Bits.PPCMaskLower16(offset)))); // 2
     }
 
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP), IC(-frameSize))); // 3
 
     if (stackOverflow) {
-      Offset offset = Entrypoints.activeThreadStackLimitField.getOffset();
+      Offset offset = Entrypoints.stackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0), A(phys.getPR()), IC(Bits.PPCMaskLower16(offset)))); // 4
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0), A(phys.getTR()), IC(Bits.PPCMaskLower16(offset)))); // 4
     }
 
     // Now add any instructions to save the volatiles and nonvolatiles (5)
@@ -561,7 +561,7 @@ public abstract class StackManager extends GenericStackManager {
 
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
-    Register PR = phys.getPR();
+    Register TR = phys.getTR();
     Register TSR = phys.getTSR();
     Register R0 = phys.getTemp();
     Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
@@ -578,9 +578,9 @@ public abstract class StackManager extends GenericStackManager {
       // of a load) so, free up S1 for use by briefly saving its contents in the
       // return address slot of my caller's frame
       ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
-      Offset offset = Entrypoints.activeThreadStackLimitField.getOffset();
+      Offset offset = Entrypoints.stackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getPR()), IC(Bits.PPCMaskLower16(offset))));
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getTR()), IC(Bits.PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1), IC(frameSize)));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
 
@@ -623,7 +623,7 @@ public abstract class StackManager extends GenericStackManager {
     if (yp) {
       Offset offset = Entrypoints.takeYieldpointField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(PR), IC(Bits.PPCMaskLower16(offset))));
+      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(TR), IC(Bits.PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(R0), IC(0)));
     }
   }

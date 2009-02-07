@@ -221,10 +221,10 @@ public abstract class FinalMIRExpansion extends IRTools {
           BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.BACKEDGE);
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
-          Register PR = phys.getPR();
+          Register TR = phys.getTR();
           Offset offset = Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(Bits.PPCMaskLower16(offset))));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original
@@ -245,10 +245,10 @@ public abstract class FinalMIRExpansion extends IRTools {
           BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.EPILOGUE);
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
-          Register PR = phys.getPR();
+          Register TR = phys.getTR();
           Offset offset = Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(Bits.PPCMaskLower16(offset))));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original

@@ -45,6 +45,7 @@ extern "C" int sched_yield(void);
 #include <sys/wait.h>
 #include <time.h>               // nanosleep() and other
 #include <utime.h>
+#include <setjmp.h>
 
 #ifdef RVM_WITH_PERFCTR
 #  include "perfctr.h"
@@ -109,18 +110,14 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 #include <pthread.h>
 
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_SOLARIS)
-# define HAVE_SYSWRAP 1
-# include "syswrap.h"
-#endif
-
 // #define DEBUG_SYS
 #define VERBOSE_PTHREAD lib_verbose
 
 // static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 // static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
 
-static void *sysVirtualProcessorStartup(void *args);
+extern "C" void *sysNativeThreadStartup(void *args);
+extern "C" void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
 
 /* This routine is not yet used by all of the functions that return strings in
  * buffers, but I hope that it will be one day. */
@@ -251,24 +248,11 @@ extern "C" void sysReportAlignmentChecking() { }
 
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
-// Static fields offset from the JTOC. Not generated as part of generate
-// interface declarations to avoid races causing different static field
-// layouts
-Offset GCStatusOffset;
-Offset TimerTicksOffset;
-Offset ReportedTimerTicksOffset;
-
-extern "C" void
-sysRegisterStaticFieldOffsets(int gcOffset, int ttOffset, int rttOffset)
-{
-	GCStatusOffset = (Offset)gcOffset;
-	ReportedTimerTicksOffset = (Offset)rttOffset;
-	TimerTicksOffset = (Offset)ttOffset;
-}
-
 pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
 
 static bool systemExiting = false;
+
+static const bool debugging = false;
 
 // Exit with a return code.
 //
@@ -294,6 +278,9 @@ sysExit(int value)
     systemExiting = true;
 
     pthread_mutex_lock( &DeathLock );
+    if (debugging && value!=0) {
+	abort();
+    }
     exit(value);
 }
 
@@ -510,9 +497,7 @@ sysBytesAvailable(int fd)
     int count = 0;
     if (ioctl(fd, FIONREAD, &count) == -1)
     {
-        bool badFD = (errno == EBADF);
-        fprintf(SysErrorFile, "%s: FIONREAD ioctl on %d failed: %s (errno=%d)\n", Me, fd, strerror( errno ), errno);
-        return badFD ? ThreadIOConstants_FD_INVALID : -1;
+	return -1;
     }
 // fprintf(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
     return count;
@@ -670,178 +655,7 @@ sysSetFdCloseOnExec(int fd)
     return fcntl(fd, F_SETFD, FD_CLOEXEC);
 }
 
-//--------------------------//
-// System timer operations. //
-//--------------------------//
-
-#ifdef _AIX
-#include <mon.h>
-#endif
-
-static void *timeSlicerThreadMain(void *) __attribute__((noreturn));
-
-static void *
-timeSlicerThreadMain(void *arg)
-{
-    long ns = (long) arg;
-#ifdef DEBUG_SYS
-    fprintf(SysErrorFile, "time slice interval %dns\n", ns);
-#endif
-    for (;;) {
-        struct timespec howLong;
-        struct timespec remaining;
-
-        howLong.tv_sec = 0;
-        howLong.tv_nsec = ns;
-        errno = 0;
-        int errorCode = nanosleep( &howLong, &remaining );
-        if (errorCode) {
-            if (errno == EINTR) {
-                // We were blocked by a signal; might as well go on.
-                // XXX I believe processTimerTick() calls things that do
-                // polling, but I haven't strictly verified this.  --augart
-                ;
-            } else if (errno == EINVAL) {
-                fprintf(SysErrorFile, "%s: nanosleep failed: %s (errno=%d): ",
-                        Me, strerror(errno), errno);
-                // XXX As of this writing (August 2003), SysErrorFile is
-                // always identical to stderr.  Unlike SysTraceFile,
-                // SysErrorFile is never reset.  (So why does it exist?)
-                perror(NULL);   // use perror() since strerror() is not
-                                // thread-safe, and GNU strerror() is
-                                // incompatible with SUSv3.
-                sysExit(EXIT_STATUS_TIMER_TROUBLE);
-            }
-        }
-        if (systemExiting)
-            pthread_exit(0);
-        processTimerTick();
-    }
-    // NOTREACHED
-}
-
-/*
- * Actions to take on a timer tick
- */
-extern "C" void processTimerTick(void) {
-
-    Address VmToc = (Address) getJTOC();
-
-    /*
-     * Increment Processor.timerTicks
-     */
-    if (TimerTicksOffset == 0) return; // static field offsets not yet known
-    int* ttp = (int *) ((char *) VmToc + TimerTicksOffset);
-    *ttp = *ttp + 1;
-
-    /*
-     * Check to see if a gc is in progress.
-     * If it is then simply return (ignore timer tick).
-     */
-    int gcStatus = *(int *) ((char *) VmToc + GCStatusOffset);
-    if (gcStatus != 0) return;
-
-    /*
-     * Increment Processor.reportedTimerTicks
-     */
-    int* rttp = (int *) ((char *) VmToc + ReportedTimerTicksOffset);
-    *rttp = *rttp + 1;
-
-    /*
-     * Turn on thread-switch flag in each virtual processor.
-     * Note that "jtoc" is not necessarily valid, because we might have
-     * interrupted C-library code, so we use boot image
-     * jtoc address (== VmToc) instead.
-     */
-    Address *processors = *(Address **) ((char *) VmToc + getProcessorsOffset());
-    unsigned cnt = getArrayLength(processors);
-    unsigned longest_stuck_ticks = 0;
-    for (unsigned i = GreenScheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
-        // Set takeYieldpoint field to 1; decrement timeSliceExpired field;
-        // See how many ticks this VP has ignored, if too many have passed we will issue a warning below
-        *(int *)((char *)processors[i] + Processor_takeYieldpoint_offset) = 1;
-        int val = (*(int *)((char *)processors[i] + Processor_timeSliceExpired_offset))--;
-
-        if (longest_stuck_ticks < (unsigned) -val)
-            longest_stuck_ticks = -val;
-    }
-
-#ifndef RVM_WITH_GCSPY
-    /*
-     * After 1000 timer intervals (often == 10 seconds), print a message
-     * every 100 timer intervals (often == 2 second), so we don't
-     * just appear to be hung.
-     */
-#ifndef RVM_FOR_GCTRACE
-    if (longest_stuck_ticks > 5001) {
-        fprintf(stderr, "%s: Exiting VM due to suspected deadlock\n", Me);
-        sysExit(EXIT_STATUS_TIMER_TROUBLE); }
-#endif
-    if (longest_stuck_ticks >= 1000 && (longest_stuck_ticks % 100) == 0) {
-      /* When performing tracing, delays will often last more than 10
-       * seconds and can take much, much longer (on a fairly fast
-       * machine I've seen delays above 1 minute).  This is due to a
-       * GC possibly needing to include additional processing and
-       * outputting a large amount of information which will
-       * presumably be saved.  Unfortunately, these warnings will appear
-       * in the midst of the trace and cause them to be very difficult to
-       * parse.  As this is a normal condition during tracing, and causes
-       * a lot of problems to tracing, we elide the warning.
-       */
-#ifndef RVM_FOR_GCTRACE
-        fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n",
-                Me, getTimeSlice_msec() * longest_stuck_ticks);
-        fprintf(stderr, "This may indicate that a blocking system call has occured and the VM is deadlocked\n");
-#endif
-    }
-#endif
-}
-
-
-// Start/stop interrupt generator for thread timeslicing.
-// The interrupt will be delivered to whatever virtual processor
-// happens to be running when the timer fires.
-//
-// Taken:    interrupt interval, in milliseconds (0: "disable timer")
-// Returned: nothing
-//
-static void
-setTimeSlicer(int msTimerDelay)
-{
-  pthread_t timeSlicerThread; // timeSlicerThread is a write-only dummy
-                                    // variable.
-  int nsTimerDelay = msTimerDelay * 1000 * 1000;
-  int errorCode = pthread_create(&timeSlicerThread, NULL,
-                                       timeSlicerThreadMain, (void*)nsTimerDelay);
-  if (errorCode) {
-    fprintf(SysErrorFile, "%s: Unable to create the Time Slicer thread: %s\n", Me, strerror(errorCode));
-    sysExit(EXIT_STATUS_TIMER_TROUBLE);
-  }
-  // fprintf(SysTraceFile, "%s: timeslice is %dms\n", Me, msTimerDelay);
-}
-
-static int timeSlice_msec;
-
-extern "C" void
-sysVirtualProcessorEnableTimeSlicing(int timeSlice)
-{
-    if (lib_verbose)
-        fprintf(stderr,"Using a time-slice of %d ms\n", timeSlice);
-    // timeSlice could be less than 1!
-    if (timeSlice < 1 || timeSlice > 999) {
-        fprintf(SysErrorFile, "%s: timeslice of %d msec is outside range 1 msec ..999 msec\n",
-                Me, timeSlice);
-        sysExit(EXIT_STATUS_TIMER_TROUBLE);
-    }
-    timeSlice_msec = timeSlice;
-    setTimeSlicer(timeSlice);
-}
-
-int
-getTimeSlice_msec(void)
-{
-    return timeSlice_msec;
-}
+/////////////////// time operations /////////////////
 
 extern "C" long long
 sysCurrentTimeMillis()
@@ -1029,107 +843,76 @@ sysNumProcessors()
     return numCpus;
 }
 
-// Create a virtual processor (aka "unix kernel thread", "pthread").
+// Create a native thread
 // Taken:    register values to use for pthread startup
-// Returned: virtual processor's o/s handle
-//
+// Returned: virtual processor's OS handle
 extern "C" Address
-sysVirtualProcessorCreate(Address pr, Address ip, Address fp)
+sysNativeThreadCreate(Address tr, Address ip, Address fp)
 {
-
-    Address    *sysVirtualProcessorArguments;
-    pthread_attr_t sysVirtualProcessorAttributes;
-    pthread_t      sysVirtualProcessorHandle;
+    Address    *sysNativeThreadArguments;
+    pthread_attr_t sysNativeThreadAttributes;
+    pthread_t      sysNativeThreadHandle;
     int            rc;
 
     // create arguments
     //
-    sysVirtualProcessorArguments = new Address[3];
-    sysVirtualProcessorArguments[0] = pr;
-    sysVirtualProcessorArguments[1] = ip;
-    sysVirtualProcessorArguments[2] = fp;
+    sysNativeThreadArguments = new Address[3];
+    sysNativeThreadArguments[0] = tr;
+    sysNativeThreadArguments[1] = ip;
+    sysNativeThreadArguments[2] = fp;
 
     // create attributes
     //
-    if ((rc = pthread_attr_init(&sysVirtualProcessorAttributes))) {
+    if ((rc = pthread_attr_init(&sysNativeThreadAttributes))) {
         fprintf(SysErrorFile, "%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
     // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
     //
-    pthread_attr_setscope(&sysVirtualProcessorAttributes, PTHREAD_SCOPE_SYSTEM);
+    pthread_attr_setscope(&sysNativeThreadAttributes, PTHREAD_SCOPE_SYSTEM);
 
-    // create virtual processor
+    // create native thread
     //
-    if ((rc = pthread_create(&sysVirtualProcessorHandle,
-                             &sysVirtualProcessorAttributes,
-                             sysVirtualProcessorStartup,
-                             sysVirtualProcessorArguments)))
+    if ((rc = pthread_create(&sysNativeThreadHandle,
+                             &sysNativeThreadAttributes,
+                             sysNativeThreadStartup,
+                             sysNativeThreadArguments)))
     {
         fprintf(SysErrorFile, "%s: pthread_create failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-
-    if (VERBOSE_PTHREAD)
-        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (Address) sysVirtualProcessorHandle);
-
-    return (Address)sysVirtualProcessorHandle;
-}
-
-static void *
-sysVirtualProcessorStartup(void *args)
-{
-    Address pr       = ((Address *)args)[0];
-    Address ip       = ((Address *)args)[1];
-    Address fp       = ((Address *)args)[2];
-
-    if (VERBOSE_PTHREAD)
-#ifndef RVM_FOR_32_ADDR
-        fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, pr, ip, fp);
-#else
-        fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, pr, ip, fp);
-#endif
-    // branch to vm code
-    //
-#ifndef RVM_FOR_POWERPC
+    
+    if ((rc = pthread_detach(sysNativeThreadHandle)))
     {
-        *(Address *) (pr + Processor_framePointer_offset) = fp;
-        Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
-        bootThread((void*)ip, (void*)pr, (void*)sp);
-    }
-#else
-    bootThread((int)(Word)getJTOC(), pr, ip, fp);
-#endif
-
-    // not reached
-    //
-    fprintf(SysTraceFile, "%s: sysVirtualProcessorStartup: failed\n", Me);
-    return 0;
-}
-
-
-// Bind execution of current virtual processor to specified physical cpu.
-// Taken:    physical cpu id (0, 1, 2, ...)
-// Returned: nothing
-//
-extern "C" void
-sysVirtualProcessorBind(int UNUSED cpuId)
-{
-    int numCpus = sysNumProcessors();
-    if (VERBOSE_PTHREAD)
-      fprintf(SysTraceFile, "%s: %d cpu's\n", Me, numCpus);
-
-    // bindprocessor() seems to be only on AIX
-#ifdef RVM_FOR_AIX
-    if (numCpus == -1) {
-        fprintf(SysErrorFile, "%s: sysconf failed (errno=%d): ", Me, errno);
-        perror(NULL);
+        fprintf(SysErrorFile, "%s: pthread_detach failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
-    cpuId = cpuId % numCpus;
+    if (VERBOSE_PTHREAD)
+        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (Address) sysNativeThreadHandle);
 
+    return (Address)sysNativeThreadHandle;
+}
+
+extern "C" int
+sysNativeThreadBindSupported()
+{
+  int result=0;
+#ifdef RVM_FOR_AIX
+  result=1;
+#endif
+#ifdef RVM_FOR_LINUX
+  result=1;
+#endif
+  return result;
+}
+
+extern "C" void
+sysNativeThreadBind(int UNUSED cpuId)
+{
+    // bindprocessor() seems to be only on AIX
+#ifdef RVM_FOR_AIX
     int rc = bindprocessor(BINDTHREAD, thread_self(), cpuId);
     fprintf(SysTraceFile, "%s: bindprocessor pthread %d (kernel thread %d) %s to cpu %d\n", Me, pthread_self(), thread_self(), (rc ? "NOT bound" : "bound"), cpuId);
 
@@ -1143,79 +926,109 @@ sysVirtualProcessorBind(int UNUSED cpuId)
 #ifdef RVM_FOR_LINUX
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
-    CPU_SET(cpuId % numCpus, &cpuset);
+    CPU_SET(cpuId, &cpuset);
 
     pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
 #endif
 }
 
-/* These are unused in single virtual procesor mode: */
-pthread_cond_t VirtualProcessorStartup = PTHREAD_COND_INITIALIZER;
-pthread_cond_t MultithreadingStartup = PTHREAD_COND_INITIALIZER;
+/** keys for managing thread termination */
+static pthread_key_t TerminateJmpBufKey;
 
-pthread_mutex_t VirtualProcessorStartupLock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t MultithreadingStartupLock = PTHREAD_MUTEX_INITIALIZER;
+/** jump buffer for primordial thread */
+jmp_buf primordial_jb;
 
-int VirtualProcessorsLeftToStart;
-int VirtualProcessorsLeftToWait;
+extern "C" void *
+sysNativeThreadStartup(void *args)
+{
+    /* install a stack for hardwareTrapHandler() to run on */
+    stack_t stack;
+    char *stackBuf;
+
+    memset (&stack, 0, sizeof stack);
+    stack.ss_sp = stackBuf = new char[SIGSTKSZ];
+    stack.ss_flags = 0;
+    stack.ss_size = SIGSTKSZ;
+    if (sigaltstack (&stack, 0)) {
+        fprintf(stderr,"sigaltstack failed (errno=%d)\n",errno);
+        exit(1);
+    }
+
+    Address tr       = ((Address *)args)[0];
+
+    jmp_buf *jb = (jmp_buf*)malloc(sizeof(jmp_buf));
+    if (setjmp(*jb)) {
+	// this is where we come to terminate the thread
+	free(jb);
+	*(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
+	
+	stack.ss_flags = SS_DISABLE;
+	sigaltstack(&stack, 0);
+	delete[] stackBuf;
+    } else {
+	pthread_setspecific(TerminateJmpBufKey, jb);
+	
+	Address ip       = ((Address *)args)[1];
+	Address fp       = ((Address *)args)[2];
+	
+	if (VERBOSE_PTHREAD)
+#ifndef RVM_FOR_32_ADDR
+	    fprintf(SysTraceFile, "%s: sysNativeThreadStartup: pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, tr, ip, fp);
+#else
+        fprintf(SysTraceFile, "%s: sysNativeThreadStartup: pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, tr, ip, fp);
+#endif
+	// branch to vm code
+	//
+#ifndef RVM_FOR_POWERPC
+	{
+	    *(Address *) (tr + Thread_framePointer_offset) = fp;
+	    Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
+	    bootThread((void*)ip, (void*)tr, (void*)sp);
+	}
+#else
+	bootThread((int)(Word)getJTOC(), tr, ip, fp);
+#endif
+	
+	// not reached
+	//
+	fprintf(SysTraceFile, "%s: sysNativeThreadStartup: failed\n", Me);
+	return 0;
+    }
+}
+
 
 // Thread-specific data key in which to stash the id of
-// the pthread's Processor.  This allows the system call library
-// to find the Processor object at runtime.
-extern pthread_key_t VmProcessorKey;
-extern pthread_key_t IsVmProcessorKey;
+// the pthread's RVMThread.  This allows the system call library
+// to find the RVMThread object at runtime.
+extern pthread_key_t VmThreadKey;
+extern pthread_key_t IsVmThreadKey;
 
 // Create keys for thread-specific data.
 extern "C" void
 sysCreateThreadSpecificDataKeys(void)
 {
-    int rc1, rc2;
+    int rc;
 
     // Create a key for thread-specific data so we can associate
     // the id of the Processor object with the pthread it is running on.
-    rc1 = pthread_key_create(&VmProcessorKey, 0);
-    if (rc1 != 0) {
-        fprintf(SysErrorFile, "%s: pthread_key_create(&VMProcessorKey,0) failed (err=%d)\n", Me, rc1);
+    rc = pthread_key_create(&VmThreadKey, 0);
+    if (rc != 0) {
+        fprintf(SysErrorFile, "%s: pthread_key_create(&VmThreadKey,0) failed (err=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-    rc2 = pthread_key_create(&IsVmProcessorKey, 0);
-    if (rc2 != 0) {
-        fprintf(SysErrorFile, "%s: pthread_key_create(&IsVMProcessorKey,0) failed (err=%d)\n", Me, rc2);
+    rc = pthread_key_create(&IsVmThreadKey, 0);
+    if (rc != 0) {
+        fprintf(SysErrorFile, "%s: pthread_key_create(&IsVmThreadKey,0) failed (err=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
-
+    rc = pthread_key_create(&TerminateJmpBufKey, 0);
+    if (rc != 0) {
+        fprintf(SysErrorFile, "%s: pthread_key_create(&TerminateJmpBufKey,0) failed (err=%d)\n", Me, rc);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+    }
 #ifdef DEBUG_SYS
-    fprintf(stderr, "%s: vm processor key=%u\n", Me, VmProcessorKey);
+    fprintf(stderr, "%s: vm processor key=%u\n", Me, VmThreadKey);
 #endif
-}
-
-extern "C" void
-sysInitializeStartupLocks(int howMany)
-{
-    VirtualProcessorsLeftToStart = howMany;
-    VirtualProcessorsLeftToWait = howMany;
-}
-
-extern "C" void
-sysWaitForVirtualProcessorInitialization()
-{
-    pthread_mutex_lock( &VirtualProcessorStartupLock );
-    if (--VirtualProcessorsLeftToStart == 0)
-        pthread_cond_broadcast( &VirtualProcessorStartup );
-    else
-        pthread_cond_wait(&VirtualProcessorStartup, &VirtualProcessorStartupLock);
-    pthread_mutex_unlock( &VirtualProcessorStartupLock );
-}
-
-extern "C" void
-sysWaitForMultithreadingStart()
-{
-    pthread_mutex_lock( &MultithreadingStartupLock );
-    if (--VirtualProcessorsLeftToWait == 0)
-        pthread_cond_broadcast( &MultithreadingStartup );
-    else
-        pthread_cond_wait(&MultithreadingStartup, &MultithreadingStartupLock);
-    pthread_mutex_unlock( &MultithreadingStartupLock );
 }
 
 // Routines to support sleep/wakeup of idle threads:
@@ -1230,15 +1043,15 @@ sysWaitForMultithreadingStart()
   This happens to be only called once, at thread startup time, but please
   don't rely on that fact.
 */
-extern "C" int
+extern "C" Word
 sysPthreadSelf()
 {
-    int thread;
+    Word thread;
 
-    thread = (int)pthread_self();
+    thread = (Word)pthread_self();
 
     if (VERBOSE_PTHREAD)
-        fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %d\n", Me, thread);
+        fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %x\n", Me, thread);
 
     return thread;
 }
@@ -1305,7 +1118,7 @@ sysPthreadSetupSignalHandling()
 
 //
 extern "C" int
-sysPthreadSignal(int pthread)
+sysPthreadSignal(Word pthread)
 {
     pthread_t thread;
     thread = (pthread_t)pthread;
@@ -1316,7 +1129,7 @@ sysPthreadSignal(int pthread)
 
 //
 extern "C" int
-sysPthreadJoin(int pthread)
+sysPthreadJoin(Word pthread)
 {
     pthread_t thread;
     thread = (pthread_t)pthread;
@@ -1339,7 +1152,7 @@ sysPthreadExit()
 // Returned: nothing
 //
 extern "C" void
-sysVirtualProcessorYield()
+sysSchedYield()
 {
     /** According to the Linux manpage, sched_yield()'s presence can be
      *  tested for by using the #define _POSIX_PRIORITY_SCHEDULING, and if
@@ -1391,9 +1204,90 @@ sysPthreadSigWait( int * lockwordAddress,
     // sysYield until unblocked
     //
     while ( *lockwordAddress == 5 /*Processor.BLOCKED_IN_SIGWAIT*/ )
-        sysVirtualProcessorYield();
+        sysSchedYield();
 
     return 0;
+}
+
+////////////// Pthread mutex and condition functions /////////////
+
+extern "C" Word
+sysPthreadMutexCreate()
+{
+    pthread_mutex_t *mutex = new pthread_mutex_t;
+    pthread_mutex_init(mutex,NULL);
+    return (Word)mutex;
+}
+
+extern "C" void
+sysPthreadMutexDestroy(Word _mutex)
+{
+    pthread_mutex_t *mutex=(pthread_mutex_t*)_mutex;
+    pthread_mutex_destroy(mutex);
+    delete mutex;
+}
+
+extern "C" void
+sysPthreadMutexLock(Word _mutex)
+{
+    pthread_mutex_lock((pthread_mutex_t*)_mutex);
+}
+
+extern "C" void
+sysPthreadMutexUnlock(Word _mutex)
+{
+    pthread_mutex_unlock((pthread_mutex_t*)_mutex);
+}
+
+extern "C" Word
+sysPthreadCondCreate()
+{
+    pthread_cond_t *cond = new pthread_cond_t;
+    pthread_cond_init(cond,NULL);
+    return (Word)cond;
+}
+
+extern "C" void
+sysPthreadCondDestroy(Word _cond)
+{
+    pthread_cond_t *cond=(pthread_cond_t*)_cond;
+    pthread_cond_destroy(cond);
+    delete cond;
+}
+
+extern "C" void
+sysPthreadCondTimedWait(Word cond,Word mutex,
+			long long whenWakeupNanos)
+{
+    timespec ts;
+    ts.tv_sec = (time_t)(whenWakeupNanos/1000000000LL);
+    ts.tv_nsec = (long)(whenWakeupNanos%1000000000LL);
+    if (0) {
+      fprintf(stderr, "starting wait at %lld until %lld (%ld, %ld)\n",
+             sysNanoTime(),whenWakeupNanos,ts.tv_sec,ts.tv_nsec);
+      fflush(stderr);
+    }
+    int res=pthread_cond_timedwait((pthread_cond_t*)cond,
+				   (pthread_mutex_t*)mutex,
+				   &ts);
+    if (0) {
+      fprintf(stderr, "returned from wait at %lld instead of %lld with res = %d\n",
+             sysNanoTime(),whenWakeupNanos,res);
+      fflush(stderr);
+    }
+}
+
+extern "C" void
+sysPthreadCondWait(Word cond,Word mutex)
+{
+    pthread_cond_wait((pthread_cond_t*)cond,
+		      (pthread_mutex_t*)mutex);
+}
+
+extern "C" void
+sysPthreadCondBroadcast(Word cond)
+{
+    pthread_cond_broadcast((pthread_cond_t*)cond);
 }
 
 // Stash address of the Processor object in the thread-specific
@@ -1402,16 +1296,29 @@ sysPthreadSigWait( int * lockwordAddress,
 // native code.
 //
 extern "C" int
-sysStashVmProcessorInPthread(Address vmProcessor)
+sysStashVmThreadInPthread(Address vmThread)
 {
-    //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmProcessor, pthread_self());
-    int rc = pthread_setspecific(VmProcessorKey, (void*) vmProcessor);
-    int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
+    //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmThread, pthread_self());
+    int rc = pthread_setspecific(VmThreadKey, (void*) vmThread);
+    int rc2 = pthread_setspecific(IsVmThreadKey, (void*) 1);
     if (rc != 0 || rc2 != 0) {
         fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
     return 0;
+}
+
+extern "C" void
+sysTerminatePthread()
+{
+#ifdef RVM_FOR_POWERPC
+    asm("sync");
+#endif
+    jmp_buf *jb = (jmp_buf*)pthread_getspecific(TerminateJmpBufKey);
+    if (jb==NULL) {
+	jb=&primordial_jb;
+    }
+    longjmp(*jb,1);
 }
 
 //------------------------//
@@ -1613,12 +1520,18 @@ sysCopy(void *dst, const void *src, Extent cnt)
     memcpy(dst, src, cnt);
 }
 
+int inRVMAddressSpace(Address a);
+
 // Allocate memory.
 //
 extern "C" void *
 sysMalloc(int length)
 {
-    return malloc(length);
+    void *result=malloc(length);
+    if (inRVMAddressSpace((Address)result)) {
+      fprintf(stderr,"malloc returned something that is in RVM address space: %p\n",result);
+    }
+    return result;
 }
 
 extern "C" void *
@@ -1710,6 +1623,7 @@ sysZeroPages(void *dst, int cnt)
 #undef STRATEGY
 }
 
+//PNT: use a soft handshake whenever we do this.
 // Synchronize caches: force data in dcache to be written out to main memory
 // so that it will be seen by icache when instructions are fetched back.
 //
@@ -1776,7 +1690,8 @@ sysMMap(char *start , size_t length ,
         int protection , int flags ,
         int fd , Offset offset)
 {
-   return mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
+   void *result=mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
+   return result;
 }
 
 // Same as mmap, but with more debugging support.
@@ -1889,745 +1804,6 @@ extern "C" void*
 sysDlsym(Address libHandler, char *symbolName)
 {
     return dlsym((void *) libHandler, symbolName);
-}
-
-//---------------------//
-// Network operations. //
-//---------------------//
-
-// #define DEBUG_NET
-
-#ifdef RVM_FOR_AIX
-// Work around header file differences: AIX 4.1 vs AIX 4.2 vs AIX 4.3
-//
-#define getsockname xxxgetsockname
-#define accept      xxxaccept
-#endif
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <netdb.h>
-#include <netinet/tcp.h>
-#ifdef RVM_FOR_AIX
-#undef  getsockname
-#undef  accept
-extern "C" int getsockname(int socketfd, struct sockaddr *address, int *address_len);
-extern "C" int accept(int socketfd, struct sockaddr *address, int *address_len);
-#endif
-
-// instrumentation of socket troubles
-int maxSelectInterrupts = 0;
-int maxAcceptInterrupts = 0;
-int maxConnectInterrupts = 0;
-int selectInterrupts = 0;
-int acceptInterrupts = 0;
-int connectInterrupts = 0;
-
-
-// Create a socket, unassociated with any particular address + port.
-// Taken:    kind of socket to create (0: datagram, 1: stream)
-// Returned: socket descriptor (-1: error)
-//
-extern "C" int
-sysNetSocketCreate(int isStream)
-{
-    int fd;
-
-    fd = socket(AF_INET, isStream ? SOCK_STREAM : SOCK_DGRAM, 0);
-    if (fd == -1) {
-        fprintf(SysErrorFile, "%s: socket create failed: %s (errno=%d)\n",
-                Me, strerror(errno), errno);
-        return -1;
-    }
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: create socket %d\n", Me, fd);
-#endif
-
-    return fd;
-}
-
-// Obtain port number associated with a socket.
-// Taken: socket descriptor
-// Returned: port number (-1: error)
-//
-extern "C" int
-sysNetSocketPort(int fd)
-{
-    sockaddr_in info;
-#if defined RVM_FOR_AIX
-    int len;
-#else
-    socklen_t len;
-#endif
-
-    len = sizeof info;
-    if (getsockname(fd, (sockaddr *)&info, &len) == -1)
-    {
-        fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
-                Me, fd, strerror(errno), errno);
-        return -1;
-    }
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: socket %d using port %d\n", Me, fd, MANGLE16(info.sin_port));
-#endif
-
-    return MANGLE16(info.sin_port);
-}
-
-// Obtain send buffer size associated with a socket.
-// Taken: socket descriptor
-// Returned: size (-1: error)
-//
-extern "C" int
-sysNetSocketSndBuf(int fd)
-{
-    int val = 0;
-    socklen_t len;
-
-    len = sizeof(int);
-    if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &val, &len) == -1)
-    {
-        fprintf(SysErrorFile, "%s: getsockopt on %d failed: %s (errno=%d)\n",
-                Me, fd, strerror(errno), errno);
-        return -1;
-    }
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: socket %d sndbuf size %d\n", Me, fd, val);
-#endif
-
-    return val;
-}
-
-// Obtain local address associated with a socket.
-// Taken: socket descriptor
-// Returned: local address (-1: error)
-//
-extern "C" int
-sysNetSocketLocalAddress(int fd)
-{
-    sockaddr_in info;
-#if defined RVM_FOR_AIX
-    int len;
-#else
-    socklen_t len;
-#endif
-
-    len = sizeof info;
-    if (getsockname(fd, (sockaddr *)&info, &len) == -1)
-    {
-        fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
-                Me, fd, strerror( errno ), errno);
-        return -1;
-    }
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: socket %d using address %d\n", Me, fd, MANGLE32(info.sin_addr.s_addr));
-#endif
-
-    return MANGLE32(info.sin_addr.s_addr);
-}
-
-// Obtain family associated with a socket.
-// Taken: socket descriptor
-// Returned: local address (-1: error)
-//
-extern "C" int
-sysNetSocketFamily(int fd)
-{
-    sockaddr_in info;
-#if defined RVM_FOR_AIX
-    int len;
-#else
-    socklen_t len;
-#endif
-
-    len = sizeof info;
-    if (getsockname(fd, (sockaddr *)&info, &len) == -1) {
-        fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
-                Me, fd, strerror( errno ), errno);
-        return -1;
-    }
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: socket %d using family %d\n", Me, fd, info.sin_family);
-#endif
-
-    return info.sin_family;
-}
-
-// Make a socket into a "listener" so we can later accept() connections on it.
-// Taken:    socket descriptor
-//           max number of pending connections to allow
-// Returned: 0:success -1:error
-//
-extern "C" int
-sysNetSocketListen(int fd, int backlog)
-{
-    if (listen(fd, backlog) == -1) {
-        fprintf(SysErrorFile, "%s: socket listen on %d failed: %s (errno=%d)\n", Me, fd, strerror(errno), errno);
-        return -1;
-    }
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: listen on socket %d (backlog %d)\n", Me, fd, backlog);
-#endif
-
-    return 0;
-}
-
-
-// Associate a local address and port with a socket.
-// Taken:    socket descriptor
-//           address protocol family (AF_INET, for example)
-//           desired local address
-//           desired local port
-// Returned: 0=success, -1=failure
-//
-extern "C" int
-sysNetSocketBind(int fd,
-                 int family,
-                 unsigned int localAddress,
-                 unsigned int localPort)
-{
-    sockaddr_in address;
-
-    memset(&address, 0, sizeof address);
-    address.sin_family      = family;
-    address.sin_addr.s_addr = MANGLE32(localAddress);
-    address.sin_port        = MANGLE16(localPort);
-
-    if (bind(fd, (sockaddr *)&address, sizeof address) == -1) {
-        fprintf(SysErrorFile,
-                "%s: socket bind on %d for port %d failed: %s (errno=%d)\n",
-                Me, fd, localPort, strerror( errno ), errno);
-        return -1;
-    }
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: bind %d to %d.%d.%d.%d:%d\n", Me, fd,
-            (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff,
-            (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff,
-            localPort & 0x0000ffff);
-#endif
-
-    return 0;
-}
-
-// Associate a remote address and port with a socket.
-// Taken:    socket descriptor
-//           address protocol family (AF_INET, for example)
-//           desired remote address
-//           desired remote port
-// Returned: 0: success
-//          -1: operation interrupted by timer tick (caller should try again)
-//          -2: operation would have blocked (caller should try again)
-//          -3: network error
-//          -4: network error - connection refused
-//          -5: network error - host unreachable
-//
-extern "C" int
-sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort)
-{
-    int interruptsThisTime = 0;
-    for (;;) {
-        sockaddr_in address;
-
-        memset(&address, 0, sizeof address);
-        address.sin_family      = family;
-        address.sin_addr.s_addr = MANGLE32(remoteAddress);
-        address.sin_port        = MANGLE16(remotePort);
-
-        if (connect(fd, (sockaddr *)&address, sizeof address) == -1) {
-            if (errno == EINTR) {
-                fprintf(SysTraceFile,
-                        "%s: connect on %d interrupted, retrying\n", Me, fd);
-                connectInterrupts++;
-                interruptsThisTime++;
-                continue;
-            } else if (errno == EINPROGRESS) {
-#ifdef DEBUG_NET
-                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n",
-                        Me, fd, strerror(errno ));
-#endif
-                return -2;
-            } else if (errno == EISCONN) {
-                // connection was "in progress" due to previous call.
-                // This (retry) call has succeeded.
-#ifdef DEBUG_NET
-                fprintf(SysTraceFile, "%s: connect on %d: %s\n",
-                        Me, fd, strerror( errno ));
-#endif
-                goto ok;
-            } else if (errno == ECONNREFUSED) {
-                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n",
-                        Me, fd, strerror( errno ));
-                return -4;
-            } else if (errno == EHOSTUNREACH) {
-                fprintf(SysTraceFile, "%s: connect on %d failed: %s \n",
-                        Me, fd, strerror( errno ));
-                return -5;
-            } else {
-                fprintf(SysErrorFile,
-                        "%s: socket connect on %d failed: %s (errno=%d)\n",
-                        Me, fd, strerror(errno), errno);
-                return -3;
-            }
-        }
-
-    ok:
-        if (interruptsThisTime > maxConnectInterrupts) {
-            maxConnectInterrupts = interruptsThisTime;
-            fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n",
-                    interruptsThisTime);
-        }
-
-#ifdef DEBUG_NET
-        fprintf(SysTraceFile, "%s: connect %d to %d.%d.%d.%d:%d\n",
-                Me, fd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff,
-                (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff,
-                remotePort & 0x0000ffff);
-#endif
-        return 0;
-    }
-}
-
-// Wait for connection to appear on a socket.
-// Taken:    socket descriptor on which to wait
-//           place to put information about remote side of connection that appeared
-// Returned: >= 0: socket descriptor that was assigned to connection
-//             -1: operation interrupted by timer tick (caller should try again)
-//             -2: operation would have blocked (caller should try again)
-//             -3: network error
-//
-extern "C" int
-sysNetSocketAccept(int fd, void *connectionObject)
-{
-    int interruptsThisTime = 0;
-    int connectionFd = -1;
-    sockaddr_in info;
-#if defined RVM_FOR_AIX
-    int len;
-#else
-    socklen_t len;
-#endif
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "accepting for socket %d, 0x%x\n", fd, connectionObject);
-#endif
-
-    len = sizeof info;
-    for (;;) {
-        connectionFd = accept(fd, (sockaddr *)&info, &len);
-
-        if (connectionFd > 0) {
-            break;
-        } else if (connectionFd == -1) {
-
-            if (errno == EINTR) {
-                fprintf(SysTraceFile, "%s: accept on %d interrupted\n", Me, fd);
-                interruptsThisTime++;
-                acceptInterrupts++;
-                continue;
-            } else if (errno == EAGAIN) {
-#ifdef DEBUG_NET
-                fprintf(SysTraceFile,
-                        "%s: accept on %d would have blocked: needs retry\n",
-                        Me, fd);
-#endif
-                return -2;
-            } else {
-#ifdef DEBUG_NET
-                fprintf(SysTraceFile,
-                        "%s: socket accept on %d failed: %s (errno=%d)\n",
-                        Me, fd, strerror( errno ), errno);
-#endif
-                return -3;
-            }
-        }
-    }
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "accepted %d for socket %d, 0x%x\n",
-            connectionFd, fd, connectionObject);
-#endif
-
-    int remoteFamily  = info.sin_family;
-    int remoteAddress = MANGLE32(info.sin_addr.s_addr);
-    int remotePort    = MANGLE16(info.sin_port);
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: %d accept %d from %d.%d.%d.%d:%d\n",
-            Me, fd, connectionFd,
-            (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff,
-            (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff,
-            remotePort & 0x0000ffff);
-#endif
-
-    void *addressObject = *(void **)((char *)connectionObject + java_net_SocketImpl_address_offset);
-    int  *familyField   =  NULL; // TODO - Harmony - (int   *)((char *)addressObject    + java_net_InetAddress_family_offset);
-    int  *addressField  =  NULL; // TODO - Harmony - (int   *)((char *)addressObject    + java_net_InetAddress_address_offset);
-    int  *portField     =  (int   *)((char *)connectionObject + java_net_SocketImpl_port_offset);
-
-    *familyField  = remoteFamily;
-    *addressField = remoteAddress;
-    *portField    = remotePort;
-
-    if (interruptsThisTime > maxAcceptInterrupts) {
-        maxAcceptInterrupts = interruptsThisTime;
-        fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n",
-                interruptsThisTime);
-    }
-
-    return connectionFd;
-}
-
-// Set "linger" option for a socket.
-// With option enabled, when socket on this end is closed, this process blocks until
-// unsent data has been received by other end or timeout expires.
-// With option disabled, when socket is closed on this end, any unsent data is discarded.
-//
-// Taken:       socket descriptor
-//              enable option?
-//              timeout (if option enabled, 0 otherwise)
-// Returned:    0: success, -1: error
-//
-//
-extern "C" int
-sysNetSocketLinger(int fd, int enable, int timeout)
-{
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: linger socket=%d enable=%d timeout=%d\n",
-            Me, fd, enable, timeout);
-#endif
-
-    linger info;
-    info.l_onoff  = enable;
-    info.l_linger = timeout;
-
-    int rc = setsockopt(fd, SOL_SOCKET, SO_LINGER, &info, sizeof info);
-    if (rc == -1) fprintf(SysErrorFile,
-                          "%s: socket linger on %d failed: %s (errno=%d)\n",
-                          Me, fd, strerror(errno), errno);
-    return rc;
-}
-
-// Set "no delay" option for a socket.
-// With option enabled, data written to socket is sent immediately.
-// With option disabled, sending is delayed in order to coalesce packets.
-//
-// Taken:    socket descriptor
-//           enable option?
-// Returned: 0: success, -1: error
-//
-extern "C" int
-sysNetSocketNoDelay(int fd, int enable)
-{
-    int value = enable;
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: nodelay socket=%d value=%d\n", Me, fd, value);
-#endif
-
-    int rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof value);
-    if (rc == -1)
-        fprintf(SysErrorFile, "%s: TCP_NODELAY on %d failed: %s (errno=%d)\n",
-                Me, fd, strerror(errno), errno);
-
-    return rc;
-}
-
-// Enable non-blocking i/o on this socket.
-// This will cause future accept(), read(), and write() calls on the socket
-// to return errno == EAGAIN if the operation would block, and connect() calls
-// to return errno == EINPROGRESS
-// Taken:    socket descriptor
-//           enable option?
-// Returned: 0: success, -1: error
-//
-extern "C" int
-sysNetSocketNoBlock(int fd, int enable)
-{
-    int value = enable;
-
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: noblock socket=%d value=%d\n", Me, fd, value);
-#endif
-
-    int rc = ioctl(fd, FIONBIO, &value);
-    if (rc == -1) {
-        fprintf(SysErrorFile, "%s: FIONBIO on %d failed: %s (errno=%d)\n",
-                Me, fd, strerror(errno), errno);
-        return -1;
-    }
-
-    return rc;
-}
-
-// Close a socket.
-// Taken:    socket descriptor
-// Returned: 0: success
-//          -1: socket not currently open
-//          -2: i/o error
-//
-extern "C" int
-sysNetSocketClose(int fd)
-{
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: close socket=%d\n", Me, fd);
-#endif
-
-    // shutdown (disable sends and receives on) socket then close it
-
-    int rc = shutdown(fd, 2);
-
-    if (rc == 0) {
-        // shutdown succeeded
-        return sysClose(fd);
-    }
-
-    if (errno == ENOTCONN) {
-        // socket wasn't connected so shutdown error is meaningless
-        return sysClose(fd);
-    }
-
-    fprintf(SysErrorFile, "%s: socket shutdown on %d failed: %s (errno=%d)\n",
-            Me, fd, strerror(errno), errno);
-
-    sysClose(fd);
-    return -2; // shutdown (and possibly close) error
-}
-
-// Perform a "half-close" on a socket.
-//
-// Taken:
-//   fd - the socket file descriptor
-//   how - which side of socket should be closed: 0 if input, 1 if output
-// Returned:
-//   0 if success, -1 on error
-extern "C" int
-sysNetSocketShutdown(int fd, int how)
-{
-#ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: shutdown socket %d for %s\n", Me,
-            fd,
-            (how==0)? "input": "output");
-#endif
-
-    return shutdown(fd, how);
-}
-
-// Add file descriptors in an array to a fd_set,
-// keeping track of the highest-numbered file descriptor
-// seen so far.
-//
-// Taken:
-// fdSet - the fd_set to which file descriptors should be added
-// fdArray - array containing file descriptors to be added
-// count - number of file descriptors in fdArray
-// maxFd - pointer to int containing highest-numbered file descriptor
-//         seen so far
-// exceptFdSet - set of file descriptors to watch for exceptions.
-//         We add ALL file descriptors to this set, in order to
-//         detect invalid ones.
-//
-// Returned: true if successful
-//           false if an invalid file descriptor is encountered
-static bool
-addFileDescriptors(
-    fd_set *fdSet,
-    int *fdArray,
-    int count,
-    int *maxFd,
-    fd_set *exceptFdSet = 0)
-{
-    //fprintf ( SysTraceFile, "%d descriptors in set\n", count );
-    for (int i = 0; i < count; ++i) {
-        int fd = fdArray[i] & ThreadIOConstants_FD_MASK;
-#ifdef DEBUG_SYS
-        fprintf ( SysTraceFile, "select on fd %d\n", fd );
-#endif
-        if (fd > FD_SETSIZE) {
-            fprintf(SysErrorFile, "%s: select: fd(%d) exceeds system limit(%d)\n", Me,
-                    fd, FD_SETSIZE);
-            return false;
-        }
-        if (fd > *maxFd)
-            *maxFd = fd;
-        FD_SET(fd, fdSet);
-        if (exceptFdSet != 0)
-            FD_SET(fd, exceptFdSet);
-    }
-
-    return true;
-}
-
-// Mark file descriptors which have become ready.
-//
-// Taken:
-// fdArray - array of file descriptors to mark
-// count - number of file descriptors in the array
-// ready - fd_set indicating which file descriptors are ready
-static void
-updateStatus(int *fdArray, int count, fd_set *ready)
-{
-    for (int i = 0; i < count; ++i) {
-        int fd = fdArray[i] & ThreadIOConstants_FD_MASK;
-        if (FD_ISSET(fd, ready))
-            fdArray[i] = ThreadIOConstants_FD_READY;
-    }
-}
-
-// Check given array of file descriptors to see if any of
-// them are in the exception fd set, meaning that they became
-// invalid for some reason.
-//
-// Taken:
-// fdArray - the array of file descriptors to check
-// count - number of file descriptors in the array
-// exceptFdSet - the set of exception fds as returned by select()
-//
-// Returned: the number of file descriptors from the array
-// which are marked as invalid.
-static int
-checkInvalid(int *fdArray, int count, fd_set *exceptFdSet)
-{
-    int numInvalid = 0;
-    for (int i = 0; i < count; ++i) {
-        int fd = fdArray[i] & ThreadIOConstants_FD_MASK;
-        if (FD_ISSET(fd, exceptFdSet)) {
-            //fprintf(SysErrorFile, "%s: fd %d in sysNetSelect() is invalid\n", Me, fd);
-            fdArray[i] = ThreadIOConstants_FD_INVALID;
-            ++numInvalid;
-        }
-    }
-
-    return numInvalid;
-}
-
-// Test list of sockets to see if an i/o operation would proceed without blocking.
-// Taken:       array of file descriptors to be checked
-//              number of file descriptors for read, write, and exceptions
-// Returned:    1: some sockets can proceed with i/o operation
-//              0: no sockets can proceed with i/o operation
-//             -1: error
-// Side effect: readFds[i] is set to "ThreadIOConstants.FD_READY" iff i/o can proceed on that socket
-extern "C" int
-sysNetSelect(
-    int *allFds,           // all fds being polled: read, write, and exception
-    int rc,                     // number of read file descriptors
-    int wc,                     // number of write file descriptors
-    int ec)                     // number of exception file descriptors
-{
-    // JTD 8/2/01 moved for loop up here because select man page says it can
-    // corrupt all its inputs, including the fdsets, when it returns an error
-    int interruptsThisTime = 0;
-    for (;;) {
-        int maxfd   = -1;         // largest fd currently in use
-
-        // build bitstrings representing fd's to be interrogated
-        //
-        fd_set readReady; FD_ZERO(&readReady);
-        fd_set writeReady; FD_ZERO(&writeReady);
-        fd_set exceptReady; FD_ZERO(&exceptReady);
-
-        if (!addFileDescriptors(&readReady, allFds + ThreadIOQueue_READ_OFFSET, rc, &maxfd, &exceptReady)
-            || !addFileDescriptors(&writeReady, allFds + ThreadIOQueue_WRITE_OFFSET, wc, &maxfd, &exceptReady)
-            || !addFileDescriptors(&exceptReady, allFds + ThreadIOQueue_EXCEPT_OFFSET, ec, &maxfd))
-            return -1;
-
-        // Ensure that select() call below
-        // calls the real C library version, not our hijacked version
-#ifdef HAVE_SYSWRAP
-        SelectFunc_t realSelect = getLibcSelect();
-#else
-        #define realSelect(n, read, write, except, timeout) \
-           select(n, read, write, except, timeout)
-#endif
-        // interrogate
-        //
-        // timeval timeout; timeout.tv_sec = 0; timeout.tv_usec = SelectDelay * 1000;
-        timeval timeout; timeout.tv_sec = 0; timeout.tv_usec = 0;
-        int ret = realSelect(maxfd + 1, &readReady, &writeReady, &exceptReady, &timeout);
-        int err = errno;
-
-        if (ret == 0) {
-            // none ready
-            if (interruptsThisTime > maxSelectInterrupts) {
-                maxSelectInterrupts = interruptsThisTime;
-                fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", interruptsThisTime);
-            }
-
-            return 0;
-        }
-
-        if (ret > 0)
-        { // some ready
-            updateStatus(allFds + ThreadIOQueue_READ_OFFSET, rc, &readReady);
-            updateStatus(allFds + ThreadIOQueue_WRITE_OFFSET, wc, &writeReady);
-            updateStatus(allFds + ThreadIOQueue_EXCEPT_OFFSET, ec, &exceptReady);
-
-            if (interruptsThisTime > maxSelectInterrupts)
-                maxSelectInterrupts = interruptsThisTime;
-
-            return 1;
-        }
-
-        if (err == EINTR) { // interrupted by timer tick: retry
-            return 0;
-        } else if (err == EBADF) {
-            // This can happen if somebody passes us an invalid file descriptor.
-            // Check the read and write file descriptors against the exception
-            // fd set, so we can find the culprit(s).
-            int numInvalid = 0;
-            numInvalid += checkInvalid(allFds + ThreadIOQueue_READ_OFFSET, rc, &exceptReady);
-            numInvalid += checkInvalid(allFds + ThreadIOQueue_WRITE_OFFSET, wc, &exceptReady);
-            if (numInvalid == 0) {
-                // This is bad.
-                fprintf(SysErrorFile,
-                        "%s: select returned with EBADF, but no file descriptors found in exception set\n", Me);
-                return -1;
-            } else {
-                return 1;
-            }
-        }
-
-        // fprintf(SysErrorFile, "%s: socket select failed (err=%d (%s))\n", Me, err, strerror( err ));
-        return -1;
-    }
-
-    return -1; // not reached (but xlC isn't smart enough to realize it)
-}
-
-// Poll given process ids to see if the processes they
-// represent have finished.
-//
-// Taken:
-// pidArray - array of process ids
-// exitStatusArray - array in which to store the exit status code
-//   of processes which have finished
-// numPids - number of process ids being queried
-extern "C" void
-sysWaitPids(int pidArray[], int exitStatusArray[], int numPids)
-{
-    for (int i = 0; i < numPids; ++i) {
-        int status;
-        pid_t pid = (pid_t) pidArray[i];
-        if (pid == waitpid(pid, &status, WNOHANG)) {
-            // Process has finished
-            int exitStatus;
-            if (WIFSIGNALED(status))
-                exitStatus = -1;
-            else
-                exitStatus = WEXITSTATUS(status);
-
-            // Mark process as finished, and record its exit status
-            pidArray[i] = ThreadProcessWaitQueue_PROCESS_FINISHED;
-            exitStatusArray[i] = exitStatus;
-        }
-    }
 }
 
 extern "C" int

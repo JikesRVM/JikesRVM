@@ -24,7 +24,7 @@ import org.jikesrvm.Callbacks;
 import org.jikesrvm.Configuration;
 import org.jikesrvm.Options;
 import org.jikesrvm.Callbacks.ExitMonitor;
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.HashSetRVM;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -80,7 +80,7 @@ public final class TraceEngine {
   public void earlyStageBooting() {
     if (Options.TuningForkTraceFile == null) {
       /* tracing not enabled on this run, shut down engine to minimize overhead */
-      Processor.getCurrentFeedlet().enabled = false;
+      RVMThread.getCurrentFeedlet().enabled = false;
       state = State.SHUT_DOWN;
     } else {
       unwrittenMetaChunks.enqueue(new SpaceDescriptorChunk());

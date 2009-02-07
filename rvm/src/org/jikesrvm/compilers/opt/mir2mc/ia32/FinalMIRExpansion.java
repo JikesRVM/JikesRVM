@@ -188,7 +188,7 @@ public class FinalMIRExpansion extends IRTools {
               // we can't get it back here.
             }
             MemoryOperand mo =
-                MemoryOperand.BD(ir.regpool.makePROp(),
+                MemoryOperand.BD(ir.regpool.makeTROp(),
                                      ArchEntrypoints.arrayIndexTrapParamField.getOffset(),
                                      (byte) 4,
                                      null,
@@ -536,7 +536,7 @@ public class FinalMIRExpansion extends IRTools {
     // Check to see if threadSwitch requested
     Offset tsr = Entrypoints.takeYieldpointField.getOffset();
     MemoryOperand M =
-        MemoryOperand.BD(ir.regpool.makePROp(), tsr, (byte) 4, null, null);
+        MemoryOperand.BD(ir.regpool.makeTROp(), tsr, (byte) 4, null, null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, IC(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC,
                                                       ypCond,

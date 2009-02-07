@@ -25,6 +25,7 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * A container for recording how often a method is executed.
@@ -113,6 +114,7 @@ public final class MethodCountData implements Reportable {
    *  To get a sorted list, pipe the output through sort -n -r.
    */
   public synchronized void report() {
+    RVMThread.dumpLock.lock();
     VM.sysWrite("Method counts: A total of " + totalCountsTaken + " samples\n");
     for (int i = 1; i < nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);
@@ -133,6 +135,7 @@ public final class MethodCountData implements Reportable {
         VM.sysWriteln();
       }
     }
+    RVMThread.dumpLock.unlock();
   }
 
   /**
@@ -490,3 +493,4 @@ public final class MethodCountData implements Reportable {
     }
   }
 }
+

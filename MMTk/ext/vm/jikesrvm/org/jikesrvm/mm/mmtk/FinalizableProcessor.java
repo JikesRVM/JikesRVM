@@ -20,7 +20,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.Services;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.TraceLocal;
 
 /**
@@ -144,7 +144,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
     while (growingTables || maxIndex >= table.length() || maxIndex >= freeReady()) {
       if (growingTables) {
         lock.release();
-        Scheduler.yield(); // (1) Allow another thread to grow the table
+        RVMThread.yield(); // (1) Allow another thread to grow the table
         lock.acquire();
       } else {
         growingTables = true;  // Prevent other threads from growing table while lock is released
@@ -232,7 +232,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
     lock.acquire();
     while (growingTables) {
       lock.release();
-      Scheduler.yield(); // (1) Allow another thread to grow the table
+      RVMThread.yield(); // (1) Allow another thread to grow the table
       lock.acquire();
     }
     Object result = null;

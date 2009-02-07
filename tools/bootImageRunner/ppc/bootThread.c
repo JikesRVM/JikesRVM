@@ -54,7 +54,7 @@
 #endif
 #endif
         mr      JTOC,T0
-        mr      PROCESSOR_REGISTER,T1
+        mr      THREAD_REGISTER,T1
         mr      FP,T3
 
         /*

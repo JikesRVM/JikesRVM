@@ -48,6 +48,8 @@ public abstract class OutOfLineMachineCode
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
     threadSwitchInstructions = generateThreadSwitchInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
+    saveVolatilesInstructions = generateSaveVolatilesInstructions();
+    restoreVolatilesInstructions = generateRestoreVolatilesInstructions();
   }
 
   @SuppressWarnings("unused")
@@ -62,6 +64,11 @@ public abstract class OutOfLineMachineCode
   @SuppressWarnings("unused")
   // Accessed via EntryPoints
   private static ArchitectureSpecific.CodeArray restoreHardwareExceptionStateInstructions;
+  @SuppressWarnings("unused")
+  // Accessed via EntryPoints
+  private static ArchitectureSpecific.CodeArray saveVolatilesInstructions;
+  // Accessed via EntryPoints
+  private static ArchitectureSpecific.CodeArray restoreVolatilesInstructions;
 
   // Machine code for reflective method invocation.
   // See also: "Compiler.generateMethodInvocation".
@@ -224,6 +231,8 @@ public abstract class OutOfLineMachineCode
   /**
    * Machine code to implement "Magic.threadSwitch()".
    *
+   * Currently not functional on PNT. Left for template for possible reintroduction.
+   *
    *  Parameters taken at runtime:
    *    T0 == address of Thread object for the current thread
    *    T1 == address of Registers object for the new thread
@@ -266,11 +275,7 @@ public abstract class OutOfLineMachineCode
     // save fp
     asm.emitSTAddr(FP, FP << LOG_BYTES_IN_ADDRESS, T3);
 
-    // (2) Set currentThread.beingDispatched to false
-    asm.emitLVAL(0, 0);                                       // R0 := 0
-    asm.emitSTBoffset(0, T0, Entrypoints.beingDispatchedField.getOffset()); // T0.beingDispatched := R0
-
-    // (3) Restore nonvolatile hardware state of new thread.
+    // (2) Restore nonvolatile hardware state of new thread.
 
     // restore non-volatile fprs
     asm.emitLAddrOffset(T0, T1, fprsOffset); // T0 := T1.fprs[]
@@ -305,7 +310,7 @@ public abstract class OutOfLineMachineCode
   //
   // Side effects at runtime:
   //   all registers are restored except condition registers, count register,
-  //   JTOC_POINTER, and PROCESSOR_REGISTER with execution resuming at "registers.ip"
+  //   JTOC_POINTER, and THREAD_REGISTER with execution resuming at "registers.ip"
   //
   private static ArchitectureSpecific.CodeArray generateRestoreHardwareExceptionStateInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(0);
@@ -358,4 +363,75 @@ public abstract class OutOfLineMachineCode
 
     return asm.makeMachineCode().getInstructions();
   }
+
+  // Machine code used to save volatile registers.
+  //
+  // Registers taken at runtime:
+  //   S0 == address of Registers object
+  //
+  // Registers returned at runtime:
+  //   none
+  //
+  // Side effects at runtime:
+  //   S1 destroyed
+  //
+  private static ArchitectureSpecific.CodeArray generateSaveVolatilesInstructions() {
+    Assembler asm = new ArchitectureSpecific.Assembler(0);
+
+    // save volatile fprs
+    //
+    asm.emitLAddrOffset(S1, S0, ArchEntrypoints.registersFPRsField.getOffset()); // S1 := registers.fprs[]
+    for (int i = FIRST_VOLATILE_FPR; i <= LAST_VOLATILE_FPR; ++i) {
+      asm.emitSTFD(i, i << LOG_BYTES_IN_DOUBLE, S1);
+    }
+
+    // save non-volatile gprs
+    //
+    asm.emitLAddrOffset(S1, S0, ArchEntrypoints.registersGPRsField.getOffset()); // S1 := registers.gprs[]
+    for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; ++i) {
+      asm.emitSTAddr(i, i << LOG_BYTES_IN_ADDRESS, S1);
+    }
+
+    // return to caller
+    //
+    asm.emitBCLR();
+
+    return asm.makeMachineCode().getInstructions();
+  }
+
+  // Machine code used to save volatile registers.
+  //
+  // Registers taken at runtime:
+  //   S0 == address of Registers object
+  //
+  // Registers returned at runtime:
+  //   none
+  //
+  // Side effects at runtime:
+  //   S1 destroyed
+  //
+  private static ArchitectureSpecific.CodeArray generateRestoreVolatilesInstructions() {
+    Assembler asm = new ArchitectureSpecific.Assembler(0);
+
+    // save volatile fprs
+    //
+    asm.emitLAddrOffset(S1, S0, ArchEntrypoints.registersFPRsField.getOffset()); // S1 := registers.fprs[]
+    for (int i = FIRST_VOLATILE_FPR; i <= LAST_VOLATILE_FPR; ++i) {
+      asm.emitLFD(i, i << LOG_BYTES_IN_DOUBLE, S1);
+    }
+
+    // save non-volatile gprs
+    //
+    asm.emitLAddrOffset(S1, S0, ArchEntrypoints.registersGPRsField.getOffset()); // S1 := registers.gprs[]
+    for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; ++i) {
+      asm.emitLAddr(i, i << LOG_BYTES_IN_ADDRESS, S1);
+    }
+
+    // return to caller
+    //
+    asm.emitBCLR();
+
+    return asm.makeMachineCode().getInstructions();
+  }
 }
+

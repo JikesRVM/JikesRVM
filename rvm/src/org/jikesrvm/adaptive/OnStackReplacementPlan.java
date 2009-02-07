@@ -58,7 +58,7 @@ public class OnStackReplacementPlan implements Constants {
   private int timeCompleted = 0;
 
   public OnStackReplacementPlan(RVMThread thread, CompilationPlan cp, int cmid, int source, Offset tsoff,
-                                    Offset ypoff, double priority) {
+                                Offset ypoff, double priority) {
     this.suspendedThread = thread;
     this.compPlan = cp;
     this.CMID = cmid;
@@ -132,6 +132,9 @@ public class OnStackReplacementPlan implements Constants {
       }
     }
 
-    suspendedThread.osrUnpark();
+    suspendedThread.monitor().lock();
+    suspendedThread.osr_done=true;
+    suspendedThread.monitor().broadcast();
+    suspendedThread.monitor().unlock();
   }
 }

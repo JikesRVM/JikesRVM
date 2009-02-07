@@ -3812,6 +3812,8 @@ public final class BC2IR
    * @return true if an unconditional throw is generated, false otherwise
    */
   private boolean do_CheckStore(Operand ref, Operand elem, TypeReference elemType) {
+    if (!gc.doesCheckStore) return false;
+
     if (CF_CHECKSTORE) {
       // NOTE: BE WARY OF ADDITIONAL OPTIMZATIONS.
       // ARRAY SUBTYPING IS SUBTLE (see JLS 10.10) --dave

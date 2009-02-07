@@ -23,7 +23,7 @@ import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.runtime.Statics;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
@@ -207,7 +207,7 @@ public abstract class CompiledMethod implements SizeConstants {
       int max = (instructions.length() + 1) << ArchitectureSpecific.ArchConstants.LG_INSTRUCTION_WIDTH;
       if (!offset.toWord().LT(Word.fromIntZeroExtend(max))) {
         Address instructionStart = Magic.objectAsAddress(instructions);
-        VM.sysWriteln("\ngetInstructionOffset: ip is not within compiled code for method");
+        VM.sysWriteln("\nIn thread ",RVMThread.getCurrentThreadSlot()," getInstructionOffset: ip is not within compiled code for method: ",ip);
         VM.sysWrite("\tsupposed method is ");
         VM.sysWrite(method);
         VM.sysWriteln();
@@ -224,7 +224,7 @@ public abstract class CompiledMethod implements SizeConstants {
         }
         if (dieOnFailure) {
           VM.sysWriteln("Attempting to dump virtual machine state before exiting");
-          Scheduler.dumpVirtualMachine();
+          RVMThread.dumpVirtualMachine();
           VM.sysFail("Terminating VM due to invalid request for instruction offset");
         }
       }

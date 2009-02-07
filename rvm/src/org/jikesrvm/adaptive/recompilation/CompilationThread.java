@@ -15,7 +15,7 @@ package org.jikesrvm.adaptive.recompilation;
 import org.jikesrvm.adaptive.OnStackReplacementPlan;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
-import org.jikesrvm.scheduler.greenthreads.GreenThread;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NonMoving;
 
 /**
@@ -28,7 +28,7 @@ import org.vmmagic.pragma.NonMoving;
  *  made by the controllerThread.
  */
 @NonMoving
-public final class CompilationThread extends GreenThread {
+public final class CompilationThread extends RVMThread {
 
   /**
    * constructor
@@ -57,3 +57,4 @@ public final class CompilationThread extends GreenThread {
   }
 
 }
+

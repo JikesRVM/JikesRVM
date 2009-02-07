@@ -56,7 +56,7 @@ public final class Collector implements Runnable {
   /**
    * Register a collector thread, returning the allocated id.
    */
-  public static synchronized int register(CollectorContext context) {
+  public static synchronized int allocateCollectorId() {
     int id = collectors.size();
     collectors.add(null);
     return id;
@@ -83,6 +83,7 @@ public final class Collector implements Runnable {
     try {
       Class<?> collectorClass = Class.forName(Harness.plan.getValue() + "Collector");
       this.context = (CollectorContext)collectorClass.newInstance();
+      this.context.initCollector(allocateCollectorId());
     } catch (Exception ex) {
       throw new RuntimeException("Could not create Collector", ex);
     }

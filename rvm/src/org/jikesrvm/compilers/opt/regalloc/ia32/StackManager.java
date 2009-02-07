@@ -388,8 +388,8 @@ public abstract class StackManager extends GenericStackManager {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register ESP = phys.getESP();
     MemoryOperand M =
-        MemoryOperand.BD(ir.regpool.makePROp(),
-                             Entrypoints.activeThreadStackLimitField.getOffset(),
+        MemoryOperand.BD(ir.regpool.makeTROp(),
+                             Entrypoints.stackLimitField.getOffset(),
                              (byte) WORDSIZE,
                              null,
                              null);
@@ -428,8 +428,8 @@ public abstract class StackManager extends GenericStackManager {
 
     //    ECX := active Thread Stack Limit
     MemoryOperand M =
-        MemoryOperand.BD(ir.regpool.makePROp(),
-                             Entrypoints.activeThreadStackLimitField.getOffset(),
+        MemoryOperand.BD(ir.regpool.makeTROp(),
+                             Entrypoints.stackLimitField.getOffset(),
                              (byte) WORDSIZE,
                              null,
                              null);
@@ -465,7 +465,7 @@ public abstract class StackManager extends GenericStackManager {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register ESP = phys.getESP();
     MemoryOperand fpHome =
-        MemoryOperand.BD(ir.regpool.makePROp(),
+        MemoryOperand.BD(ir.regpool.makeTROp(),
                              ArchEntrypoints.framePointerField.getOffset(),
                              (byte) WORDSIZE,
                              null,
@@ -658,7 +658,7 @@ public abstract class StackManager extends GenericStackManager {
     int frameSize = getFrameFixedSize();
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(frameSize)));
     MemoryOperand fpHome =
-        MemoryOperand.BD(ir.regpool.makePROp(),
+        MemoryOperand.BD(ir.regpool.makeTROp(),
                              ArchEntrypoints.framePointerField.getOffset(),
                              (byte) WORDSIZE,
                              null,

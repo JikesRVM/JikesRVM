@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 /*
 */
@@ -33,13 +33,13 @@ class BlockingThreadsWorker extends Thread {
   public void run() {
     int loopctr = 5;
 
-    if (trace) Scheduler.trace("Worker","hello - time",sleepTime);
+    if (trace) RVMThread.trace("Worker","hello - time",sleepTime);
     for (int i=0; i < loopctr; i++) {
-      if (trace) Scheduler.trace("Worker","calling nativeBlocking for time = ",sleepTime);
+      if (trace) RVMThread.trace("Worker","calling nativeBlocking for time = ",sleepTime);
       tBlockingThreads.nativeBlocking(sleepTime);
-      if (trace) Scheduler.trace("Worker","returned from nativeBlocking for time = ",sleepTime);
+      if (trace) RVMThread.trace("Worker","returned from nativeBlocking for time = ",sleepTime);
     }
-    if (trace) Scheduler.trace("Worker","bye - time",sleepTime);
+    if (trace) RVMThread.trace("Worker","bye - time",sleepTime);
     isFinished = true;
   }
 }

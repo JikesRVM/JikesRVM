@@ -52,11 +52,11 @@ public interface RegisterConstants extends SizeConstants {
   int LAST_SCRATCH_GPR = LAST_OS_VOLATILE_GPR;
   // AIX 64 bit ABI reserves R13 for use by libpthread; therefore Jikes RVM doesn't touch it.
   int FIRST_RVM_RESERVED_NV_GPR = VM.BuildFor64Addr ? 14 : 13;
-  int PROCESSOR_REGISTER = FIRST_RVM_RESERVED_NV_GPR;
+  int THREAD_REGISTER = FIRST_RVM_RESERVED_NV_GPR;
 
   // 2 is used by Linux for thread context, on AIX it's the toc and on OS X it's a scratch.
-  int JTOC_POINTER = (VM.BuildForLinux && VM.BuildFor32Addr) ? PROCESSOR_REGISTER + 1 : 2;
-  int KLUDGE_TI_REG = PROCESSOR_REGISTER + ((VM.BuildForLinux && VM.BuildFor32Addr) ? 2 : 1);
+  int JTOC_POINTER = (VM.BuildForLinux && VM.BuildFor32Addr) ? THREAD_REGISTER + 1 : 2;
+  int KLUDGE_TI_REG = THREAD_REGISTER + ((VM.BuildForLinux && VM.BuildFor32Addr) ? 2 : 1);
 
   int LAST_RVM_RESERVED_NV_GPR = KLUDGE_TI_REG; // will become PR when KLUDGE_TI dies.
   int FIRST_NONVOLATILE_GPR = LAST_RVM_RESERVED_NV_GPR + 1;
@@ -167,7 +167,7 @@ public interface RegisterConstants extends SizeConstants {
            "R31"};
       names[FRAME_POINTER] = "FP";
       names[JTOC_POINTER] = "JT";
-      names[PROCESSOR_REGISTER] = "PR";
+      names[THREAD_REGISTER] = "TR";
       return names;
     }
   }

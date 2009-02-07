@@ -24,14 +24,14 @@ import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.ia32.MachineCode;
-import org.jikesrvm.ia32.ProcessorLocalState;
+import org.jikesrvm.ia32.ThreadLocalState;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -192,10 +192,10 @@ public abstract class JNICompiler implements BaselineConstants {
     // on the stack.  Not needed if we use the thread original stack
 
     // set 2nd word of header = return address already pushed by CALL
-    asm.emitPUSH_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
+    asm.emitPUSH_RegDisp(THREAD_REGISTER, ArchEntrypoints.framePointerField.getOffset());
 
     // establish new frame
-    ProcessorLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), SP);
+    ThreadLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), SP);
 
     // set first word of header: method ID
     if (VM.VerifyAssertions) VM._assert(STACKFRAME_METHOD_ID_OFFSET == -WORDSIZE);
@@ -215,13 +215,11 @@ public abstract class JNICompiler implements BaselineConstants {
     // (2) Set up jniEnv - set up a register to hold JNIEnv and store
     // the Processor in the JNIEnv for easy access
 
-    // S0 = RVMThread
-    ProcessorLocalState.emitMoveFieldToReg(asm, S0, Entrypoints.activeThreadField.getOffset());
     // S0 = RVMThread.jniEnv
     if (VM.BuildFor32Addr) {
-      asm.emitMOV_Reg_RegDisp(S0, S0, Entrypoints.jniEnvField.getOffset());
+      asm.emitMOV_Reg_RegDisp(S0, THREAD_REGISTER, Entrypoints.jniEnvField.getOffset());
     } else {
-      asm.emitMOV_Reg_RegDisp_Quad(S0, S0, Entrypoints.jniEnvField.getOffset());
+      asm.emitMOV_Reg_RegDisp_Quad(S0, THREAD_REGISTER, Entrypoints.jniEnvField.getOffset());
     }
     if (VM.VerifyAssertions) VM._assert(JNI_ENV_OFFSET.toInt() == -5*WORDSIZE);
     asm.emitPUSH_Reg(S0); // save JNI Env for after call
@@ -342,7 +340,7 @@ public abstract class JNICompiler implements BaselineConstants {
       }
     }
 
-    // (4) Call out to convert reference arguments to IDs, set processor as
+    // (4) Call out to convert reference arguments to IDs, set thread as
     // being "in native" and record the frame pointer of the last Java frame
     // (this) in the jniEnv
 
@@ -488,11 +486,11 @@ public abstract class JNICompiler implements BaselineConstants {
     } else {
       asm.emitMOV_Reg_RegDisp_Quad(S0, EBP, JNICompiler.JNI_ENV_OFFSET);
     }
-    // (9.2) Reload processor register from JNIEnvironment
-    ProcessorLocalState.emitLoadProcessor(asm, S0, Entrypoints.JNIEnvSavedPRField.getOffset());
+    // (9.2) Reload thread register from JNIEnvironment
+    ThreadLocalState.emitLoadThread(asm, S0, Entrypoints.JNIEnvSavedTRField.getOffset());
 
     // (9.3) Establish frame pointer to this glue method
-    ProcessorLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), EBP);
+    ThreadLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), EBP);
 
     // (10) Transition back from "in native" to "in Java", convert a reference
     // result (currently a JNI ref) into a true reference, release JNI refs
@@ -546,7 +544,7 @@ public abstract class JNICompiler implements BaselineConstants {
     asm.emitPOP_Reg(EBX); // restore non-volatile EBX
     asm.emitPOP_Reg(EDI); // restore non-volatile EDI
     asm.emitPOP_Reg(S0);  // throw away cmid
-    asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
+    asm.emitPOP_RegDisp(THREAD_REGISTER, ArchEntrypoints.framePointerField.getOffset());
 
     // (12) Return to caller
     // pop parameters from stack (Note that parameterWords does not include "this")
@@ -566,8 +564,8 @@ public abstract class JNICompiler implements BaselineConstants {
    * Create a prologue for the baseline compiler.
    * <pre>
    * NOTE:
-   *   -We need PR to access Java environment; we can get it from the
-   *    JNIEnv* (which is an interior pointer to the JNIEnvironment)
+   *   -We need THREAD_REGISTER to access Java environment; we can get it from
+   *    the JNIEnv* (which is an interior pointer to the JNIEnvironment)
    *   -Unlike the powerPC scheme which has a special prolog preceding
    *    the normal Java prolog, the Intel scheme replaces the Java prolog
    *    completely with the special prolog
@@ -747,47 +745,49 @@ public abstract class JNICompiler implements BaselineConstants {
       }
     }
 
-    // START of code sequence to atomically change processor status from IN_NATIVE
-    // to IN_JAVA, looping in a call to sysVirtualProcessorYield if BLOCKED_IN_NATIVE
-    int retryLabel = asm.getMachineCodeIndex();     // backward branch label
+    // START of code sequence to atomically change thread status from
+    // IN_JNI to IN_JAVA, looping in a call to
+    // RVMThread.leaveJNIBlockedFromJNIFunctionCallMethod if
+    // BLOCKED_IN_NATIVE
+    int retryLabel = asm.getMachineCodeIndex(); // backward branch label
 
-    // Restore PR from JNIEnvironment
+    // Restore THREAD_REGISTER from JNIEnvironment
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegDisp(EBX, EBP, Offset.fromIntSignExtend((startOfStackedArgs-1) * WORDSIZE));   // pick up arg 0 (from our frame)
     } else {
       asm.emitMOV_Reg_RegDisp_Quad(EBX, EBP, Offset.fromIntSignExtend((startOfStackedArgs-1) * WORDSIZE));   // pick up arg 0 (from our frame)
     }
-    ProcessorLocalState.emitLoadProcessor(asm, EBX, Entrypoints.JNIEnvSavedPRField.getOffset());
+    ThreadLocalState.emitLoadThread(asm, EBX, Entrypoints.JNIEnvSavedTRField.getOffset());
 
-    // T0 gets PR.statusField
-    ProcessorLocalState.emitMoveFieldToReg(asm, T0, Entrypoints.vpStatusField.getOffset());
-    asm.emitCMP_Reg_Imm(T0, Processor.IN_NATIVE);      // jmp if still IN_NATIVE
-    ForwardReference fr = asm.forwardJcc(Assembler.EQ);       // if so, skip 3 instructions
+    // what we need to keep in mind at this point:
+    // - EBX has JNI env (but it's nonvolatile)
+    // - EBP has the FP (but it's nonvolatile)
+    // - stack has the args but not the locals
+    // - TR has been restored
 
-    // blocked in native, do pthread yield
-    if (VM.BuildFor32Addr) {
-      asm.emitMOV_Reg_Abs(T0, Magic.getTocPointer().plus(Entrypoints.the_boot_recordField.getOffset()));  // T0<-bootrecord addr
-    } else {
-      asm.emitMOV_Reg_Abs_Quad(T0, Magic.getTocPointer().plus(Entrypoints.the_boot_recordField.getOffset()));  // T0<-bootrecord addr
-    }
-    asm.emitCALL_RegDisp(T0, Entrypoints.sysVirtualProcessorYieldIPField.getOffset());
-    asm.emitJMP_Imm(retryLabel);                          // retry from beginning
+    // attempt to change the thread state to IN_JAVA
+    asm.emitMOV_Reg_Imm(T0, RVMThread.IN_JNI);
+    asm.emitMOV_Reg_Imm(T1, RVMThread.IN_JAVA);
+    ThreadLocalState.emitCompareAndExchangeField(
+      asm,
+      Entrypoints.execStatusField.getOffset(),
+      T1);
 
-    fr.resolve(asm);      // branch here if IN_NATIVE, attempt to go to IN_JAVA
+    // if we succeeded, move on, else go into slow path
+    ForwardReference doneLeaveJNIRef = asm.forwardJcc(Assembler.EQ);
 
-    // T0 (EAX) contains "old value" (required for CMPXCNG instruction)
-    // S0 contains address of status word to be swapped
-    asm.emitMOV_Reg_Imm(T1, Processor.IN_JAVA);  // T1<-new value (IN_JAVA)
-    ProcessorLocalState.emitCompareAndExchangeField(asm,
-        Entrypoints.vpStatusField.getOffset(),
-        T1); // atomic compare-and-exchange
-    asm.emitJCC_Cond_Imm(Assembler.NE, retryLabel);
+    // make the slow call
+    asm.emitCALL_Abs(
+      Magic.getTocPointer().plus(
+        Entrypoints.leaveJNIBlockedFromJNIFunctionCallMethod.getOffset()));
 
-    // END of code sequence to change state from IN_NATIVE to IN_JAVA
+    // arrive here when we've switched to IN_JAVA
+    doneLeaveJNIRef.resolve(asm);
+    // END of code sequence to change state from IN_JNI to IN_JAVA
 
     // status is now IN_JAVA. GC can not occur while we execute on a processor
     // in this state, so it is safe to access fields of objects.
-    // RVM PR register has been restored and EBX contains a pointer to
+    // RVM TR register has been restored and EBX contains a pointer to
     // the thread's JNIEnvironment.
 
     // done saving, bump SP to reserve room for the local variables
@@ -824,10 +824,10 @@ public abstract class JNICompiler implements BaselineConstants {
       asm.emitMOV_RegInd_Reg_Quad(EBP, S0);
     }
 
-    // put framePointer in VP following Jikes RVM conventions.
-    ProcessorLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), EBP);
+    // put framePointer in Thread following Jikes RVM conventions.
+    ThreadLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), EBP);
 
-    // at this point: PR has been restored &
+    // at this point: TR has been restored &
     // processor status = IN_JAVA,
     // arguments for the call have been setup, space on the stack for locals
     // has been acquired.
@@ -842,7 +842,7 @@ public abstract class JNICompiler implements BaselineConstants {
    * Create an epilogue for the baseline compiler.
    */
   public static void generateEpilogForJNIMethod(Assembler asm, RVMMethod method) {
-    // assume RVM PR regs still valid. potentially T1 & T0 contain return
+    // assume RVM TR regs still valid. potentially T1 & T0 contain return
     // values and should not be modified. we use regs saved in prolog and restored
     // before return to do whatever needs to be done.
 
@@ -857,12 +857,12 @@ public abstract class JNICompiler implements BaselineConstants {
           // Marshall from XMM0 -> FP0
           if (method.getReturnType().isDoubleType()) {
             if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-            asm.emitMOVSD_RegDisp_Reg(PR, Entrypoints.scratchStorageField.getOffset(), XMM0);
-            asm.emitFLD_Reg_RegDisp_Quad(FP0, PR, Entrypoints.scratchStorageField.getOffset());
+            asm.emitMOVSD_RegDisp_Reg(THREAD_REGISTER, Entrypoints.scratchStorageField.getOffset(), XMM0);
+            asm.emitFLD_Reg_RegDisp_Quad(FP0, THREAD_REGISTER, Entrypoints.scratchStorageField.getOffset());
           } else if (method.getReturnType().isFloatType()) {
             if (VM.VerifyAssertions) VM._assert(VM.BuildFor32Addr);
-            asm.emitMOVSS_RegDisp_Reg(PR, Entrypoints.scratchStorageField.getOffset(), XMM0);
-            asm.emitFLD_Reg_RegDisp(FP0, PR, Entrypoints.scratchStorageField.getOffset());
+            asm.emitMOVSS_RegDisp_Reg(THREAD_REGISTER, Entrypoints.scratchStorageField.getOffset(), XMM0);
+            asm.emitFLD_Reg_RegDisp(FP0, THREAD_REGISTER, Entrypoints.scratchStorageField.getOffset());
           }
         }
       }
@@ -871,11 +871,10 @@ public abstract class JNICompiler implements BaselineConstants {
     // current processor status is IN_JAVA, so we only GC at yieldpoints
 
     // S0 <- JNIEnvironment
-    ProcessorLocalState.emitMoveFieldToReg(asm, S0, Entrypoints.activeThreadField.getOffset());
     if (VM.BuildFor32Addr) {
-      asm.emitMOV_Reg_RegDisp(S0, S0, Entrypoints.jniEnvField.getOffset());
+      asm.emitMOV_Reg_RegDisp(S0, THREAD_REGISTER, Entrypoints.jniEnvField.getOffset());
     } else {
-      asm.emitMOV_Reg_RegDisp_Quad(S0, S0, Entrypoints.jniEnvField.getOffset());
+      asm.emitMOV_Reg_RegDisp_Quad(S0, THREAD_REGISTER, Entrypoints.jniEnvField.getOffset());
     }
 
     // set jniEnv TopJavaFP using value saved in frame in prolog
@@ -889,11 +888,40 @@ public abstract class JNICompiler implements BaselineConstants {
       asm.emitMOV_RegDisp_Reg_Quad(S0, Entrypoints.JNITopJavaFPField.getOffset(), EDI); // jniEnv.TopJavaFP <- EDI
     }
 
-    // in case thread has migrated to different PR, reset saved PRs to current PR
-    ProcessorLocalState.emitStoreProcessor(asm, S0, Entrypoints.JNIEnvSavedPRField.getOffset());
+    // NOTE: we could save the TR in the JNI env, but no need, that would have
+    // already been done.
 
-    // change current processor status to IN_NATIVE
-    ProcessorLocalState.emitMoveImmToField(asm, Entrypoints.vpStatusField.getOffset(), Processor.IN_NATIVE);
+    // what's going on here:
+    // - SP and EBP have important stuff in them, but that's fine, since
+    //   a call will restore SP and EBP is non-volatile for RVM code
+    // - TR still refers to the thread
+
+    // save return values
+    asm.emitPUSH_Reg(T0);
+    asm.emitPUSH_Reg(T1);
+
+    // attempt to change the thread state to IN_JNI
+    asm.emitMOV_Reg_Imm(T0, RVMThread.IN_JAVA);
+    asm.emitMOV_Reg_Imm(T1, RVMThread.IN_JNI);
+    ThreadLocalState.emitCompareAndExchangeField(
+      asm,
+      Entrypoints.execStatusField.getOffset(),
+      T1);
+
+    // if success, skip the slow path call
+    ForwardReference doneEnterJNIRef = asm.forwardJcc(Assembler.EQ);
+
+    // fast path failed, make the call
+    asm.emitCALL_Abs(
+      Magic.getTocPointer().plus(
+        Entrypoints.enterJNIBlockedFromJNIFunctionCallMethod.getOffset()));
+
+    // OK - we reach here when we have set the state to IN_JNI
+    doneEnterJNIRef.resolve(asm);
+
+    // restore return values
+    asm.emitPOP_Reg(T1);
+    asm.emitPOP_Reg(T0);
 
     // reload native/C nonvolatile regs - saved in prolog
     for (FloatingPointMachineRegister r : NATIVE_NONVOLATILE_FPRS) {

@@ -25,8 +25,8 @@
 // Thread-specific data key in which to stash the id of
 // the pthread's Processor.  This allows the system call library
 // to find the Processor object at runtime.
-pthread_key_t VmProcessorKey;
-pthread_key_t IsVmProcessorKey;
+pthread_key_t VmThreadKey;
+pthread_key_t IsVmThreadKey;
 
 // Fish out an address stored in an instance field of an object.
 static void *
@@ -38,15 +38,13 @@ getFieldAsAddress(void *objPtr, int fieldOffset)
 
 // Get the JNI environment object from the Processor.
 static JNIEnv *
-getJniEnvFromVmProcessor(void *vmProcessorPtr)
+getJniEnvFromVmThread(void *vmThreadPtr)
 {
-    if (vmProcessorPtr == 0)
+    if (vmThreadPtr == 0)
         return 0; // oops
 
     // Follow chain of pointers:
-    // Processor -> RVMThread -> JNIEnvironment -> thread's native JNIEnv
-    void *vmThreadPtr =
-        getFieldAsAddress(vmProcessorPtr, Processor_activeThread_offset);
+    // RVMThread -> JNIEnvironment -> thread's native JNIEnv
     void *jniEnvironment =
         getFieldAsAddress(vmThreadPtr, RVMThread_jniEnv_offset);
     // Convert JNIEnvironment to JNIEnv* expected by native code
@@ -132,15 +130,15 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
         return JNI_EVERSION;
 
     // Return NULL if we are not on a VM pthread
-    if (pthread_getspecific(IsVmProcessorKey) == NULL) {
+    if (pthread_getspecific(IsVmThreadKey) == NULL) {
         *penv = NULL;
         return JNI_EDETACHED;
     }
 
     // Get Processor id.
-    void *vmProcessor = pthread_getspecific(VmProcessorKey);
-    // Get the JNIEnv from the Processor object
-    JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
+    void *vmThread = pthread_getspecific(VmThreadKey);
+    // Get the JNIEnv from the RVMThread object
+    JNIEnv *env = getJniEnvFromVmThread(vmThread);
 
     *penv = env;
 

@@ -53,6 +53,8 @@ public class Entrypoints {
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final NormalMethod aastoreMethod =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "aastore", "([Ljava/lang/Object;ILjava/lang/Object;)V");
+  public static final NormalMethod aastoreUninterruptibleMethod =
+      getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "aastoreUninterruptible", "([Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final NormalMethod athrowMethod =
       getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "athrow", "(Ljava/lang/Throwable;)V");
 
@@ -181,25 +183,17 @@ public class Entrypoints {
                "I2Dconstant",
                double.class);
 
-  public static final RVMField suspendPendingField =
-    getField(org.jikesrvm.scheduler.greenthreads.GreenThread.class, "suspendPending", int.class);
+  public static final RVMField bootThreadField =
+    getField(org.jikesrvm.scheduler.RVMThread.class, "bootThread",
+             org.jikesrvm.scheduler.RVMThread.class);
+
   public static final RVMField scratchStorageField =
-      getField(org.jikesrvm.scheduler.Processor.class, "scratchStorage", double.class);
-  public static final RVMField timeSliceExpiredField =
-      getField(org.jikesrvm.scheduler.Processor.class, "timeSliceExpired", int.class);
+      getField(org.jikesrvm.scheduler.RVMThread.class, "scratchStorage", double.class);
   public static final RVMField takeYieldpointField =
-      getField(org.jikesrvm.scheduler.Processor.class, "takeYieldpoint", int.class);
-  public static final RVMField activeThreadField =
-      getField(org.jikesrvm.scheduler.Processor.class, "activeThread", org.jikesrvm.scheduler.RVMThread.class);
-  public static final RVMField activeThreadStackLimitField =
-      getField(org.jikesrvm.scheduler.Processor.class, "activeThreadStackLimit", org.vmmagic.unboxed.Address.class);
-  public static final RVMField pthreadIDField = getField(org.jikesrvm.scheduler.Processor.class, "pthread_id", int.class);
-  public static final RVMField timerTicksField =
-    getField(org.jikesrvm.scheduler.greenthreads.GreenProcessor.class, "timerTicks", int.class);
-  public static final RVMField reportedTimerTicksField =
-      getField(org.jikesrvm.scheduler.greenthreads.GreenProcessor.class, "reportedTimerTicks", int.class);
-  public static final RVMField vpStatusField = getField(org.jikesrvm.scheduler.Processor.class, "vpStatus", int.class);
-  public static final RVMField threadIdField = getField(org.jikesrvm.scheduler.Processor.class, "threadId", int.class);
+      getField(org.jikesrvm.scheduler.RVMThread.class, "takeYieldpoint", int.class);
+  public static final RVMField timeSliceExpiredField =
+      getField(org.jikesrvm.scheduler.RVMThread.class, "timeSliceExpired", int.class);
+  public static final RVMField execStatusField = getField(org.jikesrvm.scheduler.RVMThread.class, "execStatus", int.class);
 
   public static final RVMField referenceReferentField =
       getField(java.lang.ref.Reference.class, "_referent", org.vmmagic.unboxed.Address.class);
@@ -214,6 +208,14 @@ public class Entrypoints {
       getMethod(org.jikesrvm.scheduler.RVMThread.class, "yieldpointFromBackedge", "()V");
   public static final NormalMethod yieldpointFromEpilogueMethod =
       getMethod(org.jikesrvm.scheduler.RVMThread.class, "yieldpointFromEpilogue", "()V");
+  public static final NormalMethod enterJNIBlockedFromJNIFunctionCallMethod =
+      getMethod(org.jikesrvm.scheduler.RVMThread.class, "enterJNIBlockedFromJNIFunctionCall", "()V");
+  public static final NormalMethod enterJNIBlockedFromCallIntoNativeMethod =
+      getMethod(org.jikesrvm.scheduler.RVMThread.class, "enterJNIBlockedFromCallIntoNative", "()V");
+  public static final NormalMethod leaveJNIBlockedFromJNIFunctionCallMethod =
+      getMethod(org.jikesrvm.scheduler.RVMThread.class, "leaveJNIBlockedFromJNIFunctionCall", "()V");
+  public static final NormalMethod leaveJNIBlockedFromCallIntoNativeMethod =
+      getMethod(org.jikesrvm.scheduler.RVMThread.class, "leaveJNIBlockedFromCallIntoNative", "()V");
 
   public static final NormalMethod threadRunMethod = getMethod(org.jikesrvm.scheduler.RVMThread.class, "run", "()V");
   public static final NormalMethod threadStartoffMethod =
@@ -222,14 +224,16 @@ public class Entrypoints {
   public static final RVMField stackLimitField =
       getField(org.jikesrvm.scheduler.RVMThread.class, "stackLimit", org.vmmagic.unboxed.Address.class);
 
-  public static final RVMField beingDispatchedField =
-      getField(org.jikesrvm.scheduler.RVMThread.class, "beingDispatched", boolean.class);
   public static final RVMField threadSlotField = getField(org.jikesrvm.scheduler.RVMThread.class, "threadSlot", int.class);
   public static final RVMField jniEnvField =
       getField(org.jikesrvm.scheduler.RVMThread.class, "jniEnv", org.jikesrvm.jni.JNIEnvironment.class);
   public static final RVMField threadContextRegistersField =
       getField(org.jikesrvm.scheduler.RVMThread.class,
                "contextRegisters",
+               org.jikesrvm.ArchitectureSpecific.Registers.class);
+  public static final RVMField threadContextRegistersSaveField =
+      getField(org.jikesrvm.scheduler.RVMThread.class,
+               "contextRegistersSave",
                org.jikesrvm.ArchitectureSpecific.Registers.class);
   public static final RVMField threadExceptionRegistersField =
       getField(org.jikesrvm.scheduler.RVMThread.class,
@@ -240,10 +244,13 @@ public class Entrypoints {
       getField(org.jikesrvm.objectmodel.MiscHeader.class, "prevAddress", org.vmmagic.unboxed.Word.class);
   public static final RVMField traceOIDField =
       getField(org.jikesrvm.objectmodel.MiscHeader.class, "oid", org.vmmagic.unboxed.Word.class);
+  /*
   public static final RVMField dispenserField = getField(org.jikesrvm.mm.mmtk.Lock.class, "dispenser", int.class);
   public static final RVMField servingField = getField(org.jikesrvm.mm.mmtk.Lock.class, "serving", int.class);
   public static final RVMField lockThreadField =
       getField(org.jikesrvm.mm.mmtk.Lock.class, "thread", org.jikesrvm.scheduler.RVMThread.class);
+  */
+  public static final RVMField lockStateField = getField(org.jikesrvm.mm.mmtk.Lock.class, "state", int.class);
   public static final RVMField gcStatusField = getField(org.mmtk.plan.Plan.class, "gcStatus", int.class);
   public static final RVMField SQCFField = getField(org.mmtk.utility.deque.SharedDeque.class, "completionFlag", int.class);
   public static final RVMField SQNCField = getField(org.mmtk.utility.deque.SharedDeque.class, "numConsumers", int.class);
@@ -274,18 +281,14 @@ public class Entrypoints {
   public static final NormalMethod modifyCheckMethod =
       getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "modifyCheck", "(Ljava/lang/Object;)V");
 
-  public static final RVMField outputLockField = getField(org.jikesrvm.scheduler.Scheduler.class, "outputLock", int.class);
-
   // used in boot image writer
-  public static final RVMField greenProcessorsField =
-      getField(org.jikesrvm.scheduler.greenthreads.GreenScheduler.class, "processors", org.jikesrvm.scheduler.ProcessorTable.class);
   public static final RVMField debugRequestedField =
-      getField(org.jikesrvm.scheduler.Scheduler.class, "debugRequested", boolean.class);
+      getField(org.jikesrvm.scheduler.RVMThread.class, "debugRequested", boolean.class);
   public static final NormalMethod dumpStackAndDieMethod =
-      getMethod(org.jikesrvm.scheduler.Scheduler.class, "dumpStackAndDie", "(Lorg/vmmagic/unboxed/Address;)V");
+      getMethod(org.jikesrvm.scheduler.RVMThread.class, "dumpStackAndDie", "(Lorg/vmmagic/unboxed/Address;)V");
 
   public static final RVMField latestContenderField =
-      getField(org.jikesrvm.scheduler.ProcessorLock.class, "latestContender", org.jikesrvm.scheduler.Processor.class);
+      getField(org.jikesrvm.scheduler.SpinLock.class, "latestContender", org.jikesrvm.scheduler.RVMThread.class);
 
   public static final RVMField depthField = getField(org.jikesrvm.classloader.RVMType.class, "depth", int.class);
   public static final RVMField idField = getField(org.jikesrvm.classloader.RVMType.class, "id", int.class);
@@ -294,8 +297,8 @@ public class Entrypoints {
   public static final RVMField innermostElementTypeDimensionField =
       getField(org.jikesrvm.classloader.RVMArray.class, "innermostElementTypeDimension", int.class);
 
-  public static final RVMField JNIEnvSavedPRField =
-      getField(org.jikesrvm.jni.JNIEnvironment.class, "savedPRreg", org.jikesrvm.scheduler.Processor.class);
+  public static final RVMField JNIEnvSavedTRField =
+      getField(org.jikesrvm.jni.JNIEnvironment.class, "savedTRreg", org.jikesrvm.scheduler.RVMThread.class);
   public static final RVMField JNIEnvBasePointerOnEntryToNative =
       getField(org.jikesrvm.jni.JNIEnvironment.class, "basePointerOnEntryToNative", org.vmmagic.unboxed.Address.class);
   public static final RVMField JNIGlobalRefsField =
@@ -327,8 +330,6 @@ public class Entrypoints {
 
   public static final RVMField the_boot_recordField =
       getField(org.jikesrvm.runtime.BootRecord.class, "the_boot_record", org.jikesrvm.runtime.BootRecord.class);
-  public static final RVMField sysVirtualProcessorYieldIPField =
-      getField(org.jikesrvm.runtime.BootRecord.class, "sysVirtualProcessorYieldIP", org.vmmagic.unboxed.Address.class);
   public static final RVMField externalSignalFlagField =
       getField(org.jikesrvm.runtime.BootRecord.class, "externalSignalFlag", int.class);
   public static final RVMField sysLongDivideIPField =
@@ -367,7 +368,6 @@ public class Entrypoints {
   //////////////////
   public static final RVMField specializedMethodsField;
 
-  public static final RVMField osrOrganizerQueueLockField;
   public static final NormalMethod optThreadSwitchFromOsrOptMethod;
   public static final NormalMethod optThreadSwitchFromPrologueMethod;
   public static final NormalMethod optThreadSwitchFromBackedgeMethod;
@@ -385,7 +385,6 @@ public class Entrypoints {
           getField(org.jikesrvm.compilers.opt.specialization.SpecializedMethodPool.class,
                    "specializedMethods",
                    org.jikesrvm.ArchitectureSpecific.CodeArray[].class);
-      osrOrganizerQueueLockField = getField(org.jikesrvm.adaptive.OSROrganizerThread.class, "queueLock", int.class);
       optThreadSwitchFromOsrOptMethod =
           getMethod(org.jikesrvm.compilers.opt.runtimesupport.OptSaveVolatile.class, "yieldpointFromOsrOpt", "()V");
       optThreadSwitchFromPrologueMethod =
@@ -408,7 +407,6 @@ public class Entrypoints {
       sysArrayCopy.setRuntimeServiceMethod(false);
     } else {
       specializedMethodsField = null;
-      osrOrganizerQueueLockField = null;
       optThreadSwitchFromOsrOptMethod = null;
       optThreadSwitchFromPrologueMethod = null;
       optThreadSwitchFromBackedgeMethod = null;

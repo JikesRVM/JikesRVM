@@ -266,10 +266,10 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
     StackLocationOperand slHi = new StackLocationOperand(true, offset+4, 4);
     StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
-    MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
+    MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
         Entrypoints.scratchStorageField.getOffset(), (byte)4,
         new LocationOperand(Entrypoints.scratchStorageField), null);
-    MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
+    MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
         Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
         new LocationOperand(Entrypoints.scratchStorageField), null);
 
@@ -445,10 +445,10 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     StackLocationOperand slLo = new StackLocationOperand(true, offset, 4);
     StackLocationOperand slHi = new StackLocationOperand(true, offset+4, 4);
     StackLocationOperand sl = new StackLocationOperand(true, offset, 8);
-    MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
+    MemoryOperand scratchLo = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
         Entrypoints.scratchStorageField.getOffset(), (byte)4,
         new LocationOperand(Entrypoints.scratchStorageField), null);
-    MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makePROp(), null, (byte)0,
+    MemoryOperand scratchHi = new MemoryOperand(ir.regpool.makeTROp(), null, (byte)0,
         Entrypoints.scratchStorageField.getOffset().plus(4), (byte)4,
         new LocationOperand(Entrypoints.scratchStorageField), null);
 

@@ -18,7 +18,7 @@ import org.jikesrvm.adaptive.database.methodsamples.MethodCountData;
 import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.adaptive.measurements.listeners.MethodListener;
 import org.jikesrvm.adaptive.util.AOSLogging;
-import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NonMoving;
 
 /**
@@ -44,7 +44,8 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
   @Override
   public void initialize() {
     data = new MethodCountData();
-    int numSamples = Controller.options.METHOD_SAMPLE_SIZE * GreenScheduler.numProcessors;
+    new AsyncReporter().start();
+    int numSamples = Controller.options.METHOD_SAMPLE_SIZE * RVMThread.numProcessors;
     if (Controller.options.mlCBS()) {
       numSamples *= VM.CBSMethodSamplesPerTick;
     }
@@ -74,4 +75,18 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
     VM.sysWrite("\nMethod sampler report");
     if (data != null) data.report();
   }
+  @NonMoving
+  class AsyncReporter extends RVMThread {
+    public AsyncReporter() {
+      super("Async Profile Reporter");
+      makeDaemon(true);
+    }
+    public void run() {
+      for (;;) {
+        RVMThread.doProfileReport.waitAndClose();
+        report();
+      }
+    }
+  }
 }
+

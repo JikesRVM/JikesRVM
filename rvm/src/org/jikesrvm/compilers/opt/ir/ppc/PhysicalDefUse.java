@@ -29,7 +29,7 @@ public abstract class PhysicalDefUse {
   public static final int maskLR = 0x04;
   public static final int maskJTOC = 0x08;
   public static final int maskCTR = 0x10;
-  public static final int maskPR = 0x20;
+  public static final int maskTR = 0x20;
 
   // Meta mask for the enumeration.
   private static final int maskHIGH = 0x20;
@@ -41,7 +41,7 @@ public abstract class PhysicalDefUse {
   public static final int maskcallDefs = maskLR;
   public static final int maskcallUses = maskJTOC;
   public static final int maskIEEEMagicUses = maskJTOC;
-  public static final int maskTSPDefs = maskPR;
+  public static final int maskTSPDefs = maskTR;
   public static final int maskTSPUses = maskJTOC;
 
   /**
@@ -57,7 +57,7 @@ public abstract class PhysicalDefUse {
     if ((code & maskLR) != 0) s += " LR";
     if ((code & maskJTOC) != 0) s += " JTOC";
     if ((code & maskCTR) != 0) s += " CTR";
-    if ((code & maskPR) != 0) s += " PR";
+    if ((code & maskTR) != 0) s += " TR";
     return s;
   }
 
@@ -120,8 +120,8 @@ public abstract class PhysicalDefUse {
           return phys.getJTOC();
         case maskCTR:
           return phys.getCTR();
-        case maskPR:
-          return phys.getPR();
+        case maskTR:
+          return phys.getTR();
       }
       org.jikesrvm.compilers.opt.OptimizingCompilerException.UNREACHABLE();
       return null; // placate jikes.

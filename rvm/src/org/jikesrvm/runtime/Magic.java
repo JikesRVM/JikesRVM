@@ -18,9 +18,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 import org.vmmagic.Intrinsic;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
@@ -66,25 +64,25 @@ public final class Magic {
     return null;
   }
 
-  /** Get contents of "processor" register. */
-  public static Processor getProcessorRegister() {
+  /** Get contents of "thread" register. */
+  public static RVMThread getThreadRegister() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
-  /** Set contents of "processor" register. */
-  public static void setProcessorRegister(Processor p) {
+  /** Set contents of "thread" register. */
+  public static void setThreadRegister(RVMThread p) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
-  /** Get contents of ESI, as a Processor. NOTE: IA-specific */
-  public static Processor getESIAsProcessor() {
+  /** Get contents of ESI, as a RVMThread. NOTE: IA-specific */
+  public static RVMThread getESIAsThread() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
-  /** Set contents of ESI to hold a reference to a processor object. NOTE: IA-specific */
-  public static void setESIAsProcessor(Processor p) {
+  /** Set contents of ESI to hold a reference to a thread object. NOTE: IA-specific */
+  public static void setESIAsThread(RVMThread p) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -604,35 +602,12 @@ public final class Magic {
    * Cast object.
    * Note:     for use by gc to avoid checkcast during GC
    * @param object object reference
-   * @return object reference as processor (no checking on cast)
-   */
-  public static Processor objectAsProcessor(Object object) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-
-  /**
-   * Cast object.
-   * Note:     for use by gc to avoid checkcast during GC
-   * @param proc processor
-   * @return proc as green processor (no checking on cast)
-   */
-  public static GreenProcessor processorAsGreenProcessor(Processor proc) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-
-  /**
-   * Cast object.
-   * Note:     for use by gc to avoid checkcast during GC
-   * @param object object reference
    * @return object reference as thread (no checking on cast)
    */
   public static RVMThread objectAsThread(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
-
   /**
    * Cast bits.
    * @param number A floating point number
@@ -758,8 +733,6 @@ public final class Magic {
    * is less error-prone.  saveThreadState is now only used in the
    * implementation of athrow (RuntimeEntrypoints.athrow).
    *
-   * Note that #args to this method must match #args to Processor.dispatch()
-   *
    * The following registers are saved:
    *        - nonvolatile fpr registers
    *        - nonvolatile gpr registers
@@ -767,6 +740,7 @@ public final class Magic {
    *        - THREAD_ID     "register"
    * @param registers place to save register values
    */
+  // PNT: make a version of this that implicitly uses contextRegisters.
   public static void saveThreadState(Registers registers) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
@@ -792,7 +766,7 @@ public final class Magic {
    * Restores virtually all registers (details vary by architecutre).
    * But, the following are _NOT_ restored
    *        - JTOC_POINTER
-   *        - PROCESSOR_REGISTER
+   *        - THREAD_REGISTER
    * does not return (execution resumes at new IP)
    * @param registers register values to be used
    */

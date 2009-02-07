@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.scheduler.ProcessorLock;
+import org.jikesrvm.scheduler.SpinLock;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -42,7 +42,7 @@ public final class ReferenceMaps implements BaselineConstants {
   private static final int BITS_PER_MAP_ELEMENT = 8;
 
   /** Serializes JSR processing */
-  public static final ProcessorLock jsrLock = new ProcessorLock();
+  public static final SpinLock jsrLock = new SpinLock();   // for serialization of JSR processing
 
   private byte[] referenceMaps;
   private int[] MCSites;

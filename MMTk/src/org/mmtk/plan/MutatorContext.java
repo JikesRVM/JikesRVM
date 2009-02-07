@@ -83,11 +83,22 @@ public abstract class MutatorContext implements Constants {
    * Initialization
    */
 
+
   /**
-   * Called before the MutatorContext is used, but after the context has been
-   * fully registered and is visible to collection.
+   * Notify that the mutator context is registered and ready to execute. From
+   * this point it will be included in iterations over mutators.
+   *
+   * @param id The id of this mutator context.
    */
-  public void initMutator() {
+  public void initMutator(int id) {
+    this.id = id;
+  }
+
+  /**
+   * The mutator is about to be cleaned up, make sure all local data is returned.
+   */
+  public void deinitMutator() {
+    flush();
   }
 
   /****************************************************************************
@@ -95,7 +106,7 @@ public abstract class MutatorContext implements Constants {
    */
 
   /** Unique mutator identifier */
-  protected final int id = VM.activePlan.registerMutator(this);
+  private int id;
 
   /** Used for printing log information in a thread safe manner */
   protected final Log log = new Log();
@@ -368,6 +379,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Flush mutator context, in response to a requestMutatorFlush.
+   * Also called by the default implementation of deinitMutator.
    */
   public void flush() {
     flushRememberedSets();
@@ -400,7 +412,13 @@ public abstract class MutatorContext implements Constants {
    * Miscellaneous
    */
 
+  /** @return the <code>Log</code> instance for this PlanLocal */
+  public final Log getLog() {
+    return log;
+  }
+
   /** @return the unique identifier for this mutator context. */
   @Inline
   public int getId() { return id; }
+
 }

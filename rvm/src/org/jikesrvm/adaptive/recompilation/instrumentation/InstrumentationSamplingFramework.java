@@ -450,9 +450,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         load =
             Load.create(INT_LOAD,
                         cbsReg.copyRO(),
-                        ir.regpool.makePROp(),
-                        IRTools.AC(AosEntrypoints.processorCBSField.getOffset()),
-                        new LocationOperand(AosEntrypoints.processorCBSField));
+                        ir.regpool.makeTROp(),
+                        IRTools.AC(AosEntrypoints.threadCBSField.getOffset()),
+                        new LocationOperand(AosEntrypoints.threadCBSField));
 
         bb.appendInstruction(load);
       }
@@ -499,9 +499,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
       store =
           Store.create(INT_STORE,
                        cbsReg.copyRO(),
-                       ir.regpool.makePROp(),
-                       IRTools.AC(AosEntrypoints.processorCBSField.getOffset()),
-                       new LocationOperand(AosEntrypoints.processorCBSField));
+                       ir.regpool.makeTROp(),
+                       IRTools.AC(AosEntrypoints.threadCBSField.getOffset()),
+                       new LocationOperand(AosEntrypoints.threadCBSField));
 
       bb.prependInstruction(store);
     } else {
@@ -593,9 +593,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         store =
             Store.create(INT_STORE,
                          cbsReg.copyRO(),
-                         ir.regpool.makePROp(),
-                         IRTools.AC(AosEntrypoints.processorCBSField.getOffset()),
-                         new LocationOperand(AosEntrypoints.processorCBSField));
+                         ir.regpool.makeTROp(),
+                         IRTools.AC(AosEntrypoints.threadCBSField.getOffset()),
+                         new LocationOperand(AosEntrypoints.threadCBSField));
       } else {
         // Use global counter
         store =

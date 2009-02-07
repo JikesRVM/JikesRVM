@@ -2325,14 +2325,14 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
 
   // Emit baseline stack overflow instruction sequence.
   // Before:   FP is current (calling) frame
-  //           PR is the current Processor, which contains a pointer to the active thread.
+  //           TR is the current RVMThread
   // After:    R0, S0 destroyed
   //
 
   public void emitStackOverflowCheck(int frameSize) {
     emitLAddrOffset(0,
-                    RegisterConstants.PROCESSOR_REGISTER,
-                    Entrypoints.activeThreadStackLimitField.getOffset());   // R0 := &stack guard page
+                    RegisterConstants.THREAD_REGISTER,
+                    Entrypoints.stackLimitField.getOffset());   // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame
     emitTAddrLT(S0, 0);                                    // trap if new frame below guard page
   }
@@ -2354,29 +2354,29 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   // For subsequent Java to C transition frames, check for the requested size and don't resize
   // the stack if overflow
   // Before:   FP is current (calling) frame
-  //           PR is the current Processor, which contains a pointer to the active thread.
+  //           TR is the current RVMThread
   // After:    R0, S0 destroyed
   //
   public void emitNativeStackOverflowCheck(int frameSize) {
     emitLAddrOffset(S0,
-                    RegisterConstants.PROCESSOR_REGISTER,
-                    Entrypoints.activeThreadField.getOffset());   // S0 := thread pointer
-    emitLAddrOffset(S0, S0, Entrypoints.jniEnvField.getOffset());      // S0 := thread.jniEnv
+                    RegisterConstants.THREAD_REGISTER,
+                    Entrypoints.jniEnvField.getOffset());      // S0 := thread.jniEnv
     emitLIntOffset(0, S0, Entrypoints.JNIRefsTopField.getOffset());   // R0 := thread.jniEnv.JNIRefsTop
-    emitLAddrOffset(S0,
-                    RegisterConstants.PROCESSOR_REGISTER,
-                    Entrypoints.activeThreadField.getOffset());   // S0 := thread pointer
     emitCMPI(0, 0);                                    // check if S0 == 0 -> first native frame on stack
     ForwardReference fr1 = emitForwardBC(EQ);
     // check for enough space for requested frame size
-    emitLAddrOffset(0, S0, Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
+    emitLAddrOffset(0,
+                    RegisterConstants.THREAD_REGISTER,
+                    Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
     emitADDI(S0, -frameSize, FP);                        // S0 := &new frame pointer
     emitTAddrLT(S0, 0);                                    // trap if new frame below guard page
     ForwardReference fr2 = emitForwardB();
 
     // check for enough space for STACK_SIZE_JNINATIVE
     fr1.resolve(this);
-    emitLAddrOffset(0, S0, Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
+    emitLAddrOffset(0,
+                    RegisterConstants.THREAD_REGISTER,
+                    Entrypoints.stackLimitField.getOffset());  // R0 := &stack guard page
     emitLVAL(S0, StackframeLayoutConstants.STACK_SIZE_JNINATIVE);
     emitSUBFC(S0, S0, FP);             // S0 := &new frame pointer
 

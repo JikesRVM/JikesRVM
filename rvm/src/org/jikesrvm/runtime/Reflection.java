@@ -12,15 +12,15 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.Constants;
-import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.MachineReflection;
+import org.jikesrvm.VM;
+import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
@@ -33,17 +33,14 @@ import static org.jikesrvm.Configuration.BuildForSSE2Full;
  * Arch-independent portion of reflective method invoker.
  */
 public class Reflection implements Constants {
-
   /** Perform reflection using bytecodes (true) or out-of-line machine code (false) */
   public static boolean bytecodeReflection = false;
-
   /**
    * Cache the reflective method invoker in JavaLangReflect? If this is true and
    * bytecodeReflection is false, then bytecode reflection will only be used for
    * java.lang.reflect objects.
    */
   public static boolean cacheInvokerInJavaLangReflect = true;
-
   /**
    * Does the reflective method scheme need to check the arguments are valid?
    * Bytecode reflection doesn't need arguments checking as they are checking as
@@ -55,7 +52,6 @@ public class Reflection implements Constants {
     // not using the bytecode based invoker (that checks them when they are unpacked)
     return !bytecodeReflection && !cacheInvokerInJavaLangReflect;
   }
-
   /**
    * Call a method.
    * @param method method to be called
@@ -173,14 +169,14 @@ public class Reflection implements Constants {
       cm = targetMethod.getCurrentCompiledMethod();
     }
 
-    Processor.getCurrentProcessor().disableThreadSwitching("Packaging parameters for reflection");
+    RVMThread.getCurrentThread().disableYieldpoints();
 
     CodeArray code = cm.getEntryCodeArray();
     MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, FPRs, FPRmeta, Spills);
 
-    // critical: no threadswitch/GCpoints between here and the invoke of code!
+    // critical: no yieldpoints/GCpoints between here and the invoke of code!
     //           We may have references hidden in the GPRs and Spills arrays!!!
-    Processor.getCurrentProcessor().enableThreadSwitching();
+    RVMThread.getCurrentThread().enableYieldpoints();
 
     if (!returnIsPrimitive) {
       return Magic.invokeMethodReturningObject(code, GPRs, FPRs, FPRmeta, Spills);

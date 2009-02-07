@@ -23,7 +23,8 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
-import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.pragma.NonMoving;
 
@@ -100,7 +101,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
     } else {
       numberOfBufferTriples = Controller.options.DCG_SAMPLE_SIZE;
     }
-    numberOfBufferTriples *= GreenScheduler.numProcessors;
+    numberOfBufferTriples *= RVMThread.numProcessors;
     bufferSize = numberOfBufferTriples * 3;
     buffer = new int[bufferSize];
 
@@ -133,7 +134,12 @@ public class DynamicCallGraphOrganizer extends Organizer {
     if (DEBUG) VM.sysWriteln("DCG_Organizer.thresholdReached()");
 
     for (int i = 0; i < bufferSize; i = i + 3) {
-      int calleeCMID = buffer[i + 0];
+      int calleeCMID=0;
+      // FIXME: This is necessary but hacky and may not even be correct.
+      while (calleeCMID == 0) {
+        calleeCMID = buffer[i + 0];
+      }
+      Magic.isync();
       CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(calleeCMID);
       if (compiledMethod == null) continue;
       RVMMethod callee = compiledMethod.getMethod();
@@ -242,3 +248,4 @@ public class DynamicCallGraphOrganizer extends Organizer {
     return thresholdReachedCount == 0;
   }
 }
+

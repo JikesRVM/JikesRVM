@@ -30,8 +30,8 @@ import org.jikesrvm.adaptive.util.AOSOptions;
 import org.jikesrvm.adaptive.util.BlockingPriorityQueue;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.RecompilationManager;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.SoftLatch;
-import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 
 /**
  * This class contains top level adaptive compilation subsystem functions.
@@ -121,7 +121,6 @@ public class Controller implements Callbacks.ExitMonitor,
    * The main hot method raw data object.
    */
   public static MethodCountData methodSamples;
-
   /**
    * The dynamic call graph
    */
@@ -259,8 +258,7 @@ public class Controller implements Callbacks.ExitMonitor,
 
     if (options.REPORT_INTERRUPT_STATS) {
       VM.sysWriteln("Timer Interrupt and Listener Stats");
-      VM.sysWriteln("\tTotal number of clock ticks ", GreenProcessor.timerTicks);
-      VM.sysWriteln("\tReported clock ticks ", GreenProcessor.reportedTimerTicks);
+      VM.sysWriteln("\tTotal number of clock ticks ", RVMThread.timerTicks);
       VM.sysWriteln("\tController clock ", controllerClock);
       VM.sysWriteln("\tNumber of method samples taken ", (int) methodSamples.getTotalNumberOfSamples());
     }
@@ -278,11 +276,12 @@ public class Controller implements Callbacks.ExitMonitor,
     VM.sysWriteln("AOS: Killing all adaptive system threads");
     for (Enumeration<Organizer> e = organizers.elements(); e.hasMoreElements();) {
       Organizer organizer = e.nextElement();
-      organizer.kill(threadDeath, true);
+      organizer.stop(threadDeath);
     }
-    compilationThread.kill(threadDeath, true);
-    controllerThread.kill(threadDeath, true);
+    compilationThread.stop(threadDeath);
+    controllerThread.stop(threadDeath);
     RuntimeMeasurements.stop();
     report();
   }
 }
+

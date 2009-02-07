@@ -15,9 +15,7 @@ package org.jikesrvm.compilers.opt.runtimesupport;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Processor;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.GreenThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.SaveVolatile;
@@ -49,7 +47,7 @@ public class OptSaveVolatile {
   @Entrypoint
   public static void yieldpointFromPrologue() {
     Address fp = Magic.getFramePointer();
-    GreenThread.yieldpoint(RVMThread.PROLOGUE, fp);
+    RVMThread.yieldpoint(RVMThread.PROLOGUE, fp);
   }
 
   /**
@@ -61,7 +59,7 @@ public class OptSaveVolatile {
   @Entrypoint
   public static void yieldpointFromEpilogue() {
     Address fp = Magic.getFramePointer();
-    GreenThread.yieldpoint(RVMThread.EPILOGUE, fp);
+    RVMThread.yieldpoint(RVMThread.EPILOGUE, fp);
   }
 
   /**
@@ -73,7 +71,7 @@ public class OptSaveVolatile {
   @Entrypoint
   public static void yieldpointFromBackedge() {
     Address fp = Magic.getFramePointer();
-    GreenThread.yieldpoint(RVMThread.BACKEDGE, fp);
+    RVMThread.yieldpoint(RVMThread.BACKEDGE, fp);
   }
 
   /**
@@ -110,8 +108,9 @@ public class OptSaveVolatile {
   @Entrypoint
   public static void yieldpointFromOsrOpt() {
     Address fp = Magic.getFramePointer();
-    Processor.getCurrentProcessor().yieldToOSRRequested = true;
-    GreenThread.yieldpoint(RVMThread.OSROPT, fp);
+    RVMThread.getCurrentThread().yieldToOSRRequested = true;
+    RVMThread.getCurrentThread().takeYieldpoint = 1;
+    RVMThread.yieldpoint(RVMThread.OSROPT, fp);
   }
 
   /**

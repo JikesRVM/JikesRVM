@@ -184,7 +184,9 @@ public class JNIFunctions implements SizeConstants {
       if (traceJNI) VM.sysWriteln(classString);
       ClassLoader cl = RVMClass.getClassLoaderFromStackFrame(1);
       Class<?> matchedClass = Class.forName(classString.replace('/', '.'), true, cl);
-      return env.pushJNIRef(matchedClass);
+      int result = env.pushJNIRef(matchedClass);
+      if (traceJNI) VM.sysWriteln("FindClass returning ",result);
+      return result;
     } catch (ClassNotFoundException e) {
       if (traceJNI) e.printStackTrace(System.err);
       env.recordException(new NoClassDefFoundError(classString));
@@ -2226,7 +2228,10 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
+      if (traceJNI)
+        VM.sysWriteln("called GetFieldID with classJREF = ",classJREF);
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
+      if (VM.VerifyAssertions) VM._assert(cls!=null);
       String fieldString = JNIHelpers.createStringFromC(fieldNameAddress);
       Atom fieldName = Atom.findOrCreateAsciiAtom(fieldString);
 

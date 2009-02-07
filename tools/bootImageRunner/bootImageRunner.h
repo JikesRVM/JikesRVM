@@ -24,6 +24,8 @@
 #include <mach/mach_time.h>
 #endif
 
+#include <setjmp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,6 +67,9 @@ extern char *Me;		// Defined in libvm.C
 /* libvm.C and RunBootImage.C */
 extern uint64_t initialHeapSize;
 extern uint64_t maximumHeapSize;
+
+/* defined in libvm.c, used in sys.C */
+extern jmp_buf primordial_jb;
 
 /* Defined in RunBootImage.C */
 #ifdef __cplusplus

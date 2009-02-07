@@ -317,8 +317,8 @@ public interface RegisterConstants {
 
   /** Register current stack pointer. NB the frame pointer is maintained in the processor. */
   GPR STACK_POINTER = ESP;
-  /** Register holding a reference to processor local information */
-  GPR PROCESSOR_REGISTER = ESI;
+  /** Register holding a reference to thread local information */
+  GPR THREAD_REGISTER = ESI;
 
   /*
    * Register sets
@@ -392,7 +392,6 @@ public interface RegisterConstants {
                     : new FPR[]{FP0, FP1, FP2, FP3};
   /** Number of parameter FPRs */
   int NUM_PARAMETER_FPRS = PARAMETER_FPRS.length;
-
   /** GPR registers used for returning values */
   GPR[] RETURN_GPRS = VM.buildFor32Addr() ? new GPR[]{EAX, EDX} : new GPR[]{EAX};
   /** Number of return GPRs */

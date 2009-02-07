@@ -38,9 +38,9 @@ public abstract class GenericPhysicalRegisterSet implements BitSetMapping {
   public abstract Register getFP();
 
   /**
-   * @return the processor register
+   * @return the thread register
    */
-  public abstract Register getPR();
+  public abstract Register getTR();
 
   /**
    * @return the nth physical GPR

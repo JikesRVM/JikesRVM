@@ -407,6 +407,9 @@ main(int argc, const char **argv)
     ++argv, --argc;
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;
+    
+    setvbuf(stdout,NULL,_IONBF,0);
+    setvbuf(stderr,NULL,_IONBF,0);
 
     /*
      * Debugging: print out command line arguments.
@@ -487,10 +490,11 @@ main(int argc, const char **argv)
 #endif
 
     int ret = createVM(0);
-    assert(ret == 1);           // must be 1 (error status for this func.)
-
-    fprintf(SysErrorFile, "%s: Could not create the virtual machine; goodbye\n", Me);
-    exit(EXIT_STATUS_MISC_TROUBLE);
+    if (ret == 1) {
+	fprintf(SysErrorFile, "%s: Could not create the virtual machine; goodbye\n", Me);
+	exit(EXIT_STATUS_MISC_TROUBLE);
+    }
+    return 0; // this thread dies, but VM keeps running
 }
 
 

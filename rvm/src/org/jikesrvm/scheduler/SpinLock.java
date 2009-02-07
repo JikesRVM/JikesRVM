@@ -12,26 +12,26 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
-import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
-import org.vmmagic.pragma.Entrypoint;
-import org.vmmagic.pragma.NoInline;
-import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Untraced;
+import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.Untraced;
+import org.vmmagic.pragma.NoInline;
 
 /**
  *
  * <p> Alternative (to Java monitors) light-weight synchronization
- * mechanism to implement thread scheduling {@link Processor} and
- * Java monitors {@link Lock}.  These locks should not be used
- * where Java monitors would suffice.  They are intended to be held
- * only briefly!
+ * mechanism to implement Java monitors {@link Lock}.  These locks
+ * should not be used where Java monitors would suffice, or where
+ * an adaptive mutex is required (@link HeavyCondLock}.  They are
+ * intended to be held only briefly!
  *
- * <p> Normally, contending <code>Processor</code>s will spin on
+ * <p> Normally, contending <code>RVMThread</code>s will spin on
  * this processor lock's <code>latestContender</code> field.  If
  * <code>MCS_Locking</code> is set, the processors spin on processor
  * local data.  This is loosely based on an idea in Mellor-Crummey and
@@ -80,12 +80,13 @@ import org.vmmagic.unboxed.Offset;
  * implement Uninterruptible) that might allow a thread switch or
  * trigger a garbage collection between lock and unlock.
  *
- * @see Processor
+ * @see RVMThread
+ * @see HeavyCondLock
  * @see Lock */
 @Uninterruptible
-public final class ProcessorLock implements Constants {
+public final class SpinLock implements Constants {
   /**
-   * Should contending <code>Processor</code>s spin on processor local addresses (true)
+   * Should contending <code>RVMThread</code>s spin on thread local addresses (true)
    * or on a globally shared address (false).
    */
   private static final boolean MCS_Locking = false;
@@ -94,7 +95,7 @@ public final class ProcessorLock implements Constants {
    * The state of the processor lock.
    * <ul>
    * <li> <code>null</code>, if the lock is not owned;
-   * <li> the processor that owns the lock, if no processors are waithing;
+   * <li> the processor that owns the lock, if no processors are waiting;
    * <li> the last in a circular chain of processors waiting to own the lock; or
    * <li> <code>IN_FLUX</code>, if the circular chain is being edited.
    * </ul>
@@ -102,22 +103,24 @@ public final class ProcessorLock implements Constants {
    */
   @Entrypoint
   @Untraced
-  Processor latestContender;
-
+  RVMThread latestContender;
+  public boolean lockHeld() { return latestContender!=null; }
+  // FIXME: save the string somewhere.
+  public void lock(String s) {
+    lock();
+  }
   /**
    * Acquire a processor lock.
    */
-  public void lock(String reason) {
-    if (Scheduler.getNumberOfProcessors() == 1) return;
-    Processor i = Processor.getCurrentProcessor();
-    if (VM.VerifyAssertions) {
-      i.registerLock(reason);
-    }
-    Processor p;
+  public void lock() {
+    if (!VM.runningVM) return;
+    VM.disableYieldpoints();
+    RVMThread i = RVMThread.getCurrentThread();
+    RVMThread p;
     int attempts = 0;
     Offset latestContenderOffset = Entrypoints.latestContenderField.getOffset();
     do {
-      p = Magic.objectAsProcessor(Magic.addressAsObject(Magic.prepareAddress(this, latestContenderOffset)));
+      p = Magic.objectAsThread(Magic.addressAsObject(Magic.prepareAddress(this, latestContenderOffset)));
       if (p == null) { // nobody owns the lock
         if (Magic.attemptAddress(this, latestContenderOffset, Address.zero(), Magic.objectAsAddress(i))) {
           Magic.isync(); // so subsequent instructions wont see stale values
@@ -135,8 +138,8 @@ public final class ProcessorLock implements Constants {
     } while (true);
     // i owns the lock
     if (VM.VerifyAssertions && !MCS_Locking) VM._assert(VM.NOT_REACHED);
-    i.awaitingProcessorLock = this;
-    if (p.awaitingProcessorLock != this) { // make i first (and only) waiter on the contender chain
+    i.awaitingSpinLock = this;
+    if (p.awaitingSpinLock != this) { // make i first (and only) waiter on the contender chain
       i.contenderLink = i;
     } else {                               // make i last waiter on the contender chain
       i.contenderLink = p.contenderLink;
@@ -146,7 +149,7 @@ public final class ProcessorLock implements Constants {
     Magic.setObjectAtOffset(this, latestContenderOffset, i);  // other processors can get at the lock
     do { // spin, waiting for the lock
       Magic.isync(); // to make new value visible as soon as possible
-    } while (i.awaitingProcessorLock == this);
+    } while (i.awaitingSpinLock == this);
   }
 
   /**
@@ -154,15 +157,17 @@ public final class ProcessorLock implements Constants {
    * @return whether acquisition succeeded
    */
   public boolean tryLock() {
-    if (Scheduler.getNumberOfProcessors() == 1) return true;
+    if (!VM.runningVM) return true;
+    VM.disableYieldpoints();
     Offset latestContenderOffset = Entrypoints.latestContenderField.getOffset();
     if (Magic.prepareAddress(this, latestContenderOffset).isZero()) {
-      Address cp = Magic.objectAsAddress(Processor.getCurrentProcessor());
+      Address cp = Magic.objectAsAddress(RVMThread.getCurrentThread());
       if (Magic.attemptAddress(this, latestContenderOffset, Address.zero(), cp)) {
         Magic.isync(); // so subsequent instructions wont see stale values
         return true;
       }
     }
+    VM.enableYieldpoints();
     return false;
   }
 
@@ -170,18 +175,18 @@ public final class ProcessorLock implements Constants {
    * Release a processor lock.
    */
   public void unlock() {
-    if (Scheduler.getNumberOfProcessors() == 1) return;
+    if (!VM.runningVM) return;
     Magic.sync(); // commit changes while lock was held so they are visiable to the next processor that acquires the lock
     Offset latestContenderOffset = Entrypoints.latestContenderField.getOffset();
-    Processor i = Processor.getCurrentProcessor();
+    RVMThread i = RVMThread.getCurrentThread();
     if (!MCS_Locking) {
-      if (VM.VerifyAssertions) i.registerUnlock();
       Magic.setObjectAtOffset(this, latestContenderOffset, null);  // latestContender = null;
+      VM.enableYieldpoints();
       return;
     }
-    Processor p;
+    RVMThread p;
     do {
-      p = Magic.objectAsProcessor(Magic.addressAsObject(Magic.prepareAddress(this, latestContenderOffset)));
+      p = Magic.objectAsThread(Magic.addressAsObject(Magic.prepareAddress(this, latestContenderOffset)));
       if (p == i) { // nobody is waiting for the lock
         if (Magic.attemptAddress(this, latestContenderOffset, Magic.objectAsAddress(p), Address.zero())) {
           break;
@@ -196,20 +201,20 @@ public final class ProcessorLock implements Constants {
       }
     } while (true);
     if (p != i) { // p is the last processor on the chain of processors contending for the lock
-      Processor q = p.contenderLink; // q is first processor on the chain
+      RVMThread q = p.contenderLink; // q is first processor on the chain
       if (p == q) { // only one processor waiting for the lock
-        q.awaitingProcessorLock = null; // q now owns the lock
+        q.awaitingSpinLock = null; // q now owns the lock
         Magic.sync(); // make sure the chain of waiting processors gets updated before another processor accesses the chain
         // other contenders can get at the lock:
         Magic.setObjectAtOffset(this, latestContenderOffset, q); // latestContender = q;
       } else { // more than one processor waiting for the lock
         p.contenderLink = q.contenderLink; // remove q from the chain
-        q.awaitingProcessorLock = null; // q now owns the lock
+        q.awaitingSpinLock = null; // q now owns the lock
         Magic.sync(); // make sure the chain of waiting processors gets updated before another processor accesses the chain
         Magic.setObjectAtOffset(this, latestContenderOffset, p); // other contenders can get at the lock
       }
     }
-    if (VM.VerifyAssertions) i.registerUnlock();
+    VM.enableYieldpoints();
   }
 
   /**
@@ -219,20 +224,30 @@ public final class ProcessorLock implements Constants {
    * succeed.
    */
   @NoInline
-  private static void handleMicrocontention(int n) {
+  private void handleMicrocontention(int n) {
     Magic.pause();    // reduce overhead of spin wait on IA
     if (n <= 0) return;  // method call overhead is delay enough
     if (n > 100) {
-      VM.sysWriteln("Unexpectedly large processor lock contention");
-      Scheduler.dumpStack();
-      VM.sysFail("Unexpectedly large processor lock contention");
+      // PNT: FIXME: we're dying here ... maybe we're deadlocking?
+      VM.sysWriteln("Unexpectedly large spin lock contention on ",Magic.objectAsAddress(this));
+      RVMThread t=latestContender;
+      if (t==null) {
+        VM.sysWriteln("Unexpectedly large spin lock contention in ",RVMThread.getCurrentThreadSlot(),"; lock held by nobody");
+      } else {
+        VM.sysWriteln("Unexpectedly large spin lock contention in ",RVMThread.getCurrentThreadSlot(),"; lock held by ",t.getThreadSlot());
+        if (t!=RVMThread.getCurrentThread()) {
+          VM.sysWriteln("But -- at least the spin lock is held by a different thread.");
+        }
+      }
+      RVMThread.dumpStack();
+      VM.sysFail("Unexpectedly large spin lock contention");
     }
-    int pid = Processor.getCurrentProcessorId();
-    if (pid < 0) pid = -pid;                            // native processors have negative ids
+    // PNT: this is weird.
+    int pid = RVMThread.getCurrentThread().getThreadSlot(); // delay a different amount in each thread
     delayIndex = (delayIndex + pid) % delayCount.length;
     int delay = delayCount[delayIndex] * delayMultiplier; // pseudorandom backoff component
     delay += delayBase << (n - 1);                     // exponential backoff component
-    for (int i = delay; i > 0; i--) ;                        // delay a different amount of time on each processor
+    for (int i = delay; i > 0; i--) ;                        // delay a different amount of time on each thread
   }
 
   private static final int delayMultiplier = 10;
@@ -247,3 +262,4 @@ public final class ProcessorLock implements Constants {
   private static final Address IN_FLUX = Address.max();
 
 }
+

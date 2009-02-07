@@ -13,40 +13,40 @@
 package org.jikesrvm.ppc;
 
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * This class provides a layer of abstraction that the rest of the VM must
- * use in order to access the current <code>Processor</code> object.
+ * use in order to access the current <code>RVMThread</code> object.
  *
- * @see Processor
+ * @see RVMThread
  */
 @Uninterruptible
-public abstract class ProcessorLocalState {
+public abstract class ThreadLocalState {
 
   /**
    * The C bootstrap program has placed a pointer to the initial
-   * Processor in the processor register.  This is OK, so do nothing.
+   * Thread in the thread register.  This is OK, so do nothing.
    */
   public static void boot() {
     // do nothing - everything is already set up.
   }
 
   /**
-   * Return the current Processor object
+   * Return the current RVMThread object
    */
   @Inline
-  public static Processor getCurrentProcessor() {
-    return Magic.getProcessorRegister();
+  public static RVMThread getCurrentThread() {
+    return Magic.getThreadRegister();
   }
 
   /**
-   * Set the current Processor object
+   * Set the current thread object
    */
   @Inline
-  public static void setCurrentProcessor(Processor p) {
-    Magic.setProcessorRegister(p);
+  public static void setCurrentThread(RVMThread p) {
+    Magic.setThreadRegister(p);
   }
 }

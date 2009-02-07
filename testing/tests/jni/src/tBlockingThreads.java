@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Test native methods that block in native code
@@ -37,9 +37,9 @@ class tBlockingThreads {
       // have main thread make the native blocking call
       for (int i=1; i < 5; i++) {
         time = 1 * i;
-        Scheduler.trace("main","calling nativeBlocking for time = ",time);
+        RVMThread.trace("main","calling nativeBlocking for time = ",time);
         nativeBlocking(time);
-        Scheduler.trace("main","returned from nativeBlocking for time = ",time);
+        RVMThread.trace("main","returned from nativeBlocking for time = ",time);
       }
     } else {
       // create worker threads which each make repeated native blocking calls
@@ -63,7 +63,7 @@ class tBlockingThreads {
 
           cntr++;
           if (cntr%1000 == 0)
-            Scheduler.trace("main","waiting for worker",i);
+            RVMThread.trace("main","waiting for worker",i);
 
           if (FORCE_GC) {
             System.out.println("\nMain calling System.gc:\n");

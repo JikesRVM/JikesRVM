@@ -134,7 +134,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     mapIndex = 0;
     if (mapId < 0) {
       // lock the jsr lock to serialize jsr processing
-      ReferenceMaps.jsrLock.lock("jsr lock");
+      ReferenceMaps.jsrLock.lock();
       int JSRindex = maps.setupJSRSubroutineMap(mapId);
       while (JSRindex != 0) {
         Address nextCallerAddress = framePtr.plus(convertIndexToOffset(JSRindex)).loadAddress();
@@ -322,7 +322,6 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
           VM.sysWrite(bridgeRegisterLocation.plus(WORDSIZE));
           VM.sysWrite(".\n");
         }
-
         return bridgeRegisterLocation.plus(WORDSIZE);
       }
 
@@ -375,6 +374,9 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
       //
       registerLocations.set(EDI.value(), framePtr.plus(EDI_SAVE_OFFSET).toWord());
       registerLocations.set(EBX.value(), framePtr.plus(EBX_SAVE_OFFSET).toWord());
+      if (currentMethod.hasBaselineSaveLSRegistersAnnotation()) {
+        registerLocations.set(EBP.value(), framePtr.plus(EBP_SAVE_OFFSET).toWord());
+      }
     }
 
     return Address.zero();
@@ -428,3 +430,4 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     return maps.getStackDepth(mapId);
   }
 }
+

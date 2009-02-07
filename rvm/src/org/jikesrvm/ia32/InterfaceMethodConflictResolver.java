@@ -102,7 +102,7 @@ public abstract class InterfaceMethodConflictResolver implements RegisterConstan
       }
     } else {
       Offset disp = ArchEntrypoints.hiddenSignatureIdField.getOffset();
-      ProcessorLocalState.emitCompareFieldWithImm(asm, disp, sigIds[middle]);
+      ThreadLocalState.emitCompareFieldWithImm(asm, disp, sigIds[middle]);
       if (low < middle) {
         asm.emitJCC_Cond_Label(Assembler.LT, bcIndices[(low + middle - 1) / 2]);
       }

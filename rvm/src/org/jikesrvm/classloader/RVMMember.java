@@ -196,6 +196,7 @@ public abstract class RVMMember extends AnnotatedElement implements Constants, C
    */
   @Uninterruptible
   public final Offset getOffset() {
+    if (VM.VerifyAssertions) VM._assert(declaringClass!=null);
     if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM._assert(offset != NO_OFFSET);
     return Offset.fromIntSignExtend(offset);
@@ -210,3 +211,4 @@ public abstract class RVMMember extends AnnotatedElement implements Constants, C
     offset = off.toInt();
   }
 }
+

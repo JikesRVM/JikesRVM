@@ -22,8 +22,7 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
-import org.jikesrvm.scheduler.Scheduler;
-import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Command line option processing.
@@ -82,7 +81,6 @@ public class CommandLineArgs {
     BOOTCLASSPATH_P_ARG,
     BOOTCLASSPATH_A_ARG,
     BOOTSTRAP_CLASSES_ARG,
-    CPUAFFINITY_ARG,
     PROCESSORS_ARG
   }
 
@@ -183,7 +181,6 @@ public class CommandLineArgs {
                                             new Prefix("-Xbootclasspath/p:", PrefixType.BOOTCLASSPATH_P_ARG),
                                             new Prefix("-Xbootclasspath/a:", PrefixType.BOOTCLASSPATH_A_ARG),
                                             new Prefix("-X:vmClasses=", PrefixType.BOOTSTRAP_CLASSES_ARG),
-                                            new Prefix("-X:cpuAffinity=", PrefixType.CPUAFFINITY_ARG),
                                             new Prefix("-X:processors=", PrefixType.PROCESSORS_ARG),
                                             new Prefix("-X:irc:help$", PrefixType.IRC_HELP_ARG),
                                             new Prefix("-X:irc$", PrefixType.IRC_HELP_ARG),
@@ -539,19 +536,6 @@ public class CommandLineArgs {
           VM.verboseJNI = true;
           break;
 
-          // -------------------------------------------------//
-          // Options needed by Scheduler to boot correctly //
-          // -------------------------------------------------//
-        case CPUAFFINITY_ARG:
-          int cpuAffinity = -1;
-          try { cpuAffinity = primitiveParseInt(arg); } catch (NumberFormatException e) {}
-          if (cpuAffinity < 0) {
-            VM.sysWriteln("vm: ", p.value, " needs a cpu number (0..N-1), but found '", arg, "'");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-          }
-          Scheduler.cpuAffinity = cpuAffinity;
-          break;
-
         case PROCESSORS_ARG: // "-X:processors=<n>" or "-X:processors=all"
           int nProcs;
           if (arg.equals("all")) {
@@ -561,12 +545,12 @@ public class CommandLineArgs {
           } else {
             nProcs = primitiveParseInt(arg);
           }
-          if (nProcs < 1 || nProcs > (GreenScheduler.MAX_PROCESSORS - 1)) {
-            VM.sysWrite("vm: ", p.value, " needs an argument between 1 and ");
-            VM.sysWriteln(GreenScheduler.MAX_PROCESSORS - 1, " (inclusive), but found ", arg);
+          if (nProcs < 1) {
+            VM.sysWrite("vm: ", p.value, " needs an argument that is at least 1");
+            VM.sysWriteln(", but found ", arg);
             VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
-          GreenScheduler.numProcessors = nProcs;
+          RVMThread.numProcessors = nProcs;
           break;
 
           // -------------------------------------------------------------------

@@ -193,9 +193,10 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
     // that we're actually not supposed to take the sample at all (the system
     // is in the process of activating our organizer and processing the buffer).
     if (idx < buffer.length) {
-      buffer[idx + 0] = calleeCMID;
       buffer[idx + 1] = callerCMID;
       buffer[idx + 2] = callSite.toInt();
+      Magic.sync();
+      buffer[idx + 0] = calleeCMID;
 
       // If we are the last sample, we need to activate the organizer.
       if (sampleNumber + 1 == desiredSamples) {

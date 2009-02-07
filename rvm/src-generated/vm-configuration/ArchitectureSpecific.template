@@ -61,7 +61,7 @@ public class ArchitectureSpecific {
   public static final class MachineReflection extends org.jikesrvm.@_ARCH_@.MachineReflection {}
   public static final class MultianewarrayHelper extends org.jikesrvm.@_ARCH_@.MultianewarrayHelper {}
   public static final class OutOfLineMachineCode extends org.jikesrvm.@_ARCH_@.OutOfLineMachineCode {}
-  public static final class ProcessorLocalState extends org.jikesrvm.@_ARCH_@.ProcessorLocalState {}
+  public static final class ThreadLocalState extends org.jikesrvm.@_ARCH_@.ThreadLocalState {}
   public interface RegisterConstants extends org.jikesrvm.@_ARCH_@.RegisterConstants {}
   @NonMoving
   public static final class Registers extends org.jikesrvm.@_ARCH_@.Registers {}

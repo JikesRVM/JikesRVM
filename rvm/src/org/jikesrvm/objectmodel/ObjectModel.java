@@ -496,6 +496,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    * @param create if true, create heavy lock if none found
    * @return the heavy-weight lock on the object (if any)
    */
+  @Unpreemptible("May be interrupted for allocations of locks")
   public static Lock getHeavyLock(Object o, boolean create) {
     return JavaHeader.getHeavyLock(o, create);
   }

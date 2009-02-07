@@ -23,7 +23,9 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UnpreemptibleNoWarn;
+import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.Offset;
 
 /**
  Lock provides RVM support for monitors and Java level
@@ -91,24 +93,35 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  period?) examine heavy-weight locks and deflate any that havn't
  been held for a while (how long?).
  <LI> <EM>How many heavy-weight locks are needed? and how should they be
- managed?</EM>  Currently, we maintain a global pool of free locks.
- Each RVMThread has a 1 element cache.  On inflation, if the thread has
- a cached lock, it uses it. If it does not, it acquires one from the global
- pool.  On deflation, if the thread's cache is empty, it retains the lock. If
- the thread already has a cached free lock, it returns it to the global pool.
+ managed?</EM>  Currently, each processor maintains a pool of free
+ locks.  When a lock is inflated by a processor it is taken from
+ this pool and when a lock is deflated by a processor it gets added
+ to the processors pool.  Since inflation can happen on one processor
+ and deflation on another, this can create an imbalance.  It might
+ be worth investigating a scheme for balancing these local pools.
+ <LI> <EM>Is there any advantage to using the {@link SpinLock#tryLock}
+ method?</EM>
  </OL>
+ Once these questions, and the issue of using MCS locking in {@link
+SpinLock}, have been investigate, then a larger performance issue
+ comes into view.  A number of different light-weight locking schemes have
+ been proposed over the years (see last several OOPSLA's).  It should be
+ possible to implement each of them in RVM and compare their performance.
+ </p>
 
  @see java.lang.Object
  @see ThinLock
- @see ProcessorLock
+ @see SpinLock
  */
 
 @Uninterruptible
-public abstract class Lock implements Constants {
+public class Lock implements Constants {
   /****************************************************************************
    * Constants
    */
 
+  /** do debug tracing? */
+  protected static final boolean trace = false;
   /** Control the gathering of statistics */
   public static final boolean STATS = false;
 
@@ -125,19 +138,22 @@ public abstract class Lock implements Constants {
   /** The number of chunks to allocate on startup */
   protected static final int INITIAL_CHUNKS = 1;
 
+  /**
+   * Should we give up or persist in the attempt to get a heavy-weight lock,
+   * if its <code>mutex</code> microlock is held by another procesor.
+   */
+  private static final boolean tentativeMicrolocking = false;
+
   // Heavy lock table.
 
   /** The table of locks. */
   private static Lock[][] locks;
   /** Used during allocation of locks within the table. */
-  private static final ProcessorLock lockAllocationMutex = new ProcessorLock();
+  private static final SpinLock lockAllocationMutex = new SpinLock();
   /** The number of chunks in the spine that have been physically allocated */
   private static int chunksAllocated;
-  /**
-   * The index to use for the next allocated Lock.  Locks 1...nextLockIndex-1 have already
-   * been allocated (these may either be in use, on the global freelist,
-   * or in a thread's local cache of free locks.)
-   */
+  /** The number of locks allocated (these may either be in use, on a global
+   * freelist, or on a thread's freelist. */
   private static int nextLockIndex;
 
   // Global free list.
@@ -146,9 +162,9 @@ public abstract class Lock implements Constants {
   private static Lock globalFreeLock;
   /** the number of locks held on the global free list. */
   private static int globalFreeLocks;
-  /** The total number of lock allocation operations */
+  /** the total number of allocation operations. */
   private static int globalLocksAllocated;
-  /** the total number of lock free operations */
+  /** the total number of free operations. */
   private static int globalLocksFreed;
 
   // Statistics
@@ -171,20 +187,26 @@ public abstract class Lock implements Constants {
   /** The number of times the owning thread (if any) has acquired this lock. */
   protected int recursionCount;
   /** A spin lock to handle contention for the data structures of this lock. */
-  public final ProcessorLock mutex;
+  public final SpinLock mutex;
   /** Is this lock currently being used? */
   protected boolean active;
   /** The next free lock on the free lock list */
   private Lock nextFreeLock;
   /** This lock's index in the lock table*/
   protected int index;
+  /** Queue for entering the lock, guarded by mutex. */
+  ThreadQueue entering;
+  /** Queue for waiting on a notify, guarded by mutex as well. */
+  ThreadQueue waiting;
 
   /**
    * A heavy weight lock to handle extreme contention and wait/notify
    * synchronization.
    */
   public Lock() {
-    mutex = new ProcessorLock();
+    mutex = new SpinLock();
+    entering = new ThreadQueue();
+    waiting = new ThreadQueue();
   }
 
   /**
@@ -193,14 +215,106 @@ public abstract class Lock implements Constants {
    * @param o the object to be locked
    * @return true, if the lock succeeds; false, otherwise
    */
-  public abstract boolean lockHeavy(Object o);
+  @Unpreemptible
+  public boolean lockHeavy(Object o) {
+    if (tentativeMicrolocking) {
+      if (!mutex.tryLock()) {
+        return false;
+      }
+    } else {
+      mutex.lock();  // Note: thread switching is not allowed while mutex is held.
+    }
+    return lockHeavyLocked(o);
+  }
+  /** Complete the task of acquiring the heavy lock, assuming that the mutex
+      is already acquired (locked). */
+  @Unpreemptible
+  public boolean lockHeavyLocked(Object o) {
+    if (lockedObject != o) { // lock disappeared before we got here
+      mutex.unlock(); // thread switching benign
+      return false;
+    }
+    if (STATS) lockOperations++;
+    RVMThread me = RVMThread.getCurrentThread();
+    int threadId = me.getLockingId();
+    if (ownerId == threadId) {
+      recursionCount++;
+    } else if (ownerId == 0) {
+      ownerId = threadId;
+      recursionCount = 1;
+    } else {
+      entering.enqueue(me);
+      mutex.unlock();
+      me.monitor().lock();
+      while (entering.isQueued(me)) {
+        me.monitor().waitNicely(); // this may spuriously return
+      }
+      me.monitor().unlock();
+      return false;
+    }
+    mutex.unlock(); // thread-switching benign
+    return true;
+  }
+
+  @UnpreemptibleNoWarn
+  private static void raiseIllegalMonitorStateException(String msg, Object o) {
+    throw new IllegalMonitorStateException(msg + o);
+  }
 
   /**
    * Releases this heavy-weight lock on the indicated object.
    *
    * @param o the object to be unlocked
    */
-  public abstract void unlockHeavy(Object o);
+  public void unlockHeavy(Object o) {
+    boolean deflated = false;
+    mutex.lock(); // Note: thread switching is not allowed while mutex is held.
+    RVMThread me = RVMThread.getCurrentThread();
+    if (ownerId != me.getLockingId()) {
+      mutex.unlock(); // thread-switching benign
+      raiseIllegalMonitorStateException("heavy unlocking", o);
+    }
+    recursionCount--;
+    if (0 < recursionCount) {
+      mutex.unlock(); // thread-switching benign
+      return;
+    }
+    if (STATS) unlockOperations++;
+    ownerId = 0;
+    RVMThread toAwaken = entering.dequeue();
+    if (toAwaken == null && entering.isEmpty() && waiting.isEmpty()) { // heavy lock can be deflated
+      // Possible project: decide on a heuristic to control when lock should be deflated
+      Offset lockOffset = Magic.getObjectType(o).getThinLockOffset();
+      if (!lockOffset.isMax()) { // deflate heavy lock
+        deflate(o, lockOffset);
+        deflated = true;
+      }
+    }
+    mutex.unlock(); // does a Magic.sync();  (thread-switching benign)
+    if (toAwaken != null) {
+      toAwaken.monitor().lockedBroadcast();
+    }
+  }
+
+  /**
+   * Disassociates this heavy-weight lock from the indicated object.
+   * This lock is not held, nor are any threads on its queues.  Note:
+   * the mutex for this lock is held when deflate is called.
+   *
+   * @param o the object from which this lock is to be disassociated
+   */
+  private void deflate(Object o, Offset lockOffset) {
+    if (VM.VerifyAssertions) {
+      VM._assert(lockedObject == o);
+      VM._assert(recursionCount == 0);
+      VM._assert(entering.isEmpty());
+      VM._assert(waiting.isEmpty());
+    }
+    if (STATS) deflations++;
+    ThinLock.deflate(o, lockOffset, this);
+    lockedObject = null;
+    free(this);
+  }
 
   /**
    * Set the owner of a lock
@@ -248,11 +362,17 @@ public abstract class Lock implements Constants {
   /**
    * Dump threads blocked trying to get this lock
    */
-  protected abstract void dumpBlockedThreads();
+  protected void dumpBlockedThreads() {
+    VM.sysWrite(" entering: ");
+    entering.dump();
+  }
   /**
    * Dump threads waiting to be notified on this lock
    */
-  protected abstract void dumpWaitingThreads();
+  protected void dumpWaitingThreads() {
+    VM.sysWrite(" waiting: ");
+    waiting.dump();
+  }
 
   /**
    * Reports the state of a heavy-weight lock, via {@link VM#sysWrite}.
@@ -286,7 +406,7 @@ public abstract class Lock implements Constants {
     if (mutex.latestContender == null) {
       VM.sysWrite("<null>");
     } else {
-      VM.sysWriteHex(mutex.latestContender.id);
+      VM.sysWriteInt(mutex.latestContender.getThreadSlot());
     }
     VM.sysWrite("\n");
   }
@@ -294,12 +414,16 @@ public abstract class Lock implements Constants {
   /**
    * Is this lock blocking thread t?
    */
-  protected abstract boolean isBlocked(RVMThread t);
+  protected boolean isBlocked(RVMThread t) {
+    return entering.isQueued(t);
+  }
 
   /**
    * Is this thread t waiting on this lock?
    */
-  protected abstract boolean isWaiting(RVMThread t);
+  protected boolean isWaiting(RVMThread t) {
+    return waiting.isQueued(t);
+  }
 
   /****************************************************************************
    * Static Lock Table
@@ -333,24 +457,23 @@ public abstract class Lock implements Constants {
    *
    * @return a free Lock; or <code>null</code>, if garbage collection is not enabled
    */
-  @UnpreemptibleNoWarn("Possible preemption when allocating a lock")
+  @UnpreemptibleNoWarn("The caller is prepared to lose control when it allocates a lock")
   static Lock allocate() {
-    Processor mine = Processor.getCurrentProcessor();
-    if (mine.isInitialized && !mine.threadSwitchingEnabled()) {
-      /* Collector threads can't use heavy locks because they don't fix up their stacks after moving objects */
-      return null;
-    }
-    RVMThread me = Scheduler.getCurrentThread();
+    RVMThread me=RVMThread.getCurrentThread();
     if (me.cachedFreeLock != null) {
       Lock l = me.cachedFreeLock;
       me.cachedFreeLock = null;
+      if (trace) {
+        VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),
+                      ", a cached free lock from Thread #",me.getThreadSlot());
+      }
       return l;
     }
 
     Lock l = null;
     while (l == null) {
       if (globalFreeLock != null) {
-        lockAllocationMutex.lock("lock allocation mutex - attempting freelist allocation");
+        lockAllocationMutex.lock();
         l = globalFreeLock;
         if (l != null) {
           globalFreeLock = l.nextFreeLock;
@@ -359,9 +482,13 @@ public abstract class Lock implements Constants {
           globalFreeLocks--;
         }
         lockAllocationMutex.unlock();
+        if (trace && l!=null) {
+          VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),
+                        " from the global freelist for Thread #",me.getThreadSlot());
+        }
       } else {
-        l = new Scheduler.LockModel(); // may cause thread switch (and processor loss)
-        lockAllocationMutex.lock("lock allocation mutex - attempting to add a lock");
+        l = new Lock(); // may cause thread switch (and processor loss)
+        lockAllocationMutex.lock();
         if (globalFreeLock == null) {
           // ok, it's still correct for us to be adding a new lock
           if (nextLockIndex >= MAX_LOCKS) {
@@ -385,27 +512,47 @@ public abstract class Lock implements Constants {
            * Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen */
           Magic.sync();
         }
+        if (trace && l!=null) {
+          VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),
+                        ", a freshly allocated lock for Thread #",
+                        me.getThreadSlot());
+        }
       }
     }
     return l;
   }
 
   /**
-   * Recycles an unused heavy-weight lock. Threads maintain
-   * a one element cache that sits in front of a global free list.
+   * Recycles an unused heavy-weight lock.  Locks are deallocated
+   * to processor specific lists, so normally no synchronization
+   * is required to obtain or release a lock.
    */
   protected static void free(Lock l) {
     l.active = false;
-    RVMThread me = Scheduler.getCurrentThread();
+    RVMThread me = RVMThread.getCurrentThread();
     if (me.cachedFreeLock == null) {
+      if (trace) {
+        VM.sysWriteln("Lock.free: setting ",Magic.objectAsAddress(l),
+                      " as the cached free lock for Thread #",
+                      me.getThreadSlot());
+      }
       me.cachedFreeLock = l;
     } else {
+      if (trace) {
+        VM.sysWriteln("Lock.free: returning ",Magic.objectAsAddress(l),
+                      " to the global freelist for Thread #",
+                      me.getThreadSlot());
+      }
       returnLock(l);
     }
   }
-
-  protected static void returnLock(Lock l) {
-    lockAllocationMutex.lock("lock allocation mutex - returning lock to freelist");
+  static void returnLock(Lock l) {
+    if (trace) {
+      VM.sysWriteln("Lock.returnLock: returning ",Magic.objectAsAddress(l),
+                    " to the global freelist for Thread #",
+                    RVMThread.getCurrentThreadSlot());
+    }
+    lockAllocationMutex.lock();
     l.nextFreeLock = globalFreeLock;
     globalFreeLock = l;
     globalFreeLocks++;
@@ -416,7 +563,7 @@ public abstract class Lock implements Constants {
   /**
    * Grow the locks table by allocating a new spine chunk.
    */
-  @UnpreemptibleNoWarn("Possible preemption when allocating lock array")
+  @UnpreemptibleNoWarn("The caller is prepared to lose control when it allocates a lock")
   static void growLocks(int id) {
     int spineId = id >> LOG_LOCK_CHUNK_SIZE;
     if (spineId >= LOCK_SPINE_SIZE) {
@@ -431,7 +578,7 @@ public abstract class Lock implements Constants {
       /* Allocate the chunk */
       Lock[] newChunk = new Lock[LOCK_CHUNK_SIZE];
 
-      lockAllocationMutex.lock("lock allocation mutex - growing");
+      lockAllocationMutex.lock();
       if (locks[i] == null) {
         /* We got here first */
         locks[i] = newChunk;
@@ -483,6 +630,13 @@ public abstract class Lock implements Constants {
       }
     }
     VM.sysWrite("\n");
+    VM.sysWrite("lock availability stats: ");
+    VM.sysWriteInt(globalLocksAllocated);
+    VM.sysWrite(" locks allocated, ");
+    VM.sysWriteInt(globalLocksFreed);
+    VM.sysWrite(" locks freed, ");
+    VM.sysWriteInt(globalFreeLocks);
+    VM.sysWrite(" free locks\n");
   }
 
   /**
@@ -576,3 +730,4 @@ public abstract class Lock implements Constants {
     }
   }
 }
+

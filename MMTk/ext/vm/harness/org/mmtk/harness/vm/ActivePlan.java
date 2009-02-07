@@ -72,31 +72,9 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
   @Override
   public Log log() { return Scheduler.currentLog(); }
 
-  /**
-   * Return the <code>CollectorContext</code> instance given its unique identifier.
-   *
-   * @param id The identifier of the <code>CollectorContext</code>  to return
-   * @return The specified <code>CollectorContext</code>
-   */
-  @Override
-  public CollectorContext collector(int id) { return Collector.get(id).getContext(); }
-
-  /**
-   * Return the <code>MutatorContext</code> instance given its unique identifier.
-   *
-   * @param id The identifier of the <code>MutatorContext</code>  to return
-   * @return The specified <code>MutatorContext</code>
-   */
-  @Override
-  public MutatorContext mutator(int id) { return Mutator.get(id).getContext(); }
-
   /** @return The number of registered <code>CollectorContext</code> instances. */
   @Override
   public int collectorCount() { return Collector.count(); }
-
-  /** @return The number of registered <code>MutatorContext</code> instances. */
-  @Override
-  public int mutatorCount() { return Mutator.count(); }
 
   /** Reset the mutator iterator */
   @Override
@@ -116,29 +94,5 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
       if (mutatorIndex >= Mutator.count()) return null;
       return Mutator.get(mutatorIndex++).getContext();
     }
-  }
-
-  /**
-   * Register a new <code>CollectorContext</code> instance.
-   *
-   * @param collector The <code>CollectorContext</code> to register.
-   * @return The <code>CollectorContext</code>'s unique identifier
-   */
-  @Interruptible
-  @Override
-  public int registerCollector(CollectorContext collector) {
-    return Collector.register(collector);
-  }
-
-  /**
-   * Register a new <code>MutatorContext</code> instance.
-   *
-   * @param mutator The <code>MutatorContext</code> to register.
-   * @return The <code>MutatorContext</code>'s unique identifier
-   */
-  @Interruptible
-  @Override
-  public int registerMutator(MutatorContext mutator) {
-    return Mutator.register(mutator);
   }
 }

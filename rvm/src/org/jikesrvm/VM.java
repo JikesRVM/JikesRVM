@@ -12,7 +12,7 @@
  */
 package org.jikesrvm;
 
-import org.jikesrvm.ArchitectureSpecific.ProcessorLocalState;
+import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
 import org.jikesrvm.classloader.Atom;
@@ -40,13 +40,9 @@ import org.jikesrvm.runtime.SysCall;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.scheduler.Lock;
 import org.jikesrvm.scheduler.MainThread;
-import org.jikesrvm.scheduler.Processor;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.JikesRVMSocketImpl;
-import org.jikesrvm.scheduler.greenthreads.FileSystem;
-import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.runtime.FileSystem;
 import org.jikesrvm.tuningfork.TraceEngine;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
@@ -126,35 +122,25 @@ public class VM extends Properties implements Constants, ExitStatus {
   public static void boot() {
     writingBootImage = false;
     runningVM = true;
-    runningAsSubsystem = false;
     verboseBoot = BootRecord.the_boot_record.verboseBoot;
 
     sysWriteLockOffset = Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
 
-    // Register the offsets of static fields that would be potentially
-    // erroneously calculated during interface declaration
-    if (verboseBoot >= 1) VM.sysWriteln("Setting up static fields");
-    SysCall.sysCall.sysRegisterStaticFieldOffsets(Entrypoints.gcStatusField.getOffset().toInt(),
-        Entrypoints.timerTicksField.getOffset().toInt(),
-        Entrypoints.reportedTimerTicksField.getOffset().toInt());
-
-    // Set up the current Processor object.  The bootstrap program
-    // has placed a pointer to the current Processor in a special
+    // Set up the current RVMThread object.  The bootstrap program
+    // has placed a pointer to the current RVMThread in a special
     // register.
-    if (verboseBoot >= 1) VM.sysWriteln("Setting up current Processor");
-    ProcessorLocalState.boot();
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up current RVMThread");
+    ThreadLocalState.boot();
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any interruptible methods are called
     // because it's accessed by compiler-generated stack overflow checks.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
-    RVMThread currentThread = Processor.getCurrentProcessor().activeThread;
+    RVMThread currentThread = RVMThread.getCurrentThread();
     currentThread.stackLimit = Magic.objectAsAddress(
         currentThread.getStack()).plus(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD);
-
-    Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
 
     finishBooting();
   }
@@ -171,7 +157,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     // get pthread_id from OS and store into vm_processor field
     //
     sysCall.sysPthreadSetupSignalHandling();
-    Processor.getCurrentProcessor().pthread_id = sysCall.sysPthreadSelf();
+    RVMThread.getCurrentThread().pthread_id = sysCall.sysPthreadSelf();
 
     // Set up buffer locks used by Thread for logging and status dumping.
     //    This can happen at any point before we start running
@@ -285,17 +271,18 @@ public class VM extends Properties implements Constants, ExitStatus {
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
-    Scheduler.boot();
+    RVMThread.boot();
     DynamicLibrary.boot();
 
     if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
-    Scheduler.getCurrentThread().setupBootThread();
+    RVMThread.getCurrentThread().setupBootJavaThread();
 
     // Create JNI Environment for boot thread.
     // After this point the boot thread can invoke native methods.
     org.jikesrvm.jni.JNIEnvironment.boot();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
-    Scheduler.getCurrentThread().initializeJNIEnv();
+    RVMThread.getCurrentThread().initializeJNIEnv();
+    if (verboseBoot >= 1) VM.sysWriteln("JNI initialized for boot thread");
 
     if (VM.BuildForHarmony) {
       System.loadLibrary("hyluni");
@@ -389,7 +376,6 @@ public class VM extends Properties implements Constants, ExitStatus {
       runClassInitializer("java.lang.VMDouble");
     }
     runClassInitializer("java.util.PropertyPermission");
-    runClassInitializer("org.jikesrvm.scheduler.greenthreads.VMProcess");
     runClassInitializer("org.jikesrvm.classloader.RVMAnnotation");
     runClassInitializer("java.lang.annotation.RetentionPolicy");
     runClassInitializer("java.lang.annotation.ElementType");
@@ -397,6 +383,8 @@ public class VM extends Properties implements Constants, ExitStatus {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.lang.VMClassLoader");
     }
+
+    if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     FileSystem.initializeStandardStreams();
 
@@ -446,12 +434,6 @@ public class VM extends Properties implements Constants, ExitStatus {
     String[] applicationArguments = CommandLineArgs.lateProcessCommandLineArguments();
 
     if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWrite("[VM booted]\n");
-
-    // set up JikesRVM socket I/O
-    if (VM.BuildForGnuClasspath) {
-      if (verboseBoot >= 1) VM.sysWriteln("Initializing socket factories");
-      JikesRVMSocketImpl.boot();
-    }
 
     if (VM.BuildForAdaptiveSystem) {
       if (verboseBoot >= 1) VM.sysWriteln("Initializing adaptive system");
@@ -509,17 +491,14 @@ public class VM extends Properties implements Constants, ExitStatus {
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
     mainThread.start();
 
-    if (verboseBoot >= 1) VM.sysWriteln("Starting debugger thread");
-    Scheduler.startDebuggerThread();
-
     // End of boot thread.
     //
-    if (VM.TraceThreads) GreenScheduler.trace("VM.boot", "completed - terminating");
+    if (VM.TraceThreads) RVMThread.trace("VM.boot", "completed - terminating");
     if (verboseBoot >= 2) {
       VM.sysWriteln("Boot sequence completed; finishing boot thread");
     }
 
-    Scheduler.getCurrentThread().terminate();
+    RVMThread.getCurrentThread().terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -1327,6 +1306,15 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
+  public static void sysWriteln(String s, Atom a) {
+    swLock();
+    write(s);
+    write(a);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
   public static void sysWrite(String s, int i) {
     swLock();
     write(s);
@@ -1523,11 +1511,30 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
+  public static void sysWrite(String s1, Address a, String s2) {
+    swLock();
+    write(s1);
+    write(a);
+    write(s2);
+    swUnlock();
+  }
+
+  @NoInline
   public static void sysWriteln(String s1, String s2, Address a) {
     swLock();
     write(s1);
     write(s2);
     write(a);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(String s1, Address a,String s2) {
+    swLock();
+    write(s1);
+    write(a);
+    write(s2);
     writeln();
     swUnlock();
   }
@@ -1604,6 +1611,17 @@ public class VM extends Properties implements Constants, ExitStatus {
     write(s1);
     write(s2);
     write(s3);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(String s1, String s2, String s3, Address a) {
+    swLock();
+    write(s1);
+    write(s2);
+    write(s3);
+    write(a);
     writeln();
     swUnlock();
   }
@@ -1691,6 +1709,28 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
+  public static void sysWriteln(String s1, int i, String s3, Address a, String s5) {
+    swLock();
+    write(s1);
+    write(i);
+    write(s3);
+    write(a);
+    write(s5);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(int i, String s, Address a) {
+    swLock();
+    write(i);
+    write(s);
+    write(a);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
   public static void sysWrite(String s1, int i1, String s2, int i2) {
     swLock();
     write(s1);
@@ -1707,6 +1747,76 @@ public class VM extends Properties implements Constants, ExitStatus {
     write(i1);
     write(s2);
     write(i2);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(String s1, int i, String s2, Address a) {
+    swLock();
+    write(s1);
+    write(i);
+    write(s2);
+    write(a);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(String s1, int i, String s2, Word w) {
+    swLock();
+    write(s1);
+    write(i);
+    write(s2);
+    write(w);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(String s1, int i, String s2, double d) {
+    swLock();
+    write(s1);
+    write(i);
+    write(s2);
+    write(d);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(String s1, int i, String s2, Word w, String s3) {
+    swLock();
+    write(s1);
+    write(i);
+    write(s2);
+    write(w);
+    write(s3);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(String s1, int i1, String s2, int i2, String s3) {
+    swLock();
+    write(s1);
+    write(i1);
+    write(s2);
+    write(i2);
+    write(s3);
+    writeln();
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(String s1, int i1, String s2, int i2, String s3, int i3) {
+    swLock();
+    write(s1);
+    write(i1);
+    write(s2);
+    write(i2);
+    write(s3);
+    write(i3);
     writeln();
     swUnlock();
   }
@@ -1925,23 +2035,15 @@ public class VM extends Properties implements Constants, ExitStatus {
     swUnlock();
   }
 
-  private static void showProc() {
-    Processor p = Processor.getCurrentProcessor();
-    write("Proc ");
-    write(p.id);
-    write(": ");
-  }
-
   private static void showThread() {
     write("Thread ");
-    write(Scheduler.getCurrentThread().getIndex());
+    write(RVMThread.getCurrentThread().getThreadSlot());
     write(": ");
   }
 
   @NoInline
-  public static void ptsysWriteln(String s) {
+  public static void tsysWriteln(String s) {
     swLock();
-    showProc();
     showThread();
     write(s);
     writeln();
@@ -1949,9 +2051,8 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  public static void ptsysWriteln(String s1, String s2, String s3, int i4, String s5, String s6) {
+  public static void tsysWriteln(String s1, String s2, String s3, int i4, String s5, String s6) {
     swLock();
-    showProc();
     showThread();
     write(s1);
     write(s2);
@@ -1964,10 +2065,9 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8,
+  public static void tsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8,
                                   String s9, String s10, String s11, String s12, String s13) {
     swLock();
-    showProc();
     showThread();
     write(s1);
     write(s2);
@@ -1987,10 +2087,9 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  public static void ptsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8,
+  public static void tsysWriteln(String s1, String s2, String s3, String s4, String s5, String s6, String s7, int i8,
                                   String s9, String s10, String s11, String s12, String s13, int i14) {
     swLock();
-    showProc();
     showThread();
     write(s1);
     write(s2);
@@ -2009,37 +2108,27 @@ public class VM extends Properties implements Constants, ExitStatus {
     writeln();
     swUnlock();
   }
-
   @NoInline
-  public static void psysWrite(char[] c, int l) {
+  public static void tsysWrite(char[] c, int l) {
     swLock();
-    showProc();
+    showThread();
     write(c, l);
     swUnlock();
   }
 
   @NoInline
-  public static void psysWriteln(Address a) {
+  public static void tsysWriteln(Address a) {
     swLock();
-    showProc();
+    showThread();
     write(a);
     writeln();
     swUnlock();
   }
 
   @NoInline
-  public static void psysWriteln(String s) {
+  public static void tsysWriteln(String s, int i) {
     swLock();
-    showProc();
-    write(s);
-    writeln();
-    swUnlock();
-  }
-
-  @NoInline
-  public static void psysWriteln(String s, int i) {
-    swLock();
-    showProc();
+    showThread();
     write(s);
     write(i);
     writeln();
@@ -2047,9 +2136,9 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  public static void psysWriteln(String s, Address a) {
+  public static void tsysWriteln(String s, Address a) {
     swLock();
-    showProc();
+    showThread();
     write(s);
     write(a);
     writeln();
@@ -2057,9 +2146,9 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  public static void psysWriteln(String s1, Address a1, String s2, Address a2) {
+  public static void tsysWriteln(String s1, Address a1, String s2, Address a2) {
     swLock();
-    showProc();
+    showThread();
     write(s1);
     write(a1);
     write(s2);
@@ -2069,9 +2158,9 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  public static void psysWriteln(String s1, Address a1, String s2, Address a2, String s3, Address a3) {
+  public static void tsysWriteln(String s1, Address a1, String s2, Address a2, String s3, Address a3) {
     swLock();
-    showProc();
+    showThread();
     write(s1);
     write(a1);
     write(s2);
@@ -2083,10 +2172,10 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  public static void psysWriteln(String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4,
+  public static void tsysWriteln(String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4,
                                  Address a4) {
     swLock();
-    showProc();
+    showThread();
     write(s1);
     write(a1);
     write(s2);
@@ -2100,10 +2189,10 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   @NoInline
-  public static void psysWriteln(String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4,
+  public static void tsysWriteln(String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4,
                                  Address a4, String s5, Address a5) {
     swLock();
-    showProc();
+    showThread();
     write(s1);
     write(a1);
     write(s2);
@@ -2141,13 +2230,13 @@ public class VM extends Properties implements Constants, ExitStatus {
     handlePossibleRecursiveCallToSysFail(message);
 
     // print a traceback and die
-    if(!Scheduler.getCurrentThread().isGCThread()) {
-      GreenScheduler.traceback(message);
+    if(!RVMThread.getCurrentThread().isGCThread()) {
+      RVMThread.traceback(message);
     } else {
       VM.sysWriteln("Died in GC:");
-      GreenScheduler.traceback(message);
+      RVMThread.traceback(message);
       VM.sysWriteln("Virtual machine state:");
-      Scheduler.dumpVirtualMachine();
+      RVMThread.dumpVirtualMachine();
     }
     bugReportMessage();
     if (VM.runningVM) {
@@ -2171,7 +2260,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     handlePossibleRecursiveCallToSysFail(message, number);
 
     // print a traceback and die
-    GreenScheduler.traceback(message, number);
+    RVMThread.traceback(message, number);
     bugReportMessage();
     if (VM.runningVM) {
       VM.shutdown(EXIT_STATUS_SYSFAIL);
@@ -2192,12 +2281,11 @@ public class VM extends Properties implements Constants, ExitStatus {
     if (Options.stackTraceAtExit) {
       VM.sysWriteln("[Here is the context of the call to VM.sysExit(", value, ")...:");
       VM.disableGC();
-      GreenScheduler.dumpStack();
+      RVMThread.dumpStack();
       VM.enableGC();
       VM.sysWriteln("... END context of the call to VM.sysExit]");
     }
     if (runningVM) {
-      Scheduler.sysExit();
       Callbacks.notifyExit(value);
       VM.shutdown(value);
     } else {
@@ -2216,12 +2304,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     handlePossibleRecursiveShutdown();
 
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
-    if (VM.runningAsSubsystem) {
-      // Terminate only the system threads that belong to the VM
-      GreenScheduler.processorExit(value);
-    } else {
-      sysCall.sysExit(value);
-    }
+    sysCall.sysExit(value);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -2274,22 +2357,14 @@ public class VM extends Properties implements Constants, ExitStatus {
    * @param number Print this number, if <code>showNumber</code> is true. */
   private static void handlePossibleRecursiveExit(String called, int depth, String message, boolean showNumber,
                                                   int number) {
-    /* We adjust up by nProcessorAdjust since we do not want to prematurely
-       abort.  Consider the case where Scheduler.numProcessors is greater
-       than maxSystemTroubleRecursionDepth.  (This actually happened.)
-
-       Possible change: Instead of adjusting by the # of processors, make the
-       "depth" variable a per-processor variable. */
-    int nProcessors = GreenScheduler.numProcessors;
-    int nProcessorAdjust = nProcessors - 1;
     if (depth > 1 &&
         (depth <=
-         maxSystemTroubleRecursionDepth + nProcessorAdjust + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite)) {
+         maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite)) {
       if (showNumber) {
-        ptsysWriteln("VM.",
+        tsysWriteln("VM.",
                      called,
                      "(): We're in a",
-                     depth > nProcessors ? "n (unambiguously)" : " (likely)",
+                     " (likely)",
                      " recursive call to VM.",
                      called,
                      "(), ",
@@ -2301,10 +2376,10 @@ public class VM extends Properties implements Constants, ExitStatus {
                      message == null ? "" : message,
                      number);
       } else {
-        ptsysWriteln("VM.",
+        tsysWriteln("VM.",
                      called,
                      "(): We're in a",
-                     depth > nProcessors ? "n (unambiguously)" : " (likely)",
+                     " (likely)",
                      " recursive call to VM.",
                      called,
                      "(), ",
@@ -2316,7 +2391,7 @@ public class VM extends Properties implements Constants, ExitStatus {
                      message == null ? "" : message);
       }
     }
-    if (depth > maxSystemTroubleRecursionDepth + nProcessorAdjust) {
+    if (depth > maxSystemTroubleRecursionDepth) {
       dieAbruptlyRecursiveSystemTrouble();
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
@@ -2374,9 +2449,12 @@ public class VM extends Properties implements Constants, ExitStatus {
       BootImageCompiler.init(bootCompilerArgs);
     }
     RuntimeEntrypoints.init();
-    Scheduler.init();
+    RVMThread.init();
     MemoryManager.init();
   }
+
+  public static void disableYieldpoints() { RVMThread.getCurrentThread().disableYieldpoints(); }
+  public static void enableYieldpoints() { RVMThread.getCurrentThread().enableYieldpoints(); }
 
   /**
    * The disableGC() and enableGC() methods are for use as guards to protect
@@ -2437,7 +2515,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     //    would invalidate the addresses we're holding)
     //
 
-    RVMThread myThread = Scheduler.getCurrentThread();
+    RVMThread myThread = RVMThread.getCurrentThread();
 
     // 0. Sanity Check; recursion
     int gcDepth = myThread.getDisableGCDepth();
@@ -2458,7 +2536,7 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     // 2.
     //
-    Processor.getCurrentProcessor().disableThreadSwitching("disabling GC");
+    myThread.disableYieldpoints();
 
     // 3.
     //
@@ -2486,7 +2564,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    */
   @Inline
   public static void enableGC(boolean recursiveOK) {
-    RVMThread myThread = Scheduler.getCurrentThread();
+    RVMThread myThread = RVMThread.getCurrentThread();
     int gcDepth = myThread.getDisableGCDepth();
     if (VM.VerifyAssertions) {
       VM._assert(gcDepth >= 1);
@@ -2500,7 +2578,7 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     // Now the actual work of re-enabling GC.
     myThread.clearDisallowAllocationsByThisThread();
-    Processor.getCurrentProcessor().enableThreadSwitching();
+    myThread.enableYieldpoints();
   }
 
   /**
@@ -2520,3 +2598,4 @@ public class VM extends Properties implements Constants, ExitStatus {
     return BuildForSSE2;
   }
 }
+

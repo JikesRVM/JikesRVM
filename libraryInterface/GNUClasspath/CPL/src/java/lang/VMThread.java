@@ -12,9 +12,7 @@
  */
 package java.lang;
 
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.greenthreads.GreenThread;
 
 /**
  * Wrapper for Jikes RVM thread class
@@ -35,7 +33,7 @@ final class VMThread {
    * Create the VM thread, set this in the parent Thread and start its execution
    */
   static void create(Thread parent, long stacksize) {
-    RVMThread vmd = new GreenThread(parent, stacksize,  parent.name, parent.daemon, parent.priority);
+    RVMThread vmd = new RVMThread(parent, stacksize,  parent.name, parent.daemon, parent.priority);
     parent.vmThread = new VMThread(vmd);
     vmd.start();
   }
@@ -58,7 +56,7 @@ final class VMThread {
    * @return the current executing java.lang.Thread
    */
   static Thread currentThread() {
-    return Scheduler.getCurrentThread().getJavaLangThread();
+    return RVMThread.getCurrentThread().getJavaLangThread();
   }
   /**
    * Does the currently running Thread hold the lock on an obj?
@@ -66,7 +64,7 @@ final class VMThread {
    * @return whether the thread holds the lock
    */
   static boolean holdsLock(Object obj) {
-    return Scheduler.getCurrentThread().holdsLock(obj);
+    return RVMThread.getCurrentThread().holdsLock(obj);
   }
 
   /**
@@ -109,7 +107,7 @@ final class VMThread {
    * Yield control
    */
   static void yield() {
-    Scheduler.yield();
+    RVMThread.yield();
   }
   /**
    * Put the current thread to sleep
@@ -125,7 +123,7 @@ final class VMThread {
    * @return whether the thread was interrupted
    */
   static boolean interrupted() {
-    RVMThread current = Scheduler.getCurrentThread();
+    RVMThread current = RVMThread.getCurrentThread();
     if (current.isInterrupted()) {
       current.clearInterrupted();
       return true;
@@ -162,7 +160,7 @@ final class VMThread {
    * @param t the throwable thrown when the thread dies
    */
   void stop(Throwable t) {
-    vmdata.kill(t, true);
+    vmdata.stop(t);
   }
   /**
    * Count the stack frames of this thread

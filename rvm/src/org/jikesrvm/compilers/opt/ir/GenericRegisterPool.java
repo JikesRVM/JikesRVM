@@ -16,7 +16,6 @@ import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-import org.jikesrvm.scheduler.Scheduler;
 
 /**
  * Pool of symbolic registers.
@@ -75,10 +74,10 @@ public class GenericRegisterPool extends AbstractRegisterPool {
    *
    * @return the temp
    */
-  public RegisterOperand makePROp() {
-    RegisterOperand prOp = new RegisterOperand(physical.getPR(), Scheduler.getProcessorType());
-    prOp.setPreciseType();
-    return prOp;
+  public RegisterOperand makeTROp() {
+    RegisterOperand trOp = new RegisterOperand(physical.getTR(), TypeReference.Thread);
+    trOp.setPreciseType();
+    return trOp;
   }
 
 }

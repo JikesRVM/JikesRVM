@@ -134,7 +134,7 @@ public class ExecutionState implements OSRConstants, BytecodeConstants {
   /** print the current state for debugging */
   public void printState() {
     VM.sysWriteln("Execution state of " + meth);
-    VM.sysWriteln("    thread index : ", thread.getIndex());
+    VM.sysWriteln("    thread index : ", thread.getThreadSlot());
     VM.sysWriteln("       FP offset : ", fpOffset);
     VM.sysWriteln("            cmid : ", cmid);
     VM.sysWriteln("         bcIndex : ", bcIndex);
