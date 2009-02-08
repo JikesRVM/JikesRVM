@@ -69,6 +69,9 @@ public class FinalizerThread extends RVMThread {
         // places objects on the finalizer queue and notifies.
         schedLock.lock();
         if (!shouldRun) {
+          if (verbose>=1) {
+            VM.sysWriteln("finalizer thread sleeping.");
+          }
           schedLock.waitNicely();
         }
         shouldRun=false;

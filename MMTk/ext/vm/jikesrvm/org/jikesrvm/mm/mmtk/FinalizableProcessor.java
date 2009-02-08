@@ -20,12 +20,12 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.Services;
-import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.TraceLocal;
 
 /**
  * This class manages the processing of finalizable objects.
  */
+// can this be a linked list?
 @Uninterruptible
 public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor implements SizeConstants {
 
@@ -64,9 +64,6 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   /** Index of the first free slot in the table. */
   protected volatile int maxIndex = 0;
 
-  /** Flag to prevent a race between threads growing the table. */
-  private volatile boolean growingTables = false;
-
   /** Next object ready to be finalized */
   private volatile int nextReadyIndex = 0;
 
@@ -79,30 +76,50 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   protected FinalizableProcessor() {}
 
   /**
-   * Grow the table.
-   *
-   * Can GC when it allocates, but the rest of the code can't tolerate GC.
-   * This method is called without the reference processor lock held, but with
-   * the flag <code>growingTable</code> set.
+   * Allocate an entry in the table. This should be called from an unpreemptible
+   * context so that the entry can be filled. This method is responsible for growing
+   * the table if necessary.
    */
-  @UninterruptibleNoWarn
-  @Unpreemptible("Non-preemptible but allocates larger table")
-  private void growTables() {
-    if (maxIndex >= table.length()) {
-      int newLength = STRESS ? table.length() + 1 : (int)(table.length() * GROWTH_FACTOR);
-      AddressArray newTable = AddressArray.create(newLength);
-      for (int i=0; i < table.length(); i++) {
-        newTable.set(i, table.get(i));
-      }
-      table = newTable;
-    }
+  @NoInline
+  @UnpreemptibleNoWarn("Non-preemptible but yield when table needs to be grown")
+  public void add(Object object) {
+    lock.acquire();
+    while (maxIndex>=table.length() || maxIndex >= freeReady()) {
+      int newTableSize=-1;
+      int newReadyForFinalizeSize=-1;
+      AddressArray newTable=null;
+      Object[] newReadyForFinalize=null;
 
-    if (maxIndex >= freeReady()) {
-      /* Logically we need to be able to store all these values in the ready table */
-      int readyLength = table.length() + countReady();
-      if (readyLength > readyForFinalize.length) {
-        /* Need to grow the ready table also */
-        Object[] newReadyForFinalize = new Object[readyLength];
+      if (maxIndex>=table.length()) {
+        newTableSize=STRESS ? table.length() + 1 : (int)(table.length() * GROWTH_FACTOR);
+      }
+
+      if (maxIndex>=freeReady()) {
+        newReadyForFinalizeSize=table.length() + countReady();
+        if (newReadyForFinalizeSize<=readyForFinalize.length) {
+          newReadyForFinalizeSize=-1;
+        }
+      }
+
+      {
+        lock.release();
+        if (newTableSize>=0) {
+          newTable=AddressArray.create(newTableSize);
+        }
+        if (newReadyForFinalizeSize>=0) {
+          newReadyForFinalize=new Object[newReadyForFinalizeSize];
+        }
+        lock.acquire();
+      }
+
+      if (maxIndex>=table.length() && newTable!=null) {
+        for (int i=0; i < table.length(); i++) {
+          newTable.set(i, table.get(i));
+        }
+        table = newTable;
+      }
+
+      if (maxIndex>=freeReady() && newReadyForFinalize!=null) {
         int j = 0;
         for(int i=nextReadyIndex; i < lastReadyIndex && i < readyForFinalize.length; i++) {
           newReadyForFinalize[j++] = readyForFinalize[i];
@@ -115,43 +132,6 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
         lastReadyIndex = j;
         nextReadyIndex = 0;
         readyForFinalize = newReadyForFinalize;
-      }
-    }
-  }
-
-  /**
-   * Allocate an entry in the table. This should be called from an unpreemptible
-   * context so that the entry can be filled. This method is responsible for growing
-   * the table if necessary.
-   */
-  @NoInline
-  @Unpreemptible("Non-preemptible but yield when table needs to be grown")
-  public void add(Object object) {
-    /*
-     * Ensure that only one thread at a time can grow the
-     * table of references.  The volatile flag <code>growingTable</code> is
-     * used to allow growing the table to trigger GC, but to prevent
-     * any other thread from accessing the table while it is being grown.
-     *
-     * If the table has space, threads will add the reference, incrementing maxIndex
-     * and exit.
-     *
-     * If the table is full, the first thread to notice will grow the table.
-     * Subsequent threads will release the lock and yield at (1) while the
-     * first thread grows the table.
-     */
-    lock.acquire();
-    while (growingTables || maxIndex >= table.length() || maxIndex >= freeReady()) {
-      if (growingTables) {
-        lock.release();
-        RVMThread.yield(); // (1) Allow another thread to grow the table
-        lock.acquire();
-      } else {
-        growingTables = true;  // Prevent other threads from growing table while lock is released
-        lock.release();       // Can't hold the lock while allocating
-        growTables();
-        lock.acquire();
-        growingTables = false; // Allow other threads to grow the table rather than waiting for us
       }
     }
     table.set(maxIndex++, Magic.objectAsAddress(object));
@@ -230,11 +210,6 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   @Unpreemptible("Non-preemptible but may pause if another thread is growing the table")
   public Object getReady() {
     lock.acquire();
-    while (growingTables) {
-      lock.release();
-      RVMThread.yield(); // (1) Allow another thread to grow the table
-      lock.acquire();
-    }
     Object result = null;
     if (nextReadyIndex != lastReadyIndex) {
       result = readyForFinalize[nextReadyIndex];

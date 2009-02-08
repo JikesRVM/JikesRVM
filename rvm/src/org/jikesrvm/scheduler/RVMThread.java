@@ -1360,12 +1360,6 @@ public class RVMThread extends ThreadContext {
       onStackReplacementEvent = null;
     } else {
       // create a normal (ie. non-primordial) thread
-      if (trace)
-        trace("RVMThread create: ", name);
-      if (trace)
-        trace("daemon: ", daemon ? "true" : "false");
-      if (trace)
-        trace("RVMThread", "create");
       // set up wrapper Thread if one exists
       this.thread = thread;
       // Set thread type
@@ -1393,6 +1387,14 @@ public class RVMThread extends ThreadContext {
       VM.enableGC();
 
       assignThreadSlot();
+
+      if (trace)
+        trace("RVMThread create: ", name);
+      if (trace)
+        trace("daemon: ", daemon ? "true" : "false");
+      if (trace)
+        trace("RVMThread", "create");
+
       initMutator(threadSlot);
       activeMutatorContext = true;
       if (traceAcct) {
@@ -1514,6 +1516,10 @@ public class RVMThread extends ThreadContext {
   @NoInline
   @Unpreemptible("May block if the thread was asked to do so, but otherwise does no actions that would cause blocking")
   private void checkBlockNoSaveContext() {
+    assertUnacceptableStates(NEW, TERMINATED);
+    if (VM.VerifyAssertions) VM._assert(!isAboutToTerminate);
+    if (VM.VerifyAssertions) VM._assert(!isBlocking);
+
     if (traceBlock)
       VM.sysWriteln("Thread #", threadSlot, " in checkBlockNoSaveContext");
     // NB: anything this method calls CANNOT change the contextRegisters
@@ -1550,6 +1556,8 @@ public class RVMThread extends ThreadContext {
       VM.sysWriteln("Thread #", threadSlot,
                     " has acknowledged soft handshakes");
 
+    boolean hadReallyBlocked=false;
+
     for (;;) {
       // deal with block requests
       acknowledgeBlockRequests();
@@ -1558,6 +1566,7 @@ public class RVMThread extends ThreadContext {
         break;
       }
       if (traceReallyBlock) {
+        hadReallyBlocked=true;
         VM.sysWriteln("Thread #", threadSlot,
             " is really blocked with status ", execStatus);
         VM.sysWriteln("Thread #", threadSlot,
@@ -1577,7 +1586,7 @@ public class RVMThread extends ThreadContext {
             " has awoken; checking if we're still blocked");
     }
 
-    if (traceBlock)
+    if (traceBlock || (traceReallyBlock && hadReallyBlocked))
       VM.sysWriteln("Thread #", threadSlot, " is unblocking");
 
     // we're about to unblock, so indicate to the world that we're running
@@ -2213,6 +2222,9 @@ public class RVMThread extends ThreadContext {
       }
       thread.run();
     } catch (Throwable t) {
+      if (traceAcct) {
+        VM.sysWriteln("Thread ",getThreadSlot()," exiting with exception.");
+      }
       try {
         Thread.UncaughtExceptionHandler handler;
         handler = thread.getUncaughtExceptionHandler();
