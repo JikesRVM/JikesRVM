@@ -17,9 +17,9 @@
 
   <!-- NOTE: when incrementing classpath version, check the patches -->
   <!-- in target patch-classpath-web                                -->
-  <property name="classpath.version" value="97.2"/>
+  <property name="classpath.version" value="98"/>
   <!-- Change this whenever you alter the patches. It will let people know classpath has changed. -->
-  <property name="classpath.patchlevel" value="8"/>
+  <property name="classpath.patchlevel" value="0"/>
   <property name="classpath.description" value="GNU Classpath"/>
 
   <property name="classpath.component.dir" location="${components.dir}/classpath"/>
@@ -119,54 +119,6 @@
 
   <!-- Patches against the current stable version -->
   <target name="patch-classpath-web" depends="fetch" if="classpath.from-web">
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-185.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-01.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-02.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-03.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-04.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-05.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-06.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-07.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-08.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-09.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-266-10.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-385-01.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-385-02.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-385-03.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-385-04.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-392.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-433.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-437.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-451.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-526.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-490-01.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-490-02.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-490-03.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-web.RVM-490-04.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-443.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-644.patch"
