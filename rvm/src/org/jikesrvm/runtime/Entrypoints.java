@@ -191,8 +191,7 @@ public class Entrypoints {
       getField(org.jikesrvm.scheduler.RVMThread.class, "scratchStorage", double.class);
   public static final RVMField takeYieldpointField =
       getField(org.jikesrvm.scheduler.RVMThread.class, "takeYieldpoint", int.class);
-  public static final RVMField timeSliceExpiredField =
-      getField(org.jikesrvm.scheduler.RVMThread.class, "timeSliceExpired", int.class);
+
   public static final RVMField execStatusField = getField(org.jikesrvm.scheduler.RVMThread.class, "execStatus", int.class);
 
   public static final RVMField referenceReferentField =

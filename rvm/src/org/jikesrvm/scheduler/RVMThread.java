@@ -778,7 +778,6 @@ public class RVMThread extends ThreadContext {
    * How many times has the "timeslice" expired? This is only used for profiling
    * and OSR (in particular base-to-opt OSR).
    */
-  @Entrypoint
   public int timeSliceExpired;
 
   /** Is a running thread permitted to ignore the next park request */
@@ -2050,6 +2049,10 @@ public class RVMThread extends ThreadContext {
         debugRequested = false;
         VM.sysWriteln("=== Debug requested - attempting safe VM dump ===");
         dumpAcct();
+
+        // FIXME: this code runs concurrently to GC and has no way of stopping
+        // it.  hence it is dangerous.  leaving it as-is for now, since it's
+        // only meant to be used for debugging.
 
         VM.sysWriteln("Timer ticks = ", timerTicks);
         doProfileReport.openDangerously();
