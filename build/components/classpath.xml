@@ -192,6 +192,7 @@
       <arg value="--disable-plugin"/>
       <arg value="--disable-gconf-peer"/>
       <arg value="--disable-examples"/>
+      <arg value="--disable-tools"/>
       <arg line="${cp.enable.gtk-peer}${cp.enable.portable-native-sync}${cp.disable.alsa}${cp.cppflags}"/>
     </exec>
     <exec executable="${make.exe}" failonerror="true" dir="${classpath.dir}">
