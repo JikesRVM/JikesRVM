@@ -2908,7 +2908,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         if (!fieldType.isWordType()) {
           adjustStack(WORDSIZE, true); // throw away slot
         }
-        asm.emitPOP_Reg(S0);  // T0 is the object reference
+        asm.emitPOP_Reg(S0);  // S0 is the object reference
         asm.emitMOV_RegIdx_Reg_Quad(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
       }
     }
@@ -4082,7 +4082,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
               max--;
             }
           } else {
-            stackMoveHelper(T, offset);
+            // initially offset will point at junk word, move down and over
+            stackMoveHelper(T, offset.minus(WORDSIZE));
             T = T1; // at most 2 parameters can be passed in general purpose registers
             gpr++;
             max--;

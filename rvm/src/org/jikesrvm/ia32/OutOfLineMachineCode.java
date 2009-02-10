@@ -222,15 +222,15 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    */
   private static ArchitectureSpecific.CodeArray generateReflectiveMethodInvokerInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(100);
-
-    /* write at most 2 parameters from registers in the stack.  This is
-     * logically equivalent to ParamaterRegisterUnload in the compiler
-     */
     int gprs;
     Offset fpOffset = ArchEntrypoints.framePointerField.getOffset();
     GPR T = T0;
     gprs = NUM_PARAMETER_GPRS;
-    Offset offset = Offset.fromIntZeroExtend(5 << LG_WORDSIZE);              // we have exactly 5 paramaters
+    // we have exactly 5 paramaters, offset 0 from SP is the return address the
+    // parameters are at offsets 5 to 1
+    Offset offset = Offset.fromIntZeroExtend(5 << LG_WORDSIZE);
+    // Write at most 2 parameters from registers in the stack. This is
+    // logically equivalent to ParamaterRegisterUnload in the compiler
     if (gprs > 0) {
       gprs--;
       if (VM.BuildFor32Addr) {
@@ -241,10 +241,14 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
       T = T1;
       offset = offset.minus(WORDSIZE);
     }
-
     if (gprs > 0) {
-      asm.emitMOV_RegDisp_Reg(SP, offset, T);
+      if (VM.BuildFor32Addr) {
+        asm.emitMOV_RegDisp_Reg(SP, offset, T);
+      } else {
+        asm.emitMOV_RegDisp_Reg_Quad(SP, offset, T);
+      }
     }
+
     /* available registers S0, T0, T1 */
 
     /* push a new frame */
@@ -285,8 +289,16 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
       asm.emitMOV_Reg_RegInd_Quad(T0, S0);             // T0 <- Paramaters[i]
     }
     asm.emitPUSH_Reg(T0);                              // mem[j++] <- Parameters[i]
-    asm.emitADD_Reg_Imm(S0, WORDSIZE);                 // i++
-    asm.emitADD_Reg_Imm(T1, -1);                       // length--
+    if (VM.BuildFor32Addr) {
+      asm.emitADD_Reg_Imm(S0, WORDSIZE);               // i++
+    } else {
+      asm.emitADD_Reg_Imm_Quad(S0, WORDSIZE);          // i++
+    }
+    if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
+      asm.emitADD_Reg_Imm(T1, -1);                     // length--
+    } else {
+      asm.emitADD_Reg_Imm_Quad(T1, -1);                // length--
+    }
     asm.emitJMP_Imm(parameterLoopLabel);
 
     fr1.resolve(asm);                                   // end of the loop

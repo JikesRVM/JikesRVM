@@ -1309,19 +1309,33 @@ final class BaselineMagic {
       }
     }
   }
+  /**
+   * Special case of 64bit subtraction to 32bit value
+   */
+  private static final class WordMinus32 extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(EAX);
+      asm.emitCDQE();
+      asm.emitSUB_RegInd_Reg_Quad(SP, EAX);
+    }
+  }
   static {
     MagicGenerator g = new WordMinus();
-    generators.put(getMethodReference(Address.class, MagicNames.wordMinus, int.class, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.wordMinus, Offset.class, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.wordMinus, Extent.class, Address.class), g);
     generators.put(getMethodReference(Address.class, MagicNames.wordDiff, Address.class, Offset.class), g);
-    generators.put(getMethodReference(Extent.class, MagicNames.wordMinus, int.class, Extent.class), g);
     generators.put(getMethodReference(Extent.class, MagicNames.wordMinus, Extent.class, Extent.class), g);
-    generators.put(getMethodReference(Offset.class, MagicNames.wordMinus, int.class, Offset.class), g);
     generators.put(getMethodReference(Offset.class, MagicNames.wordMinus, Offset.class, Offset.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordMinus, Word.class, Word.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordMinus, Offset.class, Word.class), g);
     generators.put(getMethodReference(Word.class, MagicNames.wordMinus, Extent.class, Word.class), g);
+    if (VM.BuildFor64Addr) {
+      g = new WordMinus32();
+    }
+    generators.put(getMethodReference(Address.class, MagicNames.wordMinus, int.class, Address.class), g);
+    generators.put(getMethodReference(Extent.class, MagicNames.wordMinus, int.class, Extent.class), g);
+    generators.put(getMethodReference(Offset.class, MagicNames.wordMinus, int.class, Offset.class), g);
   }
 
   /**

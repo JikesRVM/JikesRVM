@@ -314,8 +314,8 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
       if (bridgeParameterIndex == -1) {
         bridgeParameterIndex += 1;
         bridgeRegisterIndex += 1;
-        bridgeRegisterLocation = bridgeRegisterLocation.minus(4);
-        bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(4);
+        bridgeRegisterLocation = bridgeRegisterLocation.minus(WORDSIZE);
+        bridgeSpilledParamLocation = bridgeSpilledParamLocation.minus(WORDSIZE);
 
         if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL) {
           VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset = dynamic link GPR this ");
