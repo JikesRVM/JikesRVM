@@ -26,7 +26,8 @@ final class JSRInfo implements BaselineConstants {
   UnusualMaps[] unusualMaps;
   byte[] unusualReferenceMaps;
   int freeMapSlot = 0;
-  UnusualMaps extraUnusualMap = new UnusualMaps(); //merged jsr ret  and callers maps
+  /** Merged jsr ret and callers maps */
+  UnusualMaps extraUnusualMap = new UnusualMaps();
   int tempIndex = 0;
   int mergedReferenceMap = 0;       // result of jsrmerged maps - stored in referenceMaps
   int mergedReturnAddressMap = 0;   // result of jsrmerged maps - stored return addresses

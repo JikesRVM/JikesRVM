@@ -39,14 +39,17 @@ public final class ReferenceMaps implements BaselineConstants {
   private static enum MergeOperation {
     OR, NAND, COPY
   }
-  private static final int BITS_PER_MAP_ELEMENT = 8;
 
   /** Serializes JSR processing */
   public static final SpinLock jsrLock = new SpinLock();   // for serialization of JSR processing
 
+  /** Number of bits in each map element */
+  private static final int BITS_PER_MAP_ELEMENT = 8;
   private byte[] referenceMaps;
   private int[] MCSites;
-  private final int bitsPerMap;   // number of bits in each map
+  /** Number of bits in each map */
+  private final int bitsPerMap;
+  /** Number of maps */
   private int mapCount;
   private JSRInfo jsrInfo;
 
