@@ -388,7 +388,8 @@ public final class CollectorThread extends RVMThread {
           if (numToHandshake==0) break;
           for (int i=0;i<numToHandshake;++i) {
             if (verbose>=2) VM.sysWriteln("waiting for ",RVMThread.handshakeThreads[i].getThreadSlot()," to block");
-            RVMThread.handshakeThreads[i].block(RVMThread.gcBlockAdapter);
+            RVMThread t=RVMThread.handshakeThreads[i];
+            RVMThread.observeExecStatusAtSTW(t.block(RVMThread.gcBlockAdapter));
             RVMThread.handshakeThreads[i]=null; // help GC
           }
         }

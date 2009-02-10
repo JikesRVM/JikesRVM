@@ -35,3 +35,6 @@ Exit when non-fatal errors are detected; used for regression testing
 traceJNI false
 Trace when calls into JNI happen
 
+countThreadTransitions false
+Count, and report, the number of thread state transitions.  This works better on IA32 than on PPC at the moment.
+

@@ -17,11 +17,9 @@ import org.jikesrvm.SizeConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.Synchronization;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
@@ -370,10 +368,7 @@ public final class JNIEnvironment implements SizeConstants {
       encodedReferenceOffsets >>>= 1;
     }
     // Transition processor from IN_JAVA to IN_JNI
-    if(!Synchronization.tryCompareAndSwap(Magic.getThreadRegister(),
-        Entrypoints.execStatusField.getOffset(), RVMThread.IN_JAVA, RVMThread.IN_JNI)) {
-      RVMThread.enterJNIBlockedFromCallIntoNative();
-    }
+    RVMThread.enterJNIFromCallIntoNative();
   }
 
   /**
@@ -389,12 +384,8 @@ public final class JNIEnvironment implements SizeConstants {
   @Entrypoint
   public Object exitFromJNI(int offset) {
     // Transition processor from IN_JNI to IN_JAVA
-    if(!Synchronization.tryCompareAndSwap(Magic.getThreadRegister(),
-        Entrypoints.execStatusField.getOffset(), RVMThread.IN_JNI, RVMThread.IN_JAVA)) {
-      RVMThread.leaveJNIBlockedFromCallIntoNative();
-      // NOTE: we can never assert IN_JAVA here as we would like, as requests to block, etc. cause
-      // a state change!
-    }
+    RVMThread.leaveJNIFromCallIntoNative();
+
     // Restore JNI ref top and saved frame pointer
     JNIRefsTop = JNIRefsSavedFP;
     if (JNIRefsTop > 0) {

@@ -2278,6 +2278,11 @@ public class VM extends Properties implements Constants, ExitStatus {
   @UnpreemptibleNoWarn("We need to do preemptible operations but are accessed from unpreemptible code")
   public static void sysExit(int value) {
     handlePossibleRecursiveCallToSysExit();
+
+    if (VM.countThreadTransitions) {
+      RVMThread.reportThreadTransitionCounts();
+    }
+
     if (Options.stackTraceAtExit) {
       VM.sysWriteln("[Here is the context of the call to VM.sysExit(", value, ")...:");
       VM.disableGC();

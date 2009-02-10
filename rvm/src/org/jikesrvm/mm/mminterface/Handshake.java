@@ -67,7 +67,11 @@ public class Handshake {
   public void waitForGCToFinish() {
     if (verbose >= 1) VM.sysWriteln("GC Message: Handshake.requestAndAwaitCompletion - yielding");
     /* allow a gc thread to run */
-    RVMThread.getCurrentThread().block(RVMThread.gcBlockAdapter);
+    RVMThread t=RVMThread.getCurrentThread();
+    t.assertAcceptableStates(RVMThread.IN_JAVA,
+                             RVMThread.IN_JAVA_TO_BLOCK);
+    RVMThread.observeExecStatusAtSTW(t.getExecStatus());
+    t.block(RVMThread.gcBlockAdapter);
     if (verbose >= 1) VM.sysWriteln("GC Message: Handshake.requestAndAwaitCompletion - mutator running");
   }
 

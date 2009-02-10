@@ -158,6 +158,8 @@ public class RVMThread extends ThreadContext {
   /** Trace when a thread is really blocked */
   protected static final boolean traceReallyBlock = false || traceBlock;
 
+  protected static final boolean traceAboutToTerminate = false;
+
   protected static final boolean dumpStackOnBlock = false; // DANGEROUS! can lead to crashes!
 
   protected static final boolean traceBind = false;
@@ -280,6 +282,9 @@ public class RVMThread extends ThreadContext {
    */
   public static final int TERMINATED = 7;
 
+  /** Not actually a state but just a marker. */
+  public static final int LAST_EXEC_STATUS = 8;
+
   public static boolean notRunning(int state) {
     return state == NEW || state == TERMINATED;
   }
@@ -291,7 +296,31 @@ public class RVMThread extends ThreadContext {
   @Entrypoint
   private int execStatus;
 
-  public int getExecStatus() { return execStatus; }
+  public int getExecStatus() {
+    observeExecStatus();
+    return execStatus;
+  }
+
+  private boolean attemptFastExecStatusTransition(int oldState,
+                                                  int newState) {
+    if (Synchronization.tryCompareAndSwap(
+          this,
+          Entrypoints.execStatusField.getOffset(),
+          oldState,
+          newState)) {
+      observeStateTransition(oldState,newState);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  // call this only when holding the lock or if you really know what you're
+  // doing.
+  private void setExecStatus(int newState) {
+    observeStateTransition(execStatus,newState);
+    execStatus=newState;
+  }
 
   /**
    * Is the thread about to terminate? Protected by the thread's monitor. Note
@@ -975,9 +1004,11 @@ public class RVMThread extends ThreadContext {
   private static NoYieldpointsCondLock outputLock;
 
   /**
-   * Threads that are about to terminate.
+   * Thread slots of threads that are about to terminate.  This must be
+   * an int array because it's accessed from code that cannot have
+   * barriers.
    */
-  private static final RVMThread[] aboutToTerminate = new RVMThread[MAX_THREADS];
+  private static final int[] aboutToTerminate = new int[MAX_THREADS];
 
   /**
    * Number of threads that are about to terminate.
@@ -1077,7 +1108,7 @@ public class RVMThread extends ThreadContext {
 
   public void assertAcceptableStates(int expected) {
     if (VM.VerifyAssertions) {
-      int curStatus=execStatus;
+      int curStatus=getExecStatus();
       if (curStatus!=expected) {
         VM.sysWriteln("FATAL ERROR: unexpected thread state.");
         VM.sysWriteln("Expected: ",expected);
@@ -1089,7 +1120,7 @@ public class RVMThread extends ThreadContext {
 
   public void assertAcceptableStates(int expected1,int expected2) {
     if (VM.VerifyAssertions) {
-      int curStatus=execStatus;
+      int curStatus=getExecStatus();
       if (curStatus!=expected1 &&
           curStatus!=expected2) {
         VM.sysWriteln("FATAL ERROR: unexpected thread state.");
@@ -1104,7 +1135,7 @@ public class RVMThread extends ThreadContext {
 
   public void assertUnacceptableStates(int unexpected) {
     if (VM.VerifyAssertions) {
-      int curStatus=execStatus;
+      int curStatus=getExecStatus();
       if (curStatus==unexpected) {
         VM.sysWriteln("FATAL ERROR: unexpected thread state.");
         VM.sysWriteln("Unexpected: ",unexpected);
@@ -1116,7 +1147,7 @@ public class RVMThread extends ThreadContext {
 
   public void assertUnacceptableStates(int unexpected1,int unexpected2) {
     if (VM.VerifyAssertions) {
-      int curStatus=execStatus;
+      int curStatus=getExecStatus();
       if (curStatus==unexpected1 ||
           curStatus==unexpected2) {
         VM.sysWriteln("FATAL ERROR: unexpected thread state.");
@@ -1188,19 +1219,15 @@ public class RVMThread extends ThreadContext {
    * Add this thread to the termination watchlist. Called by terminating threads
    * before they finish terminating.
    */
-  @NoCheckStore
   private void addAboutToTerminate() {
     monitor().lock();
     isAboutToTerminate = true;
+    activeMutatorContext = false;
     monitor().broadcast();
-    flushRequested = true; /*
-                            * hack! we really want to call
-                            * MemoryManager.flushMutatorContext() here, but
-                            * handleHandshakeRequest() will already call it if
-                            * flushRequested is set. so we do it by setting
-                            * flushRequested to true.
-                            */
+
     handleHandshakeRequest();
+    deinitMutator();
+
     // WARNING! DANGER! Since we've set isAboutToTerminate to true, when we
     // release this lock the GC will:
     // 1) No longer scan the thread's stack (though it will *see* the
@@ -1209,12 +1236,14 @@ public class RVMThread extends ThreadContext {
     // 2) No longer include the thread in any mutator phases ... hence the
     // need to ensure that the mutator context is flushed above.
     // 3) No longer attempt to block the thread.
+    // Moreover, we can no longer do anything that leads to write barriers
+    // or allocation.
     monitor().unlock();
 
     softRendezvous();
 
     acctLock.lock();
-    aboutToTerminate[aboutToTerminateN++] = this;
+    aboutToTerminate[aboutToTerminateN++] = threadSlot;
     acctLock.unlock();
   }
 
@@ -1229,13 +1258,16 @@ public class RVMThread extends ThreadContext {
   @NoCheckStore
   public static void processAboutToTerminate() {
     if (!neverKillThreads) {
+      int notKilled=0;
       for (;;) {
         RVMThread t=null;
         acctLock.lock();
         for (int i = 0; i < aboutToTerminateN; ++i) {
-          if (aboutToTerminate[i].execStatus == TERMINATED) {
-            t = aboutToTerminate[i];
+          t = threadBySlot[aboutToTerminate[i]];
+          if (t.getExecStatus() == TERMINATED) {
             aboutToTerminate[i--] = aboutToTerminate[--aboutToTerminateN];
+          } else {
+            notKilled++;
           }
         }
         acctLock.unlock();
@@ -1243,6 +1275,9 @@ public class RVMThread extends ThreadContext {
           break;
         }
         t.releaseThreadSlot();
+      }
+      if (notKilled>0 && traceAboutToTerminate) {
+        VM.sysWriteln("didn't kill ",notKilled," threads");
       }
     }
   }
@@ -1321,9 +1356,6 @@ public class RVMThread extends ThreadContext {
     threadBySlot[threadSlot] = null;
     freeSlots[freeSlotN++] = threadSlot;
     acctLock.unlock();
-
-    deinitMutator();
-    activeMutatorContext = false;
   }
 
   /**
@@ -1508,7 +1540,7 @@ public class RVMThread extends ThreadContext {
    */
   public final boolean isInJava() {
     return !isBlocking && !isAboutToTerminate &&
-    (execStatus == IN_JAVA || execStatus == IN_JAVA_TO_BLOCK);
+      (getExecStatus() == IN_JAVA || getExecStatus() == IN_JAVA_TO_BLOCK);
   }
 
   /** A variant of checkBlock() that does not save the thread state. */
@@ -1567,7 +1599,7 @@ public class RVMThread extends ThreadContext {
       if (traceReallyBlock) {
         hadReallyBlocked=true;
         VM.sysWriteln("Thread #", threadSlot,
-            " is really blocked with status ", execStatus);
+                      " is really blocked with status ", getExecStatus());
         VM.sysWriteln("Thread #", threadSlot,
             " has fp = ", Magic.getFramePointer());
         if (dumpStackOnBlock) {
@@ -1590,7 +1622,7 @@ public class RVMThread extends ThreadContext {
 
     // we're about to unblock, so indicate to the world that we're running
     // again.
-    execStatus = IN_JAVA;
+    setExecStatus(IN_JAVA);
     // let everyone know that we're back to executing code
     isBlocking = false;
     // deal with requests that came up while we were blocked.
@@ -1679,10 +1711,10 @@ public class RVMThread extends ThreadContext {
     monitor().lock();
     if (jni) {
       jniEnteredBlocked++;
-      execStatus = BLOCKED_IN_JNI;
+      setExecStatus(BLOCKED_IN_JNI);
     } else {
       nativeEnteredBlocked++;
-      execStatus = BLOCKED_IN_NATIVE;
+      setExecStatus(BLOCKED_IN_NATIVE);
     }
     acknowledgeBlockRequests();
     commitSoftRendezvous = softRendezvousCheckAndClear();
@@ -1755,7 +1787,7 @@ public class RVMThread extends ThreadContext {
       VM.sysWriteln("Thread #", t.getThreadSlot(),
           " in leaveJNIBlockedFromJNIFunctionCall");
       VM.sysWriteln("thread address = ",Magic.objectAsAddress(t));
-      VM.sysWriteln("state = ", t.execStatus);
+      VM.sysWriteln("state = ", t.getExecStatus());
       VM.sysWriteln("jtoc = ", Magic.getJTOC());
     }
     t.leaveJNIBlocked();
@@ -1771,17 +1803,16 @@ public class RVMThread extends ThreadContext {
     if (traceReallyBlock) {
       VM.sysWriteln("Thread #", t.getThreadSlot(),
           " in leaveJNIBlockedFromCallIntoNative");
-      VM.sysWriteln("state = ", t.execStatus);
+      VM.sysWriteln("state = ", t.getExecStatus());
       VM.sysWriteln("jtoc = ", Magic.getJTOC());
     }
     t.leaveJNIBlocked();
   }
 
   private int setBlockedExecStatus() {
-    Offset offset = Entrypoints.execStatusField.getOffset();
     int oldState, newState;
     do {
-      oldState = execStatus;
+      oldState = getExecStatus();
       if (oldState == IN_JAVA) {
         newState = IN_JAVA_TO_BLOCK;
       } else if (oldState == IN_NATIVE) {
@@ -1795,7 +1826,7 @@ public class RVMThread extends ThreadContext {
        * use the CAS to assert that we observed what we
        * thought we observed
        */
-    } while (!(Synchronization.tryCompareAndSwap(this, offset, oldState, newState)));
+    } while (!(attemptFastExecStatusTransition(oldState,newState)));
     return newState;
   }
 
@@ -1818,7 +1849,7 @@ public class RVMThread extends ThreadContext {
       if (traceBlock)
         VM.sysWriteln("Thread #", threadSlot, " is blocking.");
       checkBlock();
-      result = execStatus;
+      result = getExecStatus();
     } else {
       if (traceBlock)
         VM.sysWriteln("Thread #", threadSlot, " is being told to block.");
@@ -1861,7 +1892,7 @@ public class RVMThread extends ThreadContext {
                 monitor().timedWaitRelative(1000L * 1000L * 1000L); // 1 sec
                 if (traceReallyBlock) {
                   VM.sysWriteln("Thread #", threadSlot, "'s status is ",
-                      execStatus);
+                                getExecStatus());
                 }
                 assertUnacceptableStates(IN_NATIVE);
               } else {
@@ -1873,6 +1904,8 @@ public class RVMThread extends ThreadContext {
             }
             if (isAboutToTerminate) {
               result = TERMINATED;
+            } else {
+              result=getExecStatus();
             }
           }
         } else if (newState == BLOCKED_IN_NATIVE || newState == BLOCKED_IN_JNI) {
@@ -1945,10 +1978,9 @@ public class RVMThread extends ThreadContext {
     if (ALWAYS_LOCK_ON_STATE_TRANSITION) {
       t.enterNativeBlocked();
     } else {
-      Offset offset = Entrypoints.execStatusField.getOffset();
       int oldState, newState;
       do {
-        oldState = t.execStatus;
+        oldState = t.getExecStatus();
         if (oldState == IN_JAVA) {
           newState = IN_NATIVE;
         } else {
@@ -1956,7 +1988,7 @@ public class RVMThread extends ThreadContext {
           t.enterNativeBlocked();
           return;
         }
-      } while (!(Synchronization.tryCompareAndSwap(t, offset, oldState, newState)));
+      } while (!(t.attemptFastExecStatusTransition(oldState, newState)));
     }
     // NB this is not a correct assertion, as there is a race.  we could succeed in
     // CASing the status to IN_NATIVE, but then someone else could asynchronosly
@@ -1974,17 +2006,16 @@ public class RVMThread extends ThreadContext {
     if (ALWAYS_LOCK_ON_STATE_TRANSITION)
       return false;
     RVMThread t = getCurrentThread();
-    Offset offset = Entrypoints.execStatusField.getOffset();
     int oldState, newState;
     do {
-      oldState = t.execStatus;
+      oldState = t.getExecStatus();
       if (oldState == IN_NATIVE || oldState == IN_JNI) {
         newState = IN_JAVA;
       } else {
         t.assertAcceptableStates(BLOCKED_IN_NATIVE,BLOCKED_IN_JNI);
         return false;
       }
-    } while (!(Synchronization.tryCompareAndSwap(t, offset, oldState, newState)));
+    } while (!(t.attemptFastExecStatusTransition(oldState, newState)));
     return true;
   }
 
@@ -2002,6 +2033,46 @@ public class RVMThread extends ThreadContext {
             " is leaving native blocked");
       }
       getCurrentThread().leaveNativeBlocked();
+    }
+  }
+
+  public static void enterJNIFromCallIntoNative() {
+    // FIXME: call these in PPC instead of doing it in machine code...
+    getCurrentThread().observeExecStatus();
+    if (!getCurrentThread().attemptFastExecStatusTransition(RVMThread.IN_JAVA,
+                                                            RVMThread.IN_JNI)) {
+      RVMThread.enterJNIBlockedFromCallIntoNative();
+    }
+  }
+
+  @Unpreemptible
+  public static void leaveJNIFromCallIntoNative() {
+    // FIXME: call these in PPC instead of doing it in machine code...
+    getCurrentThread().observeExecStatus();
+    if (!getCurrentThread().attemptFastExecStatusTransition(RVMThread.IN_JNI,
+                                                            RVMThread.IN_JAVA)) {
+      RVMThread.leaveJNIBlockedFromCallIntoNative();
+    }
+  }
+
+  public static void enterJNIFromJNIFunctionCall() {
+    // FIXME: call these instead of doing it in machine code...  currently this
+    // is never called.
+    getCurrentThread().observeExecStatus();
+    if (!getCurrentThread().attemptFastExecStatusTransition(RVMThread.IN_JAVA,
+                                                            RVMThread.IN_JNI)) {
+      RVMThread.enterJNIBlockedFromJNIFunctionCall();
+    }
+  }
+
+  @Unpreemptible
+  public static void leaveJNIFromJNIFunctionCall() {
+    // FIXME: call these instead of doing it in machine code...  currently this
+    // is never called.
+    getCurrentThread().observeExecStatus();
+    if (!getCurrentThread().attemptFastExecStatusTransition(RVMThread.IN_JNI,
+                                                            RVMThread.IN_JAVA)) {
+      RVMThread.leaveJNIBlockedFromJNIFunctionCall();
     }
   }
 
@@ -2049,6 +2120,7 @@ public class RVMThread extends ThreadContext {
         debugRequested = false;
         VM.sysWriteln("=== Debug requested - attempting safe VM dump ===");
         dumpAcct();
+        reportThreadTransitionCounts();
 
         // FIXME: this code runs concurrently to GC and has no way of stopping
         // it.  hence it is dangerous.  leaving it as-is for now, since it's
@@ -2286,7 +2358,7 @@ public class RVMThread extends ThreadContext {
   public final void start() {
     // N.B.: cannot hit a yieldpoint between setting execStatus and starting the
     // thread!!
-    this.execStatus = IN_JAVA;
+    setExecStatus(IN_JAVA);
     acctLock.lock();
     numActiveThreads++;
     if (daemon) {
@@ -2470,6 +2542,8 @@ public class RVMThread extends ThreadContext {
       VM.sysWriteln("adding to aboutToTerminate...");
 
     addAboutToTerminate();
+    // NB we can no longer do anything that would lead to write barriers or
+    // GC
 
     if (traceAcct) {
       VM.sysWriteln("acquireCount for my monitor: ", monitor().acquireCount);
@@ -2562,6 +2636,7 @@ public class RVMThread extends ThreadContext {
     Throwable rethrow = null;
     monitor().lock();
     try {
+      observeExecStatus();
       if (execStatus != IN_JAVA && execStatus != IN_JAVA_TO_BLOCK &&
           execStatus != IN_NATIVE && execStatus != BLOCKED_IN_NATIVE &&
           execStatus != BLOCKED_IN_JNI && execStatus != IN_JNI) {
@@ -3033,7 +3108,8 @@ public class RVMThread extends ThreadContext {
   }
 
   /**
-   * Check and clear the need for a soft handshake rendezvous.
+   * Check and clear the need for a soft handshake rendezvous.  This method
+   * cannot do anything that leads to a write barrier or allocation.
    */
   public final boolean softRendezvousCheckAndClear() {
     boolean result = false;
@@ -3047,7 +3123,8 @@ public class RVMThread extends ThreadContext {
   }
 
   /**
-   * Commit the soft handshake rendezvous.
+   * Commit the soft handshake rendezvous.  This method cannot do anything
+   * that leads to a write barrier or allocation.
    */
   public final void softRendezvousCommit() {
     softHandshakeDataLock.lock();
@@ -3073,6 +3150,11 @@ public class RVMThread extends ThreadContext {
    * sufficient for the thread to acknowledge that it plans to act upon the
    * request in the immediate future, rather than that the thread acts upon the
    * request prior to acknowledging.
+   * <p>
+   * This is almost always called with the monitor() lock held, but that's
+   * not guaranteed.  If you need that lock, you can grab it (since it's a
+   * recursive lock).  But you should avoid grabbing other sorts of locks since
+   * that might cause deadlock.
    */
   void handleHandshakeRequest() {
     // Process request for code-patch memory sync operation
@@ -3086,7 +3168,7 @@ public class RVMThread extends ThreadContext {
       Magic.isync();
     }
     // process memory management requests
-    if (flushRequested) {
+    if (flushRequested && activeMutatorContext) {
       MemoryManager.flushMutatorContext();
     }
     // not really a "soft handshake" request but we handle it here anyway
@@ -3508,7 +3590,7 @@ public class RVMThread extends ThreadContext {
       // nothing to do
     } else {
       daemon = on;
-      if (execStatus == NEW) {
+      if (getExecStatus() == NEW) {
         // thread will start as a daemon
       } else {
         boolean terminateSystem = false;
@@ -3591,6 +3673,7 @@ public class RVMThread extends ThreadContext {
   /** Is the thread started and not terminated */
   public final boolean isAlive() {
     monitor().lock();
+    observeExecStatus();
     boolean result = execStatus != NEW && execStatus != TERMINATED && !isAboutToTerminate;
     monitor().unlock();
     return result;
@@ -3691,6 +3774,7 @@ public class RVMThread extends ThreadContext {
   public final Thread.State getState() {
     monitor().lock();
     try {
+      observeExecStatus();
       switch (execStatus) {
       case NEW:
         return Thread.State.NEW;
@@ -3929,31 +4013,46 @@ public class RVMThread extends ThreadContext {
     }
   }
 
+  private static void dumpThread(RVMThread t) {
+    if (t == null) {
+      VM.sysWrite("none");
+    } else {
+      VM.sysWrite(t.threadSlot, "(", t.getExecStatus());
+      if (t.isAboutToTerminate) {
+        VM.sysWrite("T");
+      }
+      if (t.isBlocking) {
+        VM.sysWrite("B");
+      }
+      if (t.isJoinable) {
+        VM.sysWrite("J");
+      }
+      if (t.atYieldpoint) {
+        VM.sysWrite("Y");
+      }
+      VM.sysWrite(")");
+    }
+  }
+
   private static void dumpThreadArray(RVMThread[] array, int bound) {
     for (int i = 0; i < bound; ++i) {
       if (i != 0) {
         VM.sysWrite(", ");
       }
       VM.sysWrite(i, ":");
-      RVMThread t = array[i];
-      if (t == null) {
-        VM.sysWrite("none");
-      } else {
-        VM.sysWrite(t.threadSlot, "(", t.execStatus);
-        if (t.isAboutToTerminate) {
-          VM.sysWrite("T");
-        }
-        if (t.isBlocking) {
-          VM.sysWrite("B");
-        }
-        if (t.isJoinable) {
-          VM.sysWrite("J");
-        }
-        if (t.atYieldpoint) {
-          VM.sysWrite("Y");
-        }
-        VM.sysWrite(")");
+      dumpThread(array[i]);
+    }
+  }
+
+  private static void dumpThreadSlotArray(int[] array, int bound) {
+    for (int i = 0; i < bound; ++i) {
+      if (i != 0) {
+        VM.sysWrite(", ");
       }
+      VM.sysWrite(i, ":");
+      int threadSlot=array[i];
+      VM.sysWrite(threadSlot, ",");
+      dumpThread(threadBySlot[array[i]]);
     }
   }
 
@@ -3964,12 +4063,19 @@ public class RVMThread extends ThreadContext {
     VM.sysWriteln();
   }
 
+  private static void dumpThreadSlotArray(String name, int[] array, int bound) {
+    VM.sysWrite(name);
+    VM.sysWrite(": ");
+    dumpThreadSlotArray(array, bound);
+    VM.sysWriteln();
+  }
+
   public static void dumpAcct() {
     acctLock.lock();
     dumpLock.lock();
     VM.sysWriteln("====== Begin Thread Accounting Dump ======");
     dumpThreadArray("threadBySlot", threadBySlot, nextSlot);
-    dumpThreadArray("aboutToTerminate", aboutToTerminate, aboutToTerminateN);
+    dumpThreadSlotArray("aboutToTerminate", aboutToTerminate, aboutToTerminateN);
     VM.sysWrite("freeSlots: ");
     for (int i = 0; i < freeSlotN; ++i) {
       if (i != 0) {
@@ -4084,7 +4190,7 @@ public class RVMThread extends ThreadContext {
       offset = Services.sprintf(dest, offset, "-collector"); // gc thread?
     }
     offset = Services.sprintf(dest, offset, "-");
-    offset = Services.sprintf(dest, offset, execStatus);
+    offset = Services.sprintf(dest, offset, getExecStatus());
     offset = Services.sprintf(dest, offset, "-");
     offset = Services.sprintf(dest, offset, java.lang.JikesRVMSupport
         .getEnumName(waiting));
@@ -4570,5 +4676,61 @@ public class RVMThread extends ThreadContext {
 
   public static Feedlet getCurrentFeedlet() {
     return getCurrentThread().feedlet;
+  }
+
+  ////////////////////////// VM.countThreadTransitions support //////////////////////////
+
+  static final int[] sloppyExecStatusHistogram =
+    new int[LAST_EXEC_STATUS];
+  static final int[] statusAtSTWHistogram =
+    new int[LAST_EXEC_STATUS];
+  static final int[] execStatusTransitionHistogram =
+    new int[LAST_EXEC_STATUS*LAST_EXEC_STATUS];
+
+  public static void reportThreadTransitionCounts() {
+    VM.sysWriteln("Thread Transition Counts:");
+    dump1DHisto("Sloppy Exec Status Histogram",sloppyExecStatusHistogram);
+    dump1DHisto("Status At Stop-the-world Histogram",statusAtSTWHistogram);
+    VM.sysWriteln("  Exec Status Transition Histogram:");
+    for (int fromI=0;fromI<LAST_EXEC_STATUS;++fromI) {
+      for (int toI=0;toI<LAST_EXEC_STATUS;++toI) {
+        int val=
+          execStatusTransitionHistogram[
+            transitionHistogramIndex(fromI,toI)];
+        if (val!=0) {
+          VM.sysWriteln("    ",fromI,"->",toI," ",val);
+        }
+      }
+    }
+  }
+
+  static void dump1DHisto(String name,int[] histo) {
+    VM.sysWriteln("  ",name,":");
+    for (int i=0;i<LAST_EXEC_STATUS;++i) {
+      if (histo[i]!=0) {
+        VM.sysWriteln("    ",i," ",histo[i]);
+      }
+    }
+  }
+
+  void observeExecStatus() {
+    sloppyExecStatusHistogram[execStatus]++;
+  }
+
+  public static void observeExecStatusAtSTW(int execStatus) {
+    statusAtSTWHistogram[execStatus]++;
+  }
+
+  // FIXME: add histograms for states returned from various calls to block()
+  // currently we just do it for the block() call in GC STW.
+
+  static int transitionHistogramIndex(int oldState,int newState) {
+    return oldState+newState*LAST_EXEC_STATUS;
+  }
+
+  static void observeStateTransition(int oldState,int newState) {
+    execStatusTransitionHistogram[transitionHistogramIndex(oldState,newState)]++;
+    sloppyExecStatusHistogram[oldState]++;
+    sloppyExecStatusHistogram[newState]++;
   }
 }
