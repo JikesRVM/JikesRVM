@@ -254,6 +254,11 @@ public class ClassFileReader implements Constants, ClassLoaderConstants {
         short fmodifiers = input.readShort();
         Atom fieldName = getUtf(constantPool, input.readUnsignedShort());
         Atom fieldDescriptor = getUtf(constantPool, input.readUnsignedShort());
+        if (typeRef == TypeReference.JavaLangSystem &&
+            (fmodifiers & (ACC_STATIC | ACC_FINAL | ACC_PUBLIC)) == (ACC_STATIC | ACC_FINAL | ACC_PUBLIC)) {
+          /* We have to stop System.in .out and .err fields from being final! */
+          fmodifiers -= ACC_FINAL;
+        }
         MemberReference memRef = MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
         declaredFields[i] = RVMField.readField(typeRef, constantPool, memRef, fmodifiers, input);
       }
