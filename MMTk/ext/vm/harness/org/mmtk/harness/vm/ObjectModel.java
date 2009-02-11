@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.vm;
 
+import java.io.PrintStream;
 import java.util.Stack;
 
 import org.mmtk.harness.Collector;
@@ -37,14 +38,14 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    *    Status Word (includes GC)
    *    References
    *    Data
-   *
-   * Only tested using 32 bit and assumes at least 32 bits.
    */
 
+  private static final boolean IS_32_BIT = ArchitecturalWord.getModel().bitsInWord() == 32;
+
   /** The total header size (including any requested GC words) */
-  public static final int HEADER_WORDS = 4 + ActivePlan.constraints.gcHeaderWords();
+  public static final int HEADER_WORDS = (IS_32_BIT ? 5 : 3) + ActivePlan.constraints.gcHeaderWords();
   /** The number of bytes in the header */
-  public static final int HEADER_SIZE = HEADER_WORDS << SimulatedMemory.LOG_BYTES_IN_WORD;
+  private static final int HEADER_SIZE = HEADER_WORDS << SimulatedMemory.LOG_BYTES_IN_WORD;
   /** The number of bytes requested for GC in the header */
   private static final int GC_HEADER_BYTES = ActivePlan.constraints.gcHeaderWords() << SimulatedMemory.LOG_BYTES_IN_WORD;
 
@@ -62,6 +63,22 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
   private static final Offset STATUS_OFFSET    = REFCOUNT_OFFSET.plus(SimulatedMemory.BYTES_IN_INT);
   /** The offset of the first reference field. */
   public  static final Offset REFS_OFFSET      = STATUS_OFFSET.plus(SimulatedMemory.BYTES_IN_WORD);
+
+  @SuppressWarnings("unused")
+  private static void printObjectLayout(PrintStream wr) {
+    wr.printf("GC_OFFSET=%s:%d, ID_OFFSET=%s, SITE_OFFSET=%s%n",
+        GC_OFFSET, GC_HEADER_BYTES, ID_OFFSET, SITE_OFFSET);
+    wr.printf("DATACOUNT_OFFSET=%s, REFCOUNT_OFFSET=%s, STATUS_OFFSET=%s%n",
+        DATACOUNT_OFFSET, REFCOUNT_OFFSET, STATUS_OFFSET);
+    wr.printf("REFS_OFFSET=%s, HEADER_SIZE=%d%n",
+        REFS_OFFSET,HEADER_SIZE);
+    wr.flush();
+  }
+
+  static {
+    //printObjectLayout(System.out);
+    assert REFS_OFFSET.EQ(Offset.fromIntSignExtend(HEADER_SIZE));
+  }
 
   public static final int MAX_DATA_FIELDS = Integer.MAX_VALUE;
   public static final int MAX_REF_FIELDS = Integer.MAX_VALUE;
@@ -125,7 +142,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Get the number of references in the object.
    */
   public static int getRefs(ObjectReference object) {
-    return object.toAddress().loadShort(REFCOUNT_OFFSET);
+    return object.toAddress().loadInt(REFCOUNT_OFFSET);
   }
 
   /**
@@ -167,7 +184,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * Get the number of data words in the object.
    */
   public static int getDataCount(ObjectReference object) {
-    return object.toAddress().loadShort(DATACOUNT_OFFSET);
+    return object.toAddress().loadInt(DATACOUNT_OFFSET);
   }
 
   /**
