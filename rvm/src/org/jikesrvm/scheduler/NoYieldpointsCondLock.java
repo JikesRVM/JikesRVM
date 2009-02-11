@@ -15,6 +15,8 @@ package org.jikesrvm.scheduler;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.NonMoving;
+import org.vmmagic.pragma.NoOptCompile;
+import org.vmmagic.pragma.NoInline;
 import org.jikesrvm.VM;
 
 /**
@@ -37,16 +39,24 @@ import org.jikesrvm.VM;
 @Uninterruptible
 @NonMoving
 public class NoYieldpointsCondLock extends HeavyCondLock {
+  @NoInline
+  @NoOptCompile
   public void lock() {
     VM.disableYieldpoints();
     super.lock();
   }
+
   // This method is strange
   @Unpreemptible
+  @NoInline
+  @NoOptCompile
   public void lockNicely() {
     VM.disableYieldpoints();
     super.lockNicely();
   }
+
+  @NoInline
+  @NoOptCompile
   public void unlock() {
     super.unlock();
     VM.enableYieldpoints();
