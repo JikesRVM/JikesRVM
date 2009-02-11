@@ -12,9 +12,10 @@
  */
 package org.vmmagic.unboxed;
 
-public class ArchitecturalWord32 extends ArchitecturalWord {
+public final class ArchitecturalWord32 extends ArchitecturalWord {
 
   private final int value;
+  private static final int SIGN_BIT = 1<<31;
 
   ArchitecturalWord32(int value) {
     assert getModel() == Architecture.BITS32;
@@ -38,12 +39,12 @@ public class ArchitecturalWord32 extends ArchitecturalWord {
 
   @Override
   public long toLongSignExtend() {
-    return (long)value;
+    return value;
   }
 
   @Override
   public long toLongZeroExtend() {
-    return (long)value & 0xFFFFFFFFL;
+    return value & 0xFFFFFFFFL;
   }
 
   @Override
@@ -51,12 +52,12 @@ public class ArchitecturalWord32 extends ArchitecturalWord {
     return value == word.toInt();
   }
 
+  /**
+   * Unsigned comparison - flip bit 31 and then use signed comparison.
+   */
   @Override
   boolean LT(ArchitecturalWord word) {
-    if (value >= 0 && word.toInt() >= 0) return value < word.toInt();
-    if (value < 0 && word.toInt() < 0) return value < word.toInt();
-    if (value < 0) return false;
-    return true;
+    return (value ^ SIGN_BIT) < (word.toInt() ^ SIGN_BIT);
   }
 
   @Override

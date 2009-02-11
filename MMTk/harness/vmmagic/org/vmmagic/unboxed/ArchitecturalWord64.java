@@ -12,9 +12,10 @@
  */
 package org.vmmagic.unboxed;
 
-public class ArchitecturalWord64 extends ArchitecturalWord {
+public final class ArchitecturalWord64 extends ArchitecturalWord {
 
   private final long value;
+  private static final long SIGN_BIT = 1L<<63;
 
   ArchitecturalWord64(long value) {
     assert getModel() == Architecture.BITS64;
@@ -52,10 +53,7 @@ public class ArchitecturalWord64 extends ArchitecturalWord {
 
   @Override
   boolean LT(ArchitecturalWord word) {
-    if (value >= 0 && word.toLongSignExtend() >= 0) return value < word.toLongSignExtend();
-    if (value < 0 && word.toLongSignExtend() < 0) return value < word.toLongSignExtend();
-    if (value < 0) return false;
-    return true;
+    return (value ^ SIGN_BIT) < (word.toLongSignExtend() ^ SIGN_BIT);
   }
 
   @Override
