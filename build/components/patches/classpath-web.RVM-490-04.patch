@@ -1,0 +1,231 @@
+Index: gnu/xml/dom/DomAttr.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/dom/DomAttr.java,v
+retrieving revision 1.5
+diff -u -u -r1.5 DomAttr.java
+--- gnu/xml/dom/DomAttr.java	16 Mar 2008 23:37:09 -0000	1.5
++++ gnu/xml/dom/DomAttr.java	25 Jun 2008 20:55:50 -0000
+@@ -108,7 +108,37 @@
+     // and character data change events and when they happen,
+     // report self-mutation
+   }
+-  
++
++  /**
++   * Constructs an Attr node associated with the specified document.
++   * The "specified" flag is initialized to true, since this DOM has
++   * no current "back door" mechanisms to manage default values so
++   * that every value must effectively be "specified".
++   *
++   * <p>This constructor should only be invoked by a Document as part of
++   * its createAttribute functionality, or through a subclass which is
++   * similarly used in a "Sub-DOM" style layer.
++   * <p>
++   * With this constructor, the prefix and local part are given explicitly
++   * rather than being computed.  This allows them to be explicitly set to
++   * {@code null} as required by {@link Document#createAttribute(String)}.   
++   * </p>
++   *
++   * @param owner The document with which this node is associated
++   * @param namespaceURI Combined with the local part of the name,
++   *	this is used to uniquely identify a type of attribute
++   * @param name Name of this attribute, which may include a prefix
++   * @param prefix the namespace prefix of the name.  May be {@code null}.
++   * @param localName the local part of the name.  May be {@code null}.
++   */
++  protected DomAttr(DomDocument owner, String namespaceURI, String name,
++		    String prefix, String localName)
++  {
++    super(ATTRIBUTE_NODE, owner, namespaceURI, name, prefix, localName);
++    specified = true;
++    length = 1;
++  }
++
+   /**
+    * <b>DOM L1</b>
+    * Returns the attribute name (same as getNodeName)
+Index: gnu/xml/dom/DomDocument.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/dom/DomDocument.java,v
+retrieving revision 1.13
+diff -u -u -r1.13 DomDocument.java
+--- gnu/xml/dom/DomDocument.java	4 May 2007 12:18:10 -0000	1.13
++++ gnu/xml/dom/DomDocument.java	25 Jun 2008 20:55:53 -0000
+@@ -597,6 +597,8 @@
+   /**
+    * <b>DOM L1</b>
+    * Returns a newly created element with the specified name.
++   * The node name of the created element will be equal to {@code name}.
++   * The namespace, prefix and local name will all be {@code null}.
+    */
+   public Element createElement(String name)
+   {
+@@ -612,8 +614,7 @@
+       }
+     else
+       {
+-        DomElement domElement = new DomElement(this, null, name);
+-        domElement.localName = null;
++        DomElement domElement = new DomElement(this, null, name, null, null);
+         element = domElement;
+       }
+     if (defaultAttributes)
+@@ -813,8 +814,7 @@
+       }
+     else
+       {
+-        DomAttr ret = new DomAttr(this, null, name);
+-        ret.localName = null;
++        DomAttr ret = new DomAttr(this, null, name, null, null);
+         return ret;
+       }
+   }
+Index: gnu/xml/dom/DomElement.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/dom/DomElement.java,v
+retrieving revision 1.5
+diff -u -u -r1.5 DomElement.java
+--- gnu/xml/dom/DomElement.java	9 Jul 2007 17:56:31 -0000	1.5
++++ gnu/xml/dom/DomElement.java	25 Jun 2008 20:55:53 -0000
+@@ -90,6 +90,32 @@
+   }
+ 
+   /**
++   * <p>
++   * Constructs an Element node associated with the specified document.
++   * This constructor should only be invoked by a Document as part
++   * of its createElement functionality, or through a subclass which is
++   * similarly used in a "Sub-DOM" style layer.
++   * </p>
++   * <p>
++   * With this constructor, the prefix and local part are given explicitly
++   * rather than being computed.  This allows them to be explicitly set to
++   * {@code null} as required by {@link Document#createElement(String)}.   
++   * </p>
++   *
++   * @param owner The document with which this node is associated
++   * @param namespaceURI Combined with the local part of the name,
++   *	this is used to uniquely identify a type of element
++   * @param name Name of this element, which may include a prefix
++   * @param prefix the namespace prefix of the name.  May be {@code null}.
++   * @param localName the local part of the name.  May be {@code null}.
++   */
++  protected DomElement(DomDocument owner, String namespaceURI, String name,
++		       String prefix, String localName)
++  {
++    super(ELEMENT_NODE, owner, namespaceURI, name, prefix, localName);
++  }
++
++  /**
+    * <b>DOM L1</b>
+    * Returns the element's attributes
+    */
+Index: gnu/xml/dom/DomNsNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/dom/DomNsNode.java,v
+retrieving revision 1.4
+diff -u -u -r1.4 DomNsNode.java
+--- gnu/xml/dom/DomNsNode.java	2 Jul 2005 20:32:15 -0000	1.4
++++ gnu/xml/dom/DomNsNode.java	25 Jun 2008 20:55:53 -0000
+@@ -54,7 +54,7 @@
+   private String name;
+   private String namespace;
+   private String prefix;
+-  String localName;
++  private String localName;
+   
+   /**
+    * Constructs a node associated with the specified document, and
+@@ -76,6 +76,33 @@
+   }
+ 
+   /**
++   * Constructs a node associated with the specified document, and
++   * with the specified namespace information.  The prefix and local part
++   * are given explicitly rather than being computed.  This allows them
++   * to be explicitly set to {@code null} as required by
++   * {@link Document#createElement(String)}.
++   *
++   * @param owner The document with which this entity is associated
++   * @param namespaceURI Combined with the local part of the name,
++   *	this identifies a type of element or attribute; may be null.
++   *  If this is the empty string, it is reassigned as null so that
++   *  applications only need to test that case.
++   * @param name Name of this node, which may include a prefix
++   * @param prefix the namespace prefix of the name.  May be {@code null}.
++   * @param localName the local part of the name.  May be {@code null}.
++   */
++  // package private
++  DomNsNode(short nodeType, DomDocument owner, String namespaceURI, String name,
++	    String prefix, String localName)
++  {
++    super(nodeType, owner);
++    this.name = name.intern();
++    this.prefix = prefix == null ? null : prefix.intern();
++    this.localName = localName == null ? null : localName.intern();
++    setNamespaceURI(namespaceURI);
++  }
++
++  /**
+    * <b>DOM L1</b>
+    * Returns the node's name, including any namespace prefix.
+    */
+Index: gnu/xml/dom/ls/DomLSParser.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/dom/ls/DomLSParser.java,v
+retrieving revision 1.6
+diff -u -u -r1.6 DomLSParser.java
+--- gnu/xml/dom/ls/DomLSParser.java	8 Mar 2007 11:16:31 -0000	1.6
++++ gnu/xml/dom/ls/DomLSParser.java	25 Jun 2008 20:55:53 -0000
+@@ -253,7 +253,7 @@
+     eventSink = (filter == null) ? new SAXEventSink() :
+       new FilteredSAXEventSink(filter);
+     // configure sink
+-    eventSink.namespaceAware = namespaceAware;
++    eventSink.setNamespaceAware(namespaceAware);
+     eventSink.ignoreWhitespace = ignoreWhitespace;
+     eventSink.expandEntityReferences = expandEntityReferences;
+     eventSink.ignoreComments = ignoreComments;
+Index: gnu/xml/dom/ls/SAXEventSink.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/dom/ls/SAXEventSink.java,v
+retrieving revision 1.10
+diff -u -u -r1.10 SAXEventSink.java
+--- gnu/xml/dom/ls/SAXEventSink.java	4 May 2007 12:18:10 -0000	1.10
++++ gnu/xml/dom/ls/SAXEventSink.java	25 Jun 2008 20:55:53 -0000
+@@ -89,7 +89,7 @@
+     PREDEFINED_ENTITIES.add("apos");
+   }
+ 
+-  boolean namespaceAware;
++  private boolean namespaceAware;
+   boolean ignoreWhitespace;
+   boolean expandEntityReferences;
+   boolean ignoreComments;
+@@ -128,6 +128,11 @@
+     this.locator = locator;
+   }
+ 
++  public void setNamespaceAware(boolean namespaceAware)
++  {
++    this.namespaceAware = namespaceAware;
++  }
++
+   public void startDocument()
+     throws SAXException
+   {
+Index: gnu/xml/transform/XSLURIResolver.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/XSLURIResolver.java,v
+retrieving revision 1.7
+diff -u -u -r1.7 XSLURIResolver.java
+--- gnu/xml/transform/XSLURIResolver.java	22 Jun 2008 23:57:17 -0000	1.7
++++ gnu/xml/transform/XSLURIResolver.java	25 Jun 2008 20:55:53 -0000
+@@ -301,6 +301,7 @@
+   {
+     SAXEventSink eventSink = new SAXEventSink();
+     eventSink.setReader(reader);
++    eventSink.setNamespaceAware(true);
+     reader.setContentHandler(eventSink);
+     reader.setDTDHandler(eventSink);
+     reader.setProperty("http://xml.org/sax/properties/lexical-handler",

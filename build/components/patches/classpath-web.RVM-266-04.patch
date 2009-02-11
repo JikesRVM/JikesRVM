@@ -1,0 +1,15 @@
+Index: gnu/java/lang/CPStringBuilder.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/java/lang/CPStringBuilder.java,v
+retrieving revision 1.1
+diff -u -3 -p -u -r1.1 CPStringBuilder.java
+--- gnu/java/lang/CPStringBuilder.java	1 Mar 2008 10:13:30 -0000	1.1
++++ gnu/java/lang/CPStringBuilder.java	1 Mar 2008 12:00:40 -0000
+@@ -87,6 +87,7 @@ public final class CPStringBuilder
+       {
+ 	cons = String.class.getDeclaredConstructor(char[].class, Integer.TYPE,
+ 						   Integer.TYPE, Boolean.TYPE);
++	cons.setAccessible(true);
+       }
+     catch (NoSuchMethodException e)
+       {

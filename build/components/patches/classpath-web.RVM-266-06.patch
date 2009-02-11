@@ -1,0 +1,664 @@
+Index: java/security/AlgorithmParameterGenerator.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/AlgorithmParameterGenerator.java,v
+retrieving revision 1.15
+diff -u -3 -p -u -r1.15 AlgorithmParameterGenerator.java
+--- java/security/AlgorithmParameterGenerator.java	13 Aug 2006 00:09:58 -0000	1.15
++++ java/security/AlgorithmParameterGenerator.java	16 Mar 2008 22:40:22 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.security;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.security.Engine;
+ 
+ import java.lang.reflect.InvocationTargetException;
+@@ -171,7 +173,7 @@ public class AlgorithmParameterGenerator
+                                                         Provider provider)
+       throws NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder()
++    CPStringBuilder sb = new CPStringBuilder()
+         .append("AlgorithmParameterGenerator for algorithm [")
+         .append(algorithm).append("] from provider[")
+         .append(provider).append("] could not be created");
+Index: java/security/AlgorithmParameters.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/AlgorithmParameters.java,v
+retrieving revision 1.16
+diff -u -3 -p -u -r1.16 AlgorithmParameters.java
+--- java/security/AlgorithmParameters.java	10 Dec 2006 20:25:45 -0000	1.16
++++ java/security/AlgorithmParameters.java	16 Mar 2008 22:40:22 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.security;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.security.Engine;
+ 
+ import java.io.IOException;
+@@ -175,7 +177,7 @@ public class AlgorithmParameters
+                                                 Provider provider)
+       throws NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder("AlgorithmParameters for algorithm [")
++    CPStringBuilder sb = new CPStringBuilder("AlgorithmParameters for algorithm [")
+         .append(algorithm).append("] from provider[")
+         .append(provider).append("] could not be created");
+     Throwable cause;
+Index: java/security/KeyFactory.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/KeyFactory.java,v
+retrieving revision 1.15
+diff -u -3 -p -u -r1.15 KeyFactory.java
+--- java/security/KeyFactory.java	10 Dec 2006 20:25:45 -0000	1.15
++++ java/security/KeyFactory.java	16 Mar 2008 22:40:22 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.security;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.security.Engine;
+ 
+ import java.lang.reflect.InvocationTargetException;
+@@ -165,7 +167,7 @@ public class KeyFactory
+   public static KeyFactory getInstance(String algorithm, Provider provider)
+       throws NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder("KeyFactory for algorithm [")
++    CPStringBuilder sb = new CPStringBuilder("KeyFactory for algorithm [")
+         .append(algorithm).append("] from provider[")
+         .append(provider).append("] could not be created");
+     Throwable cause;
+Index: java/security/KeyPairGenerator.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/KeyPairGenerator.java,v
+retrieving revision 1.18
+diff -u -3 -p -u -r1.18 KeyPairGenerator.java
+--- java/security/KeyPairGenerator.java	13 Aug 2006 00:09:58 -0000	1.18
++++ java/security/KeyPairGenerator.java	16 Mar 2008 22:40:22 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.security;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.security.Engine;
+ 
+ import java.lang.reflect.InvocationTargetException;
+@@ -165,7 +167,7 @@ public abstract class KeyPairGenerator e
+ 					     Provider provider)
+     throws NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder("KeyPairGenerator for algorithm [")
++    CPStringBuilder sb = new CPStringBuilder("KeyPairGenerator for algorithm [")
+         .append(algorithm).append("] from provider[")
+         .append(provider).append("] ");
+     Object o;
+Index: java/security/MessageDigest.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/MessageDigest.java,v
+retrieving revision 1.18
+diff -u -3 -p -u -r1.18 MessageDigest.java
+--- java/security/MessageDigest.java	12 Mar 2008 23:39:50 -0000	1.18
++++ java/security/MessageDigest.java	16 Mar 2008 22:40:22 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package java.security;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.security.Engine;
+ import java.nio.ByteBuffer;
+ 
+@@ -146,7 +148,7 @@ public abstract class MessageDigest exte
+   public static MessageDigest getInstance(String algorithm, Provider provider)
+     throws NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder("MessageDigest for algorithm [")
++    CPStringBuilder sb = new CPStringBuilder("MessageDigest for algorithm [")
+         .append(algorithm).append("] from provider[")
+         .append(provider).append("] ");
+     Object o;
+Index: java/security/SecureRandom.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/SecureRandom.java,v
+retrieving revision 1.24
+diff -u -3 -p -u -r1.24 SecureRandom.java
+--- java/security/SecureRandom.java	13 Aug 2006 00:09:58 -0000	1.24
++++ java/security/SecureRandom.java	16 Mar 2008 22:40:22 -0000
+@@ -39,6 +39,7 @@ exception statement from your version. *
+ package java.security;
+ 
+ import gnu.classpath.SystemProperties;
++import gnu.java.lang.CPStringBuilder;
+ import gnu.java.security.Engine;
+ import gnu.java.security.action.GetSecurityPropertyAction;
+ import gnu.java.security.jce.prng.Sha160RandomSpi;
+@@ -262,7 +263,7 @@ public class SecureRandom extends Random
+   public static SecureRandom getInstance(String algorithm, Provider provider)
+       throws NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder("SecureRandom for algorithm [")
++    CPStringBuilder sb = new CPStringBuilder("SecureRandom for algorithm [")
+         .append(algorithm).append("] from provider[")
+         .append(provider).append("] could not be created");
+     Throwable cause;
+Index: java/security/Signature.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/Signature.java,v
+retrieving revision 1.22
+diff -u -3 -p -u -r1.22 Signature.java
+--- java/security/Signature.java	10 Dec 2006 20:25:45 -0000	1.22
++++ java/security/Signature.java	16 Mar 2008 22:40:22 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.security;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.security.Engine;
+ 
+ import java.lang.reflect.InvocationTargetException;
+@@ -198,7 +200,7 @@ public abstract class Signature extends 
+   public static Signature getInstance(String algorithm, Provider provider)
+     throws NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder("Signature algorithm [")
++    CPStringBuilder sb = new CPStringBuilder("Signature algorithm [")
+         .append(algorithm).append("] from provider[")
+         .append(provider).append("] ");
+     Object o;
+Index: java/security/cert/CertPathBuilder.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/cert/CertPathBuilder.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 CertPathBuilder.java
+--- java/security/cert/CertPathBuilder.java	13 Aug 2006 00:09:58 -0000	1.5
++++ java/security/cert/CertPathBuilder.java	16 Mar 2008 22:40:22 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.security.cert;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.security.Engine;
+ 
+ import java.lang.reflect.InvocationTargetException;
+@@ -182,7 +184,7 @@ public class CertPathBuilder
+   public static CertPathBuilder getInstance(String algorithm, Provider provider)
+       throws NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder("CertPathBuilder for algorithm [")
++    CPStringBuilder sb = new CPStringBuilder("CertPathBuilder for algorithm [")
+         .append(algorithm).append("] from provider[")
+         .append(provider).append("] could not be created");
+     Throwable cause;
+Index: java/security/cert/CertPathValidator.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/cert/CertPathValidator.java,v
+retrieving revision 1.6
+diff -u -3 -p -u -r1.6 CertPathValidator.java
+--- java/security/cert/CertPathValidator.java	13 Aug 2006 00:09:58 -0000	1.6
++++ java/security/cert/CertPathValidator.java	16 Mar 2008 22:40:22 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.security.cert;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.security.Engine;
+ 
+ import java.lang.reflect.InvocationTargetException;
+@@ -196,7 +198,7 @@ public class CertPathValidator {
+                                               Provider provider)
+     throws NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder("CertPathValidator for algorithm [")
++    CPStringBuilder sb = new CPStringBuilder("CertPathValidator for algorithm [")
+         .append(algorithm).append("] from provider[")
+         .append(provider).append("] could not be created");
+     Throwable cause;
+Index: java/security/cert/CertStore.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/security/cert/CertStore.java,v
+retrieving revision 1.7
+diff -u -3 -p -u -r1.7 CertStore.java
+--- java/security/cert/CertStore.java	10 Dec 2006 20:25:45 -0000	1.7
++++ java/security/cert/CertStore.java	16 Mar 2008 22:40:22 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.security.cert;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.security.Engine;
+ 
+ import java.lang.reflect.InvocationTargetException;
+@@ -207,7 +209,7 @@ public class CertStore
+                                       Provider provider)
+       throws InvalidAlgorithmParameterException, NoSuchAlgorithmException
+   {
+-    StringBuilder sb = new StringBuilder("CertStore of type [")
++    CPStringBuilder sb = new CPStringBuilder("CertStore of type [")
+         .append(type).append("] from provider[")
+         .append(provider).append("] could not be created");
+     Throwable cause;
+Index: java/text/SimpleDateFormat.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/text/SimpleDateFormat.java,v
+retrieving revision 1.57
+diff -u -3 -p -u -r1.57 SimpleDateFormat.java
+--- java/text/SimpleDateFormat.java	12 Mar 2008 23:39:51 -0000	1.57
++++ java/text/SimpleDateFormat.java	16 Mar 2008 22:40:23 -0000
+@@ -40,6 +40,8 @@ exception statement from your version. *
+ 
+ package java.text;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.text.AttributedFormatBuffer;
+ import gnu.java.text.FormatBuffer;
+ import gnu.java.text.FormatCharacterIterator;
+@@ -139,9 +141,9 @@ public class SimpleDateFormat extends Da
+      */
+     public String toString()
+     {
+-      StringBuilder builder;
++      CPStringBuilder builder;
+ 
+-      builder = new StringBuilder(getClass().getName());
++      builder = new CPStringBuilder(getClass().getName());
+       builder.append("[field=");
+       builder.append(field);
+       builder.append(", size=");
+@@ -322,7 +324,7 @@ public class SimpleDateFormat extends Da
+ 		    // Look for the terminating quote.  However, if we
+ 		    // see a '', that represents a literal quote and
+ 		    // we must iterate.
+-		    StringBuilder buf = new StringBuilder();
++		    CPStringBuilder buf = new CPStringBuilder();
+ 		    int oldPos = i + 1;
+ 		    do
+ 		      {
+@@ -372,7 +374,7 @@ public class SimpleDateFormat extends Da
+    */
+   public String toString() 
+   {
+-    StringBuilder output = new StringBuilder(getClass().getName());
++    CPStringBuilder output = new CPStringBuilder(getClass().getName());
+     output.append("[tokens=");
+     output.append(tokens);
+     output.append(", formatData=");
+@@ -554,7 +556,7 @@ public class SimpleDateFormat extends Da
+ 					   String oldChars, String newChars)
+   {
+     int len = pattern.length();
+-    StringBuilder buf = new StringBuilder(len);
++    CPStringBuilder buf = new CPStringBuilder(len);
+     boolean quoted = false;
+     for (int i = 0;  i < len;  i++)
+       {
+Index: java/util/AbstractMap.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/AbstractMap.java,v
+retrieving revision 1.33
+diff -u -3 -p -u -r1.33 AbstractMap.java
+--- java/util/AbstractMap.java	5 Feb 2008 14:59:05 -0000	1.33
++++ java/util/AbstractMap.java	16 Mar 2008 22:40:23 -0000
+@@ -39,6 +39,8 @@ exception statement from your version. *
+ 
+ package java.util;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.Serializable;
+ 
+ /**
+@@ -524,7 +526,7 @@ public abstract class AbstractMap<K, V> 
+   public String toString()
+   {
+     Iterator<Map.Entry<K, V>> entries = entrySet().iterator();
+-    StringBuilder r = new StringBuilder("{");
++    CPStringBuilder r = new CPStringBuilder("{");
+     for (int pos = size(); pos > 0; pos--)
+       {
+         Map.Entry<K, V> entry = entries.next();
+Index: java/util/Arrays.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/Arrays.java,v
+retrieving revision 1.37
+diff -u -3 -p -u -r1.37 Arrays.java
+--- java/util/Arrays.java	23 May 2007 12:22:25 -0000	1.37
++++ java/util/Arrays.java	16 Mar 2008 22:40:23 -0000
+@@ -39,6 +39,8 @@ exception statement from your version. *
+ 
+ package java.util;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.Serializable;
+ import java.lang.reflect.Array;
+ 
+@@ -2935,7 +2937,7 @@ public class Arrays
+   {
+     if (v == null)
+       return "null";
+-    StringBuilder b = new StringBuilder("[");
++    CPStringBuilder b = new CPStringBuilder("[");
+     for (int i = 0; i < v.length; ++i)
+       {
+ 	if (i > 0)
+@@ -2957,7 +2959,7 @@ public class Arrays
+   {
+     if (v == null)
+       return "null";
+-    StringBuilder b = new StringBuilder("[");
++    CPStringBuilder b = new CPStringBuilder("[");
+     for (int i = 0; i < v.length; ++i)
+       {
+ 	if (i > 0)
+@@ -2979,7 +2981,7 @@ public class Arrays
+   {
+     if (v == null)
+       return "null";
+-    StringBuilder b = new StringBuilder("[");
++    CPStringBuilder b = new CPStringBuilder("[");
+     for (int i = 0; i < v.length; ++i)
+       {
+ 	if (i > 0)
+@@ -3001,7 +3003,7 @@ public class Arrays
+   {
+     if (v == null)
+       return "null";
+-    StringBuilder b = new StringBuilder("[");
++    CPStringBuilder b = new CPStringBuilder("[");
+     for (int i = 0; i < v.length; ++i)
+       {
+ 	if (i > 0)
+@@ -3023,7 +3025,7 @@ public class Arrays
+   {
+     if (v == null)
+       return "null";
+-    StringBuilder b = new StringBuilder("[");
++    CPStringBuilder b = new CPStringBuilder("[");
+     for (int i = 0; i < v.length; ++i)
+       {
+ 	if (i > 0)
+@@ -3045,7 +3047,7 @@ public class Arrays
+   {
+     if (v == null)
+       return "null";
+-    StringBuilder b = new StringBuilder("[");
++    CPStringBuilder b = new CPStringBuilder("[");
+     for (int i = 0; i < v.length; ++i)
+       {
+ 	if (i > 0)
+@@ -3067,7 +3069,7 @@ public class Arrays
+   {
+     if (v == null)
+       return "null";
+-    StringBuilder b = new StringBuilder("[");
++    CPStringBuilder b = new CPStringBuilder("[");
+     for (int i = 0; i < v.length; ++i)
+       {
+ 	if (i > 0)
+@@ -3089,7 +3091,7 @@ public class Arrays
+   {
+     if (v == null)
+       return "null";
+-    StringBuilder b = new StringBuilder("[");
++    CPStringBuilder b = new CPStringBuilder("[");
+     for (int i = 0; i < v.length; ++i)
+       {
+ 	if (i > 0)
+@@ -3111,7 +3113,7 @@ public class Arrays
+   {
+     if (v == null)
+       return "null";
+-    StringBuilder b = new StringBuilder("[");
++    CPStringBuilder b = new CPStringBuilder("[");
+     for (int i = 0; i < v.length; ++i)
+       {
+ 	if (i > 0)
+@@ -3122,7 +3124,7 @@ public class Arrays
+     return b.toString();
+   }
+ 
+-  private static void deepToString(Object[] v, StringBuilder b, HashSet seen)
++  private static void deepToString(Object[] v, CPStringBuilder b, HashSet seen)
+   {
+     b.append("[");
+     for (int i = 0; i < v.length; ++i)
+@@ -3171,7 +3173,7 @@ public class Arrays
+     if (v == null)
+       return "null";
+     HashSet seen = new HashSet();
+-    StringBuilder b = new StringBuilder();
++    CPStringBuilder b = new CPStringBuilder();
+     deepToString(v, b, seen);
+     return b.toString();
+   }
+Index: java/util/Calendar.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/Calendar.java,v
+retrieving revision 1.54
+diff -u -3 -p -u -r1.54 Calendar.java
+--- java/util/Calendar.java	5 Feb 2008 14:59:05 -0000	1.54
++++ java/util/Calendar.java	16 Mar 2008 22:40:23 -0000
+@@ -39,6 +39,8 @@ exception statement from your version. *
+ 
+ package java.util;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.IOException;
+ import java.io.ObjectInputStream;
+ import java.io.ObjectOutputStream;
+@@ -1328,7 +1330,7 @@ public abstract class Calendar
+    */
+   public String toString()
+   {
+-    StringBuilder sb = new StringBuilder(getClass().getName());
++    CPStringBuilder sb = new CPStringBuilder(getClass().getName());
+     sb.append('[');
+     sb.append("time=");
+     if (isTimeSet)
+Index: java/util/Date.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/Date.java,v
+retrieving revision 1.27
+diff -u -3 -p -u -r1.27 Date.java
+--- java/util/Date.java	5 Feb 2008 14:59:06 -0000	1.27
++++ java/util/Date.java	16 Mar 2008 22:40:23 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package java.util;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.IOException;
+ import java.io.ObjectInputStream;
+ import java.io.ObjectOutputStream;
+@@ -722,7 +724,7 @@ public class Date
+     boolean localTimezone = true;
+ 
+     // Trim out any nested stuff in parentheses now to make parsing easier.
+-    StringBuilder buf = new StringBuilder();
++    CPStringBuilder buf = new CPStringBuilder();
+     int parenNesting = 0;
+     int len = string.length();
+     for (int i = 0;  i < len;  i++)
+Index: java/util/Formatter.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/Formatter.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 Formatter.java
+--- java/util/Formatter.java	1 Mar 2008 10:13:32 -0000	1.5
++++ java/util/Formatter.java	16 Mar 2008 22:40:23 -0000
+@@ -922,7 +922,7 @@ public final class Formatter 
+    * @param conversion the formatting character to specify the type of data.
+    * @param syms the date formatting symbols.
+    */
+-  private void singleDateTimeConversion(StringBuilder builder, Calendar cal,
++  private void singleDateTimeConversion(CPStringBuilder builder, Calendar cal,
+ 					char conversion,
+ 					DateFormatSymbols syms)
+   {
+@@ -1153,7 +1153,7 @@ public final class Formatter 
+     else
+       syms = new DateFormatSymbols(fmtLocale);
+ 
+-    StringBuilder result = new StringBuilder();
++    CPStringBuilder result = new CPStringBuilder();
+     singleDateTimeConversion(result, cal, subConversion, syms);
+ 
+     genericFormat(result.toString(), flags, width, precision);
+Index: java/util/Hashtable.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/Hashtable.java,v
+retrieving revision 1.43
+diff -u -3 -p -u -r1.43 Hashtable.java
+--- java/util/Hashtable.java	5 Feb 2008 14:59:06 -0000	1.43
++++ java/util/Hashtable.java	16 Mar 2008 22:40:24 -0000
+@@ -39,6 +39,8 @@ exception statement from your version. *
+ 
+ package java.util;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.IOException;
+ import java.io.ObjectInputStream;
+ import java.io.ObjectOutputStream;
+@@ -579,7 +581,7 @@ public class Hashtable<K, V> extends Dic
+     // would repeatedly re-lock/release the monitor, we directly use the
+     // unsynchronized EntryIterator instead.
+     Iterator<Map.Entry<K, V>> entries = new EntryIterator();
+-    StringBuilder r = new StringBuilder("{");
++    CPStringBuilder r = new CPStringBuilder("{");
+     for (int pos = size; pos > 0; pos--)
+       {
+         r.append(entries.next());
+Index: java/util/Properties.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/Properties.java,v
+retrieving revision 1.37
+diff -u -3 -p -u -r1.37 Properties.java
+--- java/util/Properties.java	10 Dec 2006 20:25:46 -0000	1.37
++++ java/util/Properties.java	16 Mar 2008 22:40:24 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.util;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.BufferedReader;
+ import java.io.IOException;
+ import java.io.InputStream;
+@@ -217,7 +219,7 @@ label   = Name:\\u0020</pre>
+ 	// Try to short-circuit when there is no escape char.
+ 	int start = pos;
+ 	boolean needsEscape = line.indexOf('\\', pos) != -1;
+-        StringBuilder key = needsEscape ? new StringBuilder() : null;
++        CPStringBuilder key = needsEscape ? new CPStringBuilder() : null;
+         while (pos < line.length()
+                && ! Character.isWhitespace(c = line.charAt(pos++))
+                && c != '=' && c != ':')
+@@ -421,7 +423,7 @@ label   = Name:\\u0020</pre>
+     
+     Iterator iter = entrySet ().iterator ();
+     int i = size ();
+-    StringBuilder s = new StringBuilder (); // Reuse the same buffer.
++    CPStringBuilder s = new CPStringBuilder (); // Reuse the same buffer.
+     while (--i >= 0)
+       {
+         Map.Entry entry = (Map.Entry) iter.next ();
+@@ -564,7 +566,7 @@ label   = Name:\\u0020</pre>
+    *        leading spaces must be escaped for the value
+    * @see #store(OutputStream, String)
+    */
+-  private void formatForOutput(String str, StringBuilder buffer, boolean key)
++  private void formatForOutput(String str, CPStringBuilder buffer, boolean key)
+   {
+     if (key)
+       {
+@@ -745,7 +747,7 @@ label   = Name:\\u0020</pre>
+                             Boolean.FALSE);
+         XMLStreamReader reader = factory.createXMLStreamReader(in);
+         String name, key = null;
+-        StringBuffer buf = null;
++        CPStringBuilder buf = null;
+         while (reader.hasNext())
+           {
+             switch (reader.next())
+@@ -760,7 +762,7 @@ label   = Name:\\u0020</pre>
+                         String msg = "missing 'key' attribute";
+                         throw new InvalidPropertiesFormatException(msg);
+                       }
+-                    buf = new StringBuffer();
++                    buf = new CPStringBuilder();
+                   }
+                 else if (!"properties".equals(name) && !"comment".equals(name))
+                   {
+Index: java/util/TreeMap.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/TreeMap.java,v
+retrieving revision 1.34
+diff -u -3 -p -u -r1.34 TreeMap.java
+--- java/util/TreeMap.java	6 Apr 2007 15:56:26 -0000	1.34
++++ java/util/TreeMap.java	16 Mar 2008 22:40:26 -0000
+@@ -39,6 +39,8 @@ exception statement from your version. *
+ 
+ package java.util;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.IOException;
+ import java.io.ObjectInputStream;
+ import java.io.ObjectOutputStream;
+@@ -2720,7 +2722,7 @@ public class TreeMap<K, V> extends Abstr
+ 
+     public String toString()
+     {
+-      StringBuilder r = new StringBuilder("{");
++      CPStringBuilder r = new CPStringBuilder("{");
+       final Iterator<Entry<DK,DV>> it = entrySet().iterator();
+       while (it.hasNext())
+       {
+@@ -3158,7 +3160,7 @@ public class TreeMap<K, V> extends Abstr
+ 
+     public String toString()
+     {
+-      StringBuilder r = new StringBuilder("[");
++      CPStringBuilder r = new CPStringBuilder("[");
+       final Iterator<D> it = iterator();
+       while (it.hasNext())
+       {
+Index: java/util/regex/Matcher.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/util/regex/Matcher.java,v
+retrieving revision 1.19
+diff -u -3 -p -u -r1.19 Matcher.java
+--- java/util/regex/Matcher.java	6 Nov 2006 16:45:48 -0000	1.19
++++ java/util/regex/Matcher.java	16 Mar 2008 22:40:26 -0000
+@@ -38,6 +38,8 @@ exception statement from your version. *
+ 
+ package java.util.regex;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import gnu.java.util.regex.CharIndexed;
+ import gnu.java.util.regex.RE;
+ import gnu.java.util.regex.REMatch;
+@@ -323,7 +325,7 @@ public final class Matcher implements Ma
+    */
+   public String toString()
+   {
+-    StringBuilder sb = new StringBuilder();
++    CPStringBuilder sb = new CPStringBuilder();
+     sb.append(this.getClass().getName())
+       .append("[pattern=").append(pattern.pattern())
+       .append(" region=").append("0").append(",").append(input.length())

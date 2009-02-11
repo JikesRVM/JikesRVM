@@ -1,0 +1,775 @@
+--- java/nio/Buffer.java	2007-04-12 22:13:22.000000000 +0100
++++ java/nio/Buffer.java	2008-04-08 20:33:49.000000000 +0100
+@@ -45,19 +45,21 @@
+  */
+ public abstract class Buffer
+ {
+-  int cap = 0;
+-  int limit = 0;
+-  int pos = 0;
+-  int mark = -1;
+-  Pointer address;
++  private final int cap;
++  int limit;
++  int pos;
++  int mark;
++  final Pointer address;
+ 
+   /**
+    * Creates a new Buffer.
+    *
+    * Should be package private.
+    */
+-  Buffer (int capacity, int limit, int position, int mark)
++  Buffer (int capacity, int limit, int position, int mark, Pointer address)
+   {
++    this.address = address;
++
+     if (capacity < 0)
+       throw new IllegalArgumentException ();
+     
+@@ -72,6 +74,10 @@
+       
+       this.mark = mark;
+     }
++    else
++    {
++      this.mark = -1;
++    }
+   }
+   
+   /**
+--- java/nio/ByteBufferImpl.java	2006-05-13 18:20:35.000000000 +0100
++++ java/nio/ByteBufferImpl.java	2008-04-08 16:14:43.000000000 +0100
+@@ -43,13 +43,11 @@
+  */
+ final class ByteBufferImpl extends ByteBuffer
+ {
+-  private boolean readOnly;
++  private final boolean readOnly;
+ 
+   ByteBufferImpl (byte[] buffer, int offset, int capacity, int limit, int position, int mark, boolean readOnly)
+   {
+-    super (capacity, limit, position, mark);
+-    this.backing_buffer = buffer;
+-    this.array_offset = offset;
++    super (capacity, limit, position, mark, null, buffer, offset);
+     this.readOnly = readOnly;
+   }
+   
+--- java/nio/ByteBuffer.java	2006-12-10 20:25:45.000000000 +0000
++++ java/nio/ByteBuffer.java	2008-04-08 20:34:19.000000000 +0100
+@@ -38,6 +38,8 @@
+ 
+ package java.nio;
+ 
++import gnu.classpath.Pointer;
++
+ /**
+  * @since 1.4
+  */
+@@ -45,13 +47,14 @@
+   implements Comparable<ByteBuffer>
+ {
+   ByteOrder endian = ByteOrder.BIG_ENDIAN;
++  final byte[] backing_buffer;
++  final int array_offset;
+ 
+-  int array_offset;
+-  byte[] backing_buffer;
+-
+-  ByteBuffer (int capacity, int limit, int position, int mark)
++  ByteBuffer (int capacity, int limit, int position, int mark, Pointer address, byte[] backing_buffer, int array_offset)
+   {
+-    super (capacity, limit, position, mark);
++    super (capacity, limit, position, mark, address);
++    this.backing_buffer = backing_buffer;
++    this.array_offset = array_offset;
+   }
+ 
+   /**
+--- java/nio/CharBufferImpl.java	2006-05-01 23:41:20.000000000 +0100
++++ java/nio/CharBufferImpl.java	2008-04-08 16:20:20.000000000 +0100
+@@ -43,7 +43,7 @@
+  */
+ final class CharBufferImpl extends CharBuffer
+ {
+-  private boolean readOnly;
++  private final boolean readOnly;
+ 
+   CharBufferImpl (int capacity)
+   {
+@@ -52,18 +52,14 @@
+   
+   CharBufferImpl (char[] buffer, int offset, int capacity, int limit, int position, int mark, boolean readOnly)
+   {
+-    super (capacity, limit, position, mark);
+-    this.backing_buffer = buffer;
+-    this.array_offset = offset;
++    super (capacity, limit, position, mark, null, buffer, offset);
+     this.readOnly = readOnly;
+   }
+   
+   public CharBufferImpl (CharBufferImpl copy)
+   {
+-    super (copy.capacity (), copy.limit (), copy.position (), 0);
+-    backing_buffer = copy.backing_buffer;
+-    array_offset = copy.array_offset;
+-    readOnly = copy.isReadOnly ();
++    super (copy.capacity (), copy.limit (), copy.position (), 0, null, copy.backing_buffer, copy.array_offset);
++    this.readOnly = copy.isReadOnly ();
+   }
+   
+   public boolean isReadOnly ()
+--- java/nio/CharBuffer.java	2007-04-12 21:35:33.000000000 +0100
++++ java/nio/CharBuffer.java	2008-04-08 20:34:47.000000000 +0100
+@@ -39,6 +39,7 @@
+ package java.nio;
+ 
+ import java.io.IOException;
++import gnu.classpath.Pointer;
+ 
+ /**
+  * @since 1.4
+@@ -46,13 +47,14 @@
+ public abstract class CharBuffer extends Buffer
+   implements Comparable<CharBuffer>, CharSequence, Readable, Appendable
+ {
+-  int array_offset;
+-  char[] backing_buffer;
++  final int array_offset;
++  final char[] backing_buffer;
+ 
+-  CharBuffer (int capacity, int limit, int position, int mark)
++  CharBuffer (int capacity, int limit, int position, int mark, Pointer address, char[] backing_buffer, int array_offset)
+   {
+-    super (capacity, limit, position, mark);
+-    array_offset = 0;
++    super (capacity, limit, position, mark, address);
++    this.backing_buffer = backing_buffer;
++    this.array_offset = array_offset;
+   }
+ 
+   /**
+--- java/nio/CharSequenceBuffer.java	2007-04-12 21:35:33.000000000 +0100
++++ java/nio/CharSequenceBuffer.java	2008-04-08 16:22:51.000000000 +0100
+@@ -48,7 +48,7 @@
+   /**
+    * The wrapped char sequence.
+    */
+-  private CharSequence charSequence;
++  private final CharSequence charSequence;
+ 
+   /**
+    * Creates a new CharSequenceBuffer.
+@@ -63,9 +63,8 @@
+   CharSequenceBuffer(CharSequence charSeq, int capacity, int limit,
+                      int position, int mark, int offs)
+   {
+-    super(capacity, limit, position, mark);
+-    charSequence = charSeq;
+-    array_offset = offs;
++    super(capacity, limit, position, mark, null, null, offs);
++    this.charSequence = charSeq;
+   }
+ 
+   /**
+@@ -105,7 +104,7 @@
+    */
+   public CharBuffer duplicate()
+   {
+-    return new CharSequenceBuffer(charSequence, cap, limit, pos, mark, 0);
++    return new CharSequenceBuffer(charSequence, capacity(), limit, pos, mark, 0);
+   }
+ 
+   /**
+--- java/nio/CharViewBufferImpl.java	2007-04-27 15:14:54.000000000 +0100
++++ java/nio/CharViewBufferImpl.java	2008-04-08 16:32:12.000000000 +0100
+@@ -41,33 +41,31 @@
+ class CharViewBufferImpl extends CharBuffer
+ {
+   /** Position in bb (i.e. a byte offset) where this buffer starts. */
+-  private int offset;
+-  private ByteBuffer bb;
+-  private boolean readOnly;
+-  private ByteOrder endian;
++  private final int offset;
++  private final ByteBuffer bb;
++  private final boolean readOnly;
++  private final ByteOrder endian;
+   
+   CharViewBufferImpl (ByteBuffer bb, int capacity)
+   {
+-    super (capacity, capacity, 0, -1);
++    super (capacity, capacity, 0, -1, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, bb.position()) : null, null, 0);
+     this.bb = bb;
+     this.offset = bb.position();
+     this.readOnly = bb.isReadOnly();
+     this.endian = bb.order();
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+   
+   public CharViewBufferImpl (ByteBuffer bb, int offset, int capacity,
+ 			     int limit, int position, int mark,
+ 			     boolean readOnly, ByteOrder endian)
+   {
+-    super (capacity, limit, position, mark);
++    super (capacity, limit, position, mark, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, offset) : null, null, 0);
+     this.bb = bb;
+     this.offset = offset;
+     this.readOnly = readOnly;
+     this.endian = endian;
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+ 
+   /**
+--- java/nio/DirectByteBufferImpl.java	2006-08-06 21:55:09.000000000 +0100
++++ java/nio/DirectByteBufferImpl.java	2008-04-08 16:34:07.000000000 +0100
+@@ -104,18 +104,16 @@
+ 
+   DirectByteBufferImpl(int capacity)
+   {
+-    super(capacity, capacity, 0, -1);
++    super(capacity, capacity, 0, -1, VMDirectByteBuffer.allocate(capacity), null, 0);
+     this.owner = this;
+-    this.address = VMDirectByteBuffer.allocate(capacity);
+   }
+ 
+   DirectByteBufferImpl(Object owner, Pointer address,
+                        int capacity, int limit,
+                        int position)
+   {
+-    super(capacity, limit, position, -1);
++    super(capacity, limit, position, -1, address, null, 0);
+     this.owner = owner;
+-    this.address = address;
+   }
+ 
+   /**
+--- java/nio/DoubleBufferImpl.java	2006-05-01 23:41:20.000000000 +0100
++++ java/nio/DoubleBufferImpl.java	2008-04-08 16:16:58.000000000 +0100
+@@ -43,7 +43,7 @@
+  */
+ final class DoubleBufferImpl extends DoubleBuffer
+ {
+-  private boolean readOnly;
++  private final boolean readOnly;
+ 
+   DoubleBufferImpl (int capacity)
+   {
+@@ -52,9 +52,7 @@
+   
+   DoubleBufferImpl (double[] buffer, int offset, int capacity, int limit, int position, int mark, boolean readOnly)
+   {
+-    super (capacity, limit, position, mark);
+-    this.backing_buffer = buffer;
+-    this.array_offset = offset;
++    super (capacity, limit, position, mark, null, buffer, offset);
+     this.readOnly = readOnly;
+   }
+   
+--- java/nio/DoubleBuffer.java	2006-12-10 20:25:45.000000000 +0000
++++ java/nio/DoubleBuffer.java	2008-04-08 20:35:24.000000000 +0100
+@@ -38,19 +38,22 @@
+ 
+ package java.nio;
+ 
++import gnu.classpath.Pointer;
++
+ /**
+  * @since 1.4
+  */
+ public abstract class DoubleBuffer extends Buffer
+   implements Comparable<DoubleBuffer>
+ {
+-  int array_offset;
+-  double[] backing_buffer;
++  final int array_offset;
++  final double[] backing_buffer;
+ 
+-  DoubleBuffer (int capacity, int limit, int position, int mark)
++  DoubleBuffer (int capacity, int limit, int position, int mark, Pointer address, double[] backing_buffer, int array_offset)
+   {
+-    super (capacity, limit, position, mark);
+-    array_offset = 0;
++    super (capacity, limit, position, mark, address);
++    this.backing_buffer = backing_buffer;
++    this.array_offset = array_offset;
+   }
+ 
+   /**
+--- java/nio/DoubleViewBufferImpl.java	2007-04-27 15:14:54.000000000 +0100
++++ java/nio/DoubleViewBufferImpl.java	2008-04-08 16:38:04.000000000 +0100
+@@ -41,33 +41,31 @@
+ final class DoubleViewBufferImpl extends DoubleBuffer
+ {
+   /** Position in bb (i.e. a byte offset) where this buffer starts. */
+-  private int offset;
+-  private ByteBuffer bb;
+-  private boolean readOnly;
+-  private ByteOrder endian;
++  private final int offset;
++  private final ByteBuffer bb;
++  private final boolean readOnly;
++  private final ByteOrder endian;
+   
+   DoubleViewBufferImpl (ByteBuffer bb, int capacity)
+   {
+-    super (capacity, capacity, 0, -1);
++    super (capacity, capacity, 0, -1, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, bb.position()) : null, null, 0);
+     this.bb = bb;
+     this.offset = bb.position();
+     this.readOnly = bb.isReadOnly();
+     this.endian = bb.order();
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+   
+   public DoubleViewBufferImpl (ByteBuffer bb, int offset, int capacity,
+                                int limit, int position, int mark,
+                                boolean readOnly, ByteOrder endian)
+   {
+-    super (capacity, limit, position, mark);
++    super (capacity, limit, position, mark, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, bb.position()) : null, null, 0);
+     this.bb = bb;
+     this.offset = offset;
+     this.readOnly = readOnly;
+     this.endian = endian;
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+ 
+   /**
+--- java/nio/FloatBufferImpl.java	2006-05-01 23:41:20.000000000 +0100
++++ java/nio/FloatBufferImpl.java	2008-04-08 16:16:39.000000000 +0100
+@@ -43,7 +43,7 @@
+  */
+ final class FloatBufferImpl extends FloatBuffer
+ {
+-  private boolean readOnly;
++  private final boolean readOnly;
+ 
+   FloatBufferImpl (int capacity)
+   {
+@@ -52,9 +52,7 @@
+   
+   FloatBufferImpl (float[] buffer, int offset, int capacity, int limit, int position, int mark, boolean readOnly)
+   {
+-    super (capacity, limit, position, mark);
+-    this.backing_buffer = buffer;
+-    this.array_offset = offset;
++    super (capacity, limit, position, mark, null, buffer, offset);
+     this.readOnly = readOnly;
+   }
+   
+--- java/nio/FloatBuffer.java	2006-12-10 20:25:45.000000000 +0000
++++ java/nio/FloatBuffer.java	2008-04-08 20:35:45.000000000 +0100
+@@ -38,19 +38,22 @@
+ 
+ package java.nio;
+ 
++import gnu.classpath.Pointer;
++
+ /**
+  * @since 1.4
+  */
+ public abstract class FloatBuffer extends Buffer
+   implements Comparable<FloatBuffer>
+ {
+-  int array_offset;
+-  float[] backing_buffer;
++  final int array_offset;
++  final float[] backing_buffer;
+ 
+-  FloatBuffer (int capacity, int limit, int position, int mark)
++  FloatBuffer (int capacity, int limit, int position, int mark, Pointer address, float[] backing_buffer, int array_offset)
+   {
+-    super (capacity, limit, position, mark);
+-    array_offset = 0;
++    super (capacity, limit, position, mark, address);
++    this.backing_buffer = backing_buffer;
++    this.array_offset = array_offset;
+   }
+ 
+   /**
+--- java/nio/FloatViewBufferImpl.java	2007-04-27 15:14:54.000000000 +0100
++++ java/nio/FloatViewBufferImpl.java	2008-04-08 16:40:16.000000000 +0100
+@@ -41,33 +41,31 @@
+ final class FloatViewBufferImpl extends FloatBuffer
+ {
+   /** Position in bb (i.e. a byte offset) where this buffer starts. */
+-  private int offset;
+-  private ByteBuffer bb;
+-  private boolean readOnly;
+-  private ByteOrder endian;
++  private final int offset;
++  private final ByteBuffer bb;
++  private final boolean readOnly;
++  private final ByteOrder endian;
+   
+   FloatViewBufferImpl (ByteBuffer bb, int capacity)
+   {
+-    super (capacity, capacity, 0, -1);
++    super (capacity, capacity, 0, -1, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, bb.position()):null, null, 0);
+     this.bb = bb;
+     this.offset = bb.position();
+     this.readOnly = bb.isReadOnly();
+     this.endian = bb.order();
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+   
+   public FloatViewBufferImpl (ByteBuffer bb, int offset, int capacity,
+ 			      int limit, int position, int mark,
+ 			      boolean readOnly, ByteOrder endian)
+   {
+-    super (capacity, limit, position, mark);
++    super (capacity, limit, position, mark, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, offset):null, null, 0);
+     this.bb = bb;
+     this.offset = offset;
+     this.readOnly = readOnly;
+     this.endian = endian;
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+ 
+   /**
+--- java/nio/IntBufferImpl.java	2006-05-01 23:41:20.000000000 +0100
++++ java/nio/IntBufferImpl.java	2008-04-08 16:16:04.000000000 +0100
+@@ -43,7 +43,7 @@
+  */
+ final class IntBufferImpl extends IntBuffer
+ {
+-  private boolean readOnly;
++  private final boolean readOnly;
+ 
+   IntBufferImpl (int capacity)
+   {
+@@ -52,9 +52,7 @@
+   
+   IntBufferImpl (int[] buffer, int offset, int capacity, int limit, int position, int mark, boolean readOnly)
+   {
+-    super (capacity, limit, position, mark);
+-    this.backing_buffer = buffer;
+-    this.array_offset = offset;
++    super (capacity, limit, position, mark, null, buffer, offset);
+     this.readOnly = readOnly;
+   }
+   
+--- java/nio/IntBuffer.java	2006-12-10 20:25:45.000000000 +0000
++++ java/nio/IntBuffer.java	2008-04-08 20:36:10.000000000 +0100
+@@ -38,19 +38,22 @@
+ 
+ package java.nio;
+ 
++import gnu.classpath.Pointer;
++
+ /**
+  * @since 1.4
+  */
+ public abstract class IntBuffer extends Buffer
+   implements Comparable<IntBuffer>
+ {
+-  int array_offset;
+-  int[] backing_buffer;
++  final int array_offset;
++  final int[] backing_buffer;
+ 
+-  IntBuffer (int capacity, int limit, int position, int mark)
++  IntBuffer (int capacity, int limit, int position, int mark, Pointer address, int[] backing_buffer, int array_offset)
+   {
+-    super (capacity, limit, position, mark);
+-    array_offset = 0;
++    super (capacity, limit, position, mark, address);
++    this.backing_buffer = backing_buffer;
++    this.array_offset = array_offset;
+   }
+ 
+   /**
+--- java/nio/IntViewBufferImpl.java	2007-04-27 15:14:54.000000000 +0100
++++ java/nio/IntViewBufferImpl.java	2008-04-08 16:43:51.000000000 +0100
+@@ -41,33 +41,31 @@
+ final class IntViewBufferImpl extends IntBuffer
+ {
+   /** Position in bb (i.e. a byte offset) where this buffer starts. */
+-  private int offset;
+-  private ByteBuffer bb;
+-  private boolean readOnly;
+-  private ByteOrder endian;
++  private final int offset;
++  private final ByteBuffer bb;
++  private final boolean readOnly;
++  private final ByteOrder endian;
+   
+   IntViewBufferImpl (ByteBuffer bb, int capacity)
+   {
+-    super (capacity, capacity, 0, -1);
++    super (capacity, capacity, 0, -1, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, bb.position()):null, null, 0);
+     this.bb = bb;
+     this.offset = bb.position();
+     this.readOnly = bb.isReadOnly();
+     this.endian = bb.order();
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+   
+   public IntViewBufferImpl (ByteBuffer bb, int offset, int capacity,
+ 			    int limit, int position, int mark,
+ 			    boolean readOnly, ByteOrder endian)
+   {
+-    super (capacity, limit, position, mark);
++    super (capacity, limit, position, mark, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, offset):null, null, 0);
+     this.bb = bb;
+     this.offset = offset;
+     this.readOnly = readOnly;
+     this.endian = endian;
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+ 
+   /**
+--- java/nio/LongBufferImpl.java	2006-05-01 23:41:20.000000000 +0100
++++ java/nio/LongBufferImpl.java	2008-04-08 16:16:20.000000000 +0100
+@@ -43,7 +43,7 @@
+  */
+ final class LongBufferImpl extends LongBuffer
+ {
+-  private boolean readOnly;
++  private final boolean readOnly;
+ 
+   LongBufferImpl (int capacity)
+   {
+@@ -52,9 +52,7 @@
+   
+   LongBufferImpl (long[] buffer, int offset, int capacity, int limit, int position, int mark, boolean readOnly)
+   {
+-    super (capacity, limit, position, mark);
+-    this.backing_buffer = buffer;
+-    this.array_offset = offset;
++    super (capacity, limit, position, mark, null, buffer, offset);
+     this.readOnly = readOnly;
+   }
+   
+--- java/nio/LongBuffer.java	2006-12-10 20:25:45.000000000 +0000
++++ java/nio/LongBuffer.java	2008-04-08 20:36:40.000000000 +0100
+@@ -38,19 +38,22 @@
+ 
+ package java.nio;
+ 
++import gnu.classpath.Pointer;
++
+ /**
+  * @since 1.4
+  */
+ public abstract class LongBuffer extends Buffer
+   implements Comparable<LongBuffer>
+ {
+-  int array_offset;
+-  long[] backing_buffer;
++  final int array_offset;
++  final long[] backing_buffer;
+ 
+-  LongBuffer (int capacity, int limit, int position, int mark)
++  LongBuffer (int capacity, int limit, int position, int mark, Pointer address, long[] backing_buffer, int array_offset)
+   {
+-    super (capacity, limit, position, mark);
+-    array_offset = 0;
++    super (capacity, limit, position, mark, address);
++    this.backing_buffer = backing_buffer;
++    this.array_offset = array_offset;
+   }
+ 
+   /**
+--- java/nio/LongViewBufferImpl.java	2007-04-27 15:14:54.000000000 +0100
++++ java/nio/LongViewBufferImpl.java	2008-04-08 16:45:31.000000000 +0100
+@@ -41,33 +41,31 @@
+ final class LongViewBufferImpl extends LongBuffer
+ {
+   /** Position in bb (i.e. a byte offset) where this buffer starts. */
+-  private int offset;
+-  private ByteBuffer bb;
+-  private boolean readOnly;
+-  private ByteOrder endian;
++  private final int offset;
++  private final ByteBuffer bb;
++  private final boolean readOnly;
++  private final ByteOrder endian;
+   
+   LongViewBufferImpl (ByteBuffer bb, int capacity)
+   {
+-    super (capacity, capacity, 0, -1);
++    super (capacity, capacity, 0, -1, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, bb.position()):null, null, 0);
+     this.bb = bb;
+     this.offset = bb.position();
+     this.readOnly = bb.isReadOnly();
+     this.endian = bb.order();
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+   
+   public LongViewBufferImpl (ByteBuffer bb, int offset, int capacity,
+ 			     int limit, int position, int mark,
+ 			     boolean readOnly, ByteOrder endian)
+   {
+-    super (capacity, limit, position, mark);
++    super (capacity, limit, position, mark, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, offset):null, null, 0);
+     this.bb = bb;
+     this.offset = offset;
+     this.readOnly = readOnly;
+     this.endian = endian;
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+ 
+   /**
+--- java/nio/MappedByteBufferImpl.java	2005-08-03 14:12:59.000000000 +0100
++++ java/nio/MappedByteBufferImpl.java	2008-04-08 16:48:19.000000000 +0100
+@@ -44,7 +44,7 @@
+ 
+ final class MappedByteBufferImpl extends MappedByteBuffer
+ {
+-  boolean readOnly;
++  private final boolean readOnly;
+ 
+   /** Posix uses this for the pointer returned by mmap;
+    * Win32 uses it for the pointer returned by MapViewOfFile. */
+@@ -56,8 +56,7 @@
+   public MappedByteBufferImpl(Pointer address, int size, boolean readOnly)
+     throws IOException
+   {
+-    super(size, size, 0, -1);
+-    this.address = address;
++    super(size, size, 0, -1, address);
+     this.readOnly = readOnly;
+   }
+ 
+--- java/nio/MappedByteBuffer.java	2006-03-16 01:20:17.000000000 +0000
++++ java/nio/MappedByteBuffer.java	2008-04-08 16:48:31.000000000 +0100
+@@ -38,15 +38,17 @@
+ 
+ package java.nio;
+ 
++import gnu.classpath.Pointer;
++
+ /**
+  * @author Michael Koch (konqueror@gmx.de)
+  * @since 1.4
+  */
+ public abstract class MappedByteBuffer extends ByteBuffer
+ {
+-  MappedByteBuffer (int capacity, int limit, int position, int mark)
++  MappedByteBuffer (int capacity, int limit, int position, int mark, Pointer address)
+   {
+-    super (capacity, limit, position, mark);
++    super (capacity, limit, position, mark, address, null, 0);
+   }
+   
+   void forceImpl()
+--- java/nio/ShortBufferImpl.java	2006-05-01 23:41:20.000000000 +0100
++++ java/nio/ShortBufferImpl.java	2008-04-08 16:15:39.000000000 +0100
+@@ -43,7 +43,7 @@
+  */
+ final class ShortBufferImpl extends ShortBuffer
+ {
+-  private boolean readOnly;
++  private final boolean readOnly;
+ 
+   ShortBufferImpl (int capacity)
+   {
+@@ -52,9 +52,7 @@
+   
+   ShortBufferImpl (short[] buffer, int offset, int capacity, int limit, int position, int mark, boolean readOnly)
+   {
+-    super (capacity, limit, position, mark);
+-    this.backing_buffer = buffer;
+-    this.array_offset = offset;
++    super (capacity, limit, position, mark, null, buffer, offset);
+     this.readOnly = readOnly;
+   }
+   
+--- java/nio/ShortBuffer.java	2006-12-10 20:25:45.000000000 +0000
++++ java/nio/ShortBuffer.java	2008-04-08 20:37:12.000000000 +0100
+@@ -38,19 +38,22 @@
+ 
+ package java.nio;
+ 
++import gnu.classpath.Pointer;
++
+ /**
+  * @since 1.4
+  */
+ public abstract class ShortBuffer extends Buffer
+   implements Comparable<ShortBuffer>
+ {
+-  int array_offset;
+-  short[] backing_buffer;
++  final int array_offset;
++  final short[] backing_buffer;
+ 
+-  ShortBuffer (int capacity, int limit, int position, int mark)
++  ShortBuffer (int capacity, int limit, int position, int mark, Pointer address, short[] backing_buffer, int array_offset)
+   {
+-    super (capacity, limit, position, mark);
+-    array_offset = 0;
++    super (capacity, limit, position, mark, address);
++    this.backing_buffer = backing_buffer;
++    this.array_offset = array_offset;
+   }
+ 
+   /**
+--- java/nio/ShortViewBufferImpl.java	2007-04-27 15:14:54.000000000 +0100
++++ java/nio/ShortViewBufferImpl.java	2008-04-08 16:50:35.000000000 +0100
+@@ -41,33 +41,31 @@
+ final class ShortViewBufferImpl extends ShortBuffer
+ {
+   /** Position in bb (i.e. a byte offset) where this buffer starts. */
+-  private int offset;
+-  private ByteBuffer bb;
+-  private boolean readOnly;
+-  private ByteOrder endian;
++  private final int offset;
++  private final ByteBuffer bb;
++  private final boolean readOnly;
++  private final ByteOrder endian;
+ 
+   ShortViewBufferImpl (ByteBuffer bb, int capacity)
+   {
+-    super (capacity, capacity, 0, -1);
++    super (capacity, capacity, 0, -1, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, bb.position()):null, null, 0);
+     this.bb = bb;
+     this.offset = bb.position();
+     this.readOnly = bb.isReadOnly();
+     this.endian = bb.order();
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+   
+   public ShortViewBufferImpl (ByteBuffer bb, int offset, int capacity,
+ 			      int limit, int position, int mark,
+ 			      boolean readOnly, ByteOrder endian)
+   {
+-    super (capacity, limit, position, mark);
++    super (capacity, limit, position, mark, bb.isDirect() ?
++           VMDirectByteBuffer.adjustAddress(bb.address, offset):null, null, 0);
+     this.bb = bb;
+     this.offset = offset;
+     this.readOnly = readOnly;
+     this.endian = endian;
+-    if (bb.isDirect())
+-      this.address = VMDirectByteBuffer.adjustAddress(bb.address, offset);
+   }
+ 
+   /**

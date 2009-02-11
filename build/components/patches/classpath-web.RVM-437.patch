@@ -1,0 +1,775 @@
+Index: java/lang/Byte.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/Byte.java,v
+retrieving revision 1.26
+diff -u -r1.26 Byte.java
+--- java/lang/Byte.java	10 Dec 2006 20:25:44 -0000	1.26
++++ java/lang/Byte.java	18 Apr 2008 20:55:19 -0000
+@@ -88,6 +88,11 @@
+   // This caches Byte values, and is used by boxing conversions via
+   // valueOf().  We're required to cache all possible values here.
+   private static Byte[] byteCache = new Byte[MAX_VALUE - MIN_VALUE + 1];
++  static
++  {
++    for (byte i=MIN_VALUE; i <= MAX_VALUE; i++)
++      byteCache[i - MIN_VALUE] = new Byte(i);
++  }
+ 
+ 
+   /**
+@@ -185,7 +190,7 @@
+    */
+   public static Byte valueOf(String s, int radix)
+   {
+-    return new Byte(parseByte(s, radix));
++    return valueOf(parseByte(s, radix));
+   }
+ 
+   /**
+@@ -201,7 +206,7 @@
+    */
+   public static Byte valueOf(String s)
+   {
+-    return new Byte(parseByte(s, 10));
++    return valueOf(parseByte(s, 10));
+   }
+ 
+   /**
+@@ -214,12 +219,7 @@
+    */
+   public static Byte valueOf(byte val)
+   {
+-    synchronized (byteCache)
+-      {
+-	if (byteCache[val - MIN_VALUE] == null)
+-	  byteCache[val - MIN_VALUE] = new Byte(val);
+-	return byteCache[val - MIN_VALUE];
+-      }
++    return byteCache[val - MIN_VALUE];
+   }
+ 
+   /**
+@@ -258,7 +258,7 @@
+     int i = Integer.parseInt(s, 10, true);
+     if ((byte) i != i)
+       throw new NumberFormatException();
+-    return new Byte((byte) i);
++    return valueOf((byte) i);
+   }
+ 
+   /**
+Index: java/lang/Character.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/Character.java,v
+retrieving revision 1.48
+diff -u -r1.48 Character.java
+--- java/lang/Character.java	19 Dec 2006 01:14:23 -0000	1.48
++++ java/lang/Character.java	18 Apr 2008 20:55:19 -0000
+@@ -2055,6 +2055,11 @@
+   // this constant controls how much we actually cache.
+   private static final int MAX_CACHE = 127;
+   private static Character[] charCache = new Character[MAX_CACHE + 1];
++  static
++  {
++     for (char i=0; i <= MAX_CACHE; i++)
++       charCache[i] = new Character(i);
++  }
+ 
+   /**
+    * Lu = Letter, Uppercase (Informative).
+@@ -4208,12 +4213,8 @@
+   {
+     if (val > MAX_CACHE)
+       return new Character(val);
+-    synchronized (charCache)
+-      {
+-	if (charCache[val - MIN_VALUE] == null)
+-	  charCache[val - MIN_VALUE] = new Character(val);
+-	return charCache[val - MIN_VALUE];
+-      }
++    else
++      return charCache[val - MIN_VALUE];
+   }
+ 
+   /**
+Index: java/lang/Double.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/Double.java,v
+retrieving revision 1.45
+diff -u -r1.45 Double.java
+--- java/lang/Double.java	16 Mar 2008 22:04:50 -0000	1.45
++++ java/lang/Double.java	18 Apr 2008 20:55:19 -0000
+@@ -104,6 +104,16 @@
+   public static final Class<Double> TYPE = (Class<Double>) VMClassLoader.getPrimitiveClass('D');
+ 
+   /**
++   * Cache representation of 0
++   */
++  private static final Double ZERO = new Double(0.0d);
++
++  /**
++   * Cache representation of 1
++   */
++  private static final Double ONE = new Double(1.0d);
++
++  /**
+    * The immutable value of this Double.
+    *
+    * @serial the wrapped double
+@@ -261,8 +271,12 @@
+    */
+   public static Double valueOf(double val)
+   {
+-    // We don't actually cache, but we could.
+-    return new Double(val);
++    if ((val == 0.0) && (doubleToRawLongBits(val) == 0L))
++      return ZERO;
++    else if (val == 1.0)
++      return ONE;
++    else
++      return new Double(val);
+   }
+ 
+  /**
+@@ -277,7 +291,7 @@
+    */
+   public static Double valueOf(String s)
+   {
+-    return new Double(parseDouble(s));
++    return valueOf(parseDouble(s));
+   }
+ 
+   /**
+@@ -490,17 +504,13 @@
+    */
+   public boolean equals(Object obj)
+   {
+-    if (! (obj instanceof Double))
+-      return false;
+-
+-    double d = ((Double) obj).value;
+-
+-    // Avoid call to native method. However, some implementations, like gcj,
+-    // are better off using floatToIntBits(value) == floatToIntBits(f).
+-    // Check common case first, then check NaN and 0.
+-    if (value == d)
+-      return (value != 0) || (1 / value == 1 / d);
+-    return isNaN(value) && isNaN(d);
++    if (obj instanceof Double)
++      {
++        double d = ((Double) obj).value;
++        return (doubleToRawLongBits(value) == doubleToRawLongBits(d)) ||
++          (isNaN(value) && isNaN(d));
++      }
++    return false;
+   }
+ 
+   /**
+Index: java/lang/Float.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/Float.java,v
+retrieving revision 1.39
+diff -u -r1.39 Float.java
+--- java/lang/Float.java	16 Mar 2008 22:04:50 -0000	1.39
++++ java/lang/Float.java	18 Apr 2008 20:55:19 -0000
+@@ -104,6 +104,16 @@
+   public static final int SIZE = 32;
+ 
+   /**
++   * Cache representation of 0
++   */
++  private static final Float ZERO = new Float(0.0f);
++
++  /**
++   * Cache representation of 1
++   */
++  private static final Float ONE = new Float(1.0f);
++
++  /**
+    * The immutable value of this Float.
+    *
+    * @serial the wrapped float
+@@ -275,7 +285,7 @@
+    */
+   public static Float valueOf(String s)
+   {
+-    return new Float(parseFloat(s));
++    return valueOf(parseFloat(s));
+   }
+ 
+   /**
+@@ -289,8 +299,12 @@
+    */
+   public static Float valueOf(float val)
+   {
+-    // We don't actually cache, but we could.
+-    return new Float(val);
++    if ((val == 0.0) && (floatToRawIntBits(val) == 0))
++      return ZERO;
++    else if (val == 1.0)
++      return ONE;
++    else
++      return new Float(val);
+   }
+ 
+   /**
+@@ -500,17 +514,13 @@
+    */
+   public boolean equals(Object obj)
+   {
+-    if (! (obj instanceof Float))
+-      return false;
+-
+-    float f = ((Float) obj).value;
+-
+-    // Avoid call to native method. However, some implementations, like gcj,
+-    // are better off using floatToIntBits(value) == floatToIntBits(f).
+-    // Check common case first, then check NaN and 0.
+-    if (value == f)
+-      return (value != 0) || (1 / value == 1 / f);
+-    return isNaN(value) && isNaN(f);
++    if (obj instanceof Float)
++      {
++        float f = ((Float) obj).value;
++        return (floatToRawIntBits(value) == floatToRawIntBits(f)) ||
++          (isNaN(value) && isNaN(f));
++      }
++    return false;
+   }
+ 
+   /**
+Index: java/lang/Integer.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/Integer.java,v
+retrieving revision 1.36
+diff -u -r1.36 Integer.java
+--- java/lang/Integer.java	3 Jul 2007 14:59:00 -0000	1.36
++++ java/lang/Integer.java	18 Apr 2008 20:55:19 -0000
+@@ -52,6 +52,7 @@
+  * @author Eric Blake (ebb9@email.byu.edu)
+  * @author Tom Tromey (tromey@redhat.com)
+  * @author Andrew John Hughes (gnu_andrew@member.fsf.org)
++ * @author Ian Rogers
+  * @since 1.0
+  * @status updated to 1.5
+  */
+@@ -92,7 +93,12 @@
+   // these constants control how much we actually cache.
+   private static final int MIN_CACHE = -128;
+   private static final int MAX_CACHE = 127;
+-  private static Integer[] intCache = new Integer[MAX_CACHE - MIN_CACHE + 1];
++  private static final Integer[] intCache = new Integer[MAX_CACHE - MIN_CACHE + 1];
++  static
++  {
++    for (int i=MIN_CACHE; i <= MAX_CACHE; i++)
++      intCache[i - MIN_CACHE] = new Integer(i);
++  }
+ 
+   /**
+    * The immutable value of this Integer.
+@@ -126,6 +132,45 @@
+   }
+ 
+   /**
++   * Return the size of a string large enough to hold the given number
++   *
++   * @param num the number we want the string length for (must be positive)
++   * @param radix the radix (base) that will be used for the string
++   * @return a size sufficient for a string of num
++   */
++  private static int stringSize(int num, int radix) {
++    int exp;
++    if (radix < 4)
++      {
++        exp = 1;
++      }
++    else if (radix < 8)
++      {
++        exp = 2;
++      }
++    else if (radix < 16)
++      {
++        exp = 3;
++      }
++    else if (radix < 32)
++      {
++        exp = 4;
++      }
++    else
++      {
++        exp = 5;
++      }
++    int size=0;
++    do
++      {
++        num >>>= exp;
++        size++;
++      }
++    while(num != 0);
++    return size;
++  }
++
++  /**
+    * Converts the <code>int</code> to a <code>String</code> using
+    * the specified radix (base). If the radix exceeds
+    * <code>Character.MIN_RADIX</code> or <code>Character.MAX_RADIX</code>, 10
+@@ -142,22 +187,40 @@
+     if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
+       radix = 10;
+ 
+-    // For negative numbers, print out the absolute value w/ a leading '-'.
+-    // Use an array large enough for a binary number.
+-    char[] buffer = new char[33];
+-    int i = 33;
+-    boolean isNeg = false;
+-    if (num < 0)
++    // Is the value negative?
++    boolean isNeg = num < 0;
++
++    // Is the string a single character?
++    if (!isNeg && num < radix)
++      return new String(digits, num, 1, true);
++
++    // Compute string size and allocate buffer
++    // account for a leading '-' if the value is negative
++    int size;
++    int i;
++    char[] buffer;
++    if (isNeg)
+       {
+-        isNeg = true;
+         num = -num;
+ 
+         // When the value is MIN_VALUE, it overflows when made positive
+         if (num < 0)
+ 	  {
++            i = size = stringSize(MAX_VALUE, radix) + 2;
++            buffer = new char[size];
+ 	    buffer[--i] = digits[(int) (-(num + radix) % radix)];
+ 	    num = -(num / radix);
+ 	  }
++        else
++          {
++            i = size = stringSize(num, radix) + 1;
++            buffer = new char[size];
++          }
++      }
++    else
++      {
++        i = size = stringSize(num, radix);
++        buffer = new char[size];
+       }
+ 
+     do
+@@ -171,7 +234,7 @@
+       buffer[--i] = '-';
+ 
+     // Package constructor avoids an array copy.
+-    return new String(buffer, i, 33 - i, true);
++    return new String(buffer, i, size - i, true);
+   }
+ 
+   /**
+@@ -275,7 +338,7 @@
+    */
+   public static Integer valueOf(String s, int radix)
+   {
+-    return new Integer(parseInt(s, radix, false));
++    return valueOf(parseInt(s, radix, false));
+   }
+ 
+   /**
+@@ -291,7 +354,7 @@
+    */
+   public static Integer valueOf(String s)
+   {
+-    return new Integer(parseInt(s, 10, false));
++    return valueOf(parseInt(s, 10, false));
+   }
+ 
+   /**
+@@ -306,12 +369,8 @@
+   {
+     if (val < MIN_CACHE || val > MAX_CACHE)
+       return new Integer(val);
+-    synchronized (intCache)
+-      {
+-	if (intCache[val - MIN_CACHE] == null)
+-	  intCache[val - MIN_CACHE] = new Integer(val);
+-	return intCache[val - MIN_CACHE];
+-      }
++    else
++      return intCache[val - MIN_CACHE];
+   }
+ 
+   /**
+@@ -440,7 +499,7 @@
+   public static Integer getInteger(String nm, int val)
+   {
+     Integer result = getInteger(nm, null);
+-    return result == null ? new Integer(val) : result;
++    return result == null ? valueOf(val) : result;
+   }
+ 
+   /**
+@@ -506,7 +565,7 @@
+    */
+   public static Integer decode(String str)
+   {
+-    return new Integer(parseInt(str, 10, true));
++    return valueOf(parseInt(str, 10, true));
+   }
+ 
+   /**
+@@ -628,7 +687,7 @@
+    */
+   public static int signum(int x)
+   {
+-    return x < 0 ? -1 : (x > 0 ? 1 : 0);
++    return (x >> 31) - (-x >> 31);
+   }
+ 
+   /**
+@@ -666,10 +725,22 @@
+   // Package visible for use by Long.
+   static String toUnsignedString(int num, int exp)
+   {
+-    // Use an array large enough for a binary number.
++    // Compute string length
++    int size = 1;
++    int copy = num >>> exp;
++    while (copy != 0)
++      {
++        size++;
++        copy >>>= exp;
++      }
++    // Quick path for single character strings
++    if (size == 1)
++      return new String(digits, num, 1, true);
++
++    // Encode into buffer
+     int mask = (1 << exp) - 1;
+-    char[] buffer = new char[32];
+-    int i = 32;
++    char[] buffer = new char[size];
++    int i = size;
+     do
+       {
+         buffer[--i] = digits[num & mask];
+@@ -678,7 +749,7 @@
+     while (num != 0);
+ 
+     // Package constructor avoids an array copy.
+-    return new String(buffer, i, 32 - i, true);
++    return new String(buffer, i, size - i, true);
+   }
+ 
+   /**
+Index: java/lang/Long.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/Long.java,v
+retrieving revision 1.25
+diff -u -r1.25 Long.java
+--- java/lang/Long.java	23 Nov 2007 14:50:53 -0000	1.25
++++ java/lang/Long.java	18 Apr 2008 20:55:19 -0000
+@@ -51,6 +51,7 @@
+  * @author Eric Blake (ebb9@email.byu.edu)
+  * @author Tom Tromey (tromey@redhat.com)
+  * @author Andrew John Hughes (gnu_andrew@member.fsf.org)
++ * @author Ian Rogers
+  * @since 1.0
+  * @status updated to 1.5
+  */
+@@ -86,6 +87,18 @@
+    */
+   public static final int SIZE = 64;
+ 
++  // This caches some Long values, and is used by boxing
++  // conversions via valueOf().  We cache at least -128..127;
++  // these constants control how much we actually cache.
++  private static final int MIN_CACHE = -128;
++  private static final int MAX_CACHE = 127;
++  private static final Long[] longCache = new Long[MAX_CACHE - MIN_CACHE + 1];
++  static
++  {
++    for (int i=MIN_CACHE; i <= MAX_CACHE; i++)
++      longCache[i - MIN_CACHE] = new Long(i);
++  }
++
+   /**
+    * The immutable value of this Long.
+    *
+@@ -118,6 +131,45 @@
+   }
+ 
+   /**
++   * Return the size of a string large enough to hold the given number
++   *
++   * @param num the number we want the string length for (must be positive)
++   * @param radix the radix (base) that will be used for the string
++   * @return a size sufficient for a string of num
++   */
++  private static int stringSize(long num, int radix) {
++    int exp;
++    if (radix < 4)
++      {
++        exp = 1;
++      }
++    else if (radix < 8)
++      {
++        exp = 2;
++      }
++    else if (radix < 16)
++      {
++        exp = 3;
++      }
++    else if (radix < 32)
++      {
++        exp = 4;
++      }
++    else
++      {
++        exp = 5;
++      }
++    int size=0;
++    do
++      {
++        num >>>= exp;
++        size++;
++      }
++    while(num != 0);
++    return size;
++  }
++
++  /**
+    * Converts the <code>long</code> to a <code>String</code> using
+    * the specified radix (base). If the radix exceeds
+    * <code>Character.MIN_RADIX</code> or <code>Character.MAX_RADIX</code>, 10
+@@ -131,29 +183,43 @@
+    */
+   public static String toString(long num, int radix)
+   {
+-    // Use the Integer toString for efficiency if possible.
+-    if ((int) num == num)
+-      return Integer.toString((int) num, radix);
+-
+     if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
+       radix = 10;
+ 
+-    // For negative numbers, print out the absolute value w/ a leading '-'.
+-    // Use an array large enough for a binary number.
+-    char[] buffer = new char[65];
+-    int i = 65;
+-    boolean isNeg = false;
+-    if (num < 0)
++    // Is the value negative?
++    boolean isNeg = num < 0;
++
++    // Is the string a single character?
++    if (!isNeg && num < radix)
++      return new String(digits, (int)num, 1, true);
++
++    // Compute string size and allocate buffer
++    // account for a leading '-' if the value is negative
++    int size;
++    int i;
++    char[] buffer;
++    if (isNeg)
+       {
+-        isNeg = true;
+         num = -num;
+ 
+         // When the value is MIN_VALUE, it overflows when made positive
+         if (num < 0)
+-	  {
+-	    buffer[--i] = digits[(int) (-(num + radix) % radix)];
+-	    num = -(num / radix);
+-	  }
++          {
++            i = size = stringSize(MAX_VALUE, radix) + 2;
++            buffer = new char[size];
++            buffer[--i] = digits[(int) (-(num + radix) % radix)];
++            num = -(num / radix);
++          }
++        else
++          {
++            i = size = stringSize(num, radix) + 1;
++            buffer = new char[size];
++          }
++      }
++    else
++      {
++        i = size = stringSize(num, radix);
++        buffer = new char[size];
+       }
+ 
+     do
+@@ -167,7 +233,7 @@
+       buffer[--i] = '-';
+ 
+     // Package constructor avoids an array copy.
+-    return new String(buffer, i, 65 - i, true);
++    return new String(buffer, i, size - i, true);
+   }
+ 
+   /**
+@@ -270,7 +336,7 @@
+    */
+   public static Long valueOf(String s, int radix)
+   {
+-    return new Long(parseLong(s, radix, false));
++    return valueOf(parseLong(s, radix, false));
+   }
+ 
+   /**
+@@ -286,7 +352,7 @@
+    */
+   public static Long valueOf(String s)
+   {
+-    return new Long(parseLong(s, 10, false));
++    return valueOf(parseLong(s, 10, false));
+   }
+ 
+   /**
+@@ -298,9 +364,10 @@
+    */
+   public static Long valueOf(long val)
+   {
+-    // We aren't required to cache here.  We could, though perhaps we
+-    // ought to consider that as an empirical question.
+-    return new Long(val);
++    if (val < MIN_CACHE || val > MAX_CACHE)
++      return new Long(val);
++    else
++      return longCache[((int)val) - MIN_CACHE];
+   }
+ 
+   /**
+@@ -337,7 +404,7 @@
+    */
+   public static Long decode(String str)
+   {
+-    return new Long(parseLong(str, 10, true));
++    return valueOf(parseLong(str, 10, true));
+   }
+ 
+   /**
+@@ -467,7 +534,7 @@
+   public static Long getLong(String nm, long val)
+   {
+     Long result = getLong(nm, null);
+-    return result == null ? new Long(val) : result;
++    return result == null ? valueOf(val) : result;
+   }
+ 
+   /**
+@@ -622,7 +689,7 @@
+    */
+   public static int signum(long x)
+   {
+-    return x < 0 ? -1 : (x > 0 ? 1 : 0);
++    return (int)(x >> 63) - (int)(-x >> 63);
+   }
+ 
+   /**
+@@ -655,16 +722,22 @@
+    */
+   private static String toUnsignedString(long num, int exp)
+   {
+-    // Use the Integer toUnsignedString for efficiency if possible.
+-    // If NUM<0 then this particular optimization doesn't work
+-    // properly.
+-    if (num >= 0 && (int) num == num)
+-      return Integer.toUnsignedString((int) num, exp);
++    // Compute string length
++    int size = 1;
++    long copy = num >>> exp;
++    while (copy != 0)
++      {
++        size++;
++        copy >>>= exp;
++      }
++    // Quick path for single character strings
++    if (size == 1)
++      return new String(digits, (int)num, 1, true);
+ 
+-    // Use an array large enough for a binary number.
++    // Encode into buffer
+     int mask = (1 << exp) - 1;
+-    char[] buffer = new char[64];
+-    int i = 64;
++    char[] buffer = new char[size];
++    int i = size;
+     do
+       {
+         buffer[--i] = digits[(int) num & mask];
+@@ -673,7 +746,7 @@
+     while (num != 0);
+ 
+     // Package constructor avoids an array copy.
+-    return new String(buffer, i, 64 - i, true);
++    return new String(buffer, i, size - i, true);
+   }
+ 
+   /**
+Index: java/lang/Short.java
+===================================================================
+RCS file: /sources/classpath/classpath/java/lang/Short.java,v
+retrieving revision 1.20
+diff -u -r1.20 Short.java
+--- java/lang/Short.java	10 Dec 2006 20:25:44 -0000	1.20
++++ java/lang/Short.java	18 Apr 2008 20:55:19 -0000
+@@ -90,6 +90,11 @@
+   private static final int MIN_CACHE = -128;
+   private static final int MAX_CACHE = 127;
+   private static Short[] shortCache = new Short[MAX_CACHE - MIN_CACHE + 1];
++  static
++  {
++    for (short i=MIN_CACHE; i <= MAX_CACHE; i++)
++      shortCache[i - MIN_CACHE] = new Short(i);
++  }
+ 
+   /**
+    * The immutable value of this Short.
+@@ -184,7 +189,7 @@
+    */
+   public static Short valueOf(String s, int radix)
+   {
+-    return new Short(parseShort(s, radix));
++    return valueOf(parseShort(s, radix));
+   }
+ 
+   /**
+@@ -200,7 +205,7 @@
+    */
+   public static Short valueOf(String s)
+   {
+-    return new Short(parseShort(s, 10));
++    return valueOf(parseShort(s, 10));
+   }
+ 
+   /**
+@@ -216,12 +221,8 @@
+   {
+     if (val < MIN_CACHE || val > MAX_CACHE)
+       return new Short(val);
+-    synchronized (shortCache)
+-      {
+-	if (shortCache[val - MIN_CACHE] == null)
+-	  shortCache[val - MIN_CACHE] = new Short(val);
+-	return shortCache[val - MIN_CACHE];
+-      }
++    else
++      return shortCache[val - MIN_CACHE];
+   }
+ 
+   /**
+@@ -260,7 +261,7 @@
+     int i = Integer.parseInt(s, 10, true);
+     if ((short) i != i)
+       throw new NumberFormatException();
+-    return new Short((short) i);
++    return valueOf((short) i);
+   }
+ 
+   /**

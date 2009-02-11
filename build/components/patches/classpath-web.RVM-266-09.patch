@@ -1,0 +1,638 @@
+Index: gnu/xml/transform/AbstractNumberNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/AbstractNumberNode.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 AbstractNumberNode.java
+--- gnu/xml/transform/AbstractNumberNode.java	13 Jan 2006 17:23:31 -0000	1.5
++++ gnu/xml/transform/AbstractNumberNode.java	17 Mar 2008 01:11:06 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.List;
+@@ -140,7 +142,7 @@ abstract class AbstractNumberNode
+         start = end;
+       }
+     // Process tokens
+-    StringBuffer buf = new StringBuffer();
++    CPStringBuilder buf = new CPStringBuilder();
+     len = tokens.size();
+     int pos = 0;
+     for (int i = 0; i < len; i++)
+@@ -188,7 +190,7 @@ abstract class AbstractNumberNode
+       return l;
+     }*/
+ 
+-  void format(StringBuffer buf, int number, String formatToken)
++  void format(CPStringBuilder buf, int number, String formatToken)
+   {
+     int len = formatToken.length();
+     char c = formatToken.charAt(len - 1);
+@@ -254,7 +256,7 @@ abstract class AbstractNumberNode
+ 
+   static final String alphabetic(char offset, int number)
+   {
+-    StringBuffer buf = new StringBuffer();
++    CPStringBuilder buf = new CPStringBuilder();
+     while (number > 0)
+       {
+         int r = number % 26;
+@@ -269,7 +271,7 @@ abstract class AbstractNumberNode
+ 
+   static final String roman(boolean upper, int number)
+   {
+-    StringBuffer buf = new StringBuffer();
++    CPStringBuilder buf = new CPStringBuilder();
+     for (int pos = roman_numbers.length - 1; pos >= 0; pos -= 2)
+       {
+         int f = number / roman_numbers[pos];
+@@ -317,7 +319,7 @@ abstract class AbstractNumberNode
+ 
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("number");
++    CPStringBuilder buf = new CPStringBuilder("number");
+     buf.append('[');
+     buf.append("format=");
+     buf.append(format);
+Index: gnu/xml/transform/ApplyTemplatesNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/ApplyTemplatesNode.java,v
+retrieving revision 1.7
+diff -u -3 -p -u -r1.7 ApplyTemplatesNode.java
+--- gnu/xml/transform/ApplyTemplatesNode.java	6 Aug 2006 20:35:53 -0000	1.7
++++ gnu/xml/transform/ApplyTemplatesNode.java	17 Mar 2008 01:11:06 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.Collections;
+@@ -192,7 +194,7 @@ final class ApplyTemplatesNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("apply-templates");
++    CPStringBuilder buf = new CPStringBuilder("apply-templates");
+     buf.append('[');
+     boolean o = false;
+     if (select != null)
+Index: gnu/xml/transform/AttributeNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/AttributeNode.java,v
+retrieving revision 1.6
+diff -u -3 -p -u -r1.6 AttributeNode.java
+--- gnu/xml/transform/AttributeNode.java	13 Jan 2006 17:23:31 -0000	1.6
++++ gnu/xml/transform/AttributeNode.java	17 Mar 2008 01:11:06 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import javax.xml.XMLConstants;
+ import javax.xml.namespace.QName;
+ import javax.xml.transform.TransformerException;
+@@ -231,7 +233,7 @@ final class AttributeNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("attribute");
++    CPStringBuilder buf = new CPStringBuilder("attribute");
+     buf.append('[');
+     buf.append("name=");
+     buf.append(name);
+Index: gnu/xml/transform/Bindings.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/Bindings.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 Bindings.java
+--- gnu/xml/transform/Bindings.java	12 Jan 2006 16:35:52 -0000	1.5
++++ gnu/xml/transform/Bindings.java	17 Mar 2008 01:11:06 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.Collection;
+ import java.util.Collections;
+ import java.util.HashMap;
+@@ -259,7 +261,7 @@ public class Bindings
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer();
++    CPStringBuilder buf = new CPStringBuilder();
+     boolean next = false;
+     Collection seen = new HashSet();
+     Map wctx = (Map) withParameters.getFirst();
+Index: gnu/xml/transform/CallTemplateNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/CallTemplateNode.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 CallTemplateNode.java
+--- gnu/xml/transform/CallTemplateNode.java	13 Jan 2006 17:23:31 -0000	1.5
++++ gnu/xml/transform/CallTemplateNode.java	17 Mar 2008 01:11:06 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.ArrayList;
+ import java.util.Iterator;
+ import java.util.LinkedList;
+@@ -146,7 +148,7 @@ final class CallTemplateNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("call-template");
++    CPStringBuilder buf = new CPStringBuilder("call-template");
+     buf.append('[');
+     buf.append("name=");
+     buf.append(name);
+Index: gnu/xml/transform/ChooseNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/ChooseNode.java,v
+retrieving revision 1.4
+diff -u -3 -p -u -r1.4 ChooseNode.java
+--- gnu/xml/transform/ChooseNode.java	13 Jan 2006 17:23:31 -0000	1.4
++++ gnu/xml/transform/ChooseNode.java	17 Mar 2008 01:11:06 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import javax.xml.namespace.QName;
+ import javax.xml.transform.TransformerException;
+ import org.w3c.dom.Node;
+@@ -77,7 +79,7 @@ final class ChooseNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("choose");
++    CPStringBuilder buf = new CPStringBuilder("choose");
+     buf.append('[');
+     buf.append(']');
+     return buf.toString();
+Index: gnu/xml/transform/CopyNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/CopyNode.java,v
+retrieving revision 1.4
+diff -u -3 -p -u -r1.4 CopyNode.java
+--- gnu/xml/transform/CopyNode.java	13 Jan 2006 17:23:31 -0000	1.4
++++ gnu/xml/transform/CopyNode.java	17 Mar 2008 01:11:06 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.Iterator;
+ import java.util.StringTokenizer;
+ import javax.xml.namespace.QName;
+@@ -152,7 +154,7 @@ final class CopyNode
+ 
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("copy");
++    CPStringBuilder buf = new CPStringBuilder("copy");
+     if (uas != null)
+       {
+         buf.append('[');
+Index: gnu/xml/transform/CopyOfNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/CopyOfNode.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 CopyOfNode.java
+--- gnu/xml/transform/CopyOfNode.java	13 Jan 2006 17:23:31 -0000	1.5
++++ gnu/xml/transform/CopyOfNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.Collections;
+@@ -161,7 +163,7 @@ final class CopyOfNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("copy-of");
++    CPStringBuilder buf = new CPStringBuilder("copy-of");
+     buf.append('[');
+     buf.append("select=");
+     buf.append(select);
+Index: gnu/xml/transform/ElementNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/ElementNode.java,v
+retrieving revision 1.7
+diff -u -3 -p -u -r1.7 ElementNode.java
+--- gnu/xml/transform/ElementNode.java	13 Jan 2006 17:23:31 -0000	1.7
++++ gnu/xml/transform/ElementNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.Collection;
+ import java.util.Collections;
+ import java.util.HashSet;
+@@ -238,7 +240,7 @@ final class ElementNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("element");
++    CPStringBuilder buf = new CPStringBuilder("element");
+     buf.append('[');
+     buf.append("name=");
+     if (namespace != null)
+Index: gnu/xml/transform/ForEachNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/ForEachNode.java,v
+retrieving revision 1.6
+diff -u -3 -p -u -r1.6 ForEachNode.java
+--- gnu/xml/transform/ForEachNode.java	6 Aug 2006 20:35:54 -0000	1.6
++++ gnu/xml/transform/ForEachNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.Collections;
+@@ -146,7 +148,7 @@ final class ForEachNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("for-each");
++    CPStringBuilder buf = new CPStringBuilder("for-each");
+     buf.append('[');
+     buf.append("select=");
+     buf.append(select);
+Index: gnu/xml/transform/IfNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/IfNode.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 IfNode.java
+--- gnu/xml/transform/IfNode.java	13 Jan 2006 17:23:31 -0000	1.5
++++ gnu/xml/transform/IfNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import javax.xml.namespace.QName;
+ import javax.xml.transform.TransformerException;
+ import org.w3c.dom.Node;
+@@ -99,7 +101,7 @@ final class IfNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("if");
++    CPStringBuilder buf = new CPStringBuilder("if");
+     buf.append('[');
+     buf.append("test=");
+     buf.append(test);
+Index: gnu/xml/transform/MessageNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/MessageNode.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 MessageNode.java
+--- gnu/xml/transform/MessageNode.java	13 Jan 2006 17:23:31 -0000	1.5
++++ gnu/xml/transform/MessageNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.logging.Logger;
+ import javax.xml.namespace.QName;
+ import javax.xml.transform.TransformerException;
+@@ -95,7 +97,7 @@ final class MessageNode
+ 
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("message");
++    CPStringBuilder buf = new CPStringBuilder("message");
+     if (terminate)
+       {
+         buf.append('[');
+Index: gnu/xml/transform/ParameterNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/ParameterNode.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 ParameterNode.java
+--- gnu/xml/transform/ParameterNode.java	13 Jan 2006 17:23:31 -0000	1.5
++++ gnu/xml/transform/ParameterNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.Collections;
+ import javax.xml.namespace.QName;
+ import javax.xml.transform.TransformerException;
+@@ -148,7 +150,7 @@ final class ParameterNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer();
++    CPStringBuilder buf = new CPStringBuilder();
+     switch (type)
+       {
+       case Bindings.VARIABLE:
+Index: gnu/xml/transform/ProcessingInstructionNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/ProcessingInstructionNode.java,v
+retrieving revision 1.4
+diff -u -3 -p -u -r1.4 ProcessingInstructionNode.java
+--- gnu/xml/transform/ProcessingInstructionNode.java	13 Jan 2006 17:23:31 -0000	1.4
++++ gnu/xml/transform/ProcessingInstructionNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import javax.xml.namespace.QName;
+ import javax.xml.transform.TransformerException;
+ import org.w3c.dom.Document;
+@@ -105,7 +107,7 @@ final class ProcessingInstructionNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("processing-instruction");
++    CPStringBuilder buf = new CPStringBuilder("processing-instruction");
+     buf.append('[');
+     buf.append("name=");
+     buf.append(name);
+Index: gnu/xml/transform/StreamSerializer.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/StreamSerializer.java,v
+retrieving revision 1.13
+diff -u -3 -p -u -r1.13 StreamSerializer.java
+--- gnu/xml/transform/StreamSerializer.java	18 Sep 2007 21:52:32 -0000	1.13
++++ gnu/xml/transform/StreamSerializer.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.ByteArrayOutputStream;
+ import java.io.IOException;
+ import java.io.OutputStream;
+@@ -595,7 +597,7 @@ public class StreamSerializer
+     if (!encoder.canEncode(text) || htmlNeedingEncoding)
+       {
+         // Check each character
+-        StringBuffer buf = new StringBuffer();
++        CPStringBuilder buf = new CPStringBuilder();
+         int len = text.length();
+         for (int i = 0; i < len; i++)
+           {
+@@ -648,20 +650,20 @@ public class StreamSerializer
+   String encode(String text, boolean encodeCtl, boolean inAttr)
+   {
+     int len = text.length();
+-    StringBuffer buf = null;
++    CPStringBuilder buf = null;
+     for (int i = 0; i < len; i++)
+       {
+         char c = text.charAt(i);
+         if (c == '<')
+           {
+             if (buf == null)
+-              buf = new StringBuffer(text.substring(0, i));
++              buf = new CPStringBuilder(text.substring(0, i));
+             buf.append("&lt;");
+           }
+         else if (c == '>')
+           {
+             if (buf == null)
+-              buf = new StringBuffer(text.substring(0, i));
++              buf = new CPStringBuilder(text.substring(0, i));
+             buf.append("&gt;");
+           }
+         else if (c == '&')
+@@ -675,14 +677,14 @@ public class StreamSerializer
+             else
+               {
+                 if (buf == null)
+-                  buf = new StringBuffer(text.substring(0, i));
++                  buf = new CPStringBuilder(text.substring(0, i));
+                 buf.append("&amp;");
+               }
+           }
+         else if (c == '\'' && inAttr)
+           {
+             if (buf == null)
+-              buf = new StringBuffer(text.substring(0, i));
++              buf = new CPStringBuilder(text.substring(0, i));
+             if (mode == Stylesheet.OUTPUT_HTML)
+               // HTML does not define &apos;, use character entity ref
+               buf.append("&#x27;");
+@@ -692,7 +694,7 @@ public class StreamSerializer
+         else if (c == '"' && inAttr)
+           {
+             if (buf == null)
+-              buf = new StringBuffer(text.substring(0, i));
++              buf = new CPStringBuilder(text.substring(0, i));
+             buf.append("&quot;");
+           }
+         else if (encodeCtl)
+@@ -700,7 +702,7 @@ public class StreamSerializer
+             if (c < 0x20)
+               {
+                 if (buf == null)
+-                  buf = new StringBuffer(text.substring(0, i));
++                  buf = new CPStringBuilder(text.substring(0, i));
+                 buf.append('&');
+                 buf.append('#');
+                 buf.append((int) c);
+Index: gnu/xml/transform/Template.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/Template.java,v
+retrieving revision 1.6
+diff -u -3 -p -u -r1.6 Template.java
+--- gnu/xml/transform/Template.java	16 Jan 2006 16:23:20 -0000	1.6
++++ gnu/xml/transform/Template.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.PrintStream;
+ import javax.xml.namespace.QName;
+ import javax.xml.transform.TransformerException;
+@@ -226,7 +228,7 @@ class Template
+ 
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer(getClass().getName());
++    CPStringBuilder buf = new CPStringBuilder(getClass().getName());
+     buf.append('[');
+     if (name != null)
+       {
+Index: gnu/xml/transform/TextNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/TextNode.java,v
+retrieving revision 1.4
+diff -u -3 -p -u -r1.4 TextNode.java
+--- gnu/xml/transform/TextNode.java	13 Jan 2006 17:23:31 -0000	1.4
++++ gnu/xml/transform/TextNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import javax.xml.namespace.QName;
+ import javax.xml.transform.TransformerException;
+ import org.w3c.dom.Document;
+@@ -106,7 +108,7 @@ final class TextNode
+ 
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("text");
++    CPStringBuilder buf = new CPStringBuilder("text");
+     if (disableOutputEscaping)
+       {
+         buf.append('[');
+Index: gnu/xml/transform/TransformerImpl.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/TransformerImpl.java,v
+retrieving revision 1.16
+diff -u -3 -p -u -r1.16 TransformerImpl.java
+--- gnu/xml/transform/TransformerImpl.java	10 Oct 2006 19:28:59 -0000	1.16
++++ gnu/xml/transform/TransformerImpl.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.io.BufferedOutputStream;
+ import java.io.FileOutputStream;
+ import java.io.IOException;
+@@ -722,7 +724,7 @@ class TransformerImpl
+               }
+             else
+               {
+-                StringBuffer buf = new StringBuffer();
++                CPStringBuilder buf = new CPStringBuilder();
+                 buf.append('\n');
+                 for (int i = 0; i < offset + 1; i++)
+                   buf.append(INDENT_WHITESPACE);
+@@ -733,7 +735,7 @@ class TransformerImpl
+                     node.insertBefore(doc.createTextNode(ws), ctx);
+                     reindent(doc, ctx, offset + 1);
+                   }
+-                buf = new StringBuffer();
++                buf = new CPStringBuilder();
+                 buf.append('\n');
+                 for (int i = 0; i < offset; i++)
+                   buf.append(INDENT_WHITESPACE);
+Index: gnu/xml/transform/TransformerOutputProperties.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/TransformerOutputProperties.java,v
+retrieving revision 1.2
+diff -u -3 -p -u -r1.2 TransformerOutputProperties.java
+--- gnu/xml/transform/TransformerOutputProperties.java	2 Jul 2005 20:32:16 -0000	1.2
++++ gnu/xml/transform/TransformerOutputProperties.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.Collection;
+ import java.util.Iterator;
+ import java.util.LinkedHashSet;
+@@ -95,7 +97,7 @@ class TransformerOutputProperties
+         defaultProperties.put(OutputKeys.DOCTYPE_SYSTEM,
+                               stylesheet.outputSystemId);
+       }
+-    StringBuffer buf = new StringBuffer();
++    CPStringBuilder buf = new CPStringBuilder();
+     for (Iterator i = stylesheet.outputCdataSectionElements.iterator();
+          i.hasNext(); )
+       {
+Index: gnu/xml/transform/ValueOfNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/ValueOfNode.java,v
+retrieving revision 1.7
+diff -u -3 -p -u -r1.7 ValueOfNode.java
+--- gnu/xml/transform/ValueOfNode.java	13 Jan 2006 17:23:31 -0000	1.7
++++ gnu/xml/transform/ValueOfNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import java.util.Collection;
+ import java.util.Iterator;
+ import javax.xml.namespace.QName;
+@@ -84,7 +86,7 @@ final class ValueOfNode
+     String value;
+     if (ret instanceof Collection)
+       {
+-        StringBuffer buf = new StringBuffer();
++        CPStringBuilder buf = new CPStringBuilder();
+         for (Iterator i = ((Collection) ret).iterator(); i.hasNext(); )
+           {
+             Node node = (Node) i.next();
+@@ -126,7 +128,7 @@ final class ValueOfNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("value-of");
++    CPStringBuilder buf = new CPStringBuilder("value-of");
+     buf.append('[');
+     buf.append("select=");
+     buf.append(select);
+Index: gnu/xml/transform/WhenNode.java
+===================================================================
+RCS file: /sources/classpath/classpath/gnu/xml/transform/WhenNode.java,v
+retrieving revision 1.5
+diff -u -3 -p -u -r1.5 WhenNode.java
+--- gnu/xml/transform/WhenNode.java	13 Jan 2006 17:23:31 -0000	1.5
++++ gnu/xml/transform/WhenNode.java	17 Mar 2008 01:11:07 -0000
+@@ -37,6 +37,8 @@ exception statement from your version. *
+ 
+ package gnu.xml.transform;
+ 
++import gnu.java.lang.CPStringBuilder;
++
+ import javax.xml.namespace.QName;
+ import javax.xml.transform.TransformerException;
+ import org.w3c.dom.Node;
+@@ -102,7 +104,7 @@ final class WhenNode
+   
+   public String toString()
+   {
+-    StringBuffer buf = new StringBuffer("when");
++    CPStringBuilder buf = new CPStringBuilder("when");
+     buf.append('[');
+     buf.append("test=");
+     buf.append(test);
