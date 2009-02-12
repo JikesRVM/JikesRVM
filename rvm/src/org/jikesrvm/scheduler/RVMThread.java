@@ -1258,26 +1258,25 @@ public class RVMThread extends ThreadContext {
   @NoCheckStore
   public static void processAboutToTerminate() {
     if (!neverKillThreads) {
-      int notKilled=0;
-      for (;;) {
-        RVMThread t=null;
+      restart: while(true) {
+        int notKilled = 0;
         acctLock.lock();
         for (int i = 0; i < aboutToTerminateN; ++i) {
-          t = threadBySlot[aboutToTerminate[i]];
+          RVMThread t = threadBySlot[aboutToTerminate[i]];
           if (t.getExecStatus() == TERMINATED) {
             aboutToTerminate[i--] = aboutToTerminate[--aboutToTerminateN];
+            acctLock.unlock();
+            t.releaseThreadSlot();
+            continue restart;
           } else {
             notKilled++;
           }
         }
         acctLock.unlock();
-        if (t==null) {
-          break;
+        if (notKilled > 0 && traceAboutToTerminate) {
+          VM.sysWriteln("didn't kill ", notKilled, " threads");
         }
-        t.releaseThreadSlot();
-      }
-      if (notKilled>0 && traceAboutToTerminate) {
-        VM.sysWriteln("didn't kill ",notKilled," threads");
+        break;
       }
     }
   }
