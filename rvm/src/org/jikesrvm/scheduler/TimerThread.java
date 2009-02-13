@@ -39,6 +39,7 @@ public class TimerThread extends RVMThread {
     super("TimerThread");
   }
   // NOTE: this runs concurrently with stop-the-world GC
+  // TODO: consider allowing GC to be sampled to enable profile-directed optimization of MMTk.
   @Override
   public void run() {
     disableYieldpoints();
@@ -53,7 +54,7 @@ public class TimerThread extends RVMThread {
         RVMThread.timerTicks++;
         for (int i=0;i<RVMThread.numThreads;++i) {
           RVMThread candidate=RVMThread.threads[i];
-          if (candidate!=null) {
+          if (candidate!=null && candidate.shouldBeSampled()) {
             candidate.timeSliceExpired++;
             candidate.takeYieldpoint=1;
           }

@@ -1542,6 +1542,22 @@ public class RVMThread extends ThreadContext {
       (getExecStatus() == IN_JAVA || getExecStatus() == IN_JAVA_TO_BLOCK);
   }
 
+  /**
+   * Should the thread by eligible for sampling by the timer thread?
+   * Heuristically, we use timer-based sampling the in the adaptive system
+   * to determine where the program is spending time (and thus what to optimize).
+   * This doesn't have to be a 100% accurate, but it must be non-blocking
+   * and also closely approximate whether or not the thread is executing.
+   * For now, approximate just as being in JAVA.
+   * As a future item, we may want to actually correctly attribute time
+   * spent in native code to the top native method on the frame when the timer
+   * goes off.  This will require work in the JNI enter/exit sequence to deal with
+   * timer samples appropriately.
+   */
+  public final boolean shouldBeSampled() {
+    return execStatus == IN_JAVA;
+  }
+
   /** A variant of checkBlock() that does not save the thread state. */
   @NoInline
   @Unpreemptible("May block if the thread was asked to do so, but otherwise does no actions that would cause blocking")
