@@ -369,31 +369,31 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
           case JBC_aload_0: {
             int localNumber = 0;
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
           case JBC_aload_1: {
             int localNumber = 1;
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
           case JBC_aload_2: {
             int localNumber = 2;
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
           case JBC_aload_3: {
             int localNumber = 3;
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
           case JBC_aload: {
             int localNumber = bcodes.getLocalNumber();
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
 

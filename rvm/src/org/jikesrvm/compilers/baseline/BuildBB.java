@@ -417,6 +417,9 @@ final class BuildBB implements BytecodeConstants, BBConstants {
     if (retList != null) {
       processRetList(retList, nextRetList);
     }
+
+    // can not support jsrs with unboxed types at the moment
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM || numJsrs == 0);
   }
 
   /********************************/
