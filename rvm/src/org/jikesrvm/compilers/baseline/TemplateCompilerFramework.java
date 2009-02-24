@@ -18,7 +18,6 @@ import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.Services;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.BytecodeConstants;
@@ -33,6 +32,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
+import org.jikesrvm.osr.bytecodes.InvokeStatic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NoInline;
@@ -1950,23 +1950,8 @@ public abstract class TemplateCompilerFramework
                 break;
               }
               case org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeStatic: {
-                RVMMethod methodRef = null;
                 int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
-                switch (targetidx) {
-                  case org.jikesrvm.osr.OSRConstants.GETREFAT:
-                    methodRef = AosEntrypoints.osrGetRefAtMethod;
-                    break;
-                  case org.jikesrvm.osr.OSRConstants.CLEANREFS:
-                    methodRef = AosEntrypoints.osrCleanRefsMethod;
-                    break;
-                  default:
-                    if (VM.TraceOnStackReplacement) {
-                      VM.sysWriteln("pseudo_invokstatic with unknown target index " + targetidx);
-                    }
-                    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-                    break;
-                }
-
+                RVMMethod methodRef = InvokeStatic.targetMethod(targetidx);
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic", methodRef);
                 emit_resolved_invokestatic(methodRef.getMemberRef().asMethodReference());
                 break;

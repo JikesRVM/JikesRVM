@@ -19,7 +19,6 @@ import java.util.NoSuchElementException;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
-import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
@@ -111,6 +110,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.ObjectHolder;
+import org.jikesrvm.osr.bytecodes.InvokeStatic;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.NoInline;
@@ -2537,22 +2537,8 @@ public final class BC2IR
             }
             case PSEUDO_InvokeStatic: {
               /* pseudo invoke static for getRefAt and cleanRefAt, both must be resolved already */
-              RVMMethod meth = null;
               int targetidx = bcodes.readIntConst();
-              switch (targetidx) {
-                case GETREFAT:
-                  meth = AosEntrypoints.osrGetRefAtMethod;
-                  break;
-                case CLEANREFS:
-                  meth = AosEntrypoints.osrCleanRefsMethod;
-                  break;
-                default:
-                  if (VM.TraceOnStackReplacement) {
-                    VM.sysWriteln("pseudo_invokestatic, unknown target index " + targetidx);
-                  }
-                  OptimizingCompilerException.UNREACHABLE();
-                  break;
-              }
+              RVMMethod meth = InvokeStatic.targetMethod(targetidx);
 
               if (VM.TraceOnStackReplacement) {
                 VM.sysWriteln("PSEUDO_Invoke " + meth + "\n");

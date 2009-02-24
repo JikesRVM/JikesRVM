@@ -13,7 +13,6 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.ClassLoaderConstants;
@@ -25,6 +24,7 @@ import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.osr.bytecodes.InvokeStatic;
 
 /**
  * BytecodeTraverser does depth first search on a bytecode
@@ -1325,21 +1325,9 @@ public class BytecodeTraverser implements BytecodeConstants, ClassLoaderConstant
               break;
             case PSEUDO_InvokeStatic: {
               int mid = bytecodes.readIntConst(); // get METHIDX
-              RVMMethod callee = null;
-              switch (mid) {
-                case GETREFAT:
-                  callee = AosEntrypoints.osrGetRefAtMethod;
-                  break;
-                case CLEANREFS:
-                  callee = AosEntrypoints.osrCleanRefsMethod;
-                  break;
-                default:
-                  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-                  break;
-              }
+              RVMMethod callee = InvokeStatic.targetMethod(mid);
 
               int psize = callee.getParameterWords();
-
               S.pop(psize);
 
               TypeReference rtype = callee.getReturnType();
