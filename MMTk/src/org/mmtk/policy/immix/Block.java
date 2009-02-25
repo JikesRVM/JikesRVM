@@ -204,9 +204,9 @@ public class Block implements Constants {
   }
 
   private static final short UNALLOCATED_BLOCK_STATE = 0;
-  private static final short UNMARKED_BLOCK_STATE = MAX_BLOCK_MARK_STATE + 1;
-  private static final short MARKED_BLOCK_STATE = MAX_BLOCK_MARK_STATE + 2;
-  private static final short REUSED_BLOCK_STATE = MAX_BLOCK_MARK_STATE + 3;
+  private static final short UNMARKED_BLOCK_STATE = (short) (MAX_BLOCK_MARK_STATE + 1);
+  private static final short MARKED_BLOCK_STATE = (short) (MAX_BLOCK_MARK_STATE + 2);
+  private static final short REUSED_BLOCK_STATE = (short) (MAX_BLOCK_MARK_STATE + 3);
 
   private static final short BLOCK_IS_NOT_DEFRAG_SOURCE = 0;
   private static final short BLOCK_IS_DEFRAG_SOURCE = 1;

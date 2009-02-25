@@ -41,7 +41,7 @@ public class ImmixConstants {
   public static final int DEFAULT_DEFRAG_FREE_HEADROOM = 0; // number of pages.  This should only deviate from zero for analytical purposes.  Otherwise the defragmenter is cheating!
   public static final float DEFAULT_DEFRAG_FREE_HEADROOM_FRACTION = (float) 0.0;
   /* sizes etc */
-  static final int LOG_BYTES_IN_BLOCK = 15;
+  static final int LOG_BYTES_IN_BLOCK = (LOG_BYTES_IN_PAGE > 15 ? LOG_BYTES_IN_PAGE : 15);
   public static final int BYTES_IN_BLOCK = 1<<LOG_BYTES_IN_BLOCK;
   static final int LOG_PAGES_IN_BLOCK = LOG_BYTES_IN_BLOCK - LOG_BYTES_IN_PAGE;
   static final int PAGES_IN_BLOCK = 1<<LOG_PAGES_IN_BLOCK;
@@ -50,7 +50,7 @@ public class ImmixConstants {
 
   public static final int LOG_BYTES_IN_LINE = 8;
   static final int LOG_LINES_IN_BLOCK = LOG_BYTES_IN_BLOCK - LOG_BYTES_IN_LINE;
-  public static final int LINES_IN_BLOCK = 1<<LOG_LINES_IN_BLOCK;
+  public static final short LINES_IN_BLOCK = (short) (1<<LOG_LINES_IN_BLOCK);
   static final int LOG_LINES_IN_CHUNK = LOG_BYTES_IN_CHUNK - LOG_BYTES_IN_LINE;
   static final int LINES_IN_CHUNK = 1<<LOG_LINES_IN_CHUNK;
 
@@ -61,9 +61,9 @@ public class ImmixConstants {
   static final int BYTES_IN_RECYCLE_ALLOC_CHUNK = 1<<LOG_BYTES_IN_RECYCLE_ALLOC_CHUNK;
 
   public static final short MAX_BLOCK_MARK_STATE = LINES_IN_BLOCK;
-         static final short MAX_CONSV_SPILL_COUNT = LINES_IN_BLOCK/2;
-  public static final short SPILL_HISTOGRAM_BUCKETS = MAX_CONSV_SPILL_COUNT + 1;
-  public static final short MARK_HISTOGRAM_BUCKETS = LINES_IN_BLOCK + 1;
+         static final short MAX_CONSV_SPILL_COUNT = (short) (LINES_IN_BLOCK/2);
+  public static final short SPILL_HISTOGRAM_BUCKETS = (short) (MAX_CONSV_SPILL_COUNT + 1);
+  public static final short MARK_HISTOGRAM_BUCKETS = (short) (LINES_IN_BLOCK + 1);
          static final short MAX_COLLECTORS = 16; // nothing special here---we can increase this at the cost of a few hundred bites at build time.
 
   public static final Word RECYCLE_ALLOC_CHUNK_MASK = Word.fromIntZeroExtend(BYTES_IN_RECYCLE_ALLOC_CHUNK - 1);

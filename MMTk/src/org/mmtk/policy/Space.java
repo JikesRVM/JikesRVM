@@ -107,6 +107,10 @@ public abstract class Space implements Constants {
    * Initialization
    */
 
+  {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(PAGES_IN_CHUNK > 1);
+  }
+
   /**
    * This is the base constructor for <i>all</i> spaces.<p>
    *

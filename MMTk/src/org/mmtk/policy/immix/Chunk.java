@@ -79,7 +79,11 @@ public class Chunk implements Constants {
   }
 
   static void clearMetaData(Address chunk) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(chunk));
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(isAligned(chunk));
+      VM.assertions._assert(Conversions.isPageAligned(chunk));
+      VM.assertions._assert(Conversions.isPageAligned(ROUNDED_METADATA_BYTES_PER_CHUNK));
+    }
     Mmapper.ensureMapped(chunk, ROUNDED_METADATA_PAGES_PER_CHUNK);
     VM.memory.zeroPages(chunk, ROUNDED_METADATA_BYTES_PER_CHUNK);
     if (VM.VERIFY_ASSERTIONS) checkMetaDataCleared(chunk, chunk);
@@ -176,7 +180,8 @@ public class Chunk implements Constants {
   static final int METADATA_BYTES_PER_CHUNK = MAP_OFFSET + MAP_BYTES;
 
   /* FIXME we round the metadata up to block sizes just to ensure the underlying allocator gives us aligned requests */
-  static final int ROUNDED_METADATA_BYTES_PER_CHUNK = (METADATA_BYTES_PER_CHUNK + (1<<LOG_BYTES_IN_BLOCK) - 1) & (~((1<<LOG_BYTES_IN_BLOCK) - 1));
+  private static final int BLOCK_MASK = (1<<LOG_BYTES_IN_BLOCK) - 1;
+  static final int ROUNDED_METADATA_BYTES_PER_CHUNK = (METADATA_BYTES_PER_CHUNK + BLOCK_MASK) & ~BLOCK_MASK;
   static final int ROUNDED_METADATA_PAGES_PER_CHUNK = ROUNDED_METADATA_BYTES_PER_CHUNK>>LOG_BYTES_IN_PAGE;
   public static final int FIRST_USABLE_BLOCK_INDEX = ROUNDED_METADATA_BYTES_PER_CHUNK>>LOG_BYTES_IN_BLOCK;
 }

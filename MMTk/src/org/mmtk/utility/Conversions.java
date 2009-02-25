@@ -149,7 +149,15 @@ import org.vmmagic.pragma.*;
     return address.toWord().rshl(LOG_BYTES_IN_PAGE).lsh(LOG_BYTES_IN_PAGE).toAddress();
   }
 
+  public static int pageAlign(int value) {
+    return (value>>LOG_BYTES_IN_PAGE)<<LOG_BYTES_IN_PAGE;
+  }
+
   public static boolean isPageAligned(Address address) {
     return pageAlign(address).EQ(address);
+  }
+
+  public static boolean isPageAligned(int value) {
+    return pageAlign(value) == value;
   }
 }
