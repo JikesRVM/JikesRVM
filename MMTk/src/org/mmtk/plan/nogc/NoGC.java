@@ -58,7 +58,7 @@ public class NoGC extends Plan {
     }
     if (phaseId == CLOSURE) {
     }
-    if (phaseID == RELEASE) {
+    if (phaseId == RELEASE) {
     }
     super.collectionPhase(phaseId);
     */
