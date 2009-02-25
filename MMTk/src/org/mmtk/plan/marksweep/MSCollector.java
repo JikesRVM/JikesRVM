@@ -13,7 +13,6 @@
 package org.mmtk.plan.marksweep;
 
 import org.mmtk.plan.*;
-import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -29,12 +28,6 @@ import org.vmmagic.pragma.*;
  *
  * @see MS for an overview of the mark-sweep algorithm.<p>
  *
- * FIXME The SegregatedFreeList class (and its decendents such as
- * MarkSweepLocal) does not properly separate mutator and collector
- * behaviors, so the ms field below should really not exist in
- * this class as there is no collection-time allocation in this
- * collector.
- *
  * @see MS
  * @see MSMutator
  * @see StopTheWorldCollector
@@ -46,25 +39,11 @@ public class MSCollector extends StopTheWorldCollector {
   /****************************************************************************
    * Instance fields
    */
-  protected MSTraceLocal fullTrace;
-  protected TraceLocal currentTrace;
-  protected MarkSweepLocal ms; // see FIXME at top of this class
+  protected MSTraceLocal fullTrace = new MSTraceLocal(global().msTrace, null);;
+  protected TraceLocal currentTrace = fullTrace;
+
 
   /****************************************************************************
-   * Initialization
-   */
-
-  /**
-   * Constructor
-   */
-  public MSCollector() {
-    fullTrace = new MSTraceLocal(global().msTrace, null);
-    currentTrace = fullTrace;
-    ms = new MarkSweepLocal(MS.msSpace);
-  }
-
-  /****************************************************************************
-   *
    * Collection
    */
 
@@ -75,10 +54,10 @@ public class MSCollector extends StopTheWorldCollector {
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MS.PREPARE) {
       super.collectionPhase(phaseId, primary);
-      ms.prepare();
       fullTrace.prepare();
       return;
     }
@@ -97,8 +76,8 @@ public class MSCollector extends StopTheWorldCollector {
     super.collectionPhase(phaseId, primary);
   }
 
+
   /****************************************************************************
-   *
    * Miscellaneous
    */
 
@@ -109,6 +88,7 @@ public class MSCollector extends StopTheWorldCollector {
   }
 
   /** @return The current trace instance. */
+  @Override
   public final TraceLocal getCurrentTrace() {
     return currentTrace;
   }

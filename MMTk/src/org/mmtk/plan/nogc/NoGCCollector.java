@@ -12,11 +12,10 @@
  */
 package org.mmtk.plan.nogc;
 
-import org.mmtk.plan.CollectorContext;
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.*;
 import org.mmtk.vm.VM;
-import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.Uninterruptible;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements <i>per-collector thread</i> behavior and state
@@ -37,32 +36,24 @@ public class NoGCCollector extends CollectorContext {
   /************************************************************************
    * Instance fields
    */
-  private final NoGCTraceLocal trace;
+  private final NoGCTraceLocal trace = new NoGCTraceLocal(global().trace);
+  protected final TraceLocal currentTrace = trace;
 
-  /************************************************************************
-   * Initialization
-   */
-
-  /**
-   * Constructor. One instance is created per physical processor.
-   */
-  public NoGCCollector() {
-    trace = new NoGCTraceLocal(global().trace);
-  }
 
   /****************************************************************************
-   *
    * Collection
    */
 
   /**
    * Perform a garbage collection
    */
+  @Override
   public final void collect() {
     VM.assertions.fail("GC Triggered in NoGC Plan. Is -X:gc:ignoreSystemGC=true ?");
   }
 
   /** Perform some concurrent garbage collection */
+  @Override
   public final void concurrentCollect() {
     VM.assertions.fail("Concurrent GC Triggered in NoGC Plan.");
   }
@@ -73,8 +64,22 @@ public class NoGCCollector extends CollectorContext {
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
+  @Inline
+  @Override
   public final void collectionPhase(short phaseId, boolean primary) {
     VM.assertions.fail("GC Triggered in NoGC Plan.");
+    /*
+    if (phaseId == NoGC.PREPARE) {
+    }
+
+    if (phaseId == NoGC.CLOSURE) {
+    }
+
+    if (phaseId == NoGC.RELEASE) {
+    }
+
+    super.collectionPhase(phaseId, primary);
+    */
   }
 
   /**
@@ -82,12 +87,13 @@ public class NoGCCollector extends CollectorContext {
    *
    * @param phaseId The unique phase identifier
    */
+  @Override
   public void concurrentCollectionPhase(short phaseId) {
     VM.assertions.fail("GC Triggered in NoGC Plan.");
   }
 
+
   /****************************************************************************
-   *
    * Miscellaneous
    */
 
@@ -98,5 +104,8 @@ public class NoGCCollector extends CollectorContext {
   }
 
   /** @return The current trace instance. */
-  public final TraceLocal getCurrentTrace() { return trace; }
+  @Override
+  public final TraceLocal getCurrentTrace() {
+    return currentTrace;
+  }
 }

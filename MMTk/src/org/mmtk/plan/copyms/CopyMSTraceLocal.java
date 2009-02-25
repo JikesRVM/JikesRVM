@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implments the thread-local functionality for a
+ * This class implements the thread-local functionality for a
  * transitive closure over a coping/mark-sweep hybrid collector.
  */
 @Uninterruptible
@@ -44,6 +44,7 @@ public final class CopyMSTraceLocal extends TraceLocal {
    * @param object The object.
    * @return True if the object is live.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(CopyMS.NURSERY, object)) {
@@ -70,6 +71,7 @@ public final class CopyMSTraceLocal extends TraceLocal {
    * @return The new reference to the same object instance.
    */
   @Inline
+  @Override
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (Space.isInSpace(CopyMS.NURSERY, object))
@@ -87,6 +89,7 @@ public final class CopyMSTraceLocal extends TraceLocal {
    * @return The new object, guaranteed stable for the rest of the GC.
    */
   @Inline
+  @Override
   public ObjectReference precopyObject(ObjectReference object) {
     if (object.isNull()) return object;
     else if (Space.isInSpace(CopyMS.NURSERY, object))
@@ -101,6 +104,7 @@ public final class CopyMSTraceLocal extends TraceLocal {
    * @param object The object to query.
    * @return True if the object will not move during this collection.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     return !Space.isInSpace(CopyMS.NURSERY, object);
   }

@@ -42,22 +42,10 @@ public class NoGCMutator extends MutatorContext {
   /************************************************************************
    * Instance fields
    */
-  private final ImmortalLocal def; // the default allocator
+  private final ImmortalLocal nogc = new ImmortalLocal(NoGC.noGCSpace);
 
-  /************************************************************************
-   *
-   * Initialization
-   */
-
-  /**
-   * Constructor. One instance is created per physical processor.
-   */
-  public NoGCMutator() {
-    def = new ImmortalLocal(NoGC.defSpace);
-  }
 
   /****************************************************************************
-   *
    * Mutator-time allocation
    */
 
@@ -72,9 +60,10 @@ public class NoGCMutator extends MutatorContext {
    * @return The address of the newly allocated memory.
    */
   @Inline
+  @Override
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == NoGC.ALLOC_DEFAULT) {
-      return def.alloc(bytes, align, offset);
+      return nogc.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }
@@ -89,6 +78,7 @@ public class NoGCMutator extends MutatorContext {
    * @param allocator The allocator number to be used for this allocation
    */
   @Inline
+  @Override
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
     if (allocator != NoGC.ALLOC_DEFAULT) {
@@ -105,13 +95,14 @@ public class NoGCMutator extends MutatorContext {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
-    if (space == NoGC.defSpace) return def;
+    if (space == NoGC.noGCSpace) return nogc;
     return super.getAllocatorFromSpace(space);
   }
 
+
   /****************************************************************************
-   *
    * Collection
    */
 
@@ -121,6 +112,8 @@ public class NoGCMutator extends MutatorContext {
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
+  @Inline
+  @Override
   public final void collectionPhase(short phaseId, boolean primary) {
     VM.assertions.fail("GC Triggered in NoGC Plan.");
     /*
@@ -132,5 +125,4 @@ public class NoGCMutator extends MutatorContext {
      super.collectionPhase(phaseId, participating, primary);
      */
   }
-
 }

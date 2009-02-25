@@ -15,7 +15,6 @@ package org.mmtk.plan.marksweep;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
-
 import org.mmtk.utility.alloc.Allocator;
 
 import org.vmmagic.pragma.*;
@@ -30,14 +29,6 @@ import org.vmmagic.unboxed.*;
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
  *
- * @see org.mmtk.plan.markcompact.MC for an overview of the mark-compact algorithm.<p>
- *
- * FIXME The SegregatedFreeList class (and its decendents such as
- * MarkSweepLocal) does not properly separate mutator and collector
- * behaviors, so the ms field below should really not exist in
- * this class as there is no collection-time allocation in this
- * collector.
- *
  * @see MS
  * @see MSCollector
  * @see StopTheWorldMutator
@@ -49,23 +40,10 @@ public class MSMutator extends StopTheWorldMutator {
   /****************************************************************************
    * Instance fields
    */
+  protected MarkSweepLocal ms = new MarkSweepLocal(MS.msSpace);
 
-  protected MarkSweepLocal ms;
-
-  /****************************************************************************
-   *
-   * Initialization
-   */
-
-  /**
-   * Constructor
-   */
-  public MSMutator() {
-    ms = new MarkSweepLocal(MS.msSpace);
-  }
 
   /****************************************************************************
-   *
    * Mutator-time allocation
    */
 
@@ -81,6 +59,7 @@ public class MSMutator extends StopTheWorldMutator {
    * @return The low address of the allocated memory.
    */
   @Inline
+  @Override
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == MS.ALLOC_DEFAULT) {
       return ms.alloc(bytes, align, offset);
@@ -99,6 +78,7 @@ public class MSMutator extends StopTheWorldMutator {
    * @param allocator The allocator number to be used for this allocation
    */
   @Inline
+  @Override
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
     if (allocator == MS.ALLOC_DEFAULT)
@@ -116,13 +96,14 @@ public class MSMutator extends StopTheWorldMutator {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == MS.msSpace) return ms;
     return super.getAllocatorFromSpace(space);
   }
 
+
   /****************************************************************************
-   *
    * Collection
    */
 
@@ -133,6 +114,7 @@ public class MSMutator extends StopTheWorldMutator {
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MS.PREPARE) {
       super.collectionPhase(phaseId, primary);

@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implments the thread-local core functionality for a transitive
+ * This class implements the thread-local core functionality for a transitive
  * closure over the heap graph.
  */
 @Uninterruptible
@@ -33,21 +33,22 @@ public final class NoGCTraceLocal extends TraceLocal {
     super(trace);
   }
 
+
   /****************************************************************************
-   *
    * Externally visible Object processing and tracing
    */
 
   /**
-   * Is the specified object reachable?
+   * Is the specified object live?
    *
    * @param object The object.
-   * @return <code>true</code> if the object is reachable.
+   * @return <code>true</code> if the object is live.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
-    if (Space.isInSpace(NoGC.DEF, object)) {
-      return NoGC.defSpace.isLive(object);
+    if (Space.isInSpace(NoGC.NOGC, object)) {
+      return NoGC.noGCSpace.isLive(object);
     }
     return super.isLive(object);
   }
@@ -64,10 +65,11 @@ public final class NoGCTraceLocal extends TraceLocal {
    * @return The new reference to the same object instance.
    */
   @Inline
+  @Override
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
-    if (Space.isInSpace(NoGC.DEF, object))
-      return NoGC.defSpace.traceObject(this, object);
+    if (Space.isInSpace(NoGC.NOGC, object))
+      return NoGC.noGCSpace.traceObject(this, object);
     return super.traceObject(object);
   }
 }

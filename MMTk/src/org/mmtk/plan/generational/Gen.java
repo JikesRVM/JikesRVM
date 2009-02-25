@@ -282,16 +282,6 @@ public abstract class Gen extends StopTheWorld {
    */
 
   /**
-   * Return the number of pages reserved for copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
-   */
-  public int getCollectionReserve() {
-    return nurserySpace.reservedPages() + super.getCollectionReserve();
-  }
-
-  /**
    * Return the number of pages in use given the pending
    * allocation.  Simply add the nursery's contribution to that of
    * the superclass.
@@ -299,6 +289,7 @@ public abstract class Gen extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return (nurserySpace.reservedPages() + super.getPagesUsed());
   }
@@ -310,8 +301,20 @@ public abstract class Gen extends StopTheWorld {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
+  @Override
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
+  }
+
+  /**
+   * Return the number of pages reserved for copying.
+   *
+   * @return The number of pages reserved given the pending
+   * allocation, including space reserved for copying.
+   */
+  @Override
+  public int getCollectionReserve() {
+    return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
 
   /**
@@ -330,6 +333,7 @@ public abstract class Gen extends StopTheWorld {
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
+  @Override
   public int getPagesRequired() {
     /* We don't currently pretenure, so mature space must be zero */
     return super.getPagesRequired() + (nurserySpace.requiredPages() << 1);

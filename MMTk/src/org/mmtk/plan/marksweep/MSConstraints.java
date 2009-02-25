@@ -27,12 +27,12 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class MSConstraints extends StopTheWorldConstraints {
 
+  @Override
   public int gcHeaderBits() { return MarkSweepSpace.LOCAL_GC_BITS_REQUIRED; }
-
+  @Override
   public int gcHeaderWords() { return MarkSweepSpace.GC_HEADER_WORDS_REQUIRED; }
-
-  public int numSpecializedScans() { return 1; }
-
-  /** @return true because we cannot accommodate large objects in default allocator */
+  @Override
   public boolean requiresLOS() { return true; }
+  @Override
+  public int numSpecializedScans() { return 1; }
 }

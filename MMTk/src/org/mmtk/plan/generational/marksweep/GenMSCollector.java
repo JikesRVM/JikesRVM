@@ -64,7 +64,6 @@ public class GenMSCollector extends GenCollector {
   }
 
   /****************************************************************************
-   *
    * Collection-time allocation
    */
 
@@ -80,6 +79,7 @@ public class GenMSCollector extends GenCollector {
    * @return The address of the first byte of the allocated region
    */
   @Inline
+  @Override
   public final Address allocCopy(ObjectReference original, int bytes,
                                  int align, int offset, int allocator) {
     if (Stats.GATHER_MARK_CONS_STATS) {
@@ -107,6 +107,7 @@ public class GenMSCollector extends GenCollector {
    * @param bytes The size of the space to be allocated (in bytes)
    */
   @Inline
+  @Override
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
                              int bytes, int allocator) {
     if (allocator == Plan.ALLOC_LOS)

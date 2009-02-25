@@ -42,26 +42,21 @@ import org.vmmagic.unboxed.*;
 public class MS extends StopTheWorld {
 
   /****************************************************************************
-   * Constants
-   */
-
-  /****************************************************************************
    * Class variables
    */
-
   public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
   public static final int SCAN_MARK = 0;
 
+
   /****************************************************************************
    * Instance variables
    */
-
   public final Trace msTrace = new Trace(metaDataSpace);
 
+
   /*****************************************************************************
-   *
    * Collection
    */
 
@@ -71,6 +66,7 @@ public class MS extends StopTheWorld {
    * @param phaseId Collection phase to execute.
    */
   @Inline
+  @Override
   public void collectionPhase(short phaseId) {
 
     if (phaseId == PREPARE) {
@@ -107,6 +103,7 @@ public class MS extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
   }
@@ -118,6 +115,7 @@ public class MS extends StopTheWorld {
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
+  @Override
   public int getPagesRequired() {
     return super.getPagesRequired() + msSpace.requiredPages();
   }
@@ -139,6 +137,7 @@ public class MS extends StopTheWorld {
    * Register specialized methods.
    */
   @Interruptible
+  @Override
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_MARK, MSTraceLocal.class);
     super.registerSpecializedMethods();

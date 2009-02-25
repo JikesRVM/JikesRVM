@@ -22,9 +22,11 @@ import org.vmmagic.pragma.*;
  * separate from the main Plan/PlanLocal class in order to bypass any
  * issues with ordering of static initialization.
  */
-@Uninterruptible public class NoGCConstraints extends PlanConstraints {
+@Uninterruptible
+public class NoGCConstraints extends PlanConstraints {
 
+  @Override
   public int gcHeaderBits() { return 0; }
-
+  @Override
   public int gcHeaderWords() { return 0; }
 }

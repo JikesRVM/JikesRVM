@@ -24,13 +24,15 @@ import org.vmmagic.pragma.*;
  * separate from the main Plan/PlanLocal class in order to bypass any
  * issues with ordering of static initialization.
  */
-@Uninterruptible public class CopyMSConstraints extends StopTheWorldConstraints {
+@Uninterruptible
+public class CopyMSConstraints extends StopTheWorldConstraints {
 
-  public boolean movesObjects() { return true; }
-
+  @Override
   public int gcHeaderBits() { return CopySpace.LOCAL_GC_BITS_REQUIRED; }
-
+  @Override
   public int gcHeaderWords() { return CopySpace.GC_HEADER_WORDS_REQUIRED; }
-
+  @Override
   public int numSpecializedScans() { return 1; }
+  @Override
+  public boolean movesObjects() { return true; }
 }
