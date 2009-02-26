@@ -85,7 +85,7 @@ public class Chunk implements Constants {
       VM.assertions._assert(Conversions.isPageAligned(ROUNDED_METADATA_BYTES_PER_CHUNK));
     }
     Mmapper.ensureMapped(chunk, ROUNDED_METADATA_PAGES_PER_CHUNK);
-    VM.memory.zeroPages(chunk, ROUNDED_METADATA_BYTES_PER_CHUNK);
+    VM.memory.zero(chunk, Extent.fromIntZeroExtend(ROUNDED_METADATA_BYTES_PER_CHUNK));
     if (VM.VERIFY_ASSERTIONS) checkMetaDataCleared(chunk, chunk);
   }
 
