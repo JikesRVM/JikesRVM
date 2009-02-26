@@ -91,7 +91,6 @@ public class MS extends StopTheWorld {
   }
 
   /*****************************************************************************
-   *
    * Accounting
    */
 
@@ -119,6 +118,11 @@ public class MS extends StopTheWorld {
   public int getPagesRequired() {
     return super.getPagesRequired() + msSpace.requiredPages();
   }
+
+
+  /*****************************************************************************
+   * Miscellaneous
+   */
 
   /**
    * @see org.mmtk.plan.Plan#willNeverMove

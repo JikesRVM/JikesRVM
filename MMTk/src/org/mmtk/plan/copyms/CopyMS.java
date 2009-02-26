@@ -78,11 +78,10 @@ public class CopyMS extends StopTheWorld {
     trace = new Trace(metaDataSpace);
   }
 
+
   /*****************************************************************************
-   *
    * Collection
    */
-
 
   /**
    * Perform a (global) collection phase.

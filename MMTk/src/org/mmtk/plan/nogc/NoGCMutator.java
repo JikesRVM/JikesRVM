@@ -122,7 +122,7 @@ public class NoGCMutator extends MutatorContext {
 
      if (phaseId == NoGC.RELEASE) {
      }
-     super.collectionPhase(phaseId, participating, primary);
+     super.collectionPhase(phaseId, primary);
      */
   }
 }

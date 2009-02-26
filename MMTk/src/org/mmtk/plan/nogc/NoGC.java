@@ -76,7 +76,6 @@ public class NoGC extends Plan {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
-
   @Override
   public int getPagesUsed() {
     return (noGCSpace.reservedPages() + super.getPagesUsed());
