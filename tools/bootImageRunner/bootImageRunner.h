@@ -81,8 +81,15 @@ unsigned int parse_memory_size(
 
 extern int verboseBoot;
 
+/* define in sys.c, used in libvm.c */
+extern void sysInitialize();
+
+/* defined in sys.c, used in jvm.c */
+extern void * getVmThread();
+
 /* Defined in libvm.C; used in RunBootImage.C */
 extern int createVM(int);
+
 /* Used in libvm.C; Defined in sys.C */
 extern int getArrayLength(void* ptr);
 
@@ -101,7 +108,6 @@ extern int bootThread(void *ip, void *pr, void *sp); // assembler routine
 
 // These are defined in libvm.C.
 extern void *getJTOC(void);
-extern Offset getProcessorsOffset(void);
 
 /* These are defined in sys.C; used in syswrap.C */
 extern jint GetEnv(JavaVM *, void **, jint);
@@ -110,6 +116,8 @@ extern jint GetEnv(JavaVM *, void **, jint);
 extern void sysSyncCache(void *, size_t size);
 // Defined in sys.C.  Used in libvm.C.
 extern void processTimerTick(void);
+// Defined in sys.C.  Used in libvm.C.
+extern void* getThreadId();
 
 #ifdef __MACH__
 // Defined in sys.C; intiialized in RunBootImage.C

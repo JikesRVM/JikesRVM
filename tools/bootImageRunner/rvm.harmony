@@ -27,7 +27,7 @@ if ((( $# >= 2 )) && [[ $1 == -wrap ]] ); then
 fi
 
 if (( $# == 0 )) || ((( $# >= 1 )) && [[ $1 != -gdb ]] ); then
-  LD_PRELOAD="$LD_PRELOAD $RVM_HOME/lib/@PRELOAD@" $WRAP "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
+  $WRAP "$RVM_HOME/JikesRVM" $BASE_ARGS "$@"
   exit
 fi
 
@@ -54,8 +54,6 @@ echo "" >> $TMP_GDB_COMMANDS
 # for its own purposes.
 # SIGSEGV is a null pointer exception
 echo "handle SIGSEGV nostop noprint pass" >> $TMP_GDB_COMMANDS
-
-echo "set env LD_PRELOAD = $LD_PRELOAD $RVM_HOME/@PRELOAD@" >> $TMP_GDB_COMMANDS
 
 # Include symbols if available
 if [[ -e $RVM_HOME/JikesRVM-symbols.o ]]; then

@@ -20,13 +20,6 @@
 #include <stdlib.h>
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
-#include <pthread.h>
-
-// Thread-specific data key in which to stash the id of
-// the pthread's Processor.  This allows the system call library
-// to find the Processor object at runtime.
-pthread_key_t VmThreadKey;
-pthread_key_t IsVmThreadKey;
 
 // Fish out an address stored in an instance field of an object.
 static void *
@@ -129,14 +122,13 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     if (version > JNI_VERSION_1_4)
         return JNI_EVERSION;
 
-    // Return NULL if we are not on a VM pthread
-    if (pthread_getspecific(IsVmThreadKey) == NULL) {
+    // Return NULL if we are not on a VM thread
+    void *vmThread = getVmThread();
+    if (vmThread) {
         *penv = NULL;
         return JNI_EDETACHED;
     }
 
-    // Get Processor id.
-    void *vmThread = pthread_getspecific(VmThreadKey);
     // Get the JNIEnv from the RVMThread object
     JNIEnv *env = getJniEnvFromVmThread(vmThread);
 
@@ -171,7 +163,7 @@ struct JavaVM_ sysJavaVM = {
   NULL, // reserved0
   NULL, // reserved1
   NULL, // reserved2
-  NULL, // pthreadIDTable
+  NULL, // threadIDTable
   NULL, // jniEnvTable
 };
 

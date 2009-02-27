@@ -15,7 +15,9 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
-  <property name="harmony.version" value="5.0M7"/>
+  <property name="harmony.version" value="5.0M8"/>
+  <property name="harmony.svn.revision" value="713673"/>
+  <property name="harmony.base.url" value="http://svn.apache.org/repos/asf/harmony/enhanced/classlib/trunk"/>
   <property name="harmony.description" value="Apache Harmony class libraries"/>
   <property name="harmony.patchlevel" value="0"/>
   <property name="harmony.component.dir" location="${components.dir}/harmony"/>
@@ -37,7 +39,7 @@
   <target name="get-harmony-from-svn" depends="init-harmony-properties,check-svn-present" if="harmony.from-svn">
     <exec executable="${svn.exe}">
       <arg value="checkout"/>
-      <arg value="http://svn.apache.org/repos/asf/harmony/enhanced/classlib/trunk"/>
+      <arg value="${harmony.base.url}@${harmony.svn.revision}"/>
       <arg value="${harmony.dir}"/>
     </exec>
   </target>

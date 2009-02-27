@@ -58,9 +58,8 @@ import org.vmmagic.unboxed.Word;
  */
 @Uninterruptible
 @NonMoving
-public class HeavyCondLock {
-  Word mutex;
-  Word cond;
+public class Monitor {
+  Word monitor;
   int holderSlot=-1; // use the slot so that we're even more GC safe
   int recCount;
   public int acquireCount;
@@ -69,9 +68,8 @@ public class HeavyCondLock {
    * allocating stuff in C that never gets deallocated.  Thus, don't
    * instantiate too many of these.
    */
-  public HeavyCondLock() {
-    mutex=sysCall.sysPthreadMutexCreate();
-    cond=sysCall.sysPthreadCondCreate();
+  public Monitor() {
+    monitor = sysCall.sysMonitorCreate();
   }
   /**
    * Wait until it is possible to acquire the lock and then acquire it.
@@ -93,7 +91,7 @@ public class HeavyCondLock {
   public void lock() {
     int mySlot = RVMThread.getCurrentThreadSlot();
     if (mySlot != holderSlot) {
-      sysCall.sysPthreadMutexLock(mutex);
+      sysCall.sysMonitorEnter(monitor);
       if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
       if (VM.VerifyAssertions) VM._assert(recCount==0);
       holderSlot = mySlot;
@@ -107,7 +105,7 @@ public class HeavyCondLock {
   @NoInline
   @NoOptCompile
   public void relock(int recCount) {
-    sysCall.sysPthreadMutexLock(mutex);
+    sysCall.sysMonitorEnter(monitor);
     if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
     if (VM.VerifyAssertions) VM._assert(this.recCount==0);
     holderSlot=RVMThread.getCurrentThreadSlot();
@@ -165,11 +163,11 @@ public class HeavyCondLock {
   private void lockNicelyNoRecImpl() {
     for (;;) {
       RVMThread.enterNative();
-      sysCall.sysPthreadMutexLock(mutex);
+      sysCall.sysMonitorEnter(monitor);
       if (RVMThread.attemptLeaveNativeNoBlock()) {
         return;
       } else {
-        sysCall.sysPthreadMutexUnlock(mutex);
+        sysCall.sysMonitorExit(monitor);
         RVMThread.leaveNative();
       }
     }
@@ -191,11 +189,11 @@ public class HeavyCondLock {
   private void relockNicelyImpl(int recCount) {
     for (;;) {
       RVMThread.enterNative();
-      sysCall.sysPthreadMutexLock(mutex);
+      sysCall.sysMonitorEnter(monitor);
       if (RVMThread.attemptLeaveNativeNoBlock()) {
         break;
       } else {
-        sysCall.sysPthreadMutexUnlock(mutex);
+        sysCall.sysMonitorExit(monitor);
         RVMThread.leaveNative();
       }
     }
@@ -214,7 +212,7 @@ public class HeavyCondLock {
   public void unlock() {
     if (--recCount==0) {
       holderSlot=-1;
-      sysCall.sysPthreadMutexUnlock(mutex);
+      sysCall.sysMonitorExit(monitor);
     }
   }
   /**
@@ -227,7 +225,7 @@ public class HeavyCondLock {
     int result=recCount;
     recCount=0;
     holderSlot=-1;
-    sysCall.sysPthreadMutexUnlock(mutex);
+    sysCall.sysMonitorExit(monitor);
     return result;
   }
   /**
@@ -245,7 +243,7 @@ public class HeavyCondLock {
     int recCount=this.recCount;
     this.recCount=0;
     holderSlot=-1;
-    sysCall.sysPthreadCondWait(cond,mutex);
+    sysCall.sysMonitorWait(monitor);
     if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
     if (VM.VerifyAssertions) VM._assert(this.recCount==0);
     this.recCount=recCount;
@@ -267,7 +265,7 @@ public class HeavyCondLock {
     int recCount=this.recCount;
     this.recCount=0;
     holderSlot=-1;
-    sysCall.sysPthreadCondTimedWait(cond,mutex,whenWakeupNanos);
+    sysCall.sysMonitorTimedWaitAbsolute(monitor, whenWakeupNanos);
     if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
     if (VM.VerifyAssertions) VM._assert(this.recCount==0);
     this.recCount=recCount;
@@ -397,7 +395,7 @@ public class HeavyCondLock {
   @NoInline
   @NoOptCompile
   public void broadcast() {
-    sysCall.sysPthreadCondBroadcast(cond);
+    sysCall.sysMonitorBroadcast(monitor);
   }
   /**
    * Send a broadcast after first acquiring the lock.  Release the lock
@@ -413,62 +411,9 @@ public class HeavyCondLock {
     broadcast();
     unlock();
   }
-  // NOTE: these methods below used to have a purpose but that purpose
-  // disappeared as I was switching around designs.  I'm keeping these
-  // methods here because they may potentially be useful again, but it
-  // might be a good idea to ax them if they are truly without a use.
+
   @NoInline
-  @NoOptCompile
-  public static void lock(HeavyCondLock m1,Word priority1,
-                          HeavyCondLock m2,Word priority2) {
-    if (priority1.LE(priority2)) {
-      m1.lock();
-      m2.lock();
-    } else {
-      m2.lock();
-      m1.lock();
-    }
-  }
-  @NoInline
-  @NoOptCompile
-  public static void lock(HeavyCondLock m1,
-                          HeavyCondLock m2) {
-    lock(m1,m1.mutex,
-         m2,m2.mutex);
-  }
-  @NoInline
-  @NoOptCompile
-  public static void lock(HeavyCondLock m1,Word priority1,
-                          HeavyCondLock m2,Word priority2,
-                          HeavyCondLock m3,Word priority3) {
-    if (priority1.LE(priority2) &&
-        priority1.LE(priority3)) {
-      m1.lock();
-      lock(m2,priority2,
-           m3,priority3);
-    } else if (priority2.LE(priority1) &&
-               priority2.LE(priority3)) {
-      m2.lock();
-      lock(m1,priority1,
-           m3,priority3);
-    } else {
-      m3.lock();
-      lock(m1,priority1,
-           m2,priority2);
-    }
-  }
-  @NoInline
-  @NoOptCompile
-  public static void lock(HeavyCondLock m1,
-                          HeavyCondLock m2,
-                          HeavyCondLock m3) {
-    lock(m1,m1.mutex,
-         m2,m2.mutex,
-         m3,m3.mutex);
-  }
-  @NoInline
-  @NoOptCompile
-  public static boolean lock(HeavyCondLock l) {
+  public static boolean lock(Monitor l) {
     if (l==null) {
       return false;
     } else {
@@ -477,8 +422,7 @@ public class HeavyCondLock {
     }
   }
   @NoInline
-  @NoOptCompile
-  public static void unlock(boolean b,HeavyCondLock l) {
+  public static void unlock(boolean b, Monitor l) {
     if (b) l.unlock();
   }
 }

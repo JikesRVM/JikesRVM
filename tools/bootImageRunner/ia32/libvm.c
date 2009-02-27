@@ -21,6 +21,11 @@
  * IA32 version for Linux
  */
 
+#ifdef HARMONY
+#define LINUX
+#include "hythread.h"
+#endif
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE             // so that string.h will include strsignal()
 #endif
@@ -56,8 +61,6 @@ typedef unsigned int u_int32_t;
 
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
 #include <inttypes.h>           // PRIxPTR, uintptr_t
-
-#include <pthread.h>
 
 #ifndef __SIZEOF_POINTER__
 #  ifdef __x86_64__
@@ -454,7 +457,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     unsigned int localInstructionAddress;
 
     if (lib_verbose)
-	fprintf(SysTraceFile,"hardwareTrapHandler: pthread = %p\n",pthread_self());
+	fprintf(SysTraceFile,"hardwareTrapHandler: thread = %p\n", getThreadId());
 
     Address localNativeThreadAddress;
     Address localFrameAddress;
@@ -506,7 +509,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         else
             writeErr("%s: WHOOPS.  Got a signal (%s; #%d) that the hardware signal handler wasn't prepared for.\n", Me,  strsignal(signo), signo);
     } else {
-        writeErr("%s: TROUBLE.  Got a signal (%s; #%d) from outside the VM's address space in thread %p.\n", Me,  strsignal(signo), signo, pthread_self());
+        writeErr("%s: TROUBLE.  Got a signal (%s; #%d) from outside the VM's address space in thread %p.\n", Me,  strsignal(signo), signo, getThreadId());
     }
 
 
@@ -1177,11 +1180,20 @@ createVM(int UNUSED vmInSeparateThread)
      */
     *(Address *) (tr + Thread_framePointer_offset)
 	= (Address)sp - 8;
-	
+
+    sysInitialize();
+
+#ifdef HARMONY
+    hythread_attach(NULL);
+#endif
+
     // setup place that we'll return to when we're done
     if (setjmp(primordial_jb)) {
 	*(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
 	// cannot return or else the process will exit
+#ifdef HARMONY
+        hythread_detach(NULL);
+#endif
 	for (;;) pause();
     } else {
 	sp-=4;

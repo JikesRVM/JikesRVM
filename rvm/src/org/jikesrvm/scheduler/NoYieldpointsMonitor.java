@@ -38,7 +38,7 @@ import org.jikesrvm.VM;
  */
 @Uninterruptible
 @NonMoving
-public class NoYieldpointsCondLock extends HeavyCondLock {
+public class NoYieldpointsMonitor extends Monitor {
   @NoInline
   @NoOptCompile
   public void lock() {

@@ -108,34 +108,110 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #define NEED_EXIT_STATUS_CODES
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
+
+#ifdef HARMONY
+#define LINUX
+#include "hythread.h"
+#else
 #include <pthread.h>
+#endif
+
+extern "C" Word sysMonitorCreate();
+extern "C" void sysMonitorDestroy(Word);
+extern "C" void sysMonitorEnter(Word);
+extern "C" void sysMonitorExit(Word);
+extern "C" void sysMonitorTimedWait(Word, long long);
+extern "C" void sysMonitorWait(Word);
+extern "C" void sysMonitorBroadcast(Word);
 
 // #define DEBUG_SYS
-#define VERBOSE_PTHREAD lib_verbose
+// #define DEBUG_THREAD
 
 // static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 // static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
 
-extern "C" void *sysNativeThreadStartup(void *args);
+#ifdef HARMONY
+extern "C" int sysThreadStartup(void *args);
+#else
+extern "C" void *sysThreadStartup(void *args);
+#endif
+
 extern "C" void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
 
 /* This routine is not yet used by all of the functions that return strings in
  * buffers, but I hope that it will be one day. */
 static int loadResultBuf(char * buf, int limit, const char *result);
 
-
-/*
- * Network addresses are sensible, that is big endian, and the intel
- * hardware is the opposite.  Hence, when reading and writing network
- * addresses, use these mangle routines to swap bytes as needed.
- */
-#ifdef __i386__
-#define MANGLE32(i) ({ unsigned int r = 0; r |= (i&0xFF)<<24; r |= (i&0xFF00)<<8; r |= (i&0xFF0000)>>8; r |= (i&0xFF000000)>>24; r; })
-#define MANGLE16(i) ({ unsigned short r = 0; r |= (i&0xFF)<<8; r |= (i&0xFF00)>>8; r; })
+#ifdef HARMONY
+#define TLS_KEY_TYPE hythread_tls_key_t
 #else
-#define MANGLE32(x) x
-#define MANGLE16(x) x
+#define TLS_KEY_TYPE pthread_key_t
 #endif
+
+TLS_KEY_TYPE VmThreadKey;
+TLS_KEY_TYPE TerminateJmpBufKey;
+
+TLS_KEY_TYPE createThreadLocal() {
+    TLS_KEY_TYPE key;
+    int rc;
+#ifdef HARMONY
+    rc = hythread_tls_alloc(&key);
+#else
+    rc = pthread_key_create(&key, 0);
+#endif
+    if (rc != 0) {
+        fprintf(SysErrorFile, "%s: alloc tls key failed (err=%d)\n", Me, rc);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+    }
+    return key;
+}
+
+// Create keys for thread-specific data.
+extern "C" void
+sysCreateThreadSpecificDataKeys(void)
+{
+    int rc;
+
+    // Create a key for thread-specific data so we can associate
+    // the id of the Processor object with the pthread it is running on.
+    VmThreadKey = createThreadLocal();
+    TerminateJmpBufKey = createThreadLocal();
+#ifdef DEBUG_SYS
+    fprintf(stderr, "%s: vm processor key=%u\n", Me, VmThreadKey);
+#endif
+}
+
+void * getThreadLocal(TLS_KEY_TYPE key) {
+#ifdef HARMONY
+    return hythread_tls_get(hythread_self(), key);
+#else
+    return pthread_getspecific(key);
+#endif
+}
+
+void setThreadLocal(TLS_KEY_TYPE key, void * value) {
+#ifdef HARMONY
+    int rc = hythread_tls_set(hythread_self(), key, value);
+#else
+    int rc = pthread_setspecific(key, value);
+#endif
+    if (rc != 0) {
+        fprintf(SysErrorFile, "%s: set tls failed (err=%d)\n", Me, rc);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+    }
+}
+
+extern "C" void
+sysStashVMThread(Address vmThread)
+{
+    setThreadLocal(VmThreadKey, (void*)vmThread);
+}
+
+extern "C" void *
+getVmThread()
+{
+    return getThreadLocal(VmThreadKey);
+}
 
 // Console write (java character).
 //
@@ -248,7 +324,19 @@ extern "C" void sysReportAlignmentChecking() { }
 
 #endif // RVM_WITH_ALIGNMENT_CHECKING
 
-pthread_mutex_t DeathLock = PTHREAD_MUTEX_INITIALIZER;
+Word DeathLock = NULL;
+
+extern "C" void VMI_Initialize();
+
+extern "C" void
+sysInitialize()
+{
+#ifdef HARMONY
+    VMI_Initialize();
+#endif
+    DeathLock = sysMonitorCreate();
+}
+
 
 static bool systemExiting = false;
 
@@ -277,7 +365,7 @@ sysExit(int value)
 
     systemExiting = true;
 
-    pthread_mutex_lock( &DeathLock );
+    if (DeathLock) sysMonitorEnter(DeathLock);
     if (debugging && value!=0) {
 	abort();
     }
@@ -728,7 +816,7 @@ sysNanoTime()
  * sleep; if interrupted, return.
  */
 extern "C" void
-sysNanosleep(long long howLongNanos)
+sysNanoSleep(long long howLongNanos)
 {
     struct timespec req;
     const long long nanosPerSec = 1000LL * 1000 * 1000;
@@ -748,9 +836,6 @@ sysNanosleep(long long howLongNanos)
     }
     // Done.
 }
-
-
-
 
 
 //-----------------------//
@@ -846,57 +931,69 @@ sysNumProcessors()
 // Create a native thread
 // Taken:    register values to use for pthread startup
 // Returned: virtual processor's OS handle
-extern "C" Address
-sysNativeThreadCreate(Address tr, Address ip, Address fp)
+extern "C" Word
+sysThreadCreate(Address tr, Address ip, Address fp)
 {
-    Address    *sysNativeThreadArguments;
-    pthread_attr_t sysNativeThreadAttributes;
-    pthread_t      sysNativeThreadHandle;
+    Address    *sysThreadArguments;
     int            rc;
 
     // create arguments
     //
-    sysNativeThreadArguments = new Address[3];
-    sysNativeThreadArguments[0] = tr;
-    sysNativeThreadArguments[1] = ip;
-    sysNativeThreadArguments[2] = fp;
+    sysThreadArguments = new Address[3];
+    sysThreadArguments[0] = tr;
+    sysThreadArguments[1] = ip;
+    sysThreadArguments[2] = fp;
+
+#ifdef HARMONY
+    hythread_t      sysThreadHandle;
+
+    if ((rc = hythread_create(&sysThreadHandle, 0, HYTHREAD_PRIORITY_NORMAL, 0, sysThreadStartup, sysThreadArguments)))
+    {
+        fprintf(SysErrorFile, "%s: hythread_create failed (rc=%d)\n", Me, rc);
+        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
+    }
+#else
+    pthread_attr_t sysThreadAttributes;
+    pthread_t      sysThreadHandle;
 
     // create attributes
     //
-    if ((rc = pthread_attr_init(&sysNativeThreadAttributes))) {
+    if ((rc = pthread_attr_init(&sysThreadAttributes))) {
         fprintf(SysErrorFile, "%s: pthread_attr_init failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 
     // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
     //
-    pthread_attr_setscope(&sysNativeThreadAttributes, PTHREAD_SCOPE_SYSTEM);
+    pthread_attr_setscope(&sysThreadAttributes, PTHREAD_SCOPE_SYSTEM);
 
     // create native thread
     //
-    if ((rc = pthread_create(&sysNativeThreadHandle,
-                             &sysNativeThreadAttributes,
-                             sysNativeThreadStartup,
-                             sysNativeThreadArguments)))
+    if ((rc = pthread_create(&sysThreadHandle,
+                             &sysThreadAttributes,
+                             sysThreadStartup,
+                             sysThreadArguments)))
     {
         fprintf(SysErrorFile, "%s: pthread_create failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
     
-    if ((rc = pthread_detach(sysNativeThreadHandle)))
+    if ((rc = pthread_detach(sysThreadHandle)))
     {
         fprintf(SysErrorFile, "%s: pthread_detach failed (rc=%d)\n", Me, rc);
         sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
+#endif
 
-    if (VERBOSE_PTHREAD)
-        fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (Address) sysNativeThreadHandle);
+#ifdef DEBUG_THREAD
+        fprintf(SysTraceFile, "%s: thread create 0x%08x\n", Me, (Address) sysThreadHandle);
+#endif
 
-    return (Address)sysNativeThreadHandle;
+    return (Word)sysThreadHandle;
 }
 
 extern "C" int
-sysNativeThreadBindSupported()
+sysThreadBindSupported()
 {
   int result=0;
 #ifdef RVM_FOR_AIX
@@ -909,7 +1006,7 @@ sysNativeThreadBindSupported()
 }
 
 extern "C" void
-sysNativeThreadBind(int UNUSED cpuId)
+sysThreadBind(int UNUSED cpuId)
 {
     // bindprocessor() seems to be only on AIX
 #ifdef RVM_FOR_AIX
@@ -923,6 +1020,7 @@ sysNativeThreadBind(int UNUSED cpuId)
     }
 #endif
 
+#ifndef HARMONY
 #ifdef RVM_FOR_LINUX
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
@@ -930,16 +1028,19 @@ sysNativeThreadBind(int UNUSED cpuId)
 
     pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
 #endif
+#endif
 }
-
-/** keys for managing thread termination */
-static pthread_key_t TerminateJmpBufKey;
 
 /** jump buffer for primordial thread */
 jmp_buf primordial_jb;
 
+#ifdef HARMONY
+extern "C" int
+sysThreadStartup(void *args)
+#else
 extern "C" void *
-sysNativeThreadStartup(void *args)
+sysThreadStartup(void *args)
+#endif
 {
     /* install a stack for hardwareTrapHandler() to run on */
     stack_t stack;
@@ -959,6 +1060,9 @@ sysNativeThreadStartup(void *args)
     jmp_buf *jb = (jmp_buf*)malloc(sizeof(jmp_buf));
     if (setjmp(*jb)) {
 	// this is where we come to terminate the thread
+#ifdef HARMONY
+        hythread_detach(NULL);
+#endif
 	free(jb);
 	*(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
 	
@@ -966,16 +1070,17 @@ sysNativeThreadStartup(void *args)
 	sigaltstack(&stack, 0);
 	delete[] stackBuf;
     } else {
-	pthread_setspecific(TerminateJmpBufKey, jb);
+        setThreadLocal(TerminateJmpBufKey, (void*)jb);
 	
 	Address ip       = ((Address *)args)[1];
 	Address fp       = ((Address *)args)[2];
 	
-	if (VERBOSE_PTHREAD)
+#ifdef DEBUG_THREAD
 #ifndef RVM_FOR_32_ADDR
-	    fprintf(SysTraceFile, "%s: sysNativeThreadStartup: pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, tr, ip, fp);
+	    fprintf(SysTraceFile, "%s: sysThreadStartup: pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, tr, ip, fp);
 #else
-        fprintf(SysTraceFile, "%s: sysNativeThreadStartup: pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, tr, ip, fp);
+        fprintf(SysTraceFile, "%s: sysThreadStartup: pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, tr, ip, fp);
+#endif
 #endif
 	// branch to vm code
 	//
@@ -991,44 +1096,9 @@ sysNativeThreadStartup(void *args)
 	
 	// not reached
 	//
-	fprintf(SysTraceFile, "%s: sysNativeThreadStartup: failed\n", Me);
+	fprintf(SysTraceFile, "%s: sysThreadStartup: failed\n", Me);
 	return 0;
     }
-}
-
-
-// Thread-specific data key in which to stash the id of
-// the pthread's RVMThread.  This allows the system call library
-// to find the RVMThread object at runtime.
-extern pthread_key_t VmThreadKey;
-extern pthread_key_t IsVmThreadKey;
-
-// Create keys for thread-specific data.
-extern "C" void
-sysCreateThreadSpecificDataKeys(void)
-{
-    int rc;
-
-    // Create a key for thread-specific data so we can associate
-    // the id of the Processor object with the pthread it is running on.
-    rc = pthread_key_create(&VmThreadKey, 0);
-    if (rc != 0) {
-        fprintf(SysErrorFile, "%s: pthread_key_create(&VmThreadKey,0) failed (err=%d)\n", Me, rc);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
-    rc = pthread_key_create(&IsVmThreadKey, 0);
-    if (rc != 0) {
-        fprintf(SysErrorFile, "%s: pthread_key_create(&IsVmThreadKey,0) failed (err=%d)\n", Me, rc);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
-    rc = pthread_key_create(&TerminateJmpBufKey, 0);
-    if (rc != 0) {
-        fprintf(SysErrorFile, "%s: pthread_key_create(&TerminateJmpBufKey,0) failed (err=%d)\n", Me, rc);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
-#ifdef DEBUG_SYS
-    fprintf(stderr, "%s: vm processor key=%u\n", Me, VmThreadKey);
-#endif
 }
 
 // Routines to support sleep/wakeup of idle threads:
@@ -1037,22 +1107,31 @@ sysCreateThreadSpecificDataKeys(void)
 //
 
 /*
-  sysPthreadSelf() just returns the thread ID of
+  sysGetThreadId() just returns the thread ID of
   the current thread.
 
   This happens to be only called once, at thread startup time, but please
   don't rely on that fact.
 */
 extern "C" Word
-sysPthreadSelf()
+sysGetThreadId()
 {
-    Word thread;
+    return (Word)getThreadId();
+}
 
-    thread = (Word)pthread_self();
+extern "C" void*
+getThreadId()
+{
+    
+#ifdef HARMONY
+    void* thread = (void*)hythread_self();
+#else
+    void* thread = (void*)pthread_self();
+#endif
 
-    if (VERBOSE_PTHREAD)
-        fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %x\n", Me, thread);
-
+#ifdef DEBUG_THREAD
+        fprintf(SysTraceFile, "%s: getThreadId: thread %x\n", Me, thread);
+#endif
     return thread;
 }
 
@@ -1062,7 +1141,7 @@ sysPthreadSelf()
 
   This is only called once, at thread startup time. */
 extern "C" void
-sysPthreadSetupSignalHandling()
+sysSetupHardwareTrapHandler()
 {
     int rc;                     // retval from subfunction.
 
@@ -1114,45 +1193,13 @@ sysPthreadSetupSignalHandling()
 
 }
 
-
-
-//
-extern "C" int
-sysPthreadSignal(Word pthread)
-{
-    pthread_t thread;
-    thread = (pthread_t)pthread;
-
-    pthread_kill(thread, SIGCONT);
-    return 0;
-}
-
-//
-extern "C" int
-sysPthreadJoin(Word pthread)
-{
-    pthread_t thread;
-    thread = (pthread_t)pthread;
-    // fprintf(SysTraceFile, "%s: pthread %d joins %d\n", Me, pthread_self(), thread);
-    pthread_join(thread, NULL);
-    return 0;
-}
-
-//
-extern "C" void
-sysPthreadExit()
-{
-    // fprintf(SysTraceFile, "%s: pthread %d exits\n", Me, pthread_self());
-    pthread_exit(NULL);
-}
-
 //
 // Yield execution of current virtual processor back to o/s.
 // Taken:    nothing
 // Returned: nothing
 //
 extern "C" void
-sysSchedYield()
+sysThreadYield()
 {
     /** According to the Linux manpage, sched_yield()'s presence can be
      *  tested for by using the #define _POSIX_PRIORITY_SCHEDULING, and if
@@ -1162,159 +1209,127 @@ sysSchedYield()
      *      ./unistd.h:#undef _POSIX_PRIORITY_SCHEDULING
      *  so my trust that it is implemented properly is scanty.  --augart
      */
-    sched_yield();
-}
-
-//
-// Taken -- address of an integer lockword
-//       -- value to store in the lockword to 'release' the lock
-// Release the lockout word by storing the value in it
-// and wait for a signal.
-extern "C" int
-sysPthreadSigWait( int * lockwordAddress,
-                   int  lockReleaseValue )
-{
-    sigset_t input_set, output_set;
-    int      sig;
-    int rc;                     // retval from subfunction
-
-    *lockwordAddress = lockReleaseValue;
-
-    sigemptyset(&input_set);
-    sigaddset(&input_set, SIGCONT);
-#ifndef RVM_FOR_AIX
-    rc = pthread_sigmask(SIG_BLOCK, NULL, &output_set);
+#ifdef HARMONY
+    hythread_yield();
 #else
-    rc = sigthreadmask(SIG_BLOCK, NULL, &output_set);
+    sched_yield();
 #endif
-    if (rc) {
-        fprintf (SysErrorFile, "pthread_sigmask or sigthreadmask failed (errno=%d): ", errno);
-        perror(NULL);
-        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
-    }
-
-    rc = sigwait(&input_set, &sig);
-    if (rc) {
-        fprintf (SysErrorFile, "sigwait failed (errno=%d): ", errno);
-        perror(NULL);
-        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
-    }
-
-    // if status has been changed to BLOCKED_IN_SIGWAIT (because of GC)
-    // sysYield until unblocked
-    //
-    while ( *lockwordAddress == 5 /*Processor.BLOCKED_IN_SIGWAIT*/ )
-        sysSchedYield();
-
-    return 0;
 }
 
 ////////////// Pthread mutex and condition functions /////////////
 
-extern "C" Word
-sysPthreadMutexCreate()
-{
-    pthread_mutex_t *mutex = new pthread_mutex_t;
-    pthread_mutex_init(mutex,NULL);
-    return (Word)mutex;
-}
-
-extern "C" void
-sysPthreadMutexDestroy(Word _mutex)
-{
-    pthread_mutex_t *mutex=(pthread_mutex_t*)_mutex;
-    pthread_mutex_destroy(mutex);
-    delete mutex;
-}
-
-extern "C" void
-sysPthreadMutexLock(Word _mutex)
-{
-    pthread_mutex_lock((pthread_mutex_t*)_mutex);
-}
-
-extern "C" void
-sysPthreadMutexUnlock(Word _mutex)
-{
-    pthread_mutex_unlock((pthread_mutex_t*)_mutex);
-}
+#ifndef HARMONY
+typedef struct {
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+} vmmonitor_t;
+#endif
 
 extern "C" Word
-sysPthreadCondCreate()
+sysMonitorCreate()
 {
-    pthread_cond_t *cond = new pthread_cond_t;
-    pthread_cond_init(cond,NULL);
-    return (Word)cond;
+#ifdef HARMONY
+    hythread_monitor_t monitor;
+    hythread_monitor_init_with_name(&monitor, 0, NULL);
+#else
+    vmmonitor_t *monitor = new vmmonitor_t;
+    pthread_mutex_init(&monitor->mutex, NULL);
+    pthread_cond_init(&monitor->cond, NULL);
+#endif
+    return (Word)monitor;
 }
 
 extern "C" void
-sysPthreadCondDestroy(Word _cond)
+sysMonitorDestroy(Word _monitor)
 {
-    pthread_cond_t *cond=(pthread_cond_t*)_cond;
-    pthread_cond_destroy(cond);
-    delete cond;
+#ifdef HARMONY
+    hythread_monitor_destroy((hythread_monitor_t)_monitor);
+#else
+    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+    pthread_mutex_destroy(&monitor->mutex);
+    pthread_cond_destroy(&monitor->cond);
+    delete monitor;
+#endif
 }
 
 extern "C" void
-sysPthreadCondTimedWait(Word cond,Word mutex,
-			long long whenWakeupNanos)
+sysMonitorEnter(Word _monitor)
 {
+#ifdef HARMONY
+    hythread_monitor_enter((hythread_monitor_t)_monitor);
+#else
+    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+    pthread_mutex_lock(&monitor->mutex);
+#endif
+}
+
+extern "C" void
+sysMonitorExit(Word _monitor)
+{
+#ifdef HARMONY
+    hythread_monitor_exit((hythread_monitor_t)_monitor);
+#else
+    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+    pthread_mutex_unlock(&monitor->mutex);
+#endif
+}
+
+extern "C" void
+sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
+{
+#ifdef HARMONY
+    // syscall wait is absolute, but harmony monitor wait is relative.
+    whenWakeupNanos -= sysNanoTime();
+    if (whenWakeupNanos <= 0) return;
+    hythread_monitor_wait_timed((hythread_monitor_t)_monitor, (I_64)(whenWakeupNanos / 1000000LL), (IDATA)(whenWakeupNanos % 1000000LL));
+#else
     timespec ts;
     ts.tv_sec = (time_t)(whenWakeupNanos/1000000000LL);
     ts.tv_nsec = (long)(whenWakeupNanos%1000000000LL);
-    if (0) {
+#ifdef DEBUG_THREAD
       fprintf(stderr, "starting wait at %lld until %lld (%ld, %ld)\n",
              sysNanoTime(),whenWakeupNanos,ts.tv_sec,ts.tv_nsec);
       fflush(stderr);
-    }
-    int res=pthread_cond_timedwait((pthread_cond_t*)cond,
-				   (pthread_mutex_t*)mutex,
-				   &ts);
-    if (0) {
+#endif
+    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+    int rc = pthread_cond_timedwait(&monitor->cond, &monitor->mutex, &ts);
+#ifdef DEBUG_THREAD
       fprintf(stderr, "returned from wait at %lld instead of %lld with res = %d\n",
-             sysNanoTime(),whenWakeupNanos,res);
+             sysNanoTime(),whenWakeupNanos,rc);
       fflush(stderr);
-    }
+#endif
+#endif
 }
 
 extern "C" void
-sysPthreadCondWait(Word cond,Word mutex)
+sysMonitorWait(Word _monitor)
 {
-    pthread_cond_wait((pthread_cond_t*)cond,
-		      (pthread_mutex_t*)mutex);
+#ifdef HARMONY
+    hythread_monitor_wait((hythread_monitor_t)_monitor);
+#else
+    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+    pthread_cond_wait(&monitor->cond, &monitor->mutex);
+#endif
 }
 
 extern "C" void
-sysPthreadCondBroadcast(Word cond)
+sysMonitorBroadcast(Word _monitor)
 {
-    pthread_cond_broadcast((pthread_cond_t*)cond);
-}
-
-// Stash address of the Processor object in the thread-specific
-// data for the current pthread.  This allows us to get a handle
-// on the Processor (and its associated state) from arbitrary
-// native code.
-//
-extern "C" int
-sysStashVmThreadInPthread(Address vmThread)
-{
-    //fprintf(SysErrorFile, "stashing vm processor = %d, self=%u\n", vmThread, pthread_self());
-    int rc = pthread_setspecific(VmThreadKey, (void*) vmThread);
-    int rc2 = pthread_setspecific(IsVmThreadKey, (void*) 1);
-    if (rc != 0 || rc2 != 0) {
-        fprintf(SysErrorFile, "%s: pthread_setspecific() failed (err=%d,%d)\n", Me, rc, rc2);
-        sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
-    }
-    return 0;
+#ifdef HARMONY
+    hythread_monitor_notify_all((hythread_monitor_t)_monitor);
+#else
+    vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
+    pthread_cond_broadcast(&monitor->cond);
+#endif
 }
 
 extern "C" void
-sysTerminatePthread()
+sysThreadTerminate()
 {
 #ifdef RVM_FOR_POWERPC
     asm("sync");
 #endif
-    jmp_buf *jb = (jmp_buf*)pthread_getspecific(TerminateJmpBufKey);
+    jmp_buf *jb = (jmp_buf*)getThreadLocal(TerminateJmpBufKey);
     if (jb==NULL) {
 	jb=&primordial_jb;
     }

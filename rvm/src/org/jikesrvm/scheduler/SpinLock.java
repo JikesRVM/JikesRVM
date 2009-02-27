@@ -81,7 +81,7 @@ import org.vmmagic.pragma.NoInline;
  * trigger a garbage collection between lock and unlock.
  *
  * @see RVMThread
- * @see HeavyCondLock
+ * @see Monitor
  * @see Lock */
 @Uninterruptible
 public final class SpinLock implements Constants {

@@ -49,8 +49,8 @@
 [Lorg/jikesrvm/runtime/DynamicLibrary;
 
 [Lorg/jikesrvm/scheduler/RVMThread;
-[Lorg/jikesrvm/scheduler/HeavyCondLock;
-[Lorg/jikesrvm/scheduler/NoYieldpointsCondLock;
+[Lorg/jikesrvm/scheduler/Monitor;
+[Lorg/jikesrvm/scheduler/NoYieldpointsMonitor;
 [[Lorg/jikesrvm/scheduler/RVMThread;
 [Lorg/jikesrvm/scheduler/RVMThread$BlockAdapter;
 [[Lorg/jikesrvm/scheduler/RVMThread$BlockAdapter;

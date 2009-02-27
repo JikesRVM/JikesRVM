@@ -36,9 +36,9 @@ public class FinalizerThread extends RVMThread {
 
   private final Object[] none = new Object[0];
   private static boolean shouldRun;
-  private static HeavyCondLock schedLock;
+  private static Monitor schedLock;
   public static void boot() {
-    schedLock=new HeavyCondLock();
+    schedLock=new Monitor();
     FinalizerThread ft=new FinalizerThread();
     ft.makeDaemon(true);
     ft.start();

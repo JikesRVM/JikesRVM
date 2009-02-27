@@ -46,7 +46,7 @@ public class TimerThread extends RVMThread {
     if (verbose>=1) trace("TimerThread","run routine entered");
     try {
       for (;;) {
-        sysCall.sysNanosleep(1000L*1000L*(long)VM.interruptQuantum);
+        sysCall.sysNanoSleep(1000L*1000L*(long)VM.interruptQuantum);
 
         // grab the lock to prevent threads from getting GC'd while we are
         // iterating (since this thread doesn't stop for GC)

@@ -419,7 +419,7 @@ final class BuildBB implements BytecodeConstants, BBConstants {
     }
 
     // can not support jsrs with unboxed types at the moment
-    if (VM.VerifyAssertions) VM._assert(VM.runningVM || numJsrs == 0);
+    if (VM.VerifyAssertions && !VM.BuildForHarmony) VM._assert(VM.runningVM || numJsrs == 0);
   }
 
   /********************************/

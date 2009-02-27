@@ -156,8 +156,8 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     // get pthread_id from OS and store into vm_processor field
     //
-    sysCall.sysPthreadSetupSignalHandling();
-    RVMThread.getCurrentThread().pthread_id = sysCall.sysPthreadSelf();
+    sysCall.sysSetupHardwareTrapHandler();
+    RVMThread.getCurrentThread().pthread_id = sysCall.sysGetThreadId();
 
     // Set up buffer locks used by Thread for logging and status dumping.
     //    This can happen at any point before we start running

@@ -30,7 +30,7 @@ import org.vmmagic.pragma.Uninterruptible;
  */
 @Unpreemptible
 public class Latch {
-  private final HeavyCondLock schedLock = new HeavyCondLock();
+  private final Monitor schedLock = new Monitor();
   private boolean open;
   /** Create a new latch, with the given open/closed state. */
   public Latch(boolean open) {

@@ -15,7 +15,7 @@ package org.jikesrvm.mm.mminterface;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.HeavyCondLock;
+import org.jikesrvm.scheduler.Monitor;
 import org.vmmagic.pragma.Unpreemptible;
 import org.mmtk.plan.Plan;
 
@@ -44,7 +44,7 @@ public class Handshake {
    *
    * Instance variables
    */
-  private HeavyCondLock lock;
+  private Monitor lock;
   protected boolean requestFlag;
   public int gcTrigger;  // reason for this GC
   private int collectorThreadsParked;
@@ -53,7 +53,7 @@ public class Handshake {
     reset();
   }
   public void boot() {
-    lock = new HeavyCondLock();
+    lock = new Monitor();
   }
 
   /**

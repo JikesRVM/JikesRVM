@@ -24,7 +24,7 @@ import java.io.PrintWriter;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.StackTrace;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 import org.vmmagic.pragma.NoEscapes;
 
@@ -123,9 +123,9 @@ public class Throwable implements java.io.Serializable {
      */
     public Throwable fillInStackTrace() {
       if (VM.fullyBooted) {
-        if (Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+        if (RVMThread.getCurrentThread().getThreadForStackTrace().isGCThread()) {
           VM.sysWriteln("Exception in GC thread");
-          Scheduler.dumpVirtualMachine();
+          RVMThread.dumpVirtualMachine();
         } else {
           try {
             vmStackTrace = new StackTrace();
@@ -137,7 +137,7 @@ public class Throwable implements java.io.Serializable {
         }
       } else {
         VM.sysWriteln("Request to fill in stack trace before VM booted");
-        Scheduler.dumpStack();
+        RVMThread.dumpStack();
       }
       return this;
     }
@@ -178,9 +178,9 @@ public class Throwable implements java.io.Serializable {
     private StackTraceElement[] getStackTraceImpl() {
 	if (vmStackTrace == null) {
 	    return zeroLengthStackTrace;
-	} else if (Scheduler.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+	} else if (RVMThread.getCurrentThread().getThreadForStackTrace().isGCThread()) {
 	    VM.sysWriteln("Throwable.getStackTrace called from GC thread: dumping stack using scheduler");
-	    Scheduler.dumpStack();
+	    RVMThread.dumpStack();
 	    return zeroLengthStackTrace;
 	}
 
@@ -189,12 +189,12 @@ public class Throwable implements java.io.Serializable {
 	    vmElements = vmStackTrace.getStackTrace(this);
 	} catch (Throwable t) {
 	    VM.sysWriteln("Error calling StackTrace.getStackTrace: dumping stack using scheduler");
-	    Scheduler.dumpStack();
+	    RVMThread.dumpStack();
 	    return zeroLengthStackTrace;
 	}
 	if (vmElements == null) {
 	    VM.sysWriteln("Error calling StackTrace.getStackTrace returned null");
-	    Scheduler.dumpStack();
+	    RVMThread.dumpStack();
 	    return zeroLengthStackTrace;
 	}
 	if (VM.fullyBooted) {
@@ -221,7 +221,7 @@ public class Throwable implements java.io.Serializable {
 	for (StackTrace.Element vmElement : vmElements) {
 	    if (vmElement == null) {
 		VM.sysWriteln("Error stack trace with null entry");
-		Scheduler.dumpStack();
+		RVMThread.dumpStack();
 		return zeroLengthStackTrace;
 	    }
 	    String fileName = vmElement.getFileName();

@@ -165,43 +165,33 @@ public abstract class SysCall {
    * @return native thread's o/s handle
    */
   @SysCallTemplate
-  public abstract int sysNativeThreadCreate(Address tr, Address ip, Address fp);
+  public abstract Word sysThreadCreate(Address tr, Address ip, Address fp);
 
   /**
    * Tells you if the current system supportes sysNativeThreadBind().
    * @return 1 if it's supported, 0 if it isn't
    */
   @SysCallTemplate
-  public abstract int sysNativeThreadBindSupported();
+  public abstract int sysThreadBindSupported();
 
   @SysCallTemplate
-  public abstract void sysNativeThreadBind(int cpuId);
+  public abstract void sysThreadBind(int cpuId);
 
   @SysCallTemplate
-  public abstract void sysSchedYield();
+  public abstract void sysThreadYield();
 
   @SysCallTemplate
-  public abstract Word sysPthreadSelf();
+  public abstract Word sysGetThreadId();
 
   @SysCallTemplate
-  public abstract void sysPthreadSetupSignalHandling();
-
-  // wait... isn't pthread actually an address?
-  @SysCallTemplate
-  public abstract int sysPthreadSignal(Word pthread);
-
-  @SysCallTemplate
-  public abstract void sysPthreadExit();
-
-  @SysCallTemplate
-  public abstract int sysPthreadJoin(Word pthread);
+  public abstract void sysSetupHardwareTrapHandler();
 
   // This implies that the RVMThread is somehow pinned, or else the
   // pthread key value gets moved.  (hence RVMThread is @NonMoving)
   @SysCallTemplate
-  public abstract int sysStashVmThreadInPthread(RVMThread vmThread);
+  public abstract int sysStashVMThread(RVMThread vmThread);
   @SysCallTemplate
-  public abstract void sysTerminatePthread();
+  public abstract void sysThreadTerminate();
   /**
    * Allocate the space for a pthread_mutex (using malloc) and initialize
    * it using pthread_mutex_init with the recursive mutex options.  Note:
@@ -211,36 +201,23 @@ public abstract class SysCall {
    * emulated).
    */
   @SysCallTemplate
-  public abstract Word sysPthreadMutexCreate();
+  public abstract Word sysMonitorCreate();
   /**
-   * Destroy the mutex pointed to by the argument and free its memory
+   * Destroy the monitor pointed to by the argument and free its memory
    * by calling free.
    */
   @SysCallTemplate
-  public abstract void sysPthreadMutexDestroy(Word mutex);
+  public abstract void sysMonitorDestroy(Word monitor);
   @SysCallTemplate
-  public abstract void sysPthreadMutexLock(Word mutex);
+  public abstract void sysMonitorEnter(Word monitor);
   @SysCallTemplate
-  public abstract void sysPthreadMutexUnlock(Word mutex);
-  /**
-   * Allocate the space for a pthread_cond (using malloc) and initialize
-   * it using pthread_cond_init with the default options.
-   */
+  public abstract void sysMonitorExit(Word monitor);
   @SysCallTemplate
-  public abstract Word sysPthreadCondCreate();
-  /**
-   * Destroy the condition variable pointed to by the argument and free
-   * its memory by calling free.
-   */
+  public abstract void sysMonitorTimedWaitAbsolute(Word monitor, long whenWakeupNanos);
   @SysCallTemplate
-  public abstract void sysPthreadCondDestroy(Word cond);
+  public abstract void sysMonitorWait(Word monitor);
   @SysCallTemplate
-  public abstract void sysPthreadCondTimedWait(Word cond,Word mutex,
-                                               long whenWakeupNanos);
-  @SysCallTemplate
-  public abstract void sysPthreadCondWait(Word cond,Word mutex);
-  @SysCallTemplate
-  public abstract void sysPthreadCondBroadcast(Word cond);
+  public abstract void sysMonitorBroadcast(Word monitor);
   // arithmetic
   @SysCallTemplate
   public abstract long sysLongDivide(long x, long y);
@@ -313,7 +290,7 @@ public abstract class SysCall {
   public abstract long sysNanoTime();
 
   @SysCallTemplate
-  public abstract void sysNanosleep(long howLongNanos);
+  public abstract void sysNanoSleep(long howLongNanos);
 
   // shared libraries
   @SysCallTemplate

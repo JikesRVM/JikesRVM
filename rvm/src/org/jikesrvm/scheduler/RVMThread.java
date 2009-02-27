@@ -573,13 +573,13 @@ public class RVMThread extends ThreadContext {
   /**
    * Lock that protects soft handshake fields.
    */
-  public static HeavyCondLock softHandshakeDataLock;
+  public static Monitor softHandshakeDataLock;
 
   /**
    * Lock that prevents multiple (soft or hard) handshakes from proceeding
    * concurrently.
    */
-  public static HeavyCondLock handshakeLock;
+  public static Monitor handshakeLock;
 
   /**
    * Place to save register state when this thread is not actually running.
@@ -944,7 +944,7 @@ public class RVMThread extends ThreadContext {
   public boolean activeMutatorContext = false;
 
   /** Lock used for dumping stack and such. */
-  public static HeavyCondLock dumpLock;
+  public static Monitor dumpLock;
 
   /** In dump stack and dying */
   protected static boolean exitInProgress = false;
@@ -985,23 +985,23 @@ public class RVMThread extends ThreadContext {
    * <li>???</li>
    * </ol>
    */
-  private static final NoYieldpointsCondLock[] monitorBySlot = new NoYieldpointsCondLock[MAX_THREADS];
+  private static final NoYieldpointsMonitor[] monitorBySlot = new NoYieldpointsMonitor[MAX_THREADS];
 
   /**
    * Lock (mutex) used for creating and destroying threads as well as thread
    * accounting.
    */
-  public static NoYieldpointsCondLock acctLock;
+  public static NoYieldpointsMonitor acctLock;
 
   /**
    * Lock (mutex) used for servicing debug requests.
    */
-  public static NoYieldpointsCondLock debugLock;
+  public static NoYieldpointsMonitor debugLock;
 
   /**
    * Lock used for generating debug output.
    */
-  private static NoYieldpointsCondLock outputLock;
+  private static NoYieldpointsMonitor outputLock;
 
   /**
    * Thread slots of threads that are about to terminate.  This must be
@@ -1078,8 +1078,8 @@ public class RVMThread extends ThreadContext {
   /**
    * Get a NoYieldpointsCondLock for a given thread slot.
    */
-  static NoYieldpointsCondLock monitorForSlot(int slot) {
-    NoYieldpointsCondLock result = monitorBySlot[slot];
+  static NoYieldpointsMonitor monitorForSlot(int slot) {
+    NoYieldpointsMonitor result = monitorBySlot[slot];
     if (VM.VerifyAssertions)
       VM._assert(result != null);
     return result;
@@ -1088,7 +1088,7 @@ public class RVMThread extends ThreadContext {
   /**
    * Get the NoYieldpointsCondLock for this thread.
    */
-  public NoYieldpointsCondLock monitor() {
+  public NoYieldpointsMonitor monitor() {
     return monitorForSlot(threadSlot);
   }
 
@@ -1161,8 +1161,8 @@ public class RVMThread extends ThreadContext {
   }
 
   static void bind(int cpuId) {
-    if (VM.VerifyAssertions) VM._assert(sysCall.sysNativeThreadBindSupported()==1);
-    sysCall.sysNativeThreadBind(cpuId);
+    if (VM.VerifyAssertions) VM._assert(sysCall.sysThreadBindSupported()==1);
+    sysCall.sysThreadBind(cpuId);
   }
 
   static void bindIfRequested() {
@@ -1180,16 +1180,16 @@ public class RVMThread extends ThreadContext {
   @Interruptible
   // except not really, since we don't enable yieldpoints yet
   public static void boot() {
-    dumpLock = new HeavyCondLock();
-    acctLock = new NoYieldpointsCondLock();
-    debugLock = new NoYieldpointsCondLock();
-    outputLock = new NoYieldpointsCondLock();
-    softHandshakeDataLock = new HeavyCondLock();
-    handshakeLock = new HeavyCondLock();
+    dumpLock = new Monitor();
+    acctLock = new NoYieldpointsMonitor();
+    debugLock = new NoYieldpointsMonitor();
+    outputLock = new NoYieldpointsMonitor();
+    softHandshakeDataLock = new Monitor();
+    handshakeLock = new Monitor();
     doProfileReport = new Latch(false);
-    monitorBySlot[getCurrentThread().threadSlot] = new NoYieldpointsCondLock();
+    monitorBySlot[getCurrentThread().threadSlot] = new NoYieldpointsMonitor();
     sysCall.sysCreateThreadSpecificDataKeys();
-    sysCall.sysStashVmThreadInPthread(getCurrentThread());
+    sysCall.sysStashVMThread(getCurrentThread());
 
     if (traceAcct) {
       VM.sysWriteln("boot thread at ",Magic.objectAsAddress(getCurrentThread()));
@@ -1198,10 +1198,10 @@ public class RVMThread extends ThreadContext {
     bindIfRequested();
 
     threadingInitialized = true;
-    TimerThread tt = new TimerThread();
-    tt.makeDaemon(true);
-    tt.start();
     if (VM.BuildForAdaptiveSystem) {
+      TimerThread tt = new TimerThread();
+      tt.makeDaemon(true);
+      tt.start();
       ObjectHolder.boot();
     }
     CollectorThread.boot();
@@ -1312,7 +1312,7 @@ public class RVMThread extends ThreadContext {
       // with it (it's not assigned to a thread, so nobody else can touch
       // it)
       if (monitorBySlot[threadSlot] == null) {
-        monitorBySlot[threadSlot] = new NoYieldpointsCondLock();
+        monitorBySlot[threadSlot] = new NoYieldpointsMonitor();
       }
       Magic.sync(); /*
                      * make sure that nobody sees the thread in any of the
@@ -2334,16 +2334,16 @@ public class RVMThread extends ThreadContext {
   private static void startoff() {
     bindIfRequested();
 
-    sysCall.sysPthreadSetupSignalHandling();
+    sysCall.sysSetupHardwareTrapHandler();
 
     RVMThread currentThread = getCurrentThread();
 
     /*
      * get pthread_id from the operating system and store into RVMThread field
      */
-    currentThread.pthread_id = sysCall.sysPthreadSelf();
+    currentThread.pthread_id = sysCall.sysGetThreadId();
     currentThread.enableYieldpoints();
-    sysCall.sysStashVmThreadInPthread(currentThread);
+    sysCall.sysStashVMThread(currentThread);
     if (traceAcct) {
       VM.sysWriteln("Thread #", currentThread.threadSlot, " with pthread id ",
           currentThread.pthread_id, " running!");
@@ -2382,7 +2382,7 @@ public class RVMThread extends ThreadContext {
     acctLock.unlock();
     if (traceAcct)
       VM.sysWriteln("Thread #", threadSlot, " starting!");
-    sysCall.sysNativeThreadCreate(Magic.objectAsAddress(this),
+    sysCall.sysThreadCreate(Magic.objectAsAddress(this),
         contextRegisters.ip, contextRegisters.getInnermostFramePointer());
   }
 
@@ -2574,7 +2574,7 @@ public class RVMThread extends ThreadContext {
 
   /** Uninterruptible final portion of thread termination. */
   final void finishThreadTermination() {
-    sysCall.sysTerminatePthread();
+    sysCall.sysThreadTerminate();
     if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
@@ -2679,7 +2679,7 @@ public class RVMThread extends ThreadContext {
   }
 
   public static void yield() {
-    sysCall.sysSchedYield();
+    sysCall.sysThreadYield();
   }
 
   /**
@@ -4417,7 +4417,7 @@ public class RVMThread extends ThreadContext {
    * @param fp frame pointer for first frame to dump
    */
   public static void dumpStack(Address ip, Address fp) {
-    boolean b = HeavyCondLock.lock(dumpLock);
+    boolean b = Monitor.lock(dumpLock);
     RVMThread t = getCurrentThread();
     ++t.inDumpStack;
     if (t.inDumpStack > 1 &&
@@ -4507,7 +4507,7 @@ public class RVMThread extends ThreadContext {
     }
     --t.inDumpStack;
 
-    HeavyCondLock.unlock(b, dumpLock);
+    Monitor.unlock(b, dumpLock);
   }
 
   /**
@@ -4655,7 +4655,7 @@ public class RVMThread extends ThreadContext {
    * Dump state of virtual machine.
    */
   public static void dumpVirtualMachine() {
-    boolean b = HeavyCondLock.lock(dumpLock);
+    boolean b = Monitor.lock(dumpLock);
     getCurrentThread().disableYieldpoints();
     VM.sysWrite("\n-- Threads --\n");
     for (int i = 0; i < numThreads; ++i) {
@@ -4686,7 +4686,7 @@ public class RVMThread extends ThreadContext {
       }
     }
     getCurrentThread().enableYieldpoints();
-    HeavyCondLock.unlock(b, dumpLock);
+    Monitor.unlock(b, dumpLock);
   }
 
   public static Feedlet getCurrentFeedlet() {

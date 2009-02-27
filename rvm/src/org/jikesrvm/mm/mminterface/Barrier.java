@@ -13,7 +13,7 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.scheduler.HeavyCondLock;
+import org.jikesrvm.scheduler.Monitor;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Interruptible;
@@ -28,7 +28,7 @@ import org.vmmagic.pragma.Interruptible;
 final class Barrier {
 
   public static final int VERBOSE = 0;
-  private HeavyCondLock lock;
+  private Monitor lock;
   private int target;
   private int[] counters=new int[2]; // are two counters enough?
   private int[] modes=new int[2];
@@ -36,7 +36,7 @@ final class Barrier {
   public Barrier() {}
   @Interruptible
   public void boot(int target) {
-    lock=new HeavyCondLock();
+    lock=new Monitor();
     this.target=target;
     countIdx=0;
   }
