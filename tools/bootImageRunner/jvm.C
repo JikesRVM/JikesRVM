@@ -124,7 +124,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
 
     // Return NULL if we are not on a VM thread
     void *vmThread = getVmThread();
-    if (vmThread) {
+    if (vmThread == NULL) {
         *penv = NULL;
         return JNI_EDETACHED;
     }
