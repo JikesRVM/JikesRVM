@@ -3920,29 +3920,22 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /**
-   * Generate an explicit null check, trapping if the register is null
-   * otherwise falling through.
+   * Generate an explicit null check (compare to zero).
+   *
    * @param asm the assembler to generate into
-   * @param objRefReg the register containing the array reference
+   * @param objRefReg the register containing the reference
    */
   @Inline
-  static void genNullCheck(Assembler asm, GPR objRefReg) {
-    boolean cheapTest = true;
-    if (cheapTest) {
-      // perform load to cause trap
-      asm.emitTEST_RegInd_Reg(objRefReg, objRefReg);
-    } else {
-      // compare to zero
-      asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
-      // Jmp around trap if index is OK
-      asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(Assembler.NE);
-      // trap
-      asm.emitINT_Imm(RuntimeEntrypoints.TRAP_NULL_POINTER + RVM_TRAP_BASE);
-      fr.resolve(asm);
-    }
+  private static void genNullCheck(Assembler asm, GPR objRefReg) {
+    // compare to zero
+    asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
+    // Jmp around trap if index is OK
+    asm.emitBranchLikelyNextInstruction();
+    ForwardReference fr = asm.forwardJcc(Assembler.NE);
+    // trap
+    asm.emitINT_Imm(RuntimeEntrypoints.TRAP_NULL_POINTER + RVM_TRAP_BASE);
+    fr.resolve(asm);
   }
-
 
   /**
    * Generate an array bounds check trapping if the array bound check fails,
