@@ -85,6 +85,9 @@ extern int verboseBoot;
 extern void sysInitialize();
 
 /* defined in sys.c, used in jvm.c */
+#ifdef RVM_FOR_AIX
+extern pthread_key_t VmThreadKey;
+#endif
 extern void * getVmThread();
 
 /* Defined in libvm.C; used in RunBootImage.C */

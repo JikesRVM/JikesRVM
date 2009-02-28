@@ -148,6 +148,10 @@ static int loadResultBuf(char * buf, int limit, const char *result);
 #define TLS_KEY_TYPE pthread_key_t
 #endif
 
+#ifdef RVM_FOR_AIX
+// temporary hack to see if this fixes AIX, which links differently.
+extern
+#endif
 TLS_KEY_TYPE VmThreadKey;
 TLS_KEY_TYPE TerminateJmpBufKey;
 
