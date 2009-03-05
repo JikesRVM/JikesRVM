@@ -1640,12 +1640,12 @@ public abstract class TemplateCompilerFramework
               array.resolve();
               array.instantiate();
             }
-            if (array.isInitialized() || array.isInBootImage()) {
-              emit_resolved_newarray(array);
-              break;
-            }
           }
-          emit_unresolved_newarray(arrayRef);
+          if (array != null && (array.isInitialized() || array.isInBootImage())) {
+            emit_resolved_newarray(array);
+          } else {
+            emit_unresolved_newarray(arrayRef);
+          }
           break;
         }
 
