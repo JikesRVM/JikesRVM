@@ -30,19 +30,11 @@ import org.vmmagic.unboxed.Offset;
 public class ClassFileReader implements Constants, ClassLoaderConstants {
 
   /**
-   * Create an instance of a RVMClass.
-   * @param typeRef the cannonical type reference for this type.
+   * Parse and return the constant pool in a class file
+   * @param typeRef the canonical type reference for this type.
    * @param input the data stream from which to read the class's description.
    */
-  static RVMClass readClass(TypeReference typeRef, DataInputStream input) throws ClassFormatError, IOException {
-
-    if (RVMClass.classLoadingDisabled) {
-      throw new RuntimeException("ClassLoading Disabled : " + typeRef);
-    }
-
-    if (VM.TraceClassLoading && VM.runningVM) {
-      VM.sysWrite("RVMClass: (begin) load file " + typeRef.getName() + "\n");
-    }
+  static int[] readConstantPool(TypeReference typeRef, DataInputStream input)  throws ClassFormatError, IOException {
 
     int magic = input.readInt();
     if (magic != 0xCAFEBABE) {
@@ -204,8 +196,17 @@ public class ClassFileReader implements Constants, ClassLoaderConstants {
         } // out: MemberReference id
       }
     }
+    return constantPool;
+  }
 
-    short modifiers = input.readShort();
+  /**
+   * Read the class' TypeReference
+   * @param typeRef
+   * @param input
+   * @param constantPool
+   * @return the constantPool index of the typeRef of the class we are reading
+   */
+  static int readTypeRef(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException, ClassFormatError {
     int myTypeIndex = input.readUnsignedShort();
     TypeReference myTypeRef = getTypeRef(constantPool, myTypeIndex);
     if (myTypeRef != typeRef) {
@@ -225,13 +226,33 @@ public class ClassFileReader implements Constants, ClassLoaderConstants {
                                    "\"\n" + typeRef + " != " + myTypeRef);
       }
     }
+    return myTypeIndex;
+  }
 
+  /**
+   * Read the super class name, load and resolve the super class
+   * @param input
+   * @param constantPool
+   * @param modifiers
+   * @return the super class of the class being read
+   */
+  static RVMClass readSuperClass(DataInputStream input, int[] constantPool,
+      short modifiers) throws IOException, NoClassDefFoundError {
     TypeReference superType = getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
     RVMClass superClass = null;
     if (((modifiers & ACC_INTERFACE) == 0) && (superType != null)) {
       superClass = superType.resolve().asClass();
     }
+    return superClass;
+  }
 
+  /**
+   * Read the list of interfaces implemented by the class being read
+   * @param input
+   * @param constantPool
+   * @return the interfaces implemented by the class
+   */
+  static RVMClass[] readDeclaredInterfaces(DataInputStream input, int[] constantPool) throws IOException, NoClassDefFoundError {
     int numInterfaces = input.readUnsignedShort();
     RVMClass[] declaredInterfaces;
     if (numInterfaces == 0) {
@@ -243,7 +264,17 @@ public class ClassFileReader implements Constants, ClassLoaderConstants {
         declaredInterfaces[i] = inTR.resolve().asClass();
       }
     }
+    return declaredInterfaces;
+  }
 
+  /**
+   * Read the declared fields of the class being read
+   * @param typeRef
+   * @param input
+   * @param constantPool
+   * @return the list of declared fields
+   */
+  static RVMField[] readDeclaredFields(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
     int numFields = input.readUnsignedShort();
     RVMField[] declaredFields;
     if (numFields == 0) {
@@ -263,10 +294,19 @@ public class ClassFileReader implements Constants, ClassLoaderConstants {
         declaredFields[i] = RVMField.readField(typeRef, constantPool, memRef, fmodifiers, input);
       }
     }
+    return declaredFields;
+  }
 
+  /**
+   * Read the declared methods of the class being read
+   * @param typeRef
+   * @param input
+   * @param constantPool
+   * @return the declared methods of the class
+   */
+  static RVMMethod[] readDeclaredMethods(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
     int numMethods = input.readUnsignedShort();
     RVMMethod[] declaredMethods;
-    RVMMethod classInitializerMethod = null;
     if (numMethods == 0) {
       declaredMethods = RVMType.emptyVMMethod;
     } else {
@@ -278,11 +318,47 @@ public class ClassFileReader implements Constants, ClassLoaderConstants {
         MemberReference memRef = MemberReference.findOrCreate(typeRef, methodName, methodDescriptor);
         RVMMethod method = RVMMethod.readMethod(typeRef, constantPool, memRef, mmodifiers, input);
         declaredMethods[i] = method;
-        if (method.isClassInitializer()) {
-          classInitializerMethod = method;
-        }
       }
     }
+    return declaredMethods;
+  }
+
+  /**
+   * Return the class initializer method among the declared methods of the class
+   * @param declaredMethods
+   * @return the class initializer method <cinit> of the class
+   */
+  static RVMMethod getClassInitializerMethod(RVMMethod[] declaredMethods) {
+    for (RVMMethod method : declaredMethods) {
+      if (method.isClassInitializer()) return method;
+    }
+    return null;
+  }
+
+  /**
+   * Create an instance of a RVMClass.
+   * @param typeRef the canonical type reference for this type.
+   * @param input the data stream from which to read the class's description.
+   */
+  static RVMClass readClass(TypeReference typeRef, DataInputStream input) throws ClassFormatError, IOException {
+
+    if (RVMClass.classLoadingDisabled) {
+      throw new RuntimeException("ClassLoading Disabled : " + typeRef);
+    }
+
+    if (VM.TraceClassLoading && VM.runningVM) {
+      VM.sysWrite("RVMClass: (begin) load file " + typeRef.getName() + "\n");
+    }
+
+    int[] constantPool = readConstantPool(typeRef, input);
+    short modifiers = input.readShort();
+    int myTypeIndex = readTypeRef(typeRef, input, constantPool);
+    RVMClass superClass = readSuperClass(input, constantPool, modifiers);
+    RVMClass[] declaredInterfaces = readDeclaredInterfaces(input, constantPool);
+    RVMField[] declaredFields = readDeclaredFields(typeRef, input, constantPool);
+    RVMMethod[] declaredMethods = readDeclaredMethods(typeRef, input, constantPool);
+    RVMMethod classInitializerMethod = getClassInitializerMethod(declaredMethods);
+
     TypeReference[] declaredClasses = null;
     Atom sourceName = null;
     TypeReference declaringClass = null;
