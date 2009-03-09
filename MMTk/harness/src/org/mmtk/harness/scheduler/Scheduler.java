@@ -87,9 +87,8 @@ public class Scheduler {
         int yieldInterval = Harness.yieldInterval.getValue();
         if (yieldInterval == 1) {
           return new YieldAlways(thread);
-        } else {
-          return new YieldEvery(thread,yieldInterval);
         }
+        return new YieldEvery(thread,yieldInterval);
       case RANDOM:
         return new YieldRandomly(thread,
             Harness.randomPolicySeed.getValue(),

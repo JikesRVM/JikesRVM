@@ -87,8 +87,8 @@ public abstract class ThreadModel {
     return state;
   }
 
-  protected boolean isState(State state) {
-    return ThreadModel.state == state;
+  protected boolean isState(State s) {
+    return state == s;
   }
 
   protected boolean isRunning() {

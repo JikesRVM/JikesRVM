@@ -56,9 +56,8 @@ public abstract class AbstractPolicy implements Policy {
     if (taken()) {
       yieldTaken();
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
   /**
