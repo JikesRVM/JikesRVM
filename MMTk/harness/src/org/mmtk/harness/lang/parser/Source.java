@@ -35,7 +35,7 @@ public class Source {
     this.filename = filename;
   }
 
-  private void readSource(String filename) {
+  private void readSource() {
     try {
       BufferedReader source = new BufferedReader(new FileReader(filename));
       for (String line = source.readLine(); line != null; line = source.readLine()) {
@@ -50,7 +50,7 @@ public class Source {
   private void initialize() {
     if (!isInitialized) {
       isInitialized = true;
-      readSource(filename);
+      readSource();
     }
   }
 

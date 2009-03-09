@@ -66,9 +66,8 @@ public final class Register {
   public static String nameOf(int index) {
     if (index >= 0) {
       return "t"+index;
-    } else {
-      return "c"+(-index-1);
     }
+    return "c"+(-index-1);
   }
 
   public String toString() {

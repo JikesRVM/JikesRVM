@@ -12,7 +12,7 @@
  */
 package org.mmtk.harness.lang.parser;
 
-import org.mmtk.harness.lang.ast.Type;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * A symbol in the symbol table

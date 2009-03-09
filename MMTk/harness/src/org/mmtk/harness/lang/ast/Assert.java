@@ -36,8 +36,8 @@ public class Assert extends AbstractAST implements Statement {
     this.exprs = exprs;
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 
   public Expression getPredicate() { return cond; }

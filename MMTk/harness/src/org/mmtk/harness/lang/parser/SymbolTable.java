@@ -22,13 +22,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.mmtk.harness.lang.Declaration;
-import org.mmtk.harness.lang.ast.Type;
-import org.mmtk.harness.lang.runtime.BoolValue;
-import org.mmtk.harness.lang.runtime.IntValue;
-import org.mmtk.harness.lang.runtime.ObjectValue;
-import org.mmtk.harness.lang.runtime.StringValue;
-import org.mmtk.harness.lang.runtime.Value;
-import org.vmmagic.unboxed.ObjectReference;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * Parser symbol table.
@@ -86,7 +80,7 @@ public class SymbolTable {
       throw new RuntimeException("Symbol "+name+" already defined");
     Symbol symbol = new Symbol(this,name,type);
     table.put(name, symbol);
-    stackMap.add(new Declaration(symbol,initialValue(type)));
+    stackMap.add(new Declaration(symbol,type.initialValue()));
   }
 
   /**
@@ -156,22 +150,5 @@ public class SymbolTable {
         iterator.remove();
     }
     currentScope--;
-  }
-
-  /**
-   * Initial value for a variable of a given type.  Actually allocates
-   * the Value object that will hold the variables value.
-   *
-   * @param type
-   * @return
-   */
-  private static Value initialValue(Type type) {
-    switch(type) {
-      case INT: return IntValue.ZERO;
-      case OBJECT: return new ObjectValue(ObjectReference.nullReference());
-      case STRING: return new StringValue("");
-      case BOOLEAN: return BoolValue.FALSE;
-    }
-    throw new RuntimeException("Invalid type");
   }
 }

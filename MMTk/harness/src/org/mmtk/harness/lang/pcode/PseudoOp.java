@@ -31,6 +31,7 @@ public abstract class PseudoOp {
     this.resultTemp = resultTemp;
     this.name = name;
     this.source = source;
+    assert (!hasResult) || resultTemp >= 0 : resultTemp;
   }
 
   public PseudoOp(AST source, int arity, String name, Register resultTemp) {
@@ -65,9 +66,8 @@ public abstract class PseudoOp {
   public String toString() {
     if (hasResult) {
       return String.format("%s <- %s", Register.nameOf(resultTemp), name);
-    } else {
-      return name;
     }
+    return name;
   }
 
   /*

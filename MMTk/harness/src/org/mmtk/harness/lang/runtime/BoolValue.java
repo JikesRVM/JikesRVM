@@ -12,7 +12,7 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import org.mmtk.harness.lang.ast.Type;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * Expression consisting of a simple boolean value
@@ -59,6 +59,14 @@ public final class BoolValue extends Value {
   @Override
   public Type type() {
     return Type.BOOLEAN;
+  }
+
+  @Override
+  public Object marshall(Class<?> klass) {
+    if (klass.isAssignableFrom(BoolValue.class)) {
+      return this;
+    }
+    return Boolean.valueOf(value);
   }
 
   /**

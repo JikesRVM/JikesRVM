@@ -33,8 +33,9 @@ public class Expect extends AbstractAST implements Statement {
     }
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 
   public Class<?> getExpected() {

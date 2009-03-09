@@ -46,7 +46,8 @@ public class IfStatement extends AbstractAST implements Statement {
     return stmts;
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 }

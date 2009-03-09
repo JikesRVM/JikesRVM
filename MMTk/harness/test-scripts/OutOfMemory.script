@@ -14,7 +14,7 @@
 /**
  * This is a simple test that forces an out of memory condition by creating an infinite linked list.
  */
-main() {
+void main() {
   expect(OutOfMemory);
   object current = alloc(1, 8);
   object last;

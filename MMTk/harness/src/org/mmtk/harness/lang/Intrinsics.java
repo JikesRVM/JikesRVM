@@ -68,7 +68,7 @@ public class Intrinsics {
    * @return
    */
   public static int random(Env env, int low, int high) {
-    return (int)(env.random().nextInt(high-low+1) + low);
+    return env.random().nextInt(high-low+1) + low;
   }
 
   /**

@@ -18,7 +18,7 @@
   *
   * Highly non-generational :)  Basic exercise of multi-class allocation.
   */
-main() {
+void main() {
   int n = 10000;                  // Number of iterations
   int live = 200;                 // Number of live children
   int small = 5;                  // # scalars in the smallest object

@@ -19,6 +19,7 @@ import java.util.List;
 import org.mmtk.harness.lang.Declaration;
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Token;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * A method is a set of variable declarations followed by a statement.
@@ -27,7 +28,7 @@ public class NormalMethod extends Method {
   /** The variable declarations */
   private final List<Declaration> decls;
   /** The statement this block will execute */
-  private final Statement body;
+  private Statement body;
 
   /**
    * Create a new method.
@@ -39,8 +40,9 @@ public class NormalMethod extends Method {
   }
 
   /** Accept visitors */
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 
   /** Return the list of variable declarations */;
@@ -55,6 +57,10 @@ public class NormalMethod extends Method {
 
   public Statement getBody() {
     return body;
+  }
+
+  public void setBody(Statement newBody) {
+    body = newBody;
   }
 
   @Override

@@ -14,7 +14,7 @@
 /**
  * This is a simple test that checks hashCode values persist across a collection.
  */
-main() {
+void main() {
   int listSize = 200;
   int hashEvery = 20;
 
@@ -36,7 +36,7 @@ main() {
   verify(head);
 }
 
-verify(object current) {
+void verify(object current) {
   while (current) {
     if (current.int[0] != 0) {
   	  assert(current.int[0] == hash(current), "Hash code does not match remembered value ", current.int[0], " ", hash(current));

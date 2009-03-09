@@ -13,9 +13,10 @@
 
 options {
   JDK_VERSION = "1.5";
-  LOOKAHEAD = 10;
+  LOOKAHEAD = 2;
   FORCE_LA_CHECK=true;
   STATIC = false;
+//  DEBUG_PARSER=true;
 }
 PARSER_BEGIN(Parser)
 package org.mmtk.harness.lang.parser;
@@ -23,6 +24,7 @@ package org.mmtk.harness.lang.parser;
 // CHECKSTYLE:OFF
 import org.mmtk.harness.lang.ast.*;
 import org.mmtk.harness.lang.runtime.*;
+import org.mmtk.harness.lang.type.*;
 import java.util.*;
 import java.io.*;
 
@@ -45,6 +47,13 @@ public class Parser {
   	  	 throw new ParseException(
   	  	   String.format("%d:%d - Variable %s is undefined",tok.beginLine,tok.beginColumn,id));
   	   }
+	}
+	
+	private static Type createTypeReference(TypeTable types, String name) {
+		if (types.isDefined(name)) {
+			return types.get(name);
+		}
+		return new TypeReference(types,name);
 	}
 }
 PARSER_END(Parser)
@@ -86,25 +95,22 @@ MORE : {
 /* Reserved words */
 
 TOKEN : {
-   < ALLOC : "alloc" > |
-   < ASSERT : "assert" > |
-   < BOOLEAN : "boolean" > |
-   < CLASS : "class" > |
-   < ELIF : "elif" > |
-   < ELSE : "else" > |
-   < EXPECT : "expect" > |
-   < IF : "if" > |
-   < INT : "int" > |
-   < INTRINSIC : "intrinsic" > |
-   < METHOD : "method" > |
-   < NULL : "null" > |
-   < OBJECT : "object" > |
-   < PRINT : "print" > |
-   < RETURN : "return" > |
-   < SIGNATURE : "signature" > |
-   < SPAWN : "spawn" > |
-   < STRING : "string" > |
-   < WHILE : "while" >
+    < ALLOC : "alloc" >
+  | < ASSERT : "assert" >
+  | < CLASS : "class" >
+  | < ELIF : "elif" >
+  | < ELSE : "else" >
+  | < EXPECT : "expect" >
+  | < IF : "if" >
+  | < INTRINSIC : "intrinsic" >
+  | < METHOD : "method" >
+  | < NULL : "null" >
+  | < PRINT : "print" >
+  | < RETURN : "return" >
+  | < SIGNATURE : "signature" >
+  | < SPAWN : "spawn" >
+  | < TYPE : "type" >
+  | < WHILE : "while" >
 }
 
 /* Literals */
@@ -156,45 +162,46 @@ TOKEN : {
 }
 
 MethodTable script() : {
-  MethodTable methods = new MethodTable();
-  Method m;
+  GlobalDefs defs = new GlobalDefs();
   
   final String intrinsics = "org.mmtk.harness.lang.Intrinsics";
-  methods.add(new IntrinsicMethod("gc",intrinsics,"gc"));
-  methods.add(new IntrinsicMethod("tid",intrinsics,"threadId"));
-  methods.add(new IntrinsicMethod("hash",intrinsics,"hash",
+  defs.methods.add(new IntrinsicMethod("gc",intrinsics,"gc"));
+  defs.methods.add(new IntrinsicMethod("tid",intrinsics,"threadId"));
+  defs.methods.add(new IntrinsicMethod("hash",intrinsics,"hash",
     	new Class<?>[] { ObjectValue.class }));
-  methods.add(new IntrinsicMethod("random",intrinsics,"random",
+  defs.methods.add(new IntrinsicMethod("random",intrinsics,"random",
   		new Class<?>[] { int.class, int.class }));
-  methods.add(new IntrinsicMethod("setSeed",intrinsics,"setRandomSeed",
+  defs.methods.add(new IntrinsicMethod("setSeed",intrinsics,"setRandomSeed",
   		new Class<?>[] { int.class }));
-  methods.add(new IntrinsicMethod("heapDump",intrinsics,"heapDump"));
+  defs.methods.add(new IntrinsicMethod("heapDump",intrinsics,"heapDump"));
 }
 {
-  ( method(methods) )+ 
-  { return methods; }
+  ( method(defs) 
+  | typeDeclaration(defs) 
+  )+ <EOF>
+  { return defs.methods; }
 }
 
 /**
  * A program method with its own variable scope.
  */
-void method(MethodTable methods) : {
+void method(GlobalDefs defs) : {
     SymbolTable symbols = new SymbolTable();
     Statement stmt;
     String name;
     int params = 0;
-    Type retType = Type.VOID;
+    Type retType;
     String javaClass, javaMethod, javaParam;
     List<String> signature = new ArrayList<String>();
     Token t;
 }
 {
-  (retType=type())?
+  retType=type(defs)
   t=<IDENTIFIER> { name = t.toString(); } <LPAREN>
-  ( declaration1(methods, symbols) { params++; } ( <COMMA> declaration1(methods, symbols) { params++; } )* )?
+  ( declaration1(defs, symbols) { params++; } ( <COMMA> declaration1(defs, symbols) { params++; } )* )?
   <RPAREN>
-  ( stmt=statements(methods, symbols)
-    { methods.add(new NormalMethod(t, name, params, retType, symbols.declarations(), stmt)); }
+  ( stmt=statements(defs, symbols)
+    { defs.methods.add(new NormalMethod(t, name, params, retType, symbols.declarations(), stmt)); }
   | <INTRINSIC>
       <CLASS> javaClass=string()
       <METHOD> javaMethod=string()
@@ -204,7 +211,7 @@ void method(MethodTable methods) : {
           )?
         <RPAREN>
       )? <SEMICOLON>
-      { methods.add(new IntrinsicMethod(name,javaClass,javaMethod,signature)); }
+      { defs.methods.add(new IntrinsicMethod(name,javaClass,javaMethod,signature)); }
   )
 }
 
@@ -218,12 +225,35 @@ void intrinsicParam(List<String> signature) : {
             }
           	signature.add(javaParam); }
 }
+
+/**
+ * A Type Declaration
+ */
+void typeDeclaration(GlobalDefs defs) : {
+	Token t;
+}
+{
+	<TYPE> t=<IDENTIFIER>
+	{ UserType type = new UserTypeImpl(t,t.toString()); 
+      defs.types.add(type); 
+    }
+	<LBRACE>
+	( typeField(defs,type) )+
+	<RBRACE>
+}
 	
+void typeField(GlobalDefs defs, UserType type) : {
+	String fieldType, name;
+}
+{
+	fieldType=ident() name=ident() <SEMICOLON>
+	{ type.defineField(name, createTypeReference(defs.types,fieldType)); }
+}
 
 /**
  * A sequence of statements in braces, carrying an inner variable scope
  */
-Statement statements(MethodTable methods, SymbolTable symbols) : {
+Statement statements(GlobalDefs defs, SymbolTable symbols) : {
     Statement stmt;
     List<Statement> stmts = new ArrayList<Statement>();
     Token t;
@@ -231,7 +261,7 @@ Statement statements(MethodTable methods, SymbolTable symbols) : {
 {
   t=<LBRACE>
   { symbols.pushScope(); }
-  ( stmt=statement(methods, symbols)
+  ( stmt=statement(defs, symbols)
     { stmts.add(stmt); }
   )* 
   { symbols.popScope(); }
@@ -242,28 +272,32 @@ Statement statements(MethodTable methods, SymbolTable symbols) : {
 /**
  * A single statement
  */
-Statement statement(MethodTable methods, SymbolTable symbols) : {
+Statement statement(GlobalDefs defs, SymbolTable symbols) : {
     Statement stmt;
+    Token t;
 }
 {
-  ( stmt=conditional(methods, symbols) |
-    stmt=declaration(methods, symbols) <SEMICOLON> |
-    stmt=expect(methods, symbols) <SEMICOLON> |
-    stmt=assignment(methods, symbols) <SEMICOLON> |
-    stmt=spawn(methods, symbols) <SEMICOLON> |
-    stmt=storeField(methods, symbols) <SEMICOLON> |
-    stmt=whileLoop(methods, symbols) |
-    stmt=print(methods, symbols) <SEMICOLON> |
-    stmt=assertTrue(methods, symbols) <SEMICOLON> |
-    stmt=callMethod(methods, symbols) <SEMICOLON> |
-    stmt=returnStmt(methods, symbols) <SEMICOLON> )
+  ( stmt=conditional(defs, symbols)
+  | stmt=expect(defs, symbols) <SEMICOLON>
+  | stmt=spawn(defs, symbols) <SEMICOLON>
+  | stmt=whileLoop(defs, symbols)
+  | stmt=print(defs, symbols) <SEMICOLON>
+  | stmt=assertTrue(defs, symbols) <SEMICOLON>
+  | t=<IDENTIFIER> 
+    ( stmt=assignment(defs, symbols, t) <SEMICOLON>
+    | stmt=declaration(defs, symbols, t) <SEMICOLON>
+    | stmt=storeField(defs, symbols, t) <SEMICOLON>
+    | stmt=callMethod(defs, symbols, t) <SEMICOLON>
+    )
+  | stmt=returnStmt(defs, symbols) <SEMICOLON> 
+  )
   { return stmt; }
 }
 
 /**
  * if - then - else
  */
-Statement conditional(MethodTable methods, SymbolTable symbols) : {
+Statement conditional(GlobalDefs defs, SymbolTable symbols) : {
 	Expression cond;
     List<Expression> conds = new ArrayList<Expression>();
     Statement stmt;
@@ -271,11 +305,11 @@ Statement conditional(MethodTable methods, SymbolTable symbols) : {
     Token t;
 }
 {
-  t=<IF> <LPAREN> cond=expression(methods,symbols) { conds.add(cond); } <RPAREN> 
-  stmt=statements(methods, symbols) { stmts.add(stmt); }
-  ( <ELIF>  <LPAREN> cond=expression(methods,symbols) { conds.add(cond); } <RPAREN> 
-  	stmt=statements(methods, symbols) { stmts.add(stmt); })*
-  ( <ELSE>  stmt=statements(methods, symbols) { stmts.add(stmt); } )?
+  t=<IF> <LPAREN> cond=expression(defs,symbols) { conds.add(cond); } <RPAREN> 
+  stmt=statements(defs, symbols) { stmts.add(stmt); }
+  ( <ELIF>  <LPAREN> cond=expression(defs,symbols) { conds.add(cond); } <RPAREN> 
+  	stmt=statements(defs, symbols) { stmts.add(stmt); })*
+  ( <ELSE>  stmt=statements(defs, symbols) { stmts.add(stmt); } )?
   { return new IfStatement(t,conds,stmts); }
 }
 
@@ -283,15 +317,15 @@ Statement conditional(MethodTable methods, SymbolTable symbols) : {
  * assert the expression in the first parameter,
  * and print the remaining parameters if the assertion fails
  */
-Statement assertTrue(MethodTable methods, SymbolTable symbols) : {
+Statement assertTrue(GlobalDefs defs, SymbolTable symbols) : {
     Expression cond;
     List<Expression> exprs = new ArrayList<Expression>();
     Expression expr;
     Token t;
 }
 {
-  t=<ASSERT> <LPAREN> cond=expression(methods,symbols)
-  ( <COMMA> expr=expression(methods,symbols)
+  t=<ASSERT> <LPAREN> cond=expression(defs,symbols)
+  ( <COMMA> expr=expression(defs,symbols)
     { exprs.add(expr); } )+
   <RPAREN> 
   { return new Assert(t,cond, exprs); }
@@ -300,14 +334,14 @@ Statement assertTrue(MethodTable methods, SymbolTable symbols) : {
 /**
  * while loop
  */
-Statement whileLoop(MethodTable methods, SymbolTable symbols) : {
+Statement whileLoop(GlobalDefs defs, SymbolTable symbols) : {
     Expression cond;
     Statement body;
     Token t;
 }
 {
-  t=<WHILE> <LPAREN> cond=expression(methods,symbols) <RPAREN> 
-  body=statements(methods, symbols) 
+  t=<WHILE> <LPAREN> cond=expression(defs,symbols) <RPAREN> 
+  body=statements(defs, symbols) 
   { return new WhileStatement(t,cond,body); }
 }
 
@@ -317,15 +351,15 @@ Statement whileLoop(MethodTable methods, SymbolTable symbols) : {
  * Adds a symbol to the symbol table, and returns either an
  * assignment statement or an empty sequence.
  */
-Statement declaration(MethodTable methods, SymbolTable symbols) : {
+Statement declaration(GlobalDefs defs, SymbolTable symbols, Token id) : {
     String name;
     Expression expr;
     Statement stmt;
     Token t;
 }
 {
-  name=declaration1(methods, symbols)
-  ( ( t=<ASSIGN> expr=expression(methods,symbols)
+  name=declaration2(defs, symbols,id)
+  ( ( t=<ASSIGN> expr=expression(defs,symbols)
         { return new Assignment(t,symbols.getSymbol(name), expr); } 
     )
   )?
@@ -337,30 +371,49 @@ Statement declaration(MethodTable methods, SymbolTable symbols) : {
  *
  * Adds a symbol to the symbol table and returns the name.
  */
-String declaration1(MethodTable methods, SymbolTable symbols) : {
+String declaration1(GlobalDefs defs, SymbolTable symbols) : {
     String name;
     Type type;
 }
 {
-  type=type() name=ident()
+  type=type(defs) name=ident()
       { symbols.declare(name,type);
        return name; 
       } 
 }
 
-Type type() : {
+/**
+ * First part of variable declaration (without initialization),
+ * where the parent production has consumed the type identifier token.
+ *
+ * Adds a symbol to the symbol table and returns the name.
+ */
+String declaration2(GlobalDefs defs, SymbolTable symbols, Token id) : {
+    String name;
+    Type type = defs.types.get(id.toString());
 }
 {
-	<INT> { return Type.INT; }
-|	<OBJECT> { return Type.OBJECT; }
-|	<BOOLEAN> { return Type.BOOLEAN; }
-|	<STRING> { return Type.STRING; }
+   /* type - consumed by parent */
+   name=ident()
+      { symbols.declare(name,type);
+       return name; 
+      } 
+}
+
+Type type(GlobalDefs defs) : {
+	String type;
+}
+{
+	type=ident()
+	{
+		return defs.types.get(type);
+	}
 }
 
 /*
  * Set up an expectation for an exception
  */
-Statement expect(MethodTable methods, SymbolTable symbols) : {
+Statement expect(GlobalDefs defs, SymbolTable symbols) : {
     String name;
     Token t;
 }
@@ -372,64 +425,69 @@ Statement expect(MethodTable methods, SymbolTable symbols) : {
 /*
  * Assign a value to a variable
  */
-Statement assignment(MethodTable methods, SymbolTable symbols) : {
-    String name;
+Statement assignment(GlobalDefs defs, SymbolTable symbols, Token id) : {
+    String name = id.toString();
     Expression expr;
     Token t;
 }
 {
-    name=ident() t=<ASSIGN> expr=expression(methods,symbols) 
+    t=<ASSIGN> expr=expression(defs,symbols) 
     { return new Assignment(t,symbols.getSymbol(name),expr); }
 }
 
 /*
  * Assign a value to a field of an object
  */
-Statement storeField(MethodTable methods, SymbolTable symbols) : {
-    String name;
-    Type type;
+Statement storeField(GlobalDefs defs, SymbolTable symbols, Token id) : {
+    Symbol objectSym = symbols.getSymbol(id.toString());
     Expression index, rVal;
-    Token t;
+    Token fieldId;
 }
 {
-  t=<IDENTIFIER> { name = t.toString(); }
-  <DOT> type = type()
-  <LBRACKET> index=expression(methods,symbols) <RBRACKET> <ASSIGN> rVal=expression(methods,symbols) 
-  { return new StoreField(t, symbols.getSymbol(name), type, index, rVal); }
+  { checkSymbol(symbols,id); }
+  <DOT> fieldId = <IDENTIFIER>
+  ( <LBRACKET> index=expression(defs,symbols) <RBRACKET> 
+    <ASSIGN> rVal=expression(defs,symbols) 
+    { 	Type fieldType = defs.types.get(fieldId.toString());
+    	return new StoreField(id, objectSym, fieldType, index, rVal); 
+    }
+  | <ASSIGN> rVal=expression(defs,symbols) 
+    { 	String fieldName = fieldId.toString();
+    	return new StoreNamedField(id, objectSym, fieldName, rVal); 
+    }
+  )
 }
 
 /**
  * Procedure call, as a statement
  */
-Statement callMethod(MethodTable methods, SymbolTable symbols) : {
-	Token t;
-    String name;
+Statement callMethod(GlobalDefs defs, SymbolTable symbols, Token id) : {
+    String name = id.toString();
     List<Expression> params = new ArrayList<Expression>();
     Expression p;
 }
 {
-  t=<IDENTIFIER> { name = t.toString(); } 
   <LPAREN> 
-  ( p=expression(methods,symbols)
+  ( p=expression(defs,symbols)
       { params.add(p); }
-    ( <COMMA> p=expression(methods,symbols)
+    ( <COMMA> p=expression(defs,symbols)
       { params.add(p); }
     )*
   )?
   <RPAREN>
-  { return new Call(t, new MethodProxy(methods, name, params.size()), params, false); }
+  { return new Call(id, new MethodProxy(defs.methods, name, params.size()), params, false); }
 }
 
 /**
  * Return a value from a method
  */
-Statement returnStmt(MethodTable methods, SymbolTable symbols) : {
+Statement returnStmt(GlobalDefs defs, SymbolTable symbols) : {
 	Expression e;
 	Token t;
 }
 {
 	t=<RETURN> 
-	( e=expression(methods,symbols) 
+	( e=expression(defs,symbols) 
 	  { return new Return(t, e); }
 	)?
 	{ return new Return(t); }
@@ -438,7 +496,7 @@ Statement returnStmt(MethodTable methods, SymbolTable symbols) : {
 /*
  * Create a new thread
  */
-Statement spawn(MethodTable methods, SymbolTable symbols) : {
+Statement spawn(GlobalDefs defs, SymbolTable symbols) : {
     String name;
     List<Expression> params = new ArrayList<Expression>();
     Expression p;
@@ -446,22 +504,22 @@ Statement spawn(MethodTable methods, SymbolTable symbols) : {
 }
 {
   t=<SPAWN> <LPAREN> name=ident() 
-  ( <COMMA> p=expression(methods,symbols)
+  ( <COMMA> p=expression(defs,symbols)
     { params.add(p); }
   )*
   <RPAREN>
-  { return new Spawn(t, methods, name, params); }
+  { return new Spawn(t, defs.methods, name, params); }
 }
 
-Statement print(MethodTable methods, SymbolTable symbols) : {
+Statement print(GlobalDefs defs, SymbolTable symbols) : {
     List<Expression> exprs = new ArrayList<Expression>();
     Expression expr;
     Token t;
 }
 {
-  t=<PRINT> <LPAREN> expr=expression(methods,symbols)
+  t=<PRINT> <LPAREN> expr=expression(defs,symbols)
     { exprs.add(expr); }
-  ( <COMMA> expr=expression(methods,symbols)
+  ( <COMMA> expr=expression(defs,symbols)
     { exprs.add(expr); } )*
   <RPAREN>
   { return new PrintStatement(t, exprs); }
@@ -474,111 +532,115 @@ Statement print(MethodTable methods, SymbolTable symbols) : {
  *  for enumerating temporaries at GC time.  Therefore, method calls as expressions
  *  can only occur at the top level of an expression.
  */
-Expression expression(MethodTable methods, SymbolTable symbols) : {
+Expression expression(GlobalDefs defs, SymbolTable symbols) : {
     Expression e1,e2;
     Token t;
 }
 {
-  e1=expr1(methods,symbols) 
-  ( t=<SC_OR> e2=expression(methods,symbols)
+  e1=expr1(defs,symbols) 
+  ( t=<SC_OR> e2=expression(defs,symbols)
       { return new BinaryExpression(t, e1, Operator.OR, e2); } |
-    t=<SC_AND> e2=expression(methods,symbols)
+    t=<SC_AND> e2=expression(defs,symbols)
       { return new BinaryExpression(t, e1, Operator.AND, e2); }
   )?    
   { return e1; }  
 }
 
-Expression expr1(MethodTable methods, SymbolTable symbols) : {
+Expression expr1(GlobalDefs defs, SymbolTable symbols) : {
     Expression e;
     Token t;
 }
 {
-  t=<BANG> e=expr1(methods,symbols)
+  t=<BANG> e=expr1(defs,symbols)
   { return new UnaryExpression(t,Operator.NOT,e); } |
-  t=<MINUS> e=expr1(methods,symbols) 
+  t=<MINUS> e=expr1(defs,symbols) 
   { return new UnaryExpression(t,Operator.MINUS,e); } |
-  e=expr2(methods,symbols) { return e; }
+  e=expr2(defs,symbols) { return e; }
 }
 
-Expression expr2(MethodTable methods, SymbolTable symbols) : {
+Expression expr2(GlobalDefs defs, SymbolTable symbols) : {
     Expression e1,e2;
     Token t;
 }
 {
-  e1=expr3(methods,symbols) 
-  ( t=<LT> e2=expr3(methods,symbols) 
+  e1=expr3(defs,symbols) 
+  ( t=<LT> e2=expr3(defs,symbols) 
       { return new BinaryExpression(t, e1,Operator.LT,e2); }
-  | t=<GT> e2=expr3(methods,symbols) 
+  | t=<GT> e2=expr3(defs,symbols) 
       { return new BinaryExpression(t, e1,Operator.GT,e2); }
-  | t=<LE> e2=expr3(methods,symbols) 
+  | t=<LE> e2=expr3(defs,symbols) 
       { return new BinaryExpression(t, e1,Operator.LE,e2); }
-  | t=<GE> e2=expr3(methods,symbols) 
+  | t=<GE> e2=expr3(defs,symbols) 
       { return new BinaryExpression(t, e1,Operator.GE,e2); }
-  | t=<EQ> e2=expr3(methods,symbols) 
+  | t=<EQ> e2=expr3(defs,symbols) 
       { return new BinaryExpression(t, e1,Operator.EQ,e2); }
-  | t=<NE> e2=expr3(methods,symbols) 
+  | t=<NE> e2=expr3(defs,symbols) 
       { return new BinaryExpression(t, e1,Operator.NE,e2); }
   )?
   { return e1; }
 }
 
-Expression expr3(MethodTable methods, SymbolTable symbols) : {
+Expression expr3(GlobalDefs defs, SymbolTable symbols) : {
     Expression e1,e2;
     Token t;
 }
 {
-  e1=expr4(methods,symbols) 
-  ( t=<PLUS> e2=expr3(methods,symbols) 
+  e1=expr4(defs,symbols) 
+  ( t=<PLUS> e2=expr3(defs,symbols) 
       { return new BinaryExpression(t, e1,Operator.PLUS,e2); }
-  | t=<MINUS> e2=expr3(methods,symbols)
+  | t=<MINUS> e2=expr3(defs,symbols)
       { return new BinaryExpression(t, e1,Operator.MINUS,e2); }
   )?
   { return e1; }
 }
 
-Expression expr4(MethodTable methods, SymbolTable symbols) : {
+Expression expr4(GlobalDefs defs, SymbolTable symbols) : {
     Expression e1,e2;
     Token t;
 }
 {
-  e1=expr5(methods,symbols) 
-  ( t=<STAR> e2=expr4(methods,symbols) 
+  e1=expr5(defs,symbols) 
+  ( t=<STAR> e2=expr4(defs,symbols) 
       { return new BinaryExpression(t, e1, Operator.MULT, e2); }
-  | t=<SLASH> e2=expr4(methods,symbols) 
+  | t=<SLASH> e2=expr4(defs,symbols) 
       { return new BinaryExpression(t, e1, Operator.DIV, e2); } 
-  | t=<REM> e2=expr4(methods,symbols) 
+  | t=<REM> e2=expr4(defs,symbols) 
       { return new BinaryExpression(t, e1, Operator.REM, e2); }
   )? 
   { return e1; }
 }
 
-Expression expr5(MethodTable methods, SymbolTable symbols) : {
+Expression expr5(GlobalDefs defs, SymbolTable symbols) : {
     Expression e, index;
     String id;
-    Type type;
-    Token t;
+    Token t, field;
 }
 {
   /* constants of various types */
   e=constant() { return e; } |
   
   /* intrinsic functions */
-  e=alloc(methods,symbols) { return e; } |
+  e=alloc(defs,symbols) { return e; } |
     
   /* An expression in parentheses */
-  <LPAREN> e=expression(methods,symbols) <RPAREN>
+  <LPAREN> e=expression(defs,symbols) <RPAREN>
     { return e; } |
     
   /* Field dereference */
   ( t=<IDENTIFIER> { id=t.toString(); }
-  		(<DOT> type = type() 
-  		 <LBRACKET> index=expression(methods,symbols) <RBRACKET>
+  		(<DOT> field=<IDENTIFIER>
+  		  { checkSymbol(symbols,t); }
+  		  ( <LBRACKET> index=expression(defs,symbols) <RBRACKET>
               { 
-              	checkSymbol(symbols,t);
+              	Type type = defs.types.get(field.toString());
               	return new LoadField(t,symbols.getSymbol(id), type, index); 
               }
-  
-        | e=callExpr(t,id,methods,symbols) { return e; } 
+          | {
+          	  String fieldName = field.toString();
+          	  return new LoadNamedField(t,symbols.getSymbol(id), fieldName); 
+            }
+          )
+        | e=callExpr(t,id,defs,symbols) { return e; } 
         )?
   
      /* Variable substitution */
@@ -598,11 +660,11 @@ Expression constant() : {
     
   /* Integer constant */
   | t=<INTEGER_LITERAL>
-    { return new Constant(t, IntValue.valueOf(Integer.parseInt(t.toString()))); }
+    { return new Constant(t, IntValue.valueOf(Integer.valueOf(t.toString()))); }
     
   /* boolean constant */
   | t=<BOOLEAN_LITERAL>
-    { return new Constant(t, BoolValue.valueOf(Boolean.parseBoolean(t.toString()))); }
+    { return new Constant(t, BoolValue.valueOf(Boolean.valueOf(t.toString()))); }
     
   /* String constant */
   | t=<STRING_LITERAL>
@@ -618,35 +680,41 @@ Expression constant() : {
  * Caller has matched the method name, which gets passed as the 'name' parameter.
  * 't' is the token of the method name (for error location).
  */
-Expression callExpr(Token t, String name, MethodTable methods, SymbolTable symbols) : {
+Expression callExpr(Token t, String name, GlobalDefs defs, SymbolTable symbols) : {
     List<Expression> params = new ArrayList<Expression>();
     Expression p;
 }
 {
   <LPAREN> 
-  ( p=expression(methods,symbols)
+  ( p=expression(defs,symbols)
       { params.add(p); }
-    ( <COMMA> p=expression(methods,symbols)
+    ( <COMMA> p=expression(defs,symbols)
       { params.add(p); }
     )*
   )?
   <RPAREN>
-  { return new Call(t,new MethodProxy(methods, name, params.size()), params, true); }
+  { return new Call(t,new MethodProxy(defs.methods, name, params.size()), params, true); }
 }
 
 
-Expression alloc(MethodTable methods, SymbolTable symbols) : {
+Expression alloc(GlobalDefs defs, SymbolTable symbols) : {
 	Expression e,refCount,dataCount,doubleAlign = new Constant(BoolValue.FALSE);
 	AllocationSite site;
 	Token t;
+	Type type;
 }
 {
   t=<ALLOC> { site = new AllocationSite(t); } <LPAREN> 
-    refCount=expression(methods,symbols) <COMMA>
-    dataCount=expression(methods,symbols)
-    ( <COMMA> doubleAlign=expression(methods,symbols) )?
-  <RPAREN>
+  ( refCount=expression(defs,symbols) <COMMA>
+    dataCount=expression(defs,symbols)
+    ( <COMMA> doubleAlign=expression(defs,symbols) )?
+    <RPAREN>
     { return new Alloc(t, site.getId(), refCount, dataCount, doubleAlign); }
+  |
+    type=type(defs)
+    <RPAREN>
+    { return new AllocUserType(t, site.getId(), type); }
+  )
 }
 
 

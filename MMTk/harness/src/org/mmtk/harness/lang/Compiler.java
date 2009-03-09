@@ -17,7 +17,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.mmtk.harness.Harness;
+import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Alloc;
+import org.mmtk.harness.lang.ast.AllocUserType;
 import org.mmtk.harness.lang.ast.Assert;
 import org.mmtk.harness.lang.ast.Assignment;
 import org.mmtk.harness.lang.ast.BinaryExpression;
@@ -29,6 +32,7 @@ import org.mmtk.harness.lang.ast.Expression;
 import org.mmtk.harness.lang.ast.IfStatement;
 import org.mmtk.harness.lang.ast.IntrinsicMethod;
 import org.mmtk.harness.lang.ast.LoadField;
+import org.mmtk.harness.lang.ast.LoadNamedField;
 import org.mmtk.harness.lang.ast.Method;
 import org.mmtk.harness.lang.ast.NormalMethod;
 import org.mmtk.harness.lang.ast.PrintStatement;
@@ -37,7 +41,7 @@ import org.mmtk.harness.lang.ast.Sequence;
 import org.mmtk.harness.lang.ast.Statement;
 import org.mmtk.harness.lang.ast.Spawn;
 import org.mmtk.harness.lang.ast.StoreField;
-import org.mmtk.harness.lang.ast.Type;
+import org.mmtk.harness.lang.ast.StoreNamedField;
 import org.mmtk.harness.lang.ast.UnaryExpression;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
@@ -48,6 +52,7 @@ import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.compiler.Temporary;
 import org.mmtk.harness.lang.parser.MethodTable;
 import org.mmtk.harness.lang.pcode.AllocOp;
+import org.mmtk.harness.lang.pcode.AllocUserOp;
 import org.mmtk.harness.lang.pcode.BinaryOperation;
 import org.mmtk.harness.lang.pcode.Branch;
 import org.mmtk.harness.lang.pcode.CallIntrinsicOp;
@@ -56,14 +61,19 @@ import org.mmtk.harness.lang.pcode.ExitOp;
 import org.mmtk.harness.lang.pcode.ExpectOp;
 import org.mmtk.harness.lang.pcode.Goto;
 import org.mmtk.harness.lang.pcode.LoadFieldOp;
+import org.mmtk.harness.lang.pcode.LoadFixedFieldOp;
 import org.mmtk.harness.lang.pcode.PrintOp;
 import org.mmtk.harness.lang.pcode.PseudoOp;
 import org.mmtk.harness.lang.pcode.ReturnOp;
 import org.mmtk.harness.lang.pcode.SpawnOp;
 import org.mmtk.harness.lang.pcode.StoreFieldOp;
+import org.mmtk.harness.lang.pcode.StoreFixedFieldOp;
 import org.mmtk.harness.lang.pcode.StoreLocal;
 import org.mmtk.harness.lang.pcode.UnaryOperation;
 import org.mmtk.harness.lang.runtime.ConstantPool;
+import org.mmtk.harness.lang.type.Field;
+import org.mmtk.harness.lang.type.Type;
+import org.mmtk.harness.lang.type.UserType;
 
 public final class Compiler extends Visitor {
 
@@ -75,7 +85,6 @@ public final class Compiler extends Visitor {
   private final CompiledMethod current;
   private final CompiledMethodTable methodTable;
   private final Temporary temps;
-  private final UnsyncStack<Register> operands = new UnsyncStack<Register>();
 
   private Compiler(NormalMethod method, CompiledMethodTable table) {
     this.current = new CompiledMethod(method);
@@ -109,6 +118,7 @@ public final class Compiler extends Visitor {
   }
 
   private void emit(PseudoOp op) {
+    Trace.trace(Item.COMPILER, "emitting %s", op);
     current.append(op);
   }
 
@@ -125,8 +135,7 @@ public final class Compiler extends Visitor {
   private List<Register> compileArgList(List<Expression> args) {
     ArrayList<Register> actuals = new ArrayList<Register>(args.size());
     for (Expression exp : args) {
-      exp.accept(this);
-      actuals.add(operands.pop());
+      actuals.add(compile(exp));
     }
     return actuals;
   }
@@ -139,64 +148,73 @@ public final class Compiler extends Visitor {
     return compiledMethod;
   }
 
-
-  @Override
-  public void visit(Alloc alloc) {
-    alloc.getDataCount().accept(this);
-    Register dataCount = operands.pop();
-    alloc.getRefCount().accept(this);
-    Register refCount = operands.pop();
-    alloc.getDoubleAlign().accept(this);
-    Register doubleAlign = operands.pop();
-    Register result = temps.acquire();
-    emit(new AllocOp(alloc,result,dataCount,refCount,doubleAlign,alloc.getSite()));
-    operands.push(result);
-    temps.release(dataCount,refCount,doubleAlign);
+  /**
+   * Visit a node and return its result as a Register
+   * @param ast
+   * @return
+   */
+  private Register compile(AST ast) {
+    return (Register)ast.accept(this);
   }
 
   @Override
-  public void visit(Assert ass) {
-    ass.getPredicate().accept(this);            // Compile the predicate
-    Register predicate = operands.pop();
+  public Object visit(Alloc alloc) {
+    Register dataCount = compile(alloc.getDataCount());
+    Register refCount = compile(alloc.getRefCount());
+    Register doubleAlign = compile(alloc.getDoubleAlign());
+    Register result = temps.acquire();
+    emit(new AllocOp(alloc,result,dataCount,refCount,doubleAlign,alloc.getSite()));
+    temps.release(dataCount,refCount,doubleAlign);
+    return result;
+  }
+
+  @Override
+  public Object visit(AllocUserType alloc) {
+    UserType type = (UserType)alloc.getType();
+    Register result = temps.acquire();
+    emit(new AllocUserOp(alloc,result,type,false,alloc.getSite()));
+    return result;
+  }
+
+  @Override
+  public Object visit(Assert ass) {
+    Register predicate = compile(ass.getPredicate());
     Branch branch = new Branch(ass,predicate,true);
     emit(branch);
     temps.release(predicate);
     ArrayList<Register> actuals = new ArrayList<Register>(ass.getOutputs().size());
     for (Expression expr : ass.getOutputs()) {
-      expr.accept(this);
-      actuals.add(operands.pop());
+      actuals.add(compile(expr));
     }
     emit(new PrintOp(ass,actuals.toArray(new Register[0])));
     freeTemps(actuals);
     emit(new ExitOp(ass,ConstantPool.ONE));
     branch.setBranchTarget(currentPc());
+    return null;
   }
 
   @Override
-  public void visit(Assignment a) {
-    a.getRhs().accept(this);
-    Register rhs = operands.pop();
+  public Object visit(Assignment a) {
+    Trace.trace(Item.COMPILER, "Compiling %s", PrettyPrinter.format(a));
+    Register rhs = compile(a.getRhs());
     emit(new StoreLocal(a,Register.createLocal(a.getSlot()),rhs));
     temps.release(rhs);
+    return null;
   }
 
   @Override
-  public void visit(BinaryExpression exp) {
-    exp.getLhs().accept(this);
-    Register lhs = operands.pop();
-    exp.getRhs().accept(this);
-    Register rhs = operands.pop();
+  public Object visit(BinaryExpression exp) {
+    Register lhs = compile(exp.getLhs());
+    Register rhs = compile(exp.getRhs());
     Register result = temps.acquire();
     emit(new BinaryOperation(exp,result,lhs,rhs,exp.getOperator()));
     temps.release(rhs,lhs);
-    operands.push(result);
+    return result;
   }
 
   @Override
-  public void visit(Call call) {
+  public Object visit(Call call) {
     Method method = call.getMethod();
-
-
     List<Register> actuals = compileArgList(call.getParams());
     Register returnVal = method.getReturnType() == Type.VOID ?
         Register.NULL : temps.acquire();
@@ -210,8 +228,7 @@ public final class Compiler extends Visitor {
       throw new RuntimeException("Unknown method class "+method.getClass().getCanonicalName());
     }
     freeTemps(actuals);
-    if (returnVal != Register.NULL)
-      operands.push(returnVal);
+    return returnVal;
   }
 
   /**
@@ -219,29 +236,29 @@ public final class Compiler extends Visitor {
    * global constant pool
    */
   @Override
-  public void visit(Constant c) {
-    operands.push(ConstantPool.acquire(c.value));
+  public Object visit(Constant c) {
+    return ConstantPool.acquire(c.value);
   }
 
   @Override
-  public void visit(Empty e) {
-    // Do nothing
+  public Object visit(Empty e) {
+    return null;
   }
 
   @Override
-  public void visit(Expect exp) {
+  public Object visit(Expect exp) {
     emit(new ExpectOp(exp,exp.getExpected()));
+    return null;
   }
 
   @Override
-  public void visit(IfStatement conditional) {
+  public Object visit(IfStatement conditional) {
     Iterator<Statement> stmtIter = conditional.getStmts().iterator();
     Branch branch = new Branch(conditional,Register.NULL,false);
     Goto gotoExit = new Goto(conditional);
     for (Expression cond : conditional.getConds()) {
       branch.setBranchTarget(currentPc());
-      cond.accept(this);
-      Register conditionReg = operands.pop();
+      Register conditionReg = compile(cond);
       branch = new Branch(conditional,conditionReg,false);
       temps.release(conditionReg);
       emit(branch);
@@ -253,78 +270,106 @@ public final class Compiler extends Visitor {
       stmtIter.next().accept(this);
     }
     gotoExit.setBranchTarget(currentPc());
+    return null;
   }
 
   @Override
-  public void visit(IntrinsicMethod method) {
+  public Object visit(IntrinsicMethod method) {
     throw new RuntimeException("You can't compile an intrinsic method!!!");
   }
 
   @Override
-  public void visit(LoadField load) {
-    load.getIndex().accept(this);
-    Register index = operands.pop();
+  public Object visit(LoadField load) {
+    Register index = compile(load.getIndex());
     Register object = Register.createLocal(load.getSlot());
     Register result = temps.acquire();
     emit(new LoadFieldOp(load,result,object,index,load.getFieldType()));
     temps.release(index);
-    operands.push(result);
+    return result;
   }
 
   @Override
-  public void visit(NormalMethod method) {
-    method.getBody().accept(this);
+  public Object visit(LoadNamedField load) {
+    UserType type = (UserType)load.getObjectSymbol().getType();
+    Field field = type.getField(load.getFieldName());
+    Register object = Register.createLocal(load.getSlot());
+    Register result = temps.acquire();
+    emit(new LoadFixedFieldOp(load,result,object,field.getOffset(),
+        load.getFieldName(),
+        field.getType().isObject() ? Type.OBJECT : Type.INT));
+    return result;
+  }
+
+  @Override
+  public Object visit(NormalMethod method) {
+    compile(method.getBody());
     emit(new ReturnOp(method));
+    return null;
   }
 
   @Override
-  public void visit(PrintStatement print) {
+  public Object visit(PrintStatement print) {
     List<Expression> args = print.getArgs();
     List<Register> actuals = compileArgList(args);
     emit(new PrintOp(print,actuals));
     freeTemps(actuals);
+    return null;
   }
 
   @Override
-  public void visit(Return ret) {
+  public Object visit(Return ret) {
     if (ret.hasReturnValue()) {
-      ret.getRhs().accept(this);
-      emit(new ReturnOp(ret,operands.pop()));
+      emit(new ReturnOp(ret,compile(ret.getRhs())));
     } else {
       emit(new ReturnOp(ret));
     }
+    return null;
   }
 
   @Override
-  public void visit(Sequence ass) {
+  public Object visit(Sequence ass) {
     for (Statement stmt : ass) {
-      stmt.accept(this);
+      compile(stmt);
     }
+    return null;
   }
 
   @Override
-  public void visit(Spawn sp) {
+  public Object visit(Spawn sp) {
     List<Register> actuals = compileArgList(sp.getArgs());
     emit(new SpawnOp(sp,compiledMethodFor(sp.getMethod()),actuals));
     freeTemps(actuals);
+    return null;
   }
 
   @Override
-  public void visit(StoreField store) {
-    store.getIndex().accept(this);
-    Register index = operands.pop();
-    store.getRhs().accept(this);
-    Register value = operands.pop();
+  public Object visit(StoreField store) {
+    Register index = compile(store.getIndex());
+    Register value = compile(store.getRhs());
     Register object = Register.createLocal(store.getSlot());
     emit(new StoreFieldOp(store,object,index,value,store.getFieldType()));
     temps.release(index,value);
+    return null;
   }
 
   @Override
-  public void visit(UnaryExpression exp) {
-    exp.getOperand().accept(this);
-    Register operand = operands.peek();
-    emit(new UnaryOperation(exp,operand,operand,exp.getOperator()));
+  public Object visit(StoreNamedField store) {
+    Field field = store.getField();
+    Register value = compile(store.getRhs());
+    Register object = Register.createLocal(store.getSlot());
+    emit(new StoreFixedFieldOp(store,object,field.getOffset(),store.getFieldName(),value,
+        field.getType().isObject() ? Type.OBJECT : Type.INT));
+    temps.release(value);
+    return null;
+  }
+
+  @Override
+  public Object visit(UnaryExpression exp) {
+    Register operand = compile(exp.getOperand());
+    Register result = temps.acquire();
+    emit(new UnaryOperation(exp,result,operand,exp.getOperator()));
+    temps.release(operand);
+    return result;
   }
 
   /**
@@ -332,8 +377,8 @@ public final class Compiler extends Visitor {
    * the appropriate stack frame slot.
    */
   @Override
-  public void visit(Variable var) {
-    operands.push(Register.createLocal(var.getSlot()));
+  public Object visit(Variable var) {
+    return Register.createLocal(var.getSlot());
   }
 
   /**
@@ -345,16 +390,16 @@ public final class Compiler extends Visitor {
    *   b:
    */
   @Override
-  public void visit(WhileStatement w) {
+  public Object visit(WhileStatement w) {
     int top = currentPc();
-    w.getCond().accept(this);          // Compile the loop condition
-    Register cond = operands.pop();
+    Register cond = compile(w.getCond());
     Branch branchToExit = new Branch(w,cond,false);
     temps.release(cond);
     emit(branchToExit);
-    w.getBody().accept(this);
+    compile(w.getBody());
     emit(new Goto(w,top));
     branchToExit.setBranchTarget(currentPc());
+    return null;
   }
 
 }

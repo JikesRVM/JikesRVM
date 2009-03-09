@@ -12,7 +12,7 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import org.mmtk.harness.lang.ast.Type;
+import org.mmtk.harness.lang.type.Type;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
@@ -54,9 +54,15 @@ public abstract class Value {
     throw new RuntimeException("Invalid use of " + type() + " as a string");
   }
 
+  public Object marshall(Class<?> klass) {
+    throw new RuntimeException(getClass()+" cannot be marshalled into a Java Object");
+  }
+
   @Override
   public abstract int hashCode();
 
   @Override
   public abstract boolean equals(Object o);
+
+
 }

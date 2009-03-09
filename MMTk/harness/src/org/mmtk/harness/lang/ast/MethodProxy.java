@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.MethodTable;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * A proxy for a method, used so that we can defer lookup of a method
@@ -40,8 +41,8 @@ public class MethodProxy extends Method {
   }
 
   @Override
-  public void accept(Visitor v) {
-    getMethod().accept(v);
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 
   @Override

@@ -40,7 +40,7 @@ public final class Debug extends org.mmtk.vm.Debug {
   }
 
   private String format(Address addr) {
-    return format(addr.toObjectReference());
+    return ObjectModel.addressAndSpaceString(addr);
   }
 
   /**
@@ -48,7 +48,7 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void arrayRemsetEntry(Address start, Address guard) {
-    Trace.printf(Item.COLLECT, "arrayRemset: [%s,%s)", start, guard);
+    Trace.trace(Item.COLLECT, "arrayRemset: [%s,%s)", start, guard);
   }
 
   /**
@@ -56,7 +56,7 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void modbufEntry(ObjectReference object) {
-    Trace.printf(Item.COLLECT, "modbuf: %s", format(object));
+    Trace.trace(Item.COLLECT, "modbuf: %s", format(object));
   }
 
   /**
@@ -64,7 +64,7 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void remsetEntry(Address slot) {
-    Trace.printf(Item.COLLECT, "remset: %s->%s", format(slot), format(slot.loadAddress()));
+    Trace.trace(Item.COLLECT, "remset: %s->%s", format(slot), format(slot.loadObjectReference()));
   }
 
   /**

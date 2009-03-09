@@ -12,9 +12,9 @@
  */
 package org.mmtk.harness.lang;
 
-import org.mmtk.harness.lang.ast.Type;
 import org.mmtk.harness.lang.parser.Symbol;
 import org.mmtk.harness.lang.runtime.Value;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * A variable declaration

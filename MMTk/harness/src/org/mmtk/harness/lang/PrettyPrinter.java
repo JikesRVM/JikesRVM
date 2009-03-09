@@ -20,6 +20,7 @@ import java.util.Iterator;
 
 import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Alloc;
+import org.mmtk.harness.lang.ast.AllocUserType;
 import org.mmtk.harness.lang.ast.Assert;
 import org.mmtk.harness.lang.ast.Assignment;
 import org.mmtk.harness.lang.ast.Call;
@@ -27,6 +28,7 @@ import org.mmtk.harness.lang.ast.Constant;
 import org.mmtk.harness.lang.ast.Expression;
 import org.mmtk.harness.lang.ast.IfStatement;
 import org.mmtk.harness.lang.ast.LoadField;
+import org.mmtk.harness.lang.ast.LoadNamedField;
 import org.mmtk.harness.lang.ast.Method;
 import org.mmtk.harness.lang.ast.NormalMethod;
 import org.mmtk.harness.lang.ast.Operator;
@@ -36,10 +38,12 @@ import org.mmtk.harness.lang.ast.Sequence;
 import org.mmtk.harness.lang.ast.Spawn;
 import org.mmtk.harness.lang.ast.Statement;
 import org.mmtk.harness.lang.ast.StoreField;
+import org.mmtk.harness.lang.ast.StoreNamedField;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
 import org.mmtk.harness.lang.parser.MethodTable;
 import org.mmtk.harness.lang.parser.Parser;
+import org.vmmagic.unboxed.ArchitecturalWord;
 
 public class PrettyPrinter extends Visitor {
 
@@ -100,8 +104,8 @@ public class PrettyPrinter extends Visitor {
 
 
   @Override
-  public void visit(NormalMethod method) {
-    fmt.out("%s(",method.getName());
+  public Object visit(NormalMethod method) {
+    fmt.out("%s %s(",method.getReturnType(),method.getName());
     boolean first = true;
     for (Declaration decl : method.getParams()) {
       if (first) {
@@ -116,10 +120,11 @@ public class PrettyPrinter extends Visitor {
     method.getBody().accept(this);
     fmt.decreaseIndent();
     fmt.out("%s}",fmt.margin()); fmt.newline();
+    return null;
   }
 
   @Override
-  public void visit(Call call) {
+  public Object visit(Call call) {
     fmt.out("%s(",call.getMethod().getName());
     boolean first = true;
     for (Expression param : call.getParams()) {
@@ -131,24 +136,27 @@ public class PrettyPrinter extends Visitor {
       param.accept(this);
     }
     fmt.out(")");
+    return null;
   }
 
   @Override
-  public void visit(Sequence ass) {
+  public Object visit(Sequence ass) {
     for (Statement stmt : ass) {
       stmt.accept(this); fmt.newline();
     }
+    return null;
   }
 
   @Override
-  public void visit(Assignment a) {
+  public Object visit(Assignment a) {
     fmt.out("%s = ", a.getSymbol().getName());
     a.getRhs().accept(this);
     fmt.out(";");
+    return null;
   }
 
   @Override
-  public void visit(IfStatement conditional) {
+  public Object visit(IfStatement conditional) {
     String keyword = "if";
     Iterator<Expression> condIter = conditional.getConds().iterator();
     Iterator<Statement> bodyIter = conditional.getStmts().iterator();
@@ -172,11 +180,11 @@ public class PrettyPrinter extends Visitor {
       fmt.decreaseIndent();
       fmt.out("}");
     }
-//    fmt.newline();
+    return null;
   }
 
   @Override
-  public void visit(WhileStatement w) {
+  public Object visit(WhileStatement w) {
     fmt.out("while (");
     w.getCond().accept(this);
     fmt.out(") {"); fmt.newline();
@@ -184,52 +192,72 @@ public class PrettyPrinter extends Visitor {
     w.getBody().accept(this);
     fmt.decreaseIndent();
     fmt.out("}");
-//    fmt.newline();
+    return null;
   }
 
   @Override
-  public void visit(Operator op) {
+  public Object visit(Operator op) {
     fmt.out(" %s ", op.toString());
+    return null;
   }
 
   @Override
-  public void visit(LoadField load) {
+  public Object visit(LoadField load) {
     fmt.out("%s.%s[", load.getObjectSymbol().getName(), load.getFieldType().toString());
     load.getIndex().accept(this);
     fmt.out("]");
+    return null;
   }
 
   @Override
-  public void visit(Constant c) {
+  public Object visit(LoadNamedField load) {
+    fmt.out("%s.%s", load.getObjectSymbol().getName(), load.getFieldName());
+    return null;
+  }
+
+  @Override
+  public Object visit(Constant c) {
     fmt.out(c.value.toString());
+    return null;
   }
 
   @Override
-  public void visit(Variable var) {
+  public Object visit(Variable var) {
     fmt.out("%s", var.getSymbol().getName());
+    return null;
   }
 
   @Override
-  public void visit(StoreField store) {
+  public Object visit(StoreField store) {
     fmt.out("%s.%s[",store.getObjectSymbol().getName(), store.getFieldType().toString());
     store.getIndex().accept(this);
     fmt.out("] := ");
     store.getRhs().accept(this);
     fmt.out(";");
+    return null;
   }
 
   @Override
-  public void visit(Return ret) {
+  public Object visit(StoreNamedField store) {
+    fmt.out("%s.%s := ",store.getObjectSymbol().getName(), store.getFieldName());
+    store.getRhs().accept(this);
+    fmt.out(";");
+    return null;
+  }
+
+  @Override
+  public Object visit(Return ret) {
     fmt.out("return");
     if (ret.hasReturnValue()) {
       fmt.out(" ");
       ret.getRhs().accept(this);
     }
     fmt.out(";");
+    return null;
   }
 
   @Override
-  public void visit(Assert ass) {
+  public Object visit(Assert ass) {
     fmt.out("assert(");
     ass.getPredicate().accept(this);
     for (Expression expr : ass.getOutputs()) {
@@ -237,17 +265,19 @@ public class PrettyPrinter extends Visitor {
       expr.accept(this);
     }
     fmt.out(");");
+    return null;
   }
 
 
 
   @Override
-  public void visit(Declaration decl) {
+  public Object visit(Declaration decl) {
     fmt.out("%s %s", decl.getType(), decl.getName());
+    return null;
   }
 
   @Override
-  public void visit(PrintStatement print) {
+  public Object visit(PrintStatement print) {
     fmt.out("print");
     String separator = "(";
     for (Expression expr : print.getArgs()) {
@@ -256,10 +286,11 @@ public class PrettyPrinter extends Visitor {
       expr.accept(this);
     }
     fmt.out(");");
+    return null;
   }
 
   @Override
-  public void visit(Alloc alloc) {
+  public Object visit(Alloc alloc) {
     fmt.out("alloc(");
     alloc.getDataCount().accept(this);
     fmt.out(",");
@@ -269,10 +300,17 @@ public class PrettyPrinter extends Visitor {
       alloc.getDoubleAlign().accept(this);
     }
     fmt.out(")");
+    return null;
    }
 
   @Override
-  public void visit(Spawn spawn) {
+  public Object visit(AllocUserType alloc) {
+    fmt.out("alloc(%s)",alloc.getType());
+    return null;
+   }
+
+  @Override
+  public Object visit(Spawn spawn) {
     fmt.out("spawn");
     String separator = "(";
     for (Expression expr : spawn.getArgs()) {
@@ -280,6 +318,7 @@ public class PrettyPrinter extends Visitor {
       expr.accept(this);
     }
     fmt.out(");");
+    return null;
   }
 
 
@@ -337,6 +376,7 @@ public class PrettyPrinter extends Visitor {
   }
 
   public static void main(String[] args) {
+    ArchitecturalWord.init();
     try {
       MethodTable methods = new Parser(new BufferedInputStream(new FileInputStream(args[0]))).script();
       PrettyPrinter.printMethodTable(methods);

@@ -37,8 +37,9 @@ public class Variable extends AbstractAST implements Expression {
   public int getSlot() {
     return symbol.getLocation();
   }
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 
   public Symbol getSymbol() { return symbol; }

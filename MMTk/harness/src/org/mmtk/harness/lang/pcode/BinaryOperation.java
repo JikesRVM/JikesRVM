@@ -40,6 +40,7 @@ public final class BinaryOperation extends BinaryOp {
 
   @Override
   public String toString() {
-    return String.format("t%d <- t%d %s t%d", getResult(), op1, name, op2);
+    return String.format("%s <- %s %s %s", Register.nameOf(getResult()),
+        Register.nameOf(op1), name, Register.nameOf(op2));
   }
 }

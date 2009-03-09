@@ -12,13 +12,14 @@
  */
 package org.mmtk.harness.lang.ast;
 
+import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Source;
 import org.mmtk.harness.lang.parser.Token;
 
 /**
  * Abstract parent of all the components of an AST
  */
-public abstract class AbstractAST implements AST {
+public class AbstractAST implements AST {
 
   /*
    * Track the current source file - assumes only one source file
@@ -43,45 +44,59 @@ public abstract class AbstractAST implements AST {
   /* The source file */
   private Source source = currentSource;
 
-  /** Source code line corresponding to this syntax element */
-  private final int line;
-  /** Source code column corresponding to this syntax element */
-  private final int column;
+  /** Source code token corresponding to this syntax element */
+  private final Token t;
 
-  protected AbstractAST(Token t) {
-    this(t.beginLine, t.beginColumn);
+  public AbstractAST(Token t) {
+    this.t = t;
   }
 
+  /**
+   * Constructor only for AST elements that don't have a direct correspondance
+   * to the source.
+   * @param line
+   * @param column
+   */
   protected AbstractAST(int line, int column) {
-    this.line = line;
-    this.column = column;
+    Token tok = new Token();
+    tok.beginLine = line;
+    tok.beginColumn = column;
+    this.t = tok;
+  }
+
+  public Token getToken() {
+    return t;
   }
 
   @Override
   public int getLine() {
-    return line;
+    return t.beginLine;
   }
 
   @Override
   public int getColumn() {
-    return column;
+    return t.beginColumn;
   }
 
   @Override
   public String sourceLocation(String prefix) {
     if (source == null) {
       return prefix+"<no source available>";
-    } else {
-      return prefix+source.getLine(line)+"\n"+
-      spaces(prefix.length())+spaces(column-1)+"^";
     }
+    return prefix+source.getLine(getLine())+"\n"+
+    spaces(prefix.length())+spaces(getColumn()-1)+"^";
   }
 
-  private String spaces(int n) {
+  private static String spaces(int n) {
     StringBuilder str = new StringBuilder(n);
     for (int i=0; i < n; i++) {
       str.append(' ');
     }
     return str.toString();
+  }
+
+  @Override
+  public Object accept(Visitor v) {
+    throw new UnsupportedOperationException();
   }
 }

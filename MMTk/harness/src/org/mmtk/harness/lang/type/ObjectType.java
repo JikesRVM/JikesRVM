@@ -10,30 +10,33 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.mmtk.harness.lang.ast;
+package org.mmtk.harness.lang.type;
 
-/**
- * Types in the scripting language.
- */
-public enum Type {
-  INT,
-  OBJECT,
-  STRING,
-  BOOLEAN,
-  VOID;
+import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.lang.runtime.Value;
 
-  /**
-   * Return a friendly version of the type for error messages.
-   */
-  public String toString() {
-    return name().toLowerCase();
+public class ObjectType extends AbstractType {
+
+  public ObjectType() {
+    super("object");
   }
 
+  @Override
+  public Value initialValue() {
+    return ObjectValue.NULL;
+  }
+
+  @Override
+  public boolean isObject() {
+    return true;
+  }
+
+  @Override
   public boolean isCompatibleWith(Type rhs) {
-    if (this == rhs) {
+    if (rhs == this) {
       return true;
     }
-    if (this == BOOLEAN && rhs == OBJECT) {
+    if (rhs.isObject()) {
       return true;
     }
     return false;

@@ -12,7 +12,7 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import org.mmtk.harness.lang.ast.Type;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * Expression consisting of a simple integer value
@@ -58,6 +58,14 @@ public class IntValue extends Value {
    */
   public int getIntValue() {
     return value;
+  }
+
+  @Override
+  public Object marshall(Class<?> klass) {
+    if (klass.isAssignableFrom(IntValue.class)) {
+      return this;
+    }
+    return Integer.valueOf(value);
   }
 
   @Override

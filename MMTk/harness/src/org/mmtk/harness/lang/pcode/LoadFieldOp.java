@@ -14,11 +14,11 @@ package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.ast.AST;
-import org.mmtk.harness.lang.ast.Type;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.IntValue;
 import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.lang.runtime.StackFrame;
+import org.mmtk.harness.lang.type.Type;
 import org.vmmagic.unboxed.ObjectReference;
 
 public final class LoadFieldOp extends BinaryOp {
@@ -65,20 +65,17 @@ public final class LoadFieldOp extends BinaryOp {
   }
 
   public String toString() {
-    return String.format("t%d <- t%d.%s[t%d]", getResult(), op1,
-        fieldType == Type.OBJECT ? "object" : "int",  op2);
+    return String.format("%s <- %s.%s[%s]", Register.nameOf(getResult()),
+        Register.nameOf(op1), fieldType == Type.OBJECT ? "object" : "int",  op2);
   }
 
   @Override
   public void exec(Env env) {
     StackFrame frame = env.top();
-    switch (fieldType) {
-      case INT:
-        setResult(frame, new IntValue(env.loadDataField(getObject(frame), getIndex(frame))));
-        break;
-      case OBJECT:
-        setResult(frame, new ObjectValue(env.loadReferenceField(getObject(frame), getIndex(frame))));
-        break;
+    if (fieldType == Type.INT) {
+      setResult(frame, new IntValue(env.loadDataField(getObject(frame), getIndex(frame))));
+    } else if (fieldType == Type.OBJECT) {
+      setResult(frame, new ObjectValue(env.loadReferenceField(getObject(frame), getIndex(frame))));
     }
   }
 

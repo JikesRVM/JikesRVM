@@ -14,6 +14,7 @@ package org.mmtk.harness.lang;
 
 import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Alloc;
+import org.mmtk.harness.lang.ast.AllocUserType;
 import org.mmtk.harness.lang.ast.Assert;
 import org.mmtk.harness.lang.ast.Assignment;
 import org.mmtk.harness.lang.ast.BinaryExpression;
@@ -25,6 +26,7 @@ import org.mmtk.harness.lang.ast.Expression;
 import org.mmtk.harness.lang.ast.IfStatement;
 import org.mmtk.harness.lang.ast.IntrinsicMethod;
 import org.mmtk.harness.lang.ast.LoadField;
+import org.mmtk.harness.lang.ast.LoadNamedField;
 import org.mmtk.harness.lang.ast.Method;
 import org.mmtk.harness.lang.ast.MethodProxy;
 import org.mmtk.harness.lang.ast.NormalMethod;
@@ -35,6 +37,7 @@ import org.mmtk.harness.lang.ast.Sequence;
 import org.mmtk.harness.lang.ast.Spawn;
 import org.mmtk.harness.lang.ast.Statement;
 import org.mmtk.harness.lang.ast.StoreField;
+import org.mmtk.harness.lang.ast.StoreNamedField;
 import org.mmtk.harness.lang.ast.UnaryExpression;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
@@ -45,96 +48,127 @@ import org.mmtk.harness.lang.ast.WhileStatement;
  */
 public abstract class Visitor {
 
-  public void visit(AST ast) { }
-  public void visit(Alloc alloc) {
+  public Object visit(AST ast) { return ast; }
+  public Object visit(Alloc alloc) {
     alloc.getDataCount().accept(this);
     alloc.getRefCount().accept(this);
     alloc.getDoubleAlign().accept(this);
+    return alloc;
   }
-  public void visit(Assert ass) {
+  public Object visit(AllocUserType alloc) {
+    return alloc;
+  }
+  public Object visit(Assert ass) {
     ass.getPredicate().accept(this);
     for (AST a : ass.getOutputs()) {
       a.accept(this);
     }
+    return ass;
   }
-  public void visit(Assignment a) {
+  public Object visit(Assignment a) {
     a.getRhs().accept(this);
+    return a;
   }
-  public void visit(BinaryExpression exp) {
+  public Object visit(BinaryExpression exp) {
     exp.getLhs().accept(this);
     exp.getOperator().accept(this);
     exp.getRhs().accept(this);
+    return exp;
   }
-  public void visit(Call call) {
+  public Object visit(Call call) {
     for (Expression param : call.getParams()) {
       param.accept(this);
     }
     call.getMethod().accept(this);
+    return call;
   }
-  public void visit(Constant c) { }
-  public void visit(Declaration decl) { }
-  public void visit(Empty e) { }
-  public void visit(Expect exc) { }
-  public void visit(IfStatement conditional) {
+  public Object visit(Constant c) { return c; }
+  public Object visit(Declaration decl) { return decl; }
+  public Object visit(Empty e) { return e; }
+  public Object visit(Expect exc) { return exc; }
+  public Object visit(IfStatement conditional) {
     for (Expression cond : conditional.getConds()) {
       cond.accept(this);
     }
     for (Statement stmt: conditional.getStmts()) {
       stmt.accept(this);
     }
+    return conditional;
   }
-  public void visit(IntrinsicMethod method) {
+  public Object visit(IntrinsicMethod method) {
+    return method;
   }
-  public void visit(LoadField load) {
+  public Object visit(LoadField load) {
     load.getIndex().accept(this);
+    return load;
   }
-  public void visit(Method method) {
+  public Object visit(LoadNamedField load) {
+    return load;
+  }
+  public Object visit(Method method) {
     System.err.println("Fall-through to Method visitor");
+    return method;
   }
-  public void visit(MethodProxy proxy) {
+  public Object visit(MethodProxy proxy) {
     proxy.getMethod().accept(this);
+    return proxy;
   }
-  public void visit(NormalMethod method) {
+  public Object visit(NormalMethod method) {
     for (Declaration decl : method.getDecls()) {
       decl.accept(this);
     }
     method.getBody().accept(this);
+    return method;
   }
-  public void visit(Operator op) {
+  public Object visit(Operator op) {
     op.accept(this);
+    return op;
   }
-  public void visit(PrintStatement print) {
+  public Object visit(PrintStatement print) {
     for (Expression e : print.getArgs()) {
       e.accept(this);
     }
+    return print;
   }
-  public void visit(Return ret) {
+  public Object visit(Return ret) {
     if (ret.hasReturnValue()) {
       ret.getRhs().accept(this);
     }
+    return ret;
   }
-  public void visit(Sequence ass) {
+  public Object visit(Sequence ass) {
     for (Statement stmt : ass) {
       stmt.accept(this);
     }
+    return ass;
   }
-  public void visit(Spawn sp) {
+  public Object visit(Spawn sp) {
     for (AST arg : sp.getArgs()) {
       arg.accept(this);
     }
     sp.getMethod().accept(this);
+    return sp;
   }
-  public void visit(StoreField store) {
+  public Object visit(StoreField store) {
     store.getIndex().accept(this);
     store.getRhs().accept(this);
+    return store;
   }
-  public void visit(UnaryExpression exp) {
+  public Object visit(StoreNamedField store) {
+    store.getRhs().accept(this);
+    return store;
+  }
+  public Object visit(UnaryExpression exp) {
     exp.getOperator().accept(this);
     exp.getOperand().accept(this);
+    return exp;
   }
-  public void visit(Variable var) { }
-  public void visit(WhileStatement w) {
+  public Object visit(Variable var) {
+    return var;
+  }
+  public Object visit(WhileStatement w) {
     w.getCond().accept(this);
     w.getBody().accept(this);
+    return w;
   }
 }

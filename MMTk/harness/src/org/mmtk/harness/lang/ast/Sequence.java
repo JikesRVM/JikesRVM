@@ -46,7 +46,8 @@ public class Sequence extends AbstractAST implements Statement,Iterable<Statemen
     return stmts.iterator();
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 }

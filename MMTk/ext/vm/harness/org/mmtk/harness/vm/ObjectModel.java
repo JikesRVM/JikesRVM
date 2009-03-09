@@ -756,7 +756,16 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param ref The object
    * @return "address/space"
    */
-  private static String addressAndSpaceString(ObjectReference ref) {
+  public static String addressAndSpaceString(ObjectReference ref) {
     return String.format("%s/%s",ref, Space.getSpaceForObject(ref).getName());
+  }
+
+  /**
+   * Address and space name (eg 0x45678900/ms)
+   * @param ref The object
+   * @return "address/space"
+   */
+  public static String addressAndSpaceString(Address addr) {
+    return addressAndSpaceString(addr.toObjectReference());
   }
 }

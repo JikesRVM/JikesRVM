@@ -23,7 +23,8 @@ public class Empty extends AbstractAST implements Statement {
     super(0,0);
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 }

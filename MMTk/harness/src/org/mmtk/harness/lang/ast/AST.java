@@ -13,6 +13,7 @@
 package org.mmtk.harness.lang.ast;
 
 import org.mmtk.harness.lang.Visitor;
+import org.mmtk.harness.lang.parser.Token;
 
 /**
  * Abstract parent of all the components of an AST
@@ -20,11 +21,13 @@ import org.mmtk.harness.lang.Visitor;
 public interface AST {
 
   /** Accept visitors */
-  void accept(Visitor v);
+  Object accept(Visitor v);
 
   int getLine();
 
   int getColumn();
+
+  Token getToken();
 
   String sourceLocation(String prefix);
 }

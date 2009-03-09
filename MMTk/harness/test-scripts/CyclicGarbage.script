@@ -14,7 +14,7 @@
 /**
  * This is a simple test that creates lots of cyclic garbage.
  */
-main() {
+void main() {
   int cycles = 300;
   int cycleSize = 100;
 

@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Token;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * Abstract superclass of methods implemented in a variety of ways
@@ -56,8 +57,9 @@ public abstract class Method extends AbstractAST implements Statement, Expressio
     return name;
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 
   public int getParamCount() {
@@ -81,9 +83,8 @@ public abstract class Method extends AbstractAST implements Statement, Expressio
   public boolean equals(Object o) {
     if (o instanceof Method) {
       return compareTo((Method)o) == 0;
-    } else {
-      return false;
     }
+    return false;
   }
 
   @Override

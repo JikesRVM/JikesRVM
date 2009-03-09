@@ -73,6 +73,9 @@ public class Harness {
   /** Print yield policy statistics on exit */
   public static final PolicyStats policyStats = new PolicyStats();
 
+  /** Timeout on unreasonably long GC */
+  public static final Timeout timeout = new Timeout();
+
   private static boolean isInitialized = false;
 
   /**

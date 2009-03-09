@@ -19,6 +19,7 @@ import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.runtime.BoolValue;
 import org.mmtk.harness.lang.runtime.IntValue;
 import org.mmtk.harness.lang.runtime.Value;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * Arithmetic and logical operators
@@ -133,10 +134,9 @@ public enum Operator {
   public final Type resultType(Type lhs, Type rhs) {
     if (booleanOperators.contains(this)) {
       return Type.BOOLEAN;
-    } else {
-      assert lhs == rhs;
-      return lhs;
     }
+    assert lhs == rhs;
+    return lhs;
   }
 
   /**

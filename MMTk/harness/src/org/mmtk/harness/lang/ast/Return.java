@@ -29,8 +29,9 @@ public class Return extends AbstractAST implements Statement {
     this.expr = null;
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 
   public Expression getRhs() { return expr; }

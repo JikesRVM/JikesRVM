@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.ast.Method;
 import org.mmtk.harness.lang.ast.NormalMethod;
 
@@ -28,6 +29,7 @@ public class MethodTable {
   private Map<String, Method> table = new HashMap<String, Method>();
 
   public void add(Method m) {
+    Trace.trace(Trace.Item.PARSER,"defining method %s", m.getName());
     if (SymbolTable.reservedWords.contains(m.getName()))
       throw new RuntimeException(m.getName() + " is a reserved word");
     if (table.containsKey(m.getName()))

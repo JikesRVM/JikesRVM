@@ -14,9 +14,9 @@ package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.ast.AST;
-import org.mmtk.harness.lang.ast.Type;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
+import org.mmtk.harness.lang.type.Type;
 import org.vmmagic.unboxed.ObjectReference;
 
 public final class StoreFieldOp extends TernaryOp {
@@ -41,15 +41,10 @@ public final class StoreFieldOp extends TernaryOp {
     int fieldIndex = getIndex(frame);
     ObjectReference object = getObjectObj(frame);
 
-    switch (fieldType) {
-      case INT: {
-        env.storeDataField(object, fieldIndex, getValInt(frame));
-        break;
-      }
-      case OBJECT: {
-        env.storeReferenceField(object, fieldIndex, getValObject(frame));
-        break;
-      }
+    if (fieldType == Type.INT) {
+      env.storeDataField(object, fieldIndex, getValInt(frame));
+    } else if (fieldType == Type.OBJECT) {
+      env.storeReferenceField(object, fieldIndex, getValObject(frame));
     }
   }
 

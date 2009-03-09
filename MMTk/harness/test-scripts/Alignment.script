@@ -14,7 +14,7 @@
 /**
  * This is a simple test that allocates aligned and unaligned objects.
  */
-main() {
+void main() {
   int listSize = 200;
   int alignEvery = 3;
 

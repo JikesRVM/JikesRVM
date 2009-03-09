@@ -21,7 +21,7 @@ import org.mmtk.harness.lang.Declaration;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.pcode.PseudoOp;
-import org.mmtk.harness.lang.ast.Type;
+import org.mmtk.harness.lang.type.Type;
 import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
@@ -31,6 +31,13 @@ import org.vmmagic.unboxed.ObjectReference;
  * variable, and that all variables are live all the time.
  */
 public class StackFrame {
+
+  /**
+   * Enable the assertion that objects won't move after being traced.
+   * This is notably not true for MC, but can be useful for debugging other
+   * collectors.
+   */
+  private static final boolean ASSERT_WILL_NOT_MOVE = false;
 
   /** A sentinel for slots that have no value */
   public static final int NO_SUCH_SLOT = Integer.MAX_VALUE;
@@ -117,8 +124,10 @@ public class StackFrame {
           Trace.trace(Item.ROOTS, "Tracing root %s", object.toString());
         }
         object.traceObject(trace);
-        assert trace.willNotMoveInCurrentCollection(object.getObjectValue()) :
-          object.getObjectValue()+" has been traced but willNotMoveInCurrentCollection is still false";
+        if (ASSERT_WILL_NOT_MOVE) {
+          assert trace.willNotMoveInCurrentCollection(object.getObjectValue()) :
+            object.getObjectValue()+" has been traced but willNotMoveInCurrentCollection is still false";
+        }
         if (Trace.isEnabled(Item.ROOTS)) {
           Trace.trace(Item.ROOTS, "new value of %s", object.toString());
         }

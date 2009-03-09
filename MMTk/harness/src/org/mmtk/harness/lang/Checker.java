@@ -19,6 +19,7 @@ import java.util.List;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Alloc;
+import org.mmtk.harness.lang.ast.AllocUserType;
 import org.mmtk.harness.lang.ast.Assert;
 import org.mmtk.harness.lang.ast.Assignment;
 import org.mmtk.harness.lang.ast.BinaryExpression;
@@ -29,6 +30,7 @@ import org.mmtk.harness.lang.ast.Expect;
 import org.mmtk.harness.lang.ast.Expression;
 import org.mmtk.harness.lang.ast.IfStatement;
 import org.mmtk.harness.lang.ast.LoadField;
+import org.mmtk.harness.lang.ast.LoadNamedField;
 import org.mmtk.harness.lang.ast.Method;
 import org.mmtk.harness.lang.ast.NormalMethod;
 import org.mmtk.harness.lang.ast.Operator;
@@ -38,11 +40,14 @@ import org.mmtk.harness.lang.ast.Sequence;
 import org.mmtk.harness.lang.ast.Spawn;
 import org.mmtk.harness.lang.ast.Statement;
 import org.mmtk.harness.lang.ast.StoreField;
-import org.mmtk.harness.lang.ast.Type;
+import org.mmtk.harness.lang.ast.StoreNamedField;
 import org.mmtk.harness.lang.ast.UnaryExpression;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
 import org.mmtk.harness.lang.parser.MethodTable;
+import org.mmtk.harness.lang.type.Field;
+import org.mmtk.harness.lang.type.Type;
+import org.mmtk.harness.lang.type.UserType;
 
 /**
  * A type-checker visitor for MMTk scripts
@@ -61,11 +66,6 @@ public class Checker extends Visitor {
   }
 
   /**
-   * The type of the most recently visited expression.
-   */
-  private Type type;
-
-  /**
    * The type of the current method
    */
   private Type returnType;
@@ -76,17 +76,12 @@ public class Checker extends Visitor {
   private boolean[] isInitialized;
 
   /**
-   * @return The type of the most recently visited expression.
-   */
-  public Type getType() { return type; }
-
-  /**
    * Visit an expression and return its type.
    * @param expr
    * @return
    */
   private Type getTypeOf(Expression expr) {
-    expr.accept(this);
+    Type type = (Type)expr.accept(this);
     Trace.trace(Item.CHECKER,"Type of %s is %s%n",PrettyPrinter.format(expr),type.toString());
     return type;
   }
@@ -99,7 +94,7 @@ public class Checker extends Visitor {
    * @return
    */
   private boolean checkType(Expression expr, Type...types) {
-    getTypeOf(expr);
+    Type type = getTypeOf(expr);
     for (Type t : types) {
       if (type == t) {
         return true;
@@ -113,10 +108,11 @@ public class Checker extends Visitor {
    * @param ast
    * @param message
    */
-  private static void fail(AST ast, String message) {
-    System.err.printf("Error at line %d: %s%n",ast.getLine(),message);
+  private static void fail(AST ast, String message, Object...params) {
+    String fullMessage = String.format(message,params);
+    System.err.printf("Error at line %d: %s%n",ast.getLine(),fullMessage);
     PrettyPrinter.print(System.err, ast); System.err.println();
-    throw new RuntimeException(message);
+    throw new CheckerException(fullMessage);
   }
 
   private void checkParams(AST marker, List<Type> actualTypes, List<Type> formalTypes) {
@@ -138,7 +134,7 @@ public class Checker extends Visitor {
 
 
   @Override
-  public void visit(Alloc alloc) {
+  public Object visit(Alloc alloc) {
     if (!checkType(alloc.getRefCount(),Type.INT)) {
       fail(alloc,"Allocation reference count must be integer");
     }
@@ -148,25 +144,33 @@ public class Checker extends Visitor {
     if (!checkType(alloc.getDoubleAlign(),Type.BOOLEAN)) {
       fail(alloc,"Allocation double align must be boolean");
     }
-    type = Type.OBJECT;
+    return Type.OBJECT;
   }
 
   @Override
-  public void visit(Assert ass) {
+  public Object visit(AllocUserType alloc) {
+    if (!alloc.getType().isObject() || alloc.getType() == Type.OBJECT) {
+      fail(alloc,"Can't allocate a %s using alloc(type)",alloc.getType().toString());
+    }
+    return alloc.getType();
+  }
+
+  @Override
+  public Object visit(Assert ass) {
     checkType(ass.getPredicate(),Type.BOOLEAN);
-    type = Type.VOID;
+    return Type.VOID;
   }
 
   @Override
-  public void visit(Assignment a) {
+  public Object visit(Assignment a) {
     isInitialized[a.getSlot()] = true;
     Type lhsType = a.getSymbol().getType();
     checkType(a.getRhs(),lhsType);
-    type = Type.VOID;
+    return Type.VOID;
   }
 
   @Override
-  public void visit(BinaryExpression exp) {
+  public Object visit(BinaryExpression exp) {
     Type lhsType = getTypeOf(exp.getLhs());
     Type rhsType = getTypeOf(exp.getRhs());
     Operator op = exp.getOperator();
@@ -174,8 +178,10 @@ public class Checker extends Visitor {
     if (lhsType != rhsType) {
       // Allow boolean/object comparisons
       if (op == Operator.EQ || op == Operator.NE) {
-        if ((lhsType == Type.BOOLEAN && rhsType == Type.OBJECT) ||
-            (lhsType == Type.OBJECT && rhsType == Type.BOOLEAN)) {
+        if ((lhsType == Type.BOOLEAN && rhsType.isObject()) ||
+            (lhsType.isObject() && rhsType == Type.BOOLEAN)) {
+          ok = true;
+        } else if (lhsType.isObject() && rhsType.isObject()){
           ok = true;
         } else {
           ok = false;
@@ -184,18 +190,18 @@ public class Checker extends Visitor {
         ok = false;
       }
       if (!ok) {
-        fail(exp,"Type mismatch");
+        fail(exp,"Type mismatch between "+lhsType+" and "+rhsType);
       }
     }
     if (Operator.booleanOperators.contains(op)) {
-      type = Type.BOOLEAN;
+      return Type.BOOLEAN;
     } else {
-      type = lhsType;
+      return lhsType;
     }
   }
 
   @Override
-  public void visit(Call call) {
+  public Object visit(Call call) {
     Method m = call.getMethod();
     if (call.getParams().size() != m.getParamCount()) {
       fail(call,"Wrong number of parameters");
@@ -204,34 +210,32 @@ public class Checker extends Visitor {
     List<Type> actualTypes = new ArrayList<Type>();
     /* Type-check the actual parameter expressions */
     for (Expression param : call.getParams()) {
-      param.accept(this);
-      actualTypes.add(type);
+      actualTypes.add(getTypeOf(param));
     }
     checkParams(call, actualTypes, m.getParamTypes());
     if (call.isExpression()) {
-      type = call.getMethod().getReturnType();
-    } else {
-      type = Type.VOID;
+      return call.getMethod().getReturnType();
     }
+    return Type.VOID;
   }
 
   @Override
-  public void visit(Constant c) {
-    type = c.value.type();
+  public Object visit(Constant c) {
+    return c.value.type();
   }
 
   @Override
-  public void visit(Empty e) {
-    type = Type.VOID;
+  public Object visit(Empty e) {
+    return Type.VOID;
   }
 
   @Override
-  public void visit(Expect exc) {
-    type = Type.VOID;
+  public Object visit(Expect exc) {
+    return Type.VOID;
   }
 
   @Override
-  public void visit(IfStatement conditional) {
+  public Object visit(IfStatement conditional) {
     for (Expression e : conditional.getConds()) {
       if (!checkType(e,Type.BOOLEAN)) {
         fail(e,"Conditional must have type BOOLEAN");
@@ -240,38 +244,51 @@ public class Checker extends Visitor {
     for (Statement s : conditional.getStmts()) {
       s.accept(this);
     }
-    type = Type.VOID;
+    return Type.VOID;
   }
 
   @Override
-  public void visit(LoadField load) {
+  public Object visit(LoadField load) {
     if (load.getObjectSymbol().getType() != Type.OBJECT) {
       fail(load,"Target of loadfield must be an Object");
     }
-    load.getIndex().accept(this);
-    if (type != Type.INT) {
+    if (getTypeOf(load.getIndex()) != Type.INT) {
       fail(load,"Loadfield index must have type INTEGER");
     }
-    type = load.getFieldType();
+    return load.getFieldType();
   }
 
   @Override
-  public void visit(NormalMethod method) {
+  public Object visit(LoadNamedField load) {
+    Type t = load.getObjectSymbol().getType();
+    if (!t.isObject()) {
+      fail(load,"Target of loadfield must be an Object type");
+    }
+    UserType objectType = (UserType)t;
+    Field field = objectType.getField(load.getFieldName());
+    if (field == null) {
+      fail(load,"Type %s does not have a field called %s",t,load.getFieldName());
+    }
+    return field.getType();
+  }
+
+  @Override
+  public Object visit(NormalMethod method) {
     isInitialized = new boolean[method.getDecls().size()];
     for (Declaration decl : method.getParams()) {
       isInitialized[decl.getSlot()] = true;
     }
     returnType = method.getReturnType();
     method.getBody().accept(this);
-    type = returnType;
+    return returnType;
   }
 
   @Override
-  public void visit(PrintStatement print) {
+  public Object visit(PrintStatement print) {
     for (Expression exp : print.getArgs()) {
       exp.accept(this);
     }
-    type = Type.VOID;
+    return Type.VOID;
   }
 
   /**
@@ -281,22 +298,22 @@ public class Checker extends Visitor {
    *   declared type of the method
    */
   @Override
-  public void visit(Return ret) {
+  public Object visit(Return ret) {
     if (ret.hasReturnValue()) {
-      ret.getRhs().accept(this);
+      Type type = getTypeOf(ret.getRhs());
       if (!returnType.isCompatibleWith(type)) {
         fail(ret,"Returning a "+type+" in a method declared as "+returnType);
       }
+      return type;
     } else if (returnType != Type.VOID) {
-      fail(ret,"Returning from a non-void method requires a return value");
-    } else {
-      type = Type.VOID;
+      fail(ret,"Returning from a non-Object method requires a return value");
     }
+    return Type.VOID;
   }
 
   @Override
-  public void visit(Sequence ass) {
-    super.visit(ass);
+  public Object visit(Sequence seq) {
+    return super.visit(seq);
   }
 
   /**
@@ -305,55 +322,78 @@ public class Checker extends Visitor {
    * - Actual parameters against method formal parameters
    */
   @Override
-  public void visit(Spawn sp) {
+  public Object visit(Spawn sp) {
     List<Type> actualTypes = new ArrayList<Type>();
     for (Expression expr : sp.getArgs()) {
-      expr.accept(this);
-      actualTypes.add(type);
+      actualTypes.add(getTypeOf(expr));
     }
     checkParams(sp, actualTypes, sp.getMethod().getParamTypes());
-    type = Type.VOID;
+    return Type.VOID;
   }
 
   @Override
-  public void visit(StoreField store) {
+  public Object visit(StoreField store) {
     if (store.getObjectSymbol().getType() != Type.OBJECT) {
       fail(store,"Target of storefield must be an Object");
     }
     if (getTypeOf(store.getIndex()) != Type.INT) {
       fail(store,"Storefield index must have type INTEGER");
     }
-    if (getTypeOf(store.getRhs()) != store.getFieldType()) {
-      fail(store,"Storefield to a "+store.getFieldType()+" must have type "+store.getFieldType());
+    Type rhsType = getTypeOf(store.getRhs());
+    Type fieldType = store.getFieldType();
+    if (!fieldType.isCompatibleWith(rhsType)) {
+      fail(store,"Storefield to a "+fieldType+" must have type "+fieldType+", not "+rhsType);
     }
-    type = Type.VOID;
+    return Type.VOID;
   }
 
   @Override
-  public void visit(UnaryExpression exp) {
+  public Object visit(StoreNamedField store) {
+    assert store.getObjectSymbol() != null;
+    assert store.getObjectSymbol().getType() != null;
+    Type t = store.getObjectSymbol().getType();
+    if (!t.isObject()) {
+      fail(store,"Target of storefield.name (%s) must be an object type, not %s",
+          store.getObjectSymbol().getName(),t.getName());
+    }
+    UserType objectType = (UserType)t;
+    Field field = objectType.getField(store.getFieldName());
+    if (field == null) {
+      fail(store,"The type "+objectType+" does not have a field called "+store.getFieldName());
+    }
+    Type fieldType = field.getType();
+    if (!fieldType.isCompatibleWith(getTypeOf(store.getRhs()))) {
+      fail(store,"Storefield to a "+fieldType+" must have type "+fieldType);
+    }
+    return Type.VOID;
+  }
+
+  @Override
+  public Object visit(UnaryExpression exp) {
     /* Unary operators preserve type */
-    exp.getOperand().accept(this);
+    Type type = getTypeOf(exp.getOperand());
     /* With this one exception ... */
     if (exp.getOperator() == Operator.NOT && type == Type.OBJECT) {
-      type = Type.BOOLEAN;
+      return Type.BOOLEAN;
     }
+    return type;
   }
 
   @Override
-  public void visit(Variable var) {
+  public Object visit(Variable var) {
     if (!isInitialized[var.getSlot()]) {
       fail(var,"Variable "+var.getSymbol().getName()+" is not initialized before use");
     }
-    type = var.getSymbol().getType();
+    return var.getSymbol().getType();
   }
 
   @Override
-  public void visit(WhileStatement w) {
+  public Object visit(WhileStatement w) {
       if (!checkType(w.getCond(),Type.BOOLEAN,Type.OBJECT)) {
         fail(w,"While condition must have type BOOLEAN");
       }
     w.getBody().accept(this);
-    type = Type.VOID;
+    return Type.VOID;
   }
 
 }

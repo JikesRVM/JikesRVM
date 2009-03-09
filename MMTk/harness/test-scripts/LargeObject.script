@@ -14,7 +14,7 @@
 /**
  * This is a simple test that allocates large objects.
  */
-main() {
+void main() {
   int limitPages = 32; // 128
   int startPages = 2;
   int p = startPages;

@@ -34,8 +34,9 @@ public class PrintStatement extends AbstractAST implements Statement {
     this.exprs = exprs;
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
   public List<Expression> getArgs() { return Collections.unmodifiableList(exprs); }
 }

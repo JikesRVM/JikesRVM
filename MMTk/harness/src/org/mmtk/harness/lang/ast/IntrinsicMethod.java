@@ -24,6 +24,7 @@ import org.mmtk.harness.lang.runtime.IntValue;
 import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.lang.runtime.StringValue;
 import org.mmtk.harness.lang.runtime.Value;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * A method that is implemented directly in Java rather than in the scripting language.
@@ -198,56 +199,17 @@ public class IntrinsicMethod extends Method {
   }
 
   /**
-   * Take a script-language value and return the corresponding Java value.
-   * This can only be done for a limited number of types ...
-   *
-   * @param v The script-language value
-   * @param klass The Java target type
-   * @return An object of type Class<klass>.
-   */
-  private Object marshall(Value v, Class<?> klass) {
-    switch (v.type()) {
-      case INT:
-        if (klass.isAssignableFrom(IntValue.class)) {
-          return v;
-        } else {
-          return Integer.valueOf(v.getIntValue());
-        }
-      case BOOLEAN:
-        if (klass.isAssignableFrom(BoolValue.class)) {
-          return v;
-        } else {
-          return Boolean.valueOf(v.getBoolValue());
-        }
-      case STRING:
-        if (klass.isAssignableFrom(StringValue.class)) {
-          return v;
-        } else {
-          return v.getStringValue();
-        }
-      case OBJECT:
-        if (klass.isAssignableFrom(ObjectValue.class)) {
-          return v;
-        } else {
-          throw new RuntimeException("Can't marshall an object into a Java Object");
-        }
-      default:
-        throw new RuntimeException("Unknown type in intrinsic call");
-    }
-  }
-
-  /**
    * Marshall an array of values, adding the mandatory Env value.
    * @param env
-   * @param params
+   * @param values
    * @return
    */
-  private Object[] marshall(Env env, Value[] params) {
-    assert params.length == signature.length : "Signature doesn't match params";
-    Object[] marshalled = new Object[params.length+1];
+  private Object[] marshall(Env env, Value[] values) {
+    assert values.length == signature.length : "Signature doesn't match params";
+    Object[] marshalled = new Object[values.length+1];
     marshalled[0] = env;
-    for (int i=0; i < params.length; i++) {
-      marshalled[i+1] = marshall(params[i], signature[i]);
+    for (int i=0; i < values.length; i++) {
+      marshalled[i+1] = values[i].marshall(signature[i]);
     }
     return marshalled;
   }
@@ -318,8 +280,8 @@ public class IntrinsicMethod extends Method {
    * Accept visitors
    */
   @Override
-  public void accept(Visitor v) {
-    v.visit(this);
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 
   /**

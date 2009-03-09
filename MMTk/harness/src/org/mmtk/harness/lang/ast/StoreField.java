@@ -15,6 +15,7 @@ package org.mmtk.harness.lang.ast;
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Symbol;
 import org.mmtk.harness.lang.parser.Token;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * Assign a field of an object.
@@ -40,8 +41,9 @@ public class StoreField extends AbstractAST implements Statement {
     this.value = value;
   }
 
-  public void accept(Visitor v) {
-    v.visit(this);
+  @Override
+  public Object accept(Visitor v) {
+    return v.visit(this);
   }
 
   public Symbol getObjectSymbol() { return symbol; }

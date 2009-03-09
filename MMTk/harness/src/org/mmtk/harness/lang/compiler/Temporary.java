@@ -15,6 +15,9 @@ package org.mmtk.harness.lang.compiler;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
+
 public class Temporary {
 
   private List<Register> freePool = new ArrayList<Register>();
@@ -28,14 +31,13 @@ public class Temporary {
   public Register acquire() {
     if (freePool.isEmpty()) {
       Register tmp = Register.createTemporary(nextIndex++);
-      //System.err.printf("Acquire *new* temporary, %s%n", tmp);
+      Trace.trace(Item.COMPILER,"Acquire new temporary, %s", tmp);
       return tmp;
-    } else {
-      Register result = freePool.remove(freePool.size()-1);
-      //System.err.printf("Acquire temporary, %s%n", result);
-      result.setUsed();
-      return result;
     }
+    Register result = freePool.remove(freePool.size()-1);
+    Trace.trace(Item.COMPILER,"Acquire temporary, %s", result);
+    result.setUsed();
+    return result;
   }
 
   public void release(Register...temp) {
