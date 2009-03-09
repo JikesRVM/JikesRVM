@@ -14,7 +14,7 @@ package test.org.jikesrvm.basic.bugs;
 
 public class RVM_703 {
 
-  public static void main(String a[]) {
+  public static void main(String[] a) {
     foo();
   }
 
