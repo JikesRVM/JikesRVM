@@ -414,14 +414,20 @@ public abstract class Phase implements Constants {
         /* Global phase */
         case SCHEDULE_GLOBAL: {
           if (logDetails) Log.writeln(" as Global...");
-          if (primary) plan.collectionPhase(phaseId);
+          if (primary) {
+            if (VM.DEBUG) VM.debugging.globalPhase(phaseId,true);
+            plan.collectionPhase(phaseId);
+            if (VM.DEBUG) VM.debugging.globalPhase(phaseId,false);
+          }
           break;
         }
 
         /* Collector phase */
         case SCHEDULE_COLLECTOR: {
           if (logDetails) Log.writeln(" as Collector...");
+          if (VM.DEBUG) VM.debugging.collectorPhase(phaseId,order,true);
           collector.collectionPhase(phaseId, primary);
+          if (VM.DEBUG) VM.debugging.collectorPhase(phaseId,order,false);
           break;
         }
 
@@ -431,7 +437,9 @@ public abstract class Phase implements Constants {
           /* Iterate through all mutator contexts */
           MutatorContext mutator;
           while ((mutator = VM.activePlan.getNextMutator()) != null) {
+            if (VM.DEBUG) VM.debugging.mutatorPhase(phaseId,mutator.getId(),true);
             mutator.collectionPhase(phaseId, primary);
+            if (VM.DEBUG) VM.debugging.mutatorPhase(phaseId,mutator.getId(),false);
           }
           break;
         }

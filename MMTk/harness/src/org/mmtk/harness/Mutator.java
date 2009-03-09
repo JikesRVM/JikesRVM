@@ -13,6 +13,7 @@
 package org.mmtk.harness;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
@@ -20,6 +21,7 @@ import java.util.Stack;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.runtime.AllocationSite;
+import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
@@ -43,15 +45,25 @@ import org.vmmagic.unboxed.ObjectReference;
  * Note that as soon as the mutator is created it is considered active. This means
  * that a GC can not occur unless you execute commands on the mutator (or muEnd it).
  */
-public class Mutator {
+public abstract class Mutator {
   private static boolean gcEveryWB = false;
 
+  /**
+   * Force garbage collection on every write barrier invocation
+   */
   public static void setGcEveryWB() {
     gcEveryWB = true;
   }
 
   /** Registered mutators */
   protected static final ArrayList<Mutator> mutators = new ArrayList<Mutator>();
+
+  /**
+   * @return The active mutators
+   */
+  public static java.util.Collection<Mutator> getMutators() {
+    return Collections.unmodifiableCollection(mutators);
+  }
 
   /**
    * Get a mutator by id.
@@ -188,25 +200,15 @@ public class Mutator {
   }
 
   /**
+   * Return the roots
+   */
+  public abstract Iterable<ObjectValue> getRoots();
+
+  /**
    * Print the thread roots and add them to a stack for processing.
    */
   public void dumpThreadRoots(int width, Stack<ObjectReference> roots) {
     // Nothing to do for the default mutator
-  }
-
-  /**
-   * Format the object for dumping.
-   */
-  public static String formatObject(ObjectReference object) {
-    return String.format("%s[%d@%s]", object, ObjectModel.getId(object), getSiteName(object));
-  }
-
-  /**
-   * Format the object for dumping, and trim to a max width.
-   */
-  public static String formatObject(int width, ObjectReference object) {
-    String base = formatObject(object);
-    return base.substring(base.length() - width);
   }
 
   /**
@@ -306,7 +308,7 @@ public class Mutator {
     int limit = ObjectModel.getDataCount(object);
     check(!object.isNull(), "Object can not be null");
     check(index >= 0, "Index must be non-negative");
-    check(index < limit, "Index out of bounds");
+    check(index < limit, "Index "+index+" out of bounds "+limit);
 
     Address ref = ObjectModel.getDataSlot(object, index);
     ref.store(value);
@@ -322,12 +324,12 @@ public class Mutator {
    */
   public void storeReferenceField(ObjectReference object, int index, ObjectReference value) {
     int limit = ObjectModel.getRefs(object);
-    if (Trace.isEnabled(Item.STORE)) {
-      System.err.printf("[%s].object[%d/%d] = %s%n",object.toString(),index,limit,value.toString());
+    if (Trace.isEnabled(Item.STORE) || ObjectModel.isWatched(object)) {
+      Trace.printf(Item.STORE,"[%s].object[%d/%d] = %s",ObjectModel.getString(object),index,limit,value.toString());
     }
     check(!object.isNull(), "Object can not be null");
     check(index >= 0, "Index must be non-negative");
-    check(index < limit, "Index out of bounds");
+    check(index < limit, "Index "+index+" out of bounds "+limit);
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     if (ActivePlan.constraints.needsWriteBarrier()) {
@@ -350,11 +352,11 @@ public class Mutator {
     int limit = ObjectModel.getDataCount(object);
     check(!object.isNull(), "Object can not be null");
     check(index >= 0, "Index must be non-negative");
-    check(index < limit, "Index out of bounds");
+    check(index < limit, "Index "+index+" out of bounds "+limit);
 
     Address dataSlot = ObjectModel.getDataSlot(object, index);
     int result = dataSlot.loadInt();
-    Trace.trace(Item.LOAD,"[%s].int[%d] returned [%d]",object.toString(),index,result);
+    Trace.trace(Item.LOAD,"[%s].int[%d] returned [%d]",ObjectModel.getString(object),index,result);
     return result;
   }
 
@@ -368,7 +370,7 @@ public class Mutator {
     int limit = ObjectModel.getRefs(object);
     check(!object.isNull(), "Object can not be null");
     check(index >= 0, "Index must be non-negative");
-    check(index < limit, "Index out of bounds");
+    check(index < limit, "Index "+index+" out of bounds "+limit);
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     ObjectReference result;
@@ -377,7 +379,7 @@ public class Mutator {
     } else {
       result = referenceSlot.loadObjectReference();
     }
-    Trace.trace(Item.LOAD,"[%s].object[%d] returned [%s]",object.toString(),index,result.toString());
+    Trace.trace(Item.LOAD,"[%s].object[%d] returned [%s]",ObjectModel.getString(object),index,result.toString());
     return result;
   }
 
@@ -387,7 +389,7 @@ public class Mutator {
   public int hash(ObjectReference object) {
     check(!object.isNull(), "Object can not be null");
     int result = ObjectModel.getHashCode(object);
-    Trace.trace(Item.HASH,"hash(%s) returned [%d]",object.toString(),result);
+    Trace.trace(Item.HASH,"hash(%s) returned [%d]",ObjectModel.getString(object),result);
     return result;
   }
 
@@ -397,6 +399,7 @@ public class Mutator {
    * @param refCount The number of reference fields.
    * @param dataCount The number of data fields.
    * @param doubleAlign Is this an 8 byte aligned object?
+   * @param allocSite Allocation site
    * @return The object reference.
    */
   public ObjectReference alloc(int refCount, int dataCount, boolean doubleAlign, int allocSite) {
@@ -406,6 +409,7 @@ public class Mutator {
     check(dataCount <= ObjectModel.MAX_DATA_FIELDS, "Maximum of "+ObjectModel.MAX_DATA_FIELDS+" data fields per object");
     ObjectReference result = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign, allocSite);
     Trace.trace(Item.ALLOC,"alloc(" + refCount + ", " + dataCount + ", " + doubleAlign + ") returned [" + result + "]");
+    check(result != null, "Allocation returned null");
     return result;
   }
 

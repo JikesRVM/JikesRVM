@@ -15,7 +15,9 @@ package org.mmtk.policy;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
+import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
 
@@ -61,6 +63,10 @@ import org.vmmagic.pragma.*;
    * Instance variables
    */
   private boolean fromSpace = true;
+
+  public boolean isFromSpace() {
+    return fromSpace;
+  }
 
   /****************************************************************************
    *
@@ -110,6 +116,7 @@ import org.vmmagic.pragma.*;
   public void release() {
     ((MonotonePageResource) pr).reset();
     lastDiscontiguousRegion = Address.zero();
+    fromSpace = false;
   }
 
   /**
@@ -183,11 +190,17 @@ import org.vmmagic.pragma.*;
       return forwardingPtr.and(GC_FORWARDING_MASK.not()).toAddress().toObjectReference();
     } else {
       /* We are the designated copier, so forward it and enqueue it */
-
       ObjectReference newObject = VM.objectModel.copy(object, allocator);
       setForwardingPointer(object, newObject);
       trace.processNode(newObject); // Scan it later
 
+      if (Options.verbose.getValue() >= 9) {
+        Log.write("C["); Log.write(object); Log.write("/");
+        Log.write(getName()); Log.write("] -> ");
+        Log.write(newObject); Log.write("/");
+        Log.write(Space.getSpaceForObject(newObject).getName());
+        Log.writeln("]");
+      }
       return newObject;
     }
   }

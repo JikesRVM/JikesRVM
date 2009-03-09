@@ -396,4 +396,9 @@ public class Factory extends org.mmtk.vm.Factory {
   public org.mmtk.vm.MMTk_Events newEvents() {
     return new MMTkEvents();
   }
+
+  @Override
+  public Debug newDebug() {
+    return new Debug();
+  }
 }

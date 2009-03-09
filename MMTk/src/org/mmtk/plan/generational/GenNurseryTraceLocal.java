@@ -94,12 +94,14 @@ public final class GenNurseryTraceLocal extends TraceLocal {
     logMessage(5, "processing modbuf");
     ObjectReference obj;
     while (!(obj = modbuf.pop()).isNull()) {
+      if (VM.DEBUG) VM.debugging.modbufEntry(obj);
       Plan.markAsUnlogged(obj);
       scanObject(obj);
     }
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();
+      if (VM.DEBUG) VM.debugging.remsetEntry(loc);
       processRootEdge(loc, false);
     }
     logMessage(5, "processing array remset");
@@ -107,6 +109,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
     while (!arrayRemset.isEmpty()) {
       Address start = arrayRemset.pop1();
       Address guard = arrayRemset.pop2();
+      if (VM.DEBUG) VM.debugging.arrayRemsetEntry(start,guard);
       while (start.LT(guard)) {
         processRootEdge(start, false);
         start = start.plus(BYTES_IN_ADDRESS);

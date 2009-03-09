@@ -78,6 +78,8 @@ public final class VM {
   public static final int ALIGNMENT_VALUE;
   /** The offset from an array reference to element zero */
   public static final Offset ARRAY_BASE_OFFSET;
+  /** Global debugging switch */
+  public static final boolean DEBUG;
 
   /*
    * VM-specific functionality captured in a series of singleton classs
@@ -114,6 +116,8 @@ public final class VM {
   public static final TraceInterface traceInterface;
   @Untraced
   public static final MMTk_Events events;
+  @Untraced
+  public static final Debug debugging;
 
   /*
    * The remainder is does the static initialization of the
@@ -159,6 +163,7 @@ public final class VM {
     strings = factory.newStrings();
     traceInterface = factory.newTraceInterface();
     events = factory.newEvents();
+    debugging = factory.newDebug();
     config = new Config(factory.newBuildTimeConfig());
 
     /* Now initialize the constants using the vm-specific singletons */
@@ -175,6 +180,7 @@ public final class VM {
     MAX_BYTES_PADDING = Memory.maxBytesPaddingTrapdoor(memory);
     ALIGNMENT_VALUE = Memory.alignmentValueTrapdoor(memory);
     ARRAY_BASE_OFFSET = ObjectModel.arrayBaseOffsetTrapdoor(objectModel);
+    DEBUG = Debug.isEnabledTrapdoor(debugging);
   }
 
   /**

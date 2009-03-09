@@ -181,6 +181,11 @@ public abstract class Factory {
    */
   public abstract MMTk_Events newEvents();
 
+  /**
+   * Create a new debug object
+   */
+  public abstract Debug newDebug();
+
   /**********************************************************************
    * GCspy methods
    */

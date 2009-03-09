@@ -298,6 +298,10 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
+  public org.mmtk.vm.Debug newDebug() {
+    return new Debug();
+  }
+
   /**********************************************************************
    * GCspy methods
    */
