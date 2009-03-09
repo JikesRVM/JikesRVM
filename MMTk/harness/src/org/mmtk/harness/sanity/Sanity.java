@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.ObjectReference;
  */
 public class Sanity {
 
-  private static boolean VERBOSE = true;
+  private static boolean VERBOSE = false;
 
   private HeapSnapshot before;
   private HeapSnapshot after;

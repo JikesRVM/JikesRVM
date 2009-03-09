@@ -14,6 +14,7 @@ package org.mmtk.harness;
 
 import java.util.ArrayList;
 
+import org.mmtk.harness.sanity.Sanity;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.plan.CollectorContext;
@@ -170,8 +171,10 @@ public final class Collector implements Runnable {
    */
   private void collect() {
     boolean primary = context.getId() == 0;
+    Sanity sanity = new Sanity();
     if (primary) {
       Plan.setCollectionTrigger(Scheduler.getTriggerReason());
+      sanity.snapshotBefore();
     }
 
     long startTime = System.nanoTime();
@@ -233,6 +236,8 @@ public final class Collector implements Runnable {
     }
 
     if (primary) {
+      sanity.snapshotAfter();
+      sanity.assertSanity();
       collectionAttemptBase = 0;
 
       /* This is where we would schedule Finalization, if we supported it. */
