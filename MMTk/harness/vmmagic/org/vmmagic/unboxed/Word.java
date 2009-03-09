@@ -51,6 +51,7 @@ public final class Word {
    * @param val
    * @return
    */
+  @SuppressWarnings("cast")
   public static Word fromIntZeroExtend(int val) {
     return new Word(((long)val) & 0xFFFFFFFFL);
   }

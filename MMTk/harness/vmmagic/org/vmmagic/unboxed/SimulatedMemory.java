@@ -125,7 +125,7 @@ public final class SimulatedMemory {
 
   /**
    * Watch mutations to an address (watches 4 byte values)
-   * @param watchAddress
+   * @param watchAddress Address to watch
    */
   public static void addWatch(Address watchAddress) {
     watches.add(watchAddress);
@@ -416,6 +416,7 @@ public final class SimulatedMemory {
      * @param low TODO
      * @return
      */
+    @SuppressWarnings("cast") // Make cast explicit, because oddness can happen
     private long longFrom2Ints(int high, int low) {
       return (((long)high) << 32) |(((long)low & 0xFFFFFFFFL));
     }
@@ -468,6 +469,7 @@ public final class SimulatedMemory {
       return longFrom2Ints(getInt(address), getInt(address.plus(BYTES_IN_CELL)));
     }
 
+    @SuppressWarnings("cast")
     public byte setByte(Address address, byte value) {
       int shift = ((address.toInt()) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
       int mask = 0x000000FF << shift;
@@ -479,6 +481,7 @@ public final class SimulatedMemory {
       return (byte)(oldValue >>> shift);
     }
 
+    @SuppressWarnings("cast")
     public char setChar(Address address, char value) {
       int shift = ((address.toInt()) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
       assert shift == 0 || shift == 16: "misaligned 2b access";
@@ -536,6 +539,7 @@ public final class SimulatedMemory {
       int value = data[index];
       if (isWatched(index)) {
         System.err.printf("%s = %08x%n", cellAddress(index), data[index]);
+        //new Throwable().printStackTrace();
       }
       return value;
     }
@@ -546,6 +550,7 @@ public final class SimulatedMemory {
     private void write(int index, int value) {
       if (isWatched(index)) {
         System.err.printf("%s: %08x -> %08x%n", cellAddress(index), data[index], value);
+        //new Throwable().printStackTrace();
       }
       data[index] = value;
     }

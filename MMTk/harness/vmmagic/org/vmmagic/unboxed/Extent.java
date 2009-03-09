@@ -25,11 +25,6 @@ public final class Extent {
     this.value = value;
   }
 
-  @Deprecated
-  private Extent(int value) {
-    this(ArchitecturalWord.fromIntSignExtend(value));
-  }
-
   public static Extent fromIntSignExtend(int value) {
     return new Extent(ArchitecturalWord.fromIntSignExtend(value));
   }
