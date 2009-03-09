@@ -14,7 +14,7 @@
 # Temporary script
 
 TEST_DIR=MMTk/harness/test-scripts
-ant mmtk-harness
+ant clean compile-mmtk mmtk-harness
 rm -rf results/mmtk
 mkdir -p results/mmtk
 
