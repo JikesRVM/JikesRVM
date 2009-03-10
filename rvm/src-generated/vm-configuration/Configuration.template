@@ -47,9 +47,6 @@ public abstract class Configuration {
   public static final boolean BuildForPowerOpenABI = BuildForAix || (BuildForLinux && BuildForPowerPC && BuildFor64Addr);
   public static final boolean BuildForSVR4ABI = !(BuildForPowerOpenABI || BuildForMachOABI);
 
-  /** Do we have the facilities to intercept blocking system calls? */
-  public static final boolean withoutInterceptBlockingSystemCalls = BuildForAix || BuildForOsx || BuildForSolaris;
-
   /** Are we using Classpath's portable native sync feature? */
   public static final boolean PortableNativeSync = @_PORTABLE_NATIVE_SYNC_@;
 
