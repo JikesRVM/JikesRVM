@@ -259,6 +259,14 @@
         <ant antfile="build/components/harmony.xml" target="ensure"/>
       </sequential>
     </if>
+    <if>
+      <conditions>
+        <equals arg1="${config.with-profile}" arg2="true"/>
+      </conditions>
+      <sequential>
+        <ant antfile="build/components/dacapo.xml" target="ensure"/>
+      </sequential>
+    </if>
     <ant antfile="build/components/checkstyle.xml" target="ensure"/>
     <ant antfile="build/components/asm.xml" target="ensure"/>
     <if>

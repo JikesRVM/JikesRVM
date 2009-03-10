@@ -42,7 +42,6 @@
          src="http://switch.dl.sourceforge.net/sourceforge/dacapobench/dacapo-${dacapo.version}.jar"
          dest="${dacapo.dir}/dacapo.jar"/>
     <writeComponentConstants dir="${dacapo.dir}"/>
-    <property name="dacapo.jar" location="${dacapo.dir}/dacapo.jar"/>
   </target>
 
   <target name="build" depends="fetch">
