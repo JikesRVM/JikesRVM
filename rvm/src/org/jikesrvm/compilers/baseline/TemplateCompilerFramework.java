@@ -1629,16 +1629,24 @@ public abstract class TemplateCompilerFramework
                        "You must use the 'create' function to create an array of this type");
           }
 
-          // We can do early resolution of the array type if the element type
-          // is already initialized.
           RVMArray array = (RVMArray) arrayRef.peekType();
-          if (array != null &&
-              !(array.isInitialized() || array.isInBootImage()) &&
-              RVMType.JavaLangObjectType.isInstantiated()) {
-            RVMType elementType = elementTypeRef.peekType();
-            if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
-              array.resolve();
-              array.instantiate();
+          if (RVMType.JavaLangObjectType.isInstantiated()) {
+            // If we've already instantiated java.lang.Object, then we can
+            // forcibly fully instantiate the array type as long as the element type is
+            // either already initialized or is in the bootimage.
+            // Note: The test against java.lang.Object is required only for the baseline compiler
+            //       and is not present in the opt compiler version of anewarray (BC2IR) because of the way
+            //       we handle recursive invocations of the compiler (can be caused by instantiate()).
+            //       We need Object to be instantiated because we are going to mine it's TIB to get entries for array methods...
+            if (array == null || !(array.isInitialized() || array.isInBootImage())) {
+              RVMType elementType = elementTypeRef.peekType();
+              if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
+                if (array == null) {
+                  array = (RVMArray)arrayRef.resolve();
+                }
+                array.resolve();
+                array.instantiate();
+              }
             }
           }
           if (array != null && (array.isInitialized() || array.isInBootImage())) {
