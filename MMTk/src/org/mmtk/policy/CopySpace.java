@@ -194,7 +194,7 @@ import org.vmmagic.pragma.*;
       setForwardingPointer(object, newObject);
       trace.processNode(newObject); // Scan it later
 
-      if (Options.verbose.getValue() >= 9) {
+      if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
         Log.write("C["); Log.write(object); Log.write("/");
         Log.write(getName()); Log.write("] -> ");
         Log.write(newObject); Log.write("/");
