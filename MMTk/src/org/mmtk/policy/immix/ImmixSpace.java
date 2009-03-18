@@ -336,8 +336,7 @@ public final class ImmixSpace extends Space implements Constants {
   @Inline
   public void postCopy(ObjectReference object, int bytes, boolean majorGC) {
     ObjectHeader.writeMarkState(object, markState, bytes > BYTES_IN_LINE);
-    if (!MARK_LINE_AT_SCAN_TIME && majorGC)
-      markLines(object);
+    markLines(object);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrBeingForwarded(object));
     if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(object));
   }
@@ -491,6 +490,13 @@ public final class ImmixSpace extends Space implements Constants {
           /* forward */
           newObject = ObjectHeader.forwardObject(object, allocator);
           if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(newObject));
+        }
+        if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+          Log.write("C["); Log.write(object); Log.write("/");
+          Log.write(getName()); Log.write("] -> ");
+          Log.write(newObject); Log.write("/");
+          Log.write(Space.getSpaceForObject(newObject).getName());
+          Log.writeln("]");
         }
         if (!MARK_LINE_AT_SCAN_TIME)
           ImmixSpace.markLines(newObject);

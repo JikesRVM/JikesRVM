@@ -87,8 +87,10 @@ public class GenImmixCollector extends GenCollector {
     } else {
       if (VM.VERIFY_ASSERTIONS) {
         VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
-        VM.assertions._assert((!GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MINORGC) ||
-            (GenImmix.immixSpace.inImmixCollection() && allocator == GenImmix.ALLOC_MATURE_MAJORGC));
+        if (GenImmix.immixSpace.inImmixCollection())
+          VM.assertions._assert(allocator == GenImmix.ALLOC_MATURE_MAJORGC);
+        else
+          VM.assertions._assert(allocator == GenImmix.ALLOC_MATURE_MINORGC);
       }
       if (GenImmix.immixSpace.inImmixDefragCollection()) {
         return defragCopy.alloc(bytes, align, offset);

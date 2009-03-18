@@ -40,6 +40,21 @@ public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
   }
 
   /**
+   * Is the specified object live?
+   *
+   * @param object The object.
+   * @return True if the object is live.
+   */
+  public boolean isLive(ObjectReference object) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(GenImmix.immixSpace.inImmixDefragCollection());
+    if (object.isNull()) return false;
+    if (Space.isInSpace(GenImmix.IMMIX, object)) {
+      return GenImmix.immixSpace.isLive(object);
+    }
+    return super.isLive(object);
+  }
+
+  /**
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
    *
@@ -54,24 +69,18 @@ public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
   public ObjectReference traceObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(GenImmix.immixSpace.inImmixDefragCollection());
     if (object.isNull()) return object;
-    if (Space.isInSpace(GenImmix.IMMIX, object)) {
+    if (Space.isInSpace(GenImmix.IMMIX, object))
       return GenImmix.immixSpace.traceObject(this, object, GenImmix.ALLOC_MATURE_MAJORGC);
-    }
     return super.traceObject(object);
   }
 
-  /**
-   * Is the specified object live?
-   *
-   * @param object The object.
-   * @return True if the object is live.
-   */
-  public boolean isLive(ObjectReference object) {
-    if (object.isNull()) return false;
-    if (Space.isInSpace(GenImmix.IMMIX, object)) {
-      return GenImmix.immixSpace.isLive(object);
-    }
-    return super.isLive(object);
+  @Inline
+  @Override
+  public ObjectReference precopyObject(ObjectReference object) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(GenImmix.immixSpace.inImmixDefragCollection());
+    ObjectReference rtn = traceObject(object);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(willNotMoveInCurrentCollection(rtn));
+    return rtn;
   }
 
   /**

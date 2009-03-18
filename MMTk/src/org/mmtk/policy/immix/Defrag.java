@@ -91,6 +91,7 @@ public class Defrag  implements Constants {
       defrags.inc();
       defragCleanBytesAvailable.inc(availableCleanPagesForDefrag<<LOG_BYTES_IN_PAGE);
     }
+    availableCleanPagesForDefrag += VM.activePlan.global().getCollectionReserve();
   }
 
   void globalRelease() {
