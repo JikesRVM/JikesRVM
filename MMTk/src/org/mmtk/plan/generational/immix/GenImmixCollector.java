@@ -158,6 +158,7 @@ public class GenImmixCollector extends GenCollector {
         trace.release();
         if (global().gcFullHeap) {
           immix.release(true);
+          copy.reset();
         }
         super.collectionPhase(phaseId, primary);
         return;
