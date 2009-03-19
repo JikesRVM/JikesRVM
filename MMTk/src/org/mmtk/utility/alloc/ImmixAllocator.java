@@ -277,7 +277,12 @@ public class ImmixAllocator extends Allocator implements Constants {
 
   @Inline
   private boolean acquireRecyclableBlockAddressOrder() {
-    if (recyclableExhausted) return false;
+    if (recyclableExhausted) {
+      if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+        Log.writeln("[no recyclable available]");
+      }
+      return false;
+    }
     int markState = 0;
     boolean usable = false;
     while (!usable) {
@@ -286,6 +291,9 @@ public class ImmixAllocator extends Allocator implements Constants {
         recyclableBlock = space.acquireReusableBlocks();
         if (recyclableBlock.isZero()) {
           recyclableExhausted = true;
+          if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+            Log.writeln("[recyclable exhausted]");
+          }
           line = LINES_IN_BLOCK;
           return false;
         }

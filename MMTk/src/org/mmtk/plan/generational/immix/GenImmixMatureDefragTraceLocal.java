@@ -19,6 +19,8 @@ import org.mmtk.plan.generational.GenMatureTraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.immix.ImmixSpace;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.options.Options;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -114,6 +116,9 @@ public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
   @Inline
   @Override
   protected void scanObject(ObjectReference object) {
+    if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+      Log.write("SO["); Log.write(object); Log.writeln("]");
+    }
     super.scanObject(object);
     if (MARK_LINE_AT_SCAN_TIME && Space.isInSpace(GenImmix.IMMIX, object))
       ImmixSpace.markLines(object);
