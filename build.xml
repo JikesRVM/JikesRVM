@@ -352,7 +352,7 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="os.filter" value="-DRVM_FOR_AIX=1">
       <equals arg1="${target.os}" arg2="AIX"/>
     </condition>
-    <condition property="os.filter" value="-DRVM_FOR_LINUX=1">
+    <condition property="os.filter" value="-DRVM_FOR_LINUX=1 -DLINUX=1">
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
     <condition property="os.filter" value="-DRVM_FOR_OSX=1">
@@ -360,6 +360,14 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
     <condition property="os.filter" value="-DRVM_FOR_SOLARIS=1">
       <equals arg1="${target.os}" arg2="Solaris"/>
+    </condition>
+
+    <condition property="classlib.filter" value="-DRVM_FOR_HARMONY=1">
+      <equals arg1="${classlib.provider}" arg2="Harmony"/>
+    </condition>
+
+    <condition property="classlib.filter" value="-DRVM_FOR_GNU_CLASSPATH=1">
+      <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
 
     <condition property="gctrace.filter" value="-DRVM_WITH_GCTRACE=1" else="">
@@ -377,7 +385,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${config.include.perfctr}" arg2="true"/>
     </condition>
 
-    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${alignment-checking.filter} ${perfctr.filter}"/>
+    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${alignment-checking.filter} ${perfctr.filter} ${classlib.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -1605,7 +1613,7 @@ Check to make sure all required properties are specified. This includes properti
       </conditions>
       <sequential>
         <exec executable="${c.exe}" failonerror="true">
-          <arg line="-DLINUX=1 ${rvm.c++.args} -lpthread ${c++.librt} -L${harmony.lib.dir} -lhyprt -lhyarchive -lhyzlib"/>
+          <arg line="${rvm.c++.args} -lpthread ${c++.librt} -L${harmony.lib.dir} -lhyprt -lhyarchive -lhyzlib"/>
           <arg value="-o"/>
           <arg value="${build.base}/${vmi.dll}"/>
           <arg value="${bl.dir}/harmony.c"/>
@@ -1651,7 +1659,7 @@ Check to make sure all required properties are specified. This includes properti
       </conditions>
       <sequential>
         <exec executable="${c++.exe}" failonerror="true">
-          <arg line="${c++.args} -DLINUX=1 -DHARMONY=1 ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfctr.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
+          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfctr.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
           <arg value="-o"/>
           <arg value="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>

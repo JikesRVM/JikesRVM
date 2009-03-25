@@ -84,12 +84,6 @@ extern int verboseBoot;
 /* define in sys.c, used in libvm.c */
 extern void sysInitialize();
 
-/* defined in sys.c, used in jvm.c */
-#ifdef RVM_FOR_AIX
-extern pthread_key_t VmThreadKey;
-#endif
-extern void * getVmThread();
-
 /* Defined in libvm.C; used in RunBootImage.C */
 extern int createVM(int);
 
@@ -107,6 +101,15 @@ extern void findMappable(void);
 extern void bootThread(int jtoc,int pr, int ti_or_ip, int fp); // assembler routine
 #else
 extern int bootThread(void *ip, void *pr, void *sp); // assembler routine
+#endif
+
+#ifdef RVM_FOR_HARMONY
+#define TLS_KEY_TYPE hythread_tls_key_t
+#define GET_THREAD_LOCAL(key) hythread_tls_get(hythread_self(), key)
+#else
+#include <pthread.h>
+#define TLS_KEY_TYPE pthread_key_t
+#define GET_THREAD_LOCAL(key) pthread_getspecific(key) 
 #endif
 
 // These are defined in libvm.C.

@@ -15,7 +15,6 @@
  * Implementation of Harmony VMI Invocation API for Jikes RVM.
  */
 
-#define LINUX
 #define TRACE 0
 #include "bootImageRunner.h"
 #include "vmi.h"

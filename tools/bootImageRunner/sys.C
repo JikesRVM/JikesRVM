@@ -109,8 +109,10 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
+#ifdef RVM_FOR_LINUX
 #define LINUX
+#endif
 #include "hythread.h"
 #else
 #include <pthread.h>
@@ -130,7 +132,7 @@ extern "C" void sysMonitorBroadcast(Word);
 // static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 // static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
 
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
 extern "C" int sysThreadStartup(void *args);
 #else
 extern "C" void *sysThreadStartup(void *args);
@@ -142,23 +144,13 @@ extern "C" void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
  * buffers, but I hope that it will be one day. */
 static int loadResultBuf(char * buf, int limit, const char *result);
 
-#ifdef HARMONY
-#define TLS_KEY_TYPE hythread_tls_key_t
-#else
-#define TLS_KEY_TYPE pthread_key_t
-#endif
-
-#ifdef RVM_FOR_AIX
-// temporary hack to see if this fixes AIX, which links differently.
-extern
-#endif
-TLS_KEY_TYPE VmThreadKey;
+extern TLS_KEY_TYPE VmThreadKey;
 TLS_KEY_TYPE TerminateJmpBufKey;
 
 TLS_KEY_TYPE createThreadLocal() {
     TLS_KEY_TYPE key;
     int rc;
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     rc = hythread_tls_alloc(&key);
 #else
     rc = pthread_key_create(&key, 0);
@@ -185,16 +177,8 @@ sysCreateThreadSpecificDataKeys(void)
 #endif
 }
 
-void * getThreadLocal(TLS_KEY_TYPE key) {
-#ifdef HARMONY
-    return hythread_tls_get(hythread_self(), key);
-#else
-    return pthread_getspecific(key);
-#endif
-}
-
 void setThreadLocal(TLS_KEY_TYPE key, void * value) {
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     int rc = hythread_tls_set(hythread_self(), key, value);
 #else
     int rc = pthread_setspecific(key, value);
@@ -214,7 +198,7 @@ sysStashVMThread(Address vmThread)
 extern "C" void *
 getVmThread()
 {
-    return getThreadLocal(VmThreadKey);
+    return GET_THREAD_LOCAL(VmThreadKey);
 }
 
 // Console write (java character).
@@ -335,7 +319,7 @@ extern "C" void VMI_Initialize();
 extern "C" void
 sysInitialize()
 {
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     VMI_Initialize();
 #endif
     DeathLock = sysMonitorCreate();
@@ -948,7 +932,7 @@ sysThreadCreate(Address tr, Address ip, Address fp)
     sysThreadArguments[1] = ip;
     sysThreadArguments[2] = fp;
 
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     hythread_t      sysThreadHandle;
 
     if ((rc = hythread_create(&sysThreadHandle, 0, HYTHREAD_PRIORITY_NORMAL, 0, sysThreadStartup, sysThreadArguments)))
@@ -1024,7 +1008,7 @@ sysThreadBind(int UNUSED cpuId)
     }
 #endif
 
-#ifndef HARMONY
+#ifndef RVM_FOR_HARMONY
 #ifdef RVM_FOR_LINUX
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
@@ -1038,7 +1022,7 @@ sysThreadBind(int UNUSED cpuId)
 /** jump buffer for primordial thread */
 jmp_buf primordial_jb;
 
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
 extern "C" int
 sysThreadStartup(void *args)
 #else
@@ -1064,7 +1048,7 @@ sysThreadStartup(void *args)
     jmp_buf *jb = (jmp_buf*)malloc(sizeof(jmp_buf));
     if (setjmp(*jb)) {
 	// this is where we come to terminate the thread
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
         hythread_detach(NULL);
 #endif
 	free(jb);
@@ -1127,7 +1111,7 @@ extern "C" void*
 getThreadId()
 {
     
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     void* thread = (void*)hythread_self();
 #else
     void* thread = (void*)pthread_self();
@@ -1213,7 +1197,7 @@ sysThreadYield()
      *      ./unistd.h:#undef _POSIX_PRIORITY_SCHEDULING
      *  so my trust that it is implemented properly is scanty.  --augart
      */
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     hythread_yield();
 #else
     sched_yield();
@@ -1222,7 +1206,7 @@ sysThreadYield()
 
 ////////////// Pthread mutex and condition functions /////////////
 
-#ifndef HARMONY
+#ifndef RVM_FOR_HARMONY
 typedef struct {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
@@ -1232,7 +1216,7 @@ typedef struct {
 extern "C" Word
 sysMonitorCreate()
 {
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     hythread_monitor_t monitor;
     hythread_monitor_init_with_name(&monitor, 0, NULL);
 #else
@@ -1246,7 +1230,7 @@ sysMonitorCreate()
 extern "C" void
 sysMonitorDestroy(Word _monitor)
 {
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     hythread_monitor_destroy((hythread_monitor_t)_monitor);
 #else
     vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
@@ -1259,7 +1243,7 @@ sysMonitorDestroy(Word _monitor)
 extern "C" void
 sysMonitorEnter(Word _monitor)
 {
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     hythread_monitor_enter((hythread_monitor_t)_monitor);
 #else
     vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
@@ -1270,7 +1254,7 @@ sysMonitorEnter(Word _monitor)
 extern "C" void
 sysMonitorExit(Word _monitor)
 {
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     hythread_monitor_exit((hythread_monitor_t)_monitor);
 #else
     vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
@@ -1281,7 +1265,7 @@ sysMonitorExit(Word _monitor)
 extern "C" void
 sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
 {
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     // syscall wait is absolute, but harmony monitor wait is relative.
     whenWakeupNanos -= sysNanoTime();
     if (whenWakeupNanos <= 0) return;
@@ -1308,7 +1292,7 @@ sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
 extern "C" void
 sysMonitorWait(Word _monitor)
 {
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     hythread_monitor_wait((hythread_monitor_t)_monitor);
 #else
     vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
@@ -1319,7 +1303,7 @@ sysMonitorWait(Word _monitor)
 extern "C" void
 sysMonitorBroadcast(Word _monitor)
 {
-#ifdef HARMONY
+#ifdef RVM_FOR_HARMONY
     hythread_monitor_notify_all((hythread_monitor_t)_monitor);
 #else
     vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
@@ -1333,7 +1317,7 @@ sysThreadTerminate()
 #ifdef RVM_FOR_POWERPC
     asm("sync");
 #endif
-    jmp_buf *jb = (jmp_buf*)getThreadLocal(TerminateJmpBufKey);
+    jmp_buf *jb = (jmp_buf*)GET_THREAD_LOCAL(TerminateJmpBufKey);
     if (jb==NULL) {
 	jb=&primordial_jb;
     }

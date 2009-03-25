@@ -21,10 +21,14 @@
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 
-#ifdef RVM_FOR_AIX
-#include <pthread.h>
-pthread_key_t VmThreadKey;
+#ifdef RVM_FOR_HARMONY
+#ifdef RVM_FOR_LINUX
+#define LINUX 1
 #endif
+#include "hythread.h"
+#endif
+
+TLS_KEY_TYPE VmThreadKey;
 
 // Fish out an address stored in an instance field of an object.
 static void *
@@ -128,11 +132,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
         return JNI_EVERSION;
 
     // Return NULL if we are not on a VM thread
-#ifdef RVM_FOR_AIX
-    void *vmThread = pthread_getspecific(VmThreadKey);
-#else
-    void *vmThread = getVmThread();
-#endif
+    void *vmThread = GET_THREAD_LOCAL(VmThreadKey);
     if (vmThread == NULL) {
         *penv = NULL;
         return JNI_EDETACHED;
