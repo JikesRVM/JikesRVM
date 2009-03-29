@@ -15,6 +15,7 @@ package org.mmtk.plan.marksweep;
 import org.mmtk.plan.StopTheWorldConstraints;
 
 import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.policy.SegregatedFreeListSpace;
 
 import org.vmmagic.pragma.*;
 
@@ -26,13 +27,12 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public class MSConstraints extends StopTheWorldConstraints {
-
   @Override
   public int gcHeaderBits() { return MarkSweepSpace.LOCAL_GC_BITS_REQUIRED; }
   @Override
   public int gcHeaderWords() { return MarkSweepSpace.GC_HEADER_WORDS_REQUIRED; }
   @Override
-  public boolean requiresLOS() { return true; }
+  public int maxNonLOSDefaultAllocBytes() { return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES; }
   @Override
   public int numSpecializedScans() { return 1; }
 }

@@ -93,7 +93,7 @@ public class ImmixCollector extends StopTheWorldCollector {
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
     if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+      VM.assertions._assert(bytes <= Plan.MAX_NON_LOS_COPY_BYTES);
       VM.assertions._assert(allocator == Immix.ALLOC_DEFAULT);
     }
     return copy.alloc(bytes, align, offset);

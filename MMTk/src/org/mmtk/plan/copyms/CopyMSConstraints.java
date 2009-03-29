@@ -15,6 +15,7 @@ package org.mmtk.plan.copyms;
 import org.mmtk.plan.StopTheWorldConstraints;
 
 import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.SegregatedFreeListSpace;
 
 import org.vmmagic.pragma.*;
 
@@ -35,4 +36,6 @@ public class CopyMSConstraints extends StopTheWorldConstraints {
   public int numSpecializedScans() { return 1; }
   @Override
   public boolean movesObjects() { return true; }
+  @Override
+  public int maxNonLOSCopyBytes() { return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;}
 }

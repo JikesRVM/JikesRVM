@@ -160,21 +160,21 @@ public abstract class MutatorContext implements Constants {
    */
   @Inline
   public int checkAllocator(int bytes, int align, int allocator) {
-    boolean large = Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD;
+    int maxBytes = Allocator.getMaximumAlignedSize(bytes, align);
     if (allocator == Plan.ALLOC_DEFAULT) {
-      return (Plan.REQUIRES_LOS && large) ? Plan.ALLOC_LOS : allocator;
+      return (maxBytes > Plan.MAX_NON_LOS_DEFAULT_ALLOC_BYTES) ? Plan.ALLOC_LOS : allocator;
     }
 
     if (Plan.USE_CODE_SPACE && allocator == Plan.ALLOC_CODE) {
-      return large ? Plan.ALLOC_LARGE_CODE : allocator;
+      return (maxBytes > Plan.MAX_NON_LOS_NONMOVING_ALLOC_BYTES) ? Plan.ALLOC_LARGE_CODE : allocator;
     }
 
     if (allocator == Plan.ALLOC_NON_REFERENCE) {
-      return (Plan.REQUIRES_LOS && large) ? Plan.ALLOC_LOS : Plan.ALLOC_DEFAULT;
+      return (maxBytes > Plan.MAX_NON_LOS_DEFAULT_ALLOC_BYTES) ? Plan.ALLOC_LOS : Plan.ALLOC_DEFAULT;
     }
 
     if (allocator == Plan.ALLOC_NON_MOVING) {
-      return large ? Plan.ALLOC_LOS : allocator;
+      return (maxBytes > Plan.MAX_NON_LOS_NONMOVING_ALLOC_BYTES) ? Plan.ALLOC_LOS : allocator;
     }
 
     return allocator;

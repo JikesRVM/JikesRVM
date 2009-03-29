@@ -19,8 +19,10 @@ import org.vmmagic.pragma.*;
 /**
  * GCTrace constants.
  */
-@Uninterruptible public class GCTraceConstraints extends SSConstraints {
+@Uninterruptible
+public class GCTraceConstraints extends SSConstraints {
+  @Override
   public boolean needsWriteBarrier() { return true; }
-
+  @Override
   public boolean generateGCTrace() { return true; }
 }

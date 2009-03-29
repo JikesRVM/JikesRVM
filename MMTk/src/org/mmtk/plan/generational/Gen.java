@@ -90,6 +90,7 @@ public abstract class Gen extends StopTheWorld {
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   private static final Address NURSERY_START = nurserySpace.getStart();
+  protected static final int MAX_NURSERY_ALLOC_BYTES = USE_DISCONTIGUOUS_NURSERY ? org.mmtk.utility.Constants.MAX_INT : nurserySpace.getExtent().toInt();
 
   /*****************************************************************************
    *

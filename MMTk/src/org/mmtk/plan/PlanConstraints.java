@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan;
 
+import org.mmtk.policy.SegregatedFreeListSpace;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Word;
 
@@ -46,8 +47,14 @@ import org.vmmagic.unboxed.Word;
   /** @return True if this Plan moves objects. */
   public boolean movesObjects() { return false;}
 
-  /** @return True if this Plan *must* use an LOS (for example it has a size-constrained primary allocator) */
-  public boolean requiresLOS() { return false;}
+  /** @return Size (in bytes) beyond which new regular objects must be allocated to the LOS */
+  public int maxNonLOSDefaultAllocBytes() { return org.mmtk.utility.Constants.MAX_INT;}
+
+  /** @return Size (in bytes) beyond which new non-moving objects must be allocated to the LOS */
+  public int maxNonLOSNonMovingAllocBytes() { return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;}
+
+  /** @return Size (in bytes) beyond which copied objects must be copied to the LOS */
+  public int maxNonLOSCopyBytes() { return org.mmtk.utility.Constants.MAX_INT;}
 
   /** @return True if this object forwards objects <i>after</i>
    * determining global object liveness (e.g. many compacting collectors). */

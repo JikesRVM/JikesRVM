@@ -241,7 +241,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   private TreadmillDriver newTreadmillDriver(String name, LargeObjectSpace space) {
     return new TreadmillDriver(GCspy.server, name, space,
-            Options.gcspyTileSize.getValue(), LOS_SIZE_THRESHOLD, false);
+            Options.gcspyTileSize.getValue(), MAX_NON_LOS_COPY_BYTES, false);
   }
 
   /****************************************************************************

@@ -24,7 +24,6 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public class NoGCConstraints extends PlanConstraints {
-
   @Override
   public int gcHeaderBits() { return 0; }
   @Override

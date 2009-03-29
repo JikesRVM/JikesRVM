@@ -13,6 +13,7 @@
 package org.mmtk.plan.generational.marksweep;
 
 import org.mmtk.plan.generational.GenConstraints;
+import static org.mmtk.policy.SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;
 
 import org.vmmagic.pragma.*;
 
@@ -24,4 +25,6 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public class GenMSConstraints extends GenConstraints {
+  @Override
+  public int maxNonLOSCopyBytes() { return MAX_FREELIST_OBJECT_BYTES;}
 }

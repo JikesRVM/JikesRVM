@@ -90,11 +90,11 @@ public class SSCollector extends StopTheWorldCollector {
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
     if (allocator == Plan.ALLOC_LOS) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bytes > Plan.LOS_SIZE_THRESHOLD);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bytes > Plan.MAX_NON_LOS_COPY_BYTES);
       return los.alloc(bytes, align, offset);
     } else {
       if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+        VM.assertions._assert(bytes <= Plan.MAX_NON_LOS_COPY_BYTES);
         VM.assertions._assert(allocator == SS.ALLOC_SS);
       }
       return ss.alloc(bytes, align, offset);

@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan.refcount;
 
+import static org.mmtk.policy.SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;
 import org.mmtk.plan.StopTheWorldConstraints;
 
 import org.vmmagic.pragma.*;
@@ -24,9 +25,12 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public class RCBaseConstraints extends StopTheWorldConstraints {
+  @Override
   public int gcHeaderBits() { return RCHeader.GLOBAL_GC_BITS_REQUIRED; }
+  @Override
   public int gcHeaderWords() { return RCHeader.GC_HEADER_WORDS_REQUIRED; }
+  @Override
   public boolean needsWriteBarrier() { return true; }
-  /** @return true because we cannot accommodate large objects in default allocator */
-  public boolean requiresLOS() { return true; }
+  @Override
+  public int maxNonLOSDefaultAllocBytes() { return MAX_FREELIST_OBJECT_BYTES; }
 }

@@ -13,6 +13,7 @@
 package org.mmtk.plan.generational.immix;
 
 import org.mmtk.plan.generational.GenConstraints;
+import static org.mmtk.policy.immix.ImmixConstants.MAX_IMMIX_OBJECT_BYTES;
 
 import org.vmmagic.pragma.*;
 
@@ -26,5 +27,8 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class GenImmixConstraints extends GenConstraints {
   /** @return The specialized scan methods required */
+  @Override
   public int numSpecializedScans() { return 3; }
+  @Override
+  public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES;}
 }

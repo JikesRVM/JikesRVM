@@ -56,6 +56,8 @@ public class ImmixConstants {
 
   public static final int BYTES_IN_LINE = 1<<LOG_BYTES_IN_LINE;
 
+  public static final int MAX_IMMIX_OBJECT_BYTES = BYTES_IN_BLOCK>>1;
+
   private static final int LOG_BLOCKS_IN_RECYCLE_ALLOC_CHUNK = 4; // 3 + 15 -> 19 (512KB)
   private static final int LOG_BYTES_IN_RECYCLE_ALLOC_CHUNK = LOG_BLOCKS_IN_RECYCLE_ALLOC_CHUNK + LOG_BYTES_IN_BLOCK;
   static final int BYTES_IN_RECYCLE_ALLOC_CHUNK = 1<<LOG_BYTES_IN_RECYCLE_ALLOC_CHUNK;

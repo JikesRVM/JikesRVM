@@ -82,11 +82,11 @@ public class GenImmixCollector extends GenCollector {
       if (Space.isInSpace(GenImmix.NURSERY, original)) GenImmix.nurseryMark.inc(bytes);
     }
     if (allocator == Plan.ALLOC_LOS) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Allocator.getMaximumAlignedSize(bytes, align) > Plan.MAX_NON_LOS_COPY_BYTES);
       return los.alloc(bytes, align, offset);
     } else {
       if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+        VM.assertions._assert(bytes <= Plan.MAX_NON_LOS_COPY_BYTES);
         if (GenImmix.immixSpace.inImmixCollection())
           VM.assertions._assert(allocator == GenImmix.ALLOC_MATURE_MAJORGC);
         else

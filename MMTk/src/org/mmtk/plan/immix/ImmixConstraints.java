@@ -14,6 +14,7 @@ package org.mmtk.plan.immix;
 
 import org.mmtk.plan.StopTheWorldConstraints;
 import org.mmtk.policy.immix.ObjectHeader;
+import static org.mmtk.policy.immix.ImmixConstants.MAX_IMMIX_OBJECT_BYTES;
 
 import org.vmmagic.pragma.*;
 
@@ -27,17 +28,26 @@ import org.vmmagic.pragma.*;
 public class ImmixConstraints extends StopTheWorldConstraints {
 
   /** @return The number of header bits that are required. */
+  @Override
   public int gcHeaderBits() { return ObjectHeader.LOCAL_GC_BITS_REQUIRED; }
 
   /** @return The number of header words that are required. */
+  @Override
   public int gcHeaderWords() { return ObjectHeader.GC_HEADER_WORDS_REQUIRED; }
 
   /** @return True if this plan moves objects. */
+  @Override
   public boolean movesObjects() { return true;}
 
   /** @return The specialized scan methods required */
+  @Override
   public int numSpecializedScans() { return 2; }
 
-  /** @return true because we cannot accommodate large objects in default allocator */
-  public boolean requiresLOS() { return true; }
+  /** @return Size (in bytes) beyond which new regular objects must be allocated to the LOS */
+  @Override
+  public int maxNonLOSDefaultAllocBytes() { return MAX_IMMIX_OBJECT_BYTES; }
+
+  /** @return Size (in bytes) beyond which copied objects must be copied to the LOS */
+  @Override
+  public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES; }
 }

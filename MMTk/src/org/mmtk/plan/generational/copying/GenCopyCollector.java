@@ -87,11 +87,11 @@ public class GenCopyCollector extends GenCollector {
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
     if (allocator == Plan.ALLOC_LOS) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Allocator.getMaximumAlignedSize(bytes, align) > Plan.MAX_NON_LOS_COPY_BYTES);
       return los.alloc(bytes, align, offset);
     } else {
       if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(bytes <= Plan.LOS_SIZE_THRESHOLD);
+        VM.assertions._assert(bytes <= Plan.MAX_NON_LOS_COPY_BYTES);
         VM.assertions._assert(allocator == GenCopy.ALLOC_MATURE_MINORGC ||
             allocator == GenCopy.ALLOC_MATURE_MAJORGC);
       }

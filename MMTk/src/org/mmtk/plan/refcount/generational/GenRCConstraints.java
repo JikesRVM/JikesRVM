@@ -12,6 +12,8 @@
  */
 package org.mmtk.plan.refcount.generational;
 
+import static org.mmtk.policy.SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;
+
 import org.mmtk.plan.refcount.RCBaseConstraints;
 import org.vmmagic.pragma.*;
 
@@ -23,5 +25,8 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public class GenRCConstraints extends RCBaseConstraints {
+  @Override
   public boolean movesObjects() { return true; }
+  @Override
+  public int maxNonLOSCopyBytes() { return MAX_FREELIST_OBJECT_BYTES;}
 }

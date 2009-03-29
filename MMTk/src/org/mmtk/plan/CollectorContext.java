@@ -148,7 +148,7 @@ import org.vmmagic.unboxed.*;
   @Inline
   public int copyCheckAllocator(ObjectReference from, int bytes,
       int align, int allocator) {
-      boolean large = Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD;
+      boolean large = Allocator.getMaximumAlignedSize(bytes, align) > Plan.MAX_NON_LOS_COPY_BYTES;
       return large ? Plan.ALLOC_LOS : allocator;
   }
 

@@ -18,9 +18,10 @@ import org.vmmagic.pragma.*;
 /**
  * Semi space GCspy constants.
  */
-@Uninterruptible public class SSGCspyConstraints extends SSConstraints {
-
+@Uninterruptible
+public class SSGCspyConstraints extends SSConstraints {
+  @Override
   public boolean needsLinearScan() { return true; }
-
+  @Override
   public boolean withGCspy() { return true; }
 }

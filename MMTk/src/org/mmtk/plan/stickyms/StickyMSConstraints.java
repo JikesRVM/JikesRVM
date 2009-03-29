@@ -15,6 +15,7 @@ package org.mmtk.plan.stickyms;
 import org.mmtk.plan.marksweep.MSConstraints;
 
 import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.policy.SegregatedFreeListSpace;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Word;
@@ -32,11 +33,16 @@ public class StickyMSConstraints extends MSConstraints {
   public int numSpecializedScans() { return 2; }
 
   /** @return True if this plan requires a write barrier */
+  @Override
   public boolean needsWriteBarrier() { return true; }
 
   /** @return True if this Plan requires a header bit for object logging */
+  @Override
   public boolean needsLogBitInHeader() { return true; }
 
   /** @return A bit which represents that a header is unlogged */
+  @Override
   public Word unloggedBit() {return MarkSweepSpace.UNLOGGED_BIT; }
+  @Override
+  public int maxNonLOSDefaultAllocBytes() { return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES; }
 }

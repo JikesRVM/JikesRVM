@@ -40,8 +40,6 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public class SS extends StopTheWorld {
-  /** Fraction of available virtual memory available to each semispace */
-  private static final float SEMISPACE_VIRT_MEM_FRAC = 0.30f;
 
   /****************************************************************************
    *

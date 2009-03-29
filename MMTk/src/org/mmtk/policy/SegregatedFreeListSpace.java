@@ -46,7 +46,8 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   private static final boolean COMPACT_SIZE_CLASSES = false;
   protected static final int MIN_CELLS = 6;
   protected static final int MAX_CELLS = 99; // (1<<(INUSE_BITS-1))-1;
-  public static final int MAX_CELL_SIZE = 8<<10;
+  protected static final int MAX_CELL_SIZE = 8<<10;
+  public static final int MAX_FREELIST_OBJECT_BYTES = MAX_CELL_SIZE;
 
   // live bits etc
   private static final int OBJECT_LIVE_SHIFT = LOG_MIN_ALIGNMENT; // 4 byte resolution
