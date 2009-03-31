@@ -20,7 +20,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.LineReuseRatio;
 import org.mmtk.utility.options.Options;
-import org.mmtk.utility.statistics.BooleanCounter;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
@@ -50,7 +49,6 @@ public final class ImmixSpace extends Space implements Constants {
   private static short reusableMarkStateThreshold = 0;
 
   /* statistics */
-  public static BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
   public static int TMPreusableLineCount = 0;
   public static int TMPreusedLineCount = 0;
   public static int TMPreusableBlockCount = 0;

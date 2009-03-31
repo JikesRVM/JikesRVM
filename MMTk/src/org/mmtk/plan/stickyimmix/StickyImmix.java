@@ -14,10 +14,10 @@ package org.mmtk.plan.stickyimmix;
 
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.immix.Immix;
-import org.mmtk.policy.immix.ImmixSpace;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.SharedDeque;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.statistics.BooleanCounter;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.vm.Collection;
 
@@ -72,6 +72,9 @@ public class StickyImmix extends Immix {
    */
   private static int lastCommittedImmixPages = 0;
 
+  /* statistics */
+  public static BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
+
   /****************************************************************************
    * Instance variables
    */
@@ -116,7 +119,7 @@ public class StickyImmix extends Immix {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
       collectWholeHeap = requiresFullHeapCollection();
-      if (Stats.gatheringStats() && collectWholeHeap) ImmixSpace.fullHeap.set();
+      if (Stats.gatheringStats() && collectWholeHeap) fullHeap.set();
       boolean userTriggeredGC = collectionTrigger == Collection.EXTERNAL_GC_TRIGGER && Options.fullHeapSystemGC.getValue();
       immixSpace.setCollectionKind(emergencyCollection, collectWholeHeap, collectionAttempt, requiredAtStart, userTriggeredGC);
       return;
