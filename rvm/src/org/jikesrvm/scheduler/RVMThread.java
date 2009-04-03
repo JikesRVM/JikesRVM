@@ -1716,6 +1716,13 @@ public class RVMThread extends ThreadContext {
     checkBlockNoSaveContext();
   }
 
+  /**
+   * Enter one of the "native" states (JNI or NATIVE) while acknowledging a GC block request.
+   * this thread will not actually blow, it will continue to do useful work so long as it
+   * does not try to come back to running IN_JAVA.  This is a slow call; you should almost
+   * always call enterNative(), enterJNIFromCallIntoNative(), or enterJNIFromJNIFunctionCall()
+   * instead.
+   */
   private void enterNativeBlockedImpl(boolean jni) {
     if (traceReallyBlock)
       VM.sysWriteln("Thread #", threadSlot, " entering native blocked.");
@@ -1748,27 +1755,27 @@ public class RVMThread extends ThreadContext {
     checkBlockNoSaveContext();
   }
 
-  final void enterNativeBlocked() {
+  private void enterNativeBlocked() {
     assertAcceptableStates(IN_JAVA,IN_JAVA_TO_BLOCK);
     enterNativeBlockedImpl(false);
     assertAcceptableStates(IN_NATIVE,BLOCKED_IN_NATIVE);
   }
 
   @Unpreemptible("May block if the thread was asked to do so, but otherwise does no actions that would cause blocking")
-  final void leaveNativeBlocked() {
+  private void leaveNativeBlocked() {
     assertAcceptableStates(IN_NATIVE,BLOCKED_IN_NATIVE);
     leaveNativeBlockedImpl();
     assertAcceptableStates(IN_JAVA,IN_JAVA_TO_BLOCK);
   }
 
-  final void enterJNIBlocked() {
+  private void enterJNIBlocked() {
     assertAcceptableStates(IN_JAVA,IN_JAVA_TO_BLOCK);
     enterNativeBlockedImpl(true);
     assertAcceptableStates(IN_JNI,BLOCKED_IN_JNI);
   }
 
   @Unpreemptible("May block if the thread was asked to do so, but otherwise does no actions that would cause blocking")
-  final void leaveJNIBlocked() {
+  private void leaveJNIBlocked() {
     assertAcceptableStates(IN_JNI,BLOCKED_IN_JNI);
     leaveNativeBlockedImpl();
     assertAcceptableStates(IN_JAVA,IN_JAVA_TO_BLOCK);
@@ -2013,7 +2020,8 @@ public class RVMThread extends ThreadContext {
   }
 
   /**
-   * Attempt to transition from IN_JNI or IN_NATIVE to IN_JAVA, fail if execStatus is blocked.
+   * Attempt to transition from IN_JNI or IN_NATIVE to IN_JAVA, fail if execStatus is
+   * anything but IN_JNI or IN_NATIVE.
    *
    * @return true if thread transitioned to IN_JAVA, otherwise false
    */
