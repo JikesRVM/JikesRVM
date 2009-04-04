@@ -1116,7 +1116,7 @@ mapImageFile(const char *fileName, const void *targetAddress, bool isCode,
 
 
 int
-createVM(int vmInSeparateThread)
+createVM(void)
 {
     // don't buffer trace or error message output
     //
@@ -1384,46 +1384,22 @@ createVM(int vmInSeparateThread)
         fprintf(SysTraceFile, "Done testing faulting-address location\n");
 #endif
 
-    // execute vm startup thread
-    //
-    if (vmInSeparateThread) {
-        /* Try starting the VM in a separate pthread.  We need to synchronize
-           before exiting. */
-        startupRegs[0] = jtoc;
-        startupRegs[1] = tr;
-        startupRegs[2] = tid;
-        startupRegs[3] = fp;
-
-        // clear flag for synchronization
-        bootRecord.bootCompleted = 0;
-
-        pthread_create(&vm_pthreadid, NULL, bootThreadCaller, NULL);
-
-        // wait for the JNIStartUp code to set the completion flag before returning
-        while (!bootRecord.bootCompleted) {
-#if (_AIX43 || RVM_FOR_LINUX || RVM_FOR_OSX)
-            sched_yield();
-#else
-            pthread_yield();
-#endif
-        }
-
-        return 0;
+    if (setjmp(primordial_jb)) {
+        *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
+        // cannot return or else the process will exit.  this is how pthreads
+        // work on the platforms I've tried (OS X and Linux).  So, when the
+        // primordial thread is done, we just have it idle.  When the process
+        // is supposed to exit, it'll call exit().
+        for (;;) pause();
     } else {
-        if (setjmp(primordial_jb)) {
-            *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
-            // cannot return or else the process will exit
-            for (;;) pause();
-        } else {
-            if (lib_verbose) {
-                fprintf(SysTraceFile, "%s: calling boot thread: jtoc = " FMTrvmPTR
-                        "   tr = " FMTrvmPTR "   tid = %d   fp = " FMTrvmPTR "\n",
-                        Me, rvmPTR_ARG(jtoc), rvmPTR_ARG(tr), tid, rvmPTR_ARG(fp));
-            }
-            bootThread(jtoc, tr, tid, fp);
-            fprintf(SysErrorFile, "Unexpected return from bootThread\n");
-            return 1;
+        if (lib_verbose) {
+            fprintf(SysTraceFile, "%s: calling boot thread: jtoc = " FMTrvmPTR
+                    "   tr = " FMTrvmPTR "   tid = %d   fp = " FMTrvmPTR "\n",
+                    Me, rvmPTR_ARG(jtoc), rvmPTR_ARG(tr), tid, rvmPTR_ARG(fp));
         }
+        bootThread(jtoc, tr, tid, fp);
+        fprintf(SysErrorFile, "Unexpected return from bootThread\n");
+        return 1;
     }
 
 }

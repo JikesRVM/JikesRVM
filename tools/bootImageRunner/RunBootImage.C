@@ -489,7 +489,7 @@ main(int argc, const char **argv)
     (void) mach_timebase_info(&timebaseInfo);
 #endif
 
-    int ret = createVM(0);
+    int ret = createVM();
     if (ret == 1) {
 	fprintf(SysErrorFile, "%s: Could not create the virtual machine; goodbye\n", Me);
 	exit(EXIT_STATUS_MISC_TROUBLE);

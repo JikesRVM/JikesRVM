@@ -85,7 +85,7 @@ extern int verboseBoot;
 extern void sysInitialize();
 
 /* Defined in libvm.C; used in RunBootImage.C */
-extern int createVM(int);
+extern int createVM(void);
 
 /* Used in libvm.C; Defined in sys.C */
 extern int getArrayLength(void* ptr);
