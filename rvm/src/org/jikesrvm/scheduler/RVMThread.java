@@ -2341,7 +2341,7 @@ public class RVMThread extends ThreadContext {
    */
   @Interruptible
   @Entrypoint
-  public synchronized void run() {
+  public void run() {
     try {
       synchronized (thread) {
         Throwable t = java.lang.JikesRVMSupport.getStillBorn(thread);
@@ -3893,7 +3893,7 @@ public class RVMThread extends ThreadContext {
       } else {
         long startNano = Time.nanoTime();
         long whenWakeup = startNano + ms * 1000L * 1000L + ns;
-        if (isAlive()) {
+        if (!isJoinable) {
           do {
             waitAbsoluteNanos(this, whenWakeup);
           } while (isAlive() && Time.nanoTime() < whenWakeup);
