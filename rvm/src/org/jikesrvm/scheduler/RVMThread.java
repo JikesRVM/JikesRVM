@@ -655,19 +655,44 @@ public class RVMThread extends ThreadContext {
    */
   boolean isBlockedForGC;
 
+  /**
+   * A block adapter specifies the reason for blocking or unblocking a thread.  A thread
+   * remains blocked so long as any of the block adapters say that it should be blocked.
+   * Block adapters are statically allocated, and store their state in instance fields of
+   * RVMThread.
+   */
   @Uninterruptible
   @NonMoving
   public abstract static class BlockAdapter {
+    /** Should the given thread be blocked for this block adapter?  If this returns true,
+        the thread is guaranteed to block. */
     abstract boolean isBlocked(RVMThread t);
 
+    /** Specify that the thread is either blocked (value == true) or not blocked
+        (value == false) for this block adapter.  This call indicates a statement of
+        fact by the thread itself - it's used either to acknowledge a block request
+        (see hasBlockRequest below) or to respond to a request to unblock. */
     abstract void setBlocked(RVMThread t, boolean value);
 
+    /** Request that the thread block, for this block adapter, at its earliest
+        convenience.  Called from RVMThread.block() and associated methods.  Some
+        block adapters allow for multiple requests to block; in that case this will
+        return a "token" that can be passed to hasBlockRequest() to check, not only
+        whether there is a block request, but whether that block request is still
+        associated with a particular call to requestBlock().  This is used to prevent
+        a suspend() call from stalling due to a concurrent resume() and second
+        suspend().  Note that most block adapers don't care about this scenario, and
+        will just return 0 (or some other meaningless number) here. */
     abstract int requestBlock(RVMThread t);
 
+    /** Does the thread have a request to block for this block adapter? */
     abstract boolean hasBlockRequest(RVMThread t);
 
+    /** Does the thread have a request to block associated with the given requestBlock()
+        call? */
     abstract boolean hasBlockRequest(RVMThread t, int token);
 
+    /** Clear any blocking requests. */
     abstract void clearBlockRequest(RVMThread t);
   }
 
