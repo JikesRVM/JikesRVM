@@ -1014,7 +1014,14 @@ public class RVMThread extends ThreadContext {
 
   /**
    * Lock (mutex) used for creating and destroying threads as well as thread
-   * accounting.
+   * accounting.  This mutex should not be held while thread monitors (see monitorBySlot)
+   * are held.  Use this mutex only to protect accesses to:
+   * <ul>
+   * <li>the global thread lists, such as threadBySlot, aboutToTerminate, threads, and
+   *     freeLots</li>
+   * <li>threadIdx field of RVMThread</li>
+   * <li>numThreads, numActiveThreads, numActiveDaemons static fields of RVMThread</li>
+   * </ul>
    */
   public static NoYieldpointsMonitor acctLock;
 
