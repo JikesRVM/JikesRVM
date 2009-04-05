@@ -12,7 +12,7 @@
  */
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.DONT_CLEAR_MARKS_AT_EVERY_GC;
+import static org.mmtk.policy.immix.ImmixConstants.CLEAR_MARKS_AT_EVERY_GC;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
@@ -72,7 +72,7 @@ public final class CollectorLocal implements Constants {
    */
   public void prepare(boolean majorGC) {
     int ordinal = VM.collection.activeGCThreadOrdinal();
-    if (ImmixConstants.DONT_CLEAR_MARKS_AT_EVERY_GC) {
+    if (!CLEAR_MARKS_AT_EVERY_GC) {
       if (majorGC && !immixSpace.inImmixDefragCollection())
         clearAllBlockMarkState(ordinal);
     } else {
@@ -88,7 +88,7 @@ public final class CollectorLocal implements Constants {
   }
 
   private void resetLineMarksAndDefragStateTable(int ordinal, final short threshold) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!DONT_CLEAR_MARKS_AT_EVERY_GC && immixSpace.inImmixDefragCollection());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(CLEAR_MARKS_AT_EVERY_GC && immixSpace.inImmixDefragCollection());
     int stride = VM.collection.activeGCThreads();
     Address chunk = chunkMap.firstChunk(ordinal, stride);
     while (!chunk.isZero()) {
@@ -98,7 +98,7 @@ public final class CollectorLocal implements Constants {
   }
 
   private void clearAllLineMarks(int ordinal) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!DONT_CLEAR_MARKS_AT_EVERY_GC);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(CLEAR_MARKS_AT_EVERY_GC);
     int stride = VM.collection.activeGCThreads();
     Address chunk = chunkMap.firstChunk(ordinal, stride);
     while (!chunk.isZero()) {
@@ -108,7 +108,7 @@ public final class CollectorLocal implements Constants {
   }
 
   private void clearAllBlockMarkState(int ordinal) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(DONT_CLEAR_MARKS_AT_EVERY_GC);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!CLEAR_MARKS_AT_EVERY_GC);
     int stride = VM.collection.activeGCThreads();
     Address chunk = chunkMap.firstChunk(ordinal, stride);
     while (!chunk.isZero()) {

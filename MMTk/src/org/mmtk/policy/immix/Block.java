@@ -16,6 +16,7 @@ import static org.mmtk.policy.immix.ImmixConstants.BLOCKS_IN_CHUNK;
 import static org.mmtk.policy.immix.ImmixConstants.BLOCK_MASK;
 import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_LINE;
 import static org.mmtk.policy.immix.ImmixConstants.CHUNK_MASK;
+import static org.mmtk.policy.immix.ImmixConstants.CLEAR_MARKS_AT_EVERY_GC;
 import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_BLOCK;
 import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_BLOCK;
 import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_LINE;
@@ -60,19 +61,16 @@ public class Block implements Constants {
     return cursor.loadShort() == UNALLOCATED_BLOCK_STATE;
   }
 
-  static boolean isUnmarkedState(Address cursor) {
-    return cursor.loadShort() == UNMARKED_BLOCK_STATE;
+  static short getMarkState(Address cursor) {
+    return cursor.loadShort();
   }
 
-  static boolean isMarkedState(Address cursor) {
-    return cursor.loadShort() == MARKED_BLOCK_STATE;
-  }
-
-  static void setToUnmarkedState(Address cursor) {
-    cursor.store(UNMARKED_BLOCK_STATE);
+  static void setState(Address cursor, short value) {
+    cursor.store(value);
   }
 
   static Address clearMarkStateAndAdvance(Address cursor) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!CLEAR_MARKS_AT_EVERY_GC);
     short value = cursor.loadShort();
     if (value != Block.UNALLOCATED_BLOCK_STATE)
       cursor.store(Block.UNMARKED_BLOCK_STATE);
@@ -193,20 +191,20 @@ public class Block implements Constants {
 
   static void resetLineMarksAndDefragStateTable(short threshold, Address markStateBase, Address defragStateBase,
       Address lineMarkBase, int block) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(CLEAR_MARKS_AT_EVERY_GC);
     Offset csOffset = Offset.fromIntZeroExtend(block<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY);
     short state = defragStateBase.loadShort(csOffset);
     short defragState = BLOCK_IS_NOT_DEFRAG_SOURCE;
     if (state >= threshold) defragState = BLOCK_IS_DEFRAG_SOURCE;
     defragStateBase.store(defragState, csOffset);
-    if (defragState == BLOCK_IS_DEFRAG_SOURCE) {
+    if (defragState == BLOCK_IS_DEFRAG_SOURCE || getMarkState(markStateBase) > Defrag.defragReusableMarkStateThreshold) {
       VM.memory.zero(lineMarkBase.plus(block<<Line.LOG_LINE_MARK_BYTES_PER_BLOCK), Extent.fromIntZeroExtend(Line.LINE_MARK_BYTES_PER_BLOCK));
     }
   }
 
   private static final short UNALLOCATED_BLOCK_STATE = 0;
   private static final short UNMARKED_BLOCK_STATE = (short) (MAX_BLOCK_MARK_STATE + 1);
-  private static final short MARKED_BLOCK_STATE = (short) (MAX_BLOCK_MARK_STATE + 2);
-  private static final short REUSED_BLOCK_STATE = (short) (MAX_BLOCK_MARK_STATE + 3);
+  private static final short REUSED_BLOCK_STATE = (short) (MAX_BLOCK_MARK_STATE + 2);
 
   private static final short BLOCK_IS_NOT_DEFRAG_SOURCE = 0;
   private static final short BLOCK_IS_DEFRAG_SOURCE = 1;

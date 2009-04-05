@@ -16,7 +16,7 @@ import static org.mmtk.policy.Space.BYTES_IN_CHUNK;
 import static org.mmtk.policy.immix.ImmixConstants.BLOCKS_IN_CHUNK;
 import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_BLOCK;
 import static org.mmtk.policy.immix.ImmixConstants.CHUNK_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.DONT_CLEAR_MARKS_AT_EVERY_GC;
+import static org.mmtk.policy.immix.ImmixConstants.CLEAR_MARKS_AT_EVERY_GC;
 import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_BLOCK;
 import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_BLOCK;
 import static org.mmtk.policy.immix.ImmixConstants.MAX_BLOCK_MARK_STATE;
@@ -70,7 +70,7 @@ public class Chunk implements Constants {
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isUnused(block));
       } else {
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(marked > 0 && marked <= LINES_IN_BLOCK);
-        cursor.store(marked);
+        Block.setState(cursor, marked);
         if (defragSource) Defrag.defragBytesNotFreed.inc(BYTES_IN_BLOCK);
       }
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isUnused(block) || (Block.getBlockMarkState(block) == marked && marked > 0 && marked <= MAX_BLOCK_MARK_STATE));
@@ -108,7 +108,7 @@ public class Chunk implements Constants {
 
   static void clearBlockMarkState(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(chunk));
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(DONT_CLEAR_MARKS_AT_EVERY_GC);
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!CLEAR_MARKS_AT_EVERY_GC);
 
     clearLineMarks(chunk);
     Address cursor = Block.getBlockMarkStateAddress(getFirstUsableBlock(chunk));
@@ -150,6 +150,7 @@ public class Chunk implements Constants {
   }
 
   static void resetLineMarksAndDefragStateTable(Address chunk, short threshold) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(CLEAR_MARKS_AT_EVERY_GC);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(chunk));
     Address markStateBase = Block.getBlockMarkStateAddress(chunk);
     Address defragStateBase = Block.getDefragStateAddress(chunk);

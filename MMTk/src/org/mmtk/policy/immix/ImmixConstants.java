@@ -29,7 +29,7 @@ public class ImmixConstants {
   /* end temporary experimental constants */
 
   public static final boolean MARK_LINE_AT_SCAN_TIME = true; // else do it at mark time
-  static final boolean DONT_CLEAR_MARKS_AT_EVERY_GC = false && Plan.NEEDS_LOG_BIT_IN_HEADER;
+  static final boolean CLEAR_MARKS_AT_EVERY_GC = true || !Plan.NEEDS_LOG_BIT_IN_HEADER;
 
   public static final boolean SANITY_CHECK_LINE_MARKS = false && VM.VERIFY_ASSERTIONS;
 
