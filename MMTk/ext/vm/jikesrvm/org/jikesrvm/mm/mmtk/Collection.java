@@ -153,7 +153,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    */
   public int maximumCollectionAttempt() {
     int max = 1;
-    RVMThread.acctLock.lock();
+    RVMThread.acctLock.lockNoHandshake();
     for(int t=0; t < RVMThread.numThreads; t++) {
       RVMThread thread = RVMThread.threads[t];
       int current = thread.getCollectionAttempt();
@@ -228,7 +228,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
      * off in JNI-land cannot run.
      */
     RVMThread t = ((Selected.Mutator) m).getThread();
-    t.monitor().lock();
+    t.monitor().lockNoHandshake();
     // are these the only unexpected states?
     t.assertUnacceptableStates(RVMThread.IN_JNI,RVMThread.IN_NATIVE);
     int execStatus = t.getExecStatus();

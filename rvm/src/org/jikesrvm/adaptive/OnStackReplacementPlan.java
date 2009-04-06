@@ -132,7 +132,7 @@ public class OnStackReplacementPlan implements Constants {
       }
     }
 
-    suspendedThread.monitor().lock();
+    suspendedThread.monitor().lockNoHandshake();
     suspendedThread.osr_done=true;
     suspendedThread.monitor().broadcast();
     suspendedThread.monitor().unlock();

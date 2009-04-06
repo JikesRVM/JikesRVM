@@ -46,15 +46,15 @@ public class OnStackReplacementTrigger {
     event.tsFromFPoff = tsFromFPoff;
     event.ypTakenFPoff = ypTakenFPoff;
 
-    thread.monitor().lock();
+    thread.monitor().lockNoHandshake();
     thread.requesting_osr = true;
     thread.monitor().unlock();
 
     Controller.osrOrganizer.activate();
     // PNT: Assumes that OSR doesn't need access to our context regs
-    thread.monitor().lock();
+    thread.monitor().lockNoHandshake();
     while (!thread.osr_done) {
-      thread.monitor().waitNicely();
+      thread.monitor().waitWithHandshake();
     }
     thread.osr_done=false;
     thread.monitor().unlock();

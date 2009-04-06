@@ -41,8 +41,8 @@ public class Latch {
    * But - if any of the threads is using waitAndClose(), then as soon
    * as that thread awakes further threads will be blocked.
    */
-  public void open() {
-    schedLock.lockNicely();
+  public void openWithHandshake() {
+    schedLock.lockWithHandshake();
     open=true;
     schedLock.broadcast();
     schedLock.unlock();
@@ -53,8 +53,8 @@ public class Latch {
    * interrupt handlers.
    */
   @Uninterruptible
-  public void openDangerously() {
-    schedLock.lock();
+  public void openNoHandshake() {
+    schedLock.lockNoHandshake();
     open=true;
     schedLock.broadcast();
     schedLock.unlock();
@@ -63,8 +63,8 @@ public class Latch {
    * Close the latch, causing future calls to wait() or waitAndClose()
    * to block.
    */
-  public void close() {
-    schedLock.lockNicely();
+  public void closeWithHandshake() {
+    schedLock.lockWithHandshake();
     open=false;
     schedLock.unlock();
   }
@@ -72,10 +72,10 @@ public class Latch {
    * Wait for the latch to become open.  If it is already open, don't
    * wait at all.
    */
-  public void await() {
-    schedLock.lockNicely();
+  public void waitWithHandshake() {
+    schedLock.lockWithHandshake();
     while (!open) {
-      schedLock.waitNicely();
+      schedLock.waitWithHandshake();
     }
     schedLock.unlock();
   }
@@ -84,10 +84,10 @@ public class Latch {
    * If the latch is already open, don't wait at all, just close it
    * immediately and return.
    */
-  public void waitAndClose() {
-    schedLock.lockNicely();
+  public void waitAndCloseWithHandshake() {
+    schedLock.lockWithHandshake();
     while (!open) {
-      schedLock.waitNicely();
+      schedLock.waitWithHandshake();
     }
     open=false;
     schedLock.unlock();

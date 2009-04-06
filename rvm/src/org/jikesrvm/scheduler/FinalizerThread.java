@@ -45,7 +45,7 @@ public class FinalizerThread extends RVMThread {
   }
   @Uninterruptible
   public static void schedule() {
-    schedLock.lock();
+    schedLock.lockNoHandshake();
     shouldRun=true;
     schedLock.broadcast();
     schedLock.unlock();
@@ -67,12 +67,12 @@ public class FinalizerThread extends RVMThread {
 
         // suspend this thread: it will resume when the garbage collector
         // places objects on the finalizer queue and notifies.
-        schedLock.lock();
+        schedLock.lockNoHandshake();
         if (!shouldRun) {
           if (verbose>=1) {
             VM.sysWriteln("finalizer thread sleeping.");
           }
-          schedLock.waitNicely();
+          schedLock.waitWithHandshake();
         }
         shouldRun=false;
         schedLock.unlock();

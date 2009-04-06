@@ -83,7 +83,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
     }
     public void run() {
       for (;;) {
-        RVMThread.doProfileReport.waitAndClose();
+        RVMThread.doProfileReport.waitAndCloseWithHandshake();
         report();
       }
     }

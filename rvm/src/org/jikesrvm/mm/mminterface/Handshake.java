@@ -103,7 +103,7 @@ public class Handshake {
   @Unpreemptible
   public void reset() {
     if (lock!=null) {
-      lock.lock();
+      lock.lockNoHandshake();
     }
     gcTrigger = Collection.UNKNOWN_GC_TRIGGER;
     requestFlag = false;
@@ -113,13 +113,13 @@ public class Handshake {
   }
   @Unpreemptible
   void parkCollectorThread() {
-    lock.lock();
+    lock.lockNoHandshake();
     collectorThreadsParked++;
     lock.broadcast();
     if (verbose>=1) VM.sysWriteln("GC Thread #",RVMThread.getCurrentThreadSlot()," parked.");
     while (!requestFlag) {
       if (verbose>=1) VM.sysWriteln("GC Thread #",RVMThread.getCurrentThreadSlot()," waiting for request.");
-      lock.waitNicely();
+      lock.waitWithHandshake();
     }
     if (verbose>=1) VM.sysWriteln("GC Thread #",RVMThread.getCurrentThreadSlot()," got request, unparking.");
     collectorThreadsParked--;
@@ -134,7 +134,7 @@ public class Handshake {
   @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   private boolean request(int why) {
     if (verbose>=1) VM.sysWriteln("Thread #",RVMThread.getCurrentThreadSlot()," is trying to make a GC request");
-    lock.lock();
+    lock.lockNoHandshake();
     if (verbose>=1) VM.sysWriteln("Thread #",RVMThread.getCurrentThreadSlot()," acquired the lock for making a GC request");
     if (why > gcTrigger) gcTrigger = why;
     if (requestFlag) {

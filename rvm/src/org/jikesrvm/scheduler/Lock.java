@@ -245,9 +245,9 @@ public class Lock implements Constants {
     } else {
       entering.enqueue(me);
       mutex.unlock();
-      me.monitor().lock();
+      me.monitor().lockNoHandshake();
       while (entering.isQueued(me)) {
-        me.monitor().waitNicely(); // this may spuriously return
+        me.monitor().waitWithHandshake(); // this may spuriously return
       }
       me.monitor().unlock();
       return false;
@@ -292,7 +292,7 @@ public class Lock implements Constants {
     }
     mutex.unlock(); // does a Magic.sync();  (thread-switching benign)
     if (toAwaken != null) {
-      toAwaken.monitor().lockedBroadcast();
+      toAwaken.monitor().lockedBroadcastNoHandshake();
     }
   }
 

@@ -119,10 +119,10 @@ import org.jikesrvm.scheduler.ThreadQueue;
           queue.enqueue(me);
           Magic.sync();
           state=LOCKED_QUEUED;
-          me.monitor().lock();
+          me.monitor().lockNoHandshake();
           while (queue.isQueued(me)) {
             // use await instead of waitNicely because this is NOT a GC point!
-            me.monitor().await();
+            me.monitor().waitNoHandshake();
           }
           me.monitor().unlock();
         }
@@ -162,7 +162,7 @@ import org.jikesrvm.scheduler.ThreadQueue;
         } else {
           state=CLEAR_QUEUED;
         }
-        toAwaken.monitor().lockedBroadcast();
+        toAwaken.monitor().lockedBroadcastNoHandshake();
         break;
       }
     }

@@ -41,18 +41,18 @@ import org.jikesrvm.VM;
 public class NoYieldpointsMonitor extends Monitor {
   @NoInline
   @NoOptCompile
-  public void lock() {
+  public void lockNoHandshake() {
     VM.disableYieldpoints();
-    super.lock();
+    super.lockNoHandshake();
   }
 
   // This method is strange
   @Unpreemptible
   @NoInline
   @NoOptCompile
-  public void lockNicely() {
+  public void lockWithHandshake() {
     VM.disableYieldpoints();
-    super.lockNicely();
+    super.lockWithHandshake();
   }
 
   @NoInline

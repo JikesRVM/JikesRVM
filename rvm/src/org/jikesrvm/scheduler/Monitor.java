@@ -88,7 +88,7 @@ public class Monitor {
    */
   @NoInline
   @NoOptCompile
-  public void lock() {
+  public void lockNoHandshake() {
     int mySlot = RVMThread.getCurrentThreadSlot();
     if (mySlot != holderSlot) {
       sysCall.sysMonitorEnter(monitor);
@@ -104,7 +104,7 @@ public class Monitor {
    */
   @NoInline
   @NoOptCompile
-  public void relock(int recCount) {
+  public void relockNoHandshake(int recCount) {
     sysCall.sysMonitorEnter(monitor);
     if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
     if (VM.VerifyAssertions) VM._assert(this.recCount==0);
@@ -138,10 +138,10 @@ public class Monitor {
   @Unpreemptible("If the lock cannot be acquired, this method will allow the thread to be asynchronously blocked")
   @NoInline
   @NoOptCompile
-  public void lockNicely() {
+  public void lockWithHandshake() {
     int mySlot = RVMThread.getCurrentThreadSlot();
     if (mySlot != holderSlot) {
-      lockNicelyNoRec();
+      lockWithHandshakeNoRec();
       if (VM.VerifyAssertions) VM._assert(holderSlot==-1);
       if (VM.VerifyAssertions) VM._assert(recCount==0);
       holderSlot = mySlot;
@@ -153,14 +153,14 @@ public class Monitor {
   @NoOptCompile
   @BaselineSaveLSRegisters
   @Unpreemptible
-  private void lockNicelyNoRec() {
+  private void lockWithHandshakeNoRec() {
     RVMThread.saveThreadState();
-    lockNicelyNoRecImpl();
+    lockWithHandshakeNoRecImpl();
   }
   @NoInline
   @Unpreemptible
   @NoOptCompile
-  private void lockNicelyNoRecImpl() {
+  private void lockWithHandshakeNoRecImpl() {
     for (;;) {
       RVMThread.enterNative();
       sysCall.sysMonitorEnter(monitor);
@@ -179,14 +179,14 @@ public class Monitor {
   @NoOptCompile
   @BaselineSaveLSRegisters
   @Unpreemptible("If the lock cannot be reacquired, this method may allow the thread to be asynchronously blocked")
-  public void relockNicely(int recCount) {
+  public void relockWithHandshake(int recCount) {
     RVMThread.saveThreadState();
-    relockNicelyImpl(recCount);
+    relockWithHandshakeImpl(recCount);
   }
   @NoInline
   @Unpreemptible
   @NoOptCompile
-  private void relockNicelyImpl(int recCount) {
+  private void relockWithHandshakeImpl(int recCount) {
     for (;;) {
       RVMThread.enterNative();
       sysCall.sysMonitorEnter(monitor);
@@ -239,7 +239,7 @@ public class Monitor {
    */
   @NoInline
   @NoOptCompile
-  public void await() {
+  public void waitNoHandshake() {
     int recCount=this.recCount;
     this.recCount=0;
     holderSlot=-1;
@@ -261,7 +261,7 @@ public class Monitor {
    */
   @NoInline
   @NoOptCompile
-  public void timedWaitAbsolute(long whenWakeupNanos) {
+  public void timedWaitAbsoluteNoHandshake(long whenWakeupNanos) {
     int recCount=this.recCount;
     this.recCount=0;
     holderSlot=-1;
@@ -283,9 +283,9 @@ public class Monitor {
    */
   @NoInline
   @NoOptCompile
-  public void timedWaitRelative(long delayNanos) {
+  public void timedWaitRelativeNoHandshake(long delayNanos) {
     long now=sysCall.sysNanoTime();
-    timedWaitAbsolute(now+delayNanos);
+    timedWaitAbsoluteNoHandshake(now+delayNanos);
   }
   /**
    * Wait until someone calls broadcast.
@@ -305,19 +305,19 @@ public class Monitor {
   @NoOptCompile
   @BaselineSaveLSRegisters
   @Unpreemptible("While the thread is waiting, this method may allow the thread to be asynchronously blocked")
-  public void waitNicely() {
+  public void waitWithHandshake() {
     RVMThread.saveThreadState();
-    waitNicelyImpl();
+    waitWithHandshakeImpl();
   }
   @NoInline
   @Unpreemptible
   @NoOptCompile
-  private void waitNicelyImpl() {
+  private void waitWithHandshakeImpl() {
     RVMThread.enterNative();
-    await();
+    waitNoHandshake();
     int recCount=unlockCompletely();
     RVMThread.leaveNative();
-    relockNicelyImpl(recCount);
+    relockWithHandshakeImpl(recCount);
   }
   /**
    * Wait until someone calls broadcast, or until the clock reaches the
@@ -338,19 +338,19 @@ public class Monitor {
   @NoOptCompile
   @BaselineSaveLSRegisters
   @Unpreemptible("While the thread is waiting, this method may allow the thread to be asynchronously blocked")
-  public void timedWaitAbsoluteNicely(long whenWakeupNanos) {
+  public void timedWaitAbsoluteWithHandshake(long whenWakeupNanos) {
     RVMThread.saveThreadState();
-    timedWaitAbsoluteNicelyImpl(whenWakeupNanos);
+    timedWaitAbsoluteWithHandshakeImpl(whenWakeupNanos);
   }
   @NoInline
   @Unpreemptible
   @NoOptCompile
-  private void timedWaitAbsoluteNicelyImpl(long whenWakeupNanos) {
+  private void timedWaitAbsoluteWithHandshakeImpl(long whenWakeupNanos) {
     RVMThread.enterNative();
-    timedWaitAbsolute(whenWakeupNanos);
+    timedWaitAbsoluteNoHandshake(whenWakeupNanos);
     int recCount=unlockCompletely();
     RVMThread.leaveNative();
-    relockNicelyImpl(recCount);
+    relockWithHandshakeImpl(recCount);
   }
   /**
    * Wait until someone calls broadcast, or until at least the given
@@ -371,19 +371,19 @@ public class Monitor {
   @NoOptCompile
   @BaselineSaveLSRegisters
   @Unpreemptible("While the thread is waiting, this method may allow the thread to be asynchronously blocked")
-  public void timedWaitRelativeNicely(long delayNanos) {
+  public void timedWaitRelativeWithHandshake(long delayNanos) {
     RVMThread.saveThreadState();
-    timedWaitRelativeNicelyImpl(delayNanos);
+    timedWaitRelativeWithHandshakeImpl(delayNanos);
   }
   @NoInline
   @Unpreemptible
   @NoOptCompile
-  private void timedWaitRelativeNicelyImpl(long delayNanos) {
+  private void timedWaitRelativeWithHandshakeImpl(long delayNanos) {
     RVMThread.enterNative();
-    timedWaitRelative(delayNanos);
+    timedWaitRelativeNoHandshake(delayNanos);
     int recCount=unlockCompletely();
     RVMThread.leaveNative();
-    relockNicelyImpl(recCount);
+    relockWithHandshakeImpl(recCount);
   }
 
   /**
@@ -406,18 +406,18 @@ public class Monitor {
    */
   @NoInline
   @NoOptCompile
-  public void lockedBroadcast() {
-    lock();
+  public void lockedBroadcastNoHandshake() {
+    lockNoHandshake();
     broadcast();
     unlock();
   }
 
   @NoInline
-  public static boolean lock(Monitor l) {
+  public static boolean lockNoHandshake(Monitor l) {
     if (l==null) {
       return false;
     } else {
-      l.lock();
+      l.lockNoHandshake();
       return true;
     }
   }

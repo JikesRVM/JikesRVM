@@ -46,7 +46,7 @@ final class Barrier {
                     " entered ",RVMThread.getCurrentThread().barriersEntered++,
                     " barriers");
     }
-    lock.lock();
+    lock.lockNoHandshake();
     int myCountIdx=countIdx;
     boolean result;
     if (VM.VerifyAssertions) {
@@ -75,7 +75,7 @@ final class Barrier {
       result=true;
     } else {
       while (counters[myCountIdx]!=0) {
-        lock.await();
+        lock.waitNoHandshake();
       }
       result=false;
     }

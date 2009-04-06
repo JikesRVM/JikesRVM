@@ -114,7 +114,7 @@ public final class MethodCountData implements Reportable {
    *  To get a sorted list, pipe the output through sort -n -r.
    */
   public synchronized void report() {
-    RVMThread.dumpLock.lock();
+    RVMThread.dumpLock.lockNoHandshake();
     VM.sysWrite("Method counts: A total of " + totalCountsTaken + " samples\n");
     for (int i = 1; i < nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);

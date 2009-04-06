@@ -38,9 +38,9 @@ public final class OSROrganizerThread extends RVMThread {
   @Override
   public void run() {
     while (true) {
-      monitor().lock();
+      monitor().lockNoHandshake();
       if (!this.osr_flag) {
-        monitor().waitNicely();
+        monitor().waitWithHandshake();
       }
       this.osr_flag=false; /* if we get another activation after here
                               then we should rescan the threads array */
@@ -55,7 +55,7 @@ public final class OSROrganizerThread extends RVMThread {
    */
   @Uninterruptible
   public void activate() {
-    monitor().lock();
+    monitor().lockNoHandshake();
     osr_flag=true;
     monitor().broadcast();
     monitor().unlock();
@@ -69,7 +69,7 @@ public final class OSROrganizerThread extends RVMThread {
       RVMThread t=RVMThread.threads[i];
       if (t!=null) {
         boolean go=false;
-        t.monitor().lock();
+        t.monitor().lockNoHandshake();
         // NOTE: if threads are being removed, we may see a thread twice
         if (t.requesting_osr) {
           t.requesting_osr=false;

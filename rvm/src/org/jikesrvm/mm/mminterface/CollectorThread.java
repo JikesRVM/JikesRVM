@@ -350,12 +350,12 @@ public final class CollectorThread extends RVMThread {
          themselves (if they had made their own GC requests). */
       if (gcOrdinal == GC_ORDINAL_BASE) {
         if (verbose>=2) VM.sysWriteln("Thread #",getThreadSlot()," is about to block a bunch of threads.");
-        RVMThread.handshakeLock.lock();
+        RVMThread.handshakeLock.lockNoHandshake();
         // fixpoint until there are no threads that we haven't blocked.
         // fixpoint is needed in case some thread spawns another thread
         // while we're waiting.  that is unlikely but possible.
         for (;;) {
-          RVMThread.acctLock.lock();
+          RVMThread.acctLock.lockNoHandshake();
           int numToHandshake=0;
           for (int i=0;i<RVMThread.numThreads;++i) {
             RVMThread t=threads[i];
@@ -368,7 +368,7 @@ public final class CollectorThread extends RVMThread {
 
           for (int i=0;i<numToHandshake;++i) {
             RVMThread t=RVMThread.handshakeThreads[i];
-            t.monitor().lock();
+            t.monitor().lockNoHandshake();
             if (t.blockedFor(RVMThread.gcBlockAdapter) ||
                 RVMThread.notRunning(t.asyncBlock(RVMThread.gcBlockAdapter))) {
               // already blocked or not running, remove
@@ -505,8 +505,8 @@ public final class CollectorThread extends RVMThread {
 
         if (verbose>=2) VM.sysWriteln("Thread #",getThreadSlot()," is unblocking a bunch of threads.");
         // and now unblock all threads
-        RVMThread.handshakeLock.lock();
-        RVMThread.acctLock.lock();
+        RVMThread.handshakeLock.lockNoHandshake();
+        RVMThread.acctLock.lockNoHandshake();
         int numToHandshake=0;
         for (int i=0;i<RVMThread.numThreads;++i) {
           RVMThread t=threads[i];
