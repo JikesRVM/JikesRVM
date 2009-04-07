@@ -48,12 +48,6 @@ public final class ImmixSpace extends Space implements Constants {
    */
   private static short reusableMarkStateThreshold = 0;
 
-  /* statistics */
-  public static int TMPreusableLineCount = 0;
-  public static int TMPreusedLineCount = 0;
-  public static int TMPreusableBlockCount = 0;
-  public static int TMPreusedBlockCount = 0;
-
   /****************************************************************************
    *
    * Instance variables
@@ -128,7 +122,7 @@ public final class ImmixSpace extends Space implements Constants {
     /* set up reusable space */
     if (allocBlockCursor.isZero()) allocBlockCursor = chunkMap.getHeadChunk();
     allocBlockSentinel = allocBlockCursor;
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(allocBlockSentinel));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isRecycleAllocChunkAligned(allocBlockSentinel));
     exhaustedReusableSpace = false;
     if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
       Log.write("gr[allocBlockCursor: "); Log.write(allocBlockCursor); Log.write(" allocBlockSentinel: "); Log.write(allocBlockSentinel); Log.writeln("]");
@@ -262,8 +256,8 @@ public final class ImmixSpace extends Space implements Constants {
 
   public Address acquireReusableBlocks() {
     if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(allocBlockCursor));
-      VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(allocBlockSentinel));
+      VM.assertions._assert(isRecycleAllocChunkAligned(allocBlockCursor));
+      VM.assertions._assert(isRecycleAllocChunkAligned(allocBlockSentinel));
     }
     Address rtn;
 
@@ -288,7 +282,7 @@ public final class ImmixSpace extends Space implements Constants {
       }
     }
     unlock();
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(rtn));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isRecycleAllocChunkAligned(rtn));
     return rtn;
   }
 
@@ -450,7 +444,7 @@ public final class ImmixSpace extends Space implements Constants {
     if (VM.VERIFY_ASSERTIONS)  VM.assertions._assert(!defrag.inDefrag() || defrag.spaceExhausted() || !isDefragSource(object));
     if (oldMarkState != markValue) {
       if (!MARK_LINE_AT_SCAN_TIME)
-        ImmixSpace.markLines(object);
+        markLines(object);
       trace.processNode(object);
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrBeingForwarded(object));
@@ -511,7 +505,7 @@ public final class ImmixSpace extends Space implements Constants {
           Log.writeln("]");
         }
         if (!MARK_LINE_AT_SCAN_TIME)
-          ImmixSpace.markLines(newObject);
+          markLines(newObject);
         trace.processNode(newObject);
         if (VM.VERIFY_ASSERTIONS) {
           if (!((getSpaceForObject(newObject) != this) ||

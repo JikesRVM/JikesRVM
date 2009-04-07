@@ -34,6 +34,7 @@ public final class Options {
   public static DefragFreeHeadroomFraction defragFreeHeadroomFraction;
   public static DefragLineReuseRatio defragLineReuseRatio;
   public static DefragSimpleSpillThreshold defragSimpleSpillThreshold;
+  public static DefragStress defragStress;
   public static EagerCompleteSweep eagerCompleteSweep;
   public static EagerMmapSpaces eagerMmapSpaces;
   public static FixedNursery fixedNursery;
