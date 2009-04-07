@@ -22,10 +22,11 @@ import org.vmmagic.unboxed.AddressArray;
 
 @Uninterruptible
 public final class ChunkList implements Constants {
-  private static final int LOG_CHUNK_MAP_PAGES = 0;
-  private static final int CHUNK_MAP_ENTRIES = (BYTES_IN_PAGE<<LOG_CHUNK_MAP_PAGES)>>LOG_BYTES_IN_ADDRESS;
-  private static final int CHUNK_MAP_ARRAY_SIZE = 16;
-  private AddressArray chunkMap =  AddressArray.create(CHUNK_MAP_ARRAY_SIZE);
+  private static final int LOG_PAGES_IN_CHUNK_MAP_BLOCK = 0;
+  private static final int ENTRIES_IN_CHUNK_MAP_BLOCK = (BYTES_IN_PAGE<<LOG_PAGES_IN_CHUNK_MAP_BLOCK)>>LOG_BYTES_IN_ADDRESS;
+  private static final int CHUNK_MAP_BLOCKS = 1<<4;
+  private static final int MAX_ENTRIES_IN_CHUNK_MAP = ENTRIES_IN_CHUNK_MAP_BLOCK * CHUNK_MAP_BLOCKS;
+  private AddressArray chunkMap =  AddressArray.create(CHUNK_MAP_BLOCKS);
   private int chunkMapLimit = -1;
   private int chunkMapCursor = -1;
 
@@ -49,15 +50,17 @@ public final class ChunkList implements Constants {
 
   void addNewChunkToMap(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Chunk.isAligned(chunk));
+    if (chunkMapCursor == MAX_ENTRIES_IN_CHUNK_MAP - 1)
+      consolidateMap();
     chunkMapCursor++;
     int index = getChunkIndex(chunkMapCursor);
     int map = getChunkMap(chunkMapCursor);
-    if (map >= CHUNK_MAP_ARRAY_SIZE) {
+    if (map >= CHUNK_MAP_BLOCKS) {
       Space.printUsageMB();
       VM.assertions.fail("Overflow of chunk map!");
     }
     if (chunkMap.get(map).isZero()) {
-      Address tmp = Plan.metaDataSpace.acquire(1<<LOG_CHUNK_MAP_PAGES);
+      Address tmp = Plan.metaDataSpace.acquire(1<<LOG_PAGES_IN_CHUNK_MAP_BLOCK);
       if (tmp.isZero()) {
         Space.printUsageMB();
         VM.assertions.fail("Failed to allocate space for chunk map.  Is metadata virtual memory exhausted?");
@@ -78,8 +81,8 @@ public final class ChunkList implements Constants {
     if (VM.VERIFY_ASSERTIONS) checkMap();
   }
 
-  private int getChunkIndex(int entry) { return entry & (CHUNK_MAP_ENTRIES - 1);}
-  private int getChunkMap(int entry) {return entry & ~(CHUNK_MAP_ENTRIES - 1);}
+  private int getChunkIndex(int entry) { return entry & (ENTRIES_IN_CHUNK_MAP_BLOCK - 1);}
+  private int getChunkMap(int entry) {return entry & ~(ENTRIES_IN_CHUNK_MAP_BLOCK - 1);}
 
   private Address getMapAddress(int entry) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(entry >= 0);
