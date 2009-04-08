@@ -12,16 +12,7 @@
  */
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.BLOCKS_IN_CHUNK;
-import static org.mmtk.policy.immix.ImmixConstants.BLOCK_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.CHUNK_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.CLEAR_MARKS_AT_EVERY_GC;
-import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.MAX_BLOCK_MARK_STATE;
-import static org.mmtk.policy.immix.ImmixConstants.SANITY_CHECK_LINE_MARKS;
+import static org.mmtk.policy.immix.ImmixConstants.*;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
@@ -125,23 +116,26 @@ public class Block implements Constants {
       return 0;
 
     Address markTable = Line.getBlockMarkTable(block);
+    Address availTable = Line.getBlockAvailTable(block);
+
     short markCount = 0;
     short conservativeSpillCount = 0;
     byte mark, lastMark = 0;
-    for (int l = 0; l < LINES_IN_BLOCK; l++) {
-      Address markAddr = markTable.plus(Offset.fromIntSignExtend(l<<Line.LOG_BYTES_IN_LINE_MARK));
-      if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(markAddr.GE(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET)));
-        VM.assertions._assert(markAddr.LT(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET+Line.LINE_MARK_TABLE_BYTES)));
+    for (int offset = 0; offset < (LINES_IN_BLOCK<<Line.LOG_BYTES_IN_LINE_STATUS); offset += Line.BYTES_IN_LINE_STATUS) {
+       if (VM.VERIFY_ASSERTIONS) {
+        VM.assertions._assert(markTable.plus(offset).GE(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET)));
+        VM.assertions._assert(markTable.plus(offset).LT(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET+Line.LINE_MARK_TABLE_BYTES)));
       }
-      mark = markAddr.loadByte();
+      mark = markTable.loadByte(Offset.fromIntZeroExtend(offset));
+      if (USE_SEPARATE_LINE_AVAIL_TABLE)
+        availTable.store(mark, Offset.fromIntZeroExtend(offset));
 
       if (mark != Line.LINE_UNMARKED_VALUE)
         markCount++;
       else if (lastMark != 0)
         conservativeSpillCount++;
       else if (SANITY_CHECK_LINE_MARKS && lastMark == 0) {
-        VM.memory.zero(block.plus(l<<LOG_BYTES_IN_LINE),Extent.fromIntZeroExtend(BYTES_IN_LINE));
+        VM.memory.zero(block.plus(offset<<(LOG_BYTES_IN_LINE-Line.LOG_BYTES_IN_LINE_STATUS)),Extent.fromIntZeroExtend(BYTES_IN_LINE));
       }
 
       lastMark = mark;

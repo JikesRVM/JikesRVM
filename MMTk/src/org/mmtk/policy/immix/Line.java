@@ -12,13 +12,7 @@
  */
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.CHUNK_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_CHUNK;
-import static org.mmtk.policy.immix.ImmixConstants.LINE_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_LINES_IN_BLOCK;
+import static org.mmtk.policy.immix.ImmixConstants.*;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
@@ -65,7 +59,7 @@ public class Line implements Constants {
   }
 
   /***************************************************************************
-   * Scanning through line marks
+   * Scanning through avail lines
    */
   public static Address getChunkMarkTable(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Chunk.isAligned(chunk));
@@ -77,33 +71,38 @@ public class Line implements Constants {
     return getMarkAddress(block);
   }
 
-  @Inline
-  public static int getNextUsed(Address baseLineMarkAddress, int line) {
-    return getNext(baseLineMarkAddress, line, LINE_MARK_VALUE);
+  public static Address getBlockAvailTable(Address block) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isAligned(block));
+    return getAvailAddress(block);
   }
 
   @Inline
-  public static int getNextUnused(Address baseLineMarkAddress, int line) {
-    return getNextDoubleLine(baseLineMarkAddress, line, LINE_UNMARKED_VALUE);
+  public static int getNextUsed(Address baseLineAvailAddress, int line) {
+    return getNext(baseLineAvailAddress, line, LINE_MARK_VALUE);
   }
 
   @Inline
-  private static int getNext(Address baseLineMarkAddress, int line, final byte test) {
+  public static int getNextUnused(Address baseLineAvailAddress, int line) {
+    return getNextDoubleLine(baseLineAvailAddress, line, LINE_UNMARKED_VALUE);
+  }
+
+  @Inline
+  private static int getNext(Address baseLineAvailAddress, int line, final byte test) {
     while (line < LINES_IN_BLOCK &&
-          baseLineMarkAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_MARK)) != test)
+          baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS)) != test)
       line++;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(line >= 0 && line <= LINES_IN_BLOCK);
     return line;
   }
 
   @Inline
-  private static int getNextDoubleLine(Address baseLineMarkAddress, int line, final byte test) {
+  private static int getNextDoubleLine(Address baseLineAvailAddress, int line, final byte test) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(line >= 0 && line < LINES_IN_BLOCK);
-    byte last = baseLineMarkAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_MARK));
+    byte last = baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS));
     byte thisline;
     line++;
     while (line < LINES_IN_BLOCK) {
-      thisline = baseLineMarkAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_MARK));
+      thisline = baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS));
       if (thisline == test && last == test)
         break;
       last = thisline;
@@ -113,26 +112,39 @@ public class Line implements Constants {
     return line;
   }
 
-  private static Address getMarkAddress(Address address) {
+  private static Address getMetaAddress(Address address, final int tableOffset) {
     Address chunk = Chunk.align(address);
     int index = getChunkIndex(address);
-    Address rtn = chunk.plus(Chunk.LINE_MARK_TABLE_OFFSET).plus(index<<LOG_BYTES_IN_LINE_MARK);
+    Address rtn = chunk.plus(tableOffset + (index<<LOG_BYTES_IN_LINE_STATUS));
     if (VM.VERIFY_ASSERTIONS) {
       Address line = chunk.plus(index<<LOG_BYTES_IN_LINE);
       VM.assertions._assert(isAligned(line));
       VM.assertions._assert(align(address).EQ(line));
-      boolean valid = rtn.GE(chunk.plus(Chunk.LINE_MARK_TABLE_OFFSET)) && rtn.LT(chunk.plus(Chunk.LINE_MARK_TABLE_OFFSET+Line.LINE_MARK_TABLE_BYTES));
+      boolean valid = rtn.GE(chunk.plus(tableOffset)) && rtn.LT(chunk.plus(tableOffset + LINE_MARK_TABLE_BYTES));
       VM.assertions._assert(valid);
     }
     return rtn;
+  }
+
+  private static Address getMarkAddress(Address address) {
+    return getMetaAddress(address, Chunk.LINE_MARK_TABLE_OFFSET);
+  }
+
+  private static Address getAvailAddress(Address address) {
+    return getMetaAddress(address, USE_SEPARATE_LINE_AVAIL_TABLE ? Chunk.LINE_AVAIL_TABLE_OFFSET : Chunk.LINE_MARK_TABLE_OFFSET);
   }
 
   /* per-line mark bytes */
   private static final byte LINE_MARK_VALUE = 1;
           static final byte LINE_UNMARKED_VALUE = 0;
 
-  static final int LOG_BYTES_IN_LINE_MARK = 0;
-  static final int LINE_MARK_TABLE_BYTES = LINES_IN_CHUNK<<LOG_BYTES_IN_LINE_MARK;
-  static final int LOG_LINE_MARK_BYTES_PER_BLOCK = LOG_LINES_IN_BLOCK+LOG_BYTES_IN_LINE_MARK;
+  static final int LOG_BYTES_IN_LINE_STATUS = 0;
+  static final int BYTES_IN_LINE_STATUS = 1<<LOG_BYTES_IN_LINE_STATUS;
+
+  static final int LINE_MARK_TABLE_BYTES = LINES_IN_CHUNK<<LOG_BYTES_IN_LINE_STATUS;
+  static final int LOG_LINE_MARK_BYTES_PER_BLOCK = LOG_LINES_IN_BLOCK+LOG_BYTES_IN_LINE_STATUS;
   static final int LINE_MARK_BYTES_PER_BLOCK = (1<<LOG_LINE_MARK_BYTES_PER_BLOCK);
+
+  /* per-line avail bytes */
+  static final int LINE_AVAIL_TABLE_BYTES = USE_SEPARATE_LINE_AVAIL_TABLE ? LINES_IN_CHUNK<<LOG_BYTES_IN_LINE_STATUS : 0;
 }

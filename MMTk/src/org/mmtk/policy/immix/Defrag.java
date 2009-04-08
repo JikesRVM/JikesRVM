@@ -13,15 +13,8 @@
 
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.MAX_BLOCK_MARK_STATE;
-import static org.mmtk.policy.immix.ImmixConstants.MAX_COLLECTORS;
-import static org.mmtk.policy.immix.ImmixConstants.MAX_CONSV_SPILL_COUNT;
-import static org.mmtk.policy.immix.ImmixConstants.PAGES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.SPILL_HISTOGRAM_BUCKETS;
-import static org.mmtk.policy.immix.ImmixConstants.BUILD_FOR_STICKYIMMIX;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_MIN_SPILL_THRESHOLD;
+import static org.mmtk.policy.immix.ImmixConstants.*;
+
 
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
@@ -130,7 +123,7 @@ public class Defrag  implements Constants {
   }
 
   void setCollectionKind(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int requiredAtStart, boolean userTriggered, boolean exhaustedReusableSpace) {
-    inDefragCollection =  collectWholeHeap && (Options.defragStress.getValue() || userTriggered || emergencyCollection || (!BUILD_FOR_STICKYIMMIX && !exhaustedReusableSpace));
+    inDefragCollection =  collectWholeHeap && (Options.defragStress.getValue() || userTriggered || emergencyCollection); // || (!BUILD_FOR_STICKYIMMIX && !exhaustedReusableSpace));
     if (inDefragCollection) {
       debugBytesDefraged = 0;
     }

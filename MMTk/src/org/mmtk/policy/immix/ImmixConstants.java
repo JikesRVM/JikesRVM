@@ -28,6 +28,8 @@ public class ImmixConstants {
   public static final boolean TMP_PREFER_COPY_ON_NURSERY_GC = true;
   /* end temporary experimental constants */
 
+  static final boolean USE_SEPARATE_LINE_AVAIL_TABLE = true;
+
   public static final boolean MARK_LINE_AT_SCAN_TIME = true; // else do it at mark time
   static final boolean CLEAR_MARKS_AT_EVERY_GC = true || !Plan.NEEDS_LOG_BIT_IN_HEADER;
 
