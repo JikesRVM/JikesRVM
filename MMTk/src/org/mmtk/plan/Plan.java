@@ -331,6 +331,13 @@ public abstract class Plan implements Constants {
   }
 
   /**
+   * @return Whether last GC was an exhaustive attempt to collect the heap.  For many collectors this is the same as asking whether the last GC was a full heap collection.
+   */
+  public boolean lastCollectionWasExhaustive() {
+    return lastCollectionFullHeap();
+  }
+
+  /**
    * @return Whether last GC is a full GC.
    */
   public boolean lastCollectionFullHeap() {

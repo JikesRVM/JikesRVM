@@ -78,14 +78,16 @@ public class StickyImmix extends Immix {
   /****************************************************************************
    * Instance variables
    */
-  /* status fields */
-  /** will the next collection collect the whole heap? */
-  public boolean nextGCWholeHeap = false;
-  /** will this collection collect the whole heap */
-  public boolean collectWholeHeap = nextGCWholeHeap;
-
   /* Remset pool */
   public final SharedDeque modPool = new SharedDeque("msgen mod objects", metaDataSpace, 1);
+
+  /**
+   * Constructor.
+   *
+   */
+  public StickyImmix() {
+    collectWholeHeap = nextGCWholeHeap = false;
+  }
 
   /*****************************************************************************
    *
@@ -117,11 +119,9 @@ public class StickyImmix extends Immix {
   public final void collectionPhase(short phaseId) {
 
     if (phaseId == SET_COLLECTION_KIND) {
-      super.collectionPhase(phaseId);
       collectWholeHeap = requiresFullHeapCollection();
       if (Stats.gatheringStats() && collectWholeHeap) fullHeap.set();
-      boolean userTriggeredGC = collectionTrigger == Collection.EXTERNAL_GC_TRIGGER && Options.fullHeapSystemGC.getValue();
-      immixSpace.setCollectionKind(emergencyCollection, collectWholeHeap, collectionAttempt, requiredAtStart, userTriggeredGC);
+      super.collectionPhase(phaseId);
       return;
     }
 
@@ -136,7 +136,7 @@ public class StickyImmix extends Immix {
         super.collectionPhase(RELEASE);
       } else {
         immixTrace.release();
-        immixSpace.release(false);
+        lastGCWasDefrag = immixSpace.release(false);
       }
       modPool.reset();
       lastCommittedImmixPages = immixSpace.committedPages();

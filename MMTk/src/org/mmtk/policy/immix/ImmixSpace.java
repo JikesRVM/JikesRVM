@@ -121,7 +121,8 @@ public final class ImmixSpace extends Space implements Constants {
    * A new collection increment has completed.  Release global resources.
    * @param majorGC TODO
    */
-  public void release(boolean majorGC) {
+  public boolean release(boolean majorGC) {
+    boolean didDefrag = defrag.inDefrag();
     if (majorGC) {
       if (lineMarkState == MAX_LINE_MARK_STATE)
         lineMarkState = RESET_LINE_MARK_STATE;
@@ -145,6 +146,7 @@ public final class ImmixSpace extends Space implements Constants {
     Defrag.defragReusableMarkStateThreshold = (short) (Options.defragLineReuseRatio.getValue() * MAX_BLOCK_MARK_STATE);
 
     linesConsumed = 0;
+    return didDefrag;
   }
 
   /**
@@ -156,8 +158,8 @@ public final class ImmixSpace extends Space implements Constants {
    * @param requiredAtStart How much space is required?
    * @param userTriggered Is this a user-triggered collection?
    */
-  public void setCollectionKind(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int requiredAtStart, boolean userTriggered) {
-    defrag.setCollectionKind(emergencyCollection, collectWholeHeap, collectionAttempt, requiredAtStart, userTriggered, exhaustedReusableSpace);
+  public void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int collectionTrigger) {
+    defrag.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, collectionTrigger, exhaustedReusableSpace);
   }
 
  /****************************************************************************

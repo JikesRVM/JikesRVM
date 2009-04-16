@@ -29,6 +29,7 @@ import org.mmtk.utility.options.DefragStress;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.EventCounter;
 import org.mmtk.utility.statistics.SizeCounter;
+import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -122,8 +123,11 @@ public class Defrag  implements Constants {
     debugCollectionTypeDetermined = false;
   }
 
-  void setCollectionKind(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int requiredAtStart, boolean userTriggered, boolean exhaustedReusableSpace) {
-    inDefragCollection =  collectWholeHeap && (Options.defragStress.getValue() || userTriggered || emergencyCollection); // || (!BUILD_FOR_STICKYIMMIX && !exhaustedReusableSpace));
+  void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int collectionTrigger, boolean exhaustedReusableSpace) {
+    boolean userTriggered = collectionTrigger == Collection.EXTERNAL_GC_TRIGGER && Options.fullHeapSystemGC.getValue();
+    inDefragCollection =  (collectionAttempt > 1) ||
+        emergencyCollection ||
+        collectWholeHeap && (Options.defragStress.getValue() || userTriggered);
     if (inDefragCollection) {
       debugBytesDefraged = 0;
     }
