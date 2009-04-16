@@ -73,13 +73,13 @@ import org.vmmagic.pragma.*;
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
-  @LogicallyUninterruptible
+  @Unpreemptible
   public abstract void triggerCollection(int why);
 
   /**
    * Joins an already requested collection.
    */
-  @LogicallyUninterruptible
+  @Unpreemptible
   public abstract void joinCollection();
 
   /**
