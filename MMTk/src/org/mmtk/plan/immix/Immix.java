@@ -105,7 +105,7 @@ public class Immix extends StopTheWorld {
 
     if (phaseId == RELEASE) {
       immixTrace.release();
-      immixSpace.globalRelease();
+      immixSpace.release(true);
       super.collectionPhase(phaseId);
       return;
     }

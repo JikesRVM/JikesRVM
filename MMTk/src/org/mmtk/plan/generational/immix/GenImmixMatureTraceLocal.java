@@ -18,7 +18,6 @@ import org.mmtk.plan.generational.GenCollector;
 import org.mmtk.plan.generational.GenMatureTraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
-import org.mmtk.policy.immix.ImmixSpace;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -106,6 +105,6 @@ public final class GenImmixMatureTraceLocal extends GenMatureTraceLocal{
   protected void scanObject(ObjectReference object) {
     super.scanObject(object);
     if (MARK_LINE_AT_SCAN_TIME && Space.isInSpace(GenImmix.IMMIX, object))
-      ImmixSpace.markLines(object);
+      GenImmix.immixSpace.markLines(object);
   }
 }

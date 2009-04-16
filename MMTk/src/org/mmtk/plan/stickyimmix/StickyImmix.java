@@ -136,7 +136,7 @@ public class StickyImmix extends Immix {
         super.collectionPhase(RELEASE);
       } else {
         immixTrace.release();
-        immixSpace.globalRelease();
+        immixSpace.release(false);
       }
       modPool.reset();
       lastCommittedImmixPages = immixSpace.committedPages();

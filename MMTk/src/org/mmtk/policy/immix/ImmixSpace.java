@@ -53,6 +53,8 @@ public final class ImmixSpace extends Space implements Constants {
    * Instance variables
    */
   private Word markState = ObjectHeader.MARK_BASE_VALUE;
+          byte lineMarkState = RESET_LINE_MARK_STATE;
+  private byte lineUnavailState = RESET_LINE_MARK_STATE;
   private boolean inCollection;
   private int linesConsumed = 0;
 
@@ -103,7 +105,11 @@ public final class ImmixSpace extends Space implements Constants {
    * Prepare for a new collection increment.
    */
   public void prepare(boolean majorGC) {
-    if (majorGC) markState = ObjectHeader.deltaMarkState(markState, true);
+    if (majorGC) {
+      markState = ObjectHeader.deltaMarkState(markState, true);
+        lineMarkState++;
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(lineMarkState <= MAX_LINE_MARK_STATE);
+    }
     chunkMap.reset();
     defrag.prepare(chunkMap, this);
     inCollection = true;
@@ -113,8 +119,14 @@ public final class ImmixSpace extends Space implements Constants {
 
   /**
    * A new collection increment has completed.  Release global resources.
+   * @param majorGC TODO
    */
-  public void globalRelease() {
+  public void release(boolean majorGC) {
+    if (majorGC) {
+      if (lineMarkState == MAX_LINE_MARK_STATE)
+        lineMarkState = RESET_LINE_MARK_STATE;
+     lineUnavailState = lineMarkState;
+    }
     chunkMap.reset();
     defrag.globalRelease();
     inCollection = false;
@@ -542,11 +554,19 @@ public final class ImmixSpace extends Space implements Constants {
    * @param object The object which is live and for which the associated lines
    * must be marked.
    */
-  public static void markLines(ObjectReference object) {
+  public void markLines(ObjectReference object) {
     Address address = VM.objectModel.objectStartRef(object);
-    Line.mark(address);
+    Line.mark(address, lineMarkState);
     if (ObjectHeader.isStraddlingObject(object))
-      Line.markMultiLine(address, object);
+      Line.markMultiLine(address, object, lineMarkState);
+  }
+
+  public int getNextUnavailableLine(Address baseLineAvailAddress, int line) {
+    return Line.getNextUnavailable(baseLineAvailAddress, line, lineUnavailState);
+  }
+
+  public int getNextAvailableLine(Address baseLineAvailAddress, int line) {
+    return Line.getNextAvailable(baseLineAvailAddress, line, lineUnavailState);
   }
 
   /****************************************************************************

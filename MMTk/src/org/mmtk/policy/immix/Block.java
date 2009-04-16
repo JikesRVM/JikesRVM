@@ -60,14 +60,6 @@ public class Block implements Constants {
     cursor.store(value);
   }
 
-  static Address clearMarkStateAndAdvance(Address cursor) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!CLEAR_MARKS_AT_EVERY_GC);
-    short value = cursor.loadShort();
-    if (value != Block.UNALLOCATED_BLOCK_STATE)
-      cursor.store(Block.UNMARKED_BLOCK_STATE);
-    return cursor.plus(BYTES_IN_BLOCK_STATE_ENTRY);
-  }
-
   public static short getBlockMarkState(Address address) {
     return getBlockMarkStateAddress(address).loadShort();
   }
@@ -108,7 +100,7 @@ public class Block implements Constants {
   /***************************************************************************
    * Sweeping
    */
-  static short sweepOneBlock(Address block, int[] markHistogram) {
+  static short sweepOneBlock(Address block, int[] markHistogram, final byte markState, final boolean resetMarkState) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(block));
 
     final boolean unused = isUnused(block);
@@ -116,7 +108,6 @@ public class Block implements Constants {
       return 0;
 
     Address markTable = Line.getBlockMarkTable(block);
-    Address availTable = Line.getBlockAvailTable(block);
 
     short markCount = 0;
     short conservativeSpillCount = 0;
@@ -127,14 +118,14 @@ public class Block implements Constants {
         VM.assertions._assert(markTable.plus(offset).LT(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET+Line.LINE_MARK_TABLE_BYTES)));
       }
       mark = markTable.loadByte(Offset.fromIntZeroExtend(offset));
-      if (USE_SEPARATE_LINE_AVAIL_TABLE)
-        availTable.store(mark, Offset.fromIntZeroExtend(offset));
+      if (resetMarkState)
+        markTable.store((byte) (mark == markState ? RESET_LINE_MARK_STATE : 0), Offset.fromIntZeroExtend(offset));
 
-      if (mark != Line.LINE_UNMARKED_VALUE)
+      if (mark == markState)
         markCount++;
-      else if (lastMark != 0)
+      else if (lastMark == markState)
         conservativeSpillCount++;
-      else if (SANITY_CHECK_LINE_MARKS && lastMark == 0) {
+      else if (SANITY_CHECK_LINE_MARKS && lastMark != markState) {
         VM.memory.zero(block.plus(offset<<(LOG_BYTES_IN_LINE-Line.LOG_BYTES_IN_LINE_STATUS)),Extent.fromIntZeroExtend(BYTES_IN_LINE));
       }
 
@@ -185,15 +176,11 @@ public class Block implements Constants {
 
   static void resetLineMarksAndDefragStateTable(short threshold, Address markStateBase, Address defragStateBase,
       Address lineMarkBase, int block) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(CLEAR_MARKS_AT_EVERY_GC);
     Offset csOffset = Offset.fromIntZeroExtend(block<<LOG_BYTES_IN_BLOCK_DEFRAG_STATE_ENTRY);
     short state = defragStateBase.loadShort(csOffset);
     short defragState = BLOCK_IS_NOT_DEFRAG_SOURCE;
     if (state >= threshold) defragState = BLOCK_IS_DEFRAG_SOURCE;
     defragStateBase.store(defragState, csOffset);
-    if (defragState == BLOCK_IS_DEFRAG_SOURCE || getMarkState(markStateBase) > Defrag.defragReusableMarkStateThreshold) {
-      VM.memory.zero(lineMarkBase.plus(block<<Line.LOG_LINE_MARK_BYTES_PER_BLOCK), Extent.fromIntZeroExtend(Line.LINE_MARK_BYTES_PER_BLOCK));
-    }
   }
 
   private static final short UNALLOCATED_BLOCK_STATE = 0;

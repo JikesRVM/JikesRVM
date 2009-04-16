@@ -18,7 +18,6 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
-import org.mmtk.policy.immix.ImmixSpace;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.vm.VM;
 
@@ -121,7 +120,7 @@ public final class ImmixTraceLocal extends TraceLocal {
   protected void scanObject(ObjectReference object) {
     super.scanObject(object);
     if (MARK_LINE_AT_SCAN_TIME && Space.isInSpace(Immix.IMMIX, object))
-      ImmixSpace.markLines(object);
+      Immix.immixSpace.markLines(object);
   }
 
   /**

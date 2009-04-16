@@ -110,7 +110,7 @@ public class Defrag  implements Constants {
     if (defragHeadroomPages > 0)
       pr.unconditionallyReservePages(defragHeadroomPages);
 
-    if (Options.verbose.getValue() > 2) {
+    if (inDefragCollection && Options.verbose.getValue() > 2) {
       Log.write("(Defrag summary: cu: "); defragCleanBytesUsed.printCurrentVolume();
       Log.write(" nf: "); defragBytesNotFreed.printCurrentVolume();
       Log.write(" fr: "); defragBytesFreed.printCurrentVolume();

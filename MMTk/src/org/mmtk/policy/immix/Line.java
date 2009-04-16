@@ -41,19 +41,19 @@ public class Line implements Constants {
  /***************************************************************************
   * Line marking
   */
-  static void mark(Address address) {
+  static void mark(Address address, final byte markValue) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Block.isUnused(Block.align(address)));
-    getMarkAddress(address).store(LINE_MARK_VALUE);
+    getMarkAddress(address).store(markValue);
   }
 
-  static void markMultiLine(Address start, ObjectReference object) {
+  static void markMultiLine(Address start, ObjectReference object, final byte markValue) {
     /* endLine is the address of the last (highest) line touched by this object */
     Address endLine = Line.align(VM.objectModel.getObjectEndAddress(object).minus(1));
     Address line = Line.align(start.plus(BYTES_IN_LINE));
     while (line.LT(endLine)) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(Block.align(start) == Block.align(line));
-      mark(line);
+      mark(line, markValue);
       line = line.plus(BYTES_IN_LINE);
     }
   }
@@ -71,39 +71,24 @@ public class Line implements Constants {
     return getMarkAddress(block);
   }
 
-  public static Address getBlockAvailTable(Address block) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isAligned(block));
-    return getAvailAddress(block);
-  }
-
   @Inline
-  public static int getNextUsed(Address baseLineAvailAddress, int line) {
-    return getNext(baseLineAvailAddress, line, LINE_MARK_VALUE);
-  }
-
-  @Inline
-  public static int getNextUnused(Address baseLineAvailAddress, int line) {
-    return getNextDoubleLine(baseLineAvailAddress, line, LINE_UNMARKED_VALUE);
-  }
-
-  @Inline
-  private static int getNext(Address baseLineAvailAddress, int line, final byte test) {
+  public static int getNextUnavailable(Address baseLineAvailAddress, int line, final byte unavailableState) {
     while (line < LINES_IN_BLOCK &&
-          baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS)) != test)
+        baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS)) < unavailableState)
       line++;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(line >= 0 && line <= LINES_IN_BLOCK);
     return line;
   }
 
   @Inline
-  private static int getNextDoubleLine(Address baseLineAvailAddress, int line, final byte test) {
+  public static int getNextAvailable(Address baseLineAvailAddress, int line, final byte unavailableState) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(line >= 0 && line < LINES_IN_BLOCK);
     byte last = baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS));
     byte thisline;
     line++;
     while (line < LINES_IN_BLOCK) {
       thisline = baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS));
-      if (thisline == test && last == test)
+      if (thisline < unavailableState && last < unavailableState)
         break;
       last = thisline;
       line++;
@@ -130,21 +115,11 @@ public class Line implements Constants {
     return getMetaAddress(address, Chunk.LINE_MARK_TABLE_OFFSET);
   }
 
-  private static Address getAvailAddress(Address address) {
-    return getMetaAddress(address, USE_SEPARATE_LINE_AVAIL_TABLE ? Chunk.LINE_AVAIL_TABLE_OFFSET : Chunk.LINE_MARK_TABLE_OFFSET);
-  }
-
   /* per-line mark bytes */
-  private static final byte LINE_MARK_VALUE = 1;
-          static final byte LINE_UNMARKED_VALUE = 0;
-
   static final int LOG_BYTES_IN_LINE_STATUS = 0;
   static final int BYTES_IN_LINE_STATUS = 1<<LOG_BYTES_IN_LINE_STATUS;
 
   static final int LINE_MARK_TABLE_BYTES = LINES_IN_CHUNK<<LOG_BYTES_IN_LINE_STATUS;
   static final int LOG_LINE_MARK_BYTES_PER_BLOCK = LOG_LINES_IN_BLOCK+LOG_BYTES_IN_LINE_STATUS;
   static final int LINE_MARK_BYTES_PER_BLOCK = (1<<LOG_LINE_MARK_BYTES_PER_BLOCK);
-
-  /* per-line avail bytes */
-  static final int LINE_AVAIL_TABLE_BYTES = USE_SEPARATE_LINE_AVAIL_TABLE ? LINES_IN_CHUNK<<LOG_BYTES_IN_LINE_STATUS : 0;
 }

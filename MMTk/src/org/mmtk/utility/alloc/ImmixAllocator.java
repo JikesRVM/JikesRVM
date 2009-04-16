@@ -49,7 +49,7 @@ public class ImmixAllocator extends Allocator implements Constants {
   private boolean requestForLarge;      /* is the current request for large or small? */
   private boolean straddle;             /* did the last allocation straddle a line? */
   private int lineUseCount;             /* approximation to bytes allocated (measured at 99% accurate)  07/10/30 */
-  private Address availTable;
+  private Address markTable;
   private Address recyclableBlock;
   private int line;
   private boolean recyclableExhausted;
@@ -76,7 +76,7 @@ public class ImmixAllocator extends Allocator implements Constants {
     limit = Address.zero();
     largeCursor = Address.zero();
     largeLimit = Address.zero();
-    availTable = Address.zero();
+    markTable = Address.zero();
     recyclableBlock = Address.zero();
     requestForLarge = false;
     recyclableExhausted = false;
@@ -221,9 +221,9 @@ public class ImmixAllocator extends Allocator implements Constants {
 
   private boolean acquireRecyclableLines(int bytes, int align, int offset) {
     while (line < LINES_IN_BLOCK || acquireRecyclableBlock()) {
-      line = Line.getNextUnused(availTable, line);
+      line = space.getNextAvailableLine(markTable, line);
       if (line < LINES_IN_BLOCK) {
-        int endLine = Line.getNextUsed(availTable, line);
+        int endLine = space.getNextUnavailableLine(markTable, line);
         cursor = recyclableBlock.plus(Extent.fromIntSignExtend(line<<LOG_BYTES_IN_LINE));
         limit = recyclableBlock.plus(Extent.fromIntSignExtend(endLine<<LOG_BYTES_IN_LINE));
         if (SANITY_CHECK_LINE_MARKS) {
@@ -269,7 +269,7 @@ public class ImmixAllocator extends Allocator implements Constants {
     boolean rtn;
     rtn = acquireRecyclableBlockAddressOrder();
     if (rtn) {
-      availTable = Line.getBlockAvailTable(recyclableBlock);
+      markTable = Line.getBlockMarkTable(recyclableBlock);
       line = 0;
     }
     return rtn;

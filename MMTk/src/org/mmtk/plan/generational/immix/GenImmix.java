@@ -109,7 +109,7 @@ public class GenImmix extends Gen {
 
       if (phaseId == RELEASE) {
         matureTrace.release();
-        immixSpace.globalRelease();
+        immixSpace.release(true);
         super.collectionPhase(phaseId);
         return;
       }
