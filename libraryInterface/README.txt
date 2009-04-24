@@ -4,7 +4,7 @@ available under it's own license and some code in this portion of the
 tree is by necessity directly derived from the subject class library
 we must make those modifications available under their original license.
 
-There is also code under this tree that is licensed by the CPL because
+There is also code under this tree that is licensed by the EPL because
 it has been written from scratch for Jikes RVM.
 
 By convention, each sub-tree with source contains a copy of the
