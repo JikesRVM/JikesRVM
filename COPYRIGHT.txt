@@ -1,7 +1,7 @@
 The initial contribution to Jikes RVM (Oct 2001) was copyright by the IBM
 Corporation.  Since 2001, a number of individuals and other entities have
-contributed code to the project  under the terms of the CPL in which they
-retain copyright ownership.  We know that at least the following
+contributed code to the project  under the terms of the CPL/EPL in which they
+retain copyright ownership. We know that at least the following
 individuals/entities have copyright in one or more project files. More
 precise details on the copyright status of a particular file can only be
 accurately determined by examining the history of the file in question.
