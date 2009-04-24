@@ -18,7 +18,7 @@
   <classpathentry kind="src" path="common/options/src"/>
   <classpathentry kind="src" path="libraryInterface/Common/src"/>
   <classpathentry kind="src" path="libraryInterface/Harmony/ASF/src"/>
-  <classpathentry kind="src" path="libraryInterface/Harmony/CPL/src"/>
+  <classpathentry kind="src" path="libraryInterface/Harmony/EPL/src"/>
   <classpathentry kind="src" path="tools/bootImageWriter/src"/>
   <classpathentry kind="src" path="tools/bootImageWriter/vmmagic/src"/>
   <classpathentry kind="src" path="common/vmmagic/src"/>
