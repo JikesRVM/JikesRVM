@@ -425,5 +425,19 @@ public class Monitor {
   public static void unlock(boolean b, Monitor l) {
     if (b) l.unlock();
   }
+
+  @NoInline
+  @NoOptCompile
+  @Unpreemptible
+  public static void lockWithHandshake(Monitor m1,Word priority1,
+                                       Monitor m2,Word priority2) {
+    if (priority1.LE(priority2)) {
+      m1.lockWithHandshake();
+      m2.lockWithHandshake();
+    } else {
+      m2.lockWithHandshake();
+      m1.lockWithHandshake();
+    }
+  }
 }
 

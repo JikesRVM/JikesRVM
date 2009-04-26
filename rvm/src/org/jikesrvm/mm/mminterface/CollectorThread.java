@@ -350,56 +350,8 @@ public final class CollectorThread extends RVMThread {
          themselves (if they had made their own GC requests). */
       if (gcOrdinal == GC_ORDINAL_BASE) {
         if (verbose>=2) VM.sysWriteln("Thread #",getThreadSlot()," is about to block a bunch of threads.");
-        RVMThread.handshakeLock.lockNoHandshake();
-        // fixpoint until there are no threads that we haven't blocked.
-        // fixpoint is needed in case some thread spawns another thread
-        // while we're waiting.  that is unlikely but possible.
-        for (;;) {
-          RVMThread.acctLock.lockNoHandshake();
-          int numToHandshake=0;
-          for (int i=0;i<RVMThread.numThreads;++i) {
-            RVMThread t=threads[i];
-            if (!(t.isGCThread()) &&
-                !t.ignoreHandshakesAndGC()) {
-              RVMThread.handshakeThreads[numToHandshake++]=t;
-            }
-          }
-          RVMThread.acctLock.unlock();
 
-          for (int i=0;i<numToHandshake;++i) {
-            RVMThread t=RVMThread.handshakeThreads[i];
-            t.monitor().lockNoHandshake();
-            if (t.blockedFor(RVMThread.gcBlockAdapter) ||
-                RVMThread.notRunning(t.asyncBlock(RVMThread.gcBlockAdapter))) {
-              // already blocked or not running, remove
-              RVMThread.handshakeThreads[i--]=
-                RVMThread.handshakeThreads[--numToHandshake];
-              RVMThread.handshakeThreads[numToHandshake]=null; // help GC
-            }
-            t.monitor().unlock();
-          }
-          // quit trying to block threads if all threads are either blocked
-          // or not running (a thread is "not running" if it is NEW or TERMINATED;
-          // in the former case it means that the thread has not had start()
-          // called on it while in the latter case it means that the thread
-          // is either in the TERMINATED state or is about to be in that state
-          // real soon now, and will not perform any heap-related stuff before
-          // terminating).
-          if (numToHandshake==0) break;
-          for (int i=0;i<numToHandshake;++i) {
-            if (verbose>=2) VM.sysWriteln("waiting for ",RVMThread.handshakeThreads[i].getThreadSlot()," to block");
-            RVMThread t=RVMThread.handshakeThreads[i];
-            RVMThread.observeExecStatusAtSTW(t.block(RVMThread.gcBlockAdapter));
-            RVMThread.handshakeThreads[i]=null; // help GC
-          }
-        }
-        RVMThread.handshakeLock.unlock();
-
-        RVMThread.processAboutToTerminate(); /*
-                                              * ensure that any threads that died while
-                                              * we were stopping the world notify the
-                                              * GC that they had stopped.
-                                              */
+        RVMThread.hardHandshakeSuspend(RVMThread.gcBlockAdapter,RVMThread.allButGC);
 
         if (verbose>=2) {
           VM.sysWriteln("Thread #",getThreadSlot()," just blocked a bunch of threads.");
@@ -505,22 +457,7 @@ public final class CollectorThread extends RVMThread {
 
         if (verbose>=2) VM.sysWriteln("Thread #",getThreadSlot()," is unblocking a bunch of threads.");
         // and now unblock all threads
-        RVMThread.handshakeLock.lockNoHandshake();
-        RVMThread.acctLock.lockNoHandshake();
-        int numToHandshake=0;
-        for (int i=0;i<RVMThread.numThreads;++i) {
-          RVMThread t=threads[i];
-          if (!(t.isGCThread()) &&
-              !t.ignoreHandshakesAndGC()) {
-            RVMThread.handshakeThreads[numToHandshake++]=t;
-          }
-        }
-        RVMThread.acctLock.unlock();
-        for (int i=0;i<numToHandshake;++i) {
-          RVMThread.handshakeThreads[i].unblock(RVMThread.gcBlockAdapter);
-          RVMThread.handshakeThreads[i]=null; // help GC
-        }
-        RVMThread.handshakeLock.unlock();
+        RVMThread.hardHandshakeResume(RVMThread.gcBlockAdapter,RVMThread.allButGC);
         if (verbose>=2) VM.sysWriteln("Thread #",getThreadSlot()," just unblocked a bunch of threads.");
 
         /* schedule the FinalizerThread, if there is work to do & it is idle */
