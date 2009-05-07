@@ -35,11 +35,29 @@ import org.jikesrvm.classloader.TypeReference;
  */
 final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstants, BBConstants {
 
+  /**
+   * The entry in the reference map contains a value that is not a reference.
+   */
   static final byte NON_REFERENCE = 0;
+  /**
+   * The entry in the reference map contains a value that is a reference.
+   */
   static final byte REFERENCE = 1;
+  /**
+   * The entry in the reference map contains a JSR return address.
+   */
   static final byte RETURN_ADDRESS = 2;
+  /**
+   * The entry in the reference map is not set in a JSR body.
+   */
   static final byte NOT_SET = 0;
+  /**
+   * The entry in the reference map is set to a value that is a reference within a JSR body.
+   */
   static final byte SET_TO_REFERENCE = 1;
+  /**
+   * The entry in the reference map is set to a value that is not a reference within a JSR body.
+   */
   static final byte SET_TO_NONREFERENCE = 3;
 
   private static enum PrimitiveSize {
