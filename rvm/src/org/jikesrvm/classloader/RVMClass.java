@@ -876,9 +876,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Pure
   public RVMMethod findStaticMethod(Atom memberName, Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
-    RVMMethod[] methods = getStaticMethods();
-    for (int i = 0, n = methods.length; i < n; ++i) {
-      RVMMethod method = methods[i];
+    for (RVMMethod method : getStaticMethods()) {
       if (method.getName() == memberName && method.getDescriptor() == memberDescriptor) {
         return method;
       }
@@ -894,9 +892,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Pure
   public RVMMethod findInitializerMethod(Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
-    RVMMethod[] methods = getConstructorMethods();
-    for (int i = 0, n = methods.length; i < n; ++i) {
-      RVMMethod method = methods[i];
+    for (RVMMethod method : getConstructorMethods()) {
       if (method.getDescriptor() == memberDescriptor) {
         return method;
       }
@@ -1096,22 +1092,18 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
       // start with fields and methods of superclass
       //
       if (superClass != null) {
-        RVMField[] fields = superClass.getInstanceFields();
-        for (int i = 0, n = fields.length; i < n; ++i) {
-          instanceFields.addElement(fields[i]);
+        for (RVMField field : superClass.getInstanceFields()) {
+          instanceFields.addElement(field);
         }
 
-        RVMMethod[] methods = superClass.getVirtualMethods();
-        for (int i = 0, n = methods.length; i < n; ++i) {
-          virtualMethods.addElement(methods[i]);
+        for (RVMMethod method : superClass.getVirtualMethods()) {
+          virtualMethods.addElement(method);
         }
       }
 
       // append fields defined by this class
       //
-      RVMField[] fields = getDeclaredFields();
-      for (int i = 0, n = fields.length; i < n; ++i) {
-        RVMField field = fields[i];
+      for (RVMField field : getDeclaredFields()) {
         if (field.isStatic()) {
           staticFields.addElement(field);
         } else {
@@ -1121,10 +1113,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
       // append/overlay methods defined by this class
       //
-      RVMMethod[] methods = getDeclaredMethods();
-      for (int i = 0, n = methods.length; i < n; ++i) {
-        RVMMethod method = methods[i];
-
+      for (RVMMethod method : getDeclaredMethods()) {
         if (VM.VerifyUnint) {
           if (method.isSynchronized() && method.isUninterruptible()) {
             if (VM.ParanoidVerifyUnint || !method.hasLogicallyUninterruptibleAnnotation()) {
@@ -1223,8 +1212,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
     // allocate space for class fields
     //
-    for (int i = 0, n = staticFields.length; i < n; ++i) {
-      RVMField field = staticFields[i];
+    for (RVMField field : staticFields) {
       if (field.isReferenceType()) {
         field.setOffset(Statics.allocateReferenceSlot(true));
       } else if (field.getSize() <= BYTES_IN_INT) {
@@ -1248,8 +1236,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
     // count reference fields
     int referenceFieldCount = 0;
-    for (int i = 0, n = instanceFields.length; i < n; ++i) {
-      RVMField field = instanceFields[i];
+    for (RVMField field : instanceFields) {
       if (field.isTraced()) {
         referenceFieldCount += 1;
       }
@@ -1261,8 +1248,8 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
       referenceOffsets = MemoryManager.newNonMovingIntArray(0);
     } else {
       referenceOffsets = MemoryManager.newNonMovingIntArray(referenceFieldCount);
-      for (int i = 0, j = 0, n = instanceFields.length; i < n; ++i) {
-        RVMField field = instanceFields[i];
+      int j = 0;
+      for (RVMField field : instanceFields) {
         if (field.isTraced()) {
           referenceOffsets[j++] = field.getOffset().toInt();
         }
@@ -1271,15 +1258,13 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
     // Allocate space for <init> method pointers
     //
-    for (int i = 0, n = constructorMethods.length; i < n; ++i) {
-      RVMMethod method = constructorMethods[i];
+    for (RVMMethod method : constructorMethods) {
       method.setOffset(Statics.allocateReferenceSlot(true));
     }
 
     // Allocate space for static method pointers
     //
-    for (int i = 0, n = staticMethods.length; i < n; ++i) {
-      RVMMethod method = staticMethods[i];
+    for (RVMMethod method : staticMethods) {
       if (method.isClassInitializer()) {
         method.setOffset(Offset.fromIntZeroExtend(0xebad0ff5)); // should never be used.
       } else {
@@ -1458,17 +1443,15 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
       }
 
       // compile <init> methods and put their addresses into jtoc
-      for (int i = 0, n = constructorMethods.length; i < n; ++i) {
-        RVMMethod method = constructorMethods[i];
+      for (RVMMethod method : constructorMethods) {
         Statics.setSlotContents(method.getOffset(), method.getCurrentEntryCodeArray());
       }
 
       // compile static methods and put their addresses into jtoc
-      for (int i = 0, n = staticMethods.length; i < n; ++i) {
+      for (RVMMethod method : staticMethods) {
         // don't bother compiling <clinit> here;
         // compile it right before we invoke it in initialize.
         // This also avoids putting <clinit>s in the bootimage.
-        RVMMethod method = staticMethods[i];
         if (!method.isClassInitializer()) {
           Statics.setSlotContents(method.getOffset(), method.getCurrentEntryCodeArray());
         }
