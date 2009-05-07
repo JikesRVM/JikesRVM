@@ -14,16 +14,13 @@ package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.Services;
-import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.Magic;
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.NoNullCheck;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
-import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
@@ -33,9 +30,217 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 public final class ThinLock implements ThinLockConstants {
 
-  ////////////////////////////////////////
-  /// Support for light-weight locking ///
-  ////////////////////////////////////////
+  @Inline
+  @NoNullCheck
+  @Unpreemptible
+  public static void inlineLock(Object o, Offset lockOffset) {
+    Word old = Magic.prepareWord(o, lockOffset); // FIXME: bad for PPC?
+    Word id = old.and(TL_THREAD_ID_MASK.or(TL_STAT_MASK));
+    Word tid = Word.fromIntSignExtend(RVMThread.getCurrentThread().getLockingId());
+    if (id.EQ(tid)) {
+      Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord();
+      if (!changed.and(TL_LOCK_COUNT_MASK).isZero()) {
+        Magic.setWordAtOffset(o, lockOffset, changed);
+        return;
+      }
+    } else if (id.EQ(TL_STAT_THIN)) {
+      // lock is thin and not held by anyone
+      if (Magic.attemptWord(o, lockOffset, old, old.or(tid))) {
+        Magic.isync();
+        return;
+      }
+    }
+    lock(o, lockOffset);
+  }
+
+  @Inline
+  @NoNullCheck
+  @Unpreemptible
+  public static void inlineUnlock(Object o, Offset lockOffset) {
+    Word old = Magic.prepareWord(o, lockOffset); // FIXME: bad for PPC?
+    Word id = old.and(TL_THREAD_ID_MASK.or(TL_STAT_MASK));
+    Word tid = Word.fromIntSignExtend(RVMThread.getCurrentThread().getLockingId());
+    if (id.EQ(tid)) {
+      if (!old.and(TL_LOCK_COUNT_MASK).isZero()) {
+        Magic.setWordAtOffset(
+          o, lockOffset,
+          old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord());
+        return;
+      }
+    } else if (old.xor(tid).rshl(TL_LOCK_COUNT_SHIFT).EQ(TL_STAT_THIN.rshl(TL_LOCK_COUNT_SHIFT))) {
+      Magic.sync();
+      if (Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK).or(TL_STAT_THIN))) {
+        return;
+      }
+    }
+    unlock(o, lockOffset);
+  }
+
+  @NoInline
+  @NoNullCheck
+  @Unpreemptible
+  public static void lock(Object o, Offset lockOffset) {
+    if (STATS) fastLocks++;
+
+    Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
+
+    for (int cnt=0;;cnt++) {
+      Word old = Magic.getWordAtOffset(o, lockOffset);
+      Word stat = old.and(TL_STAT_MASK);
+      boolean tryToInflate=false;
+      if (stat.EQ(TL_STAT_BIASABLE)) {
+        Word id = old.and(TL_THREAD_ID_MASK);
+        if (id.isZero()) {
+          // lock is unbiased, bias it in our favor and grab it
+          if (Synchronization.tryCompareAndSwap(
+                o, lockOffset,
+                old,
+                old.or(threadId).toAddress().plus(TL_LOCK_COUNT_UNIT).toWord())) {
+            Magic.isync();
+            return;
+          }
+        } else if (id.EQ(threadId)) {
+          // lock is biased in our favor
+          Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord();
+          if (!changed.and(TL_LOCK_COUNT_MASK).isZero()) {
+            Magic.setWordAtOffset(o, lockOffset, changed);
+            return;
+          } else {
+            tryToInflate=true;
+          }
+        } else {
+          if (casFromBiased(o, lockOffset, old, biasBitsToThinBits(old), cnt)) {
+            continue; // don't spin, since it's thin now
+          }
+        }
+      } else if (stat.EQ(TL_STAT_THIN)) {
+        Word id = old.and(TL_THREAD_ID_MASK);
+        if (id.isZero()) {
+          if (Synchronization.tryCompareAndSwap(
+                o, lockOffset, old, old.or(threadId))) {
+            Magic.isync();
+            return;
+          }
+        } else if (id.EQ(threadId)) {
+          Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord();
+          if (changed.and(TL_LOCK_COUNT_MASK).isZero()) {
+            tryToInflate=true;
+          } else if (Synchronization.tryCompareAndSwap(
+                       o, lockOffset, old, changed)) {
+            Magic.isync();
+            return;
+          }
+        } else if (cnt>retryLimit) {
+          tryToInflate=true;
+        }
+      } else {
+        if (VM.VerifyAssertions) VM._assert(stat.EQ(TL_STAT_FAT));
+        // lock is fat.  contend on it.
+        if (Lock.getLock(getLockIndex(old)).lockHeavy(o)) {
+          return;
+        }
+      }
+
+      if (tryToInflate) {
+        if (STATS) slowLocks++;
+        // the lock is not fat, is owned by someone else, or else the count wrapped.
+        // attempt to inflate it (this may fail, in which case we'll just harmlessly
+        // loop around) and lock it (may also fail, if we get the wrong lock).  if it
+        // succeeds, we're done.
+        // NB: this calls into our attemptToMarkInflated() method, which will do the
+        // Right Thing if the lock is biased to someone else.
+        if (inflateAndLock(o, lockOffset)) {
+          return;
+        }
+      } else {
+        RVMThread.yield();
+      }
+    }
+  }
+
+  @NoInline
+  @NoNullCheck
+  @Unpreemptible
+  public static void unlock(Object o, Offset lockOffset) {
+    Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
+    for (int cnt=0;;cnt++) {
+      Word old = Magic.getWordAtOffset(o, lockOffset);
+      Word stat = old.and(TL_STAT_MASK);
+      if (stat.EQ(TL_STAT_BIASABLE)) {
+        Word id = old.and(TL_THREAD_ID_MASK);
+        if (id.EQ(threadId)) {
+          if (old.and(TL_LOCK_COUNT_MASK).isZero()) {
+            RVMThread.raiseIllegalMonitorStateException("biased unlocking: we own this object but the count is already zero", o);
+          }
+          Magic.setWordAtOffset(o, lockOffset,
+                                old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord());
+          return;
+        } else {
+          RVMThread.raiseIllegalMonitorStateException("biased unlocking: we don't own this object", o);
+        }
+      } else if (stat.EQ(TL_STAT_THIN)) {
+        Magic.sync();
+        Word id = old.and(TL_THREAD_ID_MASK);
+        if (id.EQ(threadId)) {
+          Word changed;
+          if (old.and(TL_LOCK_COUNT_MASK).isZero()) {
+            changed=old.and(TL_UNLOCK_MASK).or(TL_STAT_THIN);
+          } else {
+            changed=old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord();
+          }
+          if (Synchronization.tryCompareAndSwap(
+                o, lockOffset, old, changed)) {
+            return;
+          }
+        } else {
+          if (false) {
+            VM.sysWriteln("threadId = ",threadId);
+            VM.sysWriteln("id = ",id);
+          }
+          RVMThread.raiseIllegalMonitorStateException("thin unlocking: we don't own this object", o);
+        }
+      } else {
+        if (VM.VerifyAssertions) VM._assert(stat.EQ(TL_STAT_FAT));
+        // fat unlock
+        Lock.getLock(getLockIndex(old)).unlockHeavy(o);
+        return;
+      }
+    }
+  }
+
+  @Uninterruptible
+  @NoNullCheck
+  public static boolean holdsLock(Object o, Offset lockOffset, RVMThread thread) {
+    for (int cnt=0;;++cnt) {
+      int tid = thread.getLockingId();
+      Word bits = Magic.getWordAtOffset(o, lockOffset);
+      if (bits.and(TL_STAT_MASK).EQ(TL_STAT_BIASABLE)) {
+        // if locked, then it is locked with a thin lock
+        return
+          bits.and(TL_THREAD_ID_MASK).toInt() == tid &&
+          !bits.and(TL_LOCK_COUNT_MASK).isZero();
+      } else if (bits.and(TL_STAT_MASK).EQ(TL_STAT_THIN)) {
+        return bits.and(TL_THREAD_ID_MASK).toInt()==tid;
+      } else {
+        if (VM.VerifyAssertions) VM._assert(bits.and(TL_STAT_MASK).EQ(TL_STAT_FAT));
+        // if locked, then it is locked with a fat lock
+        Lock l=Lock.getLock(getLockIndex(bits));
+        if (l!=null) {
+          l.mutex.lock();
+          boolean result = (l.getOwnerId()==tid && l.getLockedObject()==o);
+          l.mutex.unlock();
+          return result;
+        }
+      }
+      RVMThread.yield();
+    }
+  }
+
+  @Inline
+  @Uninterruptible
+  public static boolean isFat(Word lockWord) {
+    return lockWord.and(TL_STAT_MASK).EQ(TL_STAT_FAT);
+  }
 
   /**
    * Return the lock index for a given lock word.  Assert valid index
@@ -46,7 +251,8 @@ public final class ThinLock implements ThinLockConstants {
    * @return the lock index corresponding to the lock workd.
    */
   @Inline
-  private static int getLockIndex(Word lockWord) {
+  @Uninterruptible
+  public static int getLockIndex(Word lockWord) {
     int index = lockWord.and(TL_LOCK_ID_MASK).rshl(TL_LOCK_ID_SHIFT).toInt();
     if (VM.VerifyAssertions) {
       if (!(index > 0 && index < Lock.numLocks())) {
@@ -56,178 +262,286 @@ public final class ThinLock implements ThinLockConstants {
         VM.sysWriteln();
       }
       VM._assert(index > 0 && index < Lock.numLocks());  // index is in range
-      VM._assert(!lockWord.and(TL_FAT_LOCK_MASK).isZero());        // fat lock bit is set
-      VM._assert(Lock.getLock(index) != null);               // the lock is actually there
+      VM._assert(lockWord.and(TL_STAT_MASK).EQ(TL_STAT_FAT));        // fat lock bit is set
     }
     return index;
   }
 
-  /**
-   * Obtains a lock on the indicated object.  Abbreviated light-weight
-   * locking sequence inlined by the optimizing compiler for the
-   * prologue of synchronized methods and for the
-   * <code>monitorenter</code> bytecode.
-   *
-   * @param o the object to be locked
-   * @param lockOffset the offset of the thin lock word in the object.
-   * @see org.jikesrvm.compilers.opt.hir2lir.ExpandRuntimeServices
-   */
   @Inline
-  @Entrypoint
-  @Unpreemptible("Become another thread when lock is contended, don't preempt in other cases")
-  static void inlineLock(Object o, Offset lockOffset) {
-    Word old = Magic.prepareWord(o, lockOffset);
-    if (old.rshl(TL_THREAD_ID_SHIFT).isZero()) {
-      // implies that fatbit == 0 & threadid == 0
-      int threadId = RVMThread.getCurrentThread().getLockingId();
-      if (Magic.attemptWord(o, lockOffset, old, old.or(Word.fromIntZeroExtend(threadId)))) {
-        Magic.isync(); // don't use stale prefetched data in monitor
-        if (STATS) fastLocks++;
-        return;           // common case: o is now locked
+  @Uninterruptible
+  public static int getLockOwner(Word lockWord) {
+    if (VM.VerifyAssertions) VM._assert(!isFat(lockWord));
+    if (lockWord.and(TL_STAT_MASK).EQ(TL_STAT_BIASABLE)) {
+      if (lockWord.and(TL_LOCK_COUNT_MASK).isZero()) {
+        return 0;
+      } else {
+        return lockWord.and(TL_THREAD_ID_MASK).toInt();
+      }
+    } else {
+      return lockWord.and(TL_THREAD_ID_MASK).toInt();
+    }
+  }
+
+  @Inline
+  @Uninterruptible
+  public static int getRecCount(Word lockWord) {
+    if (VM.VerifyAssertions) VM._assert(getLockOwner(lockWord)!=0);
+    if (lockWord.and(TL_STAT_MASK).EQ(TL_STAT_BIASABLE)) {
+      return lockWord.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt();
+    } else {
+      return lockWord.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt()+1;
+    }
+  }
+
+  @NoInline
+  @Unpreemptible
+  public static boolean casFromBiased(Object o, Offset lockOffset,
+                                      Word oldLockWord, Word changed,
+                                      int cnt) {
+    RVMThread me=RVMThread.getCurrentThread();
+    Word id=oldLockWord.and(TL_THREAD_ID_MASK);
+    if (id.isZero()) {
+      if (false) VM.sysWriteln("id is zero - easy case.");
+      return Synchronization.tryCompareAndSwap(o, lockOffset, oldLockWord, changed);
+    } else {
+      if (false) VM.sysWriteln("id = ",id);
+      int slot=id.toInt()>>TL_THREAD_ID_SHIFT;
+      if (false) VM.sysWriteln("slot = ",slot);
+      RVMThread owner=RVMThread.threadBySlot[slot];
+      if (owner==me /* I own it, so I can unbias it trivially.  This occurs
+                       when we are inflating due to, for example, wait() */ ||
+          owner==null /* the thread that owned it is dead, so it's safe to
+                         unbias. */) {
+        // note that we use a CAS here, but it's only needed in the case
+        // that owner==null, since in that case some other thread may also
+        // be unbiasing.
+        return Synchronization.tryCompareAndSwap(
+          o, lockOffset, oldLockWord, changed);
+      } else {
+        boolean result=false;
+
+        // NB. this may stop a thread other than the one that had the bias,
+        // if that thread died and some other thread took its slot.  that's
+        // why we do a CAS below.  it's only needed if some other thread
+        // had seen the owner be null (which may happen if we came here after
+        // a new thread took the slot while someone else came here when the
+        // slot was still null).  if it was the case that everyone else had
+        // seen a non-null owner, then the pair handshake would serve as
+        // sufficient synchronization (the id would identify the set of threads
+        // that shared that id's communicationLock).  oddly, that means that
+        // this whole thing could be "simplified" to acquire the
+        // communicationLock even if the owner was null.  but that would be
+        // goofy.
+        if (false) VM.sysWriteln("entering pair handshake");
+        owner.beginPairHandshake();
+        if (false) VM.sysWriteln("done with that");
+
+        Word newLockWord=Magic.getWordAtOffset(o, lockOffset);
+        result=Synchronization.tryCompareAndSwap(
+          o, lockOffset, oldLockWord, changed);
+        owner.endPairHandshake();
+        if (false) VM.sysWriteln("that worked.");
+
+        return result;
       }
     }
-    lock(o, lockOffset); // uncommon case: default to out-of-line lock()
+  }
+
+  @Inline
+  @Unpreemptible
+  public static boolean attemptToMarkInflated(Object o, Offset lockOffset,
+                                              Word oldLockWord,
+                                              int lockId,
+                                              int cnt) {
+    if (VM.VerifyAssertions) VM._assert(oldLockWord.and(TL_STAT_MASK).NE(TL_STAT_FAT));
+    if (false) VM.sysWriteln("attemptToMarkInflated with oldLockWord = ",oldLockWord);
+    // what this needs to do:
+    // 1) if the lock is thin, it's just a CAS
+    // 2) if the lock is unbiased, CAS in the inflation
+    // 3) if the lock is biased in our favor, store the lock without CAS
+    // 4) if the lock is biased but to someone else, enter the pair handshake
+    //    to unbias it and install the inflated lock
+    Word changed=
+      TL_STAT_FAT.or(Word.fromIntZeroExtend(lockId).lsh(TL_LOCK_ID_SHIFT))
+      .or(oldLockWord.and(TL_UNLOCK_MASK));
+    if (false && oldLockWord.and(TL_STAT_MASK).EQ(TL_STAT_THIN))
+      VM.sysWriteln("obj = ",Magic.objectAsAddress(o),
+                    ", old = ",oldLockWord,
+                    ", owner = ",getLockOwner(oldLockWord),
+                    ", rec = ",getLockOwner(oldLockWord)==0?0:getRecCount(oldLockWord),
+                    ", changed = ",changed,
+                    ", lockId = ",lockId);
+    if (false) VM.sysWriteln("changed = ",changed);
+    if (oldLockWord.and(TL_STAT_MASK).EQ(TL_STAT_THIN)) {
+      if (false) VM.sysWriteln("it's thin, inflating the easy way.");
+      return Synchronization.tryCompareAndSwap(
+        o, lockOffset, oldLockWord, changed);
+    } else {
+      return casFromBiased(o, lockOffset, oldLockWord, changed, cnt);
+    }
   }
 
   /**
-   * Releases the lock on the indicated object.  Abreviated
-   * light-weight unlocking sequence inlined by the optimizing
-   * compiler for the epilogue of synchronized methods and for the
-   * <code>monitorexit</code> bytecode.
+   * Promotes a light-weight lock to a heavy-weight lock.  If this returns the lock
+   * that you gave it, its mutex will be locked; otherwise, its mutex will be unlocked.
+   * Hence, calls to this method should always be followed by a condition lock() or
+   * unlock() call.
    *
-   * @param o the object to be unlocked
+   * @param o the object to get a heavy-weight lock
    * @param lockOffset the offset of the thin lock word in the object.
-   * @see org.jikesrvm.compilers.opt.hir2lir.ExpandRuntimeServices
+   * @return the inflated lock; either the one you gave, or another one, if the lock
+   *         was inflated by some other thread.
    */
+  @NoNullCheck
+  @Unpreemptible
+  protected static Lock attemptToInflate(Object o,
+                                         Offset lockOffset,
+                                         Lock l) {
+    if (false) VM.sysWriteln("l = ",Magic.objectAsAddress(l));
+    l.mutex.lock();
+    for (int cnt=0;;++cnt) {
+      Word bits = Magic.getWordAtOffset(o, lockOffset);
+      // check to see if another thread has already created a fat lock
+      if (isFat(bits)) {
+        if (trace) {
+          VM.sysWriteln("Thread #",RVMThread.getCurrentThreadSlot(),
+                        ": freeing lock ",Magic.objectAsAddress(l),
+                        " because we had a double-inflate");
+        }
+        Lock result = Lock.getLock(getLockIndex(bits));
+        if (result==null ||
+            result.lockedObject!=o) {
+          continue; /* this is nasty.  this will happen when a lock
+                       is deflated. */
+        }
+        Lock.free(l);
+        l.mutex.unlock();
+        return result;
+      }
+      if (VM.VerifyAssertions) VM._assert(l!=null);
+      if (attemptToMarkInflated(
+            o, lockOffset, bits, l.index, cnt)) {
+        l.setLockedObject(o);
+        l.setOwnerId(getLockOwner(bits));
+        if (l.getOwnerId() != 0) {
+          l.setRecursionCount(getRecCount(bits));
+        } else {
+          if (VM.VerifyAssertions) VM._assert(l.getRecursionCount()==0);
+        }
+        return l;
+      }
+      // contention detected, try again
+    }
+  }
+
   @Inline
-  @Entrypoint
-  @Unpreemptible("No preemption normally, but may raise exceptions")
-  static void inlineUnlock(Object o, Offset lockOffset) {
-    Word old = Magic.prepareWord(o, lockOffset);
+  @Uninterruptible
+  private static Word biasBitsToThinBits(Word bits) {
+    int lockOwner=getLockOwner(bits);
+
+    Word changed=bits.and(TL_UNLOCK_MASK).or(TL_STAT_THIN);
+
+    if (lockOwner!=0) {
+      int recCount=getRecCount(bits);
+      changed=changed
+        .or(Word.fromIntZeroExtend(lockOwner))
+        .or(Word.fromIntZeroExtend(recCount-1).lsh(TL_LOCK_COUNT_SHIFT));
+    }
+
+    return changed;
+  }
+
+  @Inline
+  @Uninterruptible
+  public static boolean attemptToMarkDeflated(Object o, Offset lockOffset,
+                                              Word oldLockWord) {
+    // we allow concurrent modification of the lock word when it's thin or fat.
+    Word changed=oldLockWord.and(TL_UNLOCK_MASK).or(TL_STAT_THIN);
+    if (VM.VerifyAssertions) VM._assert(getLockOwner(changed)==0);
+    return Synchronization.tryCompareAndSwap(
+      o, lockOffset, oldLockWord, changed);
+  }
+
+  @Uninterruptible
+  public static void markDeflated(Object o, Offset lockOffset, int id) {
+    for (;;) {
+      Word bits=Magic.getWordAtOffset(o, lockOffset);
+      if (VM.VerifyAssertions) VM._assert(isFat(bits));
+      if (VM.VerifyAssertions) VM._assert(getLockIndex(bits)==id);
+      if (attemptToMarkDeflated(o, lockOffset, bits)) {
+        return;
+      }
+    }
+  }
+
+  @NoNullCheck
+  @Unpreemptible
+  public static boolean lockHeader(Object o, Offset lockOffset) {
+    // what this should do:
+    // 1) take advantage of the fact that if a lock is fat it can only go back to
+    //    being thin, so concurrent modification of the lock word is allowed.
+    // 2) if it's biased, we own it anyway so we can "lock" it by incrementing the
+    //    count.
     Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
-    if (old.xor(threadId).rshl(TL_LOCK_COUNT_SHIFT).isZero()) { // implies that fatbit == 0 && count == 0 && lockid == me
-      Magic.sync(); // memory barrier: subsequent locker will see previous writes
-      if (Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK))) {
-        return; // common case: o is now unlocked
+    for (;;) {
+      boolean attemptToInflate=false;
+      Word old=Magic.getWordAtOffset(o,lockOffset);
+      if (old.and(TL_STAT_MASK).NE(TL_STAT_BIASABLE)) {
+        if (VM.VerifyAssertions) VM._assert(old.and(TL_STAT_MASK).EQ(TL_STAT_THIN) ||
+                                            old.and(TL_STAT_MASK).EQ(TL_STAT_FAT));
+        return false;
+      } else {
+        Word id = old.and(TL_THREAD_ID_MASK);
+        // what do we do here?  if we have the bias, then it's easy.  but what
+        // if we don't?  in that case we need to be ultra-careful.  what we can
+        // do:
+        // 1) if the lock is biased in our favor, then lock it
+        // 2) if the lock is unbiased, then bias it in our favor an lock it
+        // 3) if the lock is biased in someone else's favor, inflate it (so we can go above)
+        if (id.isZero()) {
+          // lock is unbiased, bias it in our favor and grab it
+          if (Synchronization.tryCompareAndSwap(
+                o, lockOffset,
+                old,
+                old.or(threadId).toAddress().plus(TL_LOCK_COUNT_UNIT).toWord())) {
+            Magic.isync();
+            return true;
+          }
+        } else if (id.EQ(threadId)) {
+          // lock is biased in our favor, so grab it
+          Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord();
+          if (!changed.and(TL_LOCK_COUNT_MASK).isZero()) {
+            Magic.setWordAtOffset(o, lockOffset, changed);
+            return true;
+          } else {
+            attemptToInflate=true;
+          }
+        } else {
+          attemptToInflate=true;
+        }
+
+        if (attemptToInflate) {
+          inflate(o,lockOffset);
+        }
       }
     }
-    unlock(o, lockOffset);  // uncommon case: default to non inlined unlock()
   }
 
-  /**
-   * Obtains a lock on the indicated object.  Light-weight locking
-   * sequence for the prologue of synchronized methods and for the
-   * <code>monitorenter</code> bytecode.
-   *
-   * @param o the object to be locked
-   * @param lockOffset the offset of the thin lock word in the object.
-   */
-  @NoInline
-  @Unpreemptible("Become another thread when lock is contended, don't preempt in other cases")
-  public static void lock(Object o, Offset lockOffset) {
-    major:
-    while (true) { // repeat only if attempt to lock a promoted lock fails
-      int retries = retryLimit;
-      Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
-      while (0 != retries--) { // repeat if there is contention for thin lock
-        Word old = Magic.prepareWord(o, lockOffset);
-        Word id = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
-        if (id.isZero()) { // o isn't locked
-          if (Magic.attemptWord(o, lockOffset, old, old.or(threadId))) {
-            Magic.isync(); // don't use stale prefetched data in monitor
-            if (STATS) slowLocks++;
-            break major;  // lock succeeds
-          }
-          continue; // contention, possibly spurious, try again
-        }
-        if (id.EQ(threadId)) { // this thread has o locked already
-          Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord(); // update count
-          if (changed.and(TL_LOCK_COUNT_MASK).isZero()) { // count wrapped around (most unlikely), make heavy lock
-            while (!inflateAndLock(o, lockOffset)) { // wait for a lock to become available
-              RVMThread.yield();
-            }
-            break major;  // lock succeeds (note that lockHeavy has issued an isync)
-          }
-          if (Magic.attemptWord(o, lockOffset, old, changed)) {
-            Magic.isync(); // don't use stale prefetched data in monitor !!TODO: is this isync required?
-            if (STATS) slowLocks++;
-            break major;  // lock succeeds
-          }
-          continue; // contention, probably spurious, try again (TODO!! worry about this)
-        }
-
-        if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
-          int index = getLockIndex(old);
-          if (Lock.getLock(index).lockHeavy(o)) {
-            break major; // lock succeeds (note that lockHeavy has issued an isync)
-          }
-          // heavy lock failed (deflated or contention for system lock)
-          RVMThread.yield();
-          continue major;    // try again
-        }
-        // real contention: wait (hope other thread unlocks o), try again
-        if (traceContention) { // for performance tuning only (see section 5)
-          Address fp = Magic.getFramePointer();
-          fp = Magic.getCallerFramePointer(fp);
-          int mid = Magic.getCompiledMethodID(fp);
-          RVMMethod m1 = CompiledMethods.getCompiledMethod(mid).getMethod();
-          fp = Magic.getCallerFramePointer(fp);
-          mid = Magic.getCompiledMethodID(fp);
-          RVMMethod m2 = CompiledMethods.getCompiledMethod(mid).getMethod();
-          String s = m1.getDeclaringClass() + "." + m1.getName() + " " + m2.getDeclaringClass() + "." + m2.getName();
-          RVMThread.trace(Magic.getObjectType(o).toString(), s, -2 - retries);
-        }
-        if (0 != retries) {
-          RVMThread.yield(); // wait, hope o gets unlocked
-        }
-      }
-      // create a heavy lock for o and lock it
-      if (inflateAndLock(o, lockOffset)) break;
+  @NoNullCheck
+  @Unpreemptible
+  public static void unlockHeader(Object o, Offset lockOffset,boolean lockHeaderResult) {
+    // what to do here?
+    // 1) if lockHeaderResult is false, we're done
+    // 2) if lockHeaderResult is true, release the lock.
+    if (lockHeaderResult) {
+      unlock(o, lockOffset);
     }
-    // o has been locked, must return before an exception can be thrown
   }
 
-  /**
-   * Releases the lock on the indicated object.   Light-weight unlocking
-   * sequence for the epilogue of synchronized methods and for the
-   * <code>monitorexit</code> bytecode.
-   *
-   * @param o the object to be locked
-   * @param lockOffset the offset of the thin lock word in the object.
-   */
-  @NoInline
-  @Unpreemptible("No preemption normally, but may raise exceptions")
-  public static void unlock(Object o, Offset lockOffset) {
-    Magic.sync(); // prevents stale data from being seen by next owner of the lock
-    while (true) { // spurious contention detected
-      Word old = Magic.prepareWord(o, lockOffset);
-      Word id = old.and(TL_THREAD_ID_MASK.or(TL_FAT_LOCK_MASK));
-      Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
-      if (id.NE(threadId)) { // not normal case
-        if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // o has a heavy lock
-          Lock.getLock(getLockIndex(old)).unlockHeavy(o);
-          // note that unlockHeavy has issued a sync
-          return;
-        }
-        RVMThread.trace("Lock", "unlock error: thin lock word = ", old.toAddress());
-        RVMThread.trace("Lock", "unlock error: thin lock word = ", Magic.objectAsAddress(o));
-        // RVMThread.trace("Lock", RVMThread.getCurrentThread().toString(), 0);
-        RVMThread.raiseIllegalMonitorStateException("thin unlocking", o);
-      }
-      if (old.and(TL_LOCK_COUNT_MASK).isZero()) { // get count, 0 is the last lock
-        Word changed = old.and(TL_UNLOCK_MASK);
-        if (Magic.attemptWord(o, lockOffset, old, changed)) {
-          return; // unlock succeeds
-        }
-        continue;
-      }
-      // more than one lock
-      // decrement recursion count
-      Word changed = old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord();
-      if (Magic.attemptWord(o, lockOffset, old, changed)) {
-        return; // unlock succeeds
-      }
-    }
+  @Inline
+  @Uninterruptible
+  public static boolean allowHeaderCAS(Object o, Offset lockOffset) {
+    return Magic.getWordAtOffset(o,lockOffset).and(TL_STAT_MASK).NE(TL_STAT_BIASABLE);
   }
 
   ////////////////////////////////////////////////////////////////
@@ -246,11 +560,6 @@ public final class ThinLock implements ThinLockConstants {
    */
   @Unpreemptible
   private static Lock inflate(Object o, Offset lockOffset) {
-    if (VM.VerifyAssertions) {
-      VM._assert(holdsLock(o, lockOffset, RVMThread.getCurrentThread()));
-      // this assertions is just plain wrong.
-      //VM._assert((Magic.getWordAtOffset(o, lockOffset).and(TL_FAT_LOCK_MASK).isZero()));
-    }
     Lock l = Lock.allocate();
     if (VM.VerifyAssertions) {
       VM._assert(l != null); // inflate called by wait (or notify) which shouldn't be called during GC
@@ -283,86 +592,6 @@ public final class ThinLock implements ThinLockConstants {
     return l.lockHeavyLocked(o);
   }
 
-  /**
-   * Promotes a light-weight lock to a heavy-weight lock.
-   *
-   * @param o the object to get a heavy-weight lock
-   * @param lockOffset the offset of the thin lock word in the object.
-   * @return whether the object was successfully locked
-   */
-  private static Lock attemptToInflate(Object o, Offset lockOffset, Lock l) {
-    Word old;
-    l.mutex.lock();
-    do {
-      old = Magic.prepareWord(o, lockOffset);
-      // check to see if another thread has already created a fat lock
-      if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
-        if (Lock.trace) {
-          VM.sysWriteln("Thread #",RVMThread.getCurrentThreadSlot(),
-                        ": freeing lock ",Magic.objectAsAddress(l),
-                        " because we had a double-inflate");
-        }
-        Lock.free(l);
-        l.mutex.unlock();
-        l = Lock.getLock(getLockIndex(old));
-        return l;
-      }
-      Word locked = TL_FAT_LOCK_MASK.or(Word.fromIntZeroExtend(l.index).lsh(TL_LOCK_ID_SHIFT));
-      Word changed = locked.or(old.and(TL_UNLOCK_MASK));
-      if (VM.VerifyAssertions) VM._assert(getLockIndex(changed) == l.index);
-      if (Magic.attemptWord(o, lockOffset, old, changed)) {
-        l.setLockedObject(o);
-        l.setOwnerId(old.and(TL_THREAD_ID_MASK).toInt());
-        if (l.getOwnerId() != 0) {
-          l.setRecursionCount(old.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt() + 1);
-        }
-        return l;
-      }
-      // contention detected, try again
-    } while (true);
-  }
-
-  public static void deflate(Object o, Offset lockOffset, Lock l) {
-    if (VM.VerifyAssertions) {
-      Word old = Magic.getWordAtOffset(o, lockOffset);
-      VM._assert(!(old.and(TL_FAT_LOCK_MASK).isZero()));
-      VM._assert(l == Lock.getLock(getLockIndex(old)));
-    }
-    Word old;
-    do {
-      old = Magic.prepareWord(o, lockOffset);
-    } while (!Magic.attemptWord(o, lockOffset, old, old.and(TL_UNLOCK_MASK)));
-  }
-
-  /**
-   * @param obj an object
-   * @param lockOffset the offset of the thin lock word in the object.
-   * @param thread a thread
-   * @return <code>true</code> if the lock on obj at offset lockOffset is currently owned
-   *         by thread <code>false</code> if it is not.
-   */
-  public static boolean holdsLock(Object obj, Offset lockOffset, RVMThread thread) {
-    int tid = thread.getLockingId();
-    Word bits = Magic.getWordAtOffset(obj, lockOffset);
-    if (bits.and(TL_FAT_LOCK_MASK).isZero()) {
-      // if locked, then it is locked with a thin lock
-      return (bits.and(ThinLockConstants.TL_THREAD_ID_MASK).toInt() == tid);
-    } else {
-      // if locked, then it is locked with a fat lock
-      // but, if it's locked by someone else, the fat lock may get deflated,
-      // and then reinflated on this thread's behalf.  so we need to be careful.
-      int index = getLockIndex(bits);
-      Lock l = Lock.getLock(index);
-      boolean result=false;
-      if (l!=null) {
-        l.mutex.lock();
-        result = (l.getOwnerId()==tid && l.getLockedObject()==obj);
-        l.mutex.unlock();
-      }
-      return result;
-    }
-  }
-
   ////////////////////////////////////////////////////////////////////////////
   /// Get heavy-weight lock for an object; if thin, inflate it.
   ////////////////////////////////////////////////////////////////////////////
@@ -380,14 +609,13 @@ public final class ThinLock implements ThinLockConstants {
   @Unpreemptible
   public static Lock getHeavyLock(Object o, Offset lockOffset, boolean create) {
     Word old = Magic.getWordAtOffset(o, lockOffset);
-    if (!(old.and(TL_FAT_LOCK_MASK).isZero())) { // already a fat lock in place
+    if (isFat(old)) { // already a fat lock in place
       return Lock.getLock(getLockIndex(old));
     } else if (create) {
       return inflate(o, lockOffset);
     } else {
       return null;
     }
-
   }
 
   ///////////////////////////////////////////////////////////////
@@ -397,21 +625,15 @@ public final class ThinLock implements ThinLockConstants {
   /**
    * Number of times a thread yields before inflating the lock on a
    * object to a heavy-weight lock.  The current value was for the
-   * portBOB benchmark on a 12-way SMP (AIX) in the Fall of '99.  This
-   * is almost certainly not the optimal value.
+   * portBOB benchmark on a 12-way SMP (AIX) in the Fall of '99.  FP
+   * confirmed that it's still optimal for JBB and DaCapo on 4-, 8-,
+   * and 16-way SMPs (Linux/ia32) in Spring '09.
    */
-  private static final int retryLimit = 40; // (-1 is effectively infinity)
-
-  /**
-   * Should we trace lockContention to enable debugging?
-   */
-  private static final boolean traceContention = false;
-
-  //////////////////////////////////////////////
-  //             Statistics                   //
-  //////////////////////////////////////////////
+  private static final int retryLimit = 40;
 
   static final boolean STATS = Lock.STATS;
+
+  static final boolean trace = false;
 
   static int fastLocks;
   static int slowLocks;

@@ -432,6 +432,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
   /**
    * Get the hash code of an object.
    */
+  @Interruptible
   public static int getObjectHashCode(Object o) {
     if (HASH_STATS) hashRequests++;
     return JavaHeader.getObjectHashCode(o);
@@ -547,6 +548,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    * Freeze the other bits in the byte containing the available bits
    * so that it is safe to update them using setAvailableBits.
    */
+  @Interruptible
   public static void initializeAvailableByte(Object o) {
     JavaHeader.initializeAvailableByte(o);
   }

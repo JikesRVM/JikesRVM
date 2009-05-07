@@ -2097,7 +2097,9 @@ public class RVMThread extends ThreadContext {
   }
 
   @Unpreemptible
-  final int safeBlock(BlockAdapter ba, boolean asynchronous) {
+  private int safeBlock(BlockAdapter ba, boolean asynchronous) {
+    if (VM.VerifyAssertions)
+      VM._assert(getCurrentThread() != this);
     beginPairWithCurrent();
     int result=block(ba,asynchronous);
     endPairWithCurrent();
@@ -2106,14 +2108,16 @@ public class RVMThread extends ThreadContext {
 
   @Unpreemptible
   public final int safeAsyncBlock(BlockAdapter ba) {
-    if (VM.VerifyAssertions)
-      VM._assert(getCurrentThread() != this);
     return safeBlock(ba, true);
   }
 
   @Unpreemptible
   public final int safeBlock(BlockAdapter ba) {
-    return safeBlock(ba, false);
+    if (getCurrentThread()==this) {
+      return block(ba,false);
+    } else {
+      return safeBlock(ba, false);
+    }
   }
 
   @Unpreemptible
@@ -2821,22 +2825,20 @@ public class RVMThread extends ThreadContext {
    */
   @UnpreemptibleNoWarn("Exceptions may possibly cause yields")
   public final void suspend() {
+    if (false) VM.sysWriteln("Thread #",getCurrentThreadSlot()," suspending Thread #",getThreadSlot());
     ObjectModel.genericUnlock(thread);
     Throwable rethrow = null;
-    monitor().lockNoHandshake();
     try {
       observeExecStatus();
       if (execStatus != IN_JAVA && execStatus != IN_JAVA_TO_BLOCK &&
           execStatus != IN_NATIVE && execStatus != BLOCKED_IN_NATIVE &&
           execStatus != BLOCKED_IN_JNI && execStatus != IN_JNI) {
         throw new IllegalThreadStateException(
-            "Cannot suspend a thread that is not running.");
+          "Cannot suspend a thread that is not running.");
       }
-      safeBlock(suspendBlockAdapter);
+      block(suspendBlockAdapter);
     } catch (Throwable t) {
       rethrow = t;
-    } finally {
-      monitor().unlock();
     }
     ObjectModel.genericLock(thread);
     if (rethrow != null)

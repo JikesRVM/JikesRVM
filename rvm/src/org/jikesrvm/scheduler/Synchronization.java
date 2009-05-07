@@ -19,6 +19,7 @@ import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -62,6 +63,24 @@ public class Synchronization {
       oldValue = Magic.prepareLong(base, offset);
       if (oldValue != testValue) return false;
     } while (!Magic.attemptLong(base, offset, oldValue, newValue));
+    return true;
+  }
+
+  /**
+   * Atomically swap test value to new value in the specified object and the specified field
+   * @param base object containing field
+   * @param offset position of field
+   * @param testValue expected value of field
+   * @param newValue new value of field
+   * @return true => successful swap, false => field not equal to testValue
+   */
+  @Inline
+  public static boolean tryCompareAndSwap(Object base, Offset offset, Word testValue, Word newValue) {
+    Word oldValue;
+    do {
+      oldValue = Magic.prepareWord(base, offset);
+      if (oldValue != testValue) return false;
+    } while (!Magic.attemptWord(base, offset, oldValue, newValue));
     return true;
   }
 

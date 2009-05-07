@@ -115,7 +115,7 @@ SpinLock}, have been investigate, then a larger performance issue
  */
 
 @Uninterruptible
-public class Lock implements Constants {
+public final class Lock implements Constants {
   /****************************************************************************
    * Constants
    */
@@ -311,7 +311,7 @@ public class Lock implements Constants {
       VM._assert(waiting.isEmpty());
     }
     if (STATS) deflations++;
-    ThinLock.deflate(o, lockOffset, this);
+    ThinLock.markDeflated(o, lockOffset, index);
     lockedObject = null;
     free(this);
   }

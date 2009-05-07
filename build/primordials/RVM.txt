@@ -54,6 +54,8 @@
 [[Lorg/jikesrvm/scheduler/RVMThread;
 [Lorg/jikesrvm/scheduler/RVMThread$BlockAdapter;
 [[Lorg/jikesrvm/scheduler/RVMThread$BlockAdapter;
+Lorg/jikesrvm/scheduler/ThinLock;
+Lorg/jikesrvm/scheduler/Lock;
 [Lorg/jikesrvm/scheduler/Lock;
 [[Lorg/jikesrvm/scheduler/Lock;
 

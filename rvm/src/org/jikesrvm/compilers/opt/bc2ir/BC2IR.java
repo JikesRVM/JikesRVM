@@ -3635,6 +3635,7 @@ public final class BC2IR
    */
   public boolean do_NullCheck(Operand ref) {
     if (gc.noNullChecks()) {
+      setCurrentGuard(new TrueGuardOperand());
       return false;
     }
     if (ref.isDefinitelyNull()) {
