@@ -2549,6 +2549,22 @@ EMIT_INSTRUCTION
 EMIT(MIR_CacheOp.mutate(P(p), IA32_PREFETCHNTA, R(CacheOp.getRef(P(p)))));
 
 #####
+# WRITE_FLOOR
+#####
+stm:	WRITE_FLOOR
+11
+EMIT_INSTRUCTION
+EMIT(P(p)); // Pass through to maintain barrier semantics for code motion
+
+#####
+# READ_CEILING
+#####
+stm:	READ_CEILING
+11
+EMIT_INSTRUCTION
+EMIT(P(p)); // Pass through to maintain barrier semantics for code motion
+
+#####
 # PAUSE
 #####
 stm:	PAUSE

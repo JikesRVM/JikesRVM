@@ -671,6 +671,8 @@ abstract class AssemblerBase extends Assembler
       case LABEL_opcode:
         return (4 - offset) & 3; // return size of nop required for alignment
       case BBEND_opcode:
+      case READ_CEILING_opcode:
+      case WRITE_FLOOR_opcode:
       case UNINT_BEGIN_opcode:
       case UNINT_END_opcode: {
         // these generate no code
