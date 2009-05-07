@@ -1525,15 +1525,17 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * initial values.
    */
   @Override
-  public synchronized void initialize()
-    // Doesn't really need declaring.
-      throws ExceptionInInitializerError {
+  public synchronized void initialize() throws ExceptionInInitializerError {
     if (isInitialized()) {
       return;
     }
 
     if (state == CLASS_INITIALIZING) {
       return;
+    }
+
+    if (state == CLASS_INITIALIZER_FAILED) {
+      throw new NoClassDefFoundError(this+" (initialization failure)");
     }
 
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("RVMClass: (begin) initialize " + this);
@@ -1561,9 +1563,12 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
       try {
         Magic.invokeClassInitializer(cm.getEntryCodeArray());
       } catch (Error e) {
+        state = CLASS_INITIALIZER_FAILED;
         throw e;
       } catch (Throwable t) {
         ExceptionInInitializerError eieio = new ExceptionInInitializerError("While initializing " + this);
+        eieio.initCause(t);
+        state = CLASS_INITIALIZER_FAILED;
         if (VM.verboseClassLoading) {
           VM.sysWriteln("[Exception in initializer error caused by:");
           t.printStackTrace();

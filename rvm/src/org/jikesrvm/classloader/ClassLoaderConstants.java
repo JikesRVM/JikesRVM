@@ -85,8 +85,10 @@ public interface ClassLoaderConstants {
   byte CLASS_INSTANTIATED = 3;
   /** &lt;clinit&gt; running (allocations possible) */
   byte CLASS_INITIALIZING = 4;
+  /** exception occurred while running &lt;clinit&gt; class cannot be initialized successfully */
+  byte CLASS_INITIALIZER_FAILED = 5;
   /** statics initialized */
-  byte CLASS_INITIALIZED = 5;
+  byte CLASS_INITIALIZED = 6;
 
   // Constant pool entry tags.
   //
