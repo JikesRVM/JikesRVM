@@ -342,7 +342,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   @Unpreemptible
   public boolean enqueueReference(ObjectReference addr) {
     Reference<?> reference = (Reference<?>)addr.toObject();
-    return reference.enqueue();
+    return reference.enqueueInternal();
   }
 
   /**

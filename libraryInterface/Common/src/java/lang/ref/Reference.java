@@ -17,7 +17,6 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -109,10 +108,19 @@ public abstract class Reference<T> {
    * that users might find confusing. We think the problem is actually
    * not a 'real' problem...
    */
-  @UnpreemptibleNoWarn("Call out to ReferenceQueue API")
   public boolean enqueue() {
     if (nextOnQueue == null && queue != null) {
       queue.enqueue(this);
+      queue = null;
+      return true;
+    }
+    return false;
+  }
+
+  @Uninterruptible
+  public boolean enqueueInternal() {
+    if (nextOnQueue == null && queue != null) {
+      queue.enqueueInternal(this);
       queue = null;
       return true;
     }
