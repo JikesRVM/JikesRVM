@@ -266,6 +266,7 @@ public final class Lock implements Constants {
    *
    * @param o the object to be unlocked
    */
+  @Unpreemptible
   public void unlockHeavy(Object o) {
     boolean deflated = false;
     mutex.lock(); // Note: thread switching is not allowed while mutex is held.

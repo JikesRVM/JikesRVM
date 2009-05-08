@@ -185,6 +185,7 @@ $$$$ END LOOP
   }
 
   // Print a short description of every option
+  @Interruptible
   public static void printHelp() {
 
     VM.sysWrite("Commands\n");
@@ -243,6 +244,7 @@ $$$$ END LOOP
   }
 
   // print the options values
+  @Interruptible
   public static void printOptions() {
     VM.sysWrite("Current value of VM options:\n");
     //Begin generated option value printing

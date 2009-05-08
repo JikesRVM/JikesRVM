@@ -2317,7 +2317,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * @param value  value to pass to host o/s
    */
   @NoInline
-  @UnpreemptibleNoWarn("We need to do preemptible operations but are accessed from unpreemptible code")
+  @UninterruptibleNoWarn("We're never returning to the caller, so even though this code is preemptible it is safe to call from any context")
   public static void sysExit(int value) {
     handlePossibleRecursiveCallToSysExit();
 

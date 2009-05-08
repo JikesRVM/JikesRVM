@@ -619,6 +619,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     if (hasInterruptibleAnnotation()) return false;
     if (hasPreemptibleAnnotation()) return false;
     if (hasUnpreemptibleAnnotation()) return false;
+    if (hasUnpreemptibleNoWarnAnnotation()) return false;
     if (hasUninterruptibleAnnotation()) return true;
     if (hasUninterruptibleNoWarnAnnotation()) return true;
     return getDeclaringClass().hasUninterruptibleAnnotation();
