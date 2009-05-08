@@ -109,7 +109,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    * provided. The iterator is positioned to the beginning of the map. NOTE: An
    * iterator may be reused to scan a different method and map.
    *
-   * @param method
+   * @param compiledMethod
    *          identifies the method and class
    * @param instructionOffset
    *          identifies the map to be scanned.

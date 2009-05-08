@@ -321,8 +321,8 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
 
   /**
    * Print this compiled method's portion of a stack trace
-   * @param offset of machine instruction from start of method
-   * @param the PrintLN to print the stack trace to.
+   * @param instructionOffset of machine instruction from start of method
+   * @param out the PrintLN to print the stack trace to.
    */
   public void printStackTrace(Offset instructionOffset, PrintLN out) {
     out.print("\tat ");

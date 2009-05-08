@@ -141,7 +141,6 @@ import org.jikesrvm.tuningfork.Feedlet;
  * they allow the thread to perform async activities (such as mutator flushes or
  * isyncs), while GC safe code will not necessarily perform either.
  *
- * @see org.jikesrvm.scheduler.greenthreads.GreenThread
  * @see org.jikesrvm.mm.mminterface.CollectorThread
  * @see FinalizerThread
  * @see org.jikesrvm.adaptive.measurements.organizers.Organizer
@@ -206,8 +205,6 @@ public class RVMThread extends ThreadContext {
   /**
    * Thread has not yet started. This state holds right up until just before we
    * call pthread_create().
-   *
-   * @TODO: make javadoc thread model agnostic
    */
   public static final int NEW = 0;
 
@@ -387,7 +384,7 @@ public class RVMThread extends ThreadContext {
   private int priority;
 
   /**
-   * Index of this thread in {@link threads}[]. This value must be non-zero
+   * Index of this thread in {@link #threadBySlot}[]. This value must be non-zero
    * because it is shifted and used in {@link Object} lock ownership tests.
    */
   @Entrypoint
@@ -1559,7 +1556,7 @@ public class RVMThread extends ThreadContext {
 
   /**
    * Create a thread with the given stack and name. Used by
-   * {@link org.jikesrvm.memorymanagers.mminterface.CollectorThread} and the
+   * {@link org.jikesrvm.mm.mminterface.CollectorThread} and the
    * boot image writer for the boot thread.
    */
   public RVMThread(byte[] stack, String name) {

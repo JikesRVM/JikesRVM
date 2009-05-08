@@ -20,7 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Base class for all reflective method invoker classes, contains utility
  * methods that are invoked to unwrap the reflective arguments. Also contains
- * {@link #invoke(Object, Object[])} that is called to perform the reflective
+ * {@link #invoke(RVMMethod, Object, Object[])} that is called to perform the reflective
  * method call.
  */
 public abstract class ReflectionBase {

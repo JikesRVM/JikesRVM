@@ -155,8 +155,7 @@ public final class ImmixSpace extends Space implements Constants {
    * @param emergencyCollection Is this collection an emergency (last did not yield enough)?
    * @param collectWholeHeap Is this a whole heap collection?
    * @param collectionAttempt Which attempt is this to collect?
-   * @param requiredAtStart How much space is required?
-   * @param userTriggered Is this a user-triggered collection?
+   * @param collectionTrigger What is triggering the collection?
    */
   public void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int collectionTrigger) {
     defrag.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, collectionTrigger, exhaustedReusableSpace);

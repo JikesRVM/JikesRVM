@@ -54,7 +54,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * Between collections, the collector threads are parked on a pthread
  * condition variable.  A collection in initiated by a call to the static
- * {@link #collect()} method, which calls
+ * {@link #collect(Handshake,int)} method, which calls
  * {@link Handshake#requestAndAwaitCompletion} to signal the threads.
  * The collection commences when all
  * scheduled collector threads arrive at the first "rendezvous" in the run
@@ -161,8 +161,6 @@ public final class CollectorThread extends RVMThread {
    * Constructor
    *
    * @param stack The stack this thread will run on
-   * @param processorAffinity The processor with which this thread is
-   * associated.
    */
   CollectorThread(byte[] stack) {
     super(stack, myName);

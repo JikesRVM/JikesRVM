@@ -105,10 +105,8 @@ public class SSMutator extends StopTheWorldMutator {
 
   /**
    * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.  This exists
-   * to support {@link MutatorContext#getOwnAllocator(Allocator)}.
+   * <code>space</code>, for this plan instance.
    *
-   * @see MutatorContext#getOwnAllocator(Allocator)
    * @param space The space for which the allocator instance is desired.
    * @return The allocator instance associated with this plan instance
    * which is allocating into <code>space</code>, or <code>null</code>

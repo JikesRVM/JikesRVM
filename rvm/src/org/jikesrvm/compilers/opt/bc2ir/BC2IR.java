@@ -4836,7 +4836,7 @@ public final class BC2IR
 
   /**
    * make a temporary register, and create a move instruction
-   * @param op, the local variable.
+   * @param op the local variable.
    * @return operand marked as use.
    */
   private Operand _loadLocalForOSR(Operand op) {

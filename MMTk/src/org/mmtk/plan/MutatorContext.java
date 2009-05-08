@@ -229,8 +229,7 @@ public abstract class MutatorContext implements Constants {
 
   /****************************************************************************
    *
-   * Space - Allocator mapping. See description for getOwnAllocator that
-   * describes why this is important.
+   * Space - Allocator mapping.
    */
 
   /**

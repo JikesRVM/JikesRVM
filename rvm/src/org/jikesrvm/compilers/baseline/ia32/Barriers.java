@@ -32,9 +32,6 @@ class Barriers implements BaselineConstants {
    * arrayRef, index, value.
    *
    * @param asm the assembler to generate the code in
-   * @param ref the register holding the array reference
-   * @param index the register holding index into the array
-   * @param value the register holding the value to store
    */
   static void compileArrayStoreBarrier(Assembler asm) {
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
