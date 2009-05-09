@@ -69,6 +69,10 @@ import org.vmmagic.unboxed.Word;
   /** @return The number of header words that are required. */
   public abstract int gcHeaderWords();
 
+  /** @return If the mutator needs to be able to CAS the header bits even
+   *          when the world is not stopped. */
+  public boolean mutatorNeedsToCASHeaderBits() { return false; }
+
   /** @return True if this plan contains GCspy. */
   public boolean withGCspy() { return false; }
 

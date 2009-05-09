@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.Services;
 import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoNullCheck;
@@ -29,6 +30,8 @@ import org.vmmagic.unboxed.Word;
  */
 @Uninterruptible
 public final class ThinLock implements ThinLockConstants {
+
+  public static final boolean biasingAllowed=!MemoryManagerConstants.MUTATOR_NEEDS_TO_CAS_HEADER_BITS;
 
   @Inline
   @NoNullCheck
@@ -91,13 +94,25 @@ public final class ThinLock implements ThinLockConstants {
       if (stat.EQ(TL_STAT_BIASABLE)) {
         Word id = old.and(TL_THREAD_ID_MASK);
         if (id.isZero()) {
-          // lock is unbiased, bias it in our favor and grab it
-          if (Synchronization.tryCompareAndSwap(
-                o, lockOffset,
-                old,
-                old.or(threadId).toAddress().plus(TL_LOCK_COUNT_UNIT).toWord())) {
-            Magic.isync();
-            return;
+          if (biasingAllowed) {
+            // lock is unbiased, bias it in our favor and grab it
+            if (Synchronization.tryCompareAndSwap(
+                  o, lockOffset,
+                  old,
+                  old.or(threadId).toAddress().plus(TL_LOCK_COUNT_UNIT).toWord())) {
+              Magic.isync();
+              return;
+            }
+          } else {
+            // lock is unbiased but biasing is NOT allowed, so turn it into
+            // a thin lock
+            if (Synchronization.tryCompareAndSwap(
+                  o, lockOffset,
+                  old,
+                  old.or(threadId).or(TL_STAT_THIN))) {
+              Magic.isync();
+              return;
+            }
           }
         } else if (id.EQ(threadId)) {
           // lock is biased in our favor
@@ -477,6 +492,7 @@ public final class ThinLock implements ThinLockConstants {
   @NoNullCheck
   @Unpreemptible
   public static boolean lockHeader(Object o, Offset lockOffset) {
+    if (!biasingAllowed) return false;
     // what this should do:
     // 1) take advantage of the fact that if a lock is fat it can only go back to
     //    being thin, so concurrent modification of the lock word is allowed.
@@ -541,7 +557,8 @@ public final class ThinLock implements ThinLockConstants {
   @Inline
   @Uninterruptible
   public static boolean allowHeaderCAS(Object o, Offset lockOffset) {
-    return Magic.getWordAtOffset(o,lockOffset).and(TL_STAT_MASK).NE(TL_STAT_BIASABLE);
+    return !biasingAllowed ||
+      Magic.getWordAtOffset(o,lockOffset).and(TL_STAT_MASK).NE(TL_STAT_BIASABLE);
   }
 
   ////////////////////////////////////////////////////////////////
