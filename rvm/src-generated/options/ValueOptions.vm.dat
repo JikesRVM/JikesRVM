@@ -28,7 +28,7 @@ If we get deeper than this in one of the System Trouble functions, try to die.
 #       effectiveness of the Adaptive System.  Therefore, this setting
 #       should be verified by running a relatively long running program
 #       on an unload machine and enabling -X:aos:reportInterruptStats=true
-V interruptQuantum int (VM.BuildForLinux&&VM.BuildForIA32)?20:10
+V interruptQuantum int 4
 Timer interrupt scheduling quantum in ms
 
 
