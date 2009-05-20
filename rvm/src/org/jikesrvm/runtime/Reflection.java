@@ -149,9 +149,18 @@ public class Reflection implements Constants {
     if (isNonvirtual || method.isStatic() || method.isObjectInitializer()) {
       targetMethod = method;
     } else {
-      int tibIndex = method.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;
-      targetMethod =
-          Magic.getObjectType(thisArg).asClass().getVirtualMethods()[tibIndex - TIB_FIRST_VIRTUAL_METHOD_INDEX];
+      RVMClass C = Magic.getObjectType(thisArg).asClass();
+      if (!method.getDeclaringClass().isInterface()) {
+        int tibIndex = method.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;
+        targetMethod = C.getVirtualMethods()[tibIndex - TIB_FIRST_VIRTUAL_METHOD_INDEX];
+      } else {
+        RVMClass I = method.getDeclaringClass();
+        if (!RuntimeEntrypoints.isAssignableWith(I, C))
+          throw new IncompatibleClassChangeError();
+        targetMethod = C.findVirtualMethod(method.getName(), method.getDescriptor());
+        if (targetMethod == null)
+          throw new IncompatibleClassChangeError();
+      }
     }
 
     // getCurrentCompiledMethod is synchronized but Unpreemptible.

@@ -929,12 +929,21 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     TypeReference[] parameters = getParameterTypes();
     int numParams = parameters.length;
     byte[] bytecodes;
+    boolean interfaceCall = false;
     int curBC = 0;
     if (!isStatic()) {
-      bytecodes = new byte[8 * numParams + 8];
+      if (!getDeclaringClass().isInterface()) {
+        // virtual call
+        bytecodes = new byte[8 * numParams + 8];
+      } else {
+        // interface call
+        bytecodes = new byte[8 * numParams + 10];
+        interfaceCall = true;
+      }
       bytecodes[curBC] = JBC_aload_1;
       curBC++;
     } else {
+      // static call
       bytecodes = new byte[8 * numParams + 7];
     }
     for (int i=0; i < numParams; i++) {
@@ -1013,12 +1022,18 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       bytecodes[curBC] = (byte)JBC_invokestatic;
     } else if (isObjectInitializer() || isPrivate()) {
       bytecodes[curBC] = (byte)JBC_invokespecial;
+    } else if (interfaceCall) {
+      bytecodes[curBC] = (byte)JBC_invokeinterface;
     } else {
       bytecodes[curBC] = (byte)JBC_invokevirtual;
     }
     constantPool[numParams+1] = ClassFileReader.packCPEntry(CP_MEMBER, getId());
     bytecodes[curBC+1] = (byte)((numParams+1) >>> 8);
     bytecodes[curBC+2] = (byte)(numParams+1);
+    if (interfaceCall) {
+      // invokeinterface bytecodes are historically longer than others
+      curBC+=2;
+    }
     TypeReference returnType = getReturnType();
     if (!returnType.isPrimitiveType() || returnType.isWordType()) {
       bytecodes[curBC+3] = (byte)JBC_nop;
