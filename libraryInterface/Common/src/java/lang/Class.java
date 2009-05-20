@@ -877,7 +877,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   @Pure
   private RVMMethod getMethodInternal1(Atom aName, Class<?>... parameterTypes) {
     RVMMethod answer = null;
-    for (RVMClass current = type.asClass(); current != null; current = current.getSuperClass()) {
+    for (RVMClass current = type.asClass(); current != null && answer == null; current = current.getSuperClass()) {
       RVMMethod[] methods = current.getDeclaredMethods();
       for (RVMMethod meth : methods) {
         if (meth.getName() == aName && meth.isPublic() &&
