@@ -751,13 +751,13 @@ final class BaselineMagic {
       // Store at offset
       if (VM.BuildFor32Addr) {
         asm.emitPOP_Reg(T0);                          // T0 = offset
-        asm.emitADD_Reg_RegDisp(T0, SP, THREE_SLOTS); // T0 = base+offset
+        asm.emitADD_Reg_RegDisp(T0, SP, TWO_SLOTS); // T0 = base+offset
         asm.emitPOP_RegInd(T0);                       // [T0]   <- value low
         asm.emitPOP_RegDisp(T0, ONE_SLOT);            // [T0+4] <- value high
         asm.emitPOP_Reg(T0);                          // throw away slot
       } else {
         asm.emitPOP_Reg(T0);                               // offset
-        asm.emitADD_Reg_RegDisp_Quad(T0, SP, THREE_SLOTS); // T0 = base+offset
+        asm.emitADD_Reg_RegDisp_Quad(T0, SP, TWO_SLOTS); // T0 = base+offset
         asm.emitPOP_RegInd(T0);                            // T0 <- value
         asm.emitPOP_Reg(T0);                               // throw away slot
         asm.emitPOP_Reg(T0);                               // throw away slot
