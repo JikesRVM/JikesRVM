@@ -774,20 +774,15 @@ sysNanoTime()
 		retVal = (((long long) tp.tv_sec) * 1000000000) + tp.tv_nsec;
 	}
 #else
-        Nanoseconds nanoTime;
-	unsigned long long high;
-	unsigned long long low;
+        struct timeval tv;
 
-	low = mach_absolute_time();
+        gettimeofday(&tv,NULL);
 
-	high = low >> 32;
-	low &= 0xffffffff;
-
-	high *= timebaseInfo.numer;
-	low *= timebaseInfo.numer;
-
-	retVal = (high / timebaseInfo.denom) << 32;
-	retVal += (low + ((high % timebaseInfo.denom) << 32)) / timebaseInfo.denom;
+        retVal=tv.tv_sec;
+        retVal*=1000;
+        retVal*=1000;
+        retVal+=tv.tv_usec;
+        retVal*=1000;
 #endif
     return retVal;
 }
