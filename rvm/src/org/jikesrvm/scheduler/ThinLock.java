@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 public final class ThinLock implements ThinLockConstants {
 
-  private static final boolean ENABLED = true;
+  private static final boolean ENABLE_BIASED_LOCKING = true;
 
   @Inline
   @NoNullCheck
@@ -91,7 +91,7 @@ public final class ThinLock implements ThinLockConstants {
       if (stat.EQ(TL_STAT_BIASABLE)) {
         Word id = old.and(TL_THREAD_ID_MASK);
         if (id.isZero()) {
-          if (ENABLED) {
+          if (ENABLE_BIASED_LOCKING) {
             // lock is unbiased, bias it in our favor and grab it
             if (Synchronization.tryCompareAndSwap(
                   o, lockOffset,
