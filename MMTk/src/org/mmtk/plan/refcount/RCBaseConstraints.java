@@ -33,6 +33,4 @@ public class RCBaseConstraints extends StopTheWorldConstraints {
   public boolean needsWriteBarrier() { return true; }
   @Override
   public int maxNonLOSDefaultAllocBytes() { return MAX_FREELIST_OBJECT_BYTES; }
-  @Override
-  public boolean mutatorNeedsToCASHeaderBits() { return true; }
 }

@@ -92,6 +92,10 @@ public class JavaHeader implements JavaHeaderConstants {
   public static final int NUM_THIN_LOCK_BITS = ADDRESS_BASED_HASHING ? 22 : 20;
   /** How many bits to shift to get the thin lock? */
   public static final int THIN_LOCK_SHIFT = ADDRESS_BASED_HASHING ? 10 : 12;
+  /** How many bytes do we have to offset to get to the high locking bits */
+  public static final int THIN_LOCK_DEDICATED_U16_OFFSET = VM.LittleEndian ? 2 : (VM.BuildFor64Addr ? 4 : 0);
+  /** How many bits do we have to shift to only hold the high locking bits */
+  public static final int THIN_LOCK_DEDICATED_U16_SHIFT  = 16;
 
   /** The alignment value **/
   public static final int ALIGNMENT_VALUE = JavaHeaderConstants.ALIGNMENT_VALUE;
@@ -100,6 +104,7 @@ public class JavaHeader implements JavaHeaderConstants {
   static {
     if (VM.VerifyAssertions) {
       VM._assert(MiscHeader.REQUESTED_BITS + MemoryManagerConstants.GC_HEADER_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert((THIN_LOCK_SHIFT + NUM_THIN_LOCK_BITS - THIN_LOCK_DEDICATED_U16_SHIFT) == 16);
     }
   }
 
@@ -514,18 +519,10 @@ public class JavaHeader implements JavaHeaderConstants {
           }
         } else {
           // UNHASHED
-          boolean lhr=ThinLock.lockHeader(o, STATUS_OFFSET);
-          if (lhr) {
-            Magic.setWordAtOffset(
-              o, STATUS_OFFSET,
-              Magic.getWordAtOffset(o, STATUS_OFFSET).or(HASH_STATE_HASHED));
-          } else {
-            Word tmp;
-            do {
-              tmp = Magic.prepareWord(o, STATUS_OFFSET);
-            } while (!Magic.attemptWord(o, STATUS_OFFSET, tmp, tmp.or(HASH_STATE_HASHED)));
-          }
-          ThinLock.unlockHeader(o, STATUS_OFFSET, lhr);
+          Word tmp;
+          do {
+            tmp = Magic.prepareWord(o, STATUS_OFFSET);
+          } while (!Magic.attemptWord(o, STATUS_OFFSET, tmp, tmp.or(HASH_STATE_HASHED)));
           if (ObjectModel.HASH_STATS) ObjectModel.hashTransition1++;
           return getObjectHashCode(o);
         }
@@ -550,28 +547,15 @@ public class JavaHeader implements JavaHeaderConstants {
       hashCodeGenerator = hashCodeGenerator.plus(Word.one().lsh(HASH_CODE_SHIFT));
       hashCode = hashCodeGenerator.and(HASH_CODE_MASK);
     } while (hashCode.isZero());
-    if (ThinLock.lockHeader(o, STATUS_OFFSET)) {
-      Word statusWord = Magic.getWordAtOffset(o, STATUS_OFFSET);
-      if (!(statusWord.and(HASH_CODE_MASK).isZero())) // some other thread installed a hashcode
-      {
-        ThinLock.unlockHeader(o, STATUS_OFFSET, true);
+    while (true) {
+      Word statusWord = Magic.prepareWord(o, STATUS_OFFSET);
+      if (!(statusWord.and(HASH_CODE_MASK).isZero())) {
+        // some other thread installed a hashcode
         return statusWord.and(HASH_CODE_MASK).rshl(HASH_CODE_SHIFT).toInt();
       }
-      Magic.setWordAtOffset(o, STATUS_OFFSET, statusWord.or(hashCode));
-      ThinLock.unlockHeader(o, STATUS_OFFSET, true);
-      return hashCode.rshl(HASH_CODE_SHIFT).toInt();  // we installed the hash code
-    } else {
-      while (true) {
-        Word statusWord = Magic.prepareWord(o, STATUS_OFFSET);
-        if (!(statusWord.and(HASH_CODE_MASK).isZero())) // some other thread installed a hashcode
-        {
-          ThinLock.unlockHeader(o, STATUS_OFFSET, false);
-          return statusWord.and(HASH_CODE_MASK).rshl(HASH_CODE_SHIFT).toInt();
-        }
-        if (Magic.attemptWord(o, STATUS_OFFSET, statusWord, statusWord.or(hashCode))) {
-          ThinLock.unlockHeader(o, STATUS_OFFSET, false);
-          return hashCode.rshl(HASH_CODE_SHIFT).toInt();  // we installed the hash code
-        }
+      if (Magic.attemptWord(o, STATUS_OFFSET, statusWord, statusWord.or(hashCode))) {
+        // we installed the hash code
+        return hashCode.rshl(HASH_CODE_SHIFT).toInt();
       }
     }
   }
@@ -710,8 +694,6 @@ public class JavaHeader implements JavaHeaderConstants {
    * A prepare on the word containing the available bits
    */
   public static Word prepareAvailableBits(Object o) {
-    if (VM.VerifyAssertions) VM._assert(
-      RVMThread.worldStopped() || ThinLock.allowHeaderCAS(o, STATUS_OFFSET));
     return Magic.prepareWord(o, STATUS_OFFSET);
   }
 
@@ -719,8 +701,6 @@ public class JavaHeader implements JavaHeaderConstants {
    * An attempt on the word containing the available bits
    */
   public static boolean attemptAvailableBits(Object o, Word oldVal, Word newVal) {
-    if (VM.VerifyAssertions) VM._assert(
-      RVMThread.worldStopped() || ThinLock.allowHeaderCAS(o, STATUS_OFFSET));
     return Magic.attemptWord(o, STATUS_OFFSET, oldVal, newVal);
   }
 

@@ -16,7 +16,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.Services;
 import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoNullCheck;
@@ -31,7 +30,7 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 public final class ThinLock implements ThinLockConstants {
 
-  public static final boolean biasingAllowed=!MemoryManagerConstants.MUTATOR_NEEDS_TO_CAS_HEADER_BITS;
+  private static final boolean ENABLED = true;
 
   @Inline
   @NoNullCheck
@@ -41,9 +40,9 @@ public final class ThinLock implements ThinLockConstants {
     Word id = old.and(TL_THREAD_ID_MASK.or(TL_STAT_MASK));
     Word tid = Word.fromIntSignExtend(RVMThread.getCurrentThread().getLockingId());
     if (id.EQ(tid)) {
-      Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord();
+      Word changed = old.plus(TL_LOCK_COUNT_UNIT);
       if (!changed.and(TL_LOCK_COUNT_MASK).isZero()) {
-        Magic.setWordAtOffset(o, lockOffset, changed);
+        setDedicatedU16(o, lockOffset, changed);
         return;
       }
     } else if (id.EQ(TL_STAT_THIN)) {
@@ -65,9 +64,7 @@ public final class ThinLock implements ThinLockConstants {
     Word tid = Word.fromIntSignExtend(RVMThread.getCurrentThread().getLockingId());
     if (id.EQ(tid)) {
       if (!old.and(TL_LOCK_COUNT_MASK).isZero()) {
-        Magic.setWordAtOffset(
-          o, lockOffset,
-          old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord());
+        setDedicatedU16(o, lockOffset, old.minus(TL_LOCK_COUNT_UNIT));
         return;
       }
     } else if (old.xor(tid).rshl(TL_LOCK_COUNT_SHIFT).EQ(TL_STAT_THIN.rshl(TL_LOCK_COUNT_SHIFT))) {
@@ -94,12 +91,12 @@ public final class ThinLock implements ThinLockConstants {
       if (stat.EQ(TL_STAT_BIASABLE)) {
         Word id = old.and(TL_THREAD_ID_MASK);
         if (id.isZero()) {
-          if (biasingAllowed) {
+          if (ENABLED) {
             // lock is unbiased, bias it in our favor and grab it
             if (Synchronization.tryCompareAndSwap(
                   o, lockOffset,
                   old,
-                  old.or(threadId).toAddress().plus(TL_LOCK_COUNT_UNIT).toWord())) {
+                  old.or(threadId).plus(TL_LOCK_COUNT_UNIT))) {
               Magic.isync();
               return;
             }
@@ -116,9 +113,9 @@ public final class ThinLock implements ThinLockConstants {
           }
         } else if (id.EQ(threadId)) {
           // lock is biased in our favor
-          Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord();
+          Word changed = old.plus(TL_LOCK_COUNT_UNIT);
           if (!changed.and(TL_LOCK_COUNT_MASK).isZero()) {
-            Magic.setWordAtOffset(o, lockOffset, changed);
+            setDedicatedU16(o, lockOffset, changed);
             return;
           } else {
             tryToInflate=true;
@@ -137,7 +134,7 @@ public final class ThinLock implements ThinLockConstants {
             return;
           }
         } else if (id.EQ(threadId)) {
-          Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord();
+          Word changed = old.plus(TL_LOCK_COUNT_UNIT);
           if (changed.and(TL_LOCK_COUNT_MASK).isZero()) {
             tryToInflate=true;
           } else if (Synchronization.tryCompareAndSwap(
@@ -187,8 +184,7 @@ public final class ThinLock implements ThinLockConstants {
           if (old.and(TL_LOCK_COUNT_MASK).isZero()) {
             RVMThread.raiseIllegalMonitorStateException("biased unlocking: we own this object but the count is already zero", o);
           }
-          Magic.setWordAtOffset(o, lockOffset,
-                                old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord());
+          setDedicatedU16(o, lockOffset, old.minus(TL_LOCK_COUNT_UNIT));
           return;
         } else {
           RVMThread.raiseIllegalMonitorStateException("biased unlocking: we don't own this object", o);
@@ -199,9 +195,9 @@ public final class ThinLock implements ThinLockConstants {
         if (id.EQ(threadId)) {
           Word changed;
           if (old.and(TL_LOCK_COUNT_MASK).isZero()) {
-            changed=old.and(TL_UNLOCK_MASK).or(TL_STAT_THIN);
+            changed = old.and(TL_UNLOCK_MASK).or(TL_STAT_THIN);
           } else {
-            changed=old.toAddress().minus(TL_LOCK_COUNT_UNIT).toWord();
+            changed = old.minus(TL_LOCK_COUNT_UNIT);
           }
           if (Synchronization.tryCompareAndSwap(
                 o, lockOffset, old, changed)) {
@@ -306,6 +302,21 @@ public final class ThinLock implements ThinLockConstants {
     } else {
       return lockWord.and(TL_LOCK_COUNT_MASK).rshl(TL_LOCK_COUNT_SHIFT).toInt()+1;
     }
+  }
+
+  /**
+   * Set only the dedicated locking 16-bit part of the given value. This is the only part
+   * that is allowed to be written without a CAS. This takes care of the shifting and
+   * storing of the value.
+   *
+   * @param o The object whose header is to be changed
+   * @param lockOffset The lock offset
+   * @param value The value which contains the 16-bit portion to be written.
+   */
+  @Inline
+  @Unpreemptible
+  private static void setDedicatedU16(Object o, Offset lockOffset, Word value) {
+    Magic.setCharAtOffset(o, lockOffset.plus(TL_DEDICATED_U16_OFFSET), (char)(value.toInt() >>> TL_DEDICATED_U16_SHIFT));
   }
 
   @NoInline
@@ -487,78 +498,6 @@ public final class ThinLock implements ThinLockConstants {
         return;
       }
     }
-  }
-
-  @NoNullCheck
-  @Unpreemptible
-  public static boolean lockHeader(Object o, Offset lockOffset) {
-    if (!biasingAllowed) return false;
-    // what this should do:
-    // 1) take advantage of the fact that if a lock is fat it can only go back to
-    //    being thin, so concurrent modification of the lock word is allowed.
-    // 2) if it's biased, we own it anyway so we can "lock" it by incrementing the
-    //    count.
-    Word threadId = Word.fromIntZeroExtend(RVMThread.getCurrentThread().getLockingId());
-    for (;;) {
-      boolean attemptToInflate=false;
-      Word old=Magic.getWordAtOffset(o,lockOffset);
-      if (old.and(TL_STAT_MASK).NE(TL_STAT_BIASABLE)) {
-        if (VM.VerifyAssertions) VM._assert(old.and(TL_STAT_MASK).EQ(TL_STAT_THIN) ||
-                                            old.and(TL_STAT_MASK).EQ(TL_STAT_FAT));
-        return false;
-      } else {
-        Word id = old.and(TL_THREAD_ID_MASK);
-        // what do we do here?  if we have the bias, then it's easy.  but what
-        // if we don't?  in that case we need to be ultra-careful.  what we can
-        // do:
-        // 1) if the lock is biased in our favor, then lock it
-        // 2) if the lock is unbiased, then bias it in our favor an lock it
-        // 3) if the lock is biased in someone else's favor, inflate it (so we can go above)
-        if (id.isZero()) {
-          // lock is unbiased, bias it in our favor and grab it
-          if (Synchronization.tryCompareAndSwap(
-                o, lockOffset,
-                old,
-                old.or(threadId).toAddress().plus(TL_LOCK_COUNT_UNIT).toWord())) {
-            Magic.isync();
-            return true;
-          }
-        } else if (id.EQ(threadId)) {
-          // lock is biased in our favor, so grab it
-          Word changed = old.toAddress().plus(TL_LOCK_COUNT_UNIT).toWord();
-          if (!changed.and(TL_LOCK_COUNT_MASK).isZero()) {
-            Magic.setWordAtOffset(o, lockOffset, changed);
-            return true;
-          } else {
-            attemptToInflate=true;
-          }
-        } else {
-          attemptToInflate=true;
-        }
-
-        if (attemptToInflate) {
-          inflate(o,lockOffset);
-        }
-      }
-    }
-  }
-
-  @NoNullCheck
-  @Unpreemptible
-  public static void unlockHeader(Object o, Offset lockOffset,boolean lockHeaderResult) {
-    // what to do here?
-    // 1) if lockHeaderResult is false, we're done
-    // 2) if lockHeaderResult is true, release the lock.
-    if (lockHeaderResult) {
-      unlock(o, lockOffset);
-    }
-  }
-
-  @Inline
-  @Uninterruptible
-  public static boolean allowHeaderCAS(Object o, Offset lockOffset) {
-    return !biasingAllowed ||
-      Magic.getWordAtOffset(o,lockOffset).and(TL_STAT_MASK).NE(TL_STAT_BIASABLE);
   }
 
   ////////////////////////////////////////////////////////////////
