@@ -405,7 +405,6 @@ public class VM extends Properties implements Constants, ExitStatus {
       runClassInitializer("gnu.java.nio.charset.EncodingHelper");
       runClassInitializer("java.lang.reflect.Proxy");
       runClassInitializer("java.lang.reflect.Proxy$ProxySignature");
-      runClassInitializer("java.net.InetAddress");
     }
     runClassInitializer("java.util.logging.Logger");
     if (VM.BuildForHarmony) {

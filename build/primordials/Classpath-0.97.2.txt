@@ -334,7 +334,6 @@ Ljava/net/URLClassLoader$1;
 Ljava/net/URLClassLoader$2;
 Ljava/net/URL;
 Ljava/net/URL$1;
-Ljava/net/InetAddress;
 
 ## These protocol handlers are necessary for Classpath 0.13 and later,
 ## since we are now initializing URLClassLoader before dynamic class
