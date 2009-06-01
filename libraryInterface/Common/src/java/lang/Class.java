@@ -834,7 +834,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
   public T newInstance() throws IllegalAccessException, InstantiationException,
-    InvocationTargetException, ExceptionInInitializerError, SecurityException {
+    ExceptionInInitializerError, SecurityException {
 
     // Basic checks
     checkMemberAccess(Member.PUBLIC);
@@ -867,7 +867,14 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     T obj = (T)RuntimeEntrypoints.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
-    Reflection.invoke(defaultConstructor, null, obj, null, true);
+    try {
+      Reflection.invoke(defaultConstructor, null, obj, null, true);
+    } catch(InvocationTargetException e) {
+      // This suppresses compiler checking for the InvokeTargetException.
+      // Note that JDk 1.6 does not declare the InvokeTargetException for the newInstance
+      // method of the java.lang.Class.
+      RuntimeEntrypoints.athrow(e.getCause());
+    }
 
     return obj;
   }
