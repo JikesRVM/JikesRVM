@@ -867,14 +867,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     T obj = (T)RuntimeEntrypoints.resolvedNewScalar(cls);
 
     // Run the default constructor on the it.
-    try {
-      Reflection.invoke(defaultConstructor, null, obj, null, true);
-    } catch(InvocationTargetException e) {
-      // This suppresses compiler checking for the InvokeTargetException.
-      // Note that JDk 1.6 does not declare the InvokeTargetException for the newInstance
-      // method of the java.lang.Class.
-      RuntimeEntrypoints.athrow(e.getCause());
-    }
+    Reflection.invoke(defaultConstructor, null, obj, null, true);
 
     return obj;
   }

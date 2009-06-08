@@ -25,7 +25,6 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
-import java.lang.reflect.InvocationTargetException;
 
 import static org.jikesrvm.Configuration.BuildForSSE2Full;
 
@@ -66,7 +65,7 @@ public class Reflection implements Constants {
   @Inline
   public static Object invoke(RVMMethod method, ReflectionBase invoker,
                               Object thisArg, Object[] otherArgs,
-                              boolean isNonvirtual) throws InvocationTargetException {
+                              boolean isNonvirtual) {
     // NB bytecode reflection doesn't care about isNonvirtual
     if (!bytecodeReflection && !cacheInvokerInJavaLangReflect) {
       return outOfLineInvoke(method, thisArg, otherArgs, isNonvirtual);

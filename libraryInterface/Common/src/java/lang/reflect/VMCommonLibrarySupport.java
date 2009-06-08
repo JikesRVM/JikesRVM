@@ -199,7 +199,11 @@ final class VMCommonLibrarySupport {
     }
 
     // Invoke method
-    return Reflection.invoke(method, invoker, receiver, args, true);
+    try {
+      return Reflection.invoke(method, invoker, receiver, args, true);
+    } catch (Throwable t) {
+      throw new InvocationTargetException(t);
+    }
   }
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
@@ -225,7 +229,11 @@ final class VMCommonLibrarySupport {
     method = C.findVirtualMethod(method.getName(), method.getDescriptor());
 
     // Invoke method
-    return Reflection.invoke(method, invoker, receiver, args, false);
+    try {
+      return Reflection.invoke(method, invoker, receiver, args, false);
+    } catch (Throwable t) {
+      throw new InvocationTargetException(t);
+    }
   }
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
@@ -424,7 +432,11 @@ final class VMCommonLibrarySupport {
     // Allocate an uninitialized instance;
     Object obj = RuntimeEntrypoints.resolvedNewScalar(cls);
     // Run the constructor on the instance.
-    Reflection.invoke(constructor, invoker, obj, args, true);
+    try {
+      Reflection.invoke(constructor, invoker, obj, args, true);
+    } catch (Throwable e) {
+      throw new InvocationTargetException(e);
+    }
     return obj;
   }
   /* ---- Constructor/Method Support ---- */

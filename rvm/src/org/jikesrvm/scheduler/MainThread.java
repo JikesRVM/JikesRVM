@@ -17,16 +17,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import org.jikesrvm.VM;
+
 import org.jikesrvm.Callbacks;
 import org.jikesrvm.CommandLineArgs;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Reflection;
-import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.pragma.Entrypoint;
 
 /**
@@ -198,15 +198,7 @@ public final class MainThread extends Thread {
 
     if (dbg) VM.sysWriteln("[MainThread.run() invoking \"main\" method... ");
     // invoke "main" method with argument list
-    try {
-      Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
-    } catch (InvocationTargetException e) {
-      Throwable cause = e.getCause();
-      if (cause == null) {
-        cause = e;
-      }
-      RuntimeEntrypoints.athrow(cause);
-    }
+    Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
     if (dbg) VM.sysWriteln("  MainThread.run(): \"main\" method completed.]");
   }
 }
