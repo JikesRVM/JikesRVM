@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -26,9 +26,16 @@ class MethodSummary {
    */
   private static boolean inProgress = false;
 
-  // Top bit is result, bits 0..63 are for parameters 0..63 respectively
-  // The default value encodes that the result escapes but that no parameter is escaping.
+  /**
+   * Default escape result, that the result escapes but that no parameter is
+   * escaping.
+   */
   private static final long RES_ESCAPE = 0x80000000;
+
+  /**
+   * Escape result, top bit is result of the method bits 0..63 are for
+   * parameters 0..63 respectively
+   */
   private long escapeInfo = RES_ESCAPE;
 
   /**
@@ -101,6 +108,3 @@ class MethodSummary {
     inProgress = b;
   }
 }
-
-
-

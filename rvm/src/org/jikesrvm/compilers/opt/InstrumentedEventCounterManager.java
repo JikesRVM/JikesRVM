@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -21,9 +21,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
  * to provide a mechanism for instrumentation phases to performing
  * counting of events, but to keep the implemntation of the counters
  * completely hidden.
- *
- *
- **/
+ */
 public abstract class InstrumentedEventCounterManager {
   static final boolean DEBUG = false;
 
@@ -83,7 +81,4 @@ public abstract class InstrumentedEventCounterManager {
    * Still  under construction.
    */
   public abstract void insertBaselineCounter();
-}               // end of class
-
-
-
+}

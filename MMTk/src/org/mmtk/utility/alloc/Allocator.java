@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -39,6 +39,13 @@ import org.vmmagic.pragma.*;
  * GC are run incorrectly.
  */
 @Uninterruptible public abstract class Allocator implements Constants {
+
+  /**
+   * Return the space this allocator is currently bound to.
+   *
+   * @return The Space.
+   */
+  protected abstract Space getSpace();
 
   /**
    * Aligns up an allocation request. The allocation request accepts a
@@ -225,6 +232,7 @@ import org.vmmagic.pragma.*;
   public final Address allocSlowInline(int bytes, int alignment, int offset) {
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
+    Space space = current.getSpace();
     for (int i = 0; i < Plan.MAX_COLLECTION_ATTEMPTS; i++) {
       Address result = current.allocSlowOnce(bytes, alignment, offset);
       if (!result.isZero()) {
@@ -236,13 +244,13 @@ import org.vmmagic.pragma.*;
          * current thread and the mutator context. This is possible for
          * VMs that dynamically multiplex Java threads onto multiple mutator
          * contexts, */
-        current = VM.activePlan.mutator().getOwnAllocator(current);
+        current = VM.activePlan.mutator().getAllocatorFromSpace(space);
       }
     }
     Log.write("GC Error: Allocator.allocSlow failed on request of ");
     Log.write(bytes);
     Log.write(" on space ");
-    Log.writeln(Plan.getSpaceNameFromAllocatorAnyLocal(this));
+    Log.writeln(space.getName());
     Log.write("gcCountStart = ");
     Log.writeln(gcCountStart);
     Log.write("gcCount (now) = ");

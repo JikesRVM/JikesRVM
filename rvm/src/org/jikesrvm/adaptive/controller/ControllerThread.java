@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -30,7 +30,8 @@ import org.jikesrvm.adaptive.recompilation.InvocationCounts;
 import org.jikesrvm.adaptive.util.AOSGenerator;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.AOSOptions;
-import org.jikesrvm.scheduler.Scheduler.ThreadModel;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.SoftLatch;
 import org.vmmagic.pragma.NonMoving;
 
 /**
@@ -44,19 +45,19 @@ import org.vmmagic.pragma.NonMoving;
  *     d) all of the above.
  */
 @NonMoving
-public final class ControllerThread extends ThreadModel {
+public final class ControllerThread extends RVMThread {
 
   /**
    * constructor
    * @param sentinel   An object to signal when up and running
    */
-  ControllerThread(Object sentinel) {
+  ControllerThread(SoftLatch sentinel) {
     super("ControllerThread");
     this.sentinel = sentinel;
     makeDaemon(true);
   }
 
-  private final Object sentinel;
+  private final SoftLatch sentinel;
 
   /**
    * There are several ways in which a dcg organizer might
@@ -74,11 +75,10 @@ public final class ControllerThread extends ThreadModel {
     Controller.controllerThread = this;
 
     // Bring up the logging system
-    AOSLogging.boot();
+    AOSLogging.logger.boot();
     if (Controller.options.ENABLE_ADVICE_GENERATION) {
       AOSGenerator.boot();
     }
-    AOSLogging.controllerStarted();
 
     // Create measurement entities that are NOT related to
     // adaptive recompilation
@@ -166,11 +166,8 @@ public final class ControllerThread extends ThreadModel {
       Organizer o = e.nextElement();
       o.start();
     }
-
     try {
-      synchronized (sentinel) {
-        sentinel.notify();
-      }
+      sentinel.open();
     } catch (Exception e) {
       e.printStackTrace();
       VM.sysFail("Failed to start up controller subsystem");
@@ -272,7 +269,7 @@ public final class ControllerThread extends ThreadModel {
    * Final report
    */
   public static void report() {
-    AOSLogging.controllerCompleted();
+    AOSLogging.logger.printControllerStats();
   }
 
 }

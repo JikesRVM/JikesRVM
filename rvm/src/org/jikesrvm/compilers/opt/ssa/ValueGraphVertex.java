@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -23,11 +23,16 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
  * discussion.
  */
 final class ValueGraphVertex extends SpaceEffGraphNode {
-  private final Object name;  // the name of the variable defined by this node
-  private Object label;       // the name of the operator that does the definition
-  private int valueNumber;    // integer value number
-  private ValueGraphVertex[] targets;   // operand vertices, in order
-  private int arity;                        // number of operands needed
+  /** the name of the variable defined by this node */
+  private final Object name;
+  /** the name of the operator that does the definition */
+  private Object label;
+  /** operand vertices, in order */
+  private ValueGraphVertex[] targets;
+  /** integer value number */
+  private int valueNumber;
+  /** number of operands needed */
+  private int arity;
 
   ValueGraphVertex(Object name) {
     this.name = name;

@@ -1,11 +1,11 @@
 #
 #  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-#  This file is licensed to You under the Common Public License (CPL);
+#  This file is licensed to You under the Eclipse Public License (EPL);
 #  You may not use this file except in compliance with the License. You
 #  may obtain a copy of the License at
 #
-#      http://www.opensource.org/licenses/cpl1.0.php
+#      http://www.opensource.org/licenses/eclipse-1.0.php
 #
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
@@ -160,6 +160,7 @@ Ljava/util/zip/ZipException;
 
 # util datastructures (needed by compilers, classloaders, etc)
 Ljava/util/AbstractList;
+Ljava/util/AbstractList$SimpleListIterator;
 Ljava/util/AbstractMap;
 Ljava/util/AbstractMap$1$1;
 Ljava/util/AbstractMap$1;
@@ -196,15 +197,11 @@ Ljava/util/HashSet;
 Ljava/util/Hashtable;
 Ljava/util/Hashtable$1;
 Ljava/util/Hashtable$2;
-Ljava/util/Hashtable$2$1;
-Ljava/util/Hashtable$2;
-Ljava/util/Hashtable$3$1;
 Ljava/util/Hashtable$3;
 Ljava/util/Hashtable$4$1;
 Ljava/util/Hashtable$4;
 Ljava/util/Hashtable$Entry;
 [Ljava/util/Hashtable$Entry;
-Ljava/util/Hashtable$HashEnumerator;
 Ljava/util/Hashtable$HashIterator;
 
 Ljava/util/List;
@@ -318,7 +315,6 @@ Ljava/io/DataOutputStream;
 Ljava/io/FilterInputStream;
 Ljava/io/InputStream;
 Ljava/io/FileInputStream;
-Ljava/io/FileInputStream$1;
 Ljava/io/FileInputStream$RepositioningLock;
 Ljava/io/FileDescriptor;
 
@@ -447,13 +443,33 @@ Ljava/security/ProtectionDomain;
 Ljava/util/regex/Pattern;
 Ljava/util/BitSet;
 Ljava/util/regex/Matcher;
+Ljava/util/regex/AbstractSet;
+Ljava/util/regex/FSet;
+Ljava/util/regex/FinalSet;
+Ljava/util/regex/Lexer;
+Ljava/util/regex/MatchResultImpl;
+Ljava/util/regex/SequenceSet$IntHash;
+Ljava/util/regex/SequenceSet;
+Ljava/util/regex/SingleSet;
 
 Ljava/util/logging/Logger;
 Ljava/util/logging/Logger$1;
+Ljava/util/logging/Logger$2;
+Ljava/util/logging/Logger$3;
+Ljava/util/logging/Logger$4;
+Ljava/util/logging/Logger$5;
 Ljava/util/logging/Handler;
+Ljava/util/logging/LoggingPermission;
 Ljava/util/logging/LogManager;
+Ljava/util/logging/LogManager$1;
+Ljava/util/logging/LogManager$2;
+Ljava/util/logging/LogManager$2$1;
+Ljava/util/logging/LogManager$3;
+Ljava/util/logging/LogManager$4;
 Ljava/util/logging/Level;
 [Ljava/util/logging/Level;
+Ljava/beans/PropertyChangeEvent;
+Ljava/beans/PropertyChangeListener;
 Ljava/beans/PropertyChangeSupport;
 Ljava/io/FilePermission;
 Ljava/io/FilePermission$1;
@@ -466,6 +482,7 @@ Lorg/apache/harmony/luni/internal/net/www/protocol/file/Handler;
 Lorg/apache/harmony/luni/internal/net/www/protocol/file/FileURLConnection;
 Lorg/apache/harmony/luni/internal/net/www/protocol/jar/Handler;
 Lorg/apache/harmony/luni/internal/net/www/protocol/jar/JarURLConnection;
+Lorg/apache/harmony/luni/internal/process/SystemProcess;
 Lorg/apache/harmony/luni/internal/nls/Messages;
 Lorg/apache/harmony/luni/internal/nls/Messages$1;
 Lorg/apache/harmony/luni/platform/AbstractMemorySpy;
@@ -500,7 +517,6 @@ Lorg/apache/harmony/nio/AddressUtil;
 Lorg/apache/harmony/nio/FileChannelFactory;
 Lorg/apache/harmony/nio/internal/DirectBuffer;
 Lorg/apache/harmony/nio/internal/FileChannelImpl;
-Lorg/apache/harmony/nio/internal/FileChannelImpl$1;
 Lorg/apache/harmony/nio/internal/FileChannelImpl$RepositioningLock;
 Lorg/apache/harmony/nio/internal/LockManager;
 Lorg/apache/harmony/nio/internal/LockManager$1;
@@ -511,15 +527,12 @@ Lorg/apache/harmony/nio/internal/nls/Messages;
 Lorg/apache/harmony/nio/internal/nls/Messages$1;
 Lorg/apache/harmony/niochar/CharsetProviderImpl;
 Lorg/apache/harmony/niochar/CharsetProviderImpl$1;
-Lorg/apache/harmony/niochar/charset/UTF_8$1;
 Lorg/apache/harmony/niochar/charset/UTF_8$Decoder;
 Lorg/apache/harmony/niochar/charset/UTF_8$Encoder;
 Lorg/apache/harmony/niochar/charset/UTF_8;
-Lorg/apache/harmony/niochar/charset/US_ASCII$1;
 Lorg/apache/harmony/niochar/charset/US_ASCII$Decoder;
 Lorg/apache/harmony/niochar/charset/US_ASCII$Encoder;
 Lorg/apache/harmony/niochar/charset/US_ASCII;
-Lorg/apache/harmony/niochar/charset/ISO_8859_1$1;
 Lorg/apache/harmony/niochar/charset/ISO_8859_1$Decoder;
 Lorg/apache/harmony/niochar/charset/ISO_8859_1$Encoder;
 Lorg/apache/harmony/niochar/charset/ISO_8859_1;

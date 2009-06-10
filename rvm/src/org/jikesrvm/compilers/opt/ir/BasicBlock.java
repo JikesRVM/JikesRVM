@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -618,7 +618,7 @@ public class BasicBlock extends SortedGraphNode {
     flags |= EXCEPTION_HANDLER_WITH_NORMAL_IN;
   }
 
-  private boolean isExceptionHandlerWithNormalIn() {
+  public final boolean isExceptionHandlerWithNormalIn() {
     return (flags & EXCEPTION_HANDLER_WITH_NORMAL_IN) != 0;
   }
 
@@ -1191,12 +1191,19 @@ public class BasicBlock extends SortedGraphNode {
       Instruction branch = e.next();
       BasicBlockEnumeration targets = branch.getBranchTargets();
       while (targets.hasMoreElements()) {
-        insertOut(targets.next());
+        BasicBlock targetBlock = targets.next();
+        if (targetBlock.isExceptionHandlerBasicBlock()) {
+          targetBlock.setExceptionHandlerWithNormalIn();
+        }
+        insertOut(targetBlock);
       }
     }
     // Check for fallthrough edge
     BasicBlock fallThrough = getFallThroughBlock();
     if (fallThrough != null) {
+      if (fallThrough.isExceptionHandlerBasicBlock()) {
+        fallThrough.setExceptionHandlerWithNormalIn();
+      }
       insertOut(fallThrough);
     }
 

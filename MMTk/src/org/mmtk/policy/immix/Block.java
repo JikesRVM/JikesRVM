@@ -1,26 +1,18 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.BLOCKS_IN_CHUNK;
-import static org.mmtk.policy.immix.ImmixConstants.BLOCK_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.CHUNK_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.MAX_BLOCK_MARK_STATE;
-import static org.mmtk.policy.immix.ImmixConstants.SANITY_CHECK_LINE_MARKS;
+import static org.mmtk.policy.immix.ImmixConstants.*;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
@@ -60,23 +52,12 @@ public class Block implements Constants {
     return cursor.loadShort() == UNALLOCATED_BLOCK_STATE;
   }
 
-  static boolean isUnmarkedState(Address cursor) {
-    return cursor.loadShort() == UNMARKED_BLOCK_STATE;
+  static short getMarkState(Address cursor) {
+    return cursor.loadShort();
   }
 
-  static boolean isMarkedState(Address cursor) {
-    return cursor.loadShort() == MARKED_BLOCK_STATE;
-  }
-
-  static void setToUnmarkedState(Address cursor) {
-    cursor.store(UNMARKED_BLOCK_STATE);
-  }
-
-  static Address clearMarkStateAndAdvance(Address cursor) {
-    short value = cursor.loadShort();
-    if (value != Block.UNALLOCATED_BLOCK_STATE)
-      cursor.store(Block.UNMARKED_BLOCK_STATE);
-    return cursor.plus(BYTES_IN_BLOCK_STATE_ENTRY);
+  static void setState(Address cursor, short value) {
+    cursor.store(value);
   }
 
   public static short getBlockMarkState(Address address) {
@@ -119,7 +100,7 @@ public class Block implements Constants {
   /***************************************************************************
    * Sweeping
    */
-  static short sweepOneBlock(Address block, int[] markHistogram) {
+  static short sweepOneBlock(Address block, int[] markHistogram, final byte markState, final boolean resetMarkState) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(block));
 
     final boolean unused = isUnused(block);
@@ -127,23 +108,25 @@ public class Block implements Constants {
       return 0;
 
     Address markTable = Line.getBlockMarkTable(block);
+
     short markCount = 0;
     short conservativeSpillCount = 0;
     byte mark, lastMark = 0;
-    for (int l = 0; l < LINES_IN_BLOCK; l++) {
-      Address markAddr = markTable.plus(Offset.fromIntSignExtend(l<<Line.LOG_BYTES_IN_LINE_MARK));
-      if (VM.VERIFY_ASSERTIONS) {
-        VM.assertions._assert(markAddr.GE(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET)));
-        VM.assertions._assert(markAddr.LT(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET+Line.LINE_MARK_TABLE_BYTES)));
+    for (int offset = 0; offset < (LINES_IN_BLOCK<<Line.LOG_BYTES_IN_LINE_STATUS); offset += Line.BYTES_IN_LINE_STATUS) {
+       if (VM.VERIFY_ASSERTIONS) {
+        VM.assertions._assert(markTable.plus(offset).GE(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET)));
+        VM.assertions._assert(markTable.plus(offset).LT(Chunk.align(block).plus(Chunk.LINE_MARK_TABLE_OFFSET+Line.LINE_MARK_TABLE_BYTES)));
       }
-      mark = markAddr.loadByte();
+      mark = markTable.loadByte(Offset.fromIntZeroExtend(offset));
+      if (resetMarkState)
+        markTable.store((byte) (mark == markState ? RESET_LINE_MARK_STATE : 0), Offset.fromIntZeroExtend(offset));
 
-      if (mark != Line.LINE_UNMARKED_VALUE)
+      if (mark == markState)
         markCount++;
-      else if (lastMark != 0)
+      else if (lastMark == markState)
         conservativeSpillCount++;
-      else if (SANITY_CHECK_LINE_MARKS && lastMark == 0) {
-        VM.memory.zero(block.plus(l<<LOG_BYTES_IN_LINE),Extent.fromIntZeroExtend(BYTES_IN_LINE));
+      else if (SANITY_CHECK_LINE_MARKS && lastMark != markState) {
+        VM.memory.zero(block.plus(offset<<(LOG_BYTES_IN_LINE-Line.LOG_BYTES_IN_LINE_STATUS)),Extent.fromIntZeroExtend(BYTES_IN_LINE));
       }
 
       lastMark = mark;
@@ -198,15 +181,11 @@ public class Block implements Constants {
     short defragState = BLOCK_IS_NOT_DEFRAG_SOURCE;
     if (state >= threshold) defragState = BLOCK_IS_DEFRAG_SOURCE;
     defragStateBase.store(defragState, csOffset);
-    if (defragState == BLOCK_IS_DEFRAG_SOURCE) {
-      VM.memory.zero(lineMarkBase.plus(block<<Line.LOG_LINE_MARK_BYTES_PER_BLOCK), Extent.fromIntZeroExtend(Line.LINE_MARK_BYTES_PER_BLOCK));
-    }
   }
 
   private static final short UNALLOCATED_BLOCK_STATE = 0;
-  private static final short UNMARKED_BLOCK_STATE = MAX_BLOCK_MARK_STATE + 1;
-  private static final short MARKED_BLOCK_STATE = MAX_BLOCK_MARK_STATE + 2;
-  private static final short REUSED_BLOCK_STATE = MAX_BLOCK_MARK_STATE + 3;
+  private static final short UNMARKED_BLOCK_STATE = (short) (MAX_BLOCK_MARK_STATE + 1);
+  private static final short REUSED_BLOCK_STATE = (short) (MAX_BLOCK_MARK_STATE + 2);
 
   private static final short BLOCK_IS_NOT_DEFRAG_SOURCE = 0;
   private static final short BLOCK_IS_DEFRAG_SOURCE = 1;

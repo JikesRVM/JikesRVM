@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -27,7 +27,7 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * The default inlining oracle used by the optimizing compiler.
@@ -58,12 +58,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
     if (verbose) VM.sysWriteln("Begin inline decision for " + "<" + caller + "," + bcIndex + "," + staticCallee + ">");
 
-    // Stage 1: At all optimization levels we should attempt to inline
-    //          trivial methods. Even if the inline code is never executed,
-    //          inlining a trivial method is a no cost operation as the impact
-    //          on code size should be negligible and compile time usually is
-    //          reduced since we expect to eliminate the call instruction (or
-    //          at worse replace one call instruction with another one).
+    // Stage 1: We definitely don't inline certain methods
     if (!state.isInvokeInterface()) {
       if (staticCallee.isNative()) {
         if (verbose) VM.sysWriteln("\tNO: native method\n");
@@ -73,27 +68,46 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         if (verbose) VM.sysWriteln("\tNO: pragmaNoInline\n");
         return InlineDecision.NO("pragmaNoInline");
       }
-      if (// are we calling the throwable constructor
+      // We need throwable constructors to have their own compiled method IDs
+      // to correctly elide stack frames when generating stack traces (see
+      // StackTrace).
+      if (// are we calling the throwable constructor?
           staticCallee.isObjectInitializer() &&
           (staticCallee.getDeclaringClass().getClassForType() == Throwable.class) &&
           // and not from a throwable constructor
           !(caller.isObjectInitializer() &&
            (caller.getDeclaringClass().getClassForType() == Throwable.class))) {
-        // We need throwable constructors to have their own compiled method IDs
-        // to correctly elide stack frames when generating stack traces (see
-        // StackTrace).
         if (verbose) VM.sysWriteln("\tNO: throwable constructor\n");
         return InlineDecision.NO("throwable constructor");
       }
-
-      if (!staticCallee.isAbstract()) {
+    }
+    // Stage 2: At all optimization levels we should attempt to inline
+    //          trivial methods. Even if the inline code is never executed,
+    //          inlining a trivial method is a no cost operation as the impact
+    //          on code size should be negligible and compile time usually is
+    //          reduced since we expect to eliminate the call instruction (or
+    //          at worse replace one call instruction with another one).
+    if (!state.isInvokeInterface() && !staticCallee.isAbstract()) {
+      // NB when the destination is known we will have refined the target so the
+      // above test passes
+      if (state.getHasPreciseTarget() || !needsGuard(staticCallee)) {
+        // call is guardless
         int inlinedSizeEstimate = inlinedSizeEstimate((NormalMethod) staticCallee, state);
-        boolean guardless = state.getHasPreciseTarget() || !needsGuard(staticCallee);
-        if (inlinedSizeEstimate < opts.IC_MAX_ALWAYS_INLINE_TARGET_SIZE &&
-            guardless &&
-            !state.getSequence().containsMethod(staticCallee)) {
-          if (verbose) VM.sysWriteln("\tYES: trivial guardless inline\n");
-          return InlineDecision.YES(staticCallee, "trivial inline");
+        if (inlinedSizeEstimate < opts.INLINE_MAX_ALWAYS_INLINE_TARGET_SIZE) {
+          // inlining is desirable
+          if (!state.getSequence().containsMethod(staticCallee)) {
+            // not recursive
+            if (verbose) VM.sysWriteln("\tYES: trivial guardless inline\n");
+            return InlineDecision.YES(staticCallee, "trivial inline");
+          }
+        }
+        if (hasInlinePragma(staticCallee, state)) {
+          // inlining is desirable
+          if (!state.getSequence().containsMethod(staticCallee)) {
+            // not recursive
+            if (verbose) VM.sysWriteln("\tYES: pragma inline\n");
+            return InlineDecision.YES(staticCallee, "pragma inline");
+          }
         }
       }
     }
@@ -104,16 +118,15 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       return InlineDecision.NO("Only do trivial inlines at O0");
     }
 
-    if (rootMethod.inlinedSizeEstimate() > opts.IC_MASSIVE_METHOD_SIZE) {
+    if (rootMethod.inlinedSizeEstimate() > opts.INLINE_MASSIVE_METHOD_SIZE) {
       // In massive methods, we do not do any additional inlining to
       // avoid completely blowing out compile time by making a bad situation worse
       if (verbose) VM.sysWriteln("\tNO: only do trivial inlines into massive methods\n");
       return InlineDecision.NO("Root method is massive; no non-trivial inlines");
     }
 
-    // Stage 2: Determine based on profile data and static information
+    // Stage 3: Determine based on profile data and static information
     //          what are the possible targets of this call.
-    //
     WeightedCallTargets targets = null;
     boolean purelyStatic = true;
     if (Controller.dcg != null && Controller.options.ADAPTIVE_INLINING) {
@@ -147,7 +160,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         // Fake up "profile data" based on static information to
         // be able to share all the decision making logic.
         if (state.isInvokeInterface()) {
-          if (opts.GUARDED_INLINE_INTERFACE) {
+          if (opts.INLINE_GUARDED_INTERFACES) {
             RVMMethod singleImpl = InterfaceHierarchy.getUniqueImplementation(staticCallee);
             if (singleImpl != null && hasBody(singleImpl)) {
               if (verbose) {
@@ -192,7 +205,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       // If there is a precise target, then targets contains exactly that target method.
       if (targets == null) return InlineDecision.NO("No potential targets identified");
 
-      // Stage 3: We have one or more targets.  Determine what if anything should be done with them.
+      // Stage 4: We have one or more targets.  Determine what if anything should be done with them.
       final ArrayList<RVMMethod> methodsToInline = new ArrayList<RVMMethod>();
       final ArrayList<Boolean> methodsNeedGuard = new ArrayList<Boolean>();
       final double callSiteWeight = targets.totalWeight();
@@ -229,9 +242,9 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
             }
             boolean currentlyFinal =
                 (goosc || (staticCallee == callee)) && isCurrentlyFinal(callee, !opts.guardWithClassTest());
-            boolean preEx = needsGuard && state.getIsExtant() && opts.PREEX_INLINE && currentlyFinal;
+            boolean preEx = needsGuard && state.getIsExtant() && opts.INLINE_PREEX && currentlyFinal;
             if (needsGuard && !preEx) {
-              if (!opts.GUARDED_INLINE) {
+              if (!opts.INLINE_GUARDED) {
                 if (verbose) VM.sysWriteln("\t\tReject: guarded inlining disabled");
                 return;
               }
@@ -263,18 +276,18 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
               if (!decideYes) {
                 int inlinedSizeEstimate = inlinedSizeEstimate((NormalMethod) callee, state);
                 int cost = inliningActionCost(inlinedSizeEstimate, needsGuard, preEx, opts);
-                int maxCost = opts.IC_MAX_TARGET_SIZE;
+                int maxCost = opts.INLINE_MAX_TARGET_SIZE;
 
-                if (callSiteWeight > Controller.options.AI_SEED_MULTIPLIER) {
+                if (callSiteWeight > Controller.options.INLINE_AI_SEED_MULTIPLIER) {
                   // real profile data with enough samples for us to trust it.
                   // Use weight and shape of call site distribution to compute
                   // a higher maxCost.
                   double fractionOfSample = weight / callSiteWeight;
-                  if (needsGuard && fractionOfSample < opts.AI_MIN_CALLSITE_FRACTION) {
-                    // This call accounts for less than AI_MIN_CALLSITE_FRACTION
+                  if (needsGuard && fractionOfSample < opts.INLINE_AI_MIN_CALLSITE_FRACTION) {
+                    // This call accounts for less than INLINE_AI_MIN_CALLSITE_FRACTION
                     // of the profiled targets at this call site.
                     // It is highly unlikely to be profitable to inline it.
-                    if (verbose) VM.sysWriteln("\t\tReject: less than AI_MIN_CALLSITE_FRACTION of distribution");
+                    if (verbose) VM.sysWriteln("\t\tReject: less than INLINE_AI_MIN_CALLSITE_FRACTION of distribution");
                     maxCost = 0;
                   } else {
                     if (cost > maxCost) {
@@ -283,19 +296,19 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
                        * dynamic call graph) the edge is.
                        */
                       double adjustedWeight = AdaptiveInlining.adjustedWeight(weight);
-                      if (adjustedWeight > Controller.options.AI_HOT_CALLSITE_THRESHOLD) {
+                      if (adjustedWeight > Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD) {
                         /* A truly hot edge; use the max allowable callee size */
-                        maxCost = opts.AI_MAX_TARGET_SIZE;
+                        maxCost = opts.INLINE_AI_MAX_TARGET_SIZE;
                       } else {
                         /* A warm edge, we will use a value between the static default and the max allowable.
                          * The code below simply does a linear interpolation between 2x static default
                          * and max allowable.
                          * Other alternatives would be to do a log interpolation or some other step function.
                          */
-                        int range = opts.AI_MAX_TARGET_SIZE -  2*opts.IC_MAX_TARGET_SIZE;
-                        double slope = ((double) range) / Controller.options.AI_HOT_CALLSITE_THRESHOLD;
+                        int range = opts.INLINE_AI_MAX_TARGET_SIZE -  2*opts.INLINE_MAX_TARGET_SIZE;
+                        double slope = ((double) range) / Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD;
                         int scaledAdj = (int) (slope * adjustedWeight);
-                        maxCost += opts.IC_MAX_TARGET_SIZE + scaledAdj;
+                        maxCost += opts.INLINE_MAX_TARGET_SIZE + scaledAdj;
                       }
                     }
                   }
@@ -303,8 +316,8 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
                 // Somewhat bogus, but if we get really deeply inlined we start backing off.
                 int curDepth = state.getInlineDepth();
-                if (curDepth > opts.IC_MAX_INLINE_DEPTH) {
-                  maxCost /= (curDepth - opts.IC_MAX_INLINE_DEPTH + 1);
+                if (curDepth > opts.INLINE_MAX_INLINE_DEPTH) {
+                  maxCost /= (curDepth - opts.INLINE_MAX_INLINE_DEPTH + 1);
                 }
 
                 decideYes = cost <= maxCost;
@@ -340,7 +353,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
         }
       });
 
-      // Stage 4: Choose guards and package up the results in an InlineDecision object
+      // Stage 5: Choose guards and package up the results in an InlineDecision object
       if (methodsToInline.isEmpty()) {
         InlineDecision d = InlineDecision.NO("No desirable targets");
         if (verbose) VM.sysWriteln("\tDecide: " + d);
@@ -352,9 +365,9 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
           if ((guardOverrideOnStaticCallee || target == staticCallee) &&
               isCurrentlyFinal(target, !opts.guardWithClassTest())) {
             InlineDecision d =
-                InlineDecision.guardedYES(target,
-                                              chooseGuard(caller, target, staticCallee, state, true),
-                                              "Guarded inline of single static target");
+              InlineDecision.guardedYES(target,
+                  chooseGuard(caller, target, staticCallee, state, true),
+                  "Guarded inline of single static target");
             /*
              * Determine if it is allowable to put an OSR point in the failed case of
              * the guarded inline instead of generating a real call instruction.
@@ -377,9 +390,9 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
             return d;
           } else {
             InlineDecision d =
-                InlineDecision.guardedYES(target,
-                                              chooseGuard(caller, target, staticCallee, state, false),
-                                              "Guarded inlining of one potential target");
+              InlineDecision.guardedYES(target,
+                  chooseGuard(caller, target, staticCallee, state, false),
+                  "Guarded inlining of one potential target");
             if (verbose) VM.sysWriteln("\tDecide: " + d);
             return d;
           }
@@ -433,25 +446,25 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
    */
   private byte chooseGuard(RVMMethod caller, RVMMethod singleImpl, RVMMethod callee, CompilationState state,
                            boolean codePatchSupported) {
-    byte guard = state.getOptions().INLINING_GUARD;
+    byte guard = state.getOptions().INLINE_GUARD_KIND;
     if (codePatchSupported) {
       if (VM.VerifyAssertions && VM.runningVM) {
-        VM._assert(ObjectModel.holdsLock(RVMClass.classLoadListener, Scheduler.getCurrentThread()));
+        VM._assert(ObjectModel.holdsLock(RVMClass.classLoadListener, RVMThread.getCurrentThread()));
       }
-      if (guard == OptOptions.IG_CODE_PATCH) {
+      if (guard == OptOptions.INLINE_GUARD_CODE_PATCH) {
         ClassLoadingDependencyManager cldm = (ClassLoadingDependencyManager) RVMClass.classLoadListener;
         if (ClassLoadingDependencyManager.TRACE || ClassLoadingDependencyManager.DEBUG) {
           cldm.report("CODE PATCH: Inlined " + singleImpl + " into " + caller + "\n");
         }
         cldm.addNotOverriddenDependency(callee, state.getCompiledMethod());
       }
-    } else if (guard == OptOptions.IG_CODE_PATCH) {
-      guard = OptOptions.IG_METHOD_TEST;
+    } else if (guard == OptOptions.INLINE_GUARD_CODE_PATCH) {
+      guard = OptOptions.INLINE_GUARD_METHOD_TEST;
     }
 
-    if (guard == OptOptions.IG_METHOD_TEST && singleImpl.getDeclaringClass().isFinal()) {
+    if (guard == OptOptions.INLINE_GUARD_METHOD_TEST && singleImpl.getDeclaringClass().isFinal()) {
       // class test is more efficient and just as effective
-      guard = OptOptions.IG_CLASS_TEST;
+      guard = OptOptions.INLINE_GUARD_CLASS_TEST;
     }
     return guard;
   }
@@ -481,6 +494,3 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
     return guardCost + inlinedBodyEstimate;
   }
 }
-
-
-

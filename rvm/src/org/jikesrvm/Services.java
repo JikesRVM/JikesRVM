@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -17,6 +17,7 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.Synchronization;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -327,12 +328,14 @@ public class Services implements SizeConstants {
 
   /**
    * Sets an element of a object array without possibly losing control.
+   * NB doesn't perform checkstore or array index checking.
    *
    * @param dst the destination array
    * @param index the index of the element to set
    * @param value the new value for the element
    */
   @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
+  @Inline
   public static void setArrayUninterruptible(Object[] dst, int index, Object value) {
     if (VM.runningVM) {
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {

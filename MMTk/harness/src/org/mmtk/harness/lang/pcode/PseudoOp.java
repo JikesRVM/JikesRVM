@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -31,6 +31,7 @@ public abstract class PseudoOp {
     this.resultTemp = resultTemp;
     this.name = name;
     this.source = source;
+    assert (!hasResult) || resultTemp >= 0 : resultTemp;
   }
 
   public PseudoOp(AST source, int arity, String name, Register resultTemp) {
@@ -65,9 +66,8 @@ public abstract class PseudoOp {
   public String toString() {
     if (hasResult) {
       return String.format("%s <- %s", Register.nameOf(resultTemp), name);
-    } else {
-      return name;
     }
+    return name;
   }
 
   /*

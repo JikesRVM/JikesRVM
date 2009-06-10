@@ -1,16 +1,18 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.mmtk.plan.stickyimmix;
+
+import static org.mmtk.policy.immix.ImmixConstants.MAX_IMMIX_OBJECT_BYTES;
 
 import org.mmtk.plan.immix.ImmixConstraints;
 
@@ -32,11 +34,22 @@ public class StickyImmixConstraints extends ImmixConstraints {
   public int numSpecializedScans() { return 3; }
 
   /** @return True if this plan requires a write barrier */
+  @Override
   public boolean needsWriteBarrier() { return true; }
 
   /** @return True if this Plan requires a header bit for object logging */
+  @Override
   public boolean needsLogBitInHeader() { return true; }
 
   /** @return A bit which represents that a header is unlogged */
+  @Override
   public Word unloggedBit() {return MarkSweepSpace.UNLOGGED_BIT; }
+
+  /** @return Size (in bytes) beyond which new regular objects must be allocated to the LOS */
+  @Override
+  public int maxNonLOSDefaultAllocBytes() { return MAX_IMMIX_OBJECT_BYTES; }
+
+  /** @return Size (in bytes) beyond which copied objects must be copied to the LOS */
+  @Override
+  public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES; }
 }

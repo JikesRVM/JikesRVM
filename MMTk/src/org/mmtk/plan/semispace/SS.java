@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
  * <i>thread-local</i> activities.  Global activities must be
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  Instances of Plan map 1:1 to "kernel
- * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
+ * threads" (aka CPUs).  Thus instance
  * methods allow fast, unsychronized access to Plan utilities such as
  * allocation and collection.  Each instance rests on static resources
  * (such as memory and virtual memory resources) which are "global"
@@ -40,8 +40,6 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public class SS extends StopTheWorld {
-  /** Fraction of available virtual memory available to each semispace */
-  private static final float SEMISPACE_VIRT_MEM_FRAC = 0.30f;
 
   /****************************************************************************
    *

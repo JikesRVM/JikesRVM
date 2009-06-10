@@ -1,0 +1,12 @@
+type t1 {
+	int intField;
+	t1 objField;
+}
+
+void main() {
+	t1 v1 = alloc(1,1);
+	v1.intField = 2;
+	v1.objField = alloc(t1);
+	int result = v1.intField;
+	print (result);
+}

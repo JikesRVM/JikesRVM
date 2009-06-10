@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -73,13 +73,13 @@ import org.vmmagic.pragma.*;
    * @param why the reason why a collection was triggered.  0 to
    *          <code>TRIGGER_REASONS - 1</code>.
    */
-  @LogicallyUninterruptible
+  @Unpreemptible
   public abstract void triggerCollection(int why);
 
   /**
    * Joins an already requested collection.
    */
-  @LogicallyUninterruptible
+  @Unpreemptible
   public abstract void joinCollection();
 
   /**
@@ -152,20 +152,9 @@ import org.vmmagic.pragma.*;
   public abstract int activeGCThreadOrdinal();
 
   /**
-   * Ensure all concurrent worker threads are scheduled.
-   */
-  public abstract void scheduleConcurrentWorkers();
-
-  /**
    * Request each mutator flush remembered sets. This method
    * will trigger the flush and then yield until all processors have
    * flushed.
    */
   public abstract void requestMutatorFlush();
-
-  /**
-   * Possibly yield the current concurrent collector thread. Return
-   * true if yielded.
-   */
-  public abstract boolean yieldpoint();
 }

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -30,17 +30,14 @@ import org.jikesrvm.adaptive.util.AOSOptions;
 import org.jikesrvm.adaptive.util.BlockingPriorityQueue;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.RecompilationManager;
-import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.SoftLatch;
 
 /**
  * This class contains top level adaptive compilation subsystem functions.
  */
 public class Controller implements Callbacks.ExitMonitor,
-                                      Callbacks.AppStartMonitor,
-                                      Callbacks.AppCompleteMonitor,
-                                      Callbacks.AppRunStartMonitor,
-                                      Callbacks.AppRunCompleteMonitor,
-                                      Callbacks.RecompileAllDynamicallyLoadedMethodsMonitor {
+                                   Callbacks.RecompileAllDynamicallyLoadedMethodsMonitor {
 
   /**
    * Signals when the options and (optional) logging mechanism are enabled
@@ -124,7 +121,6 @@ public class Controller implements Callbacks.ExitMonitor,
    * The main hot method raw data object.
    */
   public static MethodCountData methodSamples;
-
   /**
    * The dynamic call graph
    */
@@ -178,10 +174,6 @@ public class Controller implements Callbacks.ExitMonitor,
 
     Controller controller = new Controller();
     Callbacks.addExitMonitor(controller);
-    Callbacks.addAppStartMonitor(controller);
-    Callbacks.addAppCompleteMonitor(controller);
-    Callbacks.addAppRunStartMonitor(controller);
-    Callbacks.addAppRunCompleteMonitor(controller);
 
     // make sure the user hasn't explicitly prohibited this functionality
     if (!options.DISABLE_RECOMPILE_ALL_METHODS) {
@@ -200,62 +192,22 @@ public class Controller implements Callbacks.ExitMonitor,
   }
 
   /**
-   * To be called when the application starts
-   * @param app the application name
-   */
-  public void notifyAppStart(String app) {
-    AOSLogging.appStart(app);
-    AOSLogging.recordRecompAndThreadStats();
-  }
-
-  /**
-   * To be called when the application completes
-   * @param app the application name
-   */
-  public void notifyAppComplete(String app) {
-    AOSLogging.appComplete(app);
-    AOSLogging.recordRecompAndThreadStats();
-  }
-
-  /**
-   * To be called when the application completes one of its run
-   * @param app the application name
-   * @param run the run number, i.e. what iteration of the app we have started
-   */
-  public void notifyAppRunStart(String app, int run) {
-    AOSLogging.appRunStart(app, run);
-    AOSLogging.recordRecompAndThreadStats();
-  }
-
-  /**
-   * To be called when the application completes one of its run
-   * @param app the application name
-   * @param run the run number, i.e. what iteration of the app we have completed
-   */
-  public void notifyAppRunComplete(String app, int run) {
-    AOSLogging.appRunComplete(app, run);
-    AOSLogging.recordRecompAndThreadStats();
-  }
-
-  /**
    * Called when the application wants to recompile all dynamically
    *  loaded methods.  This can be expensive!
    */
   public void notifyRecompileAll() {
-    AOSLogging.recompilingAllDynamicallyLoadedMethods();
+    AOSLogging.logger.recompilingAllDynamicallyLoadedMethods();
     RecompilationManager.recompileAllDynamicallyLoadedMethods(false);
   }
 
   // Create the ControllerThread
   static void createControllerThread() {
-    Object sentinel = new Object();
+    SoftLatch sentinel = new SoftLatch(false);
     ControllerThread tt = new ControllerThread(sentinel);
     tt.start();
     // wait until controller threads are up and running.
     try {
-      synchronized (sentinel) {
-        sentinel.wait();
-      }
+      sentinel.waitAndClose();
     } catch (Exception e) {
       e.printStackTrace();
       VM.sysFail("Failed to start up controller subsystem");
@@ -306,20 +258,17 @@ public class Controller implements Callbacks.ExitMonitor,
 
     if (options.REPORT_INTERRUPT_STATS) {
       VM.sysWriteln("Timer Interrupt and Listener Stats");
-      VM.sysWriteln("\tTotal number of clock ticks ", GreenProcessor.timerTicks);
-      VM.sysWriteln("\tReported clock ticks ", GreenProcessor.reportedTimerTicks);
+      VM.sysWriteln("\tTotal number of clock ticks ", RVMThread.timerTicks);
       VM.sysWriteln("\tController clock ", controllerClock);
       VM.sysWriteln("\tNumber of method samples taken ", (int) methodSamples.getTotalNumberOfSamples());
     }
-
-    AOSLogging.systemExiting();
   }
 
   /**
    * Stop all AOS threads and exit the adaptive system.
    * Can be used to assess code quality in a steady state by
    * allowing the adaptive system to run "for a while" and then
-   * stoppping it
+   * stopping it
    */
   public static void stop() {
     if (!booted) return;
@@ -327,11 +276,12 @@ public class Controller implements Callbacks.ExitMonitor,
     VM.sysWriteln("AOS: Killing all adaptive system threads");
     for (Enumeration<Organizer> e = organizers.elements(); e.hasMoreElements();) {
       Organizer organizer = e.nextElement();
-      organizer.kill(threadDeath, true);
+      organizer.stop(threadDeath);
     }
-    compilationThread.kill(threadDeath, true);
-    controllerThread.kill(threadDeath, true);
+    compilationThread.stop(threadDeath);
+    controllerThread.stop(threadDeath);
     RuntimeMeasurements.stop();
     report();
   }
 }
+

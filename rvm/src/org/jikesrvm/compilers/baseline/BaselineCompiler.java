@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.osr.BytecodeTraverser;
 import org.jikesrvm.runtime.Time;
-import org.jikesrvm.scheduler.Scheduler;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -102,7 +101,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     // of method to print option so extra classes needed to process
     // matching will be loaded and compiled upfront. Thus avoiding getting
     // stuck looping by just asking if we have a match in the middle of
-    // compilation. Pick an obsure string for the check.
+    // compilation. Pick an obscure string for the check.
     if (options.hasMETHOD_TO_PRINT() && options.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
@@ -191,12 +190,12 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     ReferenceMaps refMaps;
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
       refMaps = new ReferenceMaps((BaselineCompiledMethod) compiledMethod, stackHeights, localTypes);
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         gcMapNanos += end - start;
       }
     }
@@ -204,17 +203,17 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     /* reference map and stackheights were computed using original bytecodes
      * and possibly new operand words
      * recompute the stack height, but keep the operand words of the code
-     * generation consistant with reference map
-     * TODO: revist this code as part of OSR redesign
+     * generation consistent with reference map
+     * TODO: revisit this code as part of OSR redesign
      */
     // Phase 2: OSR setup\
-    boolean edge_counters = options.EDGE_COUNTERS;
+    boolean edge_counters = options.PROFILE_EDGE_COUNTERS;
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
       if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
-        options.EDGE_COUNTERS = false;
+        options.PROFILE_EDGE_COUNTERS = false;
         // we already allocated enough space for stackHeights, shift it back first
         System.arraycopy(stackHeights,
                          0,
@@ -227,7 +226,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       }
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         osrSetupNanos += end - start;
       }
     }
@@ -238,12 +237,11 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     CodeArray instructions;
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
 
       // determine if we are going to insert edge counters for this method
-      if (options
-          .EDGE_COUNTERS &&
+      if (options.PROFILE_EDGE_COUNTERS &&
           !method.getDeclaringClass().hasBridgeFromNativeAnnotation() &&
           (method.hasCondBranch() || method.hasSwitch())) {
         ((BaselineCompiledMethod) compiledMethod).setHasCounterArray(); // yes, we will inject counters for this method.
@@ -257,7 +255,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       bcMap = machineCode.getBytecodeMap();
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         codeGenNanos += end - start;
       }
     }
@@ -269,7 +267,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     // Phase 4: OSR part 2
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
       if (VM.BuildForAdaptiveSystem && method.isForOsrSpecialization()) {
         int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
@@ -279,11 +277,11 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
         // switch back to original state
         method.finalizeOsrSpecialization();
         // restore options
-        options.EDGE_COUNTERS = edge_counters;
+        options.PROFILE_EDGE_COUNTERS = edge_counters;
       }
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         osrSetupNanos += end - start;
       }
     }
@@ -291,12 +289,12 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     // Phase 5: Encode machine code maps
     try {
       if (VM.MeasureCompilationPhases) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
       if (method.isSynchronized()) {
         ((BaselineCompiledMethod) compiledMethod).setLockAcquisitionOffset(lockOffset);
       }
-      ((BaselineCompiledMethod) compiledMethod).encodeMappingInfo(refMaps, bcMap, instructions.length());
+      ((BaselineCompiledMethod) compiledMethod).encodeMappingInfo(refMaps, bcMap);
       compiledMethod.compileComplete(instructions);
       if (edgeCounterIdx > 0) {
         EdgeCounts.allocateCounters(method, edgeCounterIdx);
@@ -307,7 +305,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       }
     } finally {
       if (VM.MeasureCompilationPhases) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         encodingNanos += end - start;
       }
     }

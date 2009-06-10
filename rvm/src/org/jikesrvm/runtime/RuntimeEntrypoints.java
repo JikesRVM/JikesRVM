@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -16,6 +16,7 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
+import org.jikesrvm.Services;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.DynamicTypeCheck;
@@ -29,7 +30,6 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
@@ -77,6 +77,7 @@ import org.vmmagic.unboxed.Offset;
  */
 public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.StackframeLayoutConstants {
 
+  private static final boolean traceAthrow = false;
   // Trap codes for communication with C trap handler.
   //
   public static final int TRAP_UNKNOWN = -1;
@@ -165,9 +166,37 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
+   * Perform aastore bytecode
+   */
+  @Entrypoint
+  static void aastore(Object[] arrayRef, int index, Object value) throws ArrayStoreException, ArrayIndexOutOfBoundsException {
+    checkstore(arrayRef, value);
+    int nelts = ObjectModel.getArrayLength(arrayRef);
+    if (index >=0 && index < nelts) {
+      Services.setArrayUninterruptible(arrayRef, index, value);
+    } else {
+      throw new ArrayIndexOutOfBoundsException(index);
+    }
+  }
+
+  /**
+   * Perform uninterruptible aastore bytecode
+   */
+  @Entrypoint
+  @Uninterruptible
+  static void aastoreUninterruptible(Object[] arrayRef, int index, Object value) {
+    if (VM.VerifyAssertions) {
+      int nelts = ObjectModel.getArrayLength(arrayRef);
+      VM._assert(index >=0 && index < nelts);
+    }
+    Services.setArrayUninterruptible(arrayRef, index, value);
+  }
+
+  /**
    * Throw exception iff array assignment is illegal.
    */
   @Entrypoint
+  @Inline
   static void checkstore(Object array, Object arrayElement) throws ArrayStoreException {
     if (arrayElement == null) {
       return; // null may be assigned to any type
@@ -587,7 +616,11 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   @Entrypoint
   @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public static void athrow(Throwable exceptionObject) {
-    RVMThread myThread = Scheduler.getCurrentThread();
+    if (traceAthrow) {
+      VM.sysWriteln("in athrow.");
+      RVMThread.dumpStack();
+    }
+    RVMThread myThread = RVMThread.getCurrentThread();
     Registers exceptionRegisters = myThread.getExceptionRegisters();
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
     Magic.saveThreadState(exceptionRegisters);
@@ -616,10 +649,14 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *           HardwareTrapGCMapIterator during garbage collection.
    */
   @Entrypoint
+  @UnpreemptibleNoWarn
   static void deliverHardwareException(int trapCode, int trapInfo) {
-
-    RVMThread myThread = Scheduler.getCurrentThread();
+    if (false) VM.sysWriteln("delivering hardware exception");
+    RVMThread myThread = RVMThread.getCurrentThread();
+    if (false) VM.sysWriteln("we have a thread = ",Magic.objectAsAddress(myThread));
+    if (false) VM.sysWriteln("it's in state = ",myThread.getExecStatus());
     Registers exceptionRegisters = myThread.getExceptionRegisters();
+    if (false) VM.sysWriteln("we have exception registers = ",Magic.objectAsAddress(exceptionRegisters));
 
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
         myThread.getStack().length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&
@@ -713,7 +750,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
         break;
       default:
         exceptionObject = new java.lang.UnknownError();
-        Scheduler.traceback("UNKNOWN ERROR");
+        RVMThread.traceback("UNKNOWN ERROR");
         break;
     }
 
@@ -829,7 +866,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     BootRecord.the_boot_record.deliverHardwareExceptionOffset =
         Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
-    // tell "RunBootImage.C" to set "Scheduler.debugRequested" flag
+    // tell "RunBootImage.C" to set "RVMThread.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
     BootRecord.the_boot_record.debugRequestedOffset = Entrypoints.debugRequestedField.getOffset();
@@ -931,6 +968,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     if (VM.TraceExceptionDelivery) {
       VM.sysWriteln("RuntimeEntrypoints.deliverException() entered; just got an exception object.");
     }
+    //VM.sysWriteln("throwing exception!");
+    //RVMThread.dumpStack();
 
     // walk stack and look for a catch block
     //
@@ -970,12 +1009,13 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
       VM.sysWriteln("RuntimeEntrypoints.deliverException() found no catch block.");
     }
     /* No appropriate catch block found. */
+
     handleUncaughtException(exceptionObject);
   }
 
   @UnpreemptibleNoWarn("Uncaught exception handling that may cause preemption")
   private static void handleUncaughtException(Throwable exceptionObject) {
-    Scheduler.getCurrentThread().handleUncaughtException(exceptionObject);
+    RVMThread.getCurrentThread().handleUncaughtException(exceptionObject);
   }
 
   /**
@@ -989,6 +1029,9 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    */
   @Uninterruptible
   public static Address unwindNativeStackFrame(Address currfp) {
+    if (VM.BuildForIA32) {
+      return currfp;
+    }
     // Remembered address of previous FP
     Address callee_fp;
     // Address of native frame
@@ -1087,7 +1130,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * can force a garbage collection.
    */
   @Inline
+  @Uninterruptible
   private static boolean canForceGC() {
-    return VM.ForceFrequentGC && Scheduler.safeToForceGCs();
+    return VM.ForceFrequentGC && RVMThread.safeToForceGCs();
   }
 }

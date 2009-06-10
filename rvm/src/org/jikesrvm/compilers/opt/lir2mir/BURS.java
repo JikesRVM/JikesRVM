@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -48,7 +48,7 @@ public abstract class BURS {
     BranchTarget.setNumRegisters(0);
   }
 
-  public IR ir;
+  public final IR ir;
   protected Instruction lastInstr;
 
   /**
@@ -68,7 +68,7 @@ public abstract class BURS {
    * @param bb
    */
   final void finalizeBlock(BasicBlock bb) {
-    lastInstr.BURS_KLUDGE_linkWithNext(bb.lastInstruction());
+    lastInstr.BURS_backdoor_linkWithNext(bb.lastInstruction());
     lastInstr = null;
     if (DEBUG) {
       VM.sysWrite("INITIAL MIR\n");
@@ -80,7 +80,7 @@ public abstract class BURS {
    * append an instruction (in other words emit an MIR instruction)
    */
   public final void append(Instruction instruction) {
-    lastInstr.BURS_KLUDGE_linkWithNext(instruction);
+    lastInstr.BURS_backdoor_linkWithNext(instruction);
     lastInstr = instruction;
   }
 }

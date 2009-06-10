@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -89,14 +89,14 @@ public final class RVMField extends RVMMember {
     Atom signature = null;
     RVMAnnotation[] annotations = null;
     for (int i = 0, n = input.readUnsignedShort(); i < n; ++i) {
-      Atom attName = RVMClass.getUtf(constantPool, input.readUnsignedShort());
+      Atom attName = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
       int attLength = input.readInt();
       if (attName == RVMClassLoader.constantValueAttributeName) {
         cvi = input.readUnsignedShort();
       } else if (attName == RVMClassLoader.syntheticAttributeName) {
         modifiers |= ACC_SYNTHETIC;
       } else if (attName == RVMClassLoader.signatureAttributeName) {
-        signature = RVMClass.getUtf(constantPool, input.readUnsignedShort());
+        signature = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
         annotations = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else {
@@ -391,13 +391,13 @@ public final class RVMField extends RVMMember {
   public void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
       if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && !isUntraced()) {
-        MemoryManager.putstaticWriteBarrier(getOffset(), ref, getId());
+        MemoryManager.putstaticWriteBarrier(ref, getOffset(), getId());
       } else {
         Statics.setSlotContents(getOffset(), ref);
       }
     } else {
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !isUntraced()) {
-        MemoryManager.putfieldWriteBarrier(obj, getOffset(), ref, getId());
+        MemoryManager.putfieldWriteBarrier(obj, ref, getOffset(), getId());
       } else {
         Magic.setObjectAtOffset(obj, getOffset(), ref);
       }

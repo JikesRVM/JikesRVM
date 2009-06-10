@@ -1,8 +1,8 @@
-main() {
+void main() {
   other(1);
 }
 
-other(int x) {
+void other(int x) {
   print (tid(), " executing other(", x, ")" );
   object parent = alloc(5, 0);
   if (x < 30) {

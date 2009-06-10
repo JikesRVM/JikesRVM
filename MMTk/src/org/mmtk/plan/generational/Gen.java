@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -54,6 +54,7 @@ public abstract class Gen extends StopTheWorld {
    */
   protected static final float SURVIVAL_ESTIMATE = 0.8f; // est yield
   protected static final float MATURE_FRACTION = 0.5f; // est yield
+  private static final float WORST_CASE_COPY_EXPANSION = 1.5f; // worst case for addition of one word overhead due to address based hashing
   public static final boolean IGNORE_REMSETS = false;
   public static final boolean USE_STATIC_WRITE_BARRIER = false;
   public static final boolean USE_OBJECT_BARRIER_FOR_AASTORE = false; // choose between slot and object barriers
@@ -76,12 +77,12 @@ public abstract class Gen extends StopTheWorld {
    */
 
   /* Statistics */
-  protected static BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
-  private static Timer fullHeapTime = new Timer("majorGCTime", false, true);
-  protected static EventCounter wbFast;
-  protected static EventCounter wbSlow;
-  public static SizeCounter nurseryMark;
-  public static SizeCounter nurseryCons;
+  protected static final BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
+  private static final Timer fullHeapTime = new Timer("majorGCTime", false, true);
+  protected static final EventCounter wbFast;
+  protected static final EventCounter wbSlow;
+  public static final SizeCounter nurseryMark;
+  public static final SizeCounter nurseryCons;
 
   /** The nursery space is where all new objects are allocated by default */
   private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.create() : VMRequest.create(0.15f, true);
@@ -89,6 +90,7 @@ public abstract class Gen extends StopTheWorld {
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   private static final Address NURSERY_START = nurserySpace.getStart();
+  protected static final int MAX_NURSERY_ALLOC_BYTES = USE_DISCONTIGUOUS_NURSERY ? org.mmtk.utility.Constants.MAX_INT : nurserySpace.getExtent().toInt();
 
   /*****************************************************************************
    *
@@ -115,10 +117,16 @@ public abstract class Gen extends StopTheWorld {
     if (GATHER_WRITE_BARRIER_STATS) {
       wbFast = new EventCounter("wbFast");
       wbSlow = new EventCounter("wbSlow");
+    } else {
+      wbFast = null;
+      wbSlow = null;
     }
     if (Stats.GATHER_MARK_CONS_STATS) {
       nurseryMark = new SizeCounter("nurseryMark", true, true);
       nurseryCons = new SizeCounter("nurseryCons", true, true);
+    } else {
+      nurseryMark = null;
+      nurseryCons = null;
     }
   }
 
@@ -201,9 +209,8 @@ public abstract class Gen extends StopTheWorld {
       return true;
     }
 
-    if (nurseryPages >= getMaturePhysicalPagesAvail()) {
+    if (virtualMemoryExhausted())
       return true;
-    }
 
     return super.collectionRequired(spaceFull);
   }
@@ -230,10 +237,8 @@ public abstract class Gen extends StopTheWorld {
       return true;
     }
 
-    if (nurserySpace.reservedPages() >= getMaturePhysicalPagesAvail()) {
-      // Ensure we have the physical copy reserve required
+    if (virtualMemoryExhausted())
       return true;
-    }
 
     int smallNurseryPages = nurserySpace.committedPages();
     int smallNurseryYield = (int)((smallNurseryPages << 1) * SURVIVAL_ESTIMATE);
@@ -254,6 +259,18 @@ public abstract class Gen extends StopTheWorld {
     return false;
   }
 
+  /**
+   * Independent of how many pages remain in the page budget (a function of
+   * heap size), we must ensure we never exhaust virtual memory.  Therefore
+   * we must never let the nursery grow to the extent that it can't be
+   * copied into the mature space.
+   *
+   * @return True if the nursery has grown to the extent that it may not be
+   * able to be copied into the mature space.
+   */
+  private boolean virtualMemoryExhausted() {
+    return ((int) (nurserySpace.reservedPages()*WORST_CASE_COPY_EXPANSION) >= getMaturePhysicalPagesAvail());
+  }
 
   /*****************************************************************************
    *
@@ -266,16 +283,6 @@ public abstract class Gen extends StopTheWorld {
    */
 
   /**
-   * Return the number of pages reserved for copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
-   */
-  public int getCollectionReserve() {
-    return nurserySpace.reservedPages() + super.getCollectionReserve();
-  }
-
-  /**
    * Return the number of pages in use given the pending
    * allocation.  Simply add the nursery's contribution to that of
    * the superclass.
@@ -283,6 +290,7 @@ public abstract class Gen extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return (nurserySpace.reservedPages() + super.getPagesUsed());
   }
@@ -294,8 +302,20 @@ public abstract class Gen extends StopTheWorld {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
+  @Override
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
+  }
+
+  /**
+   * Return the number of pages reserved for copying.
+   *
+   * @return The number of pages reserved given the pending
+   * allocation, including space reserved for copying.
+   */
+  @Override
+  public int getCollectionReserve() {
+    return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
 
   /**
@@ -314,6 +334,7 @@ public abstract class Gen extends StopTheWorld {
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
+  @Override
   public int getPagesRequired() {
     /* We don't currently pretenure, so mature space must be zero */
     return super.getPagesRequired() + (nurserySpace.requiredPages() << 1);

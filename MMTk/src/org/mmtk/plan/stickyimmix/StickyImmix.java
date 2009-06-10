@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -14,10 +14,10 @@ package org.mmtk.plan.stickyimmix;
 
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.immix.Immix;
-import org.mmtk.policy.immix.ImmixSpace;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.SharedDeque;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.statistics.BooleanCounter;
 import org.mmtk.utility.statistics.Stats;
 import org.mmtk.vm.Collection;
 
@@ -72,17 +72,22 @@ public class StickyImmix extends Immix {
    */
   private static int lastCommittedImmixPages = 0;
 
+  /* statistics */
+  public static BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
+
   /****************************************************************************
    * Instance variables
    */
-  /* status fields */
-  /** will the next collection collect the whole heap? */
-  public boolean nextGCWholeHeap = false;
-  /** will this collection collect the whole heap */
-  public boolean collectWholeHeap = nextGCWholeHeap;
-
   /* Remset pool */
   public final SharedDeque modPool = new SharedDeque("msgen mod objects", metaDataSpace, 1);
+
+  /**
+   * Constructor.
+   *
+   */
+  public StickyImmix() {
+    collectWholeHeap = nextGCWholeHeap = false;
+  }
 
   /*****************************************************************************
    *
@@ -114,11 +119,9 @@ public class StickyImmix extends Immix {
   public final void collectionPhase(short phaseId) {
 
     if (phaseId == SET_COLLECTION_KIND) {
-      super.collectionPhase(phaseId);
       collectWholeHeap = requiresFullHeapCollection();
-      if (Stats.gatheringStats() && collectWholeHeap) ImmixSpace.fullHeap.set();
-      boolean userTriggeredGC = collectionTrigger == Collection.EXTERNAL_GC_TRIGGER && Options.fullHeapSystemGC.getValue();
-      immixSpace.setCollectionKind(emergencyCollection, collectWholeHeap, collectionAttempt, requiredAtStart, userTriggeredGC);
+      if (Stats.gatheringStats() && collectWholeHeap) fullHeap.set();
+      super.collectionPhase(phaseId);
       return;
     }
 
@@ -133,7 +136,7 @@ public class StickyImmix extends Immix {
         super.collectionPhase(RELEASE);
       } else {
         immixTrace.release();
-        immixSpace.globalRelease();
+        lastGCWasDefrag = immixSpace.release(false);
       }
       modPool.reset();
       lastCommittedImmixPages = immixSpace.committedPages();

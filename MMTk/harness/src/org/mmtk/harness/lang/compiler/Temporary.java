@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -14,6 +14,9 @@ package org.mmtk.harness.lang.compiler;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
 
 public class Temporary {
 
@@ -28,14 +31,13 @@ public class Temporary {
   public Register acquire() {
     if (freePool.isEmpty()) {
       Register tmp = Register.createTemporary(nextIndex++);
-      //System.err.printf("Acquire *new* temporary, %s%n", tmp);
+      Trace.trace(Item.COMPILER,"Acquire new temporary, %s", tmp);
       return tmp;
-    } else {
-      Register result = freePool.remove(freePool.size()-1);
-      //System.err.printf("Acquire temporary, %s%n", result);
-      result.setUsed();
-      return result;
     }
+    Register result = freePool.remove(freePool.size()-1);
+    Trace.trace(Item.COMPILER,"Acquire temporary, %s", result);
+    result.setUsed();
+    return result;
   }
 
   public void release(Register...temp) {

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -22,7 +22,7 @@ public final class SpecializedMethod {
   /**
    * The method that was specialized
    */
-  NormalMethod method;
+  final NormalMethod method;
 
   /**
    * Corresponding compiled method
@@ -32,12 +32,12 @@ public final class SpecializedMethod {
   /**
    * Specialized Method index into the SpecializedMethods table
    */
-  int smid;
+  final int smid;
 
   /**
    * Encodes the rules for generating the specialized code.
    */
-  SpecializationContext context;
+  final SpecializationContext context;
 
   /**
    * constructor for OPT compiler.
@@ -79,6 +79,3 @@ public final class SpecializedMethod {
     return "Specialized " + method + "  (Context: " + context + ")";
   }
 }
-
-
-

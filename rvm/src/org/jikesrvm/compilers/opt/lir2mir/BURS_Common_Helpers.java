@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -274,6 +274,10 @@ public abstract class BURS_Common_Helpers extends PhysicalRegisterTools {
 
   protected static Instruction PRRL(BURS_TreeNode p) {
     return p.child2.child2.child1.getInstruction();
+  }
+
+  protected static Instruction PRRR(BURS_TreeNode p) {
+    return p.child2.child2.child2.getInstruction();
   }
 
   protected static int V(BURS_TreeNode p) {

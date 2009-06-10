@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -184,7 +184,9 @@ public class JNIFunctions implements SizeConstants {
       if (traceJNI) VM.sysWriteln(classString);
       ClassLoader cl = RVMClass.getClassLoaderFromStackFrame(1);
       Class<?> matchedClass = Class.forName(classString.replace('/', '.'), true, cl);
-      return env.pushJNIRef(matchedClass);
+      int result = env.pushJNIRef(matchedClass);
+      if (traceJNI) VM.sysWriteln("FindClass returning ",result);
+      return result;
     } catch (ClassNotFoundException e) {
       if (traceJNI) e.printStackTrace(System.err);
       env.recordException(new NoClassDefFoundError(classString));
@@ -462,7 +464,7 @@ public class JNIFunctions implements SizeConstants {
     try {
       Class<?> javaCls = (Class<?>) env.getJNIRef(classJREF);
       RVMType type = java.lang.JikesRVMSupport.getTypeForClass(javaCls);
-      if (type.isArrayType() || type.isPrimitiveType()) {
+      if (type.isArrayType() || type.isPrimitiveType() || type.isUnboxedType()) {
         env.recordException(new InstantiationException());
         return 0;
       }
@@ -2226,7 +2228,10 @@ public class JNIFunctions implements SizeConstants {
     RuntimeEntrypoints.checkJNICountDownToGC();
 
     try {
+      if (traceJNI)
+        VM.sysWriteln("called GetFieldID with classJREF = ",classJREF);
       Class<?> cls = (Class<?>) env.getJNIRef(classJREF);
+      if (VM.VerifyAssertions) VM._assert(cls!=null);
       String fieldString = JNIHelpers.createStringFromC(fieldNameAddress);
       Atom fieldName = Atom.findOrCreateAsciiAtom(fieldString);
 
@@ -4105,7 +4110,8 @@ public class JNIFunctions implements SizeConstants {
       }
 
       RVMArray arrayType = Magic.getObjectType(sourceArray).asArray();
-      if (arrayType.getElementType().isPrimitiveType()) {
+      RVMType elementType = arrayType.getElementType();
+      if (elementType.isPrimitiveType() || elementType.isUnboxedType()) {
         return 0;
       }
 

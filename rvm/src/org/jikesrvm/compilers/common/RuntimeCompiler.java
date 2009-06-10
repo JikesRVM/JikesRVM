@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -39,7 +39,7 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.runtime.Time;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Harness to select which compiler to dynamically
@@ -141,8 +141,8 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
                       compiledMethod.getCompilationTime());
 
     if (VM.BuildForAdaptiveSystem) {
-      if (AOSLogging.booted()) {
-        AOSLogging.recordUpdatedCompilationRates(compiler,
+      if (AOSLogging.logger.booted()) {
+        AOSLogging.logger.recordUpdatedCompilationRates(compiler,
                                                     method,
                                                     method.getBytecodeLength(),
                                                     totalBCLength[compiler],
@@ -287,13 +287,13 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
     CompiledMethod cm = null;
     try {
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
 
       cm = BaselineCompiler.compile(method);
     } finally {
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         if (cm != null) {
           double compileTime = Time.nanosToMillis(end - start);
           cm.setCompilationTime(compileTime);
@@ -353,12 +353,12 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
       CompiledMethod cm = null;
       try {
         if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-          start = Scheduler.getCurrentThread().startTimedInterval();
+          start = Time.nanoTime();
         }
         cm = OptimizingCompiler.compile(plan);
       } finally {
         if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-          long end = Scheduler.getCurrentThread().endTimedInterval();
+          long end = Time.nanoTime();
           if (cm != null) {
             double compileTime = Time.nanosToMillis(end - start);
             cm.setCompilationTime(compileTime);
@@ -671,7 +671,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
               // exception in progress. can't use opt compiler:
               // it uses exceptions and runtime doesn't support
               // multiple pending (undelivered) exceptions [--DL]
-              Scheduler.getCurrentThread().getExceptionRegisters().inuse) {
+              RVMThread.getCurrentThread().getExceptionRegisters().inuse) {
             // compile with baseline compiler
             cm = baselineCompile(method);
             ControllerMemory.incrementNumBase();
@@ -699,7 +699,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
               CompilerAdviceAttribute attr = CompilerAdviceAttribute.getCompilerAdviceInfo(method);
               if (attr.getCompiler() != CompiledMethod.OPT) {
                 cm = fallback(method);
-                AOSLogging.recordCompileTime(cm, 0.0);
+                AOSLogging.logger.recordCompileTime(cm, 0.0);
                 return cm;
               }
               int newCMID = -2;
@@ -712,13 +712,13 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
                 // we don't have to use: if (Controller.options.sampling())
                 compPlan = Controller.recompilationStrategy.createCompilationPlan(method, attr.getOptLevel(), null);
               }
-              AOSLogging.recompilationStarted(compPlan);
+              AOSLogging.logger.recompilationStarted(compPlan);
               newCMID = recompileWithOpt(compPlan);
               cm = newCMID == -1 ? null : CompiledMethods.getCompiledMethod(newCMID);
               if (newCMID == -1) {
-                AOSLogging.recompilationAborted(compPlan);
+                AOSLogging.logger.recompilationAborted(compPlan);
               } else if (newCMID > 0) {
-                AOSLogging.recompilationCompleted(compPlan);
+                AOSLogging.logger.recompilationCompleted(compPlan);
               }
               if (cm == null) { // if recompilation is aborted
                 cm = baselineCompile(method);
@@ -748,7 +748,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
               .enabled) {
         AOSGenerator.baseCompilationCompleted(cm);
       }
-      AOSLogging.recordCompileTime(cm, 0.0);
+      AOSLogging.logger.recordCompileTime(cm, 0.0);
       return cm;
     } else {
       return baselineCompile(method);
@@ -766,7 +766,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
     CompiledMethod cm = null;
     try {
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
 
       cm = JNICompiler.compile(method);
@@ -780,7 +780,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
       }
     } finally {
       if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         if (cm != null) {
           double compileTime = Time.nanosToMillis(end - start);
           cm.setCompilationTime(compileTime);

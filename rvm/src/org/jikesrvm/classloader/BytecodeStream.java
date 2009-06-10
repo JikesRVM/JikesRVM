@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.Offset;
  * Provides minimal abstraction layer to a stream of bytecodes
  * from the code attribute of a method.
  */
-public class BytecodeStream implements BytecodeConstants, SizeConstants {
+public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, SizeConstants {
   private final NormalMethod method;
   private final int bcLength;
   private final byte[] bcodes;
@@ -477,7 +477,7 @@ public class BytecodeStream implements BytecodeConstants, SizeConstants {
                  opcode == JBC_getfield ||
                  opcode == JBC_putfield);
     }
-    return RVMClass.getFieldRef(constantPool, readUnsignedShort());
+    return ClassFileReader.getFieldRef(constantPool, readUnsignedShort());
   }
   /**
    * Returns a reference to a field
@@ -506,7 +506,7 @@ public class BytecodeStream implements BytecodeConstants, SizeConstants {
                  opcode == JBC_invokestatic ||
                  opcode == JBC_invokeinterface);
     }
-    return RVMClass.getMethodRef(constantPool, readUnsignedShort());
+    return ClassFileReader.getMethodRef(constantPool, readUnsignedShort());
   }
 
   /**
@@ -697,7 +697,7 @@ public class BytecodeStream implements BytecodeConstants, SizeConstants {
   public final int getIntConstant(int index) {
     if (VM.VerifyAssertions) {
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
-                 getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_INT);
+                 getDeclaringClass().getLiteralDescription(index) == CP_INT);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     int val = Statics.getSlotContentsAsInt(offset);
@@ -718,7 +718,7 @@ public class BytecodeStream implements BytecodeConstants, SizeConstants {
    */
   public final long getLongConstant(int index) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_LONG);
+      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == CP_LONG);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     long val = Statics.getSlotContentsAsLong(offset);
@@ -740,7 +740,7 @@ public class BytecodeStream implements BytecodeConstants, SizeConstants {
   public final float getFloatConstant(int index) {
     if (VM.VerifyAssertions) {
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
-                 getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_FLOAT);
+                 getDeclaringClass().getLiteralDescription(index) == CP_FLOAT);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     int val_raw = Statics.getSlotContentsAsInt(offset);
@@ -762,7 +762,7 @@ public class BytecodeStream implements BytecodeConstants, SizeConstants {
    */
   public final double getDoubleConstant(int index) {
     if (VM.VerifyAssertions) {
-      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_DOUBLE);
+      VM._assert(opcode == JBC_ldc2_w && getDeclaringClass().getLiteralDescription(index) == CP_DOUBLE);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     long val_raw = Statics.getSlotContentsAsLong(offset);
@@ -785,7 +785,7 @@ public class BytecodeStream implements BytecodeConstants, SizeConstants {
   public final String getStringConstant(int index) {
     if (VM.VerifyAssertions) {
       VM._assert((opcode == JBC_ldc || opcode == JBC_ldc_w) &&
-                 getDeclaringClass().getLiteralDescription(index) == RVMClass.CP_STRING);
+                 getDeclaringClass().getLiteralDescription(index) == CP_STRING);
     }
     Offset offset = getDeclaringClass().getLiteralOffset(index);
     String val = (String) Statics.getSlotContentsAsObject(offset);

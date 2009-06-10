@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -22,6 +22,7 @@ import static org.mmtk.policy.immix.ImmixConstants.*;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.options.Options;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -220,9 +221,9 @@ public class ImmixAllocator extends Allocator implements Constants {
 
   private boolean acquireRecyclableLines(int bytes, int align, int offset) {
     while (line < LINES_IN_BLOCK || acquireRecyclableBlock()) {
-      line = Line.getNextUnused(markTable, line);
+      line = space.getNextAvailableLine(markTable, line);
       if (line < LINES_IN_BLOCK) {
-        int endLine = Line.getNextUsed(markTable, line);
+        int endLine = space.getNextUnavailableLine(markTable, line);
         cursor = recyclableBlock.plus(Extent.fromIntSignExtend(line<<LOG_BYTES_IN_LINE));
         limit = recyclableBlock.plus(Extent.fromIntSignExtend(endLine<<LOG_BYTES_IN_LINE));
         if (SANITY_CHECK_LINE_MARKS) {
@@ -252,6 +253,10 @@ public class ImmixAllocator extends Allocator implements Constants {
           VM.assertions._assert(end.LE(limit));
         }
         VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent());
+        if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+          Log.write("Z["); Log.write(cursor); Log.write("->"); Log.write(limit); Log.writeln("]");
+        }
+
         line = endLine;
         if (VM.VERIFY_ASSERTIONS && copy) VM.assertions._assert(!Block.isDefragSource(cursor));
         return true;
@@ -272,7 +277,12 @@ public class ImmixAllocator extends Allocator implements Constants {
 
   @Inline
   private boolean acquireRecyclableBlockAddressOrder() {
-    if (recyclableExhausted) return false;
+    if (recyclableExhausted) {
+      if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+        Log.writeln("[no recyclable available]");
+      }
+      return false;
+    }
     int markState = 0;
     boolean usable = false;
     while (!usable) {
@@ -281,6 +291,9 @@ public class ImmixAllocator extends Allocator implements Constants {
         recyclableBlock = space.acquireReusableBlocks();
         if (recyclableBlock.isZero()) {
           recyclableExhausted = true;
+          if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+            Log.writeln("[recyclable exhausted]");
+          }
           line = LINES_IN_BLOCK;
           return false;
         }
@@ -302,7 +315,7 @@ public class ImmixAllocator extends Allocator implements Constants {
   private void zeroBlock(Address block) {
     // FIXME: efficiency check here!
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(block.toWord().and(Word.fromIntSignExtend(BYTES_IN_BLOCK-1)).isZero());
-    VM.memory.zeroPages(block, BYTES_IN_BLOCK);
+    VM.memory.zero(block, Extent.fromIntZeroExtend(BYTES_IN_BLOCK));
    }
 
   /** @return the space associated with this squish allocator */

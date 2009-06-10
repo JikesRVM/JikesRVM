@@ -1,51 +1,17 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ir.Binary;
-import org.jikesrvm.compilers.opt.ir.CacheOp;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.CondMove;
-import org.jikesrvm.compilers.opt.ir.GuardedBinary;
-import org.jikesrvm.compilers.opt.ir.IfCmp;
-import org.jikesrvm.compilers.opt.ir.LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
-import org.jikesrvm.compilers.opt.ir.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.MIR_Compare;
-import org.jikesrvm.compilers.opt.ir.MIR_CompareExchange;
-import org.jikesrvm.compilers.opt.ir.MIR_CompareExchange8B;
-import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
-import org.jikesrvm.compilers.opt.ir.MIR_CondMove;
-import org.jikesrvm.compilers.opt.ir.MIR_ConvertDW2QW;
-import org.jikesrvm.compilers.opt.ir.MIR_Divide;
-import org.jikesrvm.compilers.opt.ir.MIR_Lea;
-import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Multiply;
-import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
-import org.jikesrvm.compilers.opt.ir.MIR_RDTSC;
-import org.jikesrvm.compilers.opt.ir.MIR_Set;
-import org.jikesrvm.compilers.opt.ir.MIR_TrapIf;
-import org.jikesrvm.compilers.opt.ir.MIR_Unary;
-import org.jikesrvm.compilers.opt.ir.MIR_UnaryAcc;
-import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.Nullary;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_CMPL;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_CMPL;
@@ -53,10 +19,21 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADC;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_AND;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDNPD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDNPS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDPD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ANDPS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CDQ;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMP;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPEQSD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPEQSS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLESD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLESS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLTSD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLTSS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTSS2SD;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCMOV;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCOMI;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCOMIP;
@@ -92,6 +69,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MUL;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_NEG;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_NOT;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_OR;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ORPD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ORPS;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_RCR;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_RDTSC;
 import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SAR;
@@ -110,10 +89,45 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH;
-import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
+
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.DefUse;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.Binary;
+import org.jikesrvm.compilers.opt.ir.CacheOp;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.CondMove;
+import org.jikesrvm.compilers.opt.ir.GuardedBinary;
+import org.jikesrvm.compilers.opt.ir.IfCmp;
+import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.LowTableSwitch;
+import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
+import org.jikesrvm.compilers.opt.ir.MIR_Call;
+import org.jikesrvm.compilers.opt.ir.MIR_Compare;
+import org.jikesrvm.compilers.opt.ir.MIR_CompareExchange;
+import org.jikesrvm.compilers.opt.ir.MIR_CompareExchange8B;
+import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
+import org.jikesrvm.compilers.opt.ir.MIR_CondMove;
+import org.jikesrvm.compilers.opt.ir.MIR_ConvertDW2QW;
+import org.jikesrvm.compilers.opt.ir.MIR_Divide;
+import org.jikesrvm.compilers.opt.ir.MIR_Lea;
+import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
+import org.jikesrvm.compilers.opt.ir.MIR_Move;
+import org.jikesrvm.compilers.opt.ir.MIR_Multiply;
+import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
+import org.jikesrvm.compilers.opt.ir.MIR_RDTSC;
+import org.jikesrvm.compilers.opt.ir.MIR_Set;
+import org.jikesrvm.compilers.opt.ir.MIR_TrapIf;
+import org.jikesrvm.compilers.opt.ir.MIR_Unary;
+import org.jikesrvm.compilers.opt.ir.MIR_UnaryAcc;
+import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.Nullary;
+import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.Prologue;
+import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.TrapIf;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
@@ -140,6 +154,7 @@ import org.jikesrvm.compilers.opt.lir2mir.BURS_MemOp_Helpers;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -161,6 +176,30 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   /** Constant log2(10), supported as an x87 constant */
   private static final double L2T = Double
       .parseDouble("3.3219280948873623478083405569094566090");
+
+  /** Mask to flip sign bits in XMM registers */
+  private static final Offset floatSignMask =
+    VM.BuildForSSE2Full ?
+      Offset.fromIntSignExtend(Statics.findOrCreate16ByteSizeLiteral(0x8000000080000000L, 0x8000000080000000L)) :
+      Offset.zero();
+
+  /** Mask to flip sign bits in XMM registers */
+  private static final Offset doubleSignMask =
+    VM.BuildForSSE2Full ?
+      Offset.fromIntSignExtend(Statics.findOrCreate16ByteSizeLiteral(0x8000000000000000L, 0x8000000000000000L)) :
+      Offset.zero();
+
+  /** Mask to abs an XMM registers */
+  private static final Offset floatAbsMask =
+    VM.BuildForSSE2Full ?
+      Offset.fromIntSignExtend(Statics.findOrCreate16ByteSizeLiteral(0x7FFFFFFF7FFFFFFFL, 0x7FFFFFFF7FFFFFFFL)) :
+      Offset.zero();
+
+  /** Mask to abs an XMM registers */
+  private static final Offset doubleAbsMask =
+    VM.BuildForSSE2Full ?
+      Offset.fromIntSignExtend(Statics.findOrCreate16ByteSizeLiteral(0x7FFFFFFFFFFFFFFFL, 0x7FFFFFFFFFFFFFFFL)) :
+      Offset.zero();
 
   /**
    * When emitting certain rules this holds the condition code state to be
@@ -480,8 +519,7 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     case ConditionOperand.GREATER_EQUAL:
     case ConditionOperand.GREATER:
     case ConditionOperand.LESS_EQUAL:
-    case ConditionOperand.SAME:
-    case ConditionOperand.NOT_SAME:
+      return true;
     default:
       return false;
     }
@@ -998,17 +1036,15 @@ Operand value, boolean signExtend) {
   /**
    * Expansion of SSE2 negation ops
    */
-  protected final void SSE2_NEG(Operator xorOp, Operator subOp, Instruction s, Operand result, Operand value) {
+  protected final void SSE2_NEG(boolean single, Instruction s, Operand result, Operand value) {
     if(VM.VerifyAssertions) VM._assert(result.isRegister());
     if (!result.similar(value)) {
-      EMIT(CPOS(s, MIR_BinaryAcc.create(xorOp, result.copy(), result.copy())));
-      EMIT(MIR_BinaryAcc.mutate(s, subOp, result, value));
-    } else {
-      RegisterOperand temp = regpool.makeTemp(value.getType());
-      EMIT(CPOS(s, MIR_BinaryAcc.create(xorOp, temp.copyRO(), temp)));
-      EMIT(MIR_BinaryAcc.mutate(s, subOp, temp.copyRO(), value));
-      EMIT(CPOS(s, MIR_Move.create(SSE2_MOVE(result), result, temp.copyRO())));
+      EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, result.copy(), value)));
     }
+    Offset signMaskOffset = single ? floatSignMask : doubleSignMask;
+    EMIT(MIR_BinaryAcc.mutate(s, single ? IA32_XORPS : IA32_XORPD, result,
+        MemoryOperand.D(Magic.getTocPointer().plus(signMaskOffset), PARAGRAPH,
+            new LocationOperand(signMaskOffset), TG())));
   }
 
   /**
@@ -1025,6 +1061,124 @@ Operand value, boolean signExtend) {
   protected final void SSE2_IFCMP(Operator op, Instruction s, Operand val1, Operand val2) {
     EMIT(CPOS(s, MIR_Compare.create(op, val1, val2)));
     EMIT(s); // ComplexLIR2MIRExpansion will handle rest of the work.
+  }
+
+  protected static Operator SSE2_CMP_OP(ConditionOperand cond, boolean single) {
+    switch(cond.value) {
+    case ConditionOperand.CMPL_EQUAL:
+      return single ? IA32_CMPEQSS : IA32_CMPEQSD;
+    case ConditionOperand.CMPG_LESS:
+      return single ? IA32_CMPLTSS : IA32_CMPLTSD;
+    case ConditionOperand.CMPG_LESS_EQUAL:
+      return single ? IA32_CMPLESS : IA32_CMPLESD;
+    default:
+      return null;
+    }
+  }
+
+  protected final void SSE2_FCMP_FCMOV(Instruction s, RegisterOperand result, Operand lhsCmp, Operand rhsCmp,
+      ConditionOperand cond, Operand trueValue, Operand falseValue) {
+    final boolean singleResult = result.isFloat();
+    final boolean singleCmp = lhsCmp.isFloat();
+
+    // TODO: support for the MAXSS/MAXSD instructions taking care of NaN cases
+    // find cmpOperator flipping code or operands as necessary
+    Operator cmpOperator=SSE2_CMP_OP(cond, singleCmp);
+    boolean needFlipOperands = false;
+    boolean needFlipCode = false;
+    if (cmpOperator == null) {
+      needFlipOperands = !needFlipOperands;
+      cmpOperator = SSE2_CMP_OP(cond.flipOperands(), singleCmp);
+      if (cmpOperator == null) {
+        needFlipCode = !needFlipCode;
+        cmpOperator = SSE2_CMP_OP(cond.flipCode(), singleCmp);
+        if (cmpOperator == null) {
+          needFlipOperands = !needFlipOperands;
+          cmpOperator = SSE2_CMP_OP(cond.flipOperands(), singleCmp);
+          if (VM.VerifyAssertions) VM._assert(cmpOperator != null);
+        }
+      }
+    }
+    if (needFlipOperands) {
+      Operand temp = lhsCmp;
+      lhsCmp = rhsCmp;
+      rhsCmp = temp;
+    }
+    if (needFlipCode) {
+      Operand temp = falseValue;
+      falseValue = trueValue;
+      trueValue = temp;
+    }
+    // place true value in a temporary register to be used for generation of result
+    RegisterOperand temp = regpool.makeTemp(result);
+    EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_MOVSS : IA32_MOVSD, temp, trueValue)));
+    // do compare ensuring size is >= size of result
+    if (!singleResult && singleCmp) {
+      RegisterOperand temp2 = regpool.makeTemp(result);
+      EMIT(CPOS(s, MIR_Unary.create(IA32_CVTSS2SD, temp2, rhsCmp)));
+      EMIT(CPOS(s, MIR_Unary.create(IA32_CVTSS2SD, result.copyRO(), lhsCmp)));
+      rhsCmp = temp2;
+      cmpOperator = SSE2_CMP_OP(cond, false);
+    } else {
+      if (!result.similar(lhsCmp)) {
+        EMIT(CPOS(s, MIR_Move.create(singleResult ? IA32_MOVSS : IA32_MOVSD, result.copyRO(), lhsCmp)));
+      }
+    }
+    EMIT(MIR_BinaryAcc.mutate(s, cmpOperator, result, rhsCmp));
+    // result contains all 1s or 0s, use masks and OR to perform conditional move
+    EMIT(CPOS(s, MIR_BinaryAcc.create(singleResult ? IA32_ANDPS : IA32_ANDPD, temp.copyRO(), result.copyRO())));
+    EMIT(CPOS(s, MIR_BinaryAcc.create(singleResult ? IA32_ANDNPS : IA32_ANDNPD, result.copyRO(), falseValue)));
+    EMIT(CPOS(s, MIR_BinaryAcc.create(singleResult ? IA32_ORPS : IA32_ORPD, result.copyRO(), temp.copyRO())));
+  }
+
+  protected final boolean IS_MATERIALIZE_ZERO(Instruction s) {
+    Operand val = Binary.getVal2(s); // float or double value
+    return (val.isFloatConstant() && Float.floatToRawIntBits(val.asFloatConstant().value) == 0) ||
+           (val.isDoubleConstant() && Double.doubleToRawLongBits(val.asDoubleConstant().value) == 0L);
+  }
+
+  protected final boolean SIMILAR_REGISTERS(Operand... ops) {
+    Operand last = null;
+    for (Operand op : ops) {
+      if (!op.isRegister() || (last != null && !op.similar(last))) {
+        return false;
+      }
+      last = op;
+    }
+    return true;
+  }
+
+  protected final boolean SSE2_IS_GT_OR_GE(ConditionOperand cond) {
+    switch(cond.value) {
+    case ConditionOperand.CMPG_GREATER:
+    case ConditionOperand.CMPG_GREATER_EQUAL:
+    case ConditionOperand.CMPL_GREATER:
+    case ConditionOperand.CMPL_GREATER_EQUAL:
+      return true;
+    }
+    return false;
+  }
+
+  protected final boolean SSE2_IS_LT_OR_LE(ConditionOperand cond) {
+    switch(cond.value) {
+    case ConditionOperand.CMPG_LESS:
+    case ConditionOperand.CMPG_LESS_EQUAL:
+    case ConditionOperand.CMPL_LESS:
+    case ConditionOperand.CMPL_LESS_EQUAL:
+      return true;
+    }
+    return false;
+  }
+
+  protected final void SSE2_ABS(boolean single, Instruction s, Operand result, Operand value) {
+    if(VM.VerifyAssertions) VM._assert(result.isRegister());
+    if (!result.similar(value)) {
+      EMIT(CPOS(s, MIR_Move.create(single ? IA32_MOVSS : IA32_MOVSD, result.copy(), value)));
+    }
+    Offset absMaskOffset = single ? floatAbsMask : doubleAbsMask;
+    EMIT(MIR_BinaryAcc.mutate(s, single ? IA32_ANDPS : IA32_ANDPD, result,
+        MemoryOperand.D(Magic.getTocPointer().plus(absMaskOffset), PARAGRAPH,
+            new LocationOperand(absMaskOffset), TG())));
   }
 
   /**
@@ -2928,39 +3082,69 @@ Operand value, boolean signExtend) {
           // 1 or 2 more instructions but saves a register)
           int true_const = ((IntConstantOperand) trueValue).value;
           int false_const = ((IntConstantOperand) falseValue).value;
-          // Generate values for consts trying to avoid zero extending the
-          // set__b result
-          // result = cond ? 1 : 0
-          EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, result.copyRO(), COND(cond))));
-
-          if ((true_const - false_const) == 1) {
-            // result = (cond ? 1 : 0) + false_const
-            EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
-            EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
-          } else if ((false_const - true_const) == 1) {
-            // result = (cond ? -1 : 0) + false_const
-            EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
-            EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
-            EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
-          } else if (((false_const - true_const) > 0) && ((false_const - true_const) <= 0xFF)) {
-            // result = cond ? 0 : -1
-            // result = (cond ? 0 : -1) & (false_const - true__const)
-            // result = ((cond ? 0 : -1) & (false_const - true_const)) +
-            // true_const
-            EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SUB, result.copyRO(), IC(1))));
-            EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(false_const - true_const))));
-            EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(true_const)));
-          } else {
+          if (cond.isLOWER()) {
+            // Comparison sets carry flag so use to avoid setb, movzx
             // result = cond ? -1 : 0
-            // result = (cond ? -1 : 0) & (true_const - false_const)
-            // result = ((cond ? -1 : 0) & (true_const - false_const)) +
-            // false_const
-            if (((true_const - false_const) > 0xFF) || ((true_const - false_const) < 0)) {
-              EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+            EMIT(CPOS(s, MIR_BinaryAcc.mutate(s, IA32_SBB, result, result.copyRO())));
+            if (true_const - false_const != -1) {
+              if (true_const - false_const == 1) {
+                EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+              } else {
+                EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(true_const - false_const))));
+              }
             }
-            EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
-            EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(true_const - false_const))));
-            EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+            if (false_const != 0) {
+              EMIT(MIR_BinaryAcc.create(IA32_ADD, result.copyRO(), IC(false_const)));
+            }
+          } else if(cond.isHIGHER_EQUAL()) {
+            // Comparison sets carry flag so use to avoid setb, movzx
+            // result = cond ? 0 : -1
+            EMIT(CPOS(s, MIR_BinaryAcc.mutate(s, IA32_SBB, result, result.copyRO())));
+            if (false_const - true_const != -1) {
+              if (false_const - true_const == 1) {
+                EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+              } else {
+                EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(false_const - true_const))));
+              }
+            }
+            if (true_const != 0) {
+              EMIT(MIR_BinaryAcc.create(IA32_ADD, result, IC(true_const)));
+            }
+          } else {
+            // Generate values for consts trying to avoid zero extending the
+            // set__b result
+            // result = cond ? 1 : 0
+            EMIT(CPOS(s, MIR_Set.create(IA32_SET__B, result.copyRO(), COND(cond))));
+
+            if ((true_const - false_const) == 1) {
+              // result = (cond ? 1 : 0) + false_const
+              EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+              EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+            } else if ((false_const - true_const) == 1) {
+              // result = (cond ? -1 : 0) + false_const
+              EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+              EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+              EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+            } else if (((false_const - true_const) > 0) && ((false_const - true_const) <= 0xFF)) {
+              // result = cond ? 0 : -1
+              // result = (cond ? 0 : -1) & (false_const - true__const)
+              // result = ((cond ? 0 : -1) & (false_const - true_const)) +
+              // true_const
+              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_SUB, result.copyRO(), IC(1))));
+              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(false_const - true_const))));
+              EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(true_const)));
+            } else {
+              // result = cond ? -1 : 0
+              // result = (cond ? -1 : 0) & (true_const - false_const)
+              // result = ((cond ? -1 : 0) & (true_const - false_const)) +
+              // false_const
+              if (((true_const - false_const) > 0xFF) || ((true_const - false_const) < 0)) {
+                EMIT(CPOS(s, MIR_Unary.create(IA32_MOVZX__B, result.copyRO(), result.copyRO())));
+              }
+              EMIT(CPOS(s, MIR_UnaryAcc.create(IA32_NEG, result.copyRO())));
+              EMIT(CPOS(s, MIR_BinaryAcc.create(IA32_AND, result.copyRO(), IC(true_const - false_const))));
+              EMIT(MIR_BinaryAcc.mutate(s, IA32_ADD, result, IC(false_const)));
+            }
           }
         }
       }
@@ -2978,23 +3162,17 @@ Operand value, boolean signExtend) {
    */
   protected final void CMOV_FMOV(Instruction s, RegisterOperand result, ConditionOperand cond,
                                  Operand trueValue, Operand falseValue) {
-    if (result.similar(trueValue)) {
-      // in this case, only need a conditional move for the false branch.
-      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result, asReg(s, IA32_FMOV, falseValue), COND(cond.flipCode())));
-    } else if (result.similar(falseValue)) {
-      // in this case, only need a conditional move for the true branch.
-      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result, asReg(s, IA32_FMOV, trueValue), COND(cond)));
+    RegisterOperand FP0 = new RegisterOperand(burs.ir.regpool.getPhysicalRegisterSet().getFPR(0), result.getType());
+    // need to handle both possible assignments. Unconditionally
+    // assign one value then conditionally assign the other.
+    if (falseValue.isRegister()) {
+      EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, FP0, trueValue)));
+      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, FP0.copyRO(), falseValue, COND(cond.flipCode())));
     } else {
-      // need to handle both possible assignments. Unconditionally
-      // assign one value then conditionally assign the other.
-      if (falseValue.isRegister()) {
-        EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, result, trueValue)));
-        EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result.copyRO(), falseValue, COND(cond.flipCode())));
-      } else {
-        EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, result, falseValue)));
-        EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, result.copyRO(), asReg(s, IA32_FMOV, trueValue), COND(cond)));
-      }
+      EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, FP0, falseValue)));
+      EMIT(MIR_CondMove.mutate(s, IA32_FCMOV, FP0.copyRO(), asReg(s, IA32_FMOV, trueValue), COND(cond)));
     }
+    EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, result.copyRO(), FP0.copyRO())));
   }
 
   /**

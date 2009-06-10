@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -18,7 +18,7 @@ import org.mmtk.utility.Log;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
@@ -67,7 +67,7 @@ public class ScanBootImage implements Constants {
 
     /* figure out striding */
     int stride = CollectorThread.numCollectors()<<LOG_CHUNK_BYTES;
-    CollectorThread collector = Magic.threadAsCollectorThread(Scheduler.getCurrentThread());
+    CollectorThread collector = Magic.threadAsCollectorThread(RVMThread.getCurrentThread());
     int start = (collector.getGCOrdinal() - 1)<<LOG_CHUNK_BYTES;
     Address cursor = mapStart.plus(start);
 
@@ -164,7 +164,7 @@ public class ScanBootImage implements Constants {
       Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
       Log.writeln();
       Log.writeln("Dumping stack:");
-      Scheduler.dumpStack();
+      RVMThread.dumpStack();
       VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }

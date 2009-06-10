@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -16,7 +16,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.runtime.Time;
-import org.jikesrvm.scheduler.Scheduler;
 
 /**
  * An element in the opt compiler's optimization plan
@@ -33,7 +32,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
   /**
    * The phase to be performed.
    */
-  private CompilerPhase myPhase;
+  private final CompilerPhase myPhase;
   /**
    * Accumulated nanoseconds spent in the element.
    */
@@ -82,14 +81,14 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
     long start = 0;
     try {
       if (VM.MeasureCompilationPhases && VM.runningVM) {
-        start = Scheduler.getCurrentThread().startTimedInterval();
+        start = Time.nanoTime();
       }
       CompilerPhase cmpPhase = myPhase.newExecution(ir);
       cmpPhase.setContainer(this);
       cmpPhase.performPhase(ir);
     } finally {
       if (VM.MeasureCompilationPhases && VM.runningVM) {
-        long end = Scheduler.getCurrentThread().endTimedInterval();
+        long end = Time.nanoTime();
         phaseNanos += end - start;
       }
     }

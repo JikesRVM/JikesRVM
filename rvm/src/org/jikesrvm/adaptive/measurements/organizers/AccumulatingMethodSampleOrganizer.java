@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -18,7 +18,7 @@ import org.jikesrvm.adaptive.database.methodsamples.MethodCountData;
 import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.adaptive.measurements.listeners.MethodListener;
 import org.jikesrvm.adaptive.util.AOSLogging;
-import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NonMoving;
 
 /**
@@ -44,7 +44,8 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
   @Override
   public void initialize() {
     data = new MethodCountData();
-    int numSamples = Controller.options.METHOD_SAMPLE_SIZE * GreenScheduler.numProcessors;
+    new AsyncReporter().start();
+    int numSamples = Controller.options.METHOD_SAMPLE_SIZE * RVMThread.numProcessors;
     if (Controller.options.mlCBS()) {
       numSamples *= VM.CBSMethodSamplesPerTick;
     }
@@ -64,7 +65,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
    * Method that is called when the sampling threshold is reached
    */
   void thresholdReached() {
-    AOSLogging.organizerThresholdReached();
+    AOSLogging.logger.organizerThresholdReached();
     int numSamples = ((MethodListener) listener).getNumSamples();
     int[] samples = ((MethodListener) listener).getSamples();
     data.update(samples, numSamples);
@@ -74,4 +75,18 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
     VM.sysWrite("\nMethod sampler report");
     if (data != null) data.report();
   }
+  @NonMoving
+  class AsyncReporter extends RVMThread {
+    public AsyncReporter() {
+      super("Async Profile Reporter");
+      makeDaemon(true);
+    }
+    public void run() {
+      for (;;) {
+        RVMThread.doProfileReport.waitAndCloseWithHandshake();
+        report();
+      }
+    }
+  }
 }
+

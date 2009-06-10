@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -62,6 +62,9 @@ abstract class AbstractHashMapRVM<K, V> {
   }
 
   public final V get(K key) {
+    if (key == null) {
+      return null;
+    }
     int bucketIdx = bucketIndex(key, buckets.length);
     AbstractBucket<K, V> cur = buckets[bucketIdx];
     while (cur != null && !same(cur.getKey(), key)) {
@@ -126,7 +129,8 @@ abstract class AbstractHashMapRVM<K, V> {
     buckets = newBuckets;
   }
 
-  public final V remove(K key) {
+  public V remove(K key) {
+    if (VM.VerifyAssertions) VM._assert(key != null);
     int bucketIdx = bucketIndex(key, buckets.length);
     AbstractBucket<K, V> cur = buckets[bucketIdx];
     AbstractBucket<K, V> prev = null;

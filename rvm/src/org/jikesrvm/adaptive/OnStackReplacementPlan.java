@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -58,7 +58,7 @@ public class OnStackReplacementPlan implements Constants {
   private int timeCompleted = 0;
 
   public OnStackReplacementPlan(RVMThread thread, CompilationPlan cp, int cmid, int source, Offset tsoff,
-                                    Offset ypoff, double priority) {
+                                Offset ypoff, double priority) {
     this.suspendedThread = thread;
     this.compPlan = cp;
     this.CMID = cmid;
@@ -85,7 +85,7 @@ public class OnStackReplacementPlan implements Constants {
     // 3. install the code
     // 4. reschedule the thread to new code.
 
-    AOSLogging.logOsrEvent("OSR compiling " + compPlan.method);
+    AOSLogging.logger.logOsrEvent("OSR compiling " + compPlan.method);
 
     setTimeInitiated(Controller.controllerClock);
 
@@ -111,7 +111,7 @@ public class OnStackReplacementPlan implements Constants {
       ExecutionState state = extractor.extractState(suspendedThread, this.tsFromFPoff, this.ypTakenFPoff, CMID);
 
       if (invalidate) {
-        AOSLogging.debug("Invalidate cmid " + CMID);
+        AOSLogging.logger.debug("Invalidate cmid " + CMID);
         OSRProfiler.notifyInvalidation(state);
       }
 
@@ -122,16 +122,19 @@ public class OnStackReplacementPlan implements Constants {
 
       if (newCM == null) {
         setStatus(ControllerPlan.ABORTED_COMPILATION_ERROR);
-        AOSLogging.logOsrEvent("OSR compilation failed!");
+        AOSLogging.logger.logOsrEvent("OSR compilation failed!");
       } else {
         setStatus(ControllerPlan.COMPLETED);
         // now let CodeInstaller generate a code stub,
         // and PostThreadSwitch will install the stub to run.
         CodeInstaller.install(state, newCM);
-        AOSLogging.logOsrEvent("OSR compilation succeeded! " + compPlan.method);
+        AOSLogging.logger.logOsrEvent("OSR compilation succeeded! " + compPlan.method);
       }
     }
 
-    suspendedThread.osrUnpark();
+    suspendedThread.monitor().lockNoHandshake();
+    suspendedThread.osr_done=true;
+    suspendedThread.monitor().broadcast();
+    suspendedThread.monitor().unlock();
   }
 }

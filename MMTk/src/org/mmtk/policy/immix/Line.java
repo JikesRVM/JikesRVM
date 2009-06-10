@@ -1,24 +1,18 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.CHUNK_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.LINES_IN_CHUNK;
-import static org.mmtk.policy.immix.ImmixConstants.LINE_MASK;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_LINES_IN_BLOCK;
+import static org.mmtk.policy.immix.ImmixConstants.*;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
@@ -47,25 +41,25 @@ public class Line implements Constants {
  /***************************************************************************
   * Line marking
   */
-  static void mark(Address address) {
+  static void mark(Address address, final byte markValue) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Block.isUnused(Block.align(address)));
-    getMarkAddress(address).store(LINE_MARK_VALUE);
+    getMarkAddress(address).store(markValue);
   }
 
-  static void markMultiLine(Address start, ObjectReference object) {
+  static void markMultiLine(Address start, ObjectReference object, final byte markValue) {
     /* endLine is the address of the last (highest) line touched by this object */
     Address endLine = Line.align(VM.objectModel.getObjectEndAddress(object).minus(1));
     Address line = Line.align(start.plus(BYTES_IN_LINE));
     while (line.LT(endLine)) {
       if (VM.VERIFY_ASSERTIONS)
         VM.assertions._assert(Block.align(start) == Block.align(line));
-      mark(line);
+      mark(line, markValue);
       line = line.plus(BYTES_IN_LINE);
     }
   }
 
   /***************************************************************************
-   * Scanning through line marks
+   * Scanning through avail lines
    */
   public static Address getChunkMarkTable(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Chunk.isAligned(chunk));
@@ -78,33 +72,23 @@ public class Line implements Constants {
   }
 
   @Inline
-  public static int getNextUsed(Address baseLineMarkAddress, int line) {
-    return getNext(baseLineMarkAddress, line, LINE_MARK_VALUE);
-  }
-
-  @Inline
-  public static int getNextUnused(Address baseLineMarkAddress, int line) {
-    return getNextDoubleLine(baseLineMarkAddress, line, LINE_UNMARKED_VALUE);
-  }
-
-  @Inline
-  private static int getNext(Address baseLineMarkAddress, int line, final byte test) {
+  public static int getNextUnavailable(Address baseLineAvailAddress, int line, final byte unavailableState) {
     while (line < LINES_IN_BLOCK &&
-          baseLineMarkAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_MARK)) != test)
+        baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS)) < unavailableState)
       line++;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(line >= 0 && line <= LINES_IN_BLOCK);
     return line;
   }
 
   @Inline
-  private static int getNextDoubleLine(Address baseLineMarkAddress, int line, final byte test) {
+  public static int getNextAvailable(Address baseLineAvailAddress, int line, final byte unavailableState) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(line >= 0 && line < LINES_IN_BLOCK);
-    byte last = baseLineMarkAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_MARK));
+    byte last = baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS));
     byte thisline;
     line++;
     while (line < LINES_IN_BLOCK) {
-      thisline = baseLineMarkAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_MARK));
-      if (thisline == test && last == test)
+      thisline = baseLineAvailAddress.loadByte(Offset.fromIntZeroExtend(line<<Line.LOG_BYTES_IN_LINE_STATUS));
+      if (thisline < unavailableState && last < unavailableState)
         break;
       last = thisline;
       line++;
@@ -113,26 +97,29 @@ public class Line implements Constants {
     return line;
   }
 
-  private static Address getMarkAddress(Address address) {
+  private static Address getMetaAddress(Address address, final int tableOffset) {
     Address chunk = Chunk.align(address);
     int index = getChunkIndex(address);
-    Address rtn = chunk.plus(Chunk.LINE_MARK_TABLE_OFFSET).plus(index<<LOG_BYTES_IN_LINE_MARK);
+    Address rtn = chunk.plus(tableOffset + (index<<LOG_BYTES_IN_LINE_STATUS));
     if (VM.VERIFY_ASSERTIONS) {
       Address line = chunk.plus(index<<LOG_BYTES_IN_LINE);
       VM.assertions._assert(isAligned(line));
       VM.assertions._assert(align(address).EQ(line));
-      boolean valid = rtn.GE(chunk.plus(Chunk.LINE_MARK_TABLE_OFFSET)) && rtn.LT(chunk.plus(Chunk.LINE_MARK_TABLE_OFFSET+Line.LINE_MARK_TABLE_BYTES));
+      boolean valid = rtn.GE(chunk.plus(tableOffset)) && rtn.LT(chunk.plus(tableOffset + LINE_MARK_TABLE_BYTES));
       VM.assertions._assert(valid);
     }
     return rtn;
   }
 
-  /* per-line mark bytes */
-  private static final byte LINE_MARK_VALUE = 1;
-          static final byte LINE_UNMARKED_VALUE = 0;
+  private static Address getMarkAddress(Address address) {
+    return getMetaAddress(address, Chunk.LINE_MARK_TABLE_OFFSET);
+  }
 
-  static final int LOG_BYTES_IN_LINE_MARK = 0;
-  static final int LINE_MARK_TABLE_BYTES = LINES_IN_CHUNK<<LOG_BYTES_IN_LINE_MARK;
-  static final int LOG_LINE_MARK_BYTES_PER_BLOCK = LOG_LINES_IN_BLOCK+LOG_BYTES_IN_LINE_MARK;
+  /* per-line mark bytes */
+  static final int LOG_BYTES_IN_LINE_STATUS = 0;
+  static final int BYTES_IN_LINE_STATUS = 1<<LOG_BYTES_IN_LINE_STATUS;
+
+  static final int LINE_MARK_TABLE_BYTES = LINES_IN_CHUNK<<LOG_BYTES_IN_LINE_STATUS;
+  static final int LOG_LINE_MARK_BYTES_PER_BLOCK = LOG_LINES_IN_BLOCK+LOG_BYTES_IN_LINE_STATUS;
   static final int LINE_MARK_BYTES_PER_BLOCK = (1<<LOG_LINE_MARK_BYTES_PER_BLOCK);
 }

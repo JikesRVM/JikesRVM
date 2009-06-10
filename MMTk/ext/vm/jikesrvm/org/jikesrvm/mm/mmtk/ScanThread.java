@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -26,7 +26,6 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
@@ -35,6 +34,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
+import org.jikesrvm.ArchitectureSpecific.Registers;
 
 /**
  * Class that supports scanning thread stacks for references during
@@ -91,8 +91,8 @@ import org.vmmagic.unboxed.Offset;
    * MULTIPLE GC THREADS WILL PRODUCE SCRAMBLED OUTPUT so only
    * use these when running with PROCESSORS=1
    */
-  static final int DEFAULT_VERBOSITY = 0;
-  static final int FAILURE_VERBOSITY = 3;
+  static final int DEFAULT_VERBOSITY = 0 /*0*/;
+  static final int FAILURE_VERBOSITY = 4;
 
   /***********************************************************************
    *
@@ -122,8 +122,19 @@ import org.vmmagic.unboxed.Offset;
    */
   public static void scanThread(RVMThread thread, TraceLocal trace,
                                 boolean processCodeLocations) {
+    if (DEFAULT_VERBOSITY>=1) {
+      VM.sysWriteln("scanning ",thread.getThreadSlot());
+    }
+
     /* get the gprs associated with this thread */
-    Address gprs = Magic.objectAsAddress(thread.getContextRegisters().gprs);
+    Registers regs=thread.getContextRegisters();
+    Address gprs = Magic.objectAsAddress(regs.gprs);
+
+    Address ip=regs.getInnermostInstructionAddress();
+    Address fp=regs.getInnermostFramePointer();
+    regs.clear();
+    regs.setInnermost(ip,fp);
+
     scanThread(thread, trace, processCodeLocations, gprs, Address.zero());
   }
 
@@ -149,9 +160,13 @@ import org.vmmagic.unboxed.Offset;
    * @param topFrame The top frame of the stack being scanned, or zero
    * if this is to be inferred from the thread (normally the case).
    */
-  public static void scanThread(RVMThread thread, TraceLocal trace,
-                                boolean processCodeLocations,
-                                Address gprs, Address topFrame) {
+  private static void scanThread(RVMThread thread, TraceLocal trace,
+                                 boolean processCodeLocations,
+                                 Address gprs, Address topFrame) {
+    // figure out if the thread should be scanned at all; if not, exit
+    if (thread.getExecStatus()==RVMThread.NEW || thread.getIsAboutToTerminate()) {
+      return;
+    }
     /* establish ip and fp for the stack to be scanned */
     Address ip, fp, initialIPLoc;
     if (topFrame.isZero()) { /* implicit top of stack, inferred from thread */
@@ -165,19 +180,19 @@ import org.vmmagic.unboxed.Offset;
     }
 
     /* Registers */
-    reportDelayedRootEdge(trace, Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersField.getOffset()));
-    reportDelayedRootEdge(trace, Magic.objectAsAddress(thread).plus(Entrypoints.threadExceptionRegistersField.getOffset()));
+    reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersField.getOffset()));
+    reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersSaveField.getOffset()));
+    reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.threadExceptionRegistersField.getOffset()));
 
     /* Scan the JNI Env field */
     if (thread.getJNIEnv() != null) {
-      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread).plus(Entrypoints.jniEnvField.getOffset()));
-      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIRefsField.getOffset()));
-      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIEnvSavedPRField.getOffset()));
-      reportDelayedRootEdge(trace, Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIPendingExceptionField.getOffset()));
+      reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.jniEnvField.getOffset()));
+      reportDelayedRootEdge(trace,Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIRefsField.getOffset()));
+      reportDelayedRootEdge(trace,Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIPendingExceptionField.getOffset()));
     }
 
     /* Grab the ScanThread instance associated with this thread */
-    ScanThread scanner = Magic.threadAsCollectorThread(Scheduler.getCurrentThread()).getThreadScanner();
+    ScanThread scanner = Magic.threadAsCollectorThread(RVMThread.getCurrentThread()).getThreadScanner();
 
     /* scan the stack */
     scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame);
@@ -236,7 +251,14 @@ import org.vmmagic.unboxed.Offset;
    * performing the scan.
    */
   private void scanThreadInternal(Address gprs, int verbosity) {
-    if (verbosity >= 1) Log.writeln("--- Start Of Stack Scan ---\n");
+    if (false) {
+      VM.sysWriteln("Scanning thread ",thread.getThreadSlot()," from thread ",RVMThread.getCurrentThreadSlot());
+    }
+    if (verbosity >= 2) {
+      Log.writeln("--- Start Of Stack Scan ---\n");
+      Log.write("Thread #");
+      Log.writeln(thread.getThreadSlot());
+    }
     if (VM.VerifyAssertions) assertImmovableInCurrentCollection();
 
     /* first find any references to exception handlers in the registers */
@@ -245,7 +267,7 @@ import org.vmmagic.unboxed.Offset;
     /* reinitialize the stack iterator group */
     iteratorGroup.newStackWalk(thread, gprs);
 
-    if (verbosity >= 1) dumpTopFrameInfo(verbosity);
+    if (verbosity >= 2) dumpTopFrameInfo(verbosity);
 
     /* scan each frame if a non-empty stack */
     if (fp.NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
@@ -254,6 +276,9 @@ import org.vmmagic.unboxed.Offset;
          fp -> frame for method invocation being processed
          ip -> instruction pointer in the method (normally a call site) */
       while (Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+        if (false) {
+          VM.sysWriteln("Thread ",RVMThread.getCurrentThreadSlot()," at fp = ",fp);
+        }
         prevFp = scanFrame(verbosity);
         ip = Magic.getReturnAddress(fp);
         fp = Magic.getCallerFramePointer(fp);
@@ -263,7 +288,7 @@ import org.vmmagic.unboxed.Offset;
     /* If a thread started via createVM or attachVM, base may need scaning */
     checkJNIBase();
 
-    if (verbosity >= 1) Log.writeln("--- End Of Stack Scan ---\n");
+    if (verbosity >= 2) Log.writeln("--- End Of Stack Scan ---\n");
   }
 
   /**
@@ -357,7 +382,7 @@ import org.vmmagic.unboxed.Offset;
     if (compiledMethodType != CompiledMethod.TRAP &&
         compiledMethod.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
       fp = RuntimeEntrypoints.unwindNativeStackFrameForGC(fp);
-      if (verbosity >= 1) Log.write("scanFrame skipping native C frames\n");
+      if (verbosity >= 2) Log.write("scanFrame skipping native C frames\n");
     }
     return fp;
   }
@@ -379,7 +404,7 @@ import org.vmmagic.unboxed.Offset;
 
     /* skip "invisible" transition frames generated by reflection and JNI) */
     if (compiledMethodId == ArchitectureSpecific.ArchConstants.INVISIBLE_METHOD_ID) {
-      if (verbosity >= 1) Log.writeln("\n--- METHOD <invisible method>");
+      if (verbosity >= 2) Log.writeln("\n--- METHOD <invisible method>");
       return false;
     }
 
@@ -389,7 +414,7 @@ import org.vmmagic.unboxed.Offset;
 
     compiledMethodType = compiledMethod.getCompilerType();
 
-    if (verbosity >= 1) printMethodHeader();
+    if (verbosity >= 2) printMethodHeader();
 
     /* get the code associated with this frame */
     Offset offset = compiledMethod.getInstructionOffset(ip);
@@ -398,8 +423,8 @@ import org.vmmagic.unboxed.Offset;
     iterator = iteratorGroup.selectIterator(compiledMethod);
     iterator.setupIterator(compiledMethod, offset, fp);
 
-    if (verbosity >= 2) dumpStackFrame(verbosity);
-    if (verbosity >= 3) Log.writeln("--- Refs Reported By GCMap Iterator ---");
+    if (verbosity >= 3) dumpStackFrame(verbosity);
+    if (verbosity >= 4) Log.writeln("--- Refs Reported By GCMap Iterator ---");
 
     return true;
   }
@@ -425,7 +450,7 @@ import org.vmmagic.unboxed.Offset;
          !refaddr.isZero();
          refaddr = iterator.getNextReferenceAddress()) {
       if (VALIDATE_REFS) checkReference(refaddr, verbosity);
-      if (verbosity >= 3) dumpRef(refaddr, verbosity);
+      if (verbosity >= 4) dumpRef(refaddr, verbosity);
       reportDelayedRootEdge(trace, refaddr);
     }
   }
@@ -483,7 +508,7 @@ import org.vmmagic.unboxed.Offset;
    */
   private void pushFrameIP(ObjectReference code, int verbosity) {
     if (prevFp.isZero()) {  /* top of stack: IP in thread state */
-      if (verbosity >= 2) {
+      if (verbosity >= 3) {
         Log.write(" t.contextRegisters.ip    = ");
         Log.writeln(thread.getContextRegisters().ip);
         Log.write("*t.contextRegisters.iploc = ");
@@ -492,13 +517,13 @@ import org.vmmagic.unboxed.Offset;
       /* skip native code, as it is not (cannot be) moved */
       if (compiledMethodType != CompiledMethod.JNI)
         processCodeLocation(code, initialIPLoc);
-      else if (verbosity >=3) {
+      else if (verbosity >= 4) {
         Log.writeln("GC Warning: SKIPPING return address for JNI code");
       }
     } else {  /* below top of stack: IP is return address, in prev frame */
       Address returnAddressLoc = Magic.getReturnAddressLocation(prevFp);
       Address returnAddress = returnAddressLoc.loadAddress();
-      if (verbosity >= 3) {
+      if (verbosity >= 4) {
         Log.write("--- Processing return address "); Log.write(returnAddress);
         Log.write(" located at "); Log.writeln(returnAddressLoc);
       }
@@ -593,7 +618,7 @@ import org.vmmagic.unboxed.Offset;
     Log.write("         ip = "); Log.writeln(ip);
     Log.write("         fp = "); Log.writeln(fp);
     Log.write("  registers.ip = "); Log.writeln(thread.getContextRegisters().ip);
-    if (verbosity >= 2 && thread.getJNIEnv() != null)
+    if (verbosity >= 3 && thread.getJNIEnv() != null)
       thread.getJNIEnv().dumpJniRefsStack();
   }
 
@@ -607,7 +632,7 @@ import org.vmmagic.unboxed.Offset;
   private void dumpRef(Address refaddr, int verbosity) {
     ObjectReference ref = refaddr.loadObjectReference();
     VM.sysWrite(refaddr);
-    if (verbosity >= 4) {
+    if (verbosity >= 5) {
       VM.sysWrite(":"); MemoryManager.dumpRef(ref);
     } else
       VM.sysWriteln();
@@ -631,11 +656,11 @@ import org.vmmagic.unboxed.Offset;
       dumpStackFrame(verbosity);
       Log.writeln();
       Log.writeln("Dumping stack starting at frame with bad ref:");
-      Scheduler.dumpStack(ip, fp);
+      RVMThread.dumpStack(ip, fp);
       /* dump stack starting at top */
       Address top_ip = thread.getContextRegisters().getInnermostInstructionAddress();
       Address top_fp = thread.getContextRegisters().getInnermostFramePointer();
-      Scheduler.dumpStack(top_ip, top_fp);
+      RVMThread.dumpStack(top_ip, top_fp);
       Log.writeln("Failing iterators:");
       Offset offset = compiledMethod.getInstructionOffset(ip);
       iterator = iteratorGroup.selectIterator(compiledMethod);
@@ -644,9 +669,9 @@ import org.vmmagic.unboxed.Offset;
       for (Address addr = iterator.getNextReferenceAddress();
            !addr.isZero();
            addr = iterator.getNextReferenceAddress()) {
-         ObjectReference ref2 = addr.loadObjectReference();
-         Log.write("Iterator "); Log.write(i++); Log.write(": "); Log.write(addr);
-         Log.write(": "); Log.flush(); MemoryManager.dumpRef(ref2);
+        ObjectReference ref2 = addr.loadObjectReference();
+        Log.write("Iterator "); Log.write(i++); Log.write(": "); Log.write(addr);
+        Log.write(": "); Log.flush(); MemoryManager.dumpRef(ref2);
       }
       VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
@@ -666,11 +691,10 @@ import org.vmmagic.unboxed.Offset;
       Log.write(refaddr); Log.write(":"); Log.flush(); MemoryManager.dumpRef(ref);
       Log.writeln();
       Log.writeln("Dumping stack:");
-      Scheduler.dumpStack();
+      RVMThread.dumpStack();
       VM.sysFail("\n\nScanStack: Detected bad GC map; exiting RVM with fatal error");
     }
   }
-
   /**
    * Print out the name of a method
    *
@@ -743,7 +767,7 @@ import org.vmmagic.unboxed.Offset;
       Log.write(value);
       Log.write(" ");
       Log.flush();
-      if (verbosity >= 3 && MemoryManager.objectInVM(value) && loc.NE(start) && loc.NE(end))
+      if (verbosity >= 4 && MemoryManager.objectInVM(value) && loc.NE(start) && loc.NE(end))
         MemoryManager.dumpRef(value);
       else
         Log.writeln();

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -168,15 +168,15 @@ public class DF_Equation implements GraphNode {
     topologicalNumber = n;
   }
 
-  /** Implementation */
+  /* Implementation */
   /**
    * The operator in the equation
    */
-  protected DF_Operator operator;
+  protected final DF_Operator operator;
   /**
    * The operands. Operand[0] is the left hand side.
    */
-  protected DF_LatticeCell[] operands;
+  protected final DF_LatticeCell[] operands;
   /**
    * The number of this equation when the system is sorted in topological
    * order.

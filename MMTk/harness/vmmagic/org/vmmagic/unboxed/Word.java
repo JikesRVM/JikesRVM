@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -23,10 +23,14 @@ import org.vmmagic.pragma.RawStorage;
 @RawStorage(lengthInWords = true, length = 1)
 public final class Word {
 
-  final int value;
+  final ArchitecturalWord value;
 
-  Word(int value) {
+  Word(ArchitecturalWord value) {
     this.value = value;
+  }
+
+  Word(long value) {
+    this(ArchitecturalWord.fromLong(value));
   }
 
   /**
@@ -47,8 +51,9 @@ public final class Word {
    * @param val
    * @return
    */
+  @SuppressWarnings("cast")
   public static Word fromIntZeroExtend(int val) {
-    return new Word(val);
+    return new Word(((long)val) & 0xFFFFFFFFL);
   }
 
   /**
@@ -58,7 +63,7 @@ public final class Word {
    * @return
    */
   public static Word fromLong(long val) {
-    return new Word((int)val);
+    return new Word(val);
   }
 
   /**
@@ -97,7 +102,7 @@ public final class Word {
    * @return
    */
   public int toInt() {
-    return value;
+    return value.toInt();
   }
 
   /**
@@ -105,7 +110,7 @@ public final class Word {
    * @return
    */
   public long toLong() {
-    return ((long)value) & 0x00000000FFFFFFFFL;
+    return value.toLongZeroExtend();
   }
 
   /** Type-cast to an address. */
@@ -130,7 +135,7 @@ public final class Word {
    * @return
    */
   public Word plus(Word w2) {
-    return new Word(value + w2.value);
+    return new Word(value.plus(w2.toLong()));
   }
 
   /**
@@ -139,7 +144,7 @@ public final class Word {
    * @return
    */
   public Word plus(Offset w2) {
-    return new Word(value + w2.value);
+    return new Word(value.plus(w2.toLong()));
   }
 
   /**
@@ -148,7 +153,7 @@ public final class Word {
    * @return
    */
   public Word plus(Extent w2) {
-    return new Word(value + w2.value);
+    return new Word(value.plus(w2.toLong()));
   }
 
   /**
@@ -157,7 +162,7 @@ public final class Word {
    * @return
    */
   public Word minus(Word w2) {
-    return new Word(value - w2.value);
+    return new Word(value.minus(w2.toLong()));
   }
 
   /**
@@ -166,7 +171,7 @@ public final class Word {
    * @return
    */
   public Word minus(Offset w2) {
-    return new Word(value - w2.value);
+    return new Word(value.minus(w2.toLong()));
   }
 
   /**
@@ -175,7 +180,7 @@ public final class Word {
    * @return
    */
   public Word minus(Extent w2) {
-    return new Word(value - w2.value);
+    return new Word(value.minus(w2.toLong()));
   }
 
   /**
@@ -183,7 +188,7 @@ public final class Word {
    * @return
    */
   public boolean isZero() {
-    return value == 0;
+    return value.isZero();
   }
 
   /**
@@ -191,7 +196,7 @@ public final class Word {
    * @return
    */
   public boolean isMax() {
-    return value == 0xFFFFFFFF;
+    return value.isMax();
   }
 
   /**
@@ -199,11 +204,8 @@ public final class Word {
    * @param addr2
    * @return
    */
-  public boolean LT(Word addr2) {
-    if (value >= 0 && addr2.value >= 0) return value < addr2.value;
-    if (value < 0 && addr2.value < 0) return value < addr2.value;
-    if (value < 0) return false;
-    return true;
+  public boolean LT(Word w2) {
+    return value.LT(w2.value);
   }
 
   /**
@@ -212,7 +214,7 @@ public final class Word {
    * @return
    */
   public boolean LE(Word w2) {
-    return EQ(w2) || LT(w2);
+    return value.LE(w2.value);
   }
 
   /**
@@ -230,7 +232,7 @@ public final class Word {
    * @return
    */
   public boolean GE(Word w2) {
-    return EQ(w2) || GT(w2);
+    return value.GE(w2.value);
   }
 
   /**
@@ -239,7 +241,7 @@ public final class Word {
    * @return
    */
   public boolean EQ(Word w2) {
-    return value == w2.value;
+    return value.EQ(w2.value);
   }
 
   /**
@@ -248,7 +250,7 @@ public final class Word {
    * @return
    */
   public boolean NE(Word w2) {
-    return !EQ(w2);
+    return value.NE(w2.value);
   }
 
   /**
@@ -257,7 +259,7 @@ public final class Word {
    * @return
    */
   public Word and(Word w2) {
-    return new Word(value & w2.value);
+    return new Word(value.and(w2.value));
   }
 
   /**
@@ -266,7 +268,7 @@ public final class Word {
    * @return
    */
   public Word or(Word w2) {
-    return new Word(value | w2.value);
+    return new Word(value.or(w2.value));
   }
 
   /**
@@ -275,7 +277,7 @@ public final class Word {
    * @return
    */
   public Word not() {
-    return new Word(~value);
+    return new Word(value.not());
   }
 
   /**
@@ -284,7 +286,7 @@ public final class Word {
    * @return
    */
   public Word xor(Word w2) {
-    return new Word(value ^ w2.value);
+    return new Word(value.xor(w2.value));
   }
 
   /**
@@ -299,7 +301,7 @@ public final class Word {
    * @return new Word shifted by the given amount
    */
   public Word lsh(int amt) {
-    return new Word(value << amt);
+    return new Word(value.lsh(amt));
   }
 
   /**
@@ -310,7 +312,7 @@ public final class Word {
    * @return new Word shifted by the given amount
    */
   public Word rshl(int amt) {
-    return new Word(value >>> amt);
+    return new Word(value.rshl(amt));
   }
 
   /**
@@ -322,11 +324,11 @@ public final class Word {
    * @return new Word shifted by the given amount
    */
   public Word rsha(int amt) {
-    return new Word(value >> amt);
+    return new Word(value.rsha(amt));
   }
 
   public String toString() {
-    return Address.formatInt(value);
+    return value.toString();
   }
 }
 

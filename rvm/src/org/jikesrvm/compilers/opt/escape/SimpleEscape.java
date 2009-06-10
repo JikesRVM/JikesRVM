@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -162,8 +162,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  *       problem, and solved with iteration
  */
 class SimpleEscape extends CompilerPhase {
-  private static final boolean DEBUG = false;
-
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.
@@ -175,7 +173,7 @@ class SimpleEscape extends CompilerPhase {
   }
 
   public final boolean shouldPerform(OptOptions options) {
-    return options.SIMPLE_ESCAPE_IPA;
+    return options.ESCAPE_SIMPLE_IPA;
   }
 
   public final String getName() {
@@ -201,6 +199,7 @@ class SimpleEscape extends CompilerPhase {
    * @param ir IR for the target method
    */
   public FI_EscapeSummary simpleEscapeAnalysis(IR ir) {
+    final boolean DEBUG = false;
     if (DEBUG) {
       VM.sysWrite("ENTER Simple Escape Analysis " + ir.method + "\n");
     }
@@ -486,6 +485,10 @@ class SimpleEscape extends CompilerPhase {
         }
         // pure methods don't let object escape
         if (mop.getTarget().isPure()) {
+          return false;
+        }
+        // Assume non-annotated native methods let object escape
+        if (mop.getTarget().isNative()) {
           return false;
         }
         // try to get a method summary for the called method
@@ -775,7 +778,7 @@ class SimpleEscape extends CompilerPhase {
   private static MethodSummary findOrCreateMethodSummary(RVMMethod m, OptOptions options) {
     MethodSummary summ = SummaryDatabase.findMethodSummary(m);
     if (summ == null) {
-      if (options.SIMPLE_ESCAPE_IPA) {
+      if (options.ESCAPE_SIMPLE_IPA) {
         performSimpleEscapeAnalysis(m, options);
         summ = SummaryDatabase.findMethodSummary(m);
       }
@@ -789,7 +792,7 @@ class SimpleEscape extends CompilerPhase {
    * Perform the simple escape analysis for a method.
    */
   private static void performSimpleEscapeAnalysis(RVMMethod m, OptOptions options) {
-    if (!options.SIMPLE_ESCAPE_IPA) {
+    if (!options.ESCAPE_SIMPLE_IPA) {
       return;
     }
     // do not perform for unloaded methods
@@ -816,7 +819,7 @@ class SimpleEscape extends CompilerPhase {
   private static OptimizationPlanElement initEscapePlan() {
     return OptimizationPlanCompositeElement.compose("Escape Analysis",
                                                         new Object[]{new ConvertBCtoHIR(),
-                                                                     new Simple(1, true, true, false),
+                                                                     new Simple(1, true, true, false, false),
                                                                      new SimpleEscape()});
   }
 

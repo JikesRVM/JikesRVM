@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -13,7 +13,7 @@
 package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -35,21 +35,34 @@ import org.vmmagic.unboxed.Word;
  */
 public interface ThinLockConstants extends SizeConstants {
 
-  int NUM_BITS_TID = Scheduler.LOG_MAX_THREADS;
-  int NUM_BITS_RC = JavaHeader.NUM_THIN_LOCK_BITS - NUM_BITS_TID;
+  // biased locking / thin locking status bits:
+  // 00 -> thin biasable, and biased if TID is non-zero
+  // 01 -> thin unbiasable
+  // 10 -> fat unbiasable
 
-  int TL_LOCK_COUNT_SHIFT = JavaHeader.THIN_LOCK_SHIFT;
-  int TL_THREAD_ID_SHIFT = TL_LOCK_COUNT_SHIFT + NUM_BITS_RC;
+  int TL_NUM_BITS_STAT = 2;
+  int TL_NUM_BITS_TID = RVMThread.LOG_MAX_THREADS;
+  int TL_NUM_BITS_RC = JavaHeader.NUM_THIN_LOCK_BITS - TL_NUM_BITS_TID - TL_NUM_BITS_STAT;
+
+  int TL_THREAD_ID_SHIFT = JavaHeader.THIN_LOCK_SHIFT;
+  int TL_LOCK_COUNT_SHIFT = TL_THREAD_ID_SHIFT + TL_NUM_BITS_TID;
+  int TL_STAT_SHIFT = TL_LOCK_COUNT_SHIFT + TL_NUM_BITS_RC;
   int TL_LOCK_ID_SHIFT = JavaHeader.THIN_LOCK_SHIFT;
+  int TL_DEDICATED_U16_OFFSET = JavaHeader.THIN_LOCK_DEDICATED_U16_OFFSET;
+  int TL_DEDICATED_U16_SHIFT = JavaHeader.THIN_LOCK_DEDICATED_U16_SHIFT;
 
-  int TL_LOCK_COUNT_UNIT = 1 << TL_LOCK_COUNT_SHIFT;
+  Word TL_LOCK_COUNT_UNIT = Word.fromIntSignExtend(1 << TL_LOCK_COUNT_SHIFT);
 
-  Word TL_LOCK_COUNT_MASK = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - NUM_BITS_RC).lsh(TL_LOCK_COUNT_SHIFT);
-  Word TL_THREAD_ID_MASK = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - NUM_BITS_TID).lsh(TL_THREAD_ID_SHIFT);
+  Word TL_LOCK_COUNT_MASK = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - TL_NUM_BITS_RC).lsh(TL_LOCK_COUNT_SHIFT);
+  Word TL_THREAD_ID_MASK = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - TL_NUM_BITS_TID).lsh(TL_THREAD_ID_SHIFT);
   Word TL_LOCK_ID_MASK =
-      Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - (NUM_BITS_RC + NUM_BITS_TID - 1)).lsh(TL_LOCK_ID_SHIFT);
-  Word TL_FAT_LOCK_MASK = Word.one().lsh(JavaHeader.THIN_LOCK_SHIFT + NUM_BITS_RC + NUM_BITS_TID - 1);
+      Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - (TL_NUM_BITS_RC + TL_NUM_BITS_TID)).lsh(TL_LOCK_ID_SHIFT);
+  Word TL_STAT_MASK = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - TL_NUM_BITS_TID).lsh(TL_STAT_SHIFT);
   Word TL_UNLOCK_MASK = Word.fromIntSignExtend(-1).rshl(BITS_IN_ADDRESS - JavaHeader
       .NUM_THIN_LOCK_BITS).lsh(JavaHeader.THIN_LOCK_SHIFT).not();
+
+  Word TL_STAT_BIASABLE = Word.fromIntSignExtend(0).lsh(TL_STAT_SHIFT);
+  Word TL_STAT_THIN = Word.fromIntSignExtend(1).lsh(TL_STAT_SHIFT);
+  Word TL_STAT_FAT = Word.fromIntSignExtend(2).lsh(TL_STAT_SHIFT);
 }
 

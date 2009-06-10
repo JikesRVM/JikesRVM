@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -35,19 +35,19 @@ import org.vmmagic.unboxed.*;
   private static final Offset DATA_OFFSET = Offset.fromIntSignExtend(BYTES_IN_WORD);
 
   /** The size of each entry in the table */
-  private Extent entrySize;
+  private final Extent entrySize;
 
   /** The mask to use to get the hash code */
-  private Word mask;
+  private final Word mask;
 
   /** The start address of the data table */
   private Address base;
 
   /** The full size of the table */
-  private Extent size;
+  private final Extent size;
 
   /** The space to use for allocating the data structure */
-  private RawPageSpace space;
+  private final RawPageSpace space;
 
   /** Is this table valid (created) */
   private boolean valid;

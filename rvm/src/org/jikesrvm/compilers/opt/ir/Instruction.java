@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -231,14 +231,12 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * of operands.
    * For internal use only -- general clients must use the appropriate
    * InstructionFormat class's create and mutate methods to create
-   * instruction objects!!!  But, because we put the InstructionFormat
-   * classes in their own package for name space control, we have to
-   * make this constructor public.  What a crock!
+   * instruction objects!!!
    *
    * @param op operator
    * @param size number of operands
    */
-  public Instruction(Operator op, int size) {
+  Instruction(Operator op, int size) {
     operator = op;
     ops = new Operand[size];
   }
@@ -380,6 +378,14 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
+   * @return has this instruction been linked with a previous instruction? ie
+   *         will calls to insertBefore succeed?
+   */
+  public boolean hasPrev() {
+    return prev != null;
+  }
+
+  /**
    * Get the basic block that contains this instruction.
    * Note: this instruction takes O(1) time for LABEL and BBEND
    * instructions, but will take O(# of instrs in the block)
@@ -400,13 +406,13 @@ public final class Instruction implements Constants, Operators, OptConstants {
     }
   }
 
-  /*
-  * Set the source position description ({@link #bcIndex},
-  * {@link #position}) for this instruction to be the same as the
-  * source instruction's source position description.
-  *
-  * @param source the instruction to copy the source position from
-  */
+  /**
+   * Set the source position description ({@link #bcIndex},
+   * {@link #position}) for this instruction to be the same as the
+   * source instruction's source position description.
+   *
+   * @param source the instruction to copy the source position from
+   */
   public void copyPosition(Instruction source) {
     bcIndex = source.bcIndex;
     position = source.position;
@@ -1577,7 +1583,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   /*
   * Implementation: Operand enumeration classes
   */
-  // Shared functionality
+  /** Shared functionality for operand enumerations */
   private abstract static class BASE_OE implements OperandEnumeration {
     protected final Instruction instr;
     protected int i;
@@ -1612,7 +1618,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
     }
   }
 
-  // enumerate leaf operands in the given ranges
+  /** enumerate leaf operands in the given ranges */
   private static final class OE extends BASE_OE {
     private final int defEnd;
     private Operand deferredMOReg;
@@ -1667,8 +1673,10 @@ public final class Instruction implements Constants, Operators, OptConstants {
     }
   }
 
-  // Enumerate the def operands of an instruction (ignores memory
-  // operands, since the contained operands of a MO are uses).
+  /**
+   * Enumerate the def operands of an instruction (ignores memory
+   * operands, since the contained operands of a MO are uses).
+   */
   private static final class OEDefsOnly extends BASE_OE {
     public OEDefsOnly(Instruction instr, int start, int end) {
       super(instr, start, end);
@@ -1693,7 +1701,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
     }
   }
 
-  // Enumerate the memory operands of an instruction
+  /** Enumerate the memory operands of an instruction */
   private static final class MOE extends BASE_OE {
     public MOE(Instruction instr, int start, int end) {
       super(instr, start, end);
@@ -1718,7 +1726,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
     }
   }
 
-  // Enumerate the root operands of an instruction
+  /** Enumerate the root operands of an instruction */
   private static final class ROE extends BASE_OE {
     public ROE(Instruction instr, int start, int end) {
       super(instr, start, end);
@@ -1848,7 +1856,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return the contents of {@link #next}
    */
-   public Instruction getNext() {
+  Instruction getNext() {
     return next;
   }
 
@@ -1869,7 +1877,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return the contents of {@link #prev}
    */
-  public Instruction getPrev() {
+  Instruction getPrev() {
     return prev;
   }
 
@@ -1937,11 +1945,10 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Temp kludge for BURS as we bring the ir package on line
-   * @deprecated
+   * Allow BURS a back door into linkWithNext. This method should only be called
+   * within BURS.
    */
-  @Deprecated
-  public void BURS_KLUDGE_linkWithNext(Instruction other) {
+  public void BURS_backdoor_linkWithNext(Instruction other) {
     linkWithNext(other);
   }
 

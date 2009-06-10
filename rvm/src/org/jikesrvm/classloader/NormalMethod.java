@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -121,6 +121,11 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
    */
   private final int[] lineNumberMap;
 
+  /**
+   * the local variable table
+   */
+  private static final HashMapRVM<NormalMethod, LocalVariableTable> localVariableTables = new HashMapRVM<NormalMethod, LocalVariableTable>();
+
   // Extra fields for on-stack replacement
   /** Possible OSR bytecode array consisting of prologue and original bytecodes */
   private static final HashMapRVM<NormalMethod, byte[]> synthesizedBytecodes =
@@ -147,6 +152,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
    * @param bc the bytecodes of this method
    * @param eMap the exception handler map for this method
    * @param lm the line number map for this method
+   * @param lvt the local variable table for this method
    * @param constantPool the constantPool for this method
    * @param sig generic type of this method.
    * @param annotations array of runtime visible annotations
@@ -154,7 +160,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
    * @param ad annotation default value for that appears in annotation classes
    */
   NormalMethod(TypeReference dc, MemberReference mr, short mo, TypeReference[] et, short lw, short ow,
-                  byte[] bc, ExceptionHandlerMap eMap, int[] lm, int[] constantPool, Atom sig,
+                  byte[] bc, ExceptionHandlerMap eMap, int[] lm, LocalVariableTable lvt, int[] constantPool, Atom sig,
                   RVMAnnotation[] annotations, RVMAnnotation[][] parameterAnnotations, Object ad) {
     super(dc, mr, mo, et, sig, annotations, parameterAnnotations, ad);
     localWords = lw;
@@ -162,6 +168,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
     bytecodes = bc;
     exceptionHandlerMap = eMap;
     lineNumberMap = lm;
+    localVariableTables.put(this, lvt);
     computeSummary(constantPool);
   }
 
@@ -784,5 +791,12 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
     } else {
       summarySize = (char) calleeSize;
     }
+  }
+
+  /**
+   * @return LocalVariableTable associated with this method
+   */
+  public LocalVariableTable getLocalVariableTable() {
+    return localVariableTables.get(this);
   }
 }

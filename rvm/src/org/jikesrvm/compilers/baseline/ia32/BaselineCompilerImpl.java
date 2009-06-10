@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -37,7 +37,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.ia32.BaselineConstants;
-import org.jikesrvm.ia32.ProcessorLocalState;
+import org.jikesrvm.ia32.ThreadLocalState;
 import org.jikesrvm.jni.ia32.JNICompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
@@ -89,34 +89,34 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     //nothing to do for intel
   }
 
-  public final int getLastFixedStackRegister() {
+  public final byte getLastFixedStackRegister() {
     return -1; //doesn't dedicate registers to stack;
   }
 
-  public final int getLastFloatStackRegister() {
+  public final byte getLastFloatStackRegister() {
     return -1; //doesn't dedicate registers to stack;
   }
 
   @Uninterruptible
-  public static int getGeneralLocalLocation(int index, int[] localloc, NormalMethod m) {
+  public static short getGeneralLocalLocation(int index, short[] localloc, NormalMethod m) {
     return offsetToLocation(getStartLocalOffset(m) -
                             (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
   }
 
   @Uninterruptible
-  public static int getFloatLocalLocation(int index, int[] localloc, NormalMethod m) {
+  public static short getFloatLocalLocation(int index, short[] localloc, NormalMethod m) {
     return offsetToLocation(getStartLocalOffset(m) -
                             (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
   }
 
   @Uninterruptible
-  public static int locationToOffset(int location) {
+  public static int locationToOffset(short location) {
     return -location;
   }
 
   @Uninterruptible
-  public static int offsetToLocation(int offset) {
-    return -offset;
+  public static short offsetToLocation(int offset) {
+    return (short)-offset;
   }
 
   /**
@@ -136,6 +136,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   private static int getFirstLocalOffset(NormalMethod method) {
     if (method.getDeclaringClass().hasBridgeFromNativeAnnotation()) {
       return STACKFRAME_BODY_OFFSET - (JNICompiler.SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
+    } else if (method.hasBaselineSaveLSRegistersAnnotation()) {
+      return STACKFRAME_BODY_OFFSET - (SAVED_GPRS_FOR_SAVE_LS_REGISTERS << LG_WORDSIZE);
     } else {
       return STACKFRAME_BODY_OFFSET - (SAVED_GPRS << LG_WORDSIZE);
     }
@@ -172,7 +174,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
           if (debug) {
             asm.emitPUSH_Imm(0xFA3FACE);
           } else {
-           asm.emitPUSH_Reg(EAX);
+            asm.emitPUSH_Reg(EAX);
           }
           return;
         case 1:
@@ -194,6 +196,40 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         asm.emitADD_Reg_Imm(SP, size);
       } else {
         asm.emitADD_Reg_Imm_Quad(SP, size);
+      }
+    }
+  }
+
+  /**
+   * Move a value from the stack into a register using the shortest encoding and
+   * the appropriate width for 32/64
+   *
+   * @param dest register to load into
+   * @param off offset on stack
+   */
+  private void stackMoveHelper(GPR dest, Offset off) {
+    stackMoveHelper(asm, dest, off);
+  }
+
+  /**
+   * Move a value from the stack into a register using the shortest encoding and
+   * the appropriate width for 32/64
+   *
+   * @param dest register to load into
+   * @param off offset on stack
+   */
+  private static void stackMoveHelper(Assembler asm, GPR dest, Offset off) {
+    if (WORDSIZE == 4) {
+      if (off.isZero()) {
+        asm.emitMOV_Reg_RegInd(dest, SP);
+      } else {
+        asm.emitMOV_Reg_RegDisp(dest, SP, off);
+      }
+    } else {
+      if (off.isZero()) {
+        asm.emitMOV_Reg_RegInd_Quad(dest, SP);
+      } else {
+        asm.emitMOV_Reg_RegDisp_Quad(dest, SP, off);
       }
     }
   }
@@ -245,8 +281,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /*
-  * Loading constants
-  */
+   * Loading constants
+   */
 
   /**
    * Emit code to load the null constant.
@@ -334,7 +370,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_ldc(Offset offset, byte type) {
-      if (VM.BuildFor32Addr || (type == RVMClass.CP_CLASS) || (type == RVMClass.CP_STRING)) {
+      if (VM.BuildFor32Addr || (type == CP_CLASS) || (type == CP_STRING)) {
       asm.emitPUSH_Abs(Magic.getTocPointer().plus(offset));
     } else {
       asm.emitMOV_Reg_Abs(T0, Magic.getTocPointer().plus(offset));
@@ -668,31 +704,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_aastore() {
     Barriers.compileModifyCheck(asm, 8);
-    asm.emitPUSH_RegDisp(SP, TWO_SLOTS); // duplicate array ref
-    asm.emitPUSH_RegDisp(SP, ONE_SLOT);  // duplicate object value
-    genParameterRegisterLoad(asm, 2);    // pass 2 parameter
-    // call checkstore(array ref, value)
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.checkstoreMethod.getOffset()));
-    if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-      if (VM.BuildFor32Addr) {
-        asm.emitMOV_Reg_RegDisp(T0, SP, ONE_SLOT);  // T0 is array index
-        asm.emitMOV_Reg_RegDisp(S0, SP, TWO_SLOTS); // S0 is array ref
-      } else {
-        asm.emitMOV_Reg_RegDisp_Quad(T0, SP, ONE_SLOT);  // T0 is array index
-        asm.emitMOV_Reg_RegDisp_Quad(S0, SP, TWO_SLOTS); // S0 is array ref
-      }
-      genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
-      Barriers.compileArrayStoreBarrier(asm);
+    if (doesCheckStore) {
+      genParameterRegisterLoad(asm, 3);
+      asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.aastoreMethod.getOffset()));
     } else {
-      asm.emitPOP_Reg(T1); // T1 is the value
-      asm.emitPOP_Reg(T0); // T0 is array index
-      asm.emitPOP_Reg(S0); // S0 is array ref
-      genBoundsCheck(asm, T0, S0);        // T0 is index, S0 is address of array
-      if (VM.BuildFor32Addr) {
-        asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
-      } else {
-        asm.emitMOV_RegIdx_Reg_Quad(S0, T0, Assembler.LONG, NO_SLOT, T1); // [S0 + T0<<3] <- T1
-      }
+      genParameterRegisterLoad(asm, 3);
+      asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.aastoreUninterruptibleMethod.getOffset()));
     }
   }
 
@@ -782,8 +799,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /*
-  * expression stack manipulation
-  */
+   * expression stack manipulation
+   */
 
   /**
    * Emit code to implement the pop bytecode
@@ -906,8 +923,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /*
-  * int ALU
-  */
+   * int ALU
+   */
 
   /**
    * Emit code to implement the iadd bytecode
@@ -1036,8 +1053,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /*
-  * long ALU
-  */
+   * long ALU
+   */
 
   /**
    * Emit code to implement the ladd bytecode
@@ -1144,7 +1161,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitPUSH_Reg(EAX); // push result
     } else {
       // (1) zero check
-      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);
+      asm.emitMOV_Reg_RegInd(T0, SP);
       asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
       asm.emitBranchLikelyNextInstruction();
       ForwardReference fr1 = asm.forwardJcc(Assembler.NE);
@@ -1189,10 +1206,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitPOP_Reg(EAX);  // EAX is dividend
       asm.emitCDO();         // sign extend EAX into EDX
       asm.emitIDIV_Reg_Reg_Quad(EAX, ECX);
-      asm.emitPUSH_Reg(EAX); // push result
+      asm.emitPUSH_Reg(EDX); // push result
     } else {
       // (1) zero check
-      asm.emitMOV_Reg_RegDisp(T0, SP, NO_SLOT);
+      asm.emitMOV_Reg_RegInd(T0, SP);
       asm.emitOR_Reg_RegDisp(T0, SP, ONE_SLOT);
       asm.emitBranchLikelyNextInstruction();
       ForwardReference fr1 = asm.forwardJcc(Assembler.NE);
@@ -1232,9 +1249,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Override
   protected final void emit_lneg() {
     if (VM.BuildFor32Addr){
-      asm.emitNOT_RegDisp(SP, ONE_SLOT);    // [SP+4] <- ~[SP+4] or high <- ~high
-      asm.emitNEG_RegInd(SP);    // [SP] <- -[SP] or low <- -low
-      asm.emitSBB_RegDisp_Imm(SP, ONE_SLOT, -1); // [SP+4] += 1+borrow or high += 1+borrow
+      // The following is fewer instructions, but larger code
+      // asm.emitNOT_RegDisp(SP, ONE_SLOT);
+      // asm.emitNEG_RegInd(SP);
+      // asm.emitSBB_RegDisp_Imm(SP, ONE_SLOT, -1);
+      // this implementation is shorter and promotes ESP folding
+      asm.emitPOP_Reg(T0); // T0 = low
+      asm.emitNEG_Reg(T0); // T0 = -low
+      asm.emitPOP_Reg(T1); // T1 = high
+      asm.emitADC_Reg_Imm(T1, 0); // T1 = high + 0 + CF
+      asm.emitNEG_Reg(T1); // T1 = -T1
+      asm.emitPUSH_Reg(T1);
+      asm.emitPUSH_Reg(T0);
     } else {
       asm.emitNEG_RegInd_Quad(SP);
     }
@@ -1397,8 +1423,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /*
-  * float ALU
-  */
+   * float ALU
+   */
 
   /**
    * Emit code to implement the fadd bytecode
@@ -1496,8 +1522,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /*
-  * double ALU
-  */
+   * double ALU
+   */
 
   /**
    * Emit code to implement the dadd bytecode
@@ -1751,7 +1777,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         asm.emitPOP_Reg(NONVOLATILE_GPRS[i]);
       }
       // (6) put result on expression stack
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
+      asm.emitMOV_RegInd_Reg(SP, T0);
     }
   }
 
@@ -1865,7 +1891,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       }
       // (6) put result on expression stack
       adjustStack(WORDSIZE, true); // throw away slot
-      asm.emitMOV_RegDisp_Reg(SP, NO_SLOT, T0);
+      asm.emitMOV_RegInd_Reg(SP, T0);
     }
   }
 
@@ -1979,8 +2005,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /*
-  * comparision ops
-  */
+   * comparision ops
+   */
 
   /**
    * Emit code to implement the lcmp bytecode
@@ -2033,6 +2059,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_fcmpl() {
+    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
       asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
@@ -2044,17 +2071,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*2, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LLT);
-    ForwardReference fr2 = asm.forwardJcc(Assembler.LGT);
-    asm.emitPUSH_Imm(0);                                // push result on stack
-    ForwardReference fr3 = asm.forwardJMP();
-    fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    ForwardReference fr4 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result on stack
-    fr3.resolve(asm);
-    fr4.resolve(asm);
+    asm.emitSET_Cond_Reg_Byte(Assembler.LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
+    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
+    asm.emitPUSH_Reg(T0);                               // push result on stack
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
@@ -2065,6 +2084,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_fcmpg() {
+    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
     if (SSE2_BASE) {
       asm.emitMOVSS_Reg_RegInd(XMM0, SP);               // XMM0 = value2
       asm.emitMOVSS_Reg_RegDisp(XMM1, SP, ONE_SLOT);    // XMM1 = value1
@@ -2076,20 +2096,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*2, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    // TODO: It's bad to have 2 conditional jumps within 16bytes of each other
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT); // if > goto push 1
-    ForwardReference fr3 = asm.forwardJcc(Assembler.NE);  // if < goto push -1
-    ForwardReference fr2 = asm.forwardJcc(Assembler.PE);  // if unordered goto push 1
-    asm.emitPUSH_Imm(0);                                // push result of 0 on stack
-    ForwardReference fr4 = asm.forwardJMP();
+    ForwardReference fr1 = asm.forwardJcc(Assembler.PE);// if unordered goto push 1
+    asm.emitSET_Cond_Reg_Byte(Assembler.LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
+    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
+    asm.emitPUSH_Reg(T0);                               // push result on stack
+    ForwardReference fr2 = asm.forwardJMP();
     fr1.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push 1 on stack
     fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result of 1 on stack
-    ForwardReference fr5 = asm.forwardJMP();
-    fr3.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result of -1 on stack
-    fr4.resolve(asm);
-    fr5.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
@@ -2100,6 +2114,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_dcmpl() {
+    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
     if (SSE2_BASE) {
       asm.emitMOVLPD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
       asm.emitMOVLPD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
@@ -2111,17 +2126,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*4, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LLT);
-    ForwardReference fr2 = asm.forwardJcc(Assembler.LGT);
-    asm.emitPUSH_Imm(0);                                // push result on stack
-    ForwardReference fr3 = asm.forwardJMP();
-    fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result on stack
-    ForwardReference fr4 = asm.forwardJMP();
-    fr1.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result on stack
-    fr3.resolve(asm);
-    fr4.resolve(asm);
+    asm.emitSET_Cond_Reg_Byte(Assembler.LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
+    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
+    asm.emitPUSH_Reg(T0);                               // push result on stack
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
@@ -2132,6 +2139,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_dcmpg() {
+    asm.emitXOR_Reg_Reg(T0, T0);                        // T0 = 0
     if (SSE2_BASE) {
       asm.emitMOVLPD_Reg_RegInd(XMM0, SP);              // XMM0 = value2
       asm.emitMOVLPD_Reg_RegDisp(XMM1, SP, TWO_SLOTS);  // XMM1 = value1
@@ -2143,28 +2151,22 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       adjustStack(WORDSIZE*4, true);                    // throw away slots
       asm.emitFUCOMIP_Reg_Reg(FP0, FP1);                // compare and pop FPU *1
     }
-    // TODO: It's bad to have 2 conditional jumps within 16bytes of each other
-    ForwardReference fr1 = asm.forwardJcc(Assembler.LGT); // if > goto push1
-    ForwardReference fr3 = asm.forwardJcc(Assembler.NE);  // if < goto push -1
-    ForwardReference fr2 = asm.forwardJcc(Assembler.PE);  // if unordered goto push 1
-    asm.emitPUSH_Imm(0);                                // push result of 0 on stack
-    ForwardReference fr4 = asm.forwardJMP();
+    ForwardReference fr1 = asm.forwardJcc(Assembler.PE);// if unordered goto push 1
+    asm.emitSET_Cond_Reg_Byte(Assembler.LGT, T0);       // T0 = XMM0 > XMM1 ? 1 : 0
+    asm.emitSBB_Reg_Imm(T0, 0);                         // T0 -= XMM0 < or unordered XMM1 ? 1 : 0
+    asm.emitPUSH_Reg(T0);                               // push result on stack
+    ForwardReference fr2 = asm.forwardJMP();
     fr1.resolve(asm);
+    asm.emitPUSH_Imm(1);                                // push 1 on stack
     fr2.resolve(asm);
-    asm.emitPUSH_Imm(1);                                // push result of 1 on stack
-    ForwardReference fr5 = asm.forwardJMP();
-    fr3.resolve(asm);
-    asm.emitPUSH_Imm(-1);                               // push result of -1 on stack
-    fr4.resolve(asm);
-    fr5.resolve(asm);
     if (!SSE2_BASE) {
       asm.emitFSTP_Reg_Reg(FP0, FP0);                   // pop FPU*1
     }
   }
 
   /*
-  * branching
-  */
+   * branching
+   */
 
   /**
    * Emit code to implement the ifeg bytecode
@@ -2648,7 +2650,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && fieldRef.getFieldContentsType().isReferenceType()) {
       Barriers.compilePutstaticBarrier(asm, T0, fieldRef.getId());
-      adjustStack(WORDSIZE, true);
     } else {
       if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
         if (VM.BuildFor32Addr) {
@@ -2682,7 +2683,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     Offset fieldOffset = field.getOffset();
     if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && field.isReferenceType() && !field.isUntraced()) {
       Barriers.compilePutstaticBarrierImm(asm, fieldOffset, fieldRef.getId());
-      adjustStack(WORDSIZE, true);
     } else {
       if (field.getSize() <= BYTES_IN_INT) { // field is one word
         if (VM.BuildFor32Addr) {
@@ -2743,7 +2743,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOVZX_Reg_RegIdx_Word(T1, S0, T0, Assembler.BYTE, NO_SLOT); // T1 is field value
       asm.emitPUSH_Reg(T1);                                               // place value on stack
     } else if (fieldType.isIntType() || fieldType.isFloatType() ||
-        (VM.BuildFor32Addr && fieldType.isWordType())) {
+               (VM.BuildFor32Addr && fieldType.isWordType())) {
       // 32bit load
       asm.emitPOP_Reg(S0);                                  // S0 is object reference
       asm.emitPUSH_RegIdx(S0, T0, Assembler.BYTE, NO_SLOT); // place field value on stack
@@ -2751,7 +2751,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       // 64bit load
       if (VM.VerifyAssertions) {
         VM._assert(fieldType.isLongType() || fieldType.isDoubleType() ||
-            (VM.BuildFor64Addr && fieldType.isWordType()));
+                   (VM.BuildFor64Addr && fieldType.isWordType()));
       }
       asm.emitPOP_Reg(T1);           // T1 is object reference
       if (VM.BuildFor32Addr) {
@@ -2812,7 +2812,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOVZX_Reg_RegDisp_Word(T0, S0, fieldOffset); // T0 is field value
       asm.emitPUSH_Reg(T0);                                // place value on stack
     } else if (fieldType.isIntType() || fieldType.isFloatType() ||
-        (VM.BuildFor32Addr && fieldType.isWordType())) {
+               (VM.BuildFor32Addr && fieldType.isWordType())) {
       // 32bit load
       asm.emitPOP_Reg(S0);                          // S0 is object reference
       asm.emitMOV_Reg_RegDisp(T0, S0, fieldOffset); // T0 is field value
@@ -2821,7 +2821,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       // 64bit load
       if (VM.VerifyAssertions) {
         VM._assert(fieldType.isLongType() || fieldType.isDoubleType() ||
-            (VM.BuildFor64Addr && fieldType.isWordType()));
+                   (VM.BuildFor64Addr && fieldType.isWordType()));
       }
       asm.emitPOP_Reg(T0); // T0 is object reference
       if (VM.BuildFor32Addr) {
@@ -2856,7 +2856,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       // 32/64bit reference store
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
         Barriers.compilePutfieldBarrier(asm, T0, fieldRef.getId());
-        adjustStack(2*WORDSIZE, true); // complete popping the value and reference
       } else {
         asm.emitPOP_Reg(T1);  // T1 is the value to be stored
         asm.emitPOP_Reg(S0);  // S0 is the object reference
@@ -2877,7 +2876,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitPOP_Reg(S0);  // S0 is the object reference
       asm.emitMOV_RegIdx_Reg_Word(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
     } else if (fieldType.isIntType() || fieldType.isFloatType() ||
-        (VM.BuildFor32Addr && fieldType.isWordType())) {
+               (VM.BuildFor32Addr && fieldType.isWordType())) {
       // 32bit store
       asm.emitPOP_Reg(T1);  // T1 is the value to be stored
       asm.emitPOP_Reg(S0);  // S0 is the object reference
@@ -2886,7 +2885,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       // 64bit store
       if (VM.VerifyAssertions) {
         VM._assert(fieldType.isLongType() || fieldType.isDoubleType() ||
-            (VM.BuildFor64Addr && fieldType.isWordType()));
+                   (VM.BuildFor64Addr && fieldType.isWordType()));
       }
       if (VM.BuildFor32Addr) {
         // NB this is a 64bit copy from the stack to memory so implement
@@ -2909,7 +2908,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         if (!fieldType.isWordType()) {
           adjustStack(WORDSIZE, true); // throw away slot
         }
-        asm.emitPOP_Reg(S0);  // T0 is the object reference
+        asm.emitPOP_Reg(S0);  // S0 is the object reference
         asm.emitMOV_RegIdx_Reg_Quad(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
       }
     }
@@ -2928,7 +2927,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       // 32/64bit reference store
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
         Barriers.compilePutfieldBarrierImm(asm, fieldOffset, fieldRef.getId());
-        adjustStack(WORDSIZE * 2, true); // complete popping the value and reference
       } else {
         asm.emitPOP_Reg(T0);  // T0 is the value to be stored
         asm.emitPOP_Reg(S0);  // S0 is the object reference
@@ -2999,11 +2997,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     Offset objectOffset =
       Offset.fromIntZeroExtend(methodRefparameterWords << LG_WORDSIZE).minus(WORDSIZE); // object offset into stack
-    if (VM.BuildFor32Addr) {
-      asm.emitMOV_Reg_RegDisp(T1, SP, objectOffset);                 // T1 has "this" parameter
-    } else {
-      asm.emitMOV_Reg_RegDisp_Quad(T1, SP, objectOffset);            // T1 has "this" parameter
-    }
+    stackMoveHelper(T1, objectOffset);                               // T1 has "this" parameter
     baselineEmitLoadTIB(asm, S0, T1);                                // S0 has TIB
     asm.emitMOV_Reg_RegIdx(S0, S0, T0, Assembler.BYTE, NO_SLOT);     // S0 has address of virtual method
     genParameterRegisterLoad(methodRef, true);
@@ -3020,12 +3014,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int methodRefparameterWords = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     Offset methodRefOffset = methodRef.peekResolvedMethod().getOffset();
     Offset objectOffset =
-        Offset.fromIntZeroExtend(methodRefparameterWords << LG_WORDSIZE).minus(WORDSIZE); // object offset into stack
-    if (VM.BuildFor32Addr) {
-      asm.emitMOV_Reg_RegDisp(T1, SP, objectOffset);                 // T1 has "this" parameter
-    } else {
-      asm.emitMOV_Reg_RegDisp_Quad(T1, SP, objectOffset);            // T1 has "this" parameter
-    }
+      Offset.fromIntZeroExtend(methodRefparameterWords << LG_WORDSIZE).minus(WORDSIZE); // object offset into stack
+    stackMoveHelper(T1, objectOffset);                               // T1 has "this" parameter
     baselineEmitLoadTIB(asm, S0, T1);                                // S0 has TIB
     genParameterRegisterLoad(methodRef, true);
     asm.emitCALL_RegDisp(S0, methodRefOffset);                       // call virtual method
@@ -3117,19 +3107,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
           // Can't successfully resolve it at compile time.
           // Call uncommon case typechecking routine to do the right thing when this code actually executes.
           // T1 = "this" object
-          if (VM.BuildFor32Addr) {
-            if (count == 1) {
-              asm.emitMOV_Reg_RegInd(T1, SP);
-            } else {
-              asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
-            }
-          } else {
-            if (count == 1) {
-              asm.emitMOV_Reg_RegInd_Quad(T1, SP);
-            } else {
-              asm.emitMOV_Reg_RegDisp_Quad(T1, SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
-            }
-          }
+          stackMoveHelper(T1, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
           asm.emitPUSH_Imm(methodRef.getId()); // push dict id of target
           asm.emitPUSH_Reg(T1);                // push "this"
           genParameterRegisterLoad(asm, 2);    // pass 2 parameter word
@@ -3140,19 +3118,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
           int interfaceIndex = interfaceClass.getDoesImplementIndex();
           int interfaceMask = interfaceClass.getDoesImplementBitMask();
           // T1 = "this" object
-          if (VM.BuildFor32Addr) {
-            if (count == 1) {
-              asm.emitMOV_Reg_RegInd(T1, SP);
-            } else {
-              asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
-            }
-          } else {
-            if (count == 1) {
-              asm.emitMOV_Reg_RegInd_Quad(T1, SP);
-            } else {
-              asm.emitMOV_Reg_RegDisp_Quad(T1, SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
-            }
-          }
+          stackMoveHelper(T1, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
           baselineEmitLoadTIB(asm, S0, T1); // S0 = tib of "this" object
           if (VM.BuildFor32Addr) {
             asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntZeroExtend(TIB_DOES_IMPLEMENT_INDEX << LG_WORDSIZE));  // implements bit vector
@@ -3192,21 +3158,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       InterfaceMethodSignature sig = InterfaceMethodSignature.findOrCreate(methodRef);
 
       // squirrel away signature ID
-      ProcessorLocalState.emitMoveImmToField(asm, ArchEntrypoints.hiddenSignatureIdField.getOffset(), sig.getId());
+      ThreadLocalState.emitMoveImmToField(asm, ArchEntrypoints.hiddenSignatureIdField.getOffset(), sig.getId());
       // T1 = "this" object
-      if (VM.BuildFor32Addr) {
-        if (count == 1) {
-          asm.emitMOV_Reg_RegInd(T1, SP);
-        } else {
-          asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
-        }
-      } else {
-        if (count == 1) {
-          asm.emitMOV_Reg_RegInd_Quad(T1, SP);
-        } else {
-          asm.emitMOV_Reg_RegDisp_Quad(T1, SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
-        }
-      }
+      stackMoveHelper(T1, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
       baselineEmitLoadTIB(asm, S0, T1);
       // Load the IMT Base into S0
       if (VM.BuildFor32Addr) {
@@ -3221,9 +3175,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       if (VM.BuildForITableInterfaceInvocation && resolvedMethod != null) {
         // get the index of the method in the Itable
         itableIndex =
-            InterfaceInvocation.getITableIndex(resolvedMethod.getDeclaringClass(),
-                                                  methodRef.getName(),
-                                                  methodRef.getDescriptor());
+          InterfaceInvocation.getITableIndex(resolvedMethod.getDeclaringClass(),
+                                             methodRef.getName(),
+                                             methodRef.getDescriptor());
       }
       if (itableIndex == -1) {
         // itable index is not known at compile-time.
@@ -3252,19 +3206,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         // call "findITable" to resolve object + interface id into
         // itable address
         // T0 = "this" object
-        if (VM.BuildFor32Addr) {
-          if (count == 1) {
-            asm.emitMOV_Reg_RegInd(T0, SP);
-          } else {
-            asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
-          }
-        } else {
-          if (count == 1) {
-            asm.emitMOV_Reg_RegInd_Quad(T0, SP);
-          } else {
-            asm.emitMOV_Reg_RegDisp_Quad(T0, SP, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
-          }
-        }
+        stackMoveHelper(T0, Offset.fromIntZeroExtend((count - 1) << LG_WORDSIZE));
         baselineEmitLoadTIB(asm, S0, T0);
         asm.emitPUSH_Reg(S0);
         asm.emitPUSH_Imm(resolvedMethod.getDeclaringClass().getInterfaceId()); // interface id
@@ -3711,7 +3653,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     } else {
       asm.emitMOV_Reg_RegInd_Quad(T0, SP); // T0 is object reference
     }
-    genExplicitNullCheck(asm, T0);
+    genNullCheck(asm, T0);
     genParameterRegisterLoad(asm, 1);      // pass 1 parameter word
     asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.lockMethod.getOffset()));
   }
@@ -3757,10 +3699,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
        * point of the caller.
        * The third word of the header contains the compiled method id of the called method.
        */
-      // store caller's frame pointer
-      asm.emitPUSH_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset());
-      // establish new frame
-      ProcessorLocalState.emitMoveRegToField(asm, ArchEntrypoints.framePointerField.getOffset(), SP);
+      asm.emitPUSH_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());        // store caller's frame pointer
+      ThreadLocalState.emitMoveRegToField(asm,
+                                          ArchEntrypoints.framePointerField.getOffset(),
+                                          SP); // establish new frame
       /*
        * NOTE: until the end of the prologue SP holds the framepointer.
        */
@@ -3775,11 +3717,21 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       if (VM.VerifyAssertions) VM._assert(EBX_SAVE_OFFSET.toInt() == -3*WORDSIZE);
       asm.emitPUSH_Reg(EBX); // save nonvolatile EBX register
 
-      int savedRegistersSize = SAVED_GPRS << LG_WORDSIZE; // default
-      /* handle "dynamic bridge" methods:
-       * save all registers except FP, SP, PR, S0 (scratch), and
+      int savedRegistersSize;
+
+      if (method.hasBaselineSaveLSRegistersAnnotation()) {
+        if (VM.VerifyAssertions) VM._assert(EBP_SAVE_OFFSET.toInt() == -4*WORDSIZE);
+        asm.emitPUSH_Reg(EBP);
+        savedRegistersSize = SAVED_GPRS_FOR_SAVE_LS_REGISTERS << LG_WORDSIZE;
+      } else {
+        savedRegistersSize= SAVED_GPRS << LG_WORDSIZE;       // default
+      }
+
+      /* handle "dynamic brige" methods:
+       * save all registers except FP, SP, TR, S0 (scratch), and
        * EDI and EBX saved above.
        */
+      // TODO: (SJF): When I try to reclaim ESI, I may have to save it here?
       if (klass.hasDynamicBridgeAnnotation()) {
         savedRegistersSize += 2 << LG_WORDSIZE;
         if (VM.VerifyAssertions) VM._assert(T0_SAVE_OFFSET.toInt() == -4*WORDSIZE);
@@ -3807,12 +3759,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       firstLocalOffset = STACKFRAME_BODY_OFFSET - savedRegistersSize;
       Offset firstParameterOffset = Offset.fromIntSignExtend(savedRegistersSize + STACKFRAME_HEADER_SIZE + (parameterWords << LG_WORDSIZE) - WORDSIZE);
       genParameterCopy(firstParameterOffset);
-
       int emptyStackOffset = (method.getLocalWords() << LG_WORDSIZE) - (parameterWords << LG_WORDSIZE);
       if (emptyStackOffset != 0) {
         adjustStack(-emptyStackOffset, true); // set aside room for non parameter locals
       }
-
       /* defer generating code which may cause GC until
        * locals were initialized. see emit_deferred_prologue
        */
@@ -3826,9 +3776,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       if (isInterruptible) {
         // S0<-limit
         if (VM.BuildFor32Addr) {
-          asm.emitCMP_Reg_RegDisp(SP, PR, Entrypoints.activeThreadStackLimitField.getOffset());
+          asm.emitCMP_Reg_RegDisp(SP, TR, Entrypoints.stackLimitField.getOffset());
         } else {
-          asm.emitCMP_Reg_RegDisp_Quad(SP, PR, Entrypoints.activeThreadStackLimitField.getOffset());
+          asm.emitCMP_Reg_RegDisp_Quad(SP, TR, Entrypoints.stackLimitField.getOffset());
         }
         asm.emitBranchLikelyNextInstruction();
         ForwardReference fr = asm.forwardJcc(Assembler.LGT);        // Jmp around trap if OK
@@ -3871,7 +3821,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
     if (isInterruptible) {
       // S0<-limit
-      ProcessorLocalState.emitMoveFieldToReg(asm, S0, Entrypoints.activeThreadStackLimitField.getOffset());
+      ThreadLocalState.emitMoveFieldToReg(asm, S0, Entrypoints.stackLimitField.getOffset());
       if (VM.BuildFor32Addr) {
         asm.emitSUB_Reg_Reg(S0, SP);
         asm.emitADD_Reg_Imm(S0, method.getOperandWords() << LG_WORDSIZE);
@@ -3909,15 +3859,23 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitINT_Imm(0xFF);
     } else {
       // normal method
-      int spaceToRelease = fp2spOffset(NO_SLOT).toInt() - bytesPopped - (3 * WORDSIZE);
-      adjustStack(spaceToRelease, true);
+      if (method.hasBaselineSaveLSRegistersAnnotation()) {
+        // There is one more word out of the total that is for callee-saves, hense 4 * WORDSIZE here rather than 3 * WORDSIZE below.
+        int spaceToRelease = fp2spOffset(NO_SLOT).toInt() - bytesPopped - (4 * WORDSIZE);
+        adjustStack(spaceToRelease, true);
+        if (VM.VerifyAssertions) VM._assert(EBP_SAVE_OFFSET.toInt() == -(4 * WORDSIZE));
+        asm.emitPOP_Reg(EBP);             // restore nonvolatile EBP register
+      } else {
+        int spaceToRelease = fp2spOffset(NO_SLOT).toInt() - bytesPopped - (3 * WORDSIZE);
+        adjustStack(spaceToRelease, true);
+      }
       if (VM.VerifyAssertions) VM._assert(EBX_SAVE_OFFSET.toInt() == -(3 * WORDSIZE));
       asm.emitPOP_Reg(EBX);  // restore non-volatile EBX register
       if (VM.VerifyAssertions) VM._assert(EDI_SAVE_OFFSET.toInt() == -(2 * WORDSIZE));
       asm.emitPOP_Reg(EDI);  // restore non-volatile EDI register
       adjustStack(WORDSIZE, true); // throw away CMID
       // SP == frame pointer
-      asm.emitPOP_RegDisp(PR, ArchEntrypoints.framePointerField.getOffset()); // discard frame
+      asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset()); // discard frame
       // return to caller, pop parameters from stack
       if (parameterWords == 0) {
         asm.emitRET();
@@ -3962,13 +3920,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /**
-   * Generate an explicit null check, trapping if the register is null
-   * otherwise falling through.
+   * Generate an explicit null check (compare to zero).
+   *
    * @param asm the assembler to generate into
-   * @param objRefReg the register containing the array reference
+   * @param objRefReg the register containing the reference
    */
   @Inline
-  private void genExplicitNullCheck(Assembler asm, GPR objRefReg) {
+  private static void genNullCheck(Assembler asm, GPR objRefReg) {
     // compare to zero
     asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
     // Jmp around trap if index is OK
@@ -3978,7 +3936,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitINT_Imm(RuntimeEntrypoints.TRAP_NULL_POINTER + RVM_TRAP_BASE);
     fr.resolve(asm);
   }
-
 
   /**
    * Generate an array bounds check trapping if the array bound check fails,
@@ -4000,7 +3957,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     asm.emitBranchLikelyNextInstruction();
     ForwardReference fr = asm.forwardJcc(Assembler.LGT);
     // "pass" index param to C trap handler
-    ProcessorLocalState.emitMoveRegToField(asm, ArchEntrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
+    ThreadLocalState.emitMoveRegToField(asm, ArchEntrypoints.arrayIndexTrapParamField.getOffset(), indexReg);
     // trap
     asm.emitINT_Imm(RuntimeEntrypoints.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE);
     fr.resolve(asm);
@@ -4060,7 +4017,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   /**
    * Copy parameters from operand stack into registers.
-   * Assumption: parameters are layed out on the stack in order
+   * Assumption: parameters are laid out on the stack in order
    * with SP pointing to the last parameter.
    * Also, this method is called before the generation of a "helper" method call.
    * Assumption: no floating-point parameters.
@@ -4070,34 +4027,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   static void genParameterRegisterLoad(Assembler asm, int params) {
     if (VM.VerifyAssertions) VM._assert(0 < params);
     if (0 < NUM_PARAMETER_GPRS) {
-      if (params != 1) {
-        if (VM.BuildFor32Addr) {
-          asm.emitMOV_Reg_RegDisp(T0, SP, Offset.fromIntZeroExtend((params - 1) << LG_WORDSIZE));
-        } else {
-          asm.emitMOV_Reg_RegDisp_Quad(T0, SP, Offset.fromIntZeroExtend((params - 1) << LG_WORDSIZE));
-        }
-      } else {
-        if (VM.BuildFor32Addr) {
-          asm.emitMOV_Reg_RegInd(T0, SP);
-        } else {
-          asm.emitMOV_Reg_RegInd_Quad(T0, SP);
-        }
-      }
+      stackMoveHelper(asm, T0, Offset.fromIntZeroExtend((params - 1) << LG_WORDSIZE));
     }
     if (1 < params && 1 < NUM_PARAMETER_GPRS) {
-      if (params != 2) {
-        if (VM.BuildFor32Addr) {
-          asm.emitMOV_Reg_RegDisp(T1, SP, Offset.fromIntZeroExtend((params - 2) << LG_WORDSIZE));
-        } else {
-          asm.emitMOV_Reg_RegDisp_Quad(T1, SP, Offset.fromIntZeroExtend((params - 2) << LG_WORDSIZE));
-        }
-      } else {
-        if (VM.BuildFor32Addr) {
-          asm.emitMOV_Reg_RegInd(T1, SP);
-        } else {
-          asm.emitMOV_Reg_RegInd_Quad(T1, SP);
-        }
-      }
+      stackMoveHelper(asm, T1, Offset.fromIntZeroExtend((params - 2) << LG_WORDSIZE));
     }
   }
 
@@ -4119,11 +4052,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     Offset offset = Offset.fromIntSignExtend((params - 1) << LG_WORDSIZE); // stack offset of first parameter word
     if (hasThisParam) {
       if (gpr < NUM_PARAMETER_GPRS) {
-        if (WORDSIZE == 4) {
-          asm.emitMOV_Reg_RegDisp(T, SP, offset);
-        } else {
-          asm.emitMOV_Reg_RegDisp_Quad(T, SP, offset);
-        }
+        stackMoveHelper(T, offset);
         T = T1; // at most 2 parameters can be passed in general purpose registers
         gpr++;
         max--;
@@ -4136,17 +4065,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       if (t.isLongType()) {
         if (gpr < NUM_PARAMETER_GPRS) {
           if (WORDSIZE == 4) {
-            asm.emitMOV_Reg_RegDisp(T, SP, offset); // lo register := hi mem (== hi order word)
+            stackMoveHelper(T, offset); // lo register := hi mem (== hi order word)
             T = T1; // at most 2 parameters can be passed in general purpose registers
             gpr++;
             max--;
             if (gpr < NUM_PARAMETER_GPRS) {
-              asm.emitMOV_Reg_RegDisp(T, SP, offset.minus(WORDSIZE));  // hi register := lo mem (== lo order word)
+              stackMoveHelper(T, offset.minus(WORDSIZE)); // hi register := lo mem (== lo order word)
               gpr++;
               max--;
             }
           } else {
-            asm.emitMOV_Reg_RegDisp_Quad(T, SP, offset.minus(WORDSIZE));
+            // initially offset will point at junk word, move down and over
+            stackMoveHelper(T, offset.minus(WORDSIZE));
             T = T1; // at most 2 parameters can be passed in general purpose registers
             gpr++;
             max--;
@@ -4177,11 +4107,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         offset = offset.minus(2 * WORDSIZE);
       } else if (t.isReferenceType() || t.isWordType()) {
         if (gpr < NUM_PARAMETER_GPRS) {
-          if (WORDSIZE == 4) {
-            asm.emitMOV_Reg_RegDisp(T, SP, offset); // lo register := hi mem (== hi order word)
-          } else {
-            asm.emitMOV_Reg_RegDisp_Quad(T, SP, offset);
-          }
+          stackMoveHelper(T, offset);
           T = T1; // at most 2 parameters can be passed in general purpose registers
           gpr++;
           max--;
@@ -4189,7 +4115,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         offset = offset.minus(WORDSIZE);
       } else { // t is object, int, short, char, byte, or boolean
         if (gpr < NUM_PARAMETER_GPRS) {
-          asm.emitMOV_Reg_RegDisp(T, SP, offset);
+          if (offset.isZero()) {
+            asm.emitMOV_Reg_RegInd(T, SP);
+          } else {
+            asm.emitMOV_Reg_RegDisp(T, SP, offset);
+          }
           T = T1; // at most 2 parameters can be passed in general purpose registers
           gpr++;
           max--;
@@ -4204,7 +4134,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * Store parameters into local space of the callee's stackframe.
    * Taken: srcOffset - offset from frame pointer of first parameter in caller's stackframe.
    * Assumption: although some parameters may be passed in registers,
-   * space for all parameters is layed out in order on the caller's stackframe.
+   * space for all parameters is laid out in order on the caller's stackframe.
    */
   private void genParameterCopy(Offset srcOffset) {
     int gpr = 0;  // number of general purpose registers unloaded
@@ -4377,7 +4307,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     }
 
     // thread switch requested ??
-    ProcessorLocalState.emitCompareFieldWithImm(asm, Entrypoints.takeYieldpointField.getOffset(), 0);
+    ThreadLocalState.emitCompareFieldWithImm(asm, Entrypoints.takeYieldpointField.getOffset(), 0);
     ForwardReference fr1;
     if (whereFrom == RVMThread.PROLOGUE) {
       // Take yieldpoint if yieldpoint flag is non-zero (either 1 or -1)
@@ -4415,13 +4345,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   public static boolean checkForActualCall(MethodReference methodToBeCalled) {
     Atom methodName = methodToBeCalled.getName();
     return methodName == MagicNames.invokeClassInitializer ||
-           methodName == MagicNames.invokeMethodReturningVoid ||
-           methodName == MagicNames.invokeMethodReturningInt ||
-           methodName == MagicNames.invokeMethodReturningLong ||
-           methodName == MagicNames.invokeMethodReturningFloat ||
-           methodName == MagicNames.invokeMethodReturningDouble ||
-           methodName == MagicNames.invokeMethodReturningObject ||
-           methodName == MagicNames.addressArrayCreate;
+      methodName == MagicNames.invokeMethodReturningVoid ||
+      methodName == MagicNames.invokeMethodReturningInt ||
+      methodName == MagicNames.invokeMethodReturningLong ||
+      methodName == MagicNames.invokeMethodReturningFloat ||
+      methodName == MagicNames.invokeMethodReturningDouble ||
+      methodName == MagicNames.invokeMethodReturningObject ||
+      methodName == MagicNames.addressArrayCreate;
   }
 
   /**
@@ -4457,38 +4387,38 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         for (int i=1; i < args.length; i++) {
           TypeReference arg = args[i];
           if (arg.isFloatType()) {
-            if (fpRegistersInUse < SYSCALL_PARAM_FPRS.length) {
+            if (fpRegistersInUse < NATIVE_PARAMETER_FPRS.length) {
               inRegister[i] = true;
               offsetToJavaArg = offsetToJavaArg.minus(WORDSIZE);
-              asm.emitMOVSS_Reg_RegDisp(SYSCALL_PARAM_FPRS[fpRegistersInUse], SP, offsetToJavaArg);
+              asm.emitMOVSS_Reg_RegDisp((XMM)NATIVE_PARAMETER_FPRS[fpRegistersInUse], SP, offsetToJavaArg);
               fpRegistersInUse++;
             }
           } else if (arg.isDoubleType()) {
-            if (fpRegistersInUse < SYSCALL_PARAM_FPRS.length) {
+            if (fpRegistersInUse < NATIVE_PARAMETER_FPRS.length) {
               inRegister[i] = true;
               offsetToJavaArg = offsetToJavaArg.minus(2*WORDSIZE);
-              asm.emitMOVSD_Reg_RegDisp(SYSCALL_PARAM_FPRS[fpRegistersInUse], SP, offsetToJavaArg);
+              asm.emitMOVSD_Reg_RegDisp((XMM)NATIVE_PARAMETER_FPRS[fpRegistersInUse], SP, offsetToJavaArg);
               fpRegistersInUse++;
             }
           } else if (arg.isLongType()) {
-            if (gpRegistersInUse < SYSCALL_PARAM_GPRS.length) {
+            if (gpRegistersInUse < NATIVE_PARAMETER_GPRS.length) {
               inRegister[i] = true;
               offsetToJavaArg = offsetToJavaArg.minus(2*WORDSIZE);
-              asm.emitMOV_Reg_RegDisp_Quad(SYSCALL_PARAM_GPRS[gpRegistersInUse], SP, offsetToJavaArg);
+              asm.emitMOV_Reg_RegDisp_Quad(NATIVE_PARAMETER_GPRS[gpRegistersInUse], SP, offsetToJavaArg);
               gpRegistersInUse++;
             }
           } else if (arg.isWordType() || arg.isReferenceType()) {
-            if (gpRegistersInUse < SYSCALL_PARAM_GPRS.length) {
+            if (gpRegistersInUse < NATIVE_PARAMETER_GPRS.length) {
               inRegister[i] = true;
               offsetToJavaArg = offsetToJavaArg.minus(WORDSIZE);
-              asm.emitMOV_Reg_RegDisp_Quad(SYSCALL_PARAM_GPRS[gpRegistersInUse], SP, offsetToJavaArg);
+              asm.emitMOV_Reg_RegDisp_Quad(NATIVE_PARAMETER_GPRS[gpRegistersInUse], SP, offsetToJavaArg);
               gpRegistersInUse++;
             }
           } else {
-            if (gpRegistersInUse < SYSCALL_PARAM_GPRS.length) {
+            if (gpRegistersInUse < NATIVE_PARAMETER_GPRS.length) {
               inRegister[i] = true;
               offsetToJavaArg = offsetToJavaArg.minus(WORDSIZE);
-              asm.emitMOV_Reg_RegDisp(SYSCALL_PARAM_GPRS[gpRegistersInUse], SP, offsetToJavaArg);
+              asm.emitMOV_Reg_RegDisp(NATIVE_PARAMETER_GPRS[gpRegistersInUse], SP, offsetToJavaArg);
               gpRegistersInUse++;
             }
           }
@@ -4679,9 +4609,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       } else {
         asm.emitCMP_Reg_Imm(reg, NEEDS_DYNAMIC_LINK);        // reg ?= NEEDS_DYNAMIC_LINK, is field's class loaded?
       }
-      ForwardReference fr = asm.forwardJcc(Assembler.NE);    // if so, skip call instructions
+      ForwardReference fr = asm.forwardJcc(Assembler.NE);       // if so, skip call instructions
       asm.emitPUSH_Imm(memberId);                            // pass member's dictId
-      genParameterRegisterLoad(asm, 1);                      // pass 1 parameter word
+      genParameterRegisterLoad(asm, 1);                           // pass 1 parameter word
       Offset resolverOffset = Entrypoints.resolveMemberMethod.getOffset();
       asm.emitCALL_Abs(Magic.getTocPointer().plus(resolverOffset)); // does class loading as sideffect
       asm.emitJMP_Imm(retryLabel);                           // reload reg with valid value
@@ -4692,7 +4622,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       } else {
         asm.emitMOV_Reg_Abs_Quad(reg, Magic.getTocPointer().plus(tableOffset)); // reg is offsets table
       }
-      asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);       // reg is offset of member
+      asm.emitMOV_Reg_RegDisp(reg, reg, memberOffset);      // reg is offset of member
     }
   }
 
@@ -4733,3 +4663,4 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     return asm.generatePendingJMP(bTarget);
   }
 }
+

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -64,9 +64,11 @@ import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
  */
 public class Inliner {
 
-  // The following flag requires an adaptive boot image and flag
-  // "INSERT_DEBUGGING_COUNTERS" to be true.  See instrumentation
-  // section of the user guide for more information.
+  /**
+   * The following flag enables debug counters and requires an adaptive boot
+   * image and flag "INSERT_DEBUGGING_COUNTERS" to be true. See instrumentation
+   * section of the user guide for more information.
+   */
   private static final boolean COUNT_FAILED_GUARDS = false;
 
   /**
@@ -157,7 +159,7 @@ public class Inliner {
         NormalMethod callee = (NormalMethod) targets[i];
         // (a)
         if (parent.options.PRINT_INLINE_REPORT) {
-          String guard = guards[i] == OptOptions.IG_CLASS_TEST ? " (class test) " : " (method test) ";
+          String guard = guards[i] == OptOptions.INLINE_GUARD_CLASS_TEST ? " (class test) " : " (method test) ";
           VM.sysWrite("\tGuarded inline" + guard + " " + callee +
                       " into " + callSite.position.getMethod() +
                       " at bytecode " + callSite.bcIndex + "\n");
@@ -358,7 +360,7 @@ public class Inliner {
           }
         }
 
-        if (guards[i] == OptOptions.IG_CLASS_TEST) {
+        if (guards[i] == OptOptions.INLINE_GUARD_CLASS_TEST) {
           tmp =
               InlineGuard.create(IG_CLASS_TEST,
                                  receiver.copy(),
@@ -366,7 +368,7 @@ public class Inliner {
                                  new TypeOperand(target.getDeclaringClass()),
                                  testFailed.makeJumpTarget(),
                                  BranchProfileOperand.unlikely());
-        } else if (guards[i] == OptOptions.IG_METHOD_TEST) {
+        } else if (guards[i] == OptOptions.INLINE_GUARD_METHOD_TEST) {
           // method test for interface requires additional check if
           // the reciever's class is a subclass of inlined method's
           // declaring class.
@@ -437,14 +439,9 @@ public class Inliner {
       if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
       NormalMethod callee = (NormalMethod) inlDec.getTargets()[0];
       if (parent.options.PRINT_INLINE_REPORT) {
-        VM.sysWrite("\tInline " +
-                    callee +
-                    " into " +
-                    callSite.position.getMethod() +
-                    " at bytecode " +
-                    callSite
-                        .bcIndex +
-                                 "\n");
+        VM.sysWrite("\tInline " + callee +
+                    " into " + callSite.position.getMethod() +
+                    " at bytecode " + callSite.bcIndex + "\n");
       }
       GenerationContext child = GenerationContext.
           createChildContext(parent, ebag, callee, callSite);

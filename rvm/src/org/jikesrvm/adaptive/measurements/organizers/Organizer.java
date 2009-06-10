@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -14,11 +14,11 @@ package org.jikesrvm.adaptive.measurements.organizers;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.measurements.listeners.Listener;
-import org.jikesrvm.scheduler.greenthreads.GreenThread;
-import org.jikesrvm.scheduler.greenthreads.GreenThreadQueue;
-import org.vmmagic.pragma.NonMoving;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.Latch;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.NonMoving;
 
 /**
  * An Organizer acts an an intermediary between the low level
@@ -27,7 +27,7 @@ import org.vmmagic.pragma.Unpreemptible;
  * instructions given by the controller.
  */
 @NonMoving
-public abstract class Organizer extends GreenThread {
+public abstract class Organizer extends RVMThread {
 
   /** Constructor */
   public Organizer() {
@@ -40,10 +40,8 @@ public abstract class Organizer extends GreenThread {
    */
   protected Listener listener;
 
-  /**
-   * A queue to hold the organizer thread when it isn't executing
-   */
-  private final GreenThreadQueue tq = new GreenThreadQueue();
+  /** A latch used for activate/passivate. */
+  private final Latch latch = new Latch(false);
 
   /**
    * Called when thread is scheduled.
@@ -91,7 +89,7 @@ public abstract class Organizer extends GreenThread {
       if (VM.VerifyAssertions) VM._assert(!listener.isActive());
       listener.activate();
     }
-    GreenThread.yield(tq);
+    latch.waitAndCloseWithHandshake();
   }
 
   /**
@@ -103,8 +101,6 @@ public abstract class Organizer extends GreenThread {
       if (VM.VerifyAssertions) VM._assert(listener.isActive());
       listener.passivate();
     }
-    GreenThread org = tq.dequeue();
-    if (VM.VerifyAssertions) VM._assert(org != null);
-    org.schedule();
+    latch.openNoHandshake();
   }
 }

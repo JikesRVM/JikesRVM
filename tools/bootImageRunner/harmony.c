@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -15,7 +15,6 @@
  * Implementation of Harmony VMI Invocation API for Jikes RVM.
  */
 
-#define LINUX
 #define TRACE 0
 #include "bootImageRunner.h"
 #include "vmi.h"
@@ -39,6 +38,11 @@ struct VMInterfaceFunctions_ vmi_impl = {
 };
 
 VMInterface vmi = &vmi_impl;
+HyPortLibrary hyPortLibrary;
+HyPortLibraryVersion hyPortLibraryVersion;
+#ifndef HY_ZIP_API
+HyZipCachePool *hyZipCachePool;
+#endif
 
 extern UDATA JNICALL HyVMLSAllocKeys (JNIEnv * env, UDATA * pInitCount, ...);
 extern void JNICALL HyVMLSFreeKeys (JNIEnv * env, UDATA * pInitCount, ...);
@@ -66,25 +70,10 @@ JavaVM * JNICALL GetJavaVM (VMInterface * vmi)
 
 HyPortLibrary portLib;
 
+extern HyPortLibrary hyPortLibrary;
 HyPortLibrary * JNICALL GetPortLibrary (VMInterface * vmi)
 {
-    if (TRACE) fprintf(stderr, "VMI call GetPortLibrary\n");
-    static HyPortLibrary *portLibPointer;
-    
-    // First, try to get the portlib pointer from global env (must have been put there during args parse)
-    if (NULL != portLibPointer) {
-        return portLibPointer;
-    }
-    // If the above fails, initialize portlib here
-    int rc;
-    HyPortLibraryVersion portLibraryVersion;
-    HYPORT_SET_VERSION(&portLibraryVersion, HYPORT_CAPABILITY_MASK);
-    
-    rc = hyport_init_library(&portLib, &portLibraryVersion, 
-                             sizeof(HyPortLibrary));
-    portLibPointer = &portLib;
-    if (0 != rc) return NULL;
-    else return portLibPointer;
+    return &hyPortLibrary;
 }
 
 HyVMLSFunctionTable * JNICALL GetVMLSFunctions (VMInterface * vmi)
@@ -94,26 +83,11 @@ HyVMLSFunctionTable * JNICALL GetVMLSFunctions (VMInterface * vmi)
 }
 
 #ifndef HY_ZIP_API
+extern HyZipCachePool *hyZipCachePool;
 HyZipCachePool * JNICALL GetZipCachePool (VMInterface * vmi)
 {
-    // FIXME: thread unsafe implementation...
-    if (zipCachePool != NULL)
-    {
-        return zipCachePool;
-    }
-    HyPortLibrary *portLibPointer = GetPortLibrary(vmi);
-    if (portLibPointer == NULL)
-    {
-	fprintf(stderr, "Error getting port library");
-	exit(-1);
-    }
-    zipCachePool = zipCachePool_new(portLibPointer);
-    if (zipCachePool == NULL)
-    {
-	fprintf(stderr, "Error accessing zip functions");
-	exit(-1);
-    }
-    return zipCachePool;
+    return hyZipCachePool;
+
 }
 #else /* HY_ZIP_API */
 struct VMIZipFunctionTable * JNICALL GetZipFunctions (VMInterface * vmi)
@@ -165,8 +139,6 @@ VMI_GetVMIFromJavaVM(JavaVM* vm)
     return &vmi;
 }
 
-extern void initializeVMLocalStorage(JavaVM * vm);
-
 /**
  * Extract the VM Interface from a JNIEnv
  *
@@ -177,11 +149,27 @@ extern void initializeVMLocalStorage(JavaVM * vm);
 VMInterface* JNICALL 
 VMI_GetVMIFromJNIEnv(JNIEnv* env)
 {
-    static int initialized = 0;
-
-    if (!initialized) {
-      initialized=1;
-      initializeVMLocalStorage(&sysJavaVM);
-    }
     return &vmi;
-}	
+}
+
+extern void initializeVMLocalStorage(JavaVM * vm);
+
+void JNICALL
+VMI_Initialize()
+{
+    HYPORT_SET_VERSION (&hyPortLibraryVersion, HYPORT_CAPABILITY_MASK);
+    if (0 != hyport_init_library (&hyPortLibrary, &hyPortLibraryVersion, sizeof (HyPortLibrary))) {
+        fprintf(stderr, "Harmony port library init failed\n");
+        abort();
+    }
+#ifndef HY_ZIP_API
+    hyZipCachePool = zipCachePool_new(&hyPortLibrary);
+    if (hyZipCachePool == NULL)
+    {
+	fprintf(stderr, "Error accessing zip functions");
+        abort();
+    }
+#endif
+    initializeVMLocalStorage(&sysJavaVM);
+}
+

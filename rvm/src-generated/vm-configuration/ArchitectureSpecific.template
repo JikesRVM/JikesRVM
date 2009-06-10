@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -45,7 +45,7 @@ public class ArchitectureSpecific {
     }
   }
   public static final class BaselineCompilerImpl extends org.jikesrvm.compilers.baseline.@_ARCH_@.BaselineCompilerImpl {
-    public BaselineCompilerImpl(BaselineCompiledMethod cm, int[] genLocLoc, int[] floatLocLoc) {
+    public BaselineCompilerImpl(BaselineCompiledMethod cm, short[] genLocLoc, short[] floatLocLoc) {
       super(cm @_IA32_QUOTE_@, genLocLoc, floatLocLoc @_PPC_QUOTE_@ */);
     }}
   public static final class DynamicLinkerHelper extends org.jikesrvm.@_ARCH_@.DynamicLinkerHelper {}
@@ -61,7 +61,7 @@ public class ArchitectureSpecific {
   public static final class MachineReflection extends org.jikesrvm.@_ARCH_@.MachineReflection {}
   public static final class MultianewarrayHelper extends org.jikesrvm.@_ARCH_@.MultianewarrayHelper {}
   public static final class OutOfLineMachineCode extends org.jikesrvm.@_ARCH_@.OutOfLineMachineCode {}
-  public static final class ProcessorLocalState extends org.jikesrvm.@_ARCH_@.ProcessorLocalState {}
+  public static final class ThreadLocalState extends org.jikesrvm.@_ARCH_@.ThreadLocalState {}
   public interface RegisterConstants extends org.jikesrvm.@_ARCH_@.RegisterConstants {}
   @NonMoving
   public static final class Registers extends org.jikesrvm.@_ARCH_@.Registers {}

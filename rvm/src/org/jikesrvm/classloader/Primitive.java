@@ -1,23 +1,22 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.TIB;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Pure;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -38,9 +37,9 @@ import org.vmmagic.unboxed.Offset;
  * @see RVMType
  * @see RVMClass
  * @see RVMArray
+ * @see UnboxedType
  */
 @NonMoving
-@SynchronizedObject
 public final class Primitive extends RVMType implements Constants, ClassLoaderConstants {
   /**
    * The pretty (external) name for this primitive.
@@ -155,22 +154,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
         classForType = Double.TYPE;
         break;
       default:
-        if (tr == TypeReference.Address ||
-            tr == TypeReference.Word ||
-            tr == TypeReference.Offset ||
-            tr == TypeReference.Extent) {
-          stackWords = 1;
-          memoryBytes = BYTES_IN_ADDRESS;
-          name = tr.getName();
-          classForType = null;
-        } else if (tr == TypeReference.Code) {
-          stackWords = 1;
-          memoryBytes = VM.BuildForIA32 ? BYTES_IN_BYTE : BYTES_IN_INT;
-          name = tr.getName();
-          classForType = null;
-        } else {
-          throw new Error("Unknown primitive type " + tr.getName());
-        }
+        throw new Error("Unknown primitive "+tr.getName().classFileNameFromDescriptor());
     }
     return new Primitive(tr, classForType, name, stackWords, memoryBytes);
   }
@@ -312,6 +296,16 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   @Pure
   @Uninterruptible
   public boolean isReferenceType() {
+    return false;
+  }
+
+  /**
+   * @return whether or not this is an unboxed type
+   */
+  @Override
+  @Pure
+  @Uninterruptible
+  public boolean isUnboxedType() {
     return false;
   }
 

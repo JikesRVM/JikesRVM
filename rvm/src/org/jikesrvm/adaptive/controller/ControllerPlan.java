@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -149,7 +149,7 @@ public final class ControllerPlan {
         .BACKGROUND_RECOMPILATION ||
                                   getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
       Controller.compilationQueue.insert(getPriority(), this);
-      AOSLogging.recompilationScheduled(getCompPlan(), getPriority());
+      AOSLogging.logger.recompilationScheduled(getCompPlan(), getPriority());
       return true;
     } else {
       getCompPlan().getMethod().replaceCompiledMethod(null);
@@ -169,7 +169,7 @@ public final class ControllerPlan {
     CompilationPlan cp = getCompPlan();
 
     setTimeInitiated(Controller.controllerClock);
-    AOSLogging.recompilationStarted(cp);
+    AOSLogging.logger.recompilationStarted(cp);
 
     if (cp.options.PRINT_METHOD) {
       VM.sysWrite("-oc:O" + cp.options.getOptLevel() + " \n");
@@ -203,10 +203,10 @@ public final class ControllerPlan {
     setTimeCompleted(Controller.controllerClock);
     CompiledMethod cm = newCMID == -1 ? null : CompiledMethods.getCompiledMethod(newCMID);
     if (newCMID == -1) {
-      AOSLogging.recompilationAborted(cp);
+      AOSLogging.logger.recompilationAborted(cp);
     } else {
-      AOSLogging.recompilationCompleted(cp);
-      AOSLogging.recordCompileTime(cm, getExpectedCompilationTime());
+      AOSLogging.logger.recompilationCompleted(cp);
+      AOSLogging.logger.recordCompileTime(cm, getExpectedCompilationTime());
     }
     if (Controller.options.ENABLE_ADVICE_GENERATION && (newCMID != -1)) {
       AOSGenerator.reCompilationWithOpt(cp);

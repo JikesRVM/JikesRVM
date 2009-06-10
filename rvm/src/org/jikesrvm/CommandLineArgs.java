@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -22,8 +22,7 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
-import org.jikesrvm.scheduler.Scheduler;
-import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Command line option processing.
@@ -56,7 +55,9 @@ public class CommandLineArgs {
     JAR_ARG,
     JAVAAGENT_ARG,
     ENABLE_ASSERTION_ARG,
+    ENABLE_SYSTEM_ASSERTION_ARG,
     DISABLE_ASSERTION_ARG,
+    DISABLE_SYSTEM_ASSERTION_ARG,
 
     // -----------------------------------------------//
     // The following arguments are RVM-specific.      //
@@ -80,7 +81,6 @@ public class CommandLineArgs {
     BOOTCLASSPATH_P_ARG,
     BOOTCLASSPATH_A_ARG,
     BOOTSTRAP_CLASSES_ARG,
-    CPUAFFINITY_ARG,
     PROCESSORS_ARG
   }
 
@@ -155,18 +155,32 @@ public class CommandLineArgs {
                                             new Prefix("-verbose:class$", PrefixType.VERBOSE_CLS_ARG),
                                             new Prefix("-verbose:jni$", PrefixType.VERBOSE_JNI_ARG),
                                             new Prefix("-verbose$", PrefixType.VERBOSE_CLS_ARG),
+
                                             new Prefix("-enableassertions:", PrefixType.ENABLE_ASSERTION_ARG),
                                             new Prefix("-ea:", PrefixType.ENABLE_ASSERTION_ARG),
-                                            new Prefix("-enableassertions", PrefixType.ENABLE_ASSERTION_ARG),
+                                            new Prefix("-enableassertions:", PrefixType.ENABLE_ASSERTION_ARG),
                                             new Prefix("-ea", PrefixType.ENABLE_ASSERTION_ARG),
+
+                                            new Prefix("-enableassertions", PrefixType.ENABLE_ASSERTION_ARG),
+
+                                            new Prefix("-esa:", PrefixType.ENABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-enablesystemassertions:", PrefixType.ENABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-esa", PrefixType.ENABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-enablesystemassertions", PrefixType.ENABLE_SYSTEM_ASSERTION_ARG),
+
                                             new Prefix("-disableassertions:", PrefixType.DISABLE_ASSERTION_ARG),
                                             new Prefix("-da:", PrefixType.DISABLE_ASSERTION_ARG),
                                             new Prefix("-disableassertions", PrefixType.DISABLE_ASSERTION_ARG),
                                             new Prefix("-da", PrefixType.DISABLE_ASSERTION_ARG),
+
+                                            new Prefix("-disablesystemassertions:", PrefixType.DISABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-dsa:", PrefixType.DISABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-disablesystemassertions", PrefixType.DISABLE_SYSTEM_ASSERTION_ARG),
+                                            new Prefix("-dsa", PrefixType.DISABLE_SYSTEM_ASSERTION_ARG),
+
                                             new Prefix("-Xbootclasspath/p:", PrefixType.BOOTCLASSPATH_P_ARG),
                                             new Prefix("-Xbootclasspath/a:", PrefixType.BOOTCLASSPATH_A_ARG),
                                             new Prefix("-X:vmClasses=", PrefixType.BOOTSTRAP_CLASSES_ARG),
-                                            new Prefix("-X:cpuAffinity=", PrefixType.CPUAFFINITY_ARG),
                                             new Prefix("-X:processors=", PrefixType.PROCESSORS_ARG),
                                             new Prefix("-X:irc:help$", PrefixType.IRC_HELP_ARG),
                                             new Prefix("-X:irc$", PrefixType.IRC_HELP_ARG),
@@ -497,8 +511,20 @@ public class CommandLineArgs {
           RVMClassLoader.stashEnableAssertionArg(arg);
           break;
 
+        case ENABLE_SYSTEM_ASSERTION_ARG:
+          // arguments of the form "-esa[:<packagename>...|:<classname>]"
+          // TODO: currently just treat as -ea
+          RVMClassLoader.stashEnableAssertionArg(arg);
+          break;
+
         case DISABLE_ASSERTION_ARG:
           // arguments of the form "-da[:<packagename>...|:<classname>]"
+          RVMClassLoader.stashDisableAssertionArg(arg);
+          break;
+
+        case DISABLE_SYSTEM_ASSERTION_ARG:
+          // arguments of the form "-dsa[:<packagename>...|:<classname>]"
+          // TODO: currently just treat as -da
           RVMClassLoader.stashDisableAssertionArg(arg);
           break;
 
@@ -510,19 +536,6 @@ public class CommandLineArgs {
           VM.verboseJNI = true;
           break;
 
-          // -------------------------------------------------//
-          // Options needed by Scheduler to boot correctly //
-          // -------------------------------------------------//
-        case CPUAFFINITY_ARG:
-          int cpuAffinity = -1;
-          try { cpuAffinity = primitiveParseInt(arg); } catch (NumberFormatException e) {}
-          if (cpuAffinity < 0) {
-            VM.sysWriteln("vm: ", p.value, " needs a cpu number (0..N-1), but found '", arg, "'");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-          }
-          Scheduler.cpuAffinity = cpuAffinity;
-          break;
-
         case PROCESSORS_ARG: // "-X:processors=<n>" or "-X:processors=all"
           int nProcs;
           if (arg.equals("all")) {
@@ -532,12 +545,12 @@ public class CommandLineArgs {
           } else {
             nProcs = primitiveParseInt(arg);
           }
-          if (nProcs < 1 || nProcs > (GreenScheduler.MAX_PROCESSORS - 1)) {
-            VM.sysWrite("vm: ", p.value, " needs an argument between 1 and ");
-            VM.sysWriteln(GreenScheduler.MAX_PROCESSORS - 1, " (inclusive), but found ", arg);
+          if (nProcs < 1) {
+            VM.sysWrite("vm: ", p.value, " needs an argument that is at least 1");
+            VM.sysWriteln(", but found ", arg);
             VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
-          GreenScheduler.numProcessors = nProcs;
+          RVMThread.numProcessors = nProcs;
           break;
 
           // -------------------------------------------------------------------

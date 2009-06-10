@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -18,7 +18,6 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.StackBrowser;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
@@ -27,7 +26,6 @@ import org.vmmagic.unboxed.Offset;
  * Information associated with artifical stackframe inserted by hardware
  * trap handler.
  */
-@SynchronizedObject
 final class HardwareTrapCompiledMethod extends CompiledMethod {
 
   public HardwareTrapCompiledMethod(int id, RVMMethod m) {

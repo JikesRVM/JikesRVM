@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -13,12 +13,10 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.MarkSweepSpace;
-import org.mmtk.policy.SegregatedFreeListSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
-import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.LinearScan;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
@@ -50,7 +48,7 @@ import org.vmmagic.unboxed.*;
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
+ * threads" (aka CPUs).  Thus instance
  * methods of PlanLocal allow fast, unsynchronized access to functions such as
  * allocation and collection.
  *
@@ -93,19 +91,22 @@ public abstract class Plan implements Constants {
   public static final int ALLOC_HOT_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
   public static final int ALLOC_COLD_CODE = USE_CODE_SPACE ? ALLOC_CODE : ALLOC_DEFAULT;
   public static final int ALLOC_STACK = ALLOC_LOS;
-  public static final int ALLOC_IMMORTAL_STACK = ALLOC_IMMORTAL;
   public static final int ALLOCATORS = 9;
   public static final int DEFAULT_SITE = -1;
 
   /* Miscellaneous Constants */
-  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE;
+//  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE;
   public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
   public static final int MAX_COLLECTION_ATTEMPTS = 10;
-  public static final boolean REQUIRES_LOS = VM.activePlan.constraints().requiresLOS();
+ // public static final boolean REQUIRES_LOS = VM.activePlan.constraints().requiresLOS();
+  public static final int MAX_NON_LOS_DEFAULT_ALLOC_BYTES = VM.activePlan.constraints().maxNonLOSDefaultAllocBytes();
+  public static final int MAX_NON_LOS_NONMOVING_ALLOC_BYTES = VM.activePlan.constraints().maxNonLOSNonMovingAllocBytes();
+  public static final int MAX_NON_LOS_COPY_BYTES = VM.activePlan.constraints().maxNonLOSCopyBytes();
+
 
 /* Do we support a log bit in the object header?  Some write barriers may use it */
   public static final boolean NEEDS_LOG_BIT_IN_HEADER = VM.activePlan.constraints().needsLogBitInHeader();
@@ -152,7 +153,7 @@ public abstract class Plan implements Constants {
   public static final Timer totalTime = new Timer("time");
 
   /** Performance counters */
-  public static PerfCounter totalPerfCnt = new PerfCounter("perf");
+  public static final PerfCounter totalPerfCnt = new PerfCounter("perf");
 
   /** Support for time-limited GCs */
   protected static long timeCap;
@@ -327,6 +328,13 @@ public abstract class Plan implements Constants {
   public void insertPhaseAfter(int markerScheduledPhase, int scheduledPhase) {
     short tempPhase = Phase.createComplex("auto-gen", null, markerScheduledPhase, scheduledPhase);
     replacePhase(markerScheduledPhase, Phase.scheduleComplex(tempPhase));
+  }
+
+  /**
+   * @return Whether last GC was an exhaustive attempt to collect the heap.  For many collectors this is the same as asking whether the last GC was a full heap collection.
+   */
+  public boolean lastCollectionWasExhaustive() {
+    return lastCollectionFullHeap();
   }
 
   /**
@@ -587,48 +595,6 @@ public abstract class Plan implements Constants {
    */
   public static void setCollectionTrigger(int trigger) {
     collectionTrigger = trigger;
-  }
-
-  /****************************************************************************
-   * Space - Allocator mapping. See description for getOwnAllocator in PlanLocal
-   * for a description of why this is important.
-   */
-
-  /**
-   * Return the name of the space into which an allocator is
-   * allocating.  The allocator, <code>a</code> may be assocaited with
-   * any plan instance.
-   *
-   * @param a An allocator
-   * @return The name of the space into which <code>a</code> is
-   * allocating, or "<null>" if there is no space associated with
-   * <code>a</code>.
-   */
-  public static String getSpaceNameFromAllocatorAnyLocal(Allocator a) {
-    Space space = getSpaceFromAllocatorAnyLocal(a);
-    if (space == null)
-      return "<null>";
-    else
-      return space.getName();
-  }
-
-  /**
-   * Return the space into which an allocator is allocating.  The
-   * allocator, <code>a</code> may be assocaited with any plan
-   * instance.
-   *
-   * @param a An allocator
-   * @return The space into which <code>a</code> is allocating, or
-   *         <code>null</code> if there is no space associated with
-   *         <code>a</code>.
-   */
-  public static Space getSpaceFromAllocatorAnyLocal(Allocator a) {
-    for (int i = 0; i < VM.activePlan.mutatorCount(); i++) {
-      Space space = VM.activePlan.mutator(i).getSpaceFromAllocator(a);
-      if (space != null)
-        return space;
-    }
-    return null;
   }
 
   /****************************************************************************

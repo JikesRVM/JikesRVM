@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -101,8 +101,6 @@ import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.MagicNames;
-import org.jikesrvm.scheduler.Scheduler;
-import org.jikesrvm.scheduler.greenthreads.GreenProcessor;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -188,16 +186,16 @@ public class GenerateMagic implements TIBLayoutConstants  {
       Operand base = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(getOperator(storeType, STORE_OP), val, base, offset, null));
 
-    } else if (methodName == MagicNames.getProcessorRegister) {
-      RegisterOperand rop = gc.temps.makePROp();
+    } else if (methodName == MagicNames.getThreadRegister) {
+      RegisterOperand rop = gc.temps.makeTROp();
       bc2ir.markGuardlessNonNull(rop);
       bc2ir.push(rop);
-    } else if (methodName == MagicNames.setProcessorRegister) {
+    } else if (methodName == MagicNames.setThreadRegister) {
       Operand val = bc2ir.popRef();
       if (val instanceof RegisterOperand) {
-        bc2ir.appendInstruction(Move.create(REF_MOVE, gc.temps.makePROp(), val));
+        bc2ir.appendInstruction(Move.create(REF_MOVE, gc.temps.makeTROp(), val));
       } else {
-        String msg = " Unexpected operand Magic.setProcessorRegister";
+        String msg = " Unexpected operand Magic.setThreadRegister";
         throw MagicNotImplementedException.UNEXPECTED(msg);
       }
     } else if (methodName == MagicNames.addressArrayCreate) {
@@ -215,9 +213,6 @@ public class GenerateMagic implements TIBLayoutConstants  {
       bc2ir.appendInstruction(s);
     } else if (methodName == MagicNames.addressArrayGet) {
       TypeReference elementType = meth.getReturnType();
-      if (meth.getType() == TypeReference.ProcessorTable) {
-        elementType = Scheduler.getProcessorType();
-      }
       Operand index = bc2ir.popInt();
       Operand ref = bc2ir.popRef();
       RegisterOperand offsetI = gc.temps.makeTempInt();
@@ -508,16 +503,8 @@ public class GenerateMagic implements TIBLayoutConstants  {
       RegisterOperand reg = gc.temps.makeTemp(TypeReference.Type);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
-    } else if (methodName == MagicNames.objectAsProcessor) {
-      RegisterOperand reg = gc.temps.makeTemp(Scheduler.getProcessorType());
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
-      bc2ir.push(reg.copyD2U());
-    } else if (methodName == MagicNames.processorAsGreenProcessor) {
-      RegisterOperand reg = gc.temps.makeTemp(TypeReference.findOrCreate(GreenProcessor.class));
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
-      bc2ir.push(reg.copyD2U());
     } else if (methodName == MagicNames.objectAsThread) {
-      RegisterOperand reg = gc.temps.makeTemp(Scheduler.getThreadType());
+      RegisterOperand reg = gc.temps.makeTemp(TypeReference.Thread);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == MagicNames.objectAsAddress) {
@@ -768,13 +755,9 @@ public class GenerateMagic implements TIBLayoutConstants  {
       bc2ir.appendInstruction(Unary.create(INT_2ADDRZerExt, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == MagicNames.wordFromLong) {
-      if (VM.BuildFor64Addr) {
-        RegisterOperand reg = gc.temps.makeTemp(resultType);
-        bc2ir.appendInstruction(Unary.create(LONG_2ADDR, reg, bc2ir.popLong()));
-        bc2ir.push(reg.copyD2U());
-      } else {
-        VM._assert(false); //should not reach
-      }
+      RegisterOperand reg = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Unary.create(LONG_2ADDR, reg, bc2ir.popLong()));
+      bc2ir.push(reg.copyD2U());
     } else if (methodName == MagicNames.wordToInt) {
       RegisterOperand reg = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Unary.create(ADDR_2INT, reg, bc2ir.popAddress()));

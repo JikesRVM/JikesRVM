@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -13,6 +13,7 @@
 package org.mmtk.plan.generational.immix;
 
 import org.mmtk.plan.generational.GenConstraints;
+import static org.mmtk.policy.immix.ImmixConstants.MAX_IMMIX_OBJECT_BYTES;
 
 import org.vmmagic.pragma.*;
 
@@ -26,5 +27,8 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class GenImmixConstraints extends GenConstraints {
   /** @return The specialized scan methods required */
+  @Override
   public int numSpecializedScans() { return 3; }
+  @Override
+  public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES;}
 }

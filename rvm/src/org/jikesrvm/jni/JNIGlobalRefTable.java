@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -71,19 +71,22 @@ public class JNIGlobalRefTable {
     deleteGlobalRef(gref);
   }
 
+  @Uninterruptible
   static Object globalRef(int index) {
     if (VM.VerifyAssertions) VM._assert(!isWeakRef(index));
 
     return Magic.addressAsObject(JNIGlobalRefs.get(-index));
   }
 
+  @Uninterruptible
   static Object weakRef(int index) {
     if (VM.VerifyAssertions) VM._assert(isWeakRef(index));
     @SuppressWarnings("unchecked") // yes, we're being bad.
     WeakReference<Object> ref = (WeakReference<Object>) globalRef(index | STRONG_REF_BIT);
-    return ref.get();
+    return java.lang.ref.JikesRVMSupport.uninterruptibleReferenceGet(ref);
   }
 
+  @Uninterruptible
   static Object ref(int index) {
     if (isWeakRef(index)) {
       return weakRef(index);
@@ -92,6 +95,7 @@ public class JNIGlobalRefTable {
     }
   }
 
+  @Uninterruptible
   static boolean isWeakRef(int index) {
     return (index & STRONG_REF_BIT) == 0;
   }

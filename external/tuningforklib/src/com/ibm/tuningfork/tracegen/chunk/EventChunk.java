@@ -14,7 +14,6 @@
 
 package com.ibm.tuningfork.tracegen.chunk;
 
-import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
 
@@ -45,7 +44,6 @@ public final class EventChunk extends Chunk {
     putIntAt(SEQUENCE_NUMBER_OFFSET, sequenceNumber);
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et) {
     int required = ENCODING_SPACE_LONG + ENCODING_SPACE_INT;
     if (!hasRoom(required)) {
@@ -56,7 +54,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, int v) {
     int required = ENCODING_SPACE_LONG + ENCODING_SPACE_INT
     + ENCODING_SPACE_INT;
@@ -69,7 +66,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, int v1, int v2) {
     int required = ENCODING_SPACE_LONG + ENCODING_SPACE_INT + 2*ENCODING_SPACE_INT;
     if (!hasRoom(required)) {
@@ -82,7 +78,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, int v1, int v2, int v3) {
     int required = ENCODING_SPACE_LONG + ENCODING_SPACE_INT + 3*ENCODING_SPACE_INT;
     if (!hasRoom(required)) {
@@ -96,7 +91,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, int v1, int v2, int v3, int v4) {
     int required = ENCODING_SPACE_LONG + ENCODING_SPACE_INT + 4*ENCODING_SPACE_INT;
     if (!hasRoom(required)) {
@@ -111,7 +105,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, long v) {
     int required = ENCODING_SPACE_LONG + ENCODING_SPACE_INT + ENCODING_SPACE_LONG;
     if (!hasRoom(required)) {
@@ -123,7 +116,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, double v) {
     int required = ENCODING_SPACE_LONG + ENCODING_SPACE_INT + ENCODING_SPACE_DOUBLE;
     if (!hasRoom(required)) {
@@ -135,7 +127,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, String v) {
     int guess = ENCODING_SPACE_LONG + ENCODING_SPACE_INT + JikesRVMSupport.getStringLength(v);
     if (!hasRoom(guess)) {
@@ -151,7 +142,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, int iv, double dv) {
     int required = ENCODING_SPACE_LONG + 2 * ENCODING_SPACE_INT + ENCODING_SPACE_DOUBLE;
     if (!hasRoom(required)) {
@@ -164,7 +154,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, int iv1, int iv2, double dv) {
     int required = ENCODING_SPACE_LONG + 3 * ENCODING_SPACE_INT + ENCODING_SPACE_DOUBLE;
     if (!hasRoom(required)) {
@@ -178,7 +167,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, double dv, String sv) {
     int guess = ENCODING_SPACE_LONG + ENCODING_SPACE_DOUBLE + ENCODING_SPACE_INT + JikesRVMSupport.getStringLength(sv);
     if (!hasRoom(guess)) {
@@ -195,7 +183,6 @@ public final class EventChunk extends Chunk {
     return true;
   }
 
-  @Inline
   public boolean addEvent(long timeStamp, EventType et, int[] idata,
                           long[] ldata, double[] ddata, String[] sdata) {
     int ilen = (idata == null) ? 0 : idata.length;

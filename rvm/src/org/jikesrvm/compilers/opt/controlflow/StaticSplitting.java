@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.controlflow;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
+import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -48,7 +49,6 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 public class StaticSplitting extends CompilerPhase {
 
   private static final boolean DEBUG = false;
-  private static final int MAX_COST = 10; // upper bound on instructions duplicated
   private final BranchOptimizations branchOpts;
 
   public StaticSplitting() {
@@ -68,7 +68,7 @@ public class StaticSplitting extends CompilerPhase {
   public String getName() { return "Static Splitting"; }
 
   public boolean shouldPerform(OptOptions options) {
-    return options.STATIC_SPLITTING;
+    return options.CONTROL_STATIC_SPLITTING;
   }
 
   public boolean printingEnabled(OptOptions options, boolean before) {
@@ -129,8 +129,9 @@ public class StaticSplitting extends CompilerPhase {
       if (candTest == null) continue;
       BasicBlock coldPrev = findColdPrev(cand);
       if (coldPrev == null) continue;
-      if (tooBig(cand)) continue;
+      if (tooBig(cand, ir.options.CONTROL_STATIC_SPLITTING_MAX_COST)) continue;
       BasicBlock coldSucc = findColdSucc(cand, candTest);
+      if (containsOSRPoint(coldSucc)) continue;
       if (DEBUG) {
         VM.sysWrite("Found candidate \n");
         VM.sysWrite("\tTest is " + candTest + "\n");
@@ -216,7 +217,7 @@ public class StaticSplitting extends CompilerPhase {
    * static hints, we are only willing to
    * copy a very small amount of code.
    */
-  private boolean tooBig(BasicBlock bb) {
+  private boolean tooBig(BasicBlock bb, int maxCost) {
     int cost = 0;
     for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.next();
@@ -227,7 +228,17 @@ public class StaticSplitting extends CompilerPhase {
       } else {
         cost++;
       }
-      if (cost > MAX_COST) return true;
+      if (cost > maxCost) return true;
+    }
+    return false;
+  }
+
+  private boolean containsOSRPoint(BasicBlock bb) {
+    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.next();
+      if (s.operator() == YIELDPOINT_OSR) {
+        return true;
+      }
     }
     return false;
   }
@@ -237,12 +248,12 @@ public class StaticSplitting extends CompilerPhase {
    */
   private CandInfo cands;
 
-  private static class CandInfo {
-    BasicBlock candBB;
-    BasicBlock prevBB;
-    BasicBlock succBB;
+  private static final class CandInfo {
+    final BasicBlock candBB;
+    final BasicBlock prevBB;
+    final BasicBlock succBB;
     final Instruction test;
-    CandInfo next;
+    final CandInfo next;
 
     CandInfo(BasicBlock c, BasicBlock p, BasicBlock s, Instruction t, CandInfo n) {
       candBB = c;

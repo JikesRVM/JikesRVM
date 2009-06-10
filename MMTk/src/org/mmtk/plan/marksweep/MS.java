@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.*;
  * synchronized, whereas no synchronization is required for
  * thread-local activities.  There is a single instance of Plan (or the
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
- * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
+ * threads" (aka CPUs).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
  * allocation and collection.
  *
@@ -42,26 +42,21 @@ import org.vmmagic.unboxed.*;
 public class MS extends StopTheWorld {
 
   /****************************************************************************
-   * Constants
-   */
-
-  /****************************************************************************
    * Class variables
    */
-
   public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
   public static final int SCAN_MARK = 0;
 
+
   /****************************************************************************
    * Instance variables
    */
-
   public final Trace msTrace = new Trace(metaDataSpace);
 
+
   /*****************************************************************************
-   *
    * Collection
    */
 
@@ -71,6 +66,7 @@ public class MS extends StopTheWorld {
    * @param phaseId Collection phase to execute.
    */
   @Inline
+  @Override
   public void collectionPhase(short phaseId) {
 
     if (phaseId == PREPARE) {
@@ -95,7 +91,6 @@ public class MS extends StopTheWorld {
   }
 
   /*****************************************************************************
-   *
    * Accounting
    */
 
@@ -107,6 +102,7 @@ public class MS extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
   }
@@ -118,9 +114,15 @@ public class MS extends StopTheWorld {
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
+  @Override
   public int getPagesRequired() {
     return super.getPagesRequired() + msSpace.requiredPages();
   }
+
+
+  /*****************************************************************************
+   * Miscellaneous
+   */
 
   /**
    * @see org.mmtk.plan.Plan#willNeverMove
@@ -139,6 +141,7 @@ public class MS extends StopTheWorld {
    * Register specialized methods.
    */
   @Interruptible
+  @Override
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_MARK, MSTraceLocal.class);
     super.registerSpecializedMethods();

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -47,7 +47,7 @@ public class Map {
   private static final FreeListPageResource[] sharedFLMap;
   private static int totalAvailableDiscontiguousChunks = 0;
 
-  private static Lock lock = VM.newLock("Map lock");
+  private static final Lock lock = VM.newLock("Map lock");
 
   /****************************************************************************
    *
@@ -88,7 +88,7 @@ public class Map {
       Space space) {
     Extent e = Extent.zero();
     while (e.LT(extent)) {
-      int index = hashAddress(start.plus(e));
+      int index = getChunkIndex(start.plus(e));
       if (descriptorMap[index] != 0) {
         Log.write("Conflicting virtual address request for space \"");
         Log.write(space.getName()); Log.write("\" at ");
@@ -124,9 +124,9 @@ public class Map {
       VM.assertions.fail("exiting");
     }
     totalAvailableDiscontiguousChunks -= chunks;
-    Address rtn = reverseHashChunk(chunk);
+    Address rtn = addressForChunkIndex(chunk);
     insert(rtn, Extent.fromIntZeroExtend(chunks<<Space.LOG_BYTES_IN_CHUNK), descriptor, space);
-    linkageMap[chunk] = previous.isZero() ? 0 : hashAddress(previous);
+    linkageMap[chunk] = previous.isZero() ? 0 : getChunkIndex(previous);
     lock.release();
     return rtn;
   }
@@ -139,8 +139,8 @@ public class Map {
    */
   public static Address getNextContiguousRegion(Address start) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
-    int chunk = hashAddress(start);
-    return (chunk == 0) ? Address.zero() : (linkageMap[chunk] == 0) ? Address.zero() : reverseHashChunk(linkageMap[chunk]);
+    int chunk = getChunkIndex(start);
+    return (chunk == 0) ? Address.zero() : (linkageMap[chunk] == 0) ? Address.zero() : addressForChunkIndex(linkageMap[chunk]);
   }
 
   /**
@@ -151,7 +151,7 @@ public class Map {
    */
   public static int getContiguousRegionChunks(Address start) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
-    int chunk = hashAddress(start);
+    int chunk = getChunkIndex(start);
     return regionMap.size(chunk);
   }
 
@@ -174,7 +174,7 @@ public class Map {
   public static void freeAllChunks(Address lastChunk) {
     lock.acquire();
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(lastChunk.EQ(Space.chunkAlign(lastChunk, true)));
-    int chunk = hashAddress(lastChunk);
+    int chunk = getChunkIndex(lastChunk);
     while (chunk != 0) {
       int next = linkageMap[chunk];
       freeContiguousChunks(chunk);
@@ -192,7 +192,7 @@ public class Map {
   public static int freeContiguousChunks(Address start) {
     lock.acquire();
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
-    int rtn = freeContiguousChunks(hashAddress(start));
+    int rtn = freeContiguousChunks(getChunkIndex(start));
     lock.release();
     return rtn;
   }
@@ -223,28 +223,31 @@ public class Map {
   public static void finalizeStaticSpaceMap() {
     /* establish bounds of discontiguous space */
     Address startAddress = Space.getDiscontigStart();
-    int first = hashAddress(startAddress);
-    int last = hashAddress(Space.getDiscontigEnd().minus(1));
-    int pages = (1 + last - first)*Space.PAGES_IN_CHUNK + 1;
+    int firstChunk = getChunkIndex(startAddress);
+    int lastChunk = getChunkIndex(Space.getDiscontigEnd());
+    int unavailStartChunk = lastChunk + 1;
+    int trailingChunks = Space.MAX_CHUNKS - unavailStartChunk;
+    int pages = (1 + lastChunk - firstChunk) * Space.PAGES_IN_CHUNK;
     globalPageMap.resizeFreeList(pages, pages);
     for (int pr = 0; pr < sharedDiscontigFLCount; pr++)
       sharedFLMap[pr].resizeFreeList(startAddress);
 
     /* set up the region map free list */
-    regionMap.alloc(first);                  // block out entire bottom of address range
-    for (int chunk = first; chunk <= last; chunk++)
-      regionMap.alloc(1);                    // tentitively allocate all usable chunks
-    regionMap.alloc(Space.MAX_CHUNKS - last); // block out entire top of address range
+    int allocedChunk = regionMap.alloc(firstChunk);       // block out entire bottom of address range
+    for (int chunkIndex = firstChunk; chunkIndex <= lastChunk; chunkIndex++)
+      allocedChunk = regionMap.alloc(1);             // Tentatively allocate all usable chunks
+    allocedChunk = regionMap.alloc(trailingChunks);  // block out entire top of address range
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocedChunk == unavailStartChunk);
 
     /* set up the global page map and place chunks on free list */
     int firstPage = 0;
-    for (int chunk = first; chunk <= last; chunk++) {
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(spaceMap[chunk] == null);
+    for (int chunkIndex = firstChunk; chunkIndex <= lastChunk; chunkIndex++) {
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(spaceMap[chunkIndex] == null);
       totalAvailableDiscontiguousChunks++;
-      regionMap.free(chunk);  // put this chunk on the free list
+      regionMap.free(chunkIndex);  // put this chunk on the free list
       globalPageMap.setUncoalescable(firstPage);
-      int tmp = globalPageMap.alloc(Space.PAGES_IN_CHUNK); // populate the global page map
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(tmp == firstPage);
+      int allocedPages = globalPageMap.alloc(Space.PAGES_IN_CHUNK); // populate the global page map
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocedPages == firstPage);
       firstPage += Space.PAGES_IN_CHUNK;
     }
   }
@@ -271,6 +274,17 @@ public class Map {
   }
 
   /**
+   * Return the total number of clients contending for chunks.   This
+   * is useful when establishing conservative bounds on the number
+   * of remaining chunks.
+   *
+   * @return The total number of clients who may contend for chunks.
+   */
+  public static int getChunkConsumerCount() {
+    return sharedDiscontigFLCount;
+  }
+
+  /**
    * Return the space in which this address resides.
    *
    * @param address The address in question
@@ -278,7 +292,7 @@ public class Map {
    */
   @Inline
   public static Space getSpaceForAddress(Address address) {
-    int index = hashAddress(address);
+    int index = getChunkIndex(address);
     return spaceMap[index];
   }
 
@@ -292,7 +306,7 @@ public class Map {
    */
   @Inline
   public static int getDescriptorForAddress(Address object) {
-    int index = hashAddress(object);
+    int index = getChunkIndex(object);
     return descriptorMap[index];
   }
 
@@ -303,7 +317,7 @@ public class Map {
    * @return The chunk number that this address hashes into
    */
   @Inline
-  private static int hashAddress(Address address) {
+  private static int getChunkIndex(Address address) {
     if (Space.BYTES_IN_ADDRESS == 8) {
       if (address.LT(Space.HEAP_START) || address.GE(Space.HEAP_END))
         return 0;
@@ -313,7 +327,7 @@ public class Map {
       return address.toWord().rshl(Space.LOG_BYTES_IN_CHUNK).toInt();
   }
   @Inline
-  private static Address reverseHashChunk(int chunk) {
+  private static Address addressForChunkIndex(int chunk) {
     if (Space.BYTES_IN_ADDRESS == 8) {
       if (chunk == 0)
         return Address.zero();

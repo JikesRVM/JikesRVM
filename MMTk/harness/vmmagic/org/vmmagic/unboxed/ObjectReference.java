@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -25,9 +25,9 @@ import org.vmmagic.Unboxed;
 @Unboxed
 public final class ObjectReference {
 
-  final int value;
+  final ArchitecturalWord value;
 
-  ObjectReference(int value) {
+  ObjectReference(ArchitecturalWord value) {
     this.value = value;
   }
 
@@ -35,7 +35,7 @@ public final class ObjectReference {
    * Return a null reference
    */
   public static ObjectReference nullReference() {
-    return new ObjectReference(0);
+    return new ObjectReference(ArchitecturalWord.fromLong(0));
   }
 
   /**
@@ -49,24 +49,27 @@ public final class ObjectReference {
    * Object equality.
    */
   public boolean equals(Object other) {
-    return other instanceof ObjectReference && ((ObjectReference)other).value == value;
+    return other instanceof ObjectReference && ((ObjectReference)other).value.equals(value);
   }
 
   /**
    * Object hashCode
    */
   public int hashCode() {
-    return value >>> 2;
+    long val = value.toLongZeroExtend();
+    int high = (int)(val >>> 32);
+    int low = (int)(val & 0xFFFFFFFFL);
+    return high ^ (low >>> 2);
   }
 
   /**
    * Is this a null reference?
    */
   public boolean isNull() {
-    return value == 0;
+    return value.isZero();
   }
 
   public String toString() {
-    return Address.formatInt(value);
+    return value.toString();
   }
 }

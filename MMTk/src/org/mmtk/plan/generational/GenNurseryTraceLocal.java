@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -94,12 +94,14 @@ public final class GenNurseryTraceLocal extends TraceLocal {
     logMessage(5, "processing modbuf");
     ObjectReference obj;
     while (!(obj = modbuf.pop()).isNull()) {
+      if (VM.DEBUG) VM.debugging.modbufEntry(obj);
       Plan.markAsUnlogged(obj);
       scanObject(obj);
     }
     logMessage(5, "processing remset");
     while (!remset.isEmpty()) {
       Address loc = remset.pop();
+      if (VM.DEBUG) VM.debugging.remsetEntry(loc);
       processRootEdge(loc, false);
     }
     logMessage(5, "processing array remset");
@@ -107,6 +109,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
     while (!arrayRemset.isEmpty()) {
       Address start = arrayRemset.pop1();
       Address guard = arrayRemset.pop2();
+      if (VM.DEBUG) VM.debugging.arrayRemsetEntry(start,guard);
       while (start.LT(guard)) {
         processRootEdge(start, false);
         start = start.plus(BYTES_IN_ADDRESS);

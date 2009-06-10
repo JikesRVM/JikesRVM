@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -70,7 +70,7 @@ public final class PiNodes extends CompilerPhase {
    * @param options controlling compiler options
    */
   public boolean shouldPerform(OptOptions options) {
-    return options.GLOBAL_BOUNDS_CHECK || typeChecks;
+    return options.SSA_GLOBAL_BOUNDS_CHECK || typeChecks;
   }
 
   /**
@@ -334,12 +334,12 @@ public final class PiNodes extends CompilerPhase {
         // create the instruction and insert it
         if (obj.isRegister()) {
           RegisterOperand lval = (RegisterOperand) obj.copy();
-          lval.setType(TypeCheck.getType(instr).getTypeRef());
           lval.clearDeclaredType();
           if (lval.getType().isLoaded() && lval.getType().isClassType() && lval.getType().peekType().asClass().isFinal()) {
-            lval.setPreciseType();
+            lval.setPreciseType(TypeCheck.getType(instr).getTypeRef());
           } else {
             lval.clearPreciseType();
+            lval.setType(TypeCheck.getType(instr).getTypeRef());
           }
           Instruction s = GuardedUnary.create(PI, lval, obj.copy(), null);
           s.position = instr.position;

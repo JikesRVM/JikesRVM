@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -388,8 +388,8 @@ public abstract class StackManager extends GenericStackManager {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register ESP = phys.getESP();
     MemoryOperand M =
-        MemoryOperand.BD(ir.regpool.makePROp(),
-                             Entrypoints.activeThreadStackLimitField.getOffset(),
+        MemoryOperand.BD(ir.regpool.makeTROp(),
+                             Entrypoints.stackLimitField.getOffset(),
                              (byte) WORDSIZE,
                              null,
                              null);
@@ -428,8 +428,8 @@ public abstract class StackManager extends GenericStackManager {
 
     //    ECX := active Thread Stack Limit
     MemoryOperand M =
-        MemoryOperand.BD(ir.regpool.makePROp(),
-                             Entrypoints.activeThreadStackLimitField.getOffset(),
+        MemoryOperand.BD(ir.regpool.makeTROp(),
+                             Entrypoints.stackLimitField.getOffset(),
                              (byte) WORDSIZE,
                              null,
                              null);
@@ -465,16 +465,17 @@ public abstract class StackManager extends GenericStackManager {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register ESP = phys.getESP();
     MemoryOperand fpHome =
-        MemoryOperand.BD(ir.regpool.makePROp(),
+        MemoryOperand.BD(ir.regpool.makeTROp(),
                              ArchEntrypoints.framePointerField.getOffset(),
                              (byte) WORDSIZE,
                              null,
                              null);
 
+    // the prologue instruction
+    Instruction plg = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     // inst is the instruction immediately after the IR_PROLOGUE
     // instruction
-    Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder().nextInstructionInCodeOrder();
-    Instruction plg = inst.getPrev();
+    Instruction inst = plg.nextInstructionInCodeOrder();
 
     int frameFixedSize = getFrameFixedSize();
     ir.compiledMethod.setFrameFixedSize(frameFixedSize);
@@ -657,7 +658,7 @@ public abstract class StackManager extends GenericStackManager {
     int frameSize = getFrameFixedSize();
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(frameSize)));
     MemoryOperand fpHome =
-        MemoryOperand.BD(ir.regpool.makePROp(),
+        MemoryOperand.BD(ir.regpool.makeTROp(),
                              ArchEntrypoints.framePointerField.getOffset(),
                              (byte) WORDSIZE,
                              null,
@@ -989,7 +990,7 @@ public abstract class StackManager extends GenericStackManager {
       ScratchRegister scratch = i.next();
 
       if (scratch.currentContents == null) continue;
-      if (verboseDebug) {
+      if (VERBOSE_DEBUG) {
         System.out.println("RESTORE: consider " + scratch);
       }
       boolean removed = false;
@@ -1000,19 +1001,19 @@ public abstract class StackManager extends GenericStackManager {
           (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // s defines the scratch register, so save its contents before they
         // are killed.
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RESTORE : unload because defined " + scratch);
         }
         unloadScratchRegisterBefore(s, scratch);
 
         // update mapping information
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RSRB: End scratch interval " + scratch.scratch + " " + s);
         }
         scratchMap.endScratchInterval(scratch.scratch, s);
         Register scratchContents = scratch.currentContents;
         if (scratchContents != null) {
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("RSRB: End symbolic interval " + scratch.currentContents + " " + s);
           }
           scratchMap.endSymbolicInterval(scratch.currentContents, s);
@@ -1029,19 +1030,19 @@ public abstract class StackManager extends GenericStackManager {
         // first spill the currents contents of the scratch register to
         // memory
         if (!unloaded) {
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("RESTORE : unload because used " + scratch);
           }
           unloadScratchRegisterBefore(s, scratch);
 
           // update mapping information
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("RSRB2: End scratch interval " + scratch.scratch + " " + s);
           }
           scratchMap.endScratchInterval(scratch.scratch, s);
           Register scratchContents = scratch.currentContents;
           if (scratchContents != null) {
-            if (verboseDebug) {
+            if (VERBOSE_DEBUG) {
               System.out.println("RSRB2: End symbolic interval " + scratch.currentContents + " " + s);
             }
             scratchMap.endSymbolicInterval(scratch.currentContents, s);
@@ -1050,7 +1051,7 @@ public abstract class StackManager extends GenericStackManager {
         }
         // s or some future instruction uses the scratch register,
         // so restore the correct contents.
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RESTORE : reload because used " + scratch);
         }
         reloadScratchRegisterBefore(s, scratch);

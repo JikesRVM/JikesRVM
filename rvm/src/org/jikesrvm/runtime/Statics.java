@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -219,6 +219,33 @@ public class Statics implements Constants {
   }
 
   /**
+   * Find the given literal in the 16byte like literal map, if not found
+   * create a slot for the literal and place an entry in the map
+   * @param literal_high the high part of the literal value to find or create
+   * @param literal_low the low part of the literal value to find or create
+   * @return the offset in the JTOC of the literal
+   */
+  public static int findOrCreate16ByteSizeLiteral(long literal_high, long literal_low) {
+    final int bottom = getLowestInUseSlot();
+    final int top = middleOfTable & 0xFFFFFFFC;
+    for (int i=top; i >= bottom; i-=4) {
+      Offset off = slotAsOffset(i);
+      if ((getSlotContentsAsLong(off) == literal_low) &&
+          (getSlotContentsAsLong(off.plus(8)) == literal_high) &&
+          !numericFieldVector.get(i) && !(numericFieldVector.get(i+1)) &&
+          !numericFieldVector.get(i+2) && !(numericFieldVector.get(i+3)) &&
+          (i != numericSlotHole) && (i+1 != numericSlotHole) &&
+          (i+2 != numericSlotHole) && (i+3 != numericSlotHole)) {
+        return slotAsOffset(i).toInt();
+      }
+    }
+    Offset newOff = allocateNumericSlot(16, false);
+    setSlotContents(newOff, literal_low);
+    setSlotContents(newOff.plus(8), literal_high);
+    return newOff.toInt();
+  }
+
+  /**
    * Find or allocate a slot in the jtoc for an object literal.
    * @param       literal value
    * @return offset of slot that was allocated
@@ -293,9 +320,31 @@ public class Statics implements Constants {
   public static synchronized Offset allocateNumericSlot(int size, boolean field) {
     // Result slot
     int slot;
-    // Allocate two slots for wide items after possibly blowing
-    // another slot for alignment.  Wide things are longs or doubles
-    if (size == BYTES_IN_LONG) {
+    // Allocate 2 or 4 slots for wide items after possibly blowing
+    // other slots for alignment.
+    if (size == 16) {
+      // widen for a wide
+      nextNumericSlot-=3;
+      // check alignment
+      if ((nextNumericSlot & 1) != 0) {
+        // slot isn't 8byte aligned so increase by 1 and record hole
+        nextNumericSlot--;
+        numericSlotHole = nextNumericSlot + 2;
+      }
+      if ((nextNumericSlot & 3) != 0) {
+        // slot not 16byte aligned, ignore any holes
+        nextNumericSlot-=2;
+      }
+      // Remember the slot and adjust the next available slot
+      slot = nextNumericSlot;
+      nextNumericSlot--;
+      if (field) {
+        numericFieldVector.set(slot);
+        numericFieldVector.set(slot+1);
+        numericFieldVector.set(slot+2);
+        numericFieldVector.set(slot+3);
+      }
+    } else if (size == BYTES_IN_LONG) {
       // widen for a wide
       nextNumericSlot--;
       // check alignment
@@ -570,7 +619,7 @@ public class Statics implements Constants {
     // VM. We suppress the warning as we know the error can't happen.
 
     if (VM.runningVM && MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
-      MemoryManager.putstaticWriteBarrier(offset, object, 0);
+      MemoryManager.putstaticWriteBarrier(object, offset, 0);
     } else {
       setSlotContents(offset, Magic.objectAsAddress(object).toWord());
     }

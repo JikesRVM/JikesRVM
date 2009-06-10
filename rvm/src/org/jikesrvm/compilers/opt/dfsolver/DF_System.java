@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -37,9 +37,29 @@ import org.jikesrvm.compilers.opt.util.ReverseDFSenumerateByFinish;
  *      in a topological order according to these edges.
  */
 public abstract class DF_System {
-  static final boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
-  final boolean EAGER;
+  private final boolean EAGER;
+
+  /**
+   * The equations that comprise this dataflow system.
+   */
+  private final Graph equations = new DF_Graph();
+
+  /**
+   * Set of equations pending evaluation
+   */
+  protected final TreeSet<DF_Equation> workList = new TreeSet<DF_Equation>(dfComparator);
+
+  /**
+   * Set of equations considered "new"
+   */
+  private final HashSet<DF_Equation> newEquations = new HashSet<DF_Equation>();
+
+  /**
+   * The lattice cells of the system: Mapping from Object to DF_LatticeCell
+   */
+  protected final DF_Solution cells = new DF_Solution();
 
   public DF_System() {
     EAGER = false;
@@ -100,11 +120,11 @@ public abstract class DF_System {
    */
   public Enumeration<DF_Equation> getEquations() {
     return new FilterEnumerator<GraphNode, DF_Equation>(equations.enumerateNodes(),
-                                                                    new FilterEnumerator.Filter<GraphNode, DF_Equation>() {
-                                                                      public boolean isElement(GraphNode x) {
-                                                                        return x instanceof DF_Equation;
-                                                                      }
-                                                                    });
+        new FilterEnumerator.Filter<GraphNode, DF_Equation>() {
+          public boolean isElement(GraphNode x) {
+            return x instanceof DF_Equation;
+          }
+        });
   }
 
   /**
@@ -136,7 +156,7 @@ public abstract class DF_System {
       }
       addToWorkList(eq);
     }
-    newEquations = new HashSet<DF_Equation>();
+    newEquations.clear();
     if (DEBUG) {
       System.out.println("end of new equations");
     }
@@ -337,11 +357,6 @@ public abstract class DF_System {
     }
   }
 
-  /**
-   * The equations that comprise this dataflow system.
-   */
-  final Graph equations = new DF_Graph();
-
   private static final Comparator<DF_Equation> dfComparator = new Comparator<DF_Equation>() {
     public int compare(DF_Equation o1, DF_Equation o2) {
       DF_Equation eq1 = o1;
@@ -349,21 +364,6 @@ public abstract class DF_System {
       return (eq1.topologicalNumber - eq2.topologicalNumber);
     }
   };
-
-  /**
-   * Set of equations pending evaluation
-   */
-  protected final TreeSet<DF_Equation> workList = new TreeSet<DF_Equation>(dfComparator);
-
-  /**
-   * Set of equations considered "new"
-   */
-  HashSet<DF_Equation> newEquations = new HashSet<DF_Equation>();
-
-  /**
-   * The lattice cells of the system: Mapping from Object to DF_LatticeCell
-   */
-  protected final DF_Solution cells = new DF_Solution();
 
   /**
    * Initialize all lattice cells in the system.

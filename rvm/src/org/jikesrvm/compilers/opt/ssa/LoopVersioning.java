@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -344,7 +344,7 @@ public final class LoopVersioning extends CompilerPhase {
    */
   @Override
   public boolean shouldPerform(OptOptions options) {
-    return options.LOOP_VERSIONING;
+    return options.SSA_LOOP_VERSIONING;
   }
 
   /**
@@ -996,11 +996,11 @@ public final class LoopVersioning extends CompilerPhase {
         phiMinIndexValue = loop.initialIteratorValue;
         if ((loop.condition.isLESS() ||
              loop.condition.isLOWER() ||
-             loop.condition.isNOT_EQUAL() /*|| loop.condition.isNOT_SAME()*/)) {
+             loop.condition.isNOT_EQUAL())) {
           phiMaxIndexValue = terminal;
         } else if ((loop.condition.isLESS_EQUAL() ||
                     loop.condition.isLOWER_EQUAL() ||
-                    loop.condition.isEQUAL() /*|| loop.condition.isSAME()*/)) {
+                    loop.condition.isEQUAL())) {
           phiMaxIndexValue = terminalPlusStrideOnce;
         } else {
           throw new Error("Unrecognised loop for fission " + loop);
@@ -1009,11 +1009,11 @@ public final class LoopVersioning extends CompilerPhase {
         phiMaxIndexValue = loop.initialIteratorValue;
         if ((loop.condition.isGREATER() ||
              loop.condition.isHIGHER() ||
-             loop.condition.isNOT_EQUAL() /*|| loop.condition.isNOT_SAME()*/)) {
+             loop.condition.isNOT_EQUAL())) {
           phiMinIndexValue = terminalPlusStrideOnce;
         } else if ((loop.condition.isGREATER_EQUAL() ||
                     loop.condition.isHIGHER_EQUAL() ||
-                    loop.condition.isEQUAL() /*|| loop.condition.isSAME()*/)) {
+                    loop.condition.isEQUAL())) {
           phiMinIndexValue = terminalLessStrideOnce;
         } else {
           throw new Error("Unrecognised loop for fission " + loop);

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -16,7 +16,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.adaptive.measurements.listeners.EdgeListener;
-import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -24,7 +23,8 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptMachineCodeMap;
-import org.jikesrvm.scheduler.greenthreads.GreenScheduler;
+import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.pragma.NonMoving;
 
@@ -96,14 +96,12 @@ public class DynamicCallGraphOrganizer extends Organizer {
    */
   @Override
   public void initialize() {
-    AOSLogging.DCGOrganizerThreadStarted();
-
     if (Controller.options.cgCBS()) {
       numberOfBufferTriples = Controller.options.DCG_SAMPLE_SIZE * VM.CBSCallSamplesPerTick;
     } else {
       numberOfBufferTriples = Controller.options.DCG_SAMPLE_SIZE;
     }
-    numberOfBufferTriples *= GreenScheduler.numProcessors;
+    numberOfBufferTriples *= RVMThread.numProcessors;
     bufferSize = numberOfBufferTriples * 3;
     buffer = new int[bufferSize];
 
@@ -115,7 +113,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
      *   thresholdReachedCount * samplesPerInvocationOfThresholdReached > 1 / AI_HOT_CALLSITE_THRESHOLD
      * to be true.
      */
-    thresholdReachedCount = (int)Math.ceil(1.0 /(numberOfBufferTriples * Controller.options.AI_HOT_CALLSITE_THRESHOLD));;
+    thresholdReachedCount = (int)Math.ceil(1.0 /(numberOfBufferTriples * Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD));;
 
     // Install the edge listener
     if (Controller.options.cgTimer()) {
@@ -136,7 +134,12 @@ public class DynamicCallGraphOrganizer extends Organizer {
     if (DEBUG) VM.sysWriteln("DCG_Organizer.thresholdReached()");
 
     for (int i = 0; i < bufferSize; i = i + 3) {
-      int calleeCMID = buffer[i + 0];
+      int calleeCMID=0;
+      // FIXME: This is necessary but hacky and may not even be correct.
+      while (calleeCMID == 0) {
+        calleeCMID = buffer[i + 0];
+      }
+      Magic.isync();
       CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(calleeCMID);
       if (compiledMethod == null) continue;
       RVMMethod callee = compiledMethod.getMethod();
@@ -245,3 +248,4 @@ public class DynamicCallGraphOrganizer extends Organizer {
     return thresholdReachedCount == 0;
   }
 }
+

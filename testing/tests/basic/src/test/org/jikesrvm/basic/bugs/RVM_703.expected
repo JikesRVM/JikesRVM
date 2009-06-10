@@ -1,0 +1,3 @@
+test.org.jikesrvm.basic.bugs.RVM_703 bar
+test.org.jikesrvm.basic.bugs.RVM_703 foo
+test.org.jikesrvm.basic.bugs.RVM_703 main

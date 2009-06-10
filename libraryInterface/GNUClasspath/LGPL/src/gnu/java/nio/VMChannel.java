@@ -50,7 +50,7 @@ import java.nio.MappedByteBuffer;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
-import org.jikesrvm.scheduler.greenthreads.FileSystem;
+import org.jikesrvm.runtime.FileSystem;
 import org.vmmagic.pragma.NonMovingAllocation;
 
 
@@ -58,7 +58,7 @@ import org.vmmagic.pragma.NonMovingAllocation;
  * Native interface to support configuring of channel to run in a non-blocking
  * manner and support scatter/gather io operations.
  *
- * JikesRVM-specific implementation by Robin Garner.
+ * JikesRVM-specific implementation by Robin Garner and Filip Pizlo.
  */
 public final class VMChannel
 {
@@ -200,7 +200,7 @@ public final class VMChannel
   /**
    * Thread-local buffer for VM-side buffering of write calls
    */
-  private static LocalByteArray localByteArray = new LocalByteArray() ;
+  private static final LocalByteArray localByteArray = new LocalByteArray() ;
 
   /**
    * Read the specified byte buffer.

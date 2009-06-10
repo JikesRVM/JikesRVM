@@ -1,19 +1,19 @@
 <!--
  ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
  ~
- ~  This file is licensed to You under the Common Public License (CPL);
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
  ~  You may not use this file except in compliance with the License. You
  ~  may obtain a copy of the License at
  ~
- ~      http://www.opensource.org/licenses/cpl1.0.php
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
  ~
  ~  See the COPYRIGHT.txt file distributed with this work for information
  ~  regarding copyright ownership.
  -->
 <project name="JikesRVM" default="main" basedir=".">
 
-  <property name="rvm.version" value="3.0.1"/>
-  <property name="svn.revision" value="15106"/>
+  <property name="rvm.version" value="3.1.0"/>
+  <property name="svn.revision" value="15702"/>
 
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
@@ -259,6 +259,14 @@
         <ant antfile="build/components/harmony.xml" target="ensure"/>
       </sequential>
     </if>
+    <if>
+      <conditions>
+        <equals arg1="${config.with-profile}" arg2="true"/>
+      </conditions>
+      <sequential>
+        <ant antfile="build/components/dacapo.xml" target="ensure"/>
+      </sequential>
+    </if>
     <ant antfile="build/components/checkstyle.xml" target="ensure"/>
     <ant antfile="build/components/asm.xml" target="ensure"/>
     <if>
@@ -344,7 +352,7 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="os.filter" value="-DRVM_FOR_AIX=1">
       <equals arg1="${target.os}" arg2="AIX"/>
     </condition>
-    <condition property="os.filter" value="-DRVM_FOR_LINUX=1">
+    <condition property="os.filter" value="-DRVM_FOR_LINUX=1 -DLINUX=1">
       <equals arg1="${target.os}" arg2="Linux"/>
     </condition>
     <condition property="os.filter" value="-DRVM_FOR_OSX=1">
@@ -352,6 +360,14 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
     <condition property="os.filter" value="-DRVM_FOR_SOLARIS=1">
       <equals arg1="${target.os}" arg2="Solaris"/>
+    </condition>
+
+    <condition property="classlib.filter" value="-DRVM_FOR_HARMONY=1">
+      <equals arg1="${classlib.provider}" arg2="Harmony"/>
+    </condition>
+
+    <condition property="classlib.filter" value="-DRVM_FOR_GNU_CLASSPATH=1">
+      <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
 
     <condition property="gctrace.filter" value="-DRVM_WITH_GCTRACE=1" else="">
@@ -369,7 +385,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${config.include.perfctr}" arg2="true"/>
     </condition>
 
-    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${alignment-checking.filter} ${perfctr.filter}"/>
+    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${alignment-checking.filter} ${perfctr.filter} ${classlib.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -1025,7 +1041,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
       </conditions>
       <sequential>
-        <property name="classlib.library-interface.cpl.java" location="libraryInterface/GNUClasspath/CPL/src"/>
+        <property name="classlib.library-interface.cpl.java" location="libraryInterface/GNUClasspath/EPL/src"/>
         <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/GNUClasspath/LGPL/src"/>
         <property name="classlib.library-interface.non-cpl2.java" location="libraryInterface/GNUClasspath/PD/src"/>
       </sequential>
@@ -1035,7 +1051,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
       </conditions>
       <sequential>
-        <property name="classlib.library-interface.cpl.java" location="libraryInterface/Harmony/CPL/src"/>
+        <property name="classlib.library-interface.cpl.java" location="libraryInterface/Harmony/EPL/src"/>
         <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/Harmony/ASF/src"/>
       </sequential>
     </if>
@@ -1467,10 +1483,6 @@ Check to make sure all required properties are specified. This includes properti
            classpath="${build.vm.jar}">
       <class name="org.jikesrvm.runtime.DynamicLibrary"/>
     </javah>
-    <javah outputFile="${build.native}/org_jikesrvm_scheduler_greenthreads_VMProcess.h"
-           classpath="${build.vm.jar}">
-      <class name="org.jikesrvm.scheduler.greenthreads.VMProcess"/>
-    </javah>
   </target>
 
   <target name="gen-runbootimage" depends="check-properties">
@@ -1495,13 +1507,6 @@ Check to make sure all required properties are specified. This includes properti
 
     <condition property="gen-ppc-bootThread" value="true">
       <equals arg1="${target.arch}" arg2="ppc"/>
-    </condition>
-
-    <condition property="include.syswrap" value="true">
-      <or>
-        <equals arg1="${target.os}" arg2="Linux"/>
-        <equals arg1="${target.os}" arg2="Solaris"/>
-      </or>
     </condition>
 
     <condition property="gcspy.includes.dir" value="-I${jikesrvm.dir}/tools/gcspy-stub/src">
@@ -1556,19 +1561,6 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.src" value="${bl.dir}/RunBootImage.C ${bl.dir}/sys.C ${rvm.arch.src} ${perfctr.src}"/>
   </target>
 
-  <target name="build-syswrap" depends="check-bootloader-properties" if="include.syswrap">
-    <!-- create syswrap shared library -->
-    <mkdir dir="${build.base}"/>
-    <property name="syswrap.dll" value="${target.dll-prefix}syswrap${target.dll-ext}"/>
-    <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${rvm.c++.args}"/>
-      <arg line="-nostartfiles -shared"/>
-      <arg value="-o"/>
-      <arg value="${build.base}/${syswrap.dll}"/>
-      <arg value="${bl.dir}/syswrap.C"/>
-    </exec>
-  </target>
-
   <target name="build-ppc-bootThread" depends="check-bootloader-properties" if="gen-ppc-bootThread">
     <test-file name="cpp.exe" location="${host.file}"/>
     <exec executable="${cpp.exe}" failonerror="true" output="${build.native}/bootThread.s">
@@ -1587,7 +1579,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
   </target>
 
-  <target name="build-bootloader" depends="build-gcspy-stub,build-syswrap,build-ppc-bootThread">
+  <target name="build-bootloader" depends="build-gcspy-stub,build-ppc-bootThread">
 
     <!-- rdynamic flag used to control the exporting of symbols into an ELF -->
     <condition property="c++.rdynamic" value="" else="-rdynamic">
@@ -1621,7 +1613,7 @@ Check to make sure all required properties are specified. This includes properti
       </conditions>
       <sequential>
         <exec executable="${c.exe}" failonerror="true">
-          <arg line="-DLINUX=1 ${rvm.c++.args} -lpthread ${c++.librt} -L${harmony.lib.dir} -lhyprt -lhyarchive -lhyzlib"/>
+          <arg line="${rvm.c++.args} -lpthread ${c++.librt} -L${harmony.lib.dir} -lhyprt -lhyarchive -lhyzlib"/>
           <arg value="-o"/>
           <arg value="${build.base}/${vmi.dll}"/>
           <arg value="${bl.dir}/harmony.c"/>
@@ -1630,15 +1622,6 @@ Check to make sure all required properties are specified. This includes properti
         </exec>
       </sequential>
     </if>
-
-    <!-- create rvmexec shared library -->
-    <property name="rvmexec.dll" value="${target.dll-prefix}rvmexec${target.jni-suffix}"/>
-    <exec executable="${c++.exe}" failonerror="true">
-      <arg line="${rvm.c++.args}"/>
-      <arg value="-o"/>
-      <arg value="${build.base}/${rvmexec.dll}"/>
-      <arg value="${bl.dir}/org_jikesrvm_scheduler_greenthreads_VMProcess.c"/>
-    </exec>
 
     <!-- create rvmdynlib shared library -->
     <property name="rvmdynlib.dll" value="${target.dll-prefix}rvmdynlib${target.jni-suffix}"/>
@@ -1655,10 +1638,6 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${config.include.perfctr}" arg2="true"/>
     </condition>
 
-    <condition property="syswrap.lib" value="-lsyswrap" else="">
-      <equals arg1="${include.syswrap}" arg2="true"/>
-    </condition>
-
     <if>
       <conditions>
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
@@ -1670,7 +1649,7 @@ Check to make sure all required properties are specified. This includes properti
           <arg value="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
           <arg value="-ldl"/>
-          <arg line="-lrvm ${syswrap.lib}"/>
+          <arg line="-lrvm"/>
 	</exec>
       </sequential>
     </if>
@@ -1686,12 +1665,11 @@ Check to make sure all required properties are specified. This includes properti
           <arg value="-L${build.base}"/>
 	  <arg value="-L${harmony.lib.dir}"/>
           <arg value="-ldl"/>
-          <arg line="-lrvm ${syswrap.lib}"/>
+          <arg value="-lrvm"/>
           <arg value="-lvmi"/>
           <arg value="-lhyarchive"/>
           <arg value="-lhyprt"/>
           <arg value="-lhythr"/>
-          <arg value="-lhysig"/>
           <arg value="-lhyzlib"/>
 	</exec>
       </sequential>
@@ -1734,10 +1712,6 @@ Check to make sure all required properties are specified. This includes properti
       </fileset>
     </copy>
     <copy file="${basedir}/tools/bootImageRunner/rvm.classpath" tofile="${dist.base}/rvm">
-      <filterset>
-        <filter token="PRELOAD"
-                value="${target.dll-prefix}syswrap${target.dll-ext}"/>
-      </filterset>
     </copy>
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
@@ -1788,10 +1762,6 @@ target.jni-suffix=${target.jni-suffix}
       </fileset>
     </copy>
     <copy file="${basedir}/tools/bootImageRunner/rvm.harmony" tofile="${dist.base}/rvm">
-      <filterset>
-        <filter token="PRELOAD"
-                value="${target.dll-prefix}syswrap${target.dll-ext}"/>
-      </filterset>
     </copy>
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
@@ -1964,10 +1934,10 @@ target.jni-suffix=${target.jni-suffix}
 	<ant inheritAll="false" target="create-bootimage-profile">
 	  <property name="config.with-profile" value="true"/>
 	  <property name="config.bootimage.compiler" value="base"/>
-	  <property name="config.bootimage.compiler.args" value="-X:bc:edge_counters=true"/>
+	  <property name="config.bootimage.compiler.args" value="-X:bc:profile_edge_counters=true"/>
 	</ant>
   	<ant inheritAll="false" target="runtime">
-	  <property name="config.bootimage.compiler.args" value="-X:bc:edge_count_input_file=${build.profiles}/profile.ec ${config.bootimage.compiler.args}"/>
+	  <property name="config.bootimage.compiler.args" value="-X:bc:profile_edge_count_input_file=${build.profiles}/profile.ec ${config.bootimage.compiler.args}"/>
 	</ant>
   </target>
 
@@ -1975,10 +1945,10 @@ target.jni-suffix=${target.jni-suffix}
   <target name="create-bootimage-profile" depends="runtime">
 	<ant antfile="build/components/dacapo.xml" target="ensure" inheritall="false" inheritrefs="false"/>
 	<mkdir dir="${build.profiles}"/>
-	<exec executable="${dist.base}/rvm"
+	<exec executable="${dist.base}/rvm" failonerror="true"
     dir="${build.profiles}">
-    <arg value="-X:base:edge_counters=true"/>
-	  <arg value="-X:base:edge_counter_file=${build.profiles}/profile.ec"/>
+    <arg value="-X:base:profile_edge_counters=true"/>
+	  <arg value="-X:base:profile_edge_counter_file=${build.profiles}/profile.ec"/>
 	  <arg value="-X:aos:final_report_level=2"/>
 	  <arg line="-jar ${dacapo.jar} -n 3 fop"/>
 	</exec>
@@ -2029,7 +1999,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="common/vmmagic" includes="**/*.java"/>
       <fileset dir="common/options" includes="**/*.java"/>
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>
-      <fileset dir="libraryInterface/GNUClasspath/CPL" includes="**/*.java"/>
+      <fileset dir="libraryInterface/GNUClasspath/EPL" includes="**/*.java"/>
       <fileset dir="tools" includes="**/*.java"/>
     </checkstyle>
 
@@ -2133,6 +2103,7 @@ target.jni-suffix=${target.jni-suffix}
       <src path="${classlib.library-interface.non-cpl2.java}"/>
       <src path="${vmmagic-stub.java}"/>
       <src path="${options.java}"/>
+      <src path="${tuningforklib.java}"/>
       <src path="${mmtk.java}"/>
       <src path="${mmtk-vm-rvm.java}"/>
       <src path="${generated.java}"/>
@@ -2178,6 +2149,7 @@ target.jni-suffix=${target.jni-suffix}
 
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${options.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${tuningforklib.java}" defaultexcludes="yes" includes="com/ibm/tuningfork/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk-vm-rvm.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${generated.java}" includes="org/**"/>
@@ -2227,6 +2199,7 @@ target.jni-suffix=${target.jni-suffix}
 
       <packageset dir="${vmmagic-stub.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${options.java}" defaultexcludes="yes" includes="org/**"/>
+      <packageset dir="${tuningforklib.java}" defaultexcludes="yes" includes="com/ibm/tuningfork/**"/>
       <packageset dir="${mmtk.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${mmtk-vm-rvm.java}" defaultexcludes="yes" includes="org/**"/>
       <packageset dir="${generated.java}" includes="org/**"/>
@@ -2239,7 +2212,7 @@ target.jni-suffix=${target.jni-suffix}
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
-  <target name="mmtk-harness-eclipse-project" depends="mmtk-harness">
+  <target name="mmtk-harness-eclipse-project">
     <delete dir="eclipse"/>
     <delete file=".project"/>
     <delete file=".classpath"/>

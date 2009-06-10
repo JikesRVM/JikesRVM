@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -132,7 +132,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   }
 
   /**
-   * Called from {@link RVMClass#readClass(TypeReference,DataInputStream)} to create an
+   * Called from {@link ClassFileReader#readClass(TypeReference,DataInputStream)} to create an
    * instance of a RVMMethod by reading the relevant data from the argument bytecode stream.
    *
    * @param declaringClass the TypeReference of the class being loaded
@@ -149,6 +149,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     ExceptionHandlerMap tmp_exceptionHandlerMap = null;
     TypeReference[] tmp_exceptionTypes = null;
     int[] tmp_lineNumberMap = null;
+    LocalVariableTable tmp_localVariableTable = null;
     Atom tmp_signature = null;
     RVMAnnotation[] annotations = null;
     RVMAnnotation[][] parameterAnnotations = null;
@@ -156,7 +157,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
 
     // Read the attributes
     for (int i = 0, n = input.readUnsignedShort(); i < n; i++) {
-      Atom attName = RVMClass.getUtf(constantPool, input.readUnsignedShort());
+      Atom attName = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
       int attLength = input.readInt();
 
       // Only bother to interpret non-boring Method attributes
@@ -169,7 +170,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
 
         // Read the attributes portion of the code attribute
         for (int j = 0, n2 = input.readUnsignedShort(); j < n2; j++) {
-          attName = RVMClass.getUtf(constantPool, input.readUnsignedShort());
+          attName = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
           attLength = input.readInt();
 
           if (attName == RVMClassLoader.lineNumberTableAttributeName) {
@@ -182,6 +183,8 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                 tmp_lineNumberMap[k] = (lineNumber << BITS_IN_SHORT) | startPC;
               }
             }
+          } else if (attName == RVMClassLoader.localVariableTableAttributeName) {
+            tmp_localVariableTable = LocalVariableTable.readLocalVariableTable(input, constantPool);
           } else {
             // All other entries in the attribute portion of the code attribute are boring.
             int skippedAmount = input.skipBytes(attLength);
@@ -195,13 +198,13 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
         if (cnt != 0) {
           tmp_exceptionTypes = new TypeReference[cnt];
           for (int j = 0, m = tmp_exceptionTypes.length; j < m; ++j) {
-            tmp_exceptionTypes[j] = RVMClass.getTypeRef(constantPool, input.readUnsignedShort());
+            tmp_exceptionTypes[j] = ClassFileReader.getTypeRef(constantPool, input.readUnsignedShort());
           }
         }
       } else if (attName == RVMClassLoader.syntheticAttributeName) {
         modifiers |= ACC_SYNTHETIC;
       } else if (attName == RVMClassLoader.signatureAttributeName) {
-        tmp_signature = RVMClass.getUtf(constantPool, input.readUnsignedShort());
+        tmp_signature = ClassFileReader.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
         annotations = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
       } else if (attName == RVMClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
@@ -257,6 +260,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                               tmp_bytecodes,
                               tmp_exceptionHandlerMap,
                               tmp_lineNumberMap,
+                              tmp_localVariableTable,
                               constantPool,
                               tmp_signature,
                               annotations,
@@ -298,6 +302,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                bytecodes,
                                null,
                                null,
+                               null,
                                constantPool,
                                null,
                                null,
@@ -330,8 +335,8 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       Object value = aMethods[i].getAnnotationDefault();
       if (value != null) {
         bytecode[(j * 7) + 5 + 0] = (byte) JBC_aload_0;    // stack[0] = this
-        byte literalType = RVMClass.getLiteralDescription(constantPool, defaultConstants[j]);
-        if (literalType != RVMClass.CP_LONG && literalType != RVMClass.CP_DOUBLE) {
+        byte literalType = ClassFileReader.getLiteralDescription(constantPool, defaultConstants[j]);
+        if (literalType != CP_LONG && literalType != CP_DOUBLE) {
           bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc_w; // stack[1] = value
         } else {
           bytecode[(j * 7) + 5 + 1] = (byte) JBC_ldc2_w;// stack[1&2] = value
@@ -352,6 +357,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                (short) 2,
                                (short) 3,
                                bytecode,
+                               null,
                                null,
                                null,
                                constantPool,
@@ -492,6 +498,13 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   }
 
   /**
+   * Strict enforcement of IEEE 754 rules?
+   */
+  public final boolean isStrictFP() {
+    return (modifiers & ACC_STRICT) != 0;
+  }
+
+  /**
    * Not implemented in Java and use C not JNI calling convention
    */
   public final boolean isSysCall() {
@@ -606,6 +619,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     if (hasInterruptibleAnnotation()) return false;
     if (hasPreemptibleAnnotation()) return false;
     if (hasUnpreemptibleAnnotation()) return false;
+    if (hasUnpreemptibleNoWarnAnnotation()) return false;
     if (hasUninterruptibleAnnotation()) return true;
     if (hasUninterruptibleNoWarnAnnotation()) return true;
     return getDeclaringClass().hasUninterruptibleAnnotation();
@@ -894,6 +908,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                new byte[]{(byte)JBC_return},
                                null,
                                null,
+                               null,
                                new int[0],
                                null,
                                null,
@@ -907,10 +922,6 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
    * @param reflectionClass the class this method will belong to
    * @param constantPool for the class
    * @param memRef the member reference corresponding to this method
-   * @param interfaceMethod the interface method that will copied to
-   * produce the annotation method
-   * @param constantPoolIndex the index of the field that will be
-   * returned by this method
    * @return the created method
    */
   RVMMethod createReflectionMethod(TypeReference reflectionClass, int[] constantPool,
@@ -918,17 +929,27 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     TypeReference[] parameters = getParameterTypes();
     int numParams = parameters.length;
     byte[] bytecodes;
+    boolean interfaceCall = false;
     int curBC = 0;
     if (!isStatic()) {
-      bytecodes = new byte[8 * numParams + 8];
+      if (!getDeclaringClass().isInterface()) {
+        // virtual call
+        bytecodes = new byte[8 * numParams + 8];
+      } else {
+        // interface call
+        bytecodes = new byte[8 * numParams + 10];
+        interfaceCall = true;
+      }
       bytecodes[curBC] = JBC_aload_1;
       curBC++;
     } else {
+      // static call
       bytecodes = new byte[8 * numParams + 7];
     }
     for (int i=0; i < numParams; i++) {
       if (parameters[i].isVoidType()) {
-        bytecodes[curBC+1] =
+        bytecodes[curBC] =
+          bytecodes[curBC+1] =
           bytecodes[curBC+2] =
           bytecodes[curBC+3] =
           bytecodes[curBC+4] =
@@ -946,9 +967,14 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       if (!parameters[i].isPrimitiveType()) {
         bytecodes[curBC+5] = (byte)JBC_checkcast;
         if (VM.VerifyAssertions) VM._assert(parameters[i].getId() != 0);
-        constantPool[i+1] = RVMClass.packCPEntry(RVMClass.CP_CLASS, parameters[i].getId());
+        constantPool[i+1] = ClassFileReader.packCPEntry(CP_CLASS, parameters[i].getId());
         bytecodes[curBC+6] = (byte)((i+1) >>> 8);
         bytecodes[curBC+7] = (byte)(i+1);
+      } else if (parameters[i].isWordType()) {
+        bytecodes[curBC+5] =
+          bytecodes[curBC+6] =
+          bytecodes[curBC+7] =
+            (byte)JBC_nop;
       } else {
         bytecodes[curBC+5] = (byte)JBC_invokestatic;
         MemberReference unboxMethod;
@@ -986,7 +1012,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                                         Atom.findOrCreateUnicodeAtom("unboxAsDouble"),
                                                         Atom.findOrCreateUnicodeAtom("(Ljava/lang/Object;)D"));
         }
-        constantPool[i+1] = RVMClass.packCPEntry(RVMClass.CP_MEMBER, unboxMethod.getId());
+        constantPool[i+1] = ClassFileReader.packCPEntry(CP_MEMBER, unboxMethod.getId());
         bytecodes[curBC+6] = (byte)((i+1) >>> 8);
         bytecodes[curBC+7] = (byte)(i+1);
       }
@@ -996,14 +1022,20 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       bytecodes[curBC] = (byte)JBC_invokestatic;
     } else if (isObjectInitializer() || isPrivate()) {
       bytecodes[curBC] = (byte)JBC_invokespecial;
+    } else if (interfaceCall) {
+      bytecodes[curBC] = (byte)JBC_invokeinterface;
     } else {
       bytecodes[curBC] = (byte)JBC_invokevirtual;
     }
-    constantPool[numParams+1] = RVMClass.packCPEntry(RVMClass.CP_MEMBER, getId());
+    constantPool[numParams+1] = ClassFileReader.packCPEntry(CP_MEMBER, getId());
     bytecodes[curBC+1] = (byte)((numParams+1) >>> 8);
     bytecodes[curBC+2] = (byte)(numParams+1);
+    if (interfaceCall) {
+      // invokeinterface bytecodes are historically longer than others
+      curBC+=2;
+    }
     TypeReference returnType = getReturnType();
-    if (!returnType.isPrimitiveType()) {
+    if (!returnType.isPrimitiveType() || returnType.isWordType()) {
       bytecodes[curBC+3] = (byte)JBC_nop;
       bytecodes[curBC+4] = (byte)JBC_nop;
       bytecodes[curBC+5] = (byte)JBC_nop;
@@ -1047,7 +1079,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                                     Atom.findOrCreateUnicodeAtom("boxAsDouble"),
                                                     Atom.findOrCreateUnicodeAtom("(D)Ljava/lang/Object;"));
       }
-      constantPool[numParams+2] = RVMClass.packCPEntry(RVMClass.CP_MEMBER, boxMethod.getId());
+      constantPool[numParams+2] = ClassFileReader.packCPEntry(CP_MEMBER, boxMethod.getId());
       bytecodes[curBC+3] = (byte)JBC_invokestatic;
       bytecodes[curBC+4] = (byte)((numParams+2) >>> 8);
       bytecodes[curBC+5] = (byte)(numParams+2);
@@ -1060,6 +1092,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
                                (short) 3,
                                (short) (getParameterWords() + 2),
                                bytecodes,
+                               null,
                                null,
                                null,
                                constantPool,

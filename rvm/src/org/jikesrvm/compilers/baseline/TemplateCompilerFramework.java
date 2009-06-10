@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -18,7 +18,7 @@ import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.Services;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.adaptive.AosEntrypoints;
+import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
@@ -32,6 +32,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
+import org.jikesrvm.osr.bytecodes.InvokeStatic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NoInline;
@@ -44,7 +45,7 @@ import org.vmmagic.unboxed.Offset;
  * seen. It is the common base class of the base compiler.
  */
 public abstract class TemplateCompilerFramework
-    implements BytecodeConstants, SizeConstants, StackframeLayoutConstants {
+    implements BytecodeConstants, ClassLoaderConstants, SizeConstants, StackframeLayoutConstants {
 
   /**
    * has fullyBootedVM been called by VM.boot?
@@ -107,6 +108,10 @@ public abstract class TemplateCompilerFramework
    * Is the method currently being compiled interruptible?
    */
   protected final boolean isInterruptible;
+  /**
+   * Does this method do checkstore?
+   */
+  protected final boolean doesCheckStore;
 
   /**
    * Is the method currently being compiled uninterruptible?
@@ -143,6 +148,7 @@ public abstract class TemplateCompilerFramework
       isUninterruptible = method.isUninterruptible();
       isUnpreemptible = method.isUnpreemptible();
     }
+    doesCheckStore = !method.hasNoCheckStoreAnnotation();
 
     // Double check logically uninterruptible methods have been annotated as
     // uninterruptible
@@ -743,7 +749,7 @@ public abstract class TemplateCompilerFramework
           if (shouldPrint) asm.noteBytecode(biStart, "aastore");
           // Forbidden from uninterruptible code as may cause an {@link
           // ArrayStoreException}
-          if (VM.VerifyUnint && isUninterruptible) forbiddenBytecode("aastore", bcodes.index());
+          if (VM.VerifyUnint && isUninterruptible && doesCheckStore) forbiddenBytecode("aastore", bcodes.index());
           emit_aastore();
           break;
         }
@@ -1623,23 +1629,31 @@ public abstract class TemplateCompilerFramework
                        "You must use the 'create' function to create an array of this type");
           }
 
-          // We can do early resolution of the array type if the element type
-          // is already initialized.
           RVMArray array = (RVMArray) arrayRef.peekType();
-          if (array != null &&
-              !(array.isInitialized() || array.isInBootImage()) &&
-              RVMType.JavaLangObjectType.isInstantiated()) {
-            RVMType elementType = elementTypeRef.peekType();
-            if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
-              array.resolve();
-              array.instantiate();
-            }
-            if (array.isInitialized() || array.isInBootImage()) {
-              emit_resolved_newarray(array);
-              break;
+          if (RVMType.JavaLangObjectType.isInstantiated()) {
+            // If we've already instantiated java.lang.Object, then we can
+            // forcibly fully instantiate the array type as long as the element type is
+            // either already initialized or is in the bootimage.
+            // Note: The test against java.lang.Object is required only for the baseline compiler
+            //       and is not present in the opt compiler version of anewarray (BC2IR) because of the way
+            //       we handle recursive invocations of the compiler (can be caused by instantiate()).
+            //       We need Object to be instantiated because we are going to mine it's TIB to get entries for array methods...
+            if (array == null || !(array.isInitialized() || array.isInBootImage())) {
+              RVMType elementType = elementTypeRef.peekType();
+              if (elementType != null && (elementType.isInitialized() || elementType.isInBootImage())) {
+                if (array == null) {
+                  array = (RVMArray)arrayRef.resolve();
+                }
+                array.resolve();
+                array.instantiate();
+              }
             }
           }
-          emit_unresolved_newarray(arrayRef);
+          if (array != null && (array.isInitialized() || array.isInBootImage())) {
+            emit_resolved_newarray(array);
+          } else {
+            emit_unresolved_newarray(arrayRef);
+          }
           break;
         }
 
@@ -1679,7 +1693,8 @@ public abstract class TemplateCompilerFramework
               } // else fall through to emit_checkcast
             } else if (type.isArrayType()) {
               RVMType elemType = type.asArray().getElementType();
-              if (elemType.isPrimitiveType() || (elemType.isClassType() && elemType.asClass().isFinal())) {
+              if (elemType.isPrimitiveType() || elemType.isUnboxedType() ||
+                  (elemType.isClassType() && elemType.asClass().isFinal())) {
                 emit_checkcast_final(type);
                 break;
               } // else fall through to emit_checkcast
@@ -1716,7 +1731,8 @@ public abstract class TemplateCompilerFramework
               }
             } else if (type.isArrayType()) {
               RVMType elemType = type.asArray().getElementType();
-              if (elemType.isPrimitiveType() || (elemType.isClassType() && elemType.asClass().isFinal())) {
+              if (elemType.isPrimitiveType() || elemType.isUnboxedType() ||
+                  (elemType.isClassType() && elemType.asClass().isFinal())) {
                 emit_instanceof_final(type);
                 break;
               }
@@ -1878,7 +1894,7 @@ public abstract class TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_int", value);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(value));
-                emit_ldc(offset, RVMClass.CP_INT);
+                emit_ldc(offset, CP_INT);
 
                 break;
               }
@@ -1888,7 +1904,7 @@ public abstract class TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_long", value);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(value));
-                emit_ldc2(offset, RVMClass.CP_LONG);
+                emit_ldc2(offset, CP_LONG);
 
                 break;
               }
@@ -1899,14 +1915,14 @@ public abstract class TemplateCompilerFramework
                   if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Integer.toHexString(value));
 
                   Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(value));
-                  emit_ldc(offset, RVMClass.CP_INT);
+                  emit_ldc(offset, CP_INT);
                 } else {
                   long value = bcodes.readLongConst();
 
                   if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_word " + Long.toHexString(value));
 
                   Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(value));
-                  emit_ldc2(offset, RVMClass.CP_LONG);
+                  emit_ldc2(offset, CP_LONG);
                   emit_l2i(); //dirty hack
                 }
                 break;
@@ -1917,7 +1933,7 @@ public abstract class TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_float", ibits);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateIntSizeLiteral(ibits));
-                emit_ldc(offset, RVMClass.CP_FLOAT);
+                emit_ldc(offset, CP_FLOAT);
 
                 break;
               }
@@ -1927,7 +1943,7 @@ public abstract class TemplateCompilerFramework
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_load_double", lbits);
 
                 Offset offset = Offset.fromIntSignExtend(Statics.findOrCreateLongSizeLiteral(lbits));
-                emit_ldc2(offset, RVMClass.CP_DOUBLE);
+                emit_ldc2(offset, CP_DOUBLE);
 
                 break;
               }
@@ -1942,23 +1958,8 @@ public abstract class TemplateCompilerFramework
                 break;
               }
               case org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeStatic: {
-                RVMMethod methodRef = null;
                 int targetidx = bcodes.readIntConst(); // fetch4BytesSigned();
-                switch (targetidx) {
-                  case org.jikesrvm.osr.OSRConstants.GETREFAT:
-                    methodRef = AosEntrypoints.osrGetRefAtMethod;
-                    break;
-                  case org.jikesrvm.osr.OSRConstants.CLEANREFS:
-                    methodRef = AosEntrypoints.osrCleanRefsMethod;
-                    break;
-                  default:
-                    if (VM.TraceOnStackReplacement) {
-                      VM.sysWriteln("pseudo_invokstatic with unknown target index " + targetidx);
-                    }
-                    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-                    break;
-                }
-
+                RVMMethod methodRef = InvokeStatic.targetMethod(targetidx);
                 if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic", methodRef);
                 emit_resolved_invokestatic(methodRef.getMemberRef().asMethodReference());
                 break;

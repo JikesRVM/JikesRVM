@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -39,7 +39,6 @@ import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.ProcessorTable;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
@@ -80,6 +79,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * zeroed is desired.
    */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
+  private static final boolean traceAllocator = false;
 
   /**
    * Hash the interface been booted yet?
@@ -108,7 +108,6 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   public static void init() {
     if (VM.VerifyAssertions) VM._assert(!Selected.Constraints.get().needsStaticReadBarrier());
     CollectorThread.init();
-    ConcurrentCollectorThread.init();
     org.jikesrvm.mm.mmtk.Collection.init();
   }
 
@@ -178,13 +177,13 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Write barrier for putfield operations.
    *
    * @param ref the object which is the subject of the putfield
-   * @param offset the offset of the field to be modified
    * @param value the new value for the field
+   * @param offset the offset of the field to be modified
    * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
   @Entrypoint
-  public static void putfieldWriteBarrier(Object ref, Offset offset, Object value, int locationMetadata) {
+  public static void putfieldWriteBarrier(Object ref, Object value, Offset offset, int locationMetadata) {
     ObjectReference src = ObjectReference.fromObject(ref);
     Selected.Mutator.get().writeBarrier(src,
                                         src.toAddress().plus(offset),
@@ -217,13 +216,13 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   /**
    * Write barrier for putstatic operations.
    *
-   * @param offset the offset of the field to be modified
    * @param value the new value for the field
+   * @param offset the offset of the field to be modified
    * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
   @Entrypoint
-  public static void putstaticWriteBarrier(Offset offset, Object value, int locationMetadata) {
+  public static void putstaticWriteBarrier(Object value, Offset offset, int locationMetadata) {
     ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
     Selected.Mutator.get().writeBarrier(src,
                                         src.toAddress().plus(offset),
@@ -573,25 +572,41 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static int pickAllocator(RVMType type, RVMMethod method) {
+    if (traceAllocator) {
+      VM.sysWrite("allocator for ");
+      VM.sysWrite(type.getDescriptor());
+      VM.sysWrite(": ");
+    }
     if (method != null) {
       // We should strive to be allocation-free here.
       RVMClass cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
       if (Selected.Constraints.get().withGCspy()) {
         if (isPrefix("Lorg/mmtk/vm/gcspy/", clsBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
+          if (traceAllocator) {
+            VM.sysWriteln("GCSPY");
+          }
           return Plan.ALLOC_GCSPY;
         }
       }
-      if (isPrefix("Lorg/jikesrvm/mm/mmtk/ReferenceProcessor", clsBA))
+      if (isPrefix("Lorg/jikesrvm/mm/mmtk/ReferenceProcessor", clsBA)) {
+        if (traceAllocator) {
+          VM.sysWriteln("DEFAULT");
+        }
         return Plan.ALLOC_DEFAULT;
-      if (isPrefix("Lorg/mmtk/", clsBA) ||
-          isPrefix("Lorg/jikesrvm/mm/", clsBA) ||
-          isPrefix("Lorg/jikesrvm/mm/mminterface/GCMapIteratorGroup", clsBA)) {
-        return Plan.ALLOC_IMMORTAL;
+      }
+      if (isPrefix("Lorg/mmtk/", clsBA) || isPrefix("Lorg/jikesrvm/mm/", clsBA)) {
+        if (traceAllocator) {
+          VM.sysWriteln("NONMOVING");
+        }
+        return Plan.ALLOC_NON_MOVING;
       }
       if (method.isNonMovingAllocation()) {
         return Plan.ALLOC_NON_MOVING;
       }
+    }
+    if (traceAllocator) {
+      VM.sysWriteln(type.getMMAllocator());
     }
     return type.getMMAllocator();
   }
@@ -606,8 +621,11 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   @Interruptible
   private static int pickAllocatorForType(RVMType type) {
     int allocator = Plan.ALLOC_DEFAULT;
-    if (type.isArrayType() && type.asArray().getElementType().isPrimitiveType()) {
-      allocator = Plan.ALLOC_NON_REFERENCE;
+    if (type.isArrayType()) {
+      RVMType elementType = type.asArray().getElementType();
+      if (elementType.isPrimitiveType() || elementType.isUnboxedType()){
+        allocator = Plan.ALLOC_NON_REFERENCE;
+      }
     }
     if(type.isNonMoving()) {
       allocator = Plan.ALLOC_NON_MOVING;
@@ -620,11 +638,8 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
     }
     if (isPrefix("Lorg/mmtk/", typeBA) ||
         isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/scheduler/Processor;", typeBA) ||
-        isPrefix("Lorg/jikesrvm/scheduler/greenthreads/GreenProcessor;", typeBA) ||
         isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {
-      allocator = Plan.ALLOC_IMMORTAL;
+      allocator = Plan.ALLOC_NON_MOVING;
     }
     return allocator;
   }
@@ -821,12 +836,11 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   /**
    * Allocate a stack
    * @param bytes    The number of bytes to allocate
-   * @param immortal  Is the stack immortal and non-moving?
    * @return The stack
    */
   @Inline
   @Unpreemptible
-  public static byte[] newStack(int bytes, boolean immortal) {
+  public static byte[] newStack(int bytes) {
     if (!VM.runningVM) {
       return new byte[bytes];
     } else {
@@ -841,7 +855,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
                                     width,
                                     headerSize,
                                     stackTib,
-                                    (immortal ? Plan.ALLOC_IMMORTAL_STACK : Plan.ALLOC_STACK),
+                                    Plan.ALLOC_STACK,
                                     align,
                                     offset,
                                     Plan.DEFAULT_SITE);
@@ -984,22 +998,6 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
     }
 
     return (TIB)newRuntimeTable(size, RVMType.TIBType);
-  }
-
-  /**
-   * Allocate a new processors table
-   *
-   * @param size The size of the table.
-   * @return the new processors table
-   */
-  @Inline
-  @Interruptible
-  public static ProcessorTable newProcessorTable(int size) {
-    if (!VM.runningVM) {
-      return ProcessorTable.allocate(size);
-    }
-
-    return (ProcessorTable)newRuntimeTable(size, RVMType.ProcessorTableType);
   }
 
   /**

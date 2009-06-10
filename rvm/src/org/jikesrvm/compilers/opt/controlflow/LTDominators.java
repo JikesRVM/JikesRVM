@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -37,27 +37,37 @@ import org.jikesrvm.compilers.opt.util.Stack;
 public class LTDominators extends Stack<BasicBlock> {
   static final boolean DEBUG = false;
 
-  /*
+  /**
    * Indicates whether we perform the algorithm over the CFG or
    *  the reverse CFG, i.e., whether we are computing dominators or
    *  post-dominators.
    */
-  private boolean forward;
+  private final boolean forward;
 
-  /*
+  /**
    * a counter for assigning DFS numbers
    */
   protected int DFSCounter;
 
-  /*
+  /**
    * a mapping from DFS number to their basic blocks
    */
   private BasicBlock[] vertex;
 
-  /*
+  /**
    * a convenient place to locate the cfg to avoid passing it internally
    */
-  private ControlFlowGraph cfg;
+  private final ControlFlowGraph cfg;
+
+  /**
+   * The constructor, called by the perform method
+   * @param ir
+   * @param forward Should we compute regular dominators, or post-dominators?
+   */
+  LTDominators(IR ir, boolean forward) {
+    cfg = ir.cfg;               // save the cfg for easy access
+    this.forward = forward;     // save the forward flag
+  }
 
   /**
    * The entry point for this phase
@@ -90,16 +100,6 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * The constructor, called by the perform method
-   * @param ir
-   * @param forward Should we compute regular dominators, or post-dominators?
-   */
-  LTDominators(IR ir, boolean forward) {
-    cfg = ir.cfg;               // save the cfg for easy access
-    this.forward = forward;     // save the forward flag
-  }
-
-  /**
    * analyze dominators
    */
   protected void analyze(IR ir) {
@@ -124,7 +124,6 @@ public class LTDominators extends Stack<BasicBlock> {
     if (DEBUG) {
       printResults(ir);
     }
-    cfg = null;                 // no longer need a pointer to the cfg
   }
 
   /**
@@ -595,6 +594,3 @@ public class LTDominators extends Stack<BasicBlock> {
     }
   }
 }
-
-
-

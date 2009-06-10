@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -24,7 +24,7 @@ import org.jikesrvm.ppc.RegisterConstants;
 import org.jikesrvm.ppc.StackframeLayoutConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -555,7 +555,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       int argCount = argTypes.length;
       Object[] argObjectArray = new Object[argCount];
 
-      JNIEnvironment env = Scheduler.getCurrentThread().getJNIEnv();
+      JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
 
       // GPR r3 - r10 and FPR f1 - f8 are saved in glue stack frame
       Address regsavearea = glueFP.plus(StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
@@ -618,7 +618,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       int argCount = argTypes.length;
       Object[] argObjectArray = new Object[argCount];
 
-      JNIEnvironment env = Scheduler.getCurrentThread().getJNIEnv();
+      JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
 
       // the va_list has following layout on PPC/Linux
       // GPR FPR 0 0   (4 bytes)
@@ -849,7 +849,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     Object[] argObjectArray = new Object[argCount];
 
     // get the JNIEnvironment for this thread in case we need to dereference any object arg
-    JNIEnvironment env = Scheduler.getCurrentThread().getJNIEnv();
+    JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
 
     // VM.sysWrite("JNI packageParameterFromVarArg: packaging " + argCount + " arguments\n");
 
@@ -931,7 +931,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
     Object[] argObjectArray = new Object[argCount];
 
     // get the JNIEnvironment for this thread in case we need to dereference any object arg
-    JNIEnvironment env = Scheduler.getCurrentThread().getJNIEnv();
+    JNIEnvironment env = RVMThread.getCurrentThread().getJNIEnv();
 
     // VM.sysWrite("JNI packageParameterFromJValue: packaging " + argCount + " arguments\n");
 

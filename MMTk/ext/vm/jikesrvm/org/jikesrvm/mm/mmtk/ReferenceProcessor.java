@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -21,8 +21,9 @@ import org.vmmagic.unboxed.*;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.DebugUtil;
+import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -226,8 +227,10 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     lock.acquire();
     while (growingTable || maxIndex >= references.length()) {
       if (growingTable) {
+        // FIXME: We should probably speculatively allocate a new table instead.
+        // note, we can copy without the lock after installing the new table (unint during copy).
         lock.release();
-        Scheduler.yield(); // (1) Allow another thread to grow the table
+        RVMThread.yield(); // (1) Allow another thread to grow the table
         lock.acquire();
       } else {
         growingTable = true;  // Prevent other threads from growing table while lock is released
@@ -313,7 +316,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     nurseryIndex = maxIndex = toIndex;
 
     /* flush out any remset entries generated during the above activities */
-    ActivePlan.flushRememberedSets();
+    Selected.Mutator.get().flushRememberedSets();
   }
 
   /**
@@ -339,7 +342,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   @Unpreemptible
   public boolean enqueueReference(ObjectReference addr) {
     Reference<?> reference = (Reference<?>)addr.toObject();
-    return reference.enqueue();
+    return reference.enqueueInternal();
   }
 
   /**
@@ -381,7 +384,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * be the address of a heap object, depending on the VM.
    * @param trace the thread local trace element.
    */
-  @UnpreemptibleNoWarn("Call out to ReferenceQueue API")
+  @UninterruptibleNoWarn("Call out to ReferenceQueue API")
   public ObjectReference processReference(TraceLocal trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
 

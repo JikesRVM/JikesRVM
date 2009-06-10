@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -312,7 +312,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
     TypeReference tRef;
     if (className == null) {
       // NUTS: Our caller hasn't bothered to tell us what this class is supposed
-      //       to be called, so we must read the input stream and discover it overselves
+      //       to be called, so we must read the input stream and discover it ourselves
       //       before we actually can create the RVMClass instance.
       try {
         is.mark(is.available());
@@ -333,7 +333,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
       if (VM.TraceClassLoading && VM.runningVM) {
         VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
       }
-      RVMClass ans = RVMClass.readClass(tRef, new DataInputStream(is));
+      RVMClass ans = ClassFileReader.readClass(tRef, new DataInputStream(is));
       tRef.setType(ans);
       return ans;
     } catch (IOException e) {
@@ -343,7 +343,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
     }
   }
 
-  // Shamelessly cloned & owned from RVMClass constructor....
+  // Shamelessly cloned & owned from ClassFileReader.readClass constructor....
   private static TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
       throws IOException, ClassFormatError {
     int magic = input.readInt();
@@ -351,7 +351,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
       throw new ClassFormatError("bad magic number " + Integer.toHexString(magic));
     }
 
-    // Drop class file version number on floor. RVMClass constructor will do the check later.
+    // Drop class file version number on floor. readClass will do the check later.
     input.readUnsignedShort(); // minor ID
     input.readUnsignedShort(); // major ID
 

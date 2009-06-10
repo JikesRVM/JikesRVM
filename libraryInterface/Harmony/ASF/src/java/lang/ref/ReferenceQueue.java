@@ -21,6 +21,8 @@
 
 package java.lang.ref;
 
+import org.vmmagic.pragma.UninterruptibleNoWarn;
+
 /**
  * @com.intel.drl.spec_ref 
  */
@@ -77,5 +79,10 @@ public class ReferenceQueue<T> extends Object {
         firstReference = ref;
         notify();
         return true;
+    }
+    
+    @UninterruptibleNoWarn("This is a lie")
+    boolean enqueueInternal(Reference<? extends T> ref) {
+        return enqueue(ref);
     }
 }

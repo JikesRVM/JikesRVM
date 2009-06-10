@@ -1,18 +1,18 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.DONT_CLEAR_MARKS_AT_EVERY_GC;
+import static org.mmtk.policy.immix.ImmixConstants.*;
 
 import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
@@ -72,47 +72,20 @@ public final class CollectorLocal implements Constants {
    */
   public void prepare(boolean majorGC) {
     int ordinal = VM.collection.activeGCThreadOrdinal();
-    if (ImmixConstants.DONT_CLEAR_MARKS_AT_EVERY_GC) {
-      if (majorGC && !immixSpace.inImmixDefragCollection())
-        clearAllBlockMarkState(ordinal);
-    } else {
-      if (majorGC) {
-        if (!immixSpace.inImmixDefragCollection())
-          clearAllLineMarks(ordinal);
-        else {
-          short threshold = Defrag.defragSpillThreshold;
-          resetLineMarksAndDefragStateTable(ordinal, threshold);
-        }
+    if (majorGC) {
+      if (immixSpace.inImmixDefragCollection()) {
+        short threshold = Defrag.defragSpillThreshold;
+        resetLineMarksAndDefragStateTable(ordinal, threshold);
       }
     }
   }
 
   private void resetLineMarksAndDefragStateTable(int ordinal, final short threshold) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!DONT_CLEAR_MARKS_AT_EVERY_GC && immixSpace.inImmixDefragCollection());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(immixSpace.inImmixDefragCollection());
     int stride = VM.collection.activeGCThreads();
     Address chunk = chunkMap.firstChunk(ordinal, stride);
     while (!chunk.isZero()) {
       Chunk.resetLineMarksAndDefragStateTable(chunk, threshold);
-      chunk = chunkMap.nextChunk(chunk, ordinal, stride);
-    }
-  }
-
-  private void clearAllLineMarks(int ordinal) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!DONT_CLEAR_MARKS_AT_EVERY_GC);
-    int stride = VM.collection.activeGCThreads();
-    Address chunk = chunkMap.firstChunk(ordinal, stride);
-    while (!chunk.isZero()) {
-      Chunk.clearLineMarks(chunk);
-      chunk = chunkMap.nextChunk(chunk, ordinal, stride);
-    }
-  }
-
-  private void clearAllBlockMarkState(int ordinal) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(DONT_CLEAR_MARKS_AT_EVERY_GC);
-    int stride = VM.collection.activeGCThreads();
-    Address chunk = chunkMap.firstChunk(ordinal, stride);
-    while (!chunk.isZero()) {
-      Chunk.clearBlockMarkState(chunk);
       chunk = chunkMap.nextChunk(chunk, ordinal, stride);
     }
   }
@@ -131,8 +104,10 @@ public final class CollectorLocal implements Constants {
     int ordinal = VM.collection.activeGCThreadOrdinal();
     int[] markSpillHisto = defrag.getAndZeroSpillMarkHistogram(ordinal);
     Address chunk = chunkMap.firstChunk(ordinal, stride);
+    final byte markValue = immixSpace.lineMarkState;
+    final boolean resetMarks = majorGC && markValue == MAX_LINE_MARK_STATE;
     while (!chunk.isZero()) {
-      Chunk.sweep(chunk, Chunk.getHighWater(chunk), immixSpace, markSpillHisto);
+      Chunk.sweep(chunk, Chunk.getHighWater(chunk), immixSpace, markSpillHisto, markValue, resetMarks);
       chunk = chunkMap.nextChunk(chunk, ordinal, stride);
     }
   }

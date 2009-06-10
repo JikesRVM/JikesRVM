@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -21,7 +21,7 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.ppc.BaselineConstants;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -81,7 +81,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
           lock = method.getDeclaringClass().getResolvedClassForType();
         } else {
           Address fp = registers.getInnermostFramePointer();
-          int location = bcm.getGeneralLocalLocation(0);
+          short location = bcm.getGeneralLocalLocation(0);
           Address addr;
           if (BaselineCompilerImpl.isRegister(location)) {
             lock = Magic.addressAsObject(registers.gprs.get(location).toAddress());
@@ -92,7 +92,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
             lock = Magic.addressAsObject(addr.loadAddress());
           }
         }
-        if (ObjectModel.holdsLock(lock, Scheduler.getCurrentThread())) {
+        if (ObjectModel.holdsLock(lock, RVMThread.getCurrentThread())) {
           ObjectModel.genericUnlock(lock);
         }
       }

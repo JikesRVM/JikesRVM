@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -27,7 +27,7 @@ public interface BaselineConstants extends Constants, ArchConstants {
   // Dedicated registers.
   //
   RegisterConstants.GPR SP = ESP;
-  RegisterConstants.GPR PR = PROCESSOR_REGISTER;
+  RegisterConstants.GPR TR = THREAD_REGISTER;
 
   // Volatile (parameter) registers.
   //
@@ -38,11 +38,6 @@ public interface BaselineConstants extends Constants, ArchConstants {
   RegisterConstants.GPR S0 = ECX;
   RegisterConstants.GPR S1 = EDI;
 
-  // Mnemonics corresponding to the above constants.
-  // These are some alternate names that can be used in the debugger
-  //
-  String[] RVM_GPR_NAMES = {"eax", "ecx", "edx", "ebx", "esp", "ebp", "PR", "JT"};
-
   // Constants describing baseline compiler conventions for
   // saving registers in stackframes.
   //
@@ -52,16 +47,17 @@ public interface BaselineConstants extends Constants, ArchConstants {
   // frames, and most register as saved in the
   // dynamic bridge frames.
   int STACKFRAME_FIRST_PARAMETER_OFFSET = STACKFRAME_REG_SAVE_OFFSET - (2 * WORDSIZE);
-  // bridge frames save 3 additional GPRs
-  int BRIDGE_FRAME_EXTRA_SIZE = (SSE2_FULL ? XMM_STATE_SIZE : FPU_STATE_SIZE) + 8;
+  // bridge frames save 2 additional GPRs
+  int BRIDGE_FRAME_EXTRA_SIZE = (SSE2_FULL ? XMM_STATE_SIZE : FPU_STATE_SIZE) + (2 * WORDSIZE);
 
   int SAVED_GPRS = 2; // EDI and EBX are nonvolatile registers used by baseline compiler
+  int SAVED_GPRS_FOR_SAVE_LS_REGISTERS = 3; // save all non-volatiles
   Offset EDI_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET);
   Offset EBX_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET).minus(WORDSIZE);
+  Offset EBP_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET).minus(WORDSIZE*2);
   Offset T0_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_FIRST_PARAMETER_OFFSET);
   Offset T1_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_FIRST_PARAMETER_OFFSET).minus(WORDSIZE);
   Offset FPU_SAVE_OFFSET = T1_SAVE_OFFSET.minus(FPU_STATE_SIZE);
   Offset XMM_SAVE_OFFSET = T1_SAVE_OFFSET.minus(XMM_STATE_SIZE);
-
 }
 

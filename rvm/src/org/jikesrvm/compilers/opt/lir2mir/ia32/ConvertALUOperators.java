@@ -1,18 +1,19 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
-import org.jikesrvm.compilers.opt.DefUse;
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simplifier;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
@@ -20,78 +21,13 @@ import org.jikesrvm.compilers.opt.ir.CondMove;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
-import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.ia32.ArchConstants;
 
 /**
- * <ul>
- * <li> Convert instructions with 3-operand binary ALU operators to use
- *      2-operand ALU operators.
- * <li> Convert instructions with 2-operand unary ALU operators to use
- *      1-operand ALU operators.
- * </ul>
- *
- * <pre>
- * In the most general case, we must do the following:
- *
- *  op r100 = r200, r300      =====>    move r100 = r200
- *                                      op   r100 <-- r300
- *
- * but there are several easy cases where we can avoid the move
- *
- *  op r100 = r100, r300      =====>    op   r100 <-- r300
- *
- *  op r100 = r200, r100      =====>    op   r100 <-- r200
- *  (if op is commutative)
- *
- * but, we must be careful in this case. If r100 spans a basic block,
- * then we are better doing the following (since it will break the
- * BURS expression tree _after_ op).
- *
- *  op r100 = r200, r100      =====>    move rtemp = r200
- *  (if op is non commutative)          op   rtemp <-- r100
- *                                      move r100  = rtemp
- *
- * We also keep our eyes open for the special (somewhat common) case
- * of one of the uses being the last use of a temporary.  When this happens
- * we can sometimes avoid inserting a move at all. When this happens, we
- * rewrite:
- *
- *  op r100 = r200, r300     =====>    op r200 <-- r300
- * and replace all uses of r100 with r200.
- *
- * We aren't doing a full live analysis, but the following conditions
- * covers the cases where it is critical to get this right:
- *  (a) r100 is ssa
- *  (b) r100 does not span a basic block
- *  (c) r200 does not span a basic block
- *  (d) this instruction is the last use of r200
- *  (e) r200 is ssa
- * These conditions are designed to be cheap to verify and
- * cover those cases where it is advantegous from BURS's perspective to
- * coalesce the registers to avoid the move instruction.
- *
- * If we are in the following very similar case:
- *  op r100 = r200, r300     =====>      op r200 <-- r300
- *                                           move r100 = r200
- *  (1) r200 does not span a basic block
- *  (2) this instruction is the last use of r200
- * then we want the move instruction here (but after op), because
- * merging registers r100 and r200 would force BURS to break its
- * exprssion trep _before_ op since r200 would now span a basic block
- * (since r100 spans a basic block).
- * We depend on the register allocator to later coalesce r100 and r200,
- * since they are not simultaneously live.
- * Ditto (5) and (6) on r300 if op is commutative and r200 doesn't work out.
- *
- * </pre>
+ * Reduce the number of ALU operators considered by BURS
  */
 public class ConvertALUOperators extends CompilerPhase implements Operators, ArchConstants {
-
-  private static final boolean OPTIMIZE = true;
 
   @Override
   public final String getName() { return "ConvertALUOps"; }
@@ -113,27 +49,15 @@ public class ConvertALUOperators extends CompilerPhase implements Operators, Arc
     // in normalized form. This reduces the number of cases we have to
     // worry about (and does last minute constant folding on the off
     // chance we've missed an opportunity...)
-    // BURS assumes that this has been done, so we must do it even if
-    // OPTIMIZE is false.
+    // BURS assumes that this has been done
     for (InstructionEnumeration instrs = ir.forwardInstrEnumerator(); instrs.hasMoreElements();) {
       Instruction s = instrs.next();
-      Simplifier.simplify(false, ir.regpool, s);
+      Simplifier.simplify(false, ir.regpool, ir.options, s);
     }
 
-    if (OPTIMIZE) {
-      // Compute simple ssa, u/d chains, spansBasicBlock
-      // to catch some additional cases where we don't have to insert moves
-      DefUse.computeDU(ir);
-      DefUse.recomputeSSA(ir);
-      DefUse.recomputeSpansBasicBlock(ir);
-      for (Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
-        markDead(reg);
-      }
-    }
-
-    // Reverse pass over instructions supports simple live analysis.
-    for (Instruction next, s = ir.lastInstructionInCodeOrder(); s != null; s = next) {
-      next = s.prevInstructionInCodeOrder();
+    // Pass over instructions
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
 
       switch (s.getOpcode()) {
       case REF_ADD_opcode:
@@ -289,43 +213,10 @@ public class ConvertALUOperators extends CompilerPhase implements Operators, Arc
       case ADDR_2INT_opcode:
         s.operator = INT_MOVE;
         break;
-      case ADDR_2LONG_opcode:
-        s.operator = INT_2LONG;
+      case LONG_2ADDR_opcode:
+        s.operator = LONG_2INT;
         break;
       }
-
-      if (OPTIMIZE) {
-        // update liveness
-        for (OperandEnumeration defs = s.getPureDefs(); defs.hasMoreElements();) {
-          Operand op = defs.next();
-          if (op.isRegister()) {
-            markDead(op.asRegister().getRegister());
-          }
-        }
-        for (OperandEnumeration uses = s.getUses(); // includes def/uses
-             uses.hasMoreElements();) {
-          Operand op = uses.next();
-          if (op.isRegister()) {
-            markLive(op.asRegister().getRegister());
-          }
-        }
-      }
     }
-  }
-
-  // Use the scratch field of the register to record
-  // dead/live for local live analysis.
-  private static void markDead(Register r) {
-    r.scratch = 0;
-  }
-
-  private static void markLive(Register r) {
-    r.scratch = 1;
-  }
-
-  @SuppressWarnings("unused")
-  // completes the set
-  private static boolean isLive(Register r) {
-    return r.scratch == 1;
   }
 }

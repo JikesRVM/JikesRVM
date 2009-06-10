@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -16,7 +16,7 @@ import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
@@ -33,19 +33,36 @@ import org.jikesrvm.classloader.TypeReference;
  * java operand stack or a C-like stack?; when processing java bytecodes it
  * seemed best to use "stack" for java operand stack.)
  */
-final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
+final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstants, BBConstants {
 
+  /**
+   * The entry in the reference map contains a value that is not a reference.
+   */
   static final byte NON_REFERENCE = 0;
+  /**
+   * The entry in the reference map contains a value that is a reference.
+   */
   static final byte REFERENCE = 1;
+  /**
+   * The entry in the reference map contains a JSR return address.
+   */
   static final byte RETURN_ADDRESS = 2;
+  /**
+   * The entry in the reference map is not set in a JSR body.
+   */
   static final byte NOT_SET = 0;
+  /**
+   * The entry in the reference map is set to a value that is a reference within a JSR body.
+   */
   static final byte SET_TO_REFERENCE = 1;
+  /**
+   * The entry in the reference map is set to a value that is not a reference within a JSR body.
+   */
   static final byte SET_TO_NONREFERENCE = 3;
 
-  private static final byte ONEWORD = 1;
-  private static final byte DOUBLEWORD = 2;
-
-  private static final boolean debug = false;
+  private static enum PrimitiveSize {
+    ONEWORD, DOUBLEWORD
+  };
 
   // These two variables are used and updated by more than one method in this class,
   // therefore they need to be instance variables;
@@ -59,11 +76,8 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
    */
   public void buildReferenceMaps(NormalMethod method, int[] stackHeights, byte[] localTypes,
                                  ReferenceMaps referenceMaps, BuildBB buildBB) {
-
     //****************************************************************//
-    //                                                                //
     // These were calculated by BuildBB.determineTheBasicBlocks    //
-    //                                                                //
     //****************************************************************//
     int gcPointCount = buildBB.gcPointCount;
     short[] byteToBlockMap = buildBB.byteToBlockMap;
@@ -114,6 +128,8 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
     //
     BytecodeStream bcodes;                // byte codes for the method
     short brBBNum;               // For processing branches, need block number of target
+
+    final boolean debug = false;
 
     // Note that the mapping done here is "double mapping" of parameters.
     // Double mapping is when the parameters for a method are included in the map of
@@ -212,7 +228,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
       } else {
         currBBMap[paramStart] = NON_REFERENCE;
 
-        if (parameterType.getStackWords() == DOUBLEWORD) {
+        if (parameterType.getStackWords() == 2) {
           if (parameterType.isLongType()) {
             localTypes[paramStart] = LONG_TYPE;
           } else {
@@ -371,31 +387,31 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
           case JBC_aload_0: {
             int localNumber = 0;
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
           case JBC_aload_1: {
             int localNumber = 1;
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
           case JBC_aload_2: {
             int localNumber = 2;
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
           case JBC_aload_3: {
             int localNumber = 3;
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
           case JBC_aload: {
             int localNumber = bcodes.getLocalNumber();
             currBBStkTop++;
-            currBBMap[currBBStkTop] = currBBMap[localNumber];
+            currBBMap[currBBStkTop] = inJSRSub ? REFERENCE : currBBMap[localNumber];
             break;
           }
 
@@ -458,7 +474,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
             currBBStkTop++;
             int cpi = bcodes.getConstantIndex();
             int type = bcodes.getConstantType(cpi);
-            if (type == RVMClass.CP_STRING || type == RVMClass.CP_CLASS) {
+            if (type == CP_STRING || type == CP_CLASS) {
               currBBMap[currBBStkTop] = REFERENCE;
             } else {
               currBBMap[currBBStkTop] = NON_REFERENCE;
@@ -469,7 +485,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
             currBBStkTop++;
             int cpi = bcodes.getWideConstantIndex();
             int type = bcodes.getConstantType(cpi);
-            if (type == RVMClass.CP_STRING || type == RVMClass.CP_CLASS) {
+            if (type == CP_STRING || type == CP_CLASS) {
               currBBMap[currBBStkTop] = REFERENCE;
             } else {
               currBBMap[currBBStkTop] = NON_REFERENCE;
@@ -485,7 +501,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[index] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(index, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(index, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[index] |= INT_TYPE;
@@ -500,7 +516,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[index] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(index, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(index, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[index] |= FLOAT_TYPE;
@@ -518,12 +534,9 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
             }
 
             if (inTryBlock) {
-              setHandlersMapsNonRef(index,
-                                    DOUBLEWORD,
-                                    reachableHandlerBBNums,
-                                    reachableHandlersCount,
-                                    inJSRSub,
-                                    bbMaps);
+              setHandlersMapsNonRef(index, PrimitiveSize.DOUBLEWORD,
+                reachableHandlerBBNums, reachableHandlersCount, inJSRSub,
+                bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[index] |= LONG_TYPE;
@@ -541,12 +554,9 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
             }
 
             if (inTryBlock) {
-              setHandlersMapsNonRef(index,
-                                    DOUBLEWORD,
-                                    reachableHandlerBBNums,
-                                    reachableHandlersCount,
-                                    inJSRSub,
-                                    bbMaps);
+              setHandlersMapsNonRef(index, PrimitiveSize.DOUBLEWORD,
+                reachableHandlerBBNums, reachableHandlersCount, inJSRSub,
+                bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[index] |= DOUBLE_TYPE;
@@ -580,7 +590,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[0] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(0, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(0, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[0] |= INT_TYPE;
@@ -594,7 +604,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[0] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(0, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(0, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[0] |= FLOAT_TYPE;
@@ -608,7 +618,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[1] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(1, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(1, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[1] |= INT_TYPE;
@@ -622,7 +632,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[1] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(1, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(1, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[1] |= FLOAT_TYPE;
@@ -636,7 +646,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[2] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(2, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(2, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[2] |= INT_TYPE;
@@ -650,7 +660,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[2] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(2, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(2, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[2] |= FLOAT_TYPE;
@@ -664,7 +674,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[3] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(3, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(3, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[3] |= INT_TYPE;
@@ -678,7 +688,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[3] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(3, ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(3, PrimitiveSize.ONEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop--;
             localTypes[3] |= FLOAT_TYPE;
@@ -694,7 +704,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[1] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(0, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(0, PrimitiveSize.DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[0] |= LONG_TYPE;
@@ -709,7 +719,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[1] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(0, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(0, PrimitiveSize.DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[0] |= DOUBLE_TYPE;
@@ -725,7 +735,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[2] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(1, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(1, PrimitiveSize.DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[1] |= LONG_TYPE;
@@ -741,7 +751,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[2] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(1, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(1, PrimitiveSize.DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[1] |= DOUBLE_TYPE;
@@ -757,7 +767,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[3] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(2, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(2, PrimitiveSize.DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[2] |= LONG_TYPE;
@@ -773,7 +783,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[3] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(2, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(2, PrimitiveSize.DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[2] |= DOUBLE_TYPE;
@@ -789,7 +799,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[4] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(3, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(3, PrimitiveSize.DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[3] |= LONG_TYPE;
@@ -805,7 +815,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
               currBBMap[4] = SET_TO_NONREFERENCE;
             }
             if (inTryBlock) {
-              setHandlersMapsNonRef(3, DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
+              setHandlersMapsNonRef(3, PrimitiveSize.DOUBLEWORD, reachableHandlerBBNums, reachableHandlersCount, inJSRSub, bbMaps);
             }
             currBBStkTop = currBBStkTop - 2;
             localTypes[3] |= DOUBLE_TYPE;
@@ -1043,7 +1053,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
           case JBC_ifgt:
           case JBC_ifle: {
             int offset = bcodes.getBranchOffset();
-            if (offset < 0) {
+            if (offset <= 0) {
               // potential backward branch-generate reference map
               // Register the reference map
 
@@ -1061,7 +1071,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
 
             // process the basic block logic
             currBBStkTop--;
-            if (offset < 0) {
+            if (offset <= 0) {
               short fallThruBBNum = byteToBlockMap[biStart + 3];
               workStk =
                   processBranchBB(fallThruBBNum,
@@ -1100,7 +1110,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
           case JBC_if_acmpeq:
           case JBC_if_acmpne: {
             int offset = bcodes.getBranchOffset();
-            if (offset < 0) {
+            if (offset <= 0) {
               // possible backward branch-generate reference map
               // Register the reference map
 
@@ -1118,7 +1128,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
 
             //process the basic blocks
             currBBStkTop = currBBStkTop - 2;
-            if (offset < 0) {
+            if (offset <= 0) {
               short fallThruBBNum = byteToBlockMap[biStart + 3];
               workStk =
                   processBranchBB(fallThruBBNum,
@@ -1151,7 +1161,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
           case JBC_ifnull:
           case JBC_ifnonnull: {
             int offset = bcodes.getBranchOffset();
-            if (offset < 0) {
+            if (offset <= 0) {
               // possible backward branch-generate reference map
               // Register the reference map
 
@@ -1169,7 +1179,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
 
             //process the basic block logic
             currBBStkTop--;
-            if (offset < 0) {
+            if (offset <= 0) {
               short fallThruBBNum = byteToBlockMap[biStart + 3];
               workStk =
                   processBranchBB(fallThruBBNum,
@@ -1201,7 +1211,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
 
           case JBC_goto: {
             int offset = bcodes.getBranchOffset();
-            if (offset < 0) {
+            if (offset <= 0) {
               // backward branch-generate reference map
               // Register the reference map
               if (!inJSRSub) {
@@ -1234,7 +1244,7 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
           }
           case JBC_goto_w: {
             int offset = bcodes.getWideBranchOffset();
-            if (offset < 0) {
+            if (offset <= 0) {
               // backward branch-generate reference map
               // Register the reference map
 
@@ -2253,19 +2263,19 @@ final class BuildReferenceMaps implements BytecodeConstants, BBConstants {
    * @param inJSRSub                  TODO Document ME XXX
    * @param bbMaps                    TODO Document ME XXX
    */
-  private void setHandlersMapsNonRef(int localVariable, int wordCount, int[] reachableHandlerBBNums,
+  private void setHandlersMapsNonRef(int localVariable, PrimitiveSize wordCount, int[] reachableHandlerBBNums,
                                      int reachableHandlerCount, boolean inJSRSub, byte[][] bbMaps) {
     if (!inJSRSub) {
       for (int i = 0; i < reachableHandlerCount; i++) {
         bbMaps[reachableHandlerBBNums[i]][localVariable] = NON_REFERENCE;
-        if (wordCount == DOUBLEWORD) {
+        if (wordCount == PrimitiveSize.DOUBLEWORD) {
           bbMaps[reachableHandlerBBNums[i]][localVariable + 1] = NON_REFERENCE;
         }
       }
     } else {
       for (int i = 0; i < reachableHandlerCount; i++) {
         bbMaps[reachableHandlerBBNums[i]][localVariable] = SET_TO_NONREFERENCE;
-        if (wordCount == DOUBLEWORD) {
+        if (wordCount == PrimitiveSize.DOUBLEWORD) {
           bbMaps[reachableHandlerBBNums[i]][localVariable + 1] = SET_TO_NONREFERENCE;
         }
       }

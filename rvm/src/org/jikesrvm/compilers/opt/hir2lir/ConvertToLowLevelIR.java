@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -161,11 +161,6 @@ public abstract class ConvertToLowLevelIR extends IRTools {
    * we'll leave array loads in the LIR.
    */
   public static final boolean LOWER_ARRAY_ACCESS = VM.BuildForPowerPC;
-  /**
-   * Plant virtual calls via the JTOC rather than from the tib of an
-   * object when possible
-   */
-  public static final boolean CALL_VIA_JTOC = false;
 
   /**
    * Converts the given HIR to LIR.
@@ -444,7 +439,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
     }
     Operand val = TableSwitch.getClearValue(s);
     BranchOperand defaultLabel = TableSwitch.getClearDefault(s);
-    if (number < 8) {           // convert into a lookupswitch
+    if (number < ir.options.CONTROL_TABLESWITCH_CUTOFF) { // convert into a lookupswitch
       Instruction l =
           LookupSwitch.create(LOOKUPSWITCH,
                               val,
@@ -822,7 +817,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
       Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, TypeReference.CodeArray, Call.getClearAddress(v)));
     } else if (methOp.isVirtual()) {
       if (VM.VerifyAssertions) VM._assert(Call.hasAddress(v));
-      if (CALL_VIA_JTOC && methOp.hasPreciseTarget()) {
+      if (ir.options.H2L_CALL_VIA_JTOC && methOp.hasPreciseTarget()) {
         // Call to precise type can go via JTOC
         RVMMethod target = methOp.getTarget();
         Call.setAddress(v,
@@ -849,7 +844,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
         // target == null => we are calling an unresolved <init> method.
         Call.setAddress(v, InsertLoadOffsetJTOC(v, ir, REF_LOAD, TypeReference.CodeArray, Call.getClearAddress(v)));
       } else {
-        if (CALL_VIA_JTOC) {
+        if (ir.options.H2L_CALL_VIA_JTOC) {
           Call.setAddress(v,
                           InsertLoadOffsetJTOC(v,
                                                ir,
@@ -969,7 +964,7 @@ public abstract class ConvertToLowLevelIR extends IRTools {
 
     BranchProfileOperand bp = BranchProfileOperand.never();
     BasicBlock predBB = s.getBasicBlock();
-    BasicBlock succBB = predBB.splitNodeAt(s.getPrev(), ir);
+    BasicBlock succBB = predBB.splitNodeAt(s.prevInstructionInCodeOrder(), ir);
     BasicBlock testBB = predBB.createSubBlock(s.bcIndex, ir, 1f - bp.takenProbability);
     BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir, bp.takenProbability);
     s.remove();

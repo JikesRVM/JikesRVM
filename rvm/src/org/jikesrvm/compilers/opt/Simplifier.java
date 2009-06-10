@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -28,7 +28,6 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
-import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.AbstractRegisterPool;
 import org.jikesrvm.compilers.opt.ir.Binary;
@@ -95,44 +94,6 @@ import org.vmmagic.unboxed.Word;
  * 500 lines of clever code.
  */
 public abstract class Simplifier extends IRTools {
-  // NOTE: The convention is that constant folding is controlled based
-  // on the type of the result of the operator, not the type of its inputs.
-  /**
-   * Constant fold integer operations?
-   */
-  public static final boolean CF_INT = true;
-  /**
-   * Constant fold address operations?
-   */
-  public static final boolean CF_LONG = true;
-
-  /**
-   * Constant fold address operations?
-   */
-  public static final boolean CF_ADDR = true;
-
-  /**
-   * Constant fold float operations?  Default is true, flip to avoid
-   * consuming precious JTOC slots to hold new constant values.
-   */
-  public static final boolean CF_FLOAT = true;
-  /**
-   * Constant fold double operations?  Default is true, flip to avoid
-   * consuming precious JTOC slots to hold new constant values.
-   */
-  public static final boolean CF_DOUBLE = true;
-  /**
-   * Constant fold field operations?  Default is true, flip to avoid
-   * consuming precious JTOC slots to hold new constant values.
-   */
-  public static final boolean CF_FIELDS = true;
-
-  /**
-   * Constant fold TIB operations?  Default is true, flip to avoid
-   * consuming precious JTOC slots to hold new constant values.
-   */
-  public static final boolean CF_TIB = true;
-
   /**
    * Effect of the simplification on Def-Use chains
    */
@@ -175,10 +136,11 @@ public abstract class Simplifier extends IRTools {
    *
    * @param hir is this the HIR phase?
    * @param regpool register pool in case simplification requires a temporary register
+   * @param opts options for this compilation
    * @param s the instruction to simplify
    * @return one of UNCHANGED, MOVE_FOLDED, MOVE_REDUCED, TRAP_REDUCED, REDUCED
    */
-  public static DefUseEffect simplify(boolean hir, AbstractRegisterPool regpool, Instruction s) {
+  public static DefUseEffect simplify(boolean hir, AbstractRegisterPool regpool, OptOptions opts, Instruction s) {
     DefUseEffect result;
     char opcode = s.getOpcode();
     switch (opcode) {
@@ -186,367 +148,367 @@ public abstract class Simplifier extends IRTools {
       // GUARD operations
       ////////////////////
       case GUARD_COMBINE_opcode:
-        result = guardCombine(s);
+        result = guardCombine(s, opts);
         break;
         ////////////////////
         // TRAP operations
         ////////////////////
       case TRAP_IF_opcode:
-        result = trapIf(s);
+        result = trapIf(s, opts);
         break;
       case NULL_CHECK_opcode:
-        result = nullCheck(s);
+        result = nullCheck(s, opts);
         break;
       case INT_ZERO_CHECK_opcode:
-        result = intZeroCheck(s);
+        result = intZeroCheck(s, opts);
         break;
       case LONG_ZERO_CHECK_opcode:
-        result = longZeroCheck(s);
+        result = longZeroCheck(s, opts);
         break;
       case CHECKCAST_opcode:
-        result = checkcast(s);
+        result = checkcast(s, opts);
         break;
       case CHECKCAST_UNRESOLVED_opcode:
-        result = checkcast(s);
+        result = checkcast(s, opts);
         break;
       case CHECKCAST_NOTNULL_opcode:
-        result = checkcastNotNull(s);
+        result = checkcastNotNull(s, opts);
         break;
       case INSTANCEOF_opcode:
-        result = instanceOf(s);
+        result = instanceOf(s, opts);
         break;
       case INSTANCEOF_NOTNULL_opcode:
-        result = instanceOfNotNull(s);
+        result = instanceOfNotNull(s, opts);
         break;
       case OBJARRAY_STORE_CHECK_opcode:
-        result = objarrayStoreCheck(s);
+        result = objarrayStoreCheck(s, opts);
         break;
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
-        result = objarrayStoreCheckNotNull(s);
+        result = objarrayStoreCheckNotNull(s, opts);
         break;
       case MUST_IMPLEMENT_INTERFACE_opcode:
-        result = mustImplementInterface(s);
+        result = mustImplementInterface(s, opts);
         break;
         ////////////////////
         // Conditional moves
         ////////////////////
       case INT_COND_MOVE_opcode:
-        result = intCondMove(s);
+        result = intCondMove(s, opts);
         break;
       case LONG_COND_MOVE_opcode:
-        result = longCondMove(s);
+        result = longCondMove(s, opts);
         break;
       case FLOAT_COND_MOVE_opcode:
-        result = floatCondMove(s);
+        result = floatCondMove(s, opts);
         break;
       case DOUBLE_COND_MOVE_opcode:
-        result = doubleCondMove(s);
+        result = doubleCondMove(s, opts);
         break;
       case REF_COND_MOVE_opcode:
-        result = refCondMove(s);
+        result = refCondMove(s, opts);
         break;
       case GUARD_COND_MOVE_opcode:
-        result = guardCondMove(s);
+        result = guardCondMove(s, opts);
         break;
         ////////////////////
         // INT ALU operations
         ////////////////////
       case BOOLEAN_NOT_opcode:
-        result = booleanNot(s);
+        result = booleanNot(s, opts);
         break;
       case BOOLEAN_CMP_INT_opcode:
-        result = booleanCmpInt(s);
+        result = booleanCmpInt(s, opts);
         break;
       case BOOLEAN_CMP_ADDR_opcode:
-        result = booleanCmpAddr(s);
+        result = booleanCmpAddr(s, opts);
         break;
       case INT_ADD_opcode:
-        result = intAdd(s);
+        result = intAdd(s, opts);
         break;
       case INT_AND_opcode:
-        result = intAnd(s);
+        result = intAnd(s, opts);
         break;
       case INT_DIV_opcode:
-        result = intDiv(regpool, s);
+        result = intDiv(regpool, s, opts);
         break;
       case INT_MUL_opcode:
-        result = intMul(regpool, s);
+        result = intMul(regpool, s, opts);
         break;
       case INT_NEG_opcode:
-        result = intNeg(s);
+        result = intNeg(s, opts);
         break;
       case INT_NOT_opcode:
-        result = intNot(s);
+        result = intNot(s, opts);
         break;
       case INT_OR_opcode:
-        result = intOr(s);
+        result = intOr(s, opts);
         break;
       case INT_REM_opcode:
-        result = intRem(s);
+        result = intRem(s, opts);
         break;
       case INT_SHL_opcode:
-        result = intShl(s);
+        result = intShl(s, opts);
         break;
       case INT_SHR_opcode:
-        result = intShr(s);
+        result = intShr(s, opts);
         break;
       case INT_SUB_opcode:
-        result = intSub(s);
+        result = intSub(s, opts);
         break;
       case INT_USHR_opcode:
-        result = intUshr(s);
+        result = intUshr(s, opts);
         break;
       case INT_XOR_opcode:
-        result = intXor(s);
+        result = intXor(s, opts);
         break;
         ////////////////////
         // WORD ALU operations
         ////////////////////
       case REF_ADD_opcode:
-        result = refAdd(s);
+        result = refAdd(s, opts);
         break;
       case REF_AND_opcode:
-        result = refAnd(s);
+        result = refAnd(s, opts);
         break;
       case REF_SHL_opcode:
-        result = refShl(s);
+        result = refShl(s, opts);
         break;
       case REF_SHR_opcode:
-        result = refShr(s);
+        result = refShr(s, opts);
         break;
       case REF_NEG_opcode:
-        result = refNeg(s);
+        result = refNeg(s, opts);
         break;
       case REF_NOT_opcode:
-        result = refNot(s);
+        result = refNot(s, opts);
         break;
       case REF_OR_opcode:
-        result = refOr(s);
+        result = refOr(s, opts);
         break;
       case REF_SUB_opcode:
-        result = refSub(s);
+        result = refSub(s, opts);
         break;
       case REF_USHR_opcode:
-        result = refUshr(s);
+        result = refUshr(s, opts);
         break;
       case REF_XOR_opcode:
-        result = refXor(s);
+        result = refXor(s, opts);
         break;
         ////////////////////
         // LONG ALU operations
         ////////////////////
       case LONG_ADD_opcode:
-        result = longAdd(s);
+        result = longAdd(s, opts);
         break;
       case LONG_AND_opcode:
-        result = longAnd(s);
+        result = longAnd(s, opts);
         break;
       case LONG_CMP_opcode:
-        result = longCmp(s);
+        result = longCmp(s, opts);
         break;
       case LONG_DIV_opcode:
-        result = longDiv(s);
+        result = longDiv(s, opts);
         break;
       case LONG_MUL_opcode:
-        result = longMul(regpool, s);
+        result = longMul(regpool, s, opts);
         break;
       case LONG_NEG_opcode:
-        result = longNeg(s);
+        result = longNeg(s, opts);
         break;
       case LONG_NOT_opcode:
-        result = longNot(s);
+        result = longNot(s, opts);
         break;
       case LONG_OR_opcode:
-        result = longOr(s);
+        result = longOr(s, opts);
         break;
       case LONG_REM_opcode:
-        result = longRem(s);
+        result = longRem(s, opts);
         break;
       case LONG_SHL_opcode:
-        result = longShl(s);
+        result = longShl(s, opts);
         break;
       case LONG_SHR_opcode:
-        result = longShr(s);
+        result = longShr(s, opts);
         break;
       case LONG_SUB_opcode:
-        result = longSub(s);
+        result = longSub(s, opts);
         break;
       case LONG_USHR_opcode:
-        result = longUshr(s);
+        result = longUshr(s, opts);
         break;
       case LONG_XOR_opcode:
-        result = longXor(s);
+        result = longXor(s, opts);
         break;
         ////////////////////
         // FLOAT ALU operations
         ////////////////////
       case FLOAT_ADD_opcode:
-        result = floatAdd(s);
+        result = floatAdd(s, opts);
         break;
       case FLOAT_CMPG_opcode:
-        result = floatCmpg(s);
+        result = floatCmpg(s, opts);
         break;
       case FLOAT_CMPL_opcode:
-        result = floatCmpl(s);
+        result = floatCmpl(s, opts);
         break;
       case FLOAT_DIV_opcode:
-        result = floatDiv(s);
+        result = floatDiv(s, opts);
         break;
       case FLOAT_MUL_opcode:
-        result = floatMul(s);
+        result = floatMul(s, opts);
         break;
       case FLOAT_NEG_opcode:
-        result = floatNeg(s);
+        result = floatNeg(s, opts);
         break;
       case FLOAT_REM_opcode:
-        result = floatRem(s);
+        result = floatRem(s, opts);
         break;
       case FLOAT_SUB_opcode:
-        result = floatSub(s);
+        result = floatSub(s, opts);
         break;
       case FLOAT_SQRT_opcode:
-        result = floatSqrt(s);
+        result = floatSqrt(s, opts);
         break;
         ////////////////////
         // DOUBLE ALU operations
         ////////////////////
       case DOUBLE_ADD_opcode:
-        result = doubleAdd(s);
+        result = doubleAdd(s, opts);
         break;
       case DOUBLE_CMPG_opcode:
-        result = doubleCmpg(s);
+        result = doubleCmpg(s, opts);
         break;
       case DOUBLE_CMPL_opcode:
-        result = doubleCmpl(s);
+        result = doubleCmpl(s, opts);
         break;
       case DOUBLE_DIV_opcode:
-        result = doubleDiv(s);
+        result = doubleDiv(s, opts);
         break;
       case DOUBLE_MUL_opcode:
-        result = doubleMul(s);
+        result = doubleMul(s, opts);
         break;
       case DOUBLE_NEG_opcode:
-        result = doubleNeg(s);
+        result = doubleNeg(s, opts);
         break;
       case DOUBLE_REM_opcode:
-        result = doubleRem(s);
+        result = doubleRem(s, opts);
         break;
       case DOUBLE_SUB_opcode:
-        result = doubleSub(s);
+        result = doubleSub(s, opts);
         break;
       case DOUBLE_SQRT_opcode:
-        result = doubleSqrt(s);
+        result = doubleSqrt(s, opts);
         break;
         ////////////////////
         // CONVERSION operations
         ////////////////////
       case DOUBLE_2FLOAT_opcode:
-        result = double2Float(s);
+        result = double2Float(s, opts);
         break;
       case DOUBLE_2INT_opcode:
-        result = double2Int(s);
+        result = double2Int(s, opts);
         break;
       case DOUBLE_2LONG_opcode:
-        result = double2Long(s);
+        result = double2Long(s, opts);
         break;
       case DOUBLE_AS_LONG_BITS_opcode:
-        result = doubleAsLongBits(s);
+        result = doubleAsLongBits(s, opts);
         break;
       case INT_2DOUBLE_opcode:
-        result = int2Double(s);
+        result = int2Double(s, opts);
         break;
       case INT_2BYTE_opcode:
-        result = int2Byte(s);
+        result = int2Byte(s, opts);
         break;
       case INT_2USHORT_opcode:
-        result = int2UShort(s);
+        result = int2UShort(s, opts);
         break;
       case INT_2FLOAT_opcode:
-        result = int2Float(s);
+        result = int2Float(s, opts);
         break;
       case INT_2LONG_opcode:
-        result = int2Long(s);
+        result = int2Long(s, opts);
         break;
       case INT_2ADDRSigExt_opcode:
-        result = int2AddrSigExt(s);
+        result = int2AddrSigExt(s, opts);
         break;
       case INT_2ADDRZerExt_opcode:
-        result = int2AddrZerExt(s);
+        result = int2AddrZerExt(s, opts);
         break;
       case LONG_2ADDR_opcode:
-        result = long2Addr(s);
+        result = long2Addr(s, opts);
         break;
       case INT_2SHORT_opcode:
-        result = int2Short(s);
+        result = int2Short(s, opts);
         break;
       case INT_BITS_AS_FLOAT_opcode:
-        result = intBitsAsFloat(s);
+        result = intBitsAsFloat(s, opts);
         break;
       case ADDR_2INT_opcode:
-        result = addr2Int(s);
+        result = addr2Int(s, opts);
         break;
       case ADDR_2LONG_opcode:
-        result = addr2Long(s);
+        result = addr2Long(s, opts);
         break;
       case FLOAT_2DOUBLE_opcode:
-        result = float2Double(s);
+        result = float2Double(s, opts);
         break;
       case FLOAT_2INT_opcode:
-        result = float2Int(s);
+        result = float2Int(s, opts);
         break;
       case FLOAT_2LONG_opcode:
-        result = float2Long(s);
+        result = float2Long(s, opts);
         break;
       case FLOAT_AS_INT_BITS_opcode:
-        result = floatAsIntBits(s);
+        result = floatAsIntBits(s, opts);
         break;
       case LONG_2FLOAT_opcode:
-        result = long2Float(s);
+        result = long2Float(s, opts);
         break;
       case LONG_2INT_opcode:
-        result = long2Int(s);
+        result = long2Int(s, opts);
         break;
       case LONG_2DOUBLE_opcode:
-        result = long2Double(s);
+        result = long2Double(s, opts);
         break;
       case LONG_BITS_AS_DOUBLE_opcode:
-        result = longBitsAsDouble(s);
+        result = longBitsAsDouble(s, opts);
         break;
         ////////////////////
         // Field operations
         ////////////////////
       case ARRAYLENGTH_opcode:
-        result = arrayLength(s);
+        result = arrayLength(s, opts);
         break;
       case BOUNDS_CHECK_opcode:
-        result = boundsCheck(s);
+        result = boundsCheck(s, opts);
         break;
       case CALL_opcode:
-        result = call(hir, regpool, s);
+        result = call(hir, regpool, s, opts);
         break;
       case GETFIELD_opcode:
-        result = getField(s);
+        result = getField(s, opts);
         break;
       case GET_OBJ_TIB_opcode:
-        result = getObjTib(s);
+        result = getObjTib(s, opts);
         break;
       case GET_CLASS_TIB_opcode:
-        result = getClassTib(s);
+        result = getClassTib(s, opts);
         break;
       case GET_TYPE_FROM_TIB_opcode:
-        result = getTypeFromTib(s);
+        result = getTypeFromTib(s, opts);
         break;
       case GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode:
-        result = getArrayElementTibFromTib(s);
+        result = getArrayElementTibFromTib(s, opts);
         break;
       case GET_SUPERCLASS_IDS_FROM_TIB_opcode:
-        result = getSuperclassIdsFromTib(s);
+        result = getSuperclassIdsFromTib(s, opts);
         break;
       case GET_DOES_IMPLEMENT_FROM_TIB_opcode:
-        result = getDoesImplementFromTib(s);
+        result = getDoesImplementFromTib(s, opts);
         break;
       case REF_LOAD_opcode:
-        result = refLoad(s);
+        result = refLoad(s, opts);
         break;
       default:
         result = DefUseEffect.UNCHANGED;
@@ -576,7 +538,7 @@ public abstract class Simplifier extends IRTools {
     return result;
   }
 
-  private static DefUseEffect guardCombine(Instruction s) {
+  private static DefUseEffect guardCombine(Instruction s, OptOptions opts) {
     Operand op1 = Binary.getVal1(s);
     Operand op2 = Binary.getVal2(s);
     if (op1.similar(op2) || (op2 instanceof TrueGuardOperand)) {
@@ -597,7 +559,7 @@ public abstract class Simplifier extends IRTools {
     }
   }
 
-  private static DefUseEffect trapIf(Instruction s) {
+  private static DefUseEffect trapIf(Instruction s, OptOptions opts) {
     {
       Operand op1 = TrapIf.getVal1(s);
       Operand op2 = TrapIf.getVal2(s);
@@ -626,7 +588,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect nullCheck(Instruction s) {
+  private static DefUseEffect nullCheck(Instruction s, OptOptions opts) {
     Operand ref = NullCheck.getRef(s);
     if (ref.isNullConstant() || (ref.isAddressConstant() && ref.asAddressConstant().value.isZero())) {
       Trap.mutate(s, TRAP, NullCheck.getClearGuardResult(s), TrapCodeOperand.NullPtr());
@@ -644,7 +606,7 @@ public abstract class Simplifier extends IRTools {
     }
   }
 
-  private static DefUseEffect intZeroCheck(Instruction s) {
+  private static DefUseEffect intZeroCheck(Instruction s, OptOptions opts) {
     {
       Operand op = ZeroCheck.getValue(s);
       if (op.isIntConstant()) {
@@ -661,7 +623,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longZeroCheck(Instruction s) {
+  private static DefUseEffect longZeroCheck(Instruction s, OptOptions opts) {
     {
       Operand op = ZeroCheck.getValue(s);
       if (op.isLongConstant()) {
@@ -677,7 +639,7 @@ public abstract class Simplifier extends IRTools {
     }
     return DefUseEffect.UNCHANGED;
   }
-  private static DefUseEffect checkcast(Instruction s) {
+  private static DefUseEffect checkcast(Instruction s, OptOptions opts) {
     Operand ref = TypeCheck.getRef(s);
     if (ref.isNullConstant()) {
       Move.mutate(s, REF_MOVE, TypeCheck.getResult(s), ref);
@@ -687,7 +649,7 @@ public abstract class Simplifier extends IRTools {
         return DefUseEffect.MOVE_REDUCED;
     } else if (ref.isConstant()) {
       s.operator = CHECKCAST_NOTNULL;
-      return checkcastNotNull(s);
+      return checkcastNotNull(s, opts);
     } else {
       TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
       TypeReference rhsType = ref.getType();
@@ -705,7 +667,7 @@ public abstract class Simplifier extends IRTools {
     }
   }
 
-  private static DefUseEffect checkcastNotNull(Instruction s) {
+  private static DefUseEffect checkcastNotNull(Instruction s, OptOptions opts) {
     Operand ref = TypeCheck.getRef(s);
     TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
     TypeReference rhsType = ref.getType();
@@ -729,14 +691,14 @@ public abstract class Simplifier extends IRTools {
       return DefUseEffect.UNCHANGED;
     }
   }
-  private static DefUseEffect instanceOf(Instruction s) {
+  private static DefUseEffect instanceOf(Instruction s, OptOptions opts) {
     Operand ref = InstanceOf.getRef(s);
     if (ref.isNullConstant()) {
       Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
       return DefUseEffect.MOVE_FOLDED;
     } else if (ref.isConstant()) {
       s.operator = INSTANCEOF_NOTNULL;
-      return instanceOfNotNull(s);
+      return instanceOfNotNull(s, opts);
     } else {
       TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
       TypeReference rhsType = ref.getType();
@@ -757,7 +719,7 @@ public abstract class Simplifier extends IRTools {
     }
   }
 
-  private static DefUseEffect instanceOfNotNull(Instruction s) {
+  private static DefUseEffect instanceOfNotNull(Instruction s, OptOptions opts) {
     {
       Operand ref = InstanceOf.getRef(s);
       TypeReference lhsType = InstanceOf.getType(s).getTypeRef();
@@ -778,7 +740,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect objarrayStoreCheck(Instruction s) {
+  private static DefUseEffect objarrayStoreCheck(Instruction s, OptOptions opts) {
     Operand val = StoreCheck.getVal(s);
     if (val.isNullConstant()) {
       // Writing null into an array is trivially safe
@@ -794,7 +756,8 @@ public abstract class Simplifier extends IRTools {
       RVMType typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
       if (typeOfIMElem != null) {
         RVMType typeOfVal = val.getType().peekType();
-        if ((typeOfIMElem == typeOfVal) && (typeOfIMElem.isPrimitiveType() || typeOfIMElem.asClass().isFinal())) {
+        if ((typeOfIMElem == typeOfVal) &&
+            (typeOfIMElem.isPrimitiveType() || typeOfIMElem.isUnboxedType() || typeOfIMElem.asClass().isFinal())) {
           // Writing something of a final type to an array of that
           // final type is safe
           Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
@@ -826,7 +789,7 @@ public abstract class Simplifier extends IRTools {
     }
   }
 
-  private static DefUseEffect objarrayStoreCheckNotNull(Instruction s) {
+  private static DefUseEffect objarrayStoreCheckNotNull(Instruction s, OptOptions opts) {
     Operand val = StoreCheck.getVal(s);
     Operand ref = StoreCheck.getRef(s);
     TypeReference arrayTypeRef = ref.getType();
@@ -837,7 +800,8 @@ public abstract class Simplifier extends IRTools {
     RVMType typeOfIMElem = arrayTypeRef.getInnermostElementType().peekType();
     if (typeOfIMElem != null) {
       RVMType typeOfVal = val.getType().peekType();
-      if ((typeOfIMElem == typeOfVal) && (typeOfIMElem.isPrimitiveType() || typeOfIMElem.asClass().isFinal())) {
+      if ((typeOfIMElem == typeOfVal) &&
+          (typeOfIMElem.isPrimitiveType() || typeOfIMElem.isUnboxedType() || typeOfIMElem.asClass().isFinal())) {
         // Writing something of a final type to an array of that
         // final type is safe
         Move.mutate(s, GUARD_MOVE, StoreCheck.getClearGuardResult(s), StoreCheck.getClearGuard(s));
@@ -868,7 +832,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect mustImplementInterface(Instruction s) {
+  private static DefUseEffect mustImplementInterface(Instruction s, OptOptions opts) {
     Operand ref = TypeCheck.getRef(s);
     if (ref.isNullConstant()) {
       // Possible situation from constant propagation. This operation
@@ -906,7 +870,7 @@ public abstract class Simplifier extends IRTools {
     }
   }
 
-  private static DefUseEffect intCondMove(Instruction s) {
+  private static DefUseEffect intCondMove(Instruction s, OptOptions opts) {
     {
       Operand val1 = CondMove.getVal1(s);
       Operand val2 = CondMove.getVal2(s);
@@ -971,7 +935,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longCondMove(Instruction s) {
+  private static DefUseEffect longCondMove(Instruction s, OptOptions opts) {
     {
       Operand val1 = CondMove.getVal1(s);
       Operand val2 = CondMove.getVal2(s);
@@ -1034,7 +998,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatCondMove(Instruction s) {
+  private static DefUseEffect floatCondMove(Instruction s, OptOptions opts) {
     {
       Operand val1 = CondMove.getVal1(s);
       Operand val2 = CondMove.getVal2(s);
@@ -1063,7 +1027,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleCondMove(Instruction s) {
+  private static DefUseEffect doubleCondMove(Instruction s, OptOptions opts) {
     {
       Operand val1 = CondMove.getVal1(s);
       Operand val2 = CondMove.getVal2(s);
@@ -1092,7 +1056,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refCondMove(Instruction s) {
+  private static DefUseEffect refCondMove(Instruction s, OptOptions opts) {
     {
       Operand val1 = CondMove.getVal1(s);
       if (val1.isConstant()) {
@@ -1123,7 +1087,7 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect guardCondMove(Instruction s) {
+  private static DefUseEffect guardCondMove(Instruction s, OptOptions opts) {
     {
       Operand val1 = CondMove.getVal1(s);
       if (val1.isConstant()) {
@@ -1154,8 +1118,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect booleanNot(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect booleanNot(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -1171,8 +1135,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect booleanCmpInt(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect booleanCmpInt(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op1 = BooleanCmp.getVal1(s);
       Operand op2 = BooleanCmp.getVal2(s);
       if (op1.isConstant()) {
@@ -1210,8 +1174,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect booleanCmpAddr(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect booleanCmpAddr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op1 = BooleanCmp.getVal1(s);
       Operand op2 = BooleanCmp.getVal2(s);
       if (op1.isConstant()) {
@@ -1234,8 +1198,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intAdd(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intAdd(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
@@ -1266,8 +1230,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intAnd(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intAnd(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
@@ -1299,8 +1263,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intDiv(AbstractRegisterPool regpool, Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intDiv(AbstractRegisterPool regpool, Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op1 = GuardedBinary.getVal1(s);
       Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1330,7 +1294,7 @@ public abstract class Simplifier extends IRTools {
             return DefUseEffect.MOVE_REDUCED;
           }
           // x / c == (x + (((1 << c) - 1) & (x >> 31))) >> c .. if c is power of 2
-          if (s.getPrev() != null) {
+          if (s.hasPrev()) {
             int power = PowerOf2(val2);
             if (power != -1) {
               RegisterOperand tempInt1 = regpool.makeTempInt();
@@ -1355,8 +1319,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intMul(AbstractRegisterPool regpool, Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intMul(AbstractRegisterPool regpool, Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
@@ -1369,14 +1333,14 @@ public abstract class Simplifier extends IRTools {
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT
-          return multiplyByConstant(regpool, s, op1, op2);
+          return multiplyByConstant(regpool, s, op1, op2, opts);
         }
       }
     }
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect multiplyByConstant(AbstractRegisterPool regpool, Instruction s, Operand op1, Operand op2) {
+  private static DefUseEffect multiplyByConstant(AbstractRegisterPool regpool, Instruction s, Operand op1, Operand op2, OptOptions opts) {
     Operator addOperator, moveOperator, negateOperator, shiftLeftOperator;
     ConstantOperand zero;
     long val2;
@@ -1410,7 +1374,7 @@ public abstract class Simplifier extends IRTools {
       return DefUseEffect.REDUCED;
     }
     // Try to reduce x*c into shift and adds, but only if cost is cheap
-    if (s.getPrev() != null) {
+    if (s.hasPrev()) {
       // don't attempt to reduce if this instruction isn't
       // part of a well-formed sequence
 
@@ -1527,8 +1491,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intNeg(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intNeg(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -1540,8 +1504,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intNot(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intNot(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -1553,8 +1517,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intOr(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intOr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
@@ -1586,8 +1550,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intRem(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intRem(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op1 = GuardedBinary.getVal1(s);
       Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1622,8 +1586,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intShl(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intShl(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op2 = Binary.getVal2(s);
       Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
@@ -1656,8 +1620,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intShr(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intShr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
@@ -1690,8 +1654,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intSub(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intSub(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
@@ -1727,8 +1691,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intUshr(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intUshr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op2 = Binary.getVal2(s);
       Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
@@ -1761,8 +1725,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intXor(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect intXor(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
@@ -1795,8 +1759,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refAdd(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refAdd(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isConstant() && !op2.isMovableObjectConstant()) {
@@ -1832,8 +1796,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refAnd(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refAnd(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
@@ -1865,8 +1829,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refShl(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refShl(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op2 = Binary.getVal2(s);
       Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
@@ -1899,8 +1863,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refShr(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refShr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
@@ -1934,8 +1898,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refNeg(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refNeg(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isConstant() && !op.isMovableObjectConstant()) {
         // CONSTANT: FOLD
@@ -1948,8 +1912,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refNot(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refNot(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isConstant() && !op.isMovableObjectConstant()) {
         // CONSTANT: FOLD
@@ -1961,8 +1925,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refOr(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refOr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
@@ -1994,8 +1958,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refSub(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refSub(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
@@ -2041,8 +2005,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refUshr(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refUshr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op2 = Binary.getVal2(s);
       Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
@@ -2075,8 +2039,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refXor(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect refXor(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
@@ -2108,8 +2072,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longAdd(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longAdd(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isLongConstant()) {
@@ -2140,8 +2104,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longAnd(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longAnd(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
@@ -2173,8 +2137,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longCmp(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longCmp(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
@@ -2196,8 +2160,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longDiv(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longDiv(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op1 = GuardedBinary.getVal1(s);
       Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
@@ -2231,8 +2195,8 @@ public abstract class Simplifier extends IRTools {
     }
     return DefUseEffect.UNCHANGED;
   }
-  private static DefUseEffect longMul(AbstractRegisterPool regpool, Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longMul(AbstractRegisterPool regpool, Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isLongConstant()) {
@@ -2245,15 +2209,15 @@ public abstract class Simplifier extends IRTools {
           return DefUseEffect.MOVE_FOLDED;
         } else {
           // ONLY OP2 IS CONSTANT
-          return multiplyByConstant(regpool, s, op1, op2);
+          return multiplyByConstant(regpool, s, op1, op2, opts);
         }
       }
     }
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longNeg(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longNeg(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
@@ -2265,8 +2229,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longNot(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longNot(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         long val = op.asLongConstant().value;
@@ -2278,8 +2242,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longOr(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longOr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
@@ -2311,8 +2275,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longRem(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longRem(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op1 = GuardedBinary.getVal1(s);
       Operand op2 = GuardedBinary.getVal2(s);
       if (op1.similar(op2)) {
@@ -2347,8 +2311,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longShl(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longShl(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op2 = Binary.getVal2(s);
       Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
@@ -2381,8 +2345,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longShr(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longShr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isIntConstant()) {
@@ -2415,8 +2379,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longSub(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longSub(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op1.similar(op2)) {
@@ -2453,8 +2417,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longUshr(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longUshr(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op2 = Binary.getVal2(s);
       Operand op1 = Binary.getVal1(s);
       if (op2.isIntConstant()) {
@@ -2487,8 +2451,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longXor(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect longXor(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
@@ -2520,8 +2484,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatAdd(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect floatAdd(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
@@ -2543,8 +2507,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatCmpg(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect floatCmpg(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         Operand op1 = Binary.getVal1(s);
@@ -2561,8 +2525,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatCmpl(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect floatCmpl(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         Operand op1 = Binary.getVal1(s);
@@ -2579,8 +2543,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatDiv(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect floatDiv(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         Operand op1 = Binary.getVal1(s);
@@ -2596,8 +2560,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatMul(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect floatMul(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
@@ -2619,8 +2583,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatNeg(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect floatNeg(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
@@ -2632,8 +2596,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatRem(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect floatRem(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
         Operand op1 = Binary.getVal1(s);
@@ -2649,8 +2613,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatSub(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect floatSub(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isFloatConstant()) {
@@ -2674,8 +2638,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatSqrt(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect floatSqrt(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
@@ -2687,8 +2651,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleAdd(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect doubleAdd(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
@@ -2710,8 +2674,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleCmpg(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect doubleCmpg(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         Operand op1 = Binary.getVal1(s);
@@ -2728,8 +2692,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleCmpl(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect doubleCmpl(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         Operand op1 = Binary.getVal1(s);
@@ -2746,8 +2710,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleDiv(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect doubleDiv(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         Operand op1 = Binary.getVal1(s);
@@ -2763,8 +2727,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleMul(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect doubleMul(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       canonicalizeCommutativeOperator(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
@@ -2786,8 +2750,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleNeg(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect doubleNeg(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2799,8 +2763,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleRem(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect doubleRem(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
         Operand op1 = Binary.getVal1(s);
@@ -2816,8 +2780,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleSub(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect doubleSub(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       Operand op1 = Binary.getVal1(s);
       Operand op2 = Binary.getVal2(s);
       if (op2.isDoubleConstant()) {
@@ -2841,8 +2805,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleSqrt(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect doubleSqrt(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2854,8 +2818,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect double2Float(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect double2Float(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2867,8 +2831,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect double2Int(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect double2Int(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2880,8 +2844,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect double2Long(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect double2Long(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2893,8 +2857,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect doubleAsLongBits(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect doubleAsLongBits(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isDoubleConstant()) {
         // CONSTANT: FOLD
@@ -2906,8 +2870,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect int2Double(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect int2Double(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2919,8 +2883,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect int2Byte(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect int2Byte(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2932,8 +2896,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect int2UShort(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect int2UShort(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2945,8 +2909,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect int2Float(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect int2Float(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2958,8 +2922,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect int2Long(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect int2Long(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2971,8 +2935,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect int2AddrSigExt(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect int2AddrSigExt(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2984,8 +2948,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect int2AddrZerExt(Instruction s) {
-    if (CF_ADDR) {
+  private static DefUseEffect int2AddrZerExt(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -2997,8 +2961,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect long2Addr(Instruction s) {
-    if (VM.BuildFor64Addr && CF_ADDR) {
+  private static DefUseEffect long2Addr(Instruction s, OptOptions opts) {
+    if (VM.BuildFor64Addr && opts.SIMPLIFY_REF_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
@@ -3010,8 +2974,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect int2Short(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect int2Short(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -3023,8 +2987,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect intBitsAsFloat(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect intBitsAsFloat(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
@@ -3036,8 +3000,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect addr2Int(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect addr2Int(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isConstant() && !op.isMovableObjectConstant()) {
         // CONSTANT: FOLD
@@ -3049,8 +3013,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect addr2Long(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect addr2Long(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isConstant() && !op.isMovableObjectConstant()) {
         // CONSTANT: FOLD
@@ -3062,8 +3026,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect float2Double(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect float2Double(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
@@ -3075,8 +3039,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect float2Int(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect float2Int(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
@@ -3088,8 +3052,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect float2Long(Instruction s) {
-    if (CF_LONG) {
+  private static DefUseEffect float2Long(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_LONG_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
@@ -3101,8 +3065,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect floatAsIntBits(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect floatAsIntBits(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
@@ -3114,8 +3078,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect long2Float(Instruction s) {
-    if (CF_FLOAT) {
+  private static DefUseEffect long2Float(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FLOAT_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
@@ -3127,8 +3091,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect long2Int(Instruction s) {
-    if (CF_INT) {
+  private static DefUseEffect long2Int(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_INTEGER_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
@@ -3140,8 +3104,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect long2Double(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect long2Double(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
@@ -3153,8 +3117,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect longBitsAsDouble(Instruction s) {
-    if (CF_DOUBLE) {
+  private static DefUseEffect longBitsAsDouble(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_DOUBLE_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
@@ -3166,8 +3130,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect arrayLength(Instruction s) {
-    if (CF_FIELDS) {
+  private static DefUseEffect arrayLength(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FIELD_OPS) {
       Operand op = GuardedUnary.getVal(s);
       if (op.isObjectConstant()) {
         int length = 0;
@@ -3186,8 +3150,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect boundsCheck(Instruction s) {
-    if (CF_FIELDS) {
+  private static DefUseEffect boundsCheck(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FIELD_OPS) {
       Operand ref = BoundsCheck.getRef(s);
       Operand index = BoundsCheck.getIndex(s);
       if (ref.isNullConstant()) {
@@ -3215,8 +3179,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect call(boolean HIR, AbstractRegisterPool regpool, Instruction s) {
-    if (CF_FIELDS) {
+  private static DefUseEffect call(boolean HIR, AbstractRegisterPool regpool, Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FIELD_OPS) {
       MethodOperand methOp = Call.getMethod(s);
       if (methOp == null) {
         return DefUseEffect.UNCHANGED;
@@ -3234,7 +3198,6 @@ public abstract class Simplifier extends IRTools {
           }
         }
       } else if (methOp.isStatic() && methOp.hasPreciseTarget() && HIR) {
-        RVMMethod containingMethod = s.position.getMethod();
         RVMMethod method = methOp.getTarget();
         // Can we remove the need for RVMClass.getClass...FromStackFrame to walk the stack?
         if (method == Entrypoints.getClassLoaderFromStackFrame ||
@@ -3401,8 +3364,8 @@ public abstract class Simplifier extends IRTools {
     }
   }
 
-  private static DefUseEffect getField(Instruction s) {
-    if (CF_FIELDS) {
+  private static DefUseEffect getField(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_FIELD_OPS) {
       Operand ref = GetField.getRef(s);
       if (VM.VerifyAssertions && ref.isNullConstant()) {
         // Simplify to an unreachable operand, this instruction is dead code
@@ -3410,7 +3373,7 @@ public abstract class Simplifier extends IRTools {
         RegisterOperand result = GetField.getClearResult(s);
         Move.mutate(s, IRTools.getMoveOp(result.getType()), result, new UnreachableOperand());
         return DefUseEffect.MOVE_FOLDED;
-      } else if (ref.isObjectConstant()) {
+      } else if (opts.SIMPLIFY_CHASE_FINAL_FIELDS && ref.isObjectConstant()) {
         // A constant object references this field which is
         // final. As the reference is final the constructor
         // of the referred object MUST have already completed.
@@ -3436,8 +3399,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect getObjTib(Instruction s) {
-    if (CF_TIB) {
+  private static DefUseEffect getObjTib(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_TIB_OPS) {
       Operand op = GuardedUnary.getVal(s);
       if (op.isNullConstant()) {
         // Simplify to an unreachable operand, this instruction is dead code
@@ -3470,8 +3433,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect getClassTib(Instruction s) {
-    if (CF_TIB) {
+  private static DefUseEffect getClassTib(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_TIB_OPS) {
       TypeOperand typeOp = Unary.getVal(s).asType();
       if (typeOp.getTypeRef().isResolved()) {
         Move.mutate(s,
@@ -3484,8 +3447,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect getTypeFromTib(Instruction s) {
-    if (CF_TIB) {
+  private static DefUseEffect getTypeFromTib(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_TIB_OPS) {
       Operand tibOp = Unary.getVal(s);
       if (tibOp.isTIBConstant()) {
         TIBConstantOperand tib = tibOp.asTIBConstant();
@@ -3496,8 +3459,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect getArrayElementTibFromTib(Instruction s) {
-    if (CF_TIB) {
+  private static DefUseEffect getArrayElementTibFromTib(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_TIB_OPS) {
       Operand tibOp = Unary.getVal(s);
       if (tibOp.isTIBConstant()) {
         TIBConstantOperand tib = tibOp.asTIBConstant();
@@ -3511,8 +3474,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect getSuperclassIdsFromTib(Instruction s) {
-    if (CF_TIB) {
+  private static DefUseEffect getSuperclassIdsFromTib(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_TIB_OPS) {
       Operand tibOp = Unary.getVal(s);
       if (tibOp.isTIBConstant()) {
         TIBConstantOperand tib = tibOp.asTIBConstant();
@@ -3526,8 +3489,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect getDoesImplementFromTib(Instruction s) {
-    if (CF_TIB) {
+  private static DefUseEffect getDoesImplementFromTib(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_TIB_OPS) {
       Operand tibOp = Unary.getVal(s);
       if (tibOp.isTIBConstant()) {
         TIBConstantOperand tib = tibOp.asTIBConstant();
@@ -3541,8 +3504,8 @@ public abstract class Simplifier extends IRTools {
     return DefUseEffect.UNCHANGED;
   }
 
-  private static DefUseEffect refLoad(Instruction s) {
-    if (CF_TIB) {
+  private static DefUseEffect refLoad(Instruction s, OptOptions opts) {
+    if (opts.SIMPLIFY_TIB_OPS) {
       Operand base = Load.getAddress(s);
       if (base.isTIBConstant()) {
         TIBConstantOperand tib = base.asTIBConstant();
@@ -3567,7 +3530,7 @@ public abstract class Simplifier extends IRTools {
           } else if (tibArray.slotContainsCode(intSlot)) {
             // Only generate code constants when we want to make
             // some virtual calls go via the JTOC
-            if (ConvertToLowLevelIR.CALL_VIA_JTOC) {
+            if (opts.H2L_CALL_VIA_JTOC) {
               RVMMethod method = tib.value.getTIBMethodAtSlot(intSlot);
               result = new CodeConstantOperand(method);
             } else {

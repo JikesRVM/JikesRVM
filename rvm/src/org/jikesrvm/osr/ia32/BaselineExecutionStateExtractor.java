@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -197,6 +197,11 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
         Word content = Magic.getWordAtOffset(stack, vOffset.minus(BYTES_IN_ADDRESS));
         VM.sysWrite("0x", vOffset.minus(BYTES_IN_ADDRESS), "    0x");
         VM.sysWriteln(content);
+        if ((types[i] == LongTypeCode) || (types[i] == DoubleTypeCode)) {
+          content = Magic.getWordAtOffset(stack, vOffset.minus(2 * BYTES_IN_ADDRESS));
+          VM.sysWrite("0x", vOffset.minus(2 * BYTES_IN_ADDRESS), "    0x");
+          VM.sysWriteln(content);
+        }
       }
 
       switch (types[i]) {

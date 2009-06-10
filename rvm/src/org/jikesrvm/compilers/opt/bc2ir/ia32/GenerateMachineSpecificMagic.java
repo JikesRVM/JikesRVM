@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -61,16 +61,16 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
     Atom methodName = meth.getName();
     PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
 
-    if (methodName == MagicNames.getESIAsProcessor) {
-      RegisterOperand rop = gc.temps.makePROp();
+    if (methodName == MagicNames.getESIAsThread) {
+      RegisterOperand rop = gc.temps.makeTROp();
       bc2ir.markGuardlessNonNull(rop);
       bc2ir.push(rop);
-    } else if (methodName == MagicNames.setESIAsProcessor) {
+    } else if (methodName == MagicNames.setESIAsThread) {
       Operand val = bc2ir.popRef();
       if (val instanceof RegisterOperand) {
-        bc2ir.appendInstruction(Move.create(REF_MOVE, gc.temps.makePROp(), val));
+        bc2ir.appendInstruction(Move.create(REF_MOVE, gc.temps.makeTROp(), val));
       } else {
-        String msg = " Unexpected operand Magic.setProcessorRegister";
+        String msg = " Unexpected operand Magic.setESIAsThread";
         throw MagicNotImplementedException.UNEXPECTED(msg);
       }
     } else if (methodName == MagicNames.getFramePointer) {

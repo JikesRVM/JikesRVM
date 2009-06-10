@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -66,7 +66,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
     if (options.getOptLevel() < 2) {
       return false;
     }
-    return options.GCP || options.VERBOSE_GCP || options.GCSE;
+    return options.SSA_GCP || options.SSA_GCSE;
   }
 
   static boolean tooBig(IR ir) {
@@ -97,7 +97,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * @param options
      */
     public final boolean shouldPerform(OptOptions options) {
-      return options.GCP || options.VERBOSE_GCP || options.GCSE;
+      return options.SSA_GCP || options.SSA_GCSE;
     }
 
     /**
@@ -139,7 +139,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
         ir.desiredSSAOptions.setScalarsOnly(false);
         ir.desiredSSAOptions.setBackwards(true);
         ir.desiredSSAOptions.setInsertUsePhis(true);
-        ir.desiredSSAOptions.setInsertPEIDeps(!ir.options.LICM_IGNORE_PEI);
+        ir.desiredSSAOptions.setInsertPEIDeps(!ir.options.SSA_LICM_IGNORE_PEI);
         ir.desiredSSAOptions.setHeapTypes(null);
       }
     }
@@ -164,7 +164,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * @param options
      */
     public final boolean shouldPerform(OptOptions options) {
-      return options.GCP || options.VERBOSE_GCP || options.GCSE;
+      return options.SSA_GCP || options.SSA_GCSE;
     }
 
     /**
@@ -214,6 +214,3 @@ public final class GCP extends OptimizationPlanCompositeElement {
     return false;
   }
 }
-
-
-

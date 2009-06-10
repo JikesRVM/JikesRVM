@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -13,17 +13,11 @@
 
 package org.mmtk.policy.immix;
 
-import static org.mmtk.policy.immix.ImmixConstants.BYTES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.LOG_BYTES_IN_LINE;
-import static org.mmtk.policy.immix.ImmixConstants.MAX_BLOCK_MARK_STATE;
-import static org.mmtk.policy.immix.ImmixConstants.MAX_COLLECTORS;
-import static org.mmtk.policy.immix.ImmixConstants.MAX_CONSV_SPILL_COUNT;
-import static org.mmtk.policy.immix.ImmixConstants.PAGES_IN_BLOCK;
-import static org.mmtk.policy.immix.ImmixConstants.SPILL_HISTOGRAM_BUCKETS;
-import static org.mmtk.policy.immix.ImmixConstants.BUILD_FOR_STICKYIMMIX;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_MIN_SPILL_THRESHOLD;
+import static org.mmtk.policy.immix.ImmixConstants.*;
+
 
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.options.DefragFreeHeadroom;
 import org.mmtk.utility.options.DefragFreeHeadroomFraction;
@@ -31,9 +25,11 @@ import org.mmtk.utility.options.DefragHeadroom;
 import org.mmtk.utility.options.DefragHeadroomFraction;
 import org.mmtk.utility.options.DefragLineReuseRatio;
 import org.mmtk.utility.options.DefragSimpleSpillThreshold;
+import org.mmtk.utility.options.DefragStress;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.EventCounter;
 import org.mmtk.utility.statistics.SizeCounter;
+import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -68,6 +64,7 @@ public class Defrag  implements Constants {
     Options.defragFreeHeadroom = new DefragFreeHeadroom();
     Options.defragFreeHeadroomFraction = new DefragFreeHeadroomFraction();
     Options.defragSimpleSpillThreshold = new DefragSimpleSpillThreshold();
+    Options.defragStress = new DefragStress();
     defragReusableMarkStateThreshold = (short) (Options.defragLineReuseRatio.getValue() * MAX_BLOCK_MARK_STATE);
   }
 
@@ -86,11 +83,15 @@ public class Defrag  implements Constants {
     defragSpaceExhausted = false;
     availableCleanPagesForDefrag += defragFreeHeadroomPages;
     if (inDefragCollection) {
+      if (Options.verbose.getValue() > 0) {
+        Log.write("[Defrag]");
+      }
       chunkMap.consolidateMap();
       establishDefragSpillThreshold(chunkMap, space);
       defrags.inc();
       defragCleanBytesAvailable.inc(availableCleanPagesForDefrag<<LOG_BYTES_IN_PAGE);
     }
+    availableCleanPagesForDefrag += VM.activePlan.global().getCollectionReserve();
   }
 
   void globalRelease() {
@@ -110,12 +111,23 @@ public class Defrag  implements Constants {
     if (defragHeadroomPages > 0)
       pr.unconditionallyReservePages(defragHeadroomPages);
 
+    if (inDefragCollection && Options.verbose.getValue() > 2) {
+      Log.write("(Defrag summary: cu: "); defragCleanBytesUsed.printCurrentVolume();
+      Log.write(" nf: "); defragBytesNotFreed.printCurrentVolume();
+      Log.write(" fr: "); defragBytesFreed.printCurrentVolume();
+      Log.write(" av: "); defragCleanBytesAvailable.printCurrentVolume();
+      Log.write(")");
+    }
+
     inDefragCollection = false;
     debugCollectionTypeDetermined = false;
   }
 
-  void setCollectionKind(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int requiredAtStart, boolean userTriggered, boolean exhaustedReusableSpace) {
-    inDefragCollection = collectWholeHeap && (userTriggered || emergencyCollection || (!BUILD_FOR_STICKYIMMIX && !exhaustedReusableSpace));
+  void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int collectionTrigger, boolean exhaustedReusableSpace) {
+    boolean userTriggered = collectionTrigger == Collection.EXTERNAL_GC_TRIGGER && Options.fullHeapSystemGC.getValue();
+    inDefragCollection =  (collectionAttempt > 1) ||
+        emergencyCollection ||
+        collectWholeHeap && (Options.defragStress.getValue() || userTriggered);
     if (inDefragCollection) {
       debugBytesDefraged = 0;
     }
@@ -134,13 +146,17 @@ public class Defrag  implements Constants {
   }
 
   private void establishDefragSpillThreshold(ChunkList chunkMap, ImmixSpace space) {
-    int availableLines;
+    int cleanLines = space.getAvailableLines(spillAvailHistogram);
+    int availableLines = cleanLines + availableCleanPagesForDefrag<<(LOG_BYTES_IN_PAGE - LOG_BYTES_IN_LINE);
 
-    availableLines = space.getAvailableLines(spillAvailHistogram);
-    availableLines += availableCleanPagesForDefrag<<(LOG_BYTES_IN_PAGE - LOG_BYTES_IN_LINE);
     int requiredLines = 0;
     short threshold = (short) MAX_CONSV_SPILL_COUNT;
     int limit = (int) (availableLines / Options.defragLineReuseRatio.getValue());
+    if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() > 2) {
+      Log.write("[threshold: "); Log.write("cl: "); Log.write(cleanLines);
+      Log.write(" al: "); Log.write(availableLines);
+      Log.write(" lm: "); Log.write(limit);
+    }
     int collectors = VM.activePlan.collectorCount();
     for (short index = MAX_CONSV_SPILL_COUNT; index >= TMP_MIN_SPILL_THRESHOLD && limit > requiredLines; index--) {
       threshold = (short) index;
@@ -151,6 +167,12 @@ public class Defrag  implements Constants {
       thisBucketAvail = spillAvailHistogram[threshold];
       limit -= thisBucketAvail;
       requiredLines += thisBucketMark;
+      if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() > 2) {
+        Log.write(" ("); Log.write(index); Log.write(" "); Log.write(limit); Log.write(","); Log.write(requiredLines); Log.write(")");
+      }
+    }
+    if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() > 2) {
+      Log.write(" threshold: "); Log.write(threshold); Log.write("]");
     }
     defragSpillThreshold = threshold;
   }

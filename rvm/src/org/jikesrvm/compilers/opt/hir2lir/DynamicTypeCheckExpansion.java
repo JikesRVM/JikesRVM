@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -745,7 +745,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       RVMArray LHSArray = (RVMArray) LHStype.peekType();
       if (LHSArray != null) {
         RVMType innermostElementType = LHSArray.getInnermostElementType();
-        if (innermostElementType.isPrimitiveType() ||
+        if (innermostElementType.isPrimitiveType() || innermostElementType.isUnboxedType() ||
             (innermostElementType.asClass().isResolved() && innermostElementType.asClass().isFinal())) {
           // [^k of primitive or [^k of final class. Just like final classes,
           // a PTR compare of rhsTIB and the TIB of the class gives the answer.
@@ -980,7 +980,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
       if (LHSArray != null) {
         Operand classTIB = getTIB(continueAt, ir, LHSArray);
         RVMType innermostElementType = LHSArray.getInnermostElementType();
-        if (innermostElementType.isPrimitiveType() ||
+        if (innermostElementType.isPrimitiveType() || innermostElementType.isUnboxedType() ||
             (innermostElementType.asClass().isResolved() && innermostElementType.asClass().isFinal())) {
           // [^k of primitive or [^k of final class. Just like final classes,
           // a PTR compare of rhsTIB and the TIB of the class gives the answer.

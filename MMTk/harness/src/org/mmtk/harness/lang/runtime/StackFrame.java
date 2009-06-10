@@ -1,26 +1,28 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.mmtk.harness.lang.runtime;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Stack;
 
-import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Declaration;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
-import org.mmtk.harness.lang.ast.Type;
 import org.mmtk.harness.lang.pcode.PseudoOp;
+import org.mmtk.harness.lang.type.Type;
+import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -29,6 +31,13 @@ import org.vmmagic.unboxed.ObjectReference;
  * variable, and that all variables are live all the time.
  */
 public class StackFrame {
+
+  /**
+   * Enable the assertion that objects won't move after being traced.
+   * This is notably not true for MC, but can be useful for debugging other
+   * collectors.
+   */
+  private static final boolean ASSERT_WILL_NOT_MOVE = false;
 
   /** A sentinel for slots that have no value */
   public static final int NO_SUCH_SLOT = Integer.MAX_VALUE;
@@ -73,9 +82,8 @@ public class StackFrame {
   public Value get(int slot) {
     if (slot >= 0) {
       return values[slot];
-    } else {
-      return ConstantPool.get(slot);
     }
+    return ConstantPool.get(slot);
   }
 
   /**
@@ -90,27 +98,38 @@ public class StackFrame {
    */
   public void set(int slot, Value value) {
     assert value != null : "Unexpected null value";
-    if (Trace.isEnabled(Item.ENV)) {
-      Trace.trace(Item.ENV, "%s %s = %s",value.type().toString(),names[slot],value.toString());
+    if (Trace.isEnabled(Item.EVAL)) {
+      Trace.printf(Item.EVAL, "%s %s = %s",value.type().toString(),getSlotName(slot),value.toString());
     }
     values[slot] = value;
   }
 
+  private String getSlotName(int slot) {
+    if (names != null && names[slot] != null) {
+      return names[slot];
+    }
+    return "t" + slot;
+  }
+
   /**
    * GC support: trace this stack frame.
+   * @param trace The MMTk trace object to receive the roots
+   * @return The number of roots found
    */
   public int computeRoots(TraceLocal trace) {
     int rootCount = 0;
-    for (int i=0; i < values.length; i++) {
-      Value value = values[i];
-      if (value != null && value instanceof ObjectValue) {
-        ObjectValue object = (ObjectValue)value;
+    for (ObjectValue object : getRoots()) {
+      if (!object.getObjectValue().isNull()) {
         if (Trace.isEnabled(Item.ROOTS)) {
-          Trace.trace(Item.ROOTS, "Tracing root %s=%s", names[i], object.toString());
+          Trace.trace(Item.ROOTS, "Tracing root %s", object.toString());
         }
         object.traceObject(trace);
+        if (ASSERT_WILL_NOT_MOVE) {
+          assert trace.willNotMoveInCurrentCollection(object.getObjectValue()) :
+            object.getObjectValue()+" has been traced but willNotMoveInCurrentCollection is still false";
+        }
         if (Trace.isEnabled(Item.ROOTS)) {
-          Trace.trace(Item.ROOTS, "new value of %s=%s", names[i], object.toString());
+          Trace.trace(Item.ROOTS, "new value of %s", object.toString());
         }
         rootCount++;
       }
@@ -119,20 +138,36 @@ public class StackFrame {
   }
 
   /**
+   *
+   * @return The root ObjectValues for this stack frame
+   */
+  public Collection<ObjectValue> getRoots() {
+    List<ObjectValue> roots = new ArrayList<ObjectValue>();
+    for (Value value : values) {
+      if (value != null && value instanceof ObjectValue) {
+        roots.add((ObjectValue)value);
+      }
+    }
+    return roots;
+  }
+
+  /**
    * Debug printing support: dump this stack frame and return roots.
+   * @param width Output field width
+   * @param roots Root references
    */
   public void dumpRoots(int width, Stack<ObjectReference> roots) {
     for (int i=0; i < values.length; i++) {
       Value value = values[i];
       String name;
       if (Trace.isEnabled(Item.ROOTS)) {
-        name = i < names.length ? names[i] : "t"+i;
+        name = names != null && i < names.length ? getSlotName(i) : "t"+i;
       } else {
         name = "slot["+i+"]";
       }
       if (value != null && value instanceof ObjectValue) {
         ObjectReference ref = ((ObjectValue)value).getObjectValue();
-        System.err.printf(" %s=%s", name, Mutator.formatObject(width, ref));
+        System.err.printf(" %s=%s", name, ObjectModel.formatObject(width, ref));
         if (!ref.isNull()) roots.push(ref);
       }
     }

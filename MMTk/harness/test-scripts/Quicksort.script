@@ -2,7 +2,7 @@
  * Create a list of random integers, then sort the list using quicksort.
  * It's (java) stack intensive, run with -Xss4m or more.
  */
-main() {
+void main() {
   runTest(1);
   runTest(10);
   runTest(100);
@@ -10,14 +10,14 @@ main() {
   runTest(10000);
 }
 
-runTest(int size) {
+void runTest(int size) {
   print("=== Testing list of size ",size," ===");
   test(size);
   print("=== test ",size," complete, heap should now be empty ===");
   gc();
 }
 
-test(int size) {
+void test(int size) {
   int n = 0;
   object list = null;
   while (n < size) {
@@ -88,7 +88,7 @@ object partition(int pivot,object list) {
  * Perform a partition, putting the low elements into parts.object[0],
  * and the high elements into parts.object[1]
  */
-part2(object parts,int pivot, object list) {
+void part2(object parts,int pivot, object list) {
   while (list != null) {
     int hd = head(list);
     if (hd < pivot) {
@@ -103,7 +103,7 @@ part2(object parts,int pivot, object list) {
 /*
  * Print a list
  */
-printList(object list) {
+void printList(object list) {
   if (list == null) {
     return;
   } else {
@@ -116,7 +116,7 @@ printList(object list) {
  * Sanity check a list - ensure that the elements are in
  * monotonic order, and the list is the right length.
  */
-checkList(object list, int len) {
+void checkList(object list, int len) {
   int count = 0;
   if (list != null) {
     int v1 = head(list);

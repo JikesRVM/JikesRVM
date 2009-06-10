@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -92,6 +92,10 @@ public class JavaHeader implements JavaHeaderConstants {
   public static final int NUM_THIN_LOCK_BITS = ADDRESS_BASED_HASHING ? 22 : 20;
   /** How many bits to shift to get the thin lock? */
   public static final int THIN_LOCK_SHIFT = ADDRESS_BASED_HASHING ? 10 : 12;
+  /** How many bytes do we have to offset to get to the high locking bits */
+  public static final int THIN_LOCK_DEDICATED_U16_OFFSET = VM.LittleEndian ? 2 : (VM.BuildFor64Addr ? 4 : 0);
+  /** How many bits do we have to shift to only hold the high locking bits */
+  public static final int THIN_LOCK_DEDICATED_U16_SHIFT  = 16;
 
   /** The alignment value **/
   public static final int ALIGNMENT_VALUE = JavaHeaderConstants.ALIGNMENT_VALUE;
@@ -100,6 +104,7 @@ public class JavaHeader implements JavaHeaderConstants {
   static {
     if (VM.VerifyAssertions) {
       VM._assert(MiscHeader.REQUESTED_BITS + MemoryManagerConstants.GC_HEADER_BITS <= NUM_AVAILABLE_BITS);
+      VM._assert((THIN_LOCK_SHIFT + NUM_THIN_LOCK_BITS - THIN_LOCK_DEDICATED_U16_SHIFT) == 16);
     }
   }
 
@@ -492,6 +497,7 @@ public class JavaHeader implements JavaHeaderConstants {
    * Get the hash code of an object.
    */
   @Inline
+  @Interruptible
   public static int getObjectHashCode(Object o) {
     if (ADDRESS_BASED_HASHING) {
       if (MemoryManagerConstants.MOVES_OBJECTS) {
@@ -534,6 +540,7 @@ public class JavaHeader implements JavaHeaderConstants {
 
   /** Install a new hashcode (only used if !ADDRESS_BASED_HASHING) */
   @NoInline
+  @Interruptible
   protected static int installHashCode(Object o) {
     Word hashCode;
     do {
@@ -542,12 +549,13 @@ public class JavaHeader implements JavaHeaderConstants {
     } while (hashCode.isZero());
     while (true) {
       Word statusWord = Magic.prepareWord(o, STATUS_OFFSET);
-      if (!(statusWord.and(HASH_CODE_MASK).isZero())) // some other thread installed a hashcode
-      {
+      if (!(statusWord.and(HASH_CODE_MASK).isZero())) {
+        // some other thread installed a hashcode
         return statusWord.and(HASH_CODE_MASK).rshl(HASH_CODE_SHIFT).toInt();
       }
       if (Magic.attemptWord(o, STATUS_OFFSET, statusWord, statusWord.or(hashCode))) {
-        return hashCode.rshl(HASH_CODE_SHIFT).toInt();  // we installed the hash code
+        // we installed the hash code
+        return hashCode.rshl(HASH_CODE_SHIFT).toInt();
       }
     }
   }
@@ -609,6 +617,7 @@ public class JavaHeader implements JavaHeaderConstants {
    * @param create if true, create heavy lock if none found
    * @return the heavy-weight lock on the object (if any)
    */
+  @Unpreemptible("May be interrupted for allocations of locks")
   public static Lock getHeavyLock(Object o, boolean create) {
     return ThinLock.getHeavyLock(o, STATUS_OFFSET, create);
   }
@@ -676,6 +685,7 @@ public class JavaHeader implements JavaHeaderConstants {
    * Freeze the other bits in the byte containing the available bits
    * so that it is safe to update them using setAvailableBits.
    */
+  @Interruptible
   public static void initializeAvailableByte(Object o) {
     if (!ADDRESS_BASED_HASHING) getObjectHashCode(o);
   }

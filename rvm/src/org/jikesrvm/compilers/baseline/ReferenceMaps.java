@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -18,7 +18,7 @@ import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.scheduler.ProcessorLock;
+import org.jikesrvm.scheduler.SpinLock;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -35,21 +35,25 @@ public final class ReferenceMaps implements BaselineConstants {
 
   public static final int STARTINDEX = 0;
   public static final int NOMORE = 0;
-  private static final byte OR = 1;
-  private static final byte NAND = 2;
-  private static final byte COPY = 3;
+  /** Kinds of merge operation when merging delta maps into table maps */
+  private static enum MergeOperation {
+    OR, NAND, COPY
+  }
+
+  /** Serializes JSR processing */
+  public static final SpinLock jsrLock = new SpinLock();   // for serialization of JSR processing
+
+  /** Number of bits in each map element */
   private static final int BITS_PER_MAP_ELEMENT = 8;
-
-  public static final ProcessorLock jsrLock = new ProcessorLock();   // for serialization of JSR processing
-
   private byte[] referenceMaps;
   private int[] MCSites;
-  private final int bitsPerMap;   // number of bits in each map
+  /** Number of bits in each map */
+  private final int bitsPerMap;
+  /** Number of maps */
   private int mapCount;
-  //  final private int startLocal0Offset; // distance from frame pointer to start of the Local area
   private JSRInfo jsrInfo;
 
-  /*
+  /**
    * size of individul maps
    */
   private int bytesPerMap() {
@@ -720,8 +724,8 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * Add an UnusualMap to the array of unusual maps,
-   *   expand the array and referencemap array if necessary
+   * Add an UnusualMap to the array of unusual maps, expand the array
+   * and referencemap array if necessary
    *
    * @param jsrSiteMap   unusualMap to be added to array
    */
@@ -866,8 +870,8 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * Called when all the recording for this map is complete
-   *   Can now sort or perform other cleanups
+   * Called when all the recording for this map is complete. Can now
+   * sort or perform other cleanups
    */
   public void recordingComplete() {
   }
@@ -1192,21 +1196,21 @@ public final class ReferenceMaps implements BaselineConstants {
     }
 
     // merge the reference maps
-    mergeMap(jsrInfo.tempIndex, reftargetindex, COPY);        // save refs made in inner jsr sub(s)
-    mergeMap(reftargetindex, refdeltaindex, OR);      // get refs from outer loop
-    mergeMap(reftargetindex, nreftargetindex, NAND);  // turn off non refs made in inner jsr sub(s)
-    mergeMap(reftargetindex, addrtargetindex, NAND);  // then the return adresses
-    mergeMap(reftargetindex, jsrInfo.tempIndex, OR);           // OR inrefs made in inner jsr sub(s)
+    mergeMap(jsrInfo.tempIndex, reftargetindex, MergeOperation.COPY); // save refs made in inner jsr sub(s)
+    mergeMap(reftargetindex, refdeltaindex, MergeOperation.OR);       // get refs from outer loop
+    mergeMap(reftargetindex, nreftargetindex, MergeOperation.NAND);   // turn off non refs made in inner jsr sub(s)
+    mergeMap(reftargetindex, addrtargetindex, MergeOperation.NAND);   // then the return adresses
+    mergeMap(reftargetindex, jsrInfo.tempIndex, MergeOperation.OR);   // OR inrefs made in inner jsr sub(s)
 
     // merge the non reference maps
-    mergeMap(jsrInfo.tempIndex, nreftargetindex, COPY); // save nonrefs made in inner loop(s)
-    mergeMap(nreftargetindex, nrefdeltaindex, OR);      // get nrefs from outer loop
-    mergeMap(nreftargetindex, reftargetindex, NAND);  // turn off refs made in inner jsr sub(s)
-    mergeMap(nreftargetindex, addrtargetindex, NAND);  // then the return adresses
-    mergeMap(nreftargetindex, jsrInfo.tempIndex, OR);           // OR in non refs made in inner jsr sub(s)
+    mergeMap(jsrInfo.tempIndex, nreftargetindex, MergeOperation.COPY); // save nonrefs made in inner loop(s)
+    mergeMap(nreftargetindex, nrefdeltaindex, MergeOperation.OR);      // get nrefs from outer loop
+    mergeMap(nreftargetindex, reftargetindex, MergeOperation.NAND);    // turn off refs made in inner jsr sub(s)
+    mergeMap(nreftargetindex, addrtargetindex, MergeOperation.NAND);   // then the return adresses
+    mergeMap(nreftargetindex, jsrInfo.tempIndex, MergeOperation.OR);   // OR in non refs made in inner jsr sub(s)
 
     // merge return address maps
-    mergeMap(addrtargetindex, addrdeltaindex, OR);
+    mergeMap(addrtargetindex, addrdeltaindex, MergeOperation.OR);
 
     if (VM.TraceStkMaps) {
       //display final maps
@@ -1235,21 +1239,21 @@ public final class ReferenceMaps implements BaselineConstants {
    * into a target map (similarly represented)
    * and use the operation indicated ( OR or NAND or COPY)
    */
-  private void mergeMap(int targetindex, int deltaindex, byte Op) {
+  private void mergeMap(int targetindex, int deltaindex, MergeOperation Op) {
     int i;
     // Merge the maps
-    if (Op == COPY) {
+    if (Op == MergeOperation.COPY) {
       for (i = 0; i < bytesPerMap(); i++) {
         jsrInfo.unusualReferenceMaps[targetindex + i] = jsrInfo.unusualReferenceMaps[deltaindex + i];
       }
     }
-    if (Op == OR) {
+    if (Op == MergeOperation.OR) {
       for (i = 0; i < bytesPerMap(); i++) {
         jsrInfo.unusualReferenceMaps[targetindex + i] =
             (byte) (jsrInfo.unusualReferenceMaps[targetindex + i] | jsrInfo.unusualReferenceMaps[deltaindex + i]);
       }
     }
-    if (Op == NAND) {
+    if (Op == MergeOperation.NAND) {
       for (i = 0; i < bytesPerMap(); i++) {
         short temp = (byte) (~(jsrInfo.unusualReferenceMaps[deltaindex + i]));
         jsrInfo.unusualReferenceMaps[targetindex + i] = (byte) (jsrInfo.unusualReferenceMaps[targetindex + i] & temp);
@@ -1416,8 +1420,8 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * show the basic information for a single map
-   *    this is for testing use
+   * Show the basic information for a single map. This is for testing
+   * use.
    */
   public void showAMap(int MCSiteIndex) {
     VM.sysWriteln("show the map for MCSite index= ", MCSiteIndex);
@@ -1430,8 +1434,7 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * Show the offsets for all the maps. <br>
-   * This is for test use.
+   * Show the offsets for all the maps. This is for test use.
    */
   public void showOffsets() {
     VM.sysWrite("in showOffset- #maps = ");
@@ -1503,7 +1506,8 @@ public final class ReferenceMaps implements BaselineConstants {
    * or a local variable is a reference.
    */
 
-  /** Query if a local variable has a reference type value
+  /**
+   * Query if a local variable has a reference type value
    * @param method  The method we're asking about.
    * @param mcoff  The machine code offset of the instruction *following* the
    *               actual instruction.

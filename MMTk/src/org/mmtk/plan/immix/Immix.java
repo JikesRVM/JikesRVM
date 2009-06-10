@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -17,8 +17,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.policy.immix.ImmixSpace;
 import org.mmtk.policy.immix.ObjectHeader;
 import org.mmtk.utility.heap.VMRequest;
-import org.mmtk.utility.options.Options;
-import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -65,6 +63,11 @@ public class Immix extends StopTheWorld {
    */
 
   public final Trace immixTrace = new Trace(metaDataSpace);
+  /** will the next collection collect the whole heap? */
+  public boolean nextGCWholeHeap = true;
+  /** will this collection collect the whole heap */
+  public boolean collectWholeHeap = nextGCWholeHeap;
+  protected boolean lastGCWasDefrag = false;
 
   /**
    * Constructor.
@@ -87,8 +90,8 @@ public class Immix extends StopTheWorld {
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
-      boolean userTriggeredGC = collectionTrigger == Collection.EXTERNAL_GC_TRIGGER && Options.fullHeapSystemGC.getValue();
-      immixSpace.setCollectionKind(emergencyCollection, true, collectionAttempt, requiredAtStart, userTriggeredGC);
+      immixSpace.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, collectionTrigger);
+      return;
     }
 
     if (phaseId == PREPARE) {
@@ -105,12 +108,20 @@ public class Immix extends StopTheWorld {
 
     if (phaseId == RELEASE) {
       immixTrace.release();
-      immixSpace.globalRelease();
+      lastGCWasDefrag = immixSpace.release(true);
       super.collectionPhase(phaseId);
       return;
     }
 
     super.collectionPhase(phaseId);
+  }
+
+  /**
+   * @return Whether last GC was an exhaustive attempt to collect the heap.  For many collectors this is the same as asking whether the last GC was a full heap collection.
+   */
+  @Override
+  public boolean lastCollectionWasExhaustive() {
+    return lastGCWasDefrag;
   }
 
   /*****************************************************************************

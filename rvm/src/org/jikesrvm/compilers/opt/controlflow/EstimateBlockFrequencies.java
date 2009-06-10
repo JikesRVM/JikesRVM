@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -96,7 +96,7 @@ public class EstimateBlockFrequencies extends CompilerPhase {
     // Prepare
     ir = _ir;
 
-    if (ir.options.FREQUENCY_STRATEGY == OptOptions.DUMB_FREQ) {
+    if (ir.options.PROFILE_FREQUENCY_STRATEGY == OptOptions.PROFILE_DUMB_FREQ) {
       setDumbFrequencies(ir);
       return;
     }
@@ -164,11 +164,11 @@ public class EstimateBlockFrequencies extends CompilerPhase {
     }
     // sort the frequencies (ascending);
     Arrays.sort(freq);
-    float f = ir.options.INFREQUENT_THRESHOLD;
+    float f = ir.options.PROFILE_INFREQUENT_THRESHOLD;
     float goal = (1f - f) * total;
     total = 0f;
     float threshold = 0f;
-    // add up the frequencies (desceding) until we real the goal.
+    // add up the frequencies (descending) until we real the goal.
     for (i = freq.length - 1; i >= 0 && total < goal; i--) {
       threshold = freq[i];
       total += threshold;

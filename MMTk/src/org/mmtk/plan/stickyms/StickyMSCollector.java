@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -15,7 +15,6 @@ package org.mmtk.plan.stickyms;
 import org.mmtk.plan.*;
 import org.mmtk.plan.marksweep.MSCollector;
 import org.mmtk.plan.marksweep.MSTraceLocal;
-import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.vm.VM;
 
@@ -55,7 +54,6 @@ public class StickyMSCollector extends MSCollector {
     ObjectReferenceDeque modBuffer = new ObjectReferenceDeque("mod buffer", global().modPool);
     fullTrace = new  MSTraceLocal(global().msTrace, modBuffer);
     nurseryTrace = new StickyMSNurseryTraceLocal(global().msTrace, modBuffer);
-    ms = new MarkSweepLocal(StickyMS.msSpace);
   }
 
   /****************************************************************************
@@ -80,7 +78,6 @@ public class StickyMSCollector extends MSCollector {
 
     if (!collectWholeHeap) {
       if (phaseId == StickyMS.PREPARE) {
-        ms.prepare();
         nurseryTrace.prepare();
         return;
       }

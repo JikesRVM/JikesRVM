@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -477,7 +477,7 @@ public abstract class StackManager extends GenericStackManager {
   public final void insertNormalPrologue() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
-    Register PR = phys.getPR();
+    Register TR = phys.getTR();
     Register TSR = phys.getTSR();
     Register R0 = phys.getTemp();
     Register S0 = phys.getGPR(FIRST_SCRATCH_GPR);
@@ -502,15 +502,15 @@ public abstract class StackManager extends GenericStackManager {
     if (yp) {
       Offset offset = Entrypoints.takeYieldpointField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(PR), IC(Bits.PPCMaskLower16(offset)))); // 2
+      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(S1), A(TR), IC(Bits.PPCMaskLower16(offset)))); // 2
     }
 
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP), IC(-frameSize))); // 3
 
     if (stackOverflow) {
-      Offset offset = Entrypoints.activeThreadStackLimitField.getOffset();
+      Offset offset = Entrypoints.stackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0), A(phys.getPR()), IC(Bits.PPCMaskLower16(offset)))); // 4
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S0), A(phys.getTR()), IC(Bits.PPCMaskLower16(offset)))); // 4
     }
 
     // Now add any instructions to save the volatiles and nonvolatiles (5)
@@ -561,7 +561,7 @@ public abstract class StackManager extends GenericStackManager {
 
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
-    Register PR = phys.getPR();
+    Register TR = phys.getTR();
     Register TSR = phys.getTSR();
     Register R0 = phys.getTemp();
     Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
@@ -578,9 +578,9 @@ public abstract class StackManager extends GenericStackManager {
       // of a load) so, free up S1 for use by briefly saving its contents in the
       // return address slot of my caller's frame
       ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
-      Offset offset = Entrypoints.activeThreadStackLimitField.getOffset();
+      Offset offset = Entrypoints.stackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getPR()), IC(Bits.PPCMaskLower16(offset))));
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getTR()), IC(Bits.PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1), IC(frameSize)));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
 
@@ -623,7 +623,7 @@ public abstract class StackManager extends GenericStackManager {
     if (yp) {
       Offset offset = Entrypoints.takeYieldpointField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(PR), IC(Bits.PPCMaskLower16(offset))));
+      ptr.insertBefore(MIR_Load.create(PPC_LInt, I(R0), A(TR), IC(Bits.PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(R0), IC(0)));
     }
   }
@@ -751,7 +751,7 @@ public abstract class StackManager extends GenericStackManager {
       ScratchRegister scratch = i.next();
 
       if (scratch.currentContents == null) continue;
-      if (verboseDebug) {
+      if (VERBOSE_DEBUG) {
         System.out.println("RESTORE: consider " + scratch);
       }
       boolean removed = false;
@@ -760,19 +760,19 @@ public abstract class StackManager extends GenericStackManager {
           (s.isCall() && s.operator != CALL_SAVE_VOLATILE && scratch.scratch.isVolatile())) {
         // s defines the scratch register, so save its contents before they
         // are killed.
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RESTORE : unload because defined " + scratch);
         }
         unloadScratchRegisterBefore(s, scratch);
 
         // update mapping information
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RSRB: End scratch interval " + scratch.scratch + " " + s);
         }
         scratchMap.endScratchInterval(scratch.scratch, s);
         Register scratchContents = scratch.currentContents;
         if (scratchContents != null) {
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("RSRB: End symbolic interval " + scratch.currentContents + " " + s);
           }
           scratchMap.endSymbolicInterval(scratch.currentContents, s);
@@ -787,19 +787,19 @@ public abstract class StackManager extends GenericStackManager {
         // first spill the currents contents of the scratch register to
         // memory
         if (!unloaded) {
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("RESTORE : unload because used " + scratch);
           }
           unloadScratchRegisterBefore(s, scratch);
 
           // update mapping information
-          if (verboseDebug) {
+          if (VERBOSE_DEBUG) {
             System.out.println("RSRB2: End scratch interval " + scratch.scratch + " " + s);
           }
           scratchMap.endScratchInterval(scratch.scratch, s);
           Register scratchContents = scratch.currentContents;
           if (scratchContents != null) {
-            if (verboseDebug) {
+            if (VERBOSE_DEBUG) {
               System.out.println("RSRB2: End symbolic interval " + scratch.currentContents + " " + s);
             }
             scratchMap.endSymbolicInterval(scratch.currentContents, s);
@@ -808,7 +808,7 @@ public abstract class StackManager extends GenericStackManager {
         }
         // s or some future instruction uses the scratch register,
         // so restore the correct contents.
-        if (verboseDebug) {
+        if (VERBOSE_DEBUG) {
           System.out.println("RESTORE : reload because used " + scratch);
         }
         reloadScratchRegisterBefore(s, scratch);

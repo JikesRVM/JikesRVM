@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -21,6 +21,7 @@ import org.mmtk.harness.vm.*;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
+import org.vmmagic.unboxed.ArchitecturalWord;
 
 /**
  * This is the central class for the MMTk test harness.
@@ -29,6 +30,9 @@ public class Harness {
 
   /** Used for processing harness and MMTk options */
   public static final HarnessOptionSet options = new HarnessOptionSet();
+
+  /** Option for the MMTk plan (prefix) to use */
+  public static final Bits bits = new Bits();
 
   /** Option for the number of collector threads */
   public static final Collectors collectors = new Collectors();
@@ -69,6 +73,9 @@ public class Harness {
   /** Print yield policy statistics on exit */
   public static final PolicyStats policyStats = new PolicyStats();
 
+  /** Timeout on unreasonably long GC */
+  public static final Timeout timeout = new Timeout();
+
   private static boolean isInitialized = false;
 
   /**
@@ -88,6 +95,14 @@ public class Harness {
 
     /* Options used for configuring the plan to use */
     final ArrayList<String> newArgs = new ArrayList<String>();
+
+    /* If the 'bits' arg is specified, parse and apply it first */
+    for(String arg: args) {
+      if (arg.startsWith("bits=")) {
+        options.process(arg);
+      }
+    }
+    ArchitecturalWord.init();  // Reads 'bits'
     for(String arg: args) {
       if (!options.process(arg)) newArgs.add(arg);
     }

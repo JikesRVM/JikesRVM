@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -13,9 +13,9 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
+import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.FieldReference;
@@ -24,6 +24,7 @@ import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.osr.bytecodes.InvokeStatic;
 
 /**
  * BytecodeTraverser does depth first search on a bytecode
@@ -53,7 +54,7 @@ import org.jikesrvm.compilers.common.CompiledMethods;
  *      the summary of local types. Thus, after analysis, local
  *      types are same for all PCs.
  */
-public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
+public class BytecodeTraverser implements BytecodeConstants, ClassLoaderConstants, OSRConstants {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
@@ -384,16 +385,16 @@ public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
           int cpoolidx = (bcode == JBC_ldc) ? bytecodes.getConstantIndex() : bytecodes.getWideConstantIndex();
           byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
           switch (tdesc) {
-            case RVMClass.CP_INT:
+            case CP_INT:
               S.push(IntTypeCode);
               break;
-            case RVMClass.CP_FLOAT:
+            case CP_FLOAT:
               S.push(FloatTypeCode);
               break;
-            case RVMClass.CP_STRING:
+            case CP_STRING:
               S.push(ClassTypeCode);
               break;
-            case RVMClass.CP_CLASS:
+            case CP_CLASS:
               S.push(ClassTypeCode);
               break;
             default:
@@ -408,10 +409,10 @@ public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
           byte tdesc = declaringClass.getLiteralDescription(cpoolidx);
           S.push(VoidTypeCode);
           switch (tdesc) {
-            case RVMClass.CP_LONG:
+            case CP_LONG:
               S.push(LongTypeCode);
               break;
-            case RVMClass.CP_DOUBLE:
+            case CP_DOUBLE:
               S.push(DoubleTypeCode);
               break;
             default:
@@ -1324,21 +1325,9 @@ public class BytecodeTraverser implements BytecodeConstants, OSRConstants {
               break;
             case PSEUDO_InvokeStatic: {
               int mid = bytecodes.readIntConst(); // get METHIDX
-              RVMMethod callee = null;
-              switch (mid) {
-                case GETREFAT:
-                  callee = AosEntrypoints.osrGetRefAtMethod;
-                  break;
-                case CLEANREFS:
-                  callee = AosEntrypoints.osrCleanRefsMethod;
-                  break;
-                default:
-                  if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-                  break;
-              }
+              RVMMethod callee = InvokeStatic.targetMethod(mid);
 
               int psize = callee.getParameterWords();
-
               S.pop(psize);
 
               TypeReference rtype = callee.getReturnType();

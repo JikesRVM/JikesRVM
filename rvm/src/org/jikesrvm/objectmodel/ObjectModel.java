@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -432,6 +432,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
   /**
    * Get the hash code of an object.
    */
+  @Interruptible
   public static int getObjectHashCode(Object o) {
     if (HASH_STATS) hashRequests++;
     return JavaHeader.getObjectHashCode(o);
@@ -496,6 +497,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    * @param create if true, create heavy lock if none found
    * @return the heavy-weight lock on the object (if any)
    */
+  @Unpreemptible("May be interrupted for allocations of locks")
   public static Lock getHeavyLock(Object o, boolean create) {
     return JavaHeader.getHeavyLock(o, create);
   }
@@ -546,6 +548,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    * Freeze the other bits in the byte containing the available bits
    * so that it is safe to update them using setAvailableBits.
    */
+  @Interruptible
   public static void initializeAvailableByte(Object o) {
     JavaHeader.initializeAvailableByte(o);
   }
@@ -808,6 +811,24 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
    */
   @Interruptible
   public static Address allocateArray(BootImageInterface bootImage, RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue) {
+    int align = getAlignment(array);
+    return allocateArray(bootImage, array, numElements, needsIdentityHash, identityHashValue, align);
+  }
+
+  /**
+   * Allocate and initialize space in the bootimage (at bootimage writing time)
+   * to be an uninitialized instance of the (array) type specified by array.
+   * NOTE: TIB is set by BootimageWriter2
+   *
+   * @param bootImage the bootimage to put the object in
+   * @param array RVMArray object of array being allocated.
+   * @param numElements number of elements
+   * @param needsIdentityHash needs an identity hash value
+   * @param identityHashValue the value for the identity hash
+   * @return Address of object in bootimage (in bytes)
+   */
+  @Interruptible
+  public static Address allocateArray(BootImageInterface bootImage, RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue, int align) {
     TIB tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     if (needsIdentityHash) {
@@ -819,7 +840,6 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
         throw new Error("Unsupported allocation");
       }
     }
-    int align = getAlignment(array);
     int offset = getOffsetForAlignment(array, needsIdentityHash);
     Address ptr = bootImage.allocateDataStorage(size, align, offset);
     Address ref = JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size, numElements, needsIdentityHash, identityHashValue);

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -39,7 +39,7 @@ public abstract class JNIGCMapIterator extends GCMapIterator implements Baseline
 
   // Java to Native C transition frame...(see JNICompiler)
   //
-  //  0         + saved FP   + <---- FP for Jave to Native C glue frame
+  //  0         + saved FP   + <---- FP for Java to Native C glue frame
   // -4         | methodID   |
   // -8         | saved EDI  |  non-volatile GPR
   // -C         | saved EBX  |  non-volatile GPR

@@ -1,18 +1,18 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 
 import org.mmtk.utility.Log;
 
@@ -41,24 +41,20 @@ public class Selected {
   @Uninterruptible
   public static class Collector extends @_PLAN_@Collector
   {
-    private Processor processor;
-    public Collector(Processor parent) { processor = parent; }
+    private final RVMThread thread;
+    public Collector(RVMThread parent) { thread = parent; }
     @Inline
-    public final Processor getProcessor() { return processor; }
+    public final RVMThread getThread() { return thread; }
     @Inline
-    public static Collector get() { return Processor.getCurrentProcessor().collectorContext; }
+    public static Collector get() { return RVMThread.getCurrentThread().collectorContext; }
   }
 
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
-    protected Mutator() { initMutator(); }
-    private final Log log = new Log(); 
     @Inline
-    public final Log getLog() { return log; }
+    public final RVMThread getThread() { return (RVMThread) this; }
     @Inline
-    public final Processor getProcessor() { return (Processor) this; }
-    @Inline
-    public static Mutator get() { return Processor.getCurrentProcessor(); }
+    public static Mutator get() { return RVMThread.getCurrentThread(); }
   }
 }

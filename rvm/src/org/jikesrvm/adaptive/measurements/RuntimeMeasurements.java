@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -22,8 +22,6 @@ import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.Scheduler;
-import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
@@ -116,50 +114,45 @@ public abstract class RuntimeMeasurements {
    */
   @Uninterruptible
   public static void takeTimerSample(int whereFrom, Address yieldpointServiceMethodFP) {
-    // We use threadswitches as a rough approximation of time.
-    // Every threadswitch is a clock tick.
-    // TODO: kill controller clock in favor of Processor.reportedTimerTicks
+    // We use timer ticks as a rough approximation of time.
+    // TODO: kill controller clock in favor of reportedTimerTicks
+    // PNT: huh?
     Controller.controllerClock++;
 
-    //
-    // "The idle thread is boring, and does not deserve to be sampled"
-    //                           -- AOS Commandment Number 1
-    if (!Scheduler.getCurrentThread().isIdleThread()) {
-      Address ypTakenInFP = Magic.getCallerFramePointer(yieldpointServiceMethodFP); // method that took yieldpoint
+    Address ypTakenInFP = Magic.getCallerFramePointer(yieldpointServiceMethodFP); // method that took yieldpoint
 
-      // Get the cmid for the method in which the yieldpoint was taken.
-      int ypTakenInCMID = Magic.getCompiledMethodID(ypTakenInFP);
+    // Get the cmid for the method in which the yieldpoint was taken.
+    int ypTakenInCMID = Magic.getCompiledMethodID(ypTakenInFP);
 
-      // Get the cmid for that method's caller.
-      Address ypTakenInCallerFP = Magic.getCallerFramePointer(ypTakenInFP);
-      int ypTakenInCallerCMID = Magic.getCompiledMethodID(ypTakenInCallerFP);
+    // Get the cmid for that method's caller.
+    Address ypTakenInCallerFP = Magic.getCallerFramePointer(ypTakenInFP);
+    int ypTakenInCallerCMID = Magic.getCompiledMethodID(ypTakenInCallerFP);
 
-      // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
-      // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
-      //    Caller is out-of-line assembly (no RVMMethod object) or top-of-stack psuedo-frame
-      //    Caller is a native method
-      CompiledMethod ypTakenInCM = CompiledMethods.getCompiledMethod(ypTakenInCMID);
-      if (ypTakenInCallerCMID == StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
-          ypTakenInCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
-        ypTakenInCallerCMID = -1;
+    // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
+    // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
+    //    Caller is out-of-line assembly (no RVMMethod object) or top-of-stack psuedo-frame
+    //    Caller is a native method
+    CompiledMethod ypTakenInCM = CompiledMethods.getCompiledMethod(ypTakenInCMID);
+    if (ypTakenInCallerCMID == StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
+        ypTakenInCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
+      ypTakenInCallerCMID = -1;
+    }
+
+    // Notify all registered listeners
+    for (NullListener aNl : timerNullListeners) {
+      if (aNl.isActive()) {
+        aNl.update(whereFrom);
       }
-
-      // Notify all registered listeners
-      for (NullListener aNl : timerNullListeners) {
-        if (aNl.isActive()) {
-          aNl.update(whereFrom);
-        }
+    }
+    for (MethodListener aMl : timerMethodListeners) {
+      if (aMl.isActive()) {
+        aMl.update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
       }
-      for (MethodListener aMl : timerMethodListeners) {
-        if (aMl.isActive()) {
-          aMl.update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
-        }
-      }
-      if (ypTakenInCallerCMID != -1) {
-        for (ContextListener aCl : timerContextListeners) {
-          if (aCl.isActive()) {
-            aCl.update(ypTakenInFP, whereFrom);
-          }
+    }
+    if (ypTakenInCallerCMID != -1) {
+      for (ContextListener aCl : timerContextListeners) {
+        if (aCl.isActive()) {
+          aCl.update(ypTakenInFP, whereFrom);
         }
       }
     }
@@ -212,34 +205,29 @@ public abstract class RuntimeMeasurements {
    */
   @Uninterruptible
   public static void takeCBSMethodSample(int whereFrom, Address yieldpointServiceMethodFP) {
-    //
-    // "The idle thread is boring, and does not deserve to be sampled"
-    //                           -- AOS Commandment Number 1
-    if (!Scheduler.getCurrentThread().isIdleThread()) {
-      Address ypTakenInFP = Magic.getCallerFramePointer(yieldpointServiceMethodFP); // method that took yieldpoint
+    Address ypTakenInFP = Magic.getCallerFramePointer(yieldpointServiceMethodFP); // method that took yieldpoint
 
-      // Get the cmid for the method in which the yieldpoint was taken.
-      int ypTakenInCMID = Magic.getCompiledMethodID(ypTakenInFP);
+    // Get the cmid for the method in which the yieldpoint was taken.
+    int ypTakenInCMID = Magic.getCompiledMethodID(ypTakenInFP);
 
-      // Get the cmid for that method's caller.
-      Address ypTakenInCallerFP = Magic.getCallerFramePointer(ypTakenInFP);
-      int ypTakenInCallerCMID = Magic.getCompiledMethodID(ypTakenInCallerFP);
+    // Get the cmid for that method's caller.
+    Address ypTakenInCallerFP = Magic.getCallerFramePointer(ypTakenInFP);
+    int ypTakenInCallerCMID = Magic.getCompiledMethodID(ypTakenInCallerFP);
 
-      // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
-      // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
-      //    Caller is out-of-line assembly (no RVMMethod object) or top-of-stack psuedo-frame
-      //    Caller is a native method
-      CompiledMethod ypTakenInCM = CompiledMethods.getCompiledMethod(ypTakenInCMID);
-      if (ypTakenInCallerCMID == StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
-          ypTakenInCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
-        ypTakenInCallerCMID = -1;
-      }
+    // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
+    // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
+    //    Caller is out-of-line assembly (no RVMMethod object) or top-of-stack psuedo-frame
+    //    Caller is a native method
+    CompiledMethod ypTakenInCM = CompiledMethods.getCompiledMethod(ypTakenInCMID);
+    if (ypTakenInCallerCMID == StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
+        ypTakenInCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
+      ypTakenInCallerCMID = -1;
+    }
 
-      // Notify all registered listeners
-      for (MethodListener methodListener : cbsMethodListeners) {
-        if (methodListener.isActive()) {
-          methodListener.update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
-        }
+    // Notify all registered listeners
+    for (MethodListener methodListener : cbsMethodListeners) {
+      if (methodListener.isActive()) {
+        methodListener.update(ypTakenInCMID, ypTakenInCallerCMID, whereFrom);
       }
     }
   }
@@ -249,33 +237,28 @@ public abstract class RuntimeMeasurements {
    */
   @Uninterruptible
   public static void takeCBSCallSample(int whereFrom, Address yieldpointServiceMethodFP) {
-    //
-    // "The idle thread is boring, and does not deserve to be sampled"
-    //                           -- AOS Commandment Number 1
-    if (!Scheduler.getCurrentThread().isIdleThread()) {
-      Address ypTakenInFP = Magic.getCallerFramePointer(yieldpointServiceMethodFP); // method that took yieldpoint
+    Address ypTakenInFP = Magic.getCallerFramePointer(yieldpointServiceMethodFP); // method that took yieldpoint
 
-      // Get the cmid for the method in which the yieldpoint was taken.
-      int ypTakenInCMID = Magic.getCompiledMethodID(ypTakenInFP);
+    // Get the cmid for the method in which the yieldpoint was taken.
+    int ypTakenInCMID = Magic.getCompiledMethodID(ypTakenInFP);
 
-      // Get the cmid for that method's caller.
-      Address ypTakenInCallerFP = Magic.getCallerFramePointer(ypTakenInFP);
-      int ypTakenInCallerCMID = Magic.getCompiledMethodID(ypTakenInCallerFP);
+    // Get the cmid for that method's caller.
+    Address ypTakenInCallerFP = Magic.getCallerFramePointer(ypTakenInFP);
+    int ypTakenInCallerCMID = Magic.getCompiledMethodID(ypTakenInCallerFP);
 
-      // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
-      // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
-      //    Caller is out-of-line assembly (no RVMMethod object) or top-of-stack psuedo-frame
-      //    Caller is a native method
-      CompiledMethod ypTakenInCM = CompiledMethods.getCompiledMethod(ypTakenInCMID);
-      if (ypTakenInCallerCMID == StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
-          ypTakenInCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
-        // drop sample
-      } else {
-        // Notify all registered listeners
-        for (ContextListener listener : cbsContextListeners) {
-          if (listener.isActive()) {
-            listener.update(ypTakenInFP, whereFrom);
-          }
+    // Determine if ypTakenInCallerCMID corresponds to a real Java stackframe.
+    // If one of the following conditions is detected, set ypTakenInCallerCMID to -1
+    //    Caller is out-of-line assembly (no RVMMethod object) or top-of-stack psuedo-frame
+    //    Caller is a native method
+    CompiledMethod ypTakenInCM = CompiledMethods.getCompiledMethod(ypTakenInCMID);
+    if (ypTakenInCallerCMID == StackframeLayoutConstants.INVISIBLE_METHOD_ID ||
+        ypTakenInCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
+      // drop sample
+    } else {
+      // Notify all registered listeners
+      for (ContextListener listener : cbsContextListeners) {
+        if (listener.isActive()) {
+          listener.update(ypTakenInFP, whereFrom);
         }
       }
     }
@@ -309,7 +292,7 @@ public abstract class RuntimeMeasurements {
    */
   public static void decayDecayableObjects() {
     decayEventCounter++;
-    AOSLogging.decayingCounters();
+    AOSLogging.logger.decayingCounters();
 
     for (Decayable obj : decayObjects) {
       obj.decay();
@@ -357,14 +340,7 @@ public abstract class RuntimeMeasurements {
   public static void report() {
     reportReportableObjects();
 
-    AOSLogging.decayStatistics(decayEventCounter);
-
-    for (int i = 0, n = Scheduler.threads.length; i < n; i++) {
-      RVMThread t = Scheduler.threads[i];
-      if (t != null) {
-        AOSLogging.threadExiting(t);
-      }
-    }
+    AOSLogging.logger.decayStatistics(decayEventCounter);
   }
 
   /**
@@ -377,13 +353,6 @@ public abstract class RuntimeMeasurements {
 
     cbsMethodListeners = new MethodListener[0];
     cbsContextListeners = new ContextListener[0];
-  }
-
-  /**
-   * Called from Thread.terminate.
-   */
-  public static void monitorThreadExit() {
-    AOSLogging.threadExiting(Scheduler.getCurrentThread());
   }
 
   /**

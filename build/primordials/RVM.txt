@@ -1,11 +1,11 @@
 #
 #  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-#  This file is licensed to You under the Common Public License (CPL);
+#  This file is licensed to You under the Eclipse Public License (EPL);
 #  You may not use this file except in compliance with the License. You
 #  may obtain a copy of the License at
 #
-#      http://www.opensource.org/licenses/cpl1.0.php
+#      http://www.opensource.org/licenses/eclipse-1.0.php
 #
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
@@ -48,20 +48,21 @@
 
 [Lorg/jikesrvm/runtime/DynamicLibrary;
 
-[Lorg/jikesrvm/scheduler/Processor;
 [Lorg/jikesrvm/scheduler/RVMThread;
+[Lorg/jikesrvm/scheduler/Monitor;
+[Lorg/jikesrvm/scheduler/NoYieldpointsMonitor;
+[[Lorg/jikesrvm/scheduler/RVMThread;
+[Lorg/jikesrvm/scheduler/RVMThread$BlockAdapter;
+[[Lorg/jikesrvm/scheduler/RVMThread$BlockAdapter;
+Lorg/jikesrvm/scheduler/ThinLock;
+Lorg/jikesrvm/scheduler/Lock;
 [Lorg/jikesrvm/scheduler/Lock;
 [[Lorg/jikesrvm/scheduler/Lock;
-[Lorg/jikesrvm/scheduler/greenthreads/GreenProcessor;
-[Lorg/jikesrvm/scheduler/greenthreads/GreenThread;
-[Lorg/jikesrvm/scheduler/greenthreads/GreenLock;
-[Lorg/jikesrvm/scheduler/Scheduler$ThreadModel;
 
 [Lorg/jikesrvm/util/AbstractHashMapRVM$AbstractBucket;
 [Lorg/jikesrvm/util/AbstractHashSetRVM$AbstractBucket;
 
 [Lorg/jikesrvm/mm/mminterface/CollectorThread;
-[Lorg/jikesrvm/mm/mminterface/ConcurrentCollectorThread;
 [Lorg/jikesrvm/mm/mminterface/Selected$Collector;
 [Lorg/jikesrvm/mm/mminterface/Selected$Mutator;
 
@@ -76,7 +77,7 @@
 [Lorg/mmtk/utility/statistics/Timer;
 [Lorg/mmtk/vm/ReferenceProcessor$Semantics;
 
-[Lorg/jikesrvm/scheduler/RVMThread$State;
+[Lorg/jikesrvm/scheduler/RVMThread$Waiting;
 
 [Lorg/vmmagic/pragma/Inline$When;
 Lsun/misc/Unsafe;

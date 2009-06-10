@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -75,7 +75,18 @@ import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
  * objects
  */
 final class ObjectReplacer implements AggregateReplacer {
-  static final boolean DEBUG = false;
+  /**
+   * type of the object
+   */
+  private final RVMClass klass;
+  /**
+   * the IR
+   */
+  private final IR ir;
+  /**
+   * the register holding the object reference
+   */
+  private final Register reg;
 
   /**
    * Return an object representing this transformation for a given
@@ -116,6 +127,8 @@ final class ObjectReplacer implements AggregateReplacer {
   }
 
   private void transform2(Register reg, Instruction defI, RegisterOperand[] scalars, ArrayList<RVMField> fields, Set<Register> visited) {
+    final boolean DEBUG = false;
+
     // now remove the def
     if (DEBUG) {
       System.out.println("Removing " + defI);
@@ -126,19 +139,6 @@ final class ObjectReplacer implements AggregateReplacer {
       scalarReplace(use, scalars, fields, visited);
     }
   }
-
-  /**
-   * type of the object
-   */
-  private final RVMClass klass;
-  /**
-   * the IR
-   */
-  private final IR ir;
-  /**
-   * the register holding the object reference
-   */
-  private final Register reg;
 
   /**
    * Returns a ArrayList<RVMField>, holding the fields of the object
@@ -201,20 +201,12 @@ final class ObjectReplacer implements AggregateReplacer {
       }
       break;
       case MONITORENTER_opcode:
-        if (ir.options.NO_CACHE_FLUSH) {
-          DefUse.removeInstructionAndUpdateDU(inst);
-        } else {
-          inst.insertBefore(Empty.create(READ_CEILING));
-          DefUse.removeInstructionAndUpdateDU(inst);
-        }
+        inst.insertBefore(Empty.create(READ_CEILING));
+        DefUse.removeInstructionAndUpdateDU(inst);
         break;
       case MONITOREXIT_opcode:
-        if (ir.options.NO_CACHE_FLUSH) {
-          DefUse.removeInstructionAndUpdateDU(inst);
-        } else {
-          inst.insertBefore(Empty.create(WRITE_FLOOR));
-          DefUse.removeInstructionAndUpdateDU(inst);
-        }
+        inst.insertBefore(Empty.create(WRITE_FLOOR));
+        DefUse.removeInstructionAndUpdateDU(inst);
         break;
       case CALL_opcode:
       case NULL_CHECK_opcode:

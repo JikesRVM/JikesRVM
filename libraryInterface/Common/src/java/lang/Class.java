@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -272,7 +272,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
   public Type[] getGenericInterfaces()  {
-    if (type.isPrimitiveType()) {
+    if (type.isPrimitiveType() || type.isUnboxedType()) {
       return new Type[0];
     } else if (type.isArrayType()) {
       // arrays implement JavaLangSerializable & JavaLangCloneable
@@ -292,7 +292,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   public Type getGenericSuperclass() {
     if (type.isArrayType()) {
       return Object.class;
-     } else if (type.isPrimitiveType() ||
+     } else if (type.isPrimitiveType() || type.isUnboxedType() ||
                (type.isClassType() && type.asClass().isInterface()) ||
                this == Object.class) {
       return null;
@@ -556,7 +556,18 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   @NoInline
   private void throwNoSuchMethodException(String name, Class<?>... parameterTypes) throws NoSuchMethodException {
-    throw new NoSuchMethodException(name + " " + parameterTypes);
+    String typeString;
+    if (parameterTypes.length == 0) {
+      typeString = "()";
+    } else {
+      typeString = "(";
+      for (int i=0; i < parameterTypes.length-1; i++) {
+        Class<?> c = parameterTypes[i];
+        typeString += c.toString() + ", ";
+      }
+      typeString += parameterTypes[parameterTypes.length-1].toString() + ")";
+    }
+    throw new NoSuchMethodException(name + typeString);
   }
 
   @NoInline
@@ -822,10 +833,9 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   // --- newInstance ---
 
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={0})
-  public T newInstance() throws IllegalAccessException,
-                                     InstantiationException,
-                                     ExceptionInInitializerError,
-                                     SecurityException {
+  public T newInstance() throws IllegalAccessException, InstantiationException,
+    ExceptionInInitializerError, SecurityException {
+
     // Basic checks
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType())
@@ -867,7 +877,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   @Pure
   private RVMMethod getMethodInternal1(Atom aName, Class<?>... parameterTypes) {
     RVMMethod answer = null;
-    for (RVMClass current = type.asClass(); current != null; current = current.getSuperClass()) {
+    for (RVMClass current = type.asClass(); current != null && answer == null; current = current.getSuperClass()) {
       RVMMethod[] methods = current.getDeclaredMethods();
       for (RVMMethod meth : methods) {
         if (meth.getName() == aName && meth.isPublic() &&

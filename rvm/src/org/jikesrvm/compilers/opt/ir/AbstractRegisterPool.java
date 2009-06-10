@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -22,6 +22,19 @@ public abstract class AbstractRegisterPool {
 
   /* inlined behavior of DoublyLinkedList */
   private Register start, end;
+
+  /**
+   * When 2 registers are necessary to encode a result, such as with a long on
+   * 32bit architectures, this hash map remembers the pairing of registers. It's
+   * key is the 1st register and the value is the 2nd register.
+   */
+  private final HashMap<Register, Register> _regPairs = new HashMap<Register, Register>();
+
+  /**
+   * All registers are assigned unique numbers; currentNum is the counter
+   * containing the next available register number.
+   */
+  protected int currentNum;
 
   /**
    * Return the first symbolic register in this pool.
@@ -57,12 +70,6 @@ public abstract class AbstractRegisterPool {
     }
   }
   /* end of inlined behavior */
-
-  /**
-   * All registers are assigned unique numbers; currentNum is the counter
-   * containing the next available register number.
-   */
-  protected int currentNum;
 
   private Register makeNewReg() {
     Register reg = new Register(currentNum);
@@ -229,8 +236,6 @@ public abstract class AbstractRegisterPool {
       return getInteger();
     }
   }
-
-  private final HashMap<Register, Register> _regPairs = new HashMap<Register, Register>();
 
   /**
    * MIR: Get the other half of the register pair that is

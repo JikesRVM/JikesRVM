@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -42,22 +42,10 @@ public class NoGCMutator extends MutatorContext {
   /************************************************************************
    * Instance fields
    */
-  private final ImmortalLocal def; // the default allocator
+  private final ImmortalLocal nogc = new ImmortalLocal(NoGC.noGCSpace);
 
-  /************************************************************************
-   *
-   * Initialization
-   */
-
-  /**
-   * Constructor. One instance is created per physical processor.
-   */
-  public NoGCMutator() {
-    def = new ImmortalLocal(NoGC.defSpace);
-  }
 
   /****************************************************************************
-   *
    * Mutator-time allocation
    */
 
@@ -72,9 +60,10 @@ public class NoGCMutator extends MutatorContext {
    * @return The address of the newly allocated memory.
    */
   @Inline
+  @Override
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == NoGC.ALLOC_DEFAULT) {
-      return def.alloc(bytes, align, offset);
+      return nogc.alloc(bytes, align, offset);
     }
     return super.alloc(bytes, align, offset, allocator, site);
   }
@@ -89,29 +78,12 @@ public class NoGCMutator extends MutatorContext {
    * @param allocator The allocator number to be used for this allocation
    */
   @Inline
+  @Override
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
     if (allocator != NoGC.ALLOC_DEFAULT) {
       super.postAlloc(ref, typeRef, bytes, allocator);
     }
-  }
-
-  /**
-   * Return the space into which an allocator is allocating.  This
-   * particular method will match against those spaces defined at this
-   * level of the class hierarchy.  Subclasses must deal with spaces
-   * they define and refer to superclasses appropriately.
-   *
-   * @param a An allocator
-   * @return The space into which <code>a</code> is allocating, or
-   *         <code>null</code> if there is no space associated with
-   *         <code>a</code>.
-   */
-  public Space getSpaceFromAllocator(Allocator a) {
-    if (a == def) return NoGC.defSpace;
-
-    // a does not belong to this plan instance
-    return super.getSpaceFromAllocator(a);
   }
 
   /**
@@ -123,13 +95,14 @@ public class NoGCMutator extends MutatorContext {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
-    if (space == NoGC.defSpace) return def;
+    if (space == NoGC.noGCSpace) return nogc;
     return super.getAllocatorFromSpace(space);
   }
 
+
   /****************************************************************************
-   *
    * Collection
    */
 
@@ -139,6 +112,8 @@ public class NoGCMutator extends MutatorContext {
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
+  @Inline
+  @Override
   public final void collectionPhase(short phaseId, boolean primary) {
     VM.assertions.fail("GC Triggered in NoGC Plan.");
     /*
@@ -147,8 +122,7 @@ public class NoGCMutator extends MutatorContext {
 
      if (phaseId == NoGC.RELEASE) {
      }
-     super.collectionPhase(phaseId, participating, primary);
+     super.collectionPhase(phaseId, primary);
      */
   }
-
 }

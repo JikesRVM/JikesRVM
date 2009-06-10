@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -28,12 +28,11 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public final class MSTraceLocal extends TraceLocal {
   /****************************************************************************
-   *
    * Instance fields
    */
   private final ObjectReferenceDeque modBuffer;
 
- /**
+  /**
    * Constructor
    */
   public MSTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
@@ -41,8 +40,8 @@ public final class MSTraceLocal extends TraceLocal {
     this.modBuffer = modBuffer;
   }
 
+
   /****************************************************************************
-   *
    * Externally visible Object processing and tracing
    */
 
@@ -50,8 +49,9 @@ public final class MSTraceLocal extends TraceLocal {
    * Is the specified object live?
    *
    * @param object The object.
-   * @return True if the object is live.
+   * @return <code>true</code> if the object is live.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(MS.MARK_SWEEP, object)) {
@@ -75,6 +75,7 @@ public final class MSTraceLocal extends TraceLocal {
    * @return The new reference to the same object instance.
    */
   @Inline
+  @Override
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
     if (Space.isInSpace(MS.MARK_SWEEP, object))

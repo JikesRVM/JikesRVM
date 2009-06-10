@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -15,7 +15,9 @@ package org.mmtk.policy;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
+import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
 
@@ -61,6 +63,10 @@ import org.vmmagic.pragma.*;
    * Instance variables
    */
   private boolean fromSpace = true;
+
+  public boolean isFromSpace() {
+    return fromSpace;
+  }
 
   /****************************************************************************
    *
@@ -110,6 +116,7 @@ import org.vmmagic.pragma.*;
   public void release() {
     ((MonotonePageResource) pr).reset();
     lastDiscontiguousRegion = Address.zero();
+    fromSpace = false;
   }
 
   /**
@@ -183,11 +190,17 @@ import org.vmmagic.pragma.*;
       return forwardingPtr.and(GC_FORWARDING_MASK.not()).toAddress().toObjectReference();
     } else {
       /* We are the designated copier, so forward it and enqueue it */
-
       ObjectReference newObject = VM.objectModel.copy(object, allocator);
       setForwardingPointer(object, newObject);
       trace.processNode(newObject); // Scan it later
 
+      if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+        Log.write("C["); Log.write(object); Log.write("/");
+        Log.write(getName()); Log.write("] -> ");
+        Log.write(newObject); Log.write("/");
+        Log.write(Space.getSpaceForObject(newObject).getName());
+        Log.writeln("]");
+      }
       return newObject;
     }
   }

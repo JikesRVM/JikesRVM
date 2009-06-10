@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -40,7 +40,7 @@ class NativeThreadsWorker extends Thread {
            if ((name == "ping") ||(name == "ping2")) {
              //  call a native function
              say(name, "calling nativeFoo");
-             retval = tNativeThreads.nativeFoo(Processor.getCurrentProcessor().id);
+             retval = tNativeThreads.nativeFoo(RVMThread.getCurrentThread().getIndex());
              //      retval = tNativeThreads.nativeFoo(tid);
              ////             System.out.println(1.0f);
              say(name, "return from nativeFoo");
@@ -74,7 +74,7 @@ class NativeThreadsWorker extends Thread {
              // someone calls gc
              say(name, "about to call gc");
              //      say(name, "first dump VM");
-             //      Scheduler.dumpVirtualMachine();
+             //      RVMThread.dumpVirtualMachine();
              //      say(name, "skipping gc");
                      System.gc();
              say(name, "gc completed");
@@ -82,16 +82,14 @@ class NativeThreadsWorker extends Thread {
          }
        //test complete
        ///     say(name, "dump before -bye");
-       ///       Scheduler.dumpVirtualMachine();
+       ///       RVMThread.dumpVirtualMachine();
        say(name, "complete -bye");
        isFinished = true;
      }
 
 
    static synchronized void say(String who, String what) {
-      int pid = Processor.getCurrentProcessorId();
-      //      System.out.println("pid- " + pid + " " + who + ": " + what);
-      Scheduler.trace(who,what);
+      RVMThread.trace(who,what);
       }
    }
 

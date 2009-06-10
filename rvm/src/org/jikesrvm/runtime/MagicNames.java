@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -33,11 +33,11 @@ public class MagicNames {
   public static final Atom getFramePointer = Atom.findOrCreateAsciiAtom("getFramePointer");
   public static final Atom getTocPointer = Atom.findOrCreateAsciiAtom("getTocPointer");
   public static final Atom getJTOC = Atom.findOrCreateAsciiAtom("getJTOC");
-  public static final Atom getProcessorRegister = Atom.findOrCreateAsciiAtom("getProcessorRegister");
-  public static final Atom setProcessorRegister = Atom.findOrCreateAsciiAtom("setProcessorRegister");
+  public static final Atom getThreadRegister = Atom.findOrCreateAsciiAtom("getThreadRegister");
+  public static final Atom setThreadRegister = Atom.findOrCreateAsciiAtom("setThreadRegister");
   /* IA-specific */
-  public static final Atom getESIAsProcessor = Atom.findOrCreateAsciiAtom("getESIAsProcessor");
-  public static final Atom setESIAsProcessor = Atom.findOrCreateAsciiAtom("setESIAsProcessor");
+  public static final Atom getESIAsThread = Atom.findOrCreateAsciiAtom("getESIAsThread");
+  public static final Atom setESIAsThread = Atom.findOrCreateAsciiAtom("setESIAsThread");
 
   public static final Atom getTimeBase = Atom.findOrCreateAsciiAtom("getTimeBase");
 
@@ -120,8 +120,6 @@ public class MagicNames {
   public static final Atom codeArrayAsObject = Atom.findOrCreateAsciiAtom("codeArrayAsObject");
   public static final Atom tibAsObject = Atom.findOrCreateAsciiAtom("tibAsObject");
 
-  public static final Atom objectAsProcessor = Atom.findOrCreateAsciiAtom("objectAsProcessor");
-  public static final Atom processorAsGreenProcessor = Atom.findOrCreateAsciiAtom("processorAsGreenProcessor");
   public static final Atom objectAsThread = Atom.findOrCreateAsciiAtom("objectAsThread");
   public static final Atom threadAsCollectorThread = Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
   public static final Atom floatAsIntBits = Atom.findOrCreateAsciiAtom("floatAsIntBits");

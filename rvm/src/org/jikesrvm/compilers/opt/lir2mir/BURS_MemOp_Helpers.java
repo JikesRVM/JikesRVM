@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -34,10 +34,11 @@ import org.vmmagic.unboxed.Offset;
  */
 public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
   // word size for memory operands
-  protected static final byte B = 0x01;  // byte (8 bits)
-  protected static final byte W = 0x02;  // word (16 bits)
+  protected static final byte B  = 0x01;  // byte (8 bits)
+  protected static final byte W  = 0x02;  // word (16 bits)
   protected static final byte DW = 0x04;  // doubleword (32 bits)
   protected static final byte QW = 0x08;  // quadword (64 bits)
+  protected static final byte PARAGRAPH = 0x10; // paragraph (128 bits)
 
   protected static final byte B_S = 0x00;  // byte (8*2^0 bits)
   protected static final byte W_S = 0x01;  // word (8*2^116 bits)

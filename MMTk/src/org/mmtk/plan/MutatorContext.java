@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -83,11 +83,22 @@ public abstract class MutatorContext implements Constants {
    * Initialization
    */
 
+
   /**
-   * Called before the MutatorContext is used, but after the context has been
-   * fully registered and is visible to collection.
+   * Notify that the mutator context is registered and ready to execute. From
+   * this point it will be included in iterations over mutators.
+   *
+   * @param id The id of this mutator context.
    */
-  public void initMutator() {
+  public void initMutator(int id) {
+    this.id = id;
+  }
+
+  /**
+   * The mutator is about to be cleaned up, make sure all local data is returned.
+   */
+  public void deinitMutator() {
+    flush();
   }
 
   /****************************************************************************
@@ -95,25 +106,25 @@ public abstract class MutatorContext implements Constants {
    */
 
   /** Unique mutator identifier */
-  protected int id = VM.activePlan.registerMutator(this);
+  private int id;
 
   /** Used for printing log information in a thread safe manner */
   protected final Log log = new Log();
 
   /** Per-mutator allocator into the immortal space */
-  protected BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
+  protected final BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
 
   /** Per-mutator allocator into the large object space */
-  protected LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
+  protected final LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
 
   /** Per-mutator allocator into the small code space */
-  private MarkSweepLocal smcode = Plan.USE_CODE_SPACE ? new MarkSweepLocal(Plan.smallCodeSpace) : null;
+  private final MarkSweepLocal smcode = Plan.USE_CODE_SPACE ? new MarkSweepLocal(Plan.smallCodeSpace) : null;
 
   /** Per-mutator allocator into the large code space */
-  private LargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new LargeObjectLocal(Plan.largeCodeSpace) : null;
+  private final LargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new LargeObjectLocal(Plan.largeCodeSpace) : null;
 
   /** Per-mutator allocator into the non moving space */
-  private MarkSweepLocal nonmove = new MarkSweepLocal(Plan.nonMovingSpace);
+  private final MarkSweepLocal nonmove = new MarkSweepLocal(Plan.nonMovingSpace);
 
 
   /****************************************************************************
@@ -145,25 +156,25 @@ public abstract class MutatorContext implements Constants {
    * @param bytes The number of bytes to be allocated
    * @param align The requested alignment.
    * @param allocator The allocator statically assigned to this allocation
-   * @return The allocator dyncamically assigned to this allocation
+   * @return The allocator dynamically assigned to this allocation
    */
   @Inline
   public int checkAllocator(int bytes, int align, int allocator) {
-    boolean large = Allocator.getMaximumAlignedSize(bytes, align) > Plan.LOS_SIZE_THRESHOLD;
+    int maxBytes = Allocator.getMaximumAlignedSize(bytes, align);
     if (allocator == Plan.ALLOC_DEFAULT) {
-      return (Plan.REQUIRES_LOS && large) ? Plan.ALLOC_LOS : allocator;
+      return (maxBytes > Plan.MAX_NON_LOS_DEFAULT_ALLOC_BYTES) ? Plan.ALLOC_LOS : allocator;
     }
 
     if (Plan.USE_CODE_SPACE && allocator == Plan.ALLOC_CODE) {
-      return large ? Plan.ALLOC_LARGE_CODE : allocator;
+      return (maxBytes > Plan.MAX_NON_LOS_NONMOVING_ALLOC_BYTES) ? Plan.ALLOC_LARGE_CODE : allocator;
     }
 
     if (allocator == Plan.ALLOC_NON_REFERENCE) {
-      return (Plan.REQUIRES_LOS && large) ? Plan.ALLOC_LOS : Plan.ALLOC_DEFAULT;
+      return (maxBytes > Plan.MAX_NON_LOS_DEFAULT_ALLOC_BYTES) ? Plan.ALLOC_LOS : Plan.ALLOC_DEFAULT;
     }
 
     if (allocator == Plan.ALLOC_NON_MOVING) {
-      return large ? Plan.ALLOC_LOS : allocator;
+      return (maxBytes > Plan.MAX_NON_LOS_NONMOVING_ALLOC_BYTES) ? Plan.ALLOC_LOS : allocator;
     }
 
     return allocator;
@@ -218,66 +229,8 @@ public abstract class MutatorContext implements Constants {
 
   /****************************************************************************
    *
-   * Space - Allocator mapping. See description for getOwnAllocator that
-   * describes why this is important.
+   * Space - Allocator mapping.
    */
-
-  /**
-   * Given an allocator, <code>a</code>, determine the space into
-   * which <code>a</code> is allocating and then return an allocator
-   * (possibly <code>a</code>) associated with <i>this plan
-   * instance</i> which is allocating into the same space as
-   * <code>a</code>.<p>
-   *
-   * The need for the method is subtle.  The problem arises because
-   * application threads may change their affinity with
-   * processors/posix threads, and this may happen during a GC (at the
-   * point at which the scheduler performs thread switching associated
-   * with the GC). At the end of a GC, the thread that triggered the
-   * GC may now be bound to a different processor and thus the
-   * allocator instance on its stack may be no longer be valid
-   * (i.e. it may pertain to a different plan instance).<p>
-   *
-   * This method allows the correct allocator instance to be
-   * established and associated with the thread (see {@link
-   * org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int) Allocator.allocSlow()}).
-   *
-   * @see org.mmtk.utility.alloc.Allocator
-   * @see org.mmtk.utility.alloc.Allocator#allocSlow(int, int, int)
-   *
-   * @param a An allocator instance.
-   * @return An allocator instance associated with <i>this plan
-   * instance</i> that allocates into the same space as <code>a</code>
-   * (this may in fact be <code>a</code>).
-   */
-  public final Allocator getOwnAllocator(Allocator a) {
-    Space space = Plan.getSpaceFromAllocatorAnyLocal(a);
-    if (space == null)
-      VM.assertions.fail("MutatorContext.getOwnAllocator could not obtain space");
-    return getAllocatorFromSpace(space);
-  }
-
-  /**
-   * Return the space into which an allocator is allocating.  This
-   * particular method will match against those spaces defined at this
-   * level of the class hierarchy.  Subclasses must deal with spaces
-   * they define and refer to superclasses appropriately.
-   *
-   * @param a An allocator
-   * @return The space into which <code>a</code> is allocating, or
-   *         <code>null</code> if there is no space associated with
-   *         <code>a</code>.
-   */
-  public Space getSpaceFromAllocator(Allocator a) {
-    if (a == immortal) return Plan.immortalSpace;
-    if (a == los)      return Plan.loSpace;
-    if (a == nonmove)  return Plan.nonMovingSpace;
-    if (Plan.USE_CODE_SPACE && a == smcode)   return Plan.smallCodeSpace;
-    if (Plan.USE_CODE_SPACE && a == lgcode)   return Plan.largeCodeSpace;
-
-    // a does not belong to this plan instance
-    return null;
-  }
 
   /**
    * Return the allocator instance associated with a space
@@ -325,7 +278,7 @@ public abstract class MutatorContext implements Constants {
    * @param tgt The target of the new reference
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
+   * @param mode The context in which the store occurred
    */
   public void writeBarrier(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
@@ -349,7 +302,7 @@ public abstract class MutatorContext implements Constants {
    * @param tgt The target of the new reference
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
+   * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
   public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
@@ -424,10 +377,13 @@ public abstract class MutatorContext implements Constants {
   }
 
   /**
-   * Flush mutator context, in response to a requestMutatorFlush
+   * Flush mutator context, in response to a requestMutatorFlush.
+   * Also called by the default implementation of deinitMutator.
    */
   public void flush() {
     flushRememberedSets();
+    smcode.flush();
+    nonmove.flush();
   }
 
   /**
@@ -455,7 +411,13 @@ public abstract class MutatorContext implements Constants {
    * Miscellaneous
    */
 
+  /** @return the <code>Log</code> instance for this PlanLocal */
+  public final Log getLog() {
+    return log;
+  }
+
   /** @return the unique identifier for this mutator context. */
   @Inline
   public int getId() { return id; }
+
 }

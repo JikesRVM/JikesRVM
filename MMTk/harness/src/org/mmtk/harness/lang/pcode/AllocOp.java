@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -13,11 +13,13 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.Harness;
+import org.mmtk.harness.Mutator.OutOfMemory;
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.lang.runtime.StackFrame;
+import org.mmtk.harness.vm.ObjectModel;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
@@ -53,7 +55,15 @@ public final class AllocOp extends TernaryOp {
   @Override
   public void exec(Env env) {
     StackFrame frame = env.top();
-    ObjectReference object = env.alloc(getRefCount(frame), getDataCount(frame), getDoubleAlign(frame),site);
+    ObjectReference object;
+    try {
+      object = env.alloc(getRefCount(frame), getDataCount(frame), getDoubleAlign(frame),site);
+    } catch (OutOfMemory e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RuntimeException("Error allocating object id:"+ObjectModel.lastObjectId()+" refs:"+getRefCount(frame)+
+          " ints: "+getDataCount(frame)+" align:"+getDoubleAlign(frame)+" site:"+site,e);
+    }
     setResult(frame,new ObjectValue(object));
     if (Harness.gcEveryAlloc()) {
       env.gc();

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -53,7 +53,7 @@ public class EscapeTransformations extends CompilerPhase {
     OptimizationPlanCompositeElement.compose("Clean up escape transformations",
                                              new Object[]{new LocalCopyProp(),
                                                           new LocalConstantProp(),
-                                                          new Simple(0, true, false, false)});
+                                                          new Simple(0, true, false, false, false)});
 
   /**
    * Return this instance of this phase. This phase contains no
@@ -66,7 +66,7 @@ public class EscapeTransformations extends CompilerPhase {
   }
 
   public final boolean shouldPerform(OptOptions options) {
-    return options.MONITOR_REMOVAL || options.SCALAR_REPLACE_AGGREGATES;
+    return options.ESCAPE_MONITOR_REMOVAL || options.ESCAPE_SCALAR_REPLACE_AGGREGATES;
   }
 
   public final String getName() {
@@ -109,7 +109,7 @@ public class EscapeTransformations extends CompilerPhase {
         // of aggregates
         // *********************************************************
         Instruction def = reg.defList.instruction;
-        if (ir.options.SCALAR_REPLACE_AGGREGATES && summary.isMethodLocal(reg)) {
+        if (ir.options.ESCAPE_SCALAR_REPLACE_AGGREGATES && summary.isMethodLocal(reg)) {
           AggregateReplacer s = null;
           if ((def.getOpcode() == NEW_opcode) || (def.getOpcode() == NEWARRAY_opcode)) {
             s = getAggregateReplacer(def, ir);
@@ -123,7 +123,7 @@ public class EscapeTransformations extends CompilerPhase {
         // *********************************************************
         // Now remove synchronizations
         // *********************************************************
-        if (ir.options.MONITOR_REMOVAL && summary.isThreadLocal(reg)) {
+        if (ir.options.ESCAPE_MONITOR_REMOVAL && summary.isThreadLocal(reg)) {
           UnsyncReplacer unsync = null;
           if ((def.getOpcode() == NEW_opcode) || (def.getOpcode() == NEWARRAY_opcode)) {
             unsync = getUnsyncReplacer(reg, def, ir);
@@ -222,16 +222,13 @@ public class EscapeTransformations extends CompilerPhase {
     }
 
     // first attempt to perform scalar replacement for an object
-    if (t.isClassType() && options.SCALAR_REPLACE_AGGREGATES) {
+    if (t.isClassType() && options.ESCAPE_SCALAR_REPLACE_AGGREGATES) {
       return ObjectReplacer.getReplacer(inst, ir);
     }
     // attempt to perform scalar replacement on a short array
-    if (t.isArrayType() && options.SCALAR_REPLACE_AGGREGATES) {
+    if (t.isArrayType() && options.ESCAPE_SCALAR_REPLACE_AGGREGATES) {
       return ShortArrayReplacer.getReplacer(inst, ir);
     }
     return null;
   }
 }
-
-
-

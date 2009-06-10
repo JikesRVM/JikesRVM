@@ -24,7 +24,6 @@ import java.util.Map;
 import org.apache.harmony.lang.RuntimePermissionCollection;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.scheduler.Scheduler;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
@@ -259,7 +258,7 @@ public class Thread implements Runnable {
       }
     }
     if (vmt == null) {
-      vmThread = new org.jikesrvm.scheduler.greenthreads.GreenThread(this, stacksize,  threadName, false, NORM_PRIORITY);
+      vmThread = new org.jikesrvm.scheduler.RVMThread(this, stacksize,  threadName, false, NORM_PRIORITY);
     } else {
       vmThread = vmt;
     }
@@ -326,7 +325,7 @@ public class Thread implements Runnable {
    * @return Number of Threads
    */
   public static int activeCount() {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -341,7 +340,7 @@ public class Thread implements Runnable {
    * @see java.lang.SecurityManager
    */
   public final void checkAccess() {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -366,7 +365,7 @@ public class Thread implements Runnable {
    *         <code>currentThread()</code>
    */
   public static Thread currentThread() {
-    return Scheduler.getCurrentThread().getJavaLangThread();
+    return RVMThread.getCurrentThread().getJavaLangThread();
   }
 
   /**
@@ -376,7 +375,7 @@ public class Thread implements Runnable {
    */
   @Deprecated
   public void destroy() {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -385,7 +384,7 @@ public class Thread implements Runnable {
    * 
    */
   public static void dumpStack() {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -403,7 +402,7 @@ public class Thread implements Runnable {
    * @see java.lang.SecurityManager
    */
   public static int enumerate(Thread[] threads) {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -424,7 +423,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public static Map<Thread, StackTraceElement[]> getAllStackTraces() {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -476,7 +475,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public static UncaughtExceptionHandler getDefaultUncaughtExceptionHandler() {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -492,7 +491,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public long getId() {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -531,7 +530,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public StackTraceElement[] getStackTrace() {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -651,7 +650,7 @@ public class Thread implements Runnable {
    * @see Thread#isInterrupted
    */
   public static boolean interrupted() {
-    RVMThread current = Scheduler.getCurrentThread();
+    RVMThread current = RVMThread.getCurrentThread();
     if (current.isInterrupted()) {
       current.clearInterrupted();
       return true;
@@ -816,7 +815,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler handler) {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -860,7 +859,7 @@ public class Thread implements Runnable {
    * @since 1.5
    */
   public void setUncaughtExceptionHandler(UncaughtExceptionHandler handler) {
-    Scheduler.dumpStack();
+    RVMThread.dumpStack();
     throw new Error("TODO");
   }
 
@@ -917,7 +916,7 @@ public class Thread implements Runnable {
    */
   @Deprecated
   public final void stop() {
-    vmThread.kill(new ThreadDeath(), true);
+    vmThread.stop(new ThreadDeath());
   }
 
   /**
@@ -935,7 +934,7 @@ public class Thread implements Runnable {
    */
   @Deprecated
   public final void stop(Throwable throwable) {
-    vmThread.kill(throwable, true);
+    vmThread.stop(throwable);
   }
 
   /**
@@ -973,7 +972,7 @@ public class Thread implements Runnable {
    * 
    */
   public static void yield() {
-    Scheduler.yield();
+    RVMThread.yield();
   }
 
   /**
@@ -985,7 +984,7 @@ public class Thread implements Runnable {
    *         object
    */
   public static boolean holdsLock(Object object) {
-    return Scheduler.getCurrentThread().holdsLock(object);
+    return RVMThread.getCurrentThread().holdsLock(object);
   }
 
   /**

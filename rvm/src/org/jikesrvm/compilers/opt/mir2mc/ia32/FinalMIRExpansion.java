@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -188,7 +188,7 @@ public class FinalMIRExpansion extends IRTools {
               // we can't get it back here.
             }
             MemoryOperand mo =
-                MemoryOperand.BD(ir.regpool.makePROp(),
+                MemoryOperand.BD(ir.regpool.makeTROp(),
                                      ArchEntrypoints.arrayIndexTrapParamField.getOffset(),
                                      (byte) 4,
                                      null,
@@ -273,7 +273,7 @@ public class FinalMIRExpansion extends IRTools {
               MIR_Unary.getVal(next).similar(MIR_Unary.getResult(next)) &&
               MIR_Unary.getVal(next).similar(MIR_Set.getResult(p))) {
             // Find instruction in this basic block that defines flags
-            Instruction x = p.getPrev();
+            Instruction x = p.prevInstructionInCodeOrder();
             Operand result = MIR_Unary.getResult(next);
             boolean foundCmp = false;
             outer:
@@ -293,7 +293,7 @@ public class FinalMIRExpansion extends IRTools {
                 foundCmp = true;
                 break outer;
               }
-              x = x.getPrev();
+              x = x.prevInstructionInCodeOrder();
             }
             if (foundCmp) {
               // We found the <cmp>, mutate the movzx__b into an xor and insert it before the <cmp>
@@ -536,7 +536,7 @@ public class FinalMIRExpansion extends IRTools {
     // Check to see if threadSwitch requested
     Offset tsr = Entrypoints.takeYieldpointField.getOffset();
     MemoryOperand M =
-        MemoryOperand.BD(ir.regpool.makePROp(), tsr, (byte) 4, null, null);
+        MemoryOperand.BD(ir.regpool.makeTROp(), tsr, (byte) 4, null, null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, IC(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC,
                                                       ypCond,

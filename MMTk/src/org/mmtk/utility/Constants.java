@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -19,10 +19,12 @@ import org.mmtk.vm.VM;
  * MMTk follows the pattern set by Jikes RVM for defining sizes of
  * primitive types thus:
  *
- *  static final int LOG_BYTES_IN_INT = 2;
- *  static final int BYTES_IN_INT = 1<<LOG_BYTES_IN_INT;
+ * <pre>
+ * static final int LOG_BYTES_IN_INT = 2;
+ * static final int BYTES_IN_INT = 1<<LOG_BYTES_IN_INT;
  * static final int LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
  * static final int BITS_IN_INT = 1<<LOG_BITS_IN_INT;
+ * </pre>
  */
 public interface Constants {
 
@@ -72,7 +74,7 @@ public interface Constants {
    *
    * Java-specific sizes currently required by MMTk
    *
-   * TODO MMTk should really become independant of these Java types
+   * TODO MMTk should really become independent of these Java types
    */
   byte LOG_BYTES_IN_SHORT = 1;
   int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;

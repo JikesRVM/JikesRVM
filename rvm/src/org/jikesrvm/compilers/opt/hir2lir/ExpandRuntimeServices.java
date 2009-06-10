@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -87,6 +87,12 @@ import org.jikesrvm.runtime.Entrypoints;
  * are always inline expanded.
  */
 public final class ExpandRuntimeServices extends CompilerPhase {
+  /** Cache of simple optimizations if used to tidy up */
+  private Simple _os;
+  /** Cache of branch optimizations if used to tidy up */
+  private BranchOptimizations branchOpts;
+  /** Did we expand something? */
+  private boolean didSomething = false;
 
   /**
    * Constructor for this compiler phase
@@ -163,7 +169,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                        offset,
                        site);
           next = inst.prevInstructionInCodeOrder();
-          if (ir.options.INLINE_NEW) {
+          if (ir.options.H2L_INLINE_NEW) {
             if (inst.getBasicBlock().getInfrequent()) container.counter1++;
             container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
@@ -221,7 +227,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                        offset,
                        site);
           next = inst.prevInstructionInCodeOrder();
-          if (inline && ir.options.INLINE_NEW) {
+          if (inline && ir.options.H2L_INLINE_NEW) {
             if (inst.getBasicBlock().getInfrequent()) container.counter1++;
             container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
@@ -302,71 +308,65 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case MONITORENTER_opcode: {
-          if (ir.options.NO_SYNCHRO) {
-            inst.remove();
-          } else {
-            Operand ref = MonitorOp.getClearRef(inst);
-            RVMType refType = ref.getType().peekType();
-            if (refType != null && !refType.getThinLockOffset().isMax()) {
-              RVMMethod target = Entrypoints.inlineLockMethod;
-              Call.mutate2(inst,
-                           CALL,
-                           null,
-                           IRTools.AC(target.getOffset()),
-                           MethodOperand.STATIC(target),
-                           MonitorOp.getClearGuard(inst),
-                           ref,
-                           IRTools.AC(refType.getThinLockOffset()));
-              if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-              container.counter2++;
-              if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-                inline(inst, ir);
-              }
-            } else {
-              RVMMethod target = Entrypoints.lockMethod;
-              Call.mutate1(inst,
-                           CALL,
-                           null,
-                           IRTools.AC(target.getOffset()),
-                           MethodOperand.STATIC(target),
-                           MonitorOp.getClearGuard(inst),
-                           ref);
+          Operand ref = MonitorOp.getClearRef(inst);
+          RVMType refType = ref.getType().peekType();
+          if (refType != null && !refType.getThinLockOffset().isMax()) {
+            RVMMethod target = Entrypoints.inlineLockMethod;
+            Call.mutate2(inst,
+                         CALL,
+                         null,
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst),
+                         ref,
+                         IRTools.AC(refType.getThinLockOffset()));
+            next = inst.prevInstructionInCodeOrder();
+            if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+            container.counter2++;
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
             }
+          } else {
+            RVMMethod target = Entrypoints.lockMethod;
+            Call.mutate1(inst,
+                         CALL,
+                         null,
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst),
+                         ref);
           }
-          break;
         }
+        break;
 
         case MONITOREXIT_opcode: {
-          if (ir.options.NO_SYNCHRO) {
-            inst.remove();
-          } else {
-            Operand ref = MonitorOp.getClearRef(inst);
-            RVMType refType = ref.getType().peekType();
-            if (refType != null && !refType.getThinLockOffset().isMax()) {
-              RVMMethod target = Entrypoints.inlineUnlockMethod;
-              Call.mutate2(inst,
-                           CALL,
-                           null,
-                           IRTools.AC(target.getOffset()),
-                           MethodOperand.STATIC(target),
-                           MonitorOp.getClearGuard(inst),
-                           ref,
-                           IRTools.AC(refType.getThinLockOffset()));
-              if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-              container.counter2++;
-              if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-                inline(inst, ir);
-              }
-            } else {
-              RVMMethod target = Entrypoints.unlockMethod;
-              Call.mutate1(inst,
-                           CALL,
-                           null,
-                           IRTools.AC(target.getOffset()),
-                           MethodOperand.STATIC(target),
-                           MonitorOp.getClearGuard(inst),
-                           ref);
+          Operand ref = MonitorOp.getClearRef(inst);
+          RVMType refType = ref.getType().peekType();
+          if (refType != null && !refType.getThinLockOffset().isMax()) {
+            RVMMethod target = Entrypoints.inlineUnlockMethod;
+            Call.mutate2(inst,
+                         CALL,
+                         null,
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst),
+                         ref,
+                         IRTools.AC(refType.getThinLockOffset()));
+            next = inst.prevInstructionInCodeOrder();
+            if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+            container.counter2++;
+            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+              inline(inst, ir);
             }
+          } else {
+            RVMMethod target = Entrypoints.unlockMethod;
+            Call.mutate1(inst,
+                         CALL,
+                         null,
+                         IRTools.AC(target.getOffset()),
+                         MethodOperand.STATIC(target),
+                         MonitorOp.getClearGuard(inst),
+                         ref);
           }
         }
         break;
@@ -387,7 +387,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
             wb.position = inst.position;
             inst.replace(wb);
             next = wb.prevInstructionInCodeOrder();
-            if (ir.options.INLINE_WRITE_BARRIER) {
+            if (ir.options.H2L_INLINE_WRITE_BARRIER) {
               inline(wb, ir, true);
             }
           }
@@ -429,14 +429,14 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                  MethodOperand.STATIC(target),
                                  PutField.getClearGuard(inst),
                                  PutField.getRef(inst).copy(),
-                                 PutField.getOffset(inst).copy(),
                                  PutField.getValue(inst).copy(),
+                                 PutField.getOffset(inst).copy(),
                                  IRTools.IC(fieldRef.getId()));
                 wb.bcIndex = RUNTIME_SERVICES_BCI;
                 wb.position = inst.position;
                 inst.replace(wb);
                 next = wb.prevInstructionInCodeOrder();
-                if (ir.options.INLINE_WRITE_BARRIER) {
+                if (ir.options.H2L_INLINE_WRITE_BARRIER) {
                   inline(wb, ir, true);
                 }
               }
@@ -484,14 +484,14 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                                null,
                                IRTools.AC(target.getOffset()),
                                MethodOperand.STATIC(target),
-                               PutStatic.getOffset(inst).copy(),
                                PutStatic.getValue(inst).copy(),
+                               PutStatic.getOffset(inst).copy(),
                                IRTools.IC(field.getId()));
               wb.bcIndex = RUNTIME_SERVICES_BCI;
               wb.position = inst.position;
               inst.replace(wb);
               next = wb.prevInstructionInCodeOrder();
-              if (ir.options.INLINE_WRITE_BARRIER) {
+              if (ir.options.H2L_INLINE_WRITE_BARRIER) {
                 inline(wb, ir, true);
               }
             }
@@ -529,7 +529,13 @@ public final class ExpandRuntimeServices extends CompilerPhase {
 
     // If we actually inlined anything, clean up the mess
     if (didSomething) {
+      if (branchOpts == null) {
+        branchOpts = new BranchOptimizations(-1, true, true);
+      }
       branchOpts.perform(ir, true);
+      if (_os == null) {
+        _os = new Simple(1, false, false, false, false);
+      }
       _os.perform(ir);
     }
     // signal that we do not intend to use the gc in other phases anymore.
@@ -552,9 +558,9 @@ public final class ExpandRuntimeServices extends CompilerPhase {
     // so we have to be sure to inline it "all the way" not
     // just 1 level.
     boolean savedInliningOption = ir.options.INLINE;
-    boolean savedExceptionOption = ir.options.NO_CALLEE_EXCEPTIONS;
+    boolean savedExceptionOption = ir.options.H2L_NO_CALLEE_EXCEPTIONS;
     ir.options.INLINE = true;
-    ir.options.NO_CALLEE_EXCEPTIONS = noCalleeExceptions;
+    ir.options.H2L_NO_CALLEE_EXCEPTIONS = noCalleeExceptions;
     boolean savedOsrGI = ir.options.OSR_GUARDED_INLINING;
     ir.options.OSR_GUARDED_INLINING = false;
     try {
@@ -563,18 +569,9 @@ public final class ExpandRuntimeServices extends CompilerPhase {
       Inliner.execute(inlDec, ir, inst);
     } finally {
       ir.options.INLINE = savedInliningOption;
-      ir.options.NO_CALLEE_EXCEPTIONS = savedExceptionOption;
+      ir.options.H2L_NO_CALLEE_EXCEPTIONS = savedExceptionOption;
       ir.options.OSR_GUARDED_INLINING = savedOsrGI;
     }
     didSomething = true;
   }
-
-  private final Simple _os = new Simple(1, false, false, false);
-  private final BranchOptimizations branchOpts = new BranchOptimizations(-1, true, true);
-  private boolean didSomething = false;
-
-  //private final IntConstantOperand IRTools.IC(int x) { return IRTools.IRTools.IC(x); }
-  //private final AddressConstantOperand IRTools.AC(Address x) { return IRTools.IRTools.AC(x); }
-  //private final AddressConstantOperand IRTools.AC(Offset x) { return IRTools.IRTools.AC(x); }
-
 }

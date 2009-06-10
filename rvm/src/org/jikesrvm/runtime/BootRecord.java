@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.Extent;
@@ -151,6 +152,7 @@ public class BootRecord {
    */
   public Extent maximumHeapSize;
 
+  @Untraced
   public AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
   // C-style termination with sentinel values
   /**
@@ -189,15 +191,15 @@ public class BootRecord {
    */
   Offset deliverHardwareExceptionOffset;
   /**
-   * jtoc offset of Scheduler.dumpStackAndDie(I)
+   * jtoc offset of RVMThread.dumpStackAndDie(I)
    */
   public Offset dumpStackAndDieOffset;
   /**
-   * jtoc offset of GreenScheduler.processors[]
+   * jtoc offset of RVMThread.bootThread
    */
-  public Offset greenProcessorsOffset;
+  public Offset bootThreadOffset;
   /**
-   * jtoc offset of Scheduler.debugRequested
+   * jtoc offset of RVMThread.debugRequested
    */
   Offset debugRequestedOffset;
   /**
@@ -214,9 +216,6 @@ public class BootRecord {
   public Address sysConsoleWriteIntegerIP;
   public Address sysConsoleWriteLongIP;
   public Address sysConsoleWriteDoubleIP;
-
-  // fix up C offsets for statics
-  public Address sysRegisterStaticFieldOffsetsIP;
 
   // startup/shutdown
   public Address sysExitIP;
@@ -254,17 +253,23 @@ public class BootRecord {
 
   // threads
   public Address sysNumProcessorsIP;
-  public Address sysVirtualProcessorCreateIP;
-  public Address sysVirtualProcessorBindIP;
-  @Entrypoint
-  public Address sysVirtualProcessorYieldIP;
-  public Address sysVirtualProcessorEnableTimeSlicingIP;
-  public Address sysPthreadSelfIP;
-  public Address sysPthreadSetupSignalHandlingIP;
-  public Address sysPthreadSignalIP;
-  public Address sysPthreadExitIP;
-  public Address sysPthreadJoinIP;
-  public Address sysStashVmProcessorInPthreadIP;
+  public Address sysThreadBindSupportedIP;
+  public Address sysThreadBindIP;
+  public Address sysThreadCreateIP;
+  public Address sysThreadYieldIP;
+  public Address sysGetThreadIdIP;
+  public Address sysSetupHardwareTrapHandlerIP;
+  public Address sysStashVMThreadIP;
+  public Address sysThreadTerminateIP;
+
+  // monitors
+  public Address sysMonitorCreateIP;
+  public Address sysMonitorDestroyIP;
+  public Address sysMonitorEnterIP;
+  public Address sysMonitorExitIP;
+  public Address sysMonitorTimedWaitAbsoluteIP;
+  public Address sysMonitorWaitIP;
+  public Address sysMonitorBroadcastIP;
 
   // arithmetic
   @Entrypoint
@@ -292,37 +297,14 @@ public class BootRecord {
   // time
   Address sysCurrentTimeMillisIP;
   Address sysNanoTimeIP;
-  Address sysNanosleepIP;
+  Address sysNanoSleepIP;
 
   // shared libraries
   Address sysDlopenIP;
   Address sysDlsymIP;
 
-  // network
-  public Address sysNetSocketSndBufIP;
-  public Address sysNetSocketCreateIP;
-  public Address sysNetSocketPortIP;
-  public Address sysNetSocketFamilyIP;
-  public Address sysNetSocketLocalAddressIP;
-  public Address sysNetSocketBindIP;
-  public Address sysNetSocketConnectIP;
-  public Address sysNetSocketListenIP;
-  public Address sysNetSocketAcceptIP;
-  public Address sysNetSocketLingerIP;
-  public Address sysNetSocketNoDelayIP;
-  public Address sysNetSocketNoBlockIP;
-  public Address sysNetSocketCloseIP;
-  public Address sysNetSocketShutdownIP;
-  public Address sysNetSelectIP;
-
-  // process management
-  public Address sysWaitPidsIP;
-
   // system startup pthread sync. primitives
   public Address sysCreateThreadSpecificDataKeysIP;
-  public Address sysInitializeStartupLocksIP;
-  public Address sysWaitForVirtualProcessorInitializationIP;
-  public Address sysWaitForMultithreadingStartIP;
 
   // VMMath
   public Address sysVMMathSinIP;

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -39,7 +39,7 @@ public class AdaptiveInlining {
     // function for edge hotness.  The intent is that early on
     // (until decay decreases this initial weight), we are conservative in
     // marking an edge as hot.
-    Controller.dcg = new PartialCallGraph(options.AI_SEED_MULTIPLIER * (1 / options.AI_HOT_CALLSITE_THRESHOLD));
+    Controller.dcg = new PartialCallGraph(options.INLINE_AI_SEED_MULTIPLIER * (1 / options.INLINE_AI_HOT_CALLSITE_THRESHOLD));
     RuntimeMeasurements.registerDecayableObject(Controller.dcg);
 
     // Track call density: fraction of timer interrupts taken in prologue/epilogue

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -194,12 +194,10 @@ public final class PowerPCConditionOperand extends Operand {
   public void translate(ConditionOperand c) {
     switch (c.value) {
       case ConditionOperand.EQUAL:
-      case ConditionOperand.SAME:
       case ConditionOperand.CMPL_EQUAL:
         value = EQUAL;
         break;
       case ConditionOperand.NOT_EQUAL:
-      case ConditionOperand.NOT_SAME:
       case ConditionOperand.CMPL_NOT_EQUAL: // Extra unordered test required
         value = NOT_EQUAL;
         break;

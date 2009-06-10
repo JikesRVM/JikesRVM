@@ -1,11 +1,11 @@
 #
 #  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
-#  This file is licensed to You under the Common Public License (CPL);
+#  This file is licensed to You under the Eclipse Public License (EPL);
 #  You may not use this file except in compliance with the License. You
 #  may obtain a copy of the License at
 #
-#      http://www.opensource.org/licenses/cpl1.0.php
+#      http://www.opensource.org/licenses/eclipse-1.0.php
 #
 #  See the COPYRIGHT.txt file distributed with this work for information
 #  regarding copyright ownership.
@@ -28,7 +28,7 @@ If we get deeper than this in one of the System Trouble functions, try to die.
 #       effectiveness of the Adaptive System.  Therefore, this setting
 #       should be verified by running a relatively long running program
 #       on an unload machine and enabling -X:aos:reportInterruptStats=true
-V interruptQuantum int (VM.BuildForLinux&&VM.BuildForIA32)?20:10
+V interruptQuantum int 4
 Timer interrupt scheduling quantum in ms
 
 
@@ -66,4 +66,9 @@ Stride between each CBS method sample (any yieldpoint) within a sampling window
 
 V TuningForkTraceFile String null tfTraceFile
 Filename to use for TuningFork trace generation
+
+
+V forceOneCPU int -1
+Force all threads to run on one CPU.  The argument specifies which CPU (starting from 0).
+
 

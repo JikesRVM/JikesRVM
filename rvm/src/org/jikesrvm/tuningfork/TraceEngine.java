@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -24,7 +24,7 @@ import org.jikesrvm.Callbacks;
 import org.jikesrvm.Configuration;
 import org.jikesrvm.Options;
 import org.jikesrvm.Callbacks.ExitMonitor;
-import org.jikesrvm.scheduler.Processor;
+import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.HashSetRVM;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -80,7 +80,7 @@ public final class TraceEngine {
   public void earlyStageBooting() {
     if (Options.TuningForkTraceFile == null) {
       /* tracing not enabled on this run, shut down engine to minimize overhead */
-      Processor.getCurrentFeedlet().enabled = false;
+      RVMThread.getCurrentFeedlet().enabled = false;
       state = State.SHUT_DOWN;
     } else {
       unwrittenMetaChunks.enqueue(new SpaceDescriptorChunk());

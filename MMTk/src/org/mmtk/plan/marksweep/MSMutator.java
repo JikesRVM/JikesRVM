@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -15,7 +15,6 @@ package org.mmtk.plan.marksweep;
 import org.mmtk.plan.*;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
-
 import org.mmtk.utility.alloc.Allocator;
 
 import org.vmmagic.pragma.*;
@@ -30,14 +29,6 @@ import org.vmmagic.unboxed.*;
  * and per-mutator thread collection semantics (flushing and restoring
  * per-mutator allocator state).<p>
  *
- * @see org.mmtk.plan.markcompact.MC for an overview of the mark-compact algorithm.<p>
- *
- * FIXME The SegregatedFreeList class (and its decendents such as
- * MarkSweepLocal) does not properly separate mutator and collector
- * behaviors, so the ms field below should really not exist in
- * this class as there is no collection-time allocation in this
- * collector.
- *
  * @see MS
  * @see MSCollector
  * @see StopTheWorldMutator
@@ -49,23 +40,10 @@ public class MSMutator extends StopTheWorldMutator {
   /****************************************************************************
    * Instance fields
    */
+  protected MarkSweepLocal ms = new MarkSweepLocal(MS.msSpace);
 
-  protected MarkSweepLocal ms;
-
-  /****************************************************************************
-   *
-   * Initialization
-   */
-
-  /**
-   * Constructor
-   */
-  public MSMutator() {
-    ms = new MarkSweepLocal(MS.msSpace);
-  }
 
   /****************************************************************************
-   *
    * Mutator-time allocation
    */
 
@@ -81,6 +59,7 @@ public class MSMutator extends StopTheWorldMutator {
    * @return The low address of the allocated memory.
    */
   @Inline
+  @Override
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == MS.ALLOC_DEFAULT) {
       return ms.alloc(bytes, align, offset);
@@ -99,28 +78,13 @@ public class MSMutator extends StopTheWorldMutator {
    * @param allocator The allocator number to be used for this allocation
    */
   @Inline
+  @Override
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
     if (allocator == MS.ALLOC_DEFAULT)
       MS.msSpace.postAlloc(ref);
     else
       super.postAlloc(ref, typeRef, bytes, allocator);
-  }
-
-  /**
-   * Return the space into which an allocator is allocating.  This
-   * particular method will match against those spaces defined at this
-   * level of the class hierarchy.  Subclasses must deal with spaces
-   * they define and refer to superclasses appropriately.
-   *
-   * @param a An allocator
-   * @return The space into which <code>a</code> is allocating, or
-   *         <code>null</code> if there is no space associated with
-   *         <code>a</code>.
-   */
-  public Space getSpaceFromAllocator(Allocator a) {
-    if (a == ms) return MS.msSpace;
-    return super.getSpaceFromAllocator(a);
   }
 
   /**
@@ -132,13 +96,14 @@ public class MSMutator extends StopTheWorldMutator {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == MS.msSpace) return ms;
     return super.getAllocatorFromSpace(space);
   }
 
+
   /****************************************************************************
-   *
    * Collection
    */
 
@@ -149,6 +114,7 @@ public class MSMutator extends StopTheWorldMutator {
    * @param primary Perform any single-threaded activities using this thread.
    */
   @Inline
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MS.PREPARE) {
       super.collectionPhase(phaseId, primary);
@@ -163,5 +129,15 @@ public class MSMutator extends StopTheWorldMutator {
     }
 
     super.collectionPhase(phaseId, primary);
+  }
+
+  /**
+   * Flush mutator context, in response to a requestMutatorFlush.
+   * Also called by the default implementation of deinitMutator.
+   */
+  @Override
+  public void flush() {
+    super.flush();
+    ms.flush();
   }
 }

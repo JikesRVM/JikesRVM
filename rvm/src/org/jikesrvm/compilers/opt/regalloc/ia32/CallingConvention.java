@@ -1,16 +1,18 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
+
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 
 import java.util.Enumeration;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
@@ -60,7 +62,7 @@ public abstract class CallingConvention extends IRTools
   /**
    * Size of a word, in bytes
    */
-  private static final int WORDSIZE = 4;
+  private static final int WORDSIZE = BYTES_IN_ADDRESS;
 
   /**
    * Expand calling conventions to make physical registers explicit in the
@@ -110,7 +112,7 @@ public abstract class CallingConvention extends IRTools
         if (mo.isInterface()) {
           InterfaceMethodSignature sig = InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
           MemoryOperand M =
-              MemoryOperand.BD(ir.regpool.makePROp(),
+              MemoryOperand.BD(ir.regpool.makeTROp(),
                                    ArchEntrypoints.hiddenSignatureIdField.getOffset(),
                                    (byte) WORDSIZE,
                                    null,
@@ -202,7 +204,7 @@ public abstract class CallingConvention extends IRTools
           byte size = (byte)(result1.getType().isFloatType() ? 4 : 8);
           RegisterOperand st0 = new RegisterOperand(phys.getST0(), result1.getType());
           MIR_Call.setResult(call, st0); // result is in st0, set it to avoid extending the live range of st0
-          RegisterOperand pr = ir.regpool.makePROp();
+          RegisterOperand pr = ir.regpool.makeTROp();
           MemoryOperand scratch = new MemoryOperand(pr, null, (byte)0, Entrypoints.scratchStorageField.getOffset(), size, new LocationOperand(Entrypoints.scratchStorageField), null);
 
           Instruction pop = MIR_Move.create(IA32_FSTP, scratch, st0.copyRO());
@@ -385,9 +387,9 @@ public abstract class CallingConvention extends IRTools
       location += WORDSIZE;
     }
 
-    // save the processor register
+    // save the thread register
     Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
-    call.insertBefore(MIR_Move.create(IA32_MOV, M, ir.regpool.makePROp()));
+    call.insertBefore(MIR_Move.create(IA32_MOV, M, ir.regpool.makeTROp()));
   }
 
   /**
@@ -417,9 +419,9 @@ public abstract class CallingConvention extends IRTools
       location += WORDSIZE;
     }
 
-    // restore the processor register
+    // restore the thread register
     Operand M = new StackLocationOperand(true, -location, (byte) WORDSIZE);
-    call.insertAfter(MIR_Move.create(IA32_MOV, ir.regpool.makePROp(), M));
+    call.insertAfter(MIR_Move.create(IA32_MOV, ir.regpool.makeTROp(), M));
   }
 
   /**

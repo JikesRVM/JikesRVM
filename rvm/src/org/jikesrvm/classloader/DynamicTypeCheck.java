@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -241,7 +241,7 @@ public class DynamicTypeCheck implements TIBLayoutConstants {
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
     int LHSId = LHSclass.getId();
-    return superclassIds[LHSDepth] == LHSId;
+    return (superclassIds[LHSDepth] & 0xFFFF) == LHSId;
   }
 
   /**
@@ -282,10 +282,10 @@ public class DynamicTypeCheck implements TIBLayoutConstants {
       if (RHSDimension < LHSDimension) return false;
       if (RHSDimension > LHSDimension) return true;
       return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive
-    } else if (!LHSInnermostElementType.isPrimitiveType()) {
+    } else if (!(LHSInnermostElementType.isPrimitiveType() || LHSInnermostElementType.isUnboxedType())) {
       if (RHSDimension == LHSDimension) {
         RVMType RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
-        if (RHSInnermostElementType.isPrimitiveType()) return false;
+        if ((RHSInnermostElementType.isPrimitiveType() || RHSInnermostElementType.isUnboxedType())) return false;
         return instanceOfNonArray(LHSInnermostElementType.asClass(), RHSInnermostElementType.getTypeInformationBlock());
       } else {
         // All array types implicitly implement java.lang.Cloneable and java.io.Serializable

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -23,9 +23,8 @@ import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.StackBrowser;
 import org.jikesrvm.runtime.Statics;
-import org.jikesrvm.scheduler.Scheduler;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.SynchronizedObject;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
@@ -37,7 +36,6 @@ import org.vmmagic.unboxed.Word;
  * We implement SynchronizedObject because we need to synchronize
  * on the CompiledMethod object as part of the invalidation protocol.
  */
-@SynchronizedObject
 public abstract class CompiledMethod implements SizeConstants {
 
   /*
@@ -209,7 +207,7 @@ public abstract class CompiledMethod implements SizeConstants {
       int max = (instructions.length() + 1) << ArchitectureSpecific.ArchConstants.LG_INSTRUCTION_WIDTH;
       if (!offset.toWord().LT(Word.fromIntZeroExtend(max))) {
         Address instructionStart = Magic.objectAsAddress(instructions);
-        VM.sysWriteln("\ngetInstructionOffset: ip is not within compiled code for method");
+        VM.sysWriteln("\nIn thread ",RVMThread.getCurrentThreadSlot()," getInstructionOffset: ip is not within compiled code for method: ",ip);
         VM.sysWrite("\tsupposed method is ");
         VM.sysWrite(method);
         VM.sysWriteln();
@@ -226,7 +224,7 @@ public abstract class CompiledMethod implements SizeConstants {
         }
         if (dieOnFailure) {
           VM.sysWriteln("Attempting to dump virtual machine state before exiting");
-          Scheduler.dumpVirtualMachine();
+          RVMThread.dumpVirtualMachine();
           VM.sysFail("Terminating VM due to invalid request for instruction offset");
         }
       }

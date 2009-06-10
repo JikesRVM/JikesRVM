@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -19,6 +19,7 @@ import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -62,6 +63,24 @@ public class Synchronization {
       oldValue = Magic.prepareLong(base, offset);
       if (oldValue != testValue) return false;
     } while (!Magic.attemptLong(base, offset, oldValue, newValue));
+    return true;
+  }
+
+  /**
+   * Atomically swap test value to new value in the specified object and the specified field
+   * @param base object containing field
+   * @param offset position of field
+   * @param testValue expected value of field
+   * @param newValue new value of field
+   * @return true => successful swap, false => field not equal to testValue
+   */
+  @Inline
+  public static boolean tryCompareAndSwap(Object base, Offset offset, Word testValue, Word newValue) {
+    Word oldValue;
+    do {
+      oldValue = Magic.prepareWord(base, offset);
+      if (oldValue != testValue) return false;
+    } while (!Magic.attemptWord(base, offset, oldValue, newValue));
     return true;
   }
 

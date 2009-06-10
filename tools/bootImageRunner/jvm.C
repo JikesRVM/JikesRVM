@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -20,13 +20,15 @@
 #include <stdlib.h>
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
-#include <pthread.h>
 
-// Thread-specific data key in which to stash the id of
-// the pthread's Processor.  This allows the system call library
-// to find the Processor object at runtime.
-pthread_key_t VmProcessorKey;
-pthread_key_t IsVmProcessorKey;
+#ifdef RVM_FOR_HARMONY
+#ifdef RVM_FOR_LINUX
+#define LINUX 1
+#endif
+#include "hythread.h"
+#endif
+
+TLS_KEY_TYPE VmThreadKey;
 
 // Fish out an address stored in an instance field of an object.
 static void *
@@ -38,15 +40,13 @@ getFieldAsAddress(void *objPtr, int fieldOffset)
 
 // Get the JNI environment object from the Processor.
 static JNIEnv *
-getJniEnvFromVmProcessor(void *vmProcessorPtr)
+getJniEnvFromVmThread(void *vmThreadPtr)
 {
-    if (vmProcessorPtr == 0)
+    if (vmThreadPtr == 0)
         return 0; // oops
 
     // Follow chain of pointers:
-    // Processor -> RVMThread -> JNIEnvironment -> thread's native JNIEnv
-    void *vmThreadPtr =
-        getFieldAsAddress(vmProcessorPtr, Processor_activeThread_offset);
+    // RVMThread -> JNIEnvironment -> thread's native JNIEnv
     void *jniEnvironment =
         getFieldAsAddress(vmThreadPtr, RVMThread_jniEnv_offset);
     // Convert JNIEnvironment to JNIEnv* expected by native code
@@ -131,16 +131,15 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     if (version > JNI_VERSION_1_4)
         return JNI_EVERSION;
 
-    // Return NULL if we are not on a VM pthread
-    if (pthread_getspecific(IsVmProcessorKey) == NULL) {
+    // Return NULL if we are not on a VM thread
+    void *vmThread = GET_THREAD_LOCAL(VmThreadKey);
+    if (vmThread == NULL) {
         *penv = NULL;
         return JNI_EDETACHED;
     }
 
-    // Get Processor id.
-    void *vmProcessor = pthread_getspecific(VmProcessorKey);
-    // Get the JNIEnv from the Processor object
-    JNIEnv *env = getJniEnvFromVmProcessor(vmProcessor);
+    // Get the JNIEnv from the RVMThread object
+    JNIEnv *env = getJniEnvFromVmThread(vmThread);
 
     *penv = env;
 
@@ -173,7 +172,7 @@ struct JavaVM_ sysJavaVM = {
   NULL, // reserved0
   NULL, // reserved1
   NULL, // reserved2
-  NULL, // pthreadIDTable
+  NULL, // threadIDTable
   NULL, // jniEnvTable
 };
 

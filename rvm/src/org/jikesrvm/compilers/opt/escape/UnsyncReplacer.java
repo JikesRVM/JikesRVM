@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -37,7 +37,28 @@ import org.jikesrvm.compilers.opt.specialization.InvokeeThreadLocalContext;
  * unsynchronized.
  */
 final class UnsyncReplacer {
-  private static final boolean DEBUG = false;
+  /**
+   * The register to replace
+   */
+  private final Register reg;
+  /**
+   * Controlling compiler options
+   */
+  private final OptOptions options;
+  /**
+   * Singleton: a single context representing "specialize this method when
+   * the invokee of this method is thread-local"
+   */
+  private static final InvokeeThreadLocalContext context = new InvokeeThreadLocalContext();
+
+  /**
+   * @param r the register operand target of the allocation
+   * @param options controlling compiler options
+   */
+  private UnsyncReplacer(Register r, OptOptions options) {
+    reg = r;
+    this.options = options;
+  }
 
   /**
    * Generate an instance of this class for a particular
@@ -69,20 +90,12 @@ final class UnsyncReplacer {
   }
 
   /**
-   * @param r the register operand target of the allocation
-   * @param options controlling compiler options
-   */
-  private UnsyncReplacer(Register r, OptOptions options) {
-    reg = r;
-    this.options = options;
-  }
-
-  /**
    * Perform the transformation for a given register appearance
    *
    * @param rop  The def or use to check
    */
   private void transform(RegisterOperand rop) {
+    final boolean DEBUG = false;
     Instruction inst = rop.instruction;
     switch (inst.getOpcode()) {
       case SYSCALL_opcode:
@@ -104,18 +117,14 @@ final class UnsyncReplacer {
         if (DEBUG) {
           VM.sysWrite("Removing " + inst);
         }
-        if (!options.NO_CACHE_FLUSH) {
-          inst.insertBefore(Empty.create(READ_CEILING));
-        }
+        inst.insertBefore(Empty.create(READ_CEILING));
         DefUse.removeInstructionAndUpdateDU(inst);
         break;
       case MONITOREXIT_opcode:
         if (DEBUG) {
           VM.sysWrite("Removing " + inst);
         }
-        if (!options.NO_CACHE_FLUSH) {
-          inst.insertAfter(Empty.create(WRITE_FLOOR));
-        }
+        inst.insertAfter(Empty.create(WRITE_FLOOR));
         DefUse.removeInstructionAndUpdateDU(inst);
         break;
       default:
@@ -123,18 +132,4 @@ final class UnsyncReplacer {
         break;
     }
   }
-
-  /**
-   * The register to replace
-   */
-  private Register reg;
-  /**
-   * Controlling compiler options
-   */
-  private OptOptions options;
-  /**
-   * Singleton: a single context representing "specialize this method when
-   * the invokee of this method is thread-local"
-   */
-  private static final InvokeeThreadLocalContext context = new InvokeeThreadLocalContext();
 }

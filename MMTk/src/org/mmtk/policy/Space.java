@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -107,6 +107,10 @@ public abstract class Space implements Constants {
    * Initialization
    */
 
+  {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(PAGES_IN_CHUNK > 1);
+  }
+
   /**
    * This is the base constructor for <i>all</i> spaces.<p>
    *
@@ -194,7 +198,7 @@ public abstract class Space implements Constants {
   public static Address getDiscontigStart() { return heapCursor; }
 
   /** End of discontig getter @return The end of the discontiguous space */
-  public static Address getDiscontigEnd() { return heapLimit; }
+  public static Address getDiscontigEnd() { return heapLimit.minus(1); }
 
   /** Name getter @return The name of this space */
   public final String getName() { return name; }

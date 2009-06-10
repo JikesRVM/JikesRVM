@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -221,10 +221,10 @@ public abstract class FinalMIRExpansion extends IRTools {
           BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.BACKEDGE);
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
-          Register PR = phys.getPR();
+          Register TR = phys.getTR();
           Offset offset = Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(Bits.PPCMaskLower16(offset))));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original
@@ -245,10 +245,10 @@ public abstract class FinalMIRExpansion extends IRTools {
           BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir, RVMThread.EPILOGUE);
           Register zero = phys.getGPR(0);
           Register TSR = phys.getTSR();
-          Register PR = phys.getPR();
+          Register TR = phys.getTR();
           Offset offset = Entrypoints.takeYieldpointField.getOffset();
           if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
-          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(PR), IC(Bits.PPCMaskLower16(offset))));
+          p.insertBefore(MIR_Load.create(PPC_LInt, I(zero), A(TR), IC(Bits.PPCMaskLower16(offset))));
           p.insertBefore(MIR_Binary.create(PPC_CMPI, I(TSR), I(zero), IC(0)));
           instructionCount += 2;
           // Because the GC Map code holds a reference to the original

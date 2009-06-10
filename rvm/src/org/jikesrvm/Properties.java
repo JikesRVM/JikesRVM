@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -61,15 +61,6 @@ public class Properties extends Options {
    * appropriate time.
    */
   public static boolean safeToAllocateJavaThread = false;
-
-  /**
-   * If true, don't exit from the process. As of July, 2003, this has not worked
-   * in a couple of years, nor has there been much interest in using it. If it
-   * is resurrected, we need to check the code that calls
-   * dieAbruptlyRecursiveSystemTrouble(), to make sure that instead we just kill
-   * the proper threads.
-   */
-  public static boolean runningAsSubsystem = false;
 
   /**
    * The following is set on by -X:verboseBoot= command line arg.

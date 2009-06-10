@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -30,10 +30,12 @@ public class Scheduler {
    * Possible threading models
    */
   public enum Model {
+    /** Schedule using the Java thread scheduler */
     JAVA,
+    /** Schedule in the harness using deterministic algorithms */
     DETERMINISTIC;
 
-    /** The values of this enum, converted to strings */
+    /** @return The values of this enum, converted to strings */
     public static String[] valueNames() {
       String[] result = new String[Scheduler.Model.values().length];
       for (int i=0; i < Scheduler.Model.values().length; i++) {
@@ -47,11 +49,14 @@ public class Scheduler {
    * Possible thread-scheduling policies
    */
   public enum SchedPolicy {
+    /** Reschedule every nth yield point */
     FIXED,
+    /** Reschedule on a pseudo-random sequence of intervals */
     RANDOM,
+    /** Only reschedule when the thread is blocked */
     NEVER;
 
-    /** The values of this enum, converted to strings */
+    /** @return The values of this enum, converted to strings */
     public static String[] valueNames() {
       String[] result = new String[Scheduler.SchedPolicy.values().length];
       for (int i=0; i < Scheduler.SchedPolicy.values().length; i++) {
@@ -80,6 +85,8 @@ public class Scheduler {
   /**
    * Yield policy factory - return an instance of the the command-line
    * selected yield policy
+   * @param thread The Java thread
+   * @return A new policy for the given thread
    */
   public static Policy yieldPolicy(Thread thread) {
     switch (Harness.policy.policy()) {
@@ -87,9 +94,8 @@ public class Scheduler {
         int yieldInterval = Harness.yieldInterval.getValue();
         if (yieldInterval == 1) {
           return new YieldAlways(thread);
-        } else {
-          return new YieldEvery(thread,yieldInterval);
         }
+        return new YieldEvery(thread,yieldInterval);
       case RANDOM:
         return new YieldRandomly(thread,
             Harness.randomPolicySeed.getValue(),
@@ -142,30 +148,29 @@ public class Scheduler {
   /**
    * Create and start a new collector thread running a particular code
    * sequence.  Used to schedule unit tests in collector context.
+   * @param item The schedulable object
+   * @return A java thread for the item
    */
   public static Thread scheduleCollector(Schedulable item) {
     return model.scheduleCollector(item);
   }
 
   /**
-   * The current Log object.
-   * @return
+   * @return The current Log object.
    */
   public static Log currentLog() {
     return ((MMTkThread)Thread.currentThread()).getLog();
   }
 
   /**
-   * The current mutator object (if the current thread is a Mutator)
-   * @return
+   * @return The current mutator object (if the current thread is a Mutator)
    */
   public static Mutator currentMutator() {
     return model.currentMutator();
   }
 
   /**
-   * The current collector object (if the current thread is a Collector)
-   * @return
+   * @return The current collector object (if the current thread is a Collector)
    */
   public static Collector currentCollector() {
     return model.currentCollector();
@@ -176,6 +181,7 @@ public class Scheduler {
   /**
    * Request a GC.  Once requested, mutator threads block at
    * 'waitForGC' until a collection is performed.
+   * @param why Reason code
    */
   public static void triggerGC(int why) {
     model.triggerGC(why);
@@ -197,22 +203,22 @@ public class Scheduler {
   }
 
   /**
-   * Why was the current GC triggered ?
-   * @return
+   * @see #triggerGC(int)
+   * @return Why was the current GC triggered ?
    */
   public static int getTriggerReason() {
     return model.getTriggerReason();
   }
 
   /**
-   * Are there no threads currently in GC?
+   * @return Are there no threads currently in GC?
    */
   public static boolean noThreadsInGC() {
     return model.noThreadsInGC();
   }
 
   /**
-   * Has a GC been triggered?
+   * @return Has a GC been triggered?
    */
   public static boolean gcTriggered() {
     return model.gcTriggered();
@@ -220,8 +226,8 @@ public class Scheduler {
 
   /**
    * Collector thread synchronization barrier
-   * @param where
-   * @return
+   * @param where Rendezvous ID
+   * @return The order of arrival at the barrier
    */
   public static int rendezvous(int where) {
     return model.rendezvous(where);
@@ -251,6 +257,8 @@ public class Scheduler {
 
   /**
    * An MMTk lock - a factory method.
+   * @param name The name of the lock
+   * @return The newly created lock
    */
   public static Lock newLock(String name) {
     return model.newLock(name);

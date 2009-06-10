@@ -1,18 +1,18 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
 package org.jikesrvm.classloader;
 
-interface ClassLoaderConstants {
+public interface ClassLoaderConstants {
   // Attribute modifiers for class-, method-, and field- descriptions.
   //
   //                                      applicability
@@ -85,8 +85,10 @@ interface ClassLoaderConstants {
   byte CLASS_INSTANTIATED = 3;
   /** &lt;clinit&gt; running (allocations possible) */
   byte CLASS_INITIALIZING = 4;
+  /** exception occurred while running &lt;clinit&gt; class cannot be initialized successfully */
+  byte CLASS_INITIALIZER_FAILED = 5;
   /** statics initialized */
-  byte CLASS_INITIALIZED = 5;
+  byte CLASS_INITIALIZED = 6;
 
   // Constant pool entry tags.
   //
@@ -116,4 +118,22 @@ interface ClassLoaderConstants {
   byte FloatTypeCode = (byte) 'F';
   byte DoubleTypeCode = (byte) 'D';
   byte CharTypeCode = (byte) 'C';
+
+  // Constants for our internal encoding of constant pools.
+  /** Constant pool entry for a UTF-8 encoded atom */
+  byte CP_UTF = 0;
+  /** Constant pool entry for int literal */
+  byte CP_INT = 1;
+  /** Constant pool entry for long literal */
+  byte CP_LONG = 2;
+  /** Constant pool entry for float literal */
+  byte CP_FLOAT = 3;
+  /** Constant pool entry for double literal */
+  byte CP_DOUBLE = 4;
+  /** Constant pool entry for string literal (for annotations, may be other objects) */
+  byte CP_STRING = 5;
+  /** Constant pool entry for member (field or method) reference */
+  byte CP_MEMBER = 6;
+  /** Constant pool entry for type reference or class literal */
+  byte CP_CLASS = 7;
 }

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -130,25 +130,6 @@ public class RCBaseMutator extends StopTheWorldMutator {
   }
 
   /**
-   * Return the space into which an allocator is allocating.  This
-   * particular method will match against those spaces defined at this
-   * level of the class hierarchy.  Subclasses must deal with spaces
-   * they define and refer to superclasses appropriately.
-   *
-   * @param a An allocator
-   * @return The space into which <code>a</code> is allocating, or
-   *         <code>null</code> if there is no space associated with
-   *         <code>a</code>.
-   */
-  public Space getSpaceFromAllocator(Allocator a) {
-    if (a == rc) return RCBase.rcSpace;
-    if (a == rclos) return RCBase.rcloSpace;
-
-    // a does not belong to this plan instance
-    return super.getSpaceFromAllocator(a);
-  }
-
-  /**
    * Return the allocator instance associated with a space
    * <code>space</code>, for this plan instance.
    *
@@ -225,6 +206,16 @@ public class RCBaseMutator extends StopTheWorldMutator {
       VM.assertions._assert(decBuffer.isFlushed());
       VM.assertions._assert(modBuffer.isFlushed());
     }
+  }
+
+  /**
+   * Flush mutator context, in response to a requestMutatorFlush.
+   * Also called by the default implementation of deinitMutator.
+   */
+  @Override
+  public void flush() {
+    super.flush();
+    rc.flush();
   }
 
   /****************************************************************************

@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -20,7 +20,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.LineReuseRatio;
 import org.mmtk.utility.options.Options;
-import org.mmtk.utility.statistics.BooleanCounter;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
@@ -49,18 +48,13 @@ public final class ImmixSpace extends Space implements Constants {
    */
   private static short reusableMarkStateThreshold = 0;
 
-  /* statistics */
-  public static BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
-  public static int TMPreusableLineCount = 0;
-  public static int TMPreusedLineCount = 0;
-  public static int TMPreusableBlockCount = 0;
-  public static int TMPreusedBlockCount = 0;
-
   /****************************************************************************
    *
    * Instance variables
    */
   private Word markState = ObjectHeader.MARK_BASE_VALUE;
+          byte lineMarkState = RESET_LINE_MARK_STATE;
+  private byte lineUnavailState = RESET_LINE_MARK_STATE;
   private boolean inCollection;
   private int linesConsumed = 0;
 
@@ -111,7 +105,11 @@ public final class ImmixSpace extends Space implements Constants {
    * Prepare for a new collection increment.
    */
   public void prepare(boolean majorGC) {
-    if (majorGC) markState = ObjectHeader.deltaMarkState(markState, true);
+    if (majorGC) {
+      markState = ObjectHeader.deltaMarkState(markState, true);
+        lineMarkState++;
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(lineMarkState <= MAX_LINE_MARK_STATE);
+    }
     chunkMap.reset();
     defrag.prepare(chunkMap, this);
     inCollection = true;
@@ -121,8 +119,15 @@ public final class ImmixSpace extends Space implements Constants {
 
   /**
    * A new collection increment has completed.  Release global resources.
+   * @param majorGC TODO
    */
-  public void globalRelease() {
+  public boolean release(boolean majorGC) {
+    boolean didDefrag = defrag.inDefrag();
+    if (majorGC) {
+      if (lineMarkState == MAX_LINE_MARK_STATE)
+        lineMarkState = RESET_LINE_MARK_STATE;
+     lineUnavailState = lineMarkState;
+    }
     chunkMap.reset();
     defrag.globalRelease();
     inCollection = false;
@@ -130,14 +135,18 @@ public final class ImmixSpace extends Space implements Constants {
     /* set up reusable space */
     if (allocBlockCursor.isZero()) allocBlockCursor = chunkMap.getHeadChunk();
     allocBlockSentinel = allocBlockCursor;
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(allocBlockSentinel));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isRecycleAllocChunkAligned(allocBlockSentinel));
     exhaustedReusableSpace = false;
+    if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+      Log.write("gr[allocBlockCursor: "); Log.write(allocBlockCursor); Log.write(" allocBlockSentinel: "); Log.write(allocBlockSentinel); Log.writeln("]");
+    }
 
     /* really just want this to happen once after options are booted, but no harm in re-doing it */
     reusableMarkStateThreshold = (short) (Options.lineReuseRatio.getValue() * MAX_BLOCK_MARK_STATE);
     Defrag.defragReusableMarkStateThreshold = (short) (Options.defragLineReuseRatio.getValue() * MAX_BLOCK_MARK_STATE);
 
     linesConsumed = 0;
+    return didDefrag;
   }
 
   /**
@@ -146,11 +155,10 @@ public final class ImmixSpace extends Space implements Constants {
    * @param emergencyCollection Is this collection an emergency (last did not yield enough)?
    * @param collectWholeHeap Is this a whole heap collection?
    * @param collectionAttempt Which attempt is this to collect?
-   * @param requiredAtStart How much space is required?
-   * @param userTriggered Is this a user-triggered collection?
+   * @param collectionTrigger What is triggering the collection?
    */
-  public void setCollectionKind(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int requiredAtStart, boolean userTriggered) {
-    defrag.setCollectionKind(emergencyCollection, collectWholeHeap, collectionAttempt, requiredAtStart, userTriggered, exhaustedReusableSpace);
+  public void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int collectionTrigger) {
+    defrag.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, collectionTrigger, exhaustedReusableSpace);
   }
 
  /****************************************************************************
@@ -231,7 +239,11 @@ public final class ImmixSpace extends Space implements Constants {
     if (!rtn.isZero()) {
       Block.setBlockAsInUse(rtn);
       Chunk.updateHighWater(rtn);
+      if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+        Log.write("gs["); Log.write(rtn); Log.write(" -> "); Log.write(rtn.plus(BYTES_IN_BLOCK-1)); Log.write(" copy: "); Log.write(copy); Log.writeln("]");
+      }
     }
+
     return rtn;
   }
 
@@ -257,8 +269,8 @@ public final class ImmixSpace extends Space implements Constants {
 
   public Address acquireReusableBlocks() {
     if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(allocBlockCursor));
-      VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(allocBlockSentinel));
+      VM.assertions._assert(isRecycleAllocChunkAligned(allocBlockCursor));
+      VM.assertions._assert(isRecycleAllocChunkAligned(allocBlockSentinel));
     }
     Address rtn;
 
@@ -271,12 +283,19 @@ public final class ImmixSpace extends Space implements Constants {
       allocBlockCursor = allocBlockCursor.plus(BYTES_IN_RECYCLE_ALLOC_CHUNK);
       if (allocBlockCursor.GT(Chunk.getHighWater(lastAllocChunk)))
         allocBlockCursor = chunkMap.nextChunk(lastAllocChunk);
+      if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+        Log.write("arb[ rtn: "); Log.write(rtn); Log.write(" allocBlockCursor: "); Log.write(allocBlockCursor); Log.write(" allocBlockSentinel: "); Log.write(allocBlockSentinel); Log.writeln("]");
+      }
 
-      if (allocBlockCursor.isZero() || allocBlockCursor.EQ(allocBlockSentinel))
+      if (allocBlockCursor.isZero() || allocBlockCursor.EQ(allocBlockSentinel)) {
         exhaustedReusableSpace = true;
+        if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+          Log.writeln("[Reusable space exhausted]");
+        }
+      }
     }
     unlock();
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ImmixSpace.isRecycleAllocChunkAligned(rtn));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isRecycleAllocChunkAligned(rtn));
     return rtn;
   }
 
@@ -336,8 +355,7 @@ public final class ImmixSpace extends Space implements Constants {
   @Inline
   public void postCopy(ObjectReference object, int bytes, boolean majorGC) {
     ObjectHeader.writeMarkState(object, markState, bytes > BYTES_IN_LINE);
-    if (!MARK_LINE_AT_SCAN_TIME && majorGC)
-      markLines(object);
+    if (!MARK_LINE_AT_SCAN_TIME && majorGC) markLines(object);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrBeingForwarded(object));
     if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(object));
   }
@@ -439,7 +457,7 @@ public final class ImmixSpace extends Space implements Constants {
     if (VM.VERIFY_ASSERTIONS)  VM.assertions._assert(!defrag.inDefrag() || defrag.spaceExhausted() || !isDefragSource(object));
     if (oldMarkState != markValue) {
       if (!MARK_LINE_AT_SCAN_TIME)
-        ImmixSpace.markLines(object);
+        markLines(object);
       trace.processNode(object);
     }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!ObjectHeader.isForwardedOrBeingForwarded(object));
@@ -492,8 +510,15 @@ public final class ImmixSpace extends Space implements Constants {
           newObject = ObjectHeader.forwardObject(object, allocator);
           if (VM.VERIFY_ASSERTIONS && Plan.NEEDS_LOG_BIT_IN_HEADER) VM.assertions._assert(ObjectHeader.isUnloggedObject(newObject));
         }
+        if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
+          Log.write("C["); Log.write(object); Log.write("/");
+          Log.write(getName()); Log.write("] -> ");
+          Log.write(newObject); Log.write("/");
+          Log.write(Space.getSpaceForObject(newObject).getName());
+          Log.writeln("]");
+        }
         if (!MARK_LINE_AT_SCAN_TIME)
-          ImmixSpace.markLines(newObject);
+          markLines(newObject);
         trace.processNode(newObject);
         if (VM.VERIFY_ASSERTIONS) {
           if (!((getSpaceForObject(newObject) != this) ||
@@ -530,11 +555,19 @@ public final class ImmixSpace extends Space implements Constants {
    * @param object The object which is live and for which the associated lines
    * must be marked.
    */
-  public static void markLines(ObjectReference object) {
+  public void markLines(ObjectReference object) {
     Address address = VM.objectModel.objectStartRef(object);
-    Line.mark(address);
+    Line.mark(address, lineMarkState);
     if (ObjectHeader.isStraddlingObject(object))
-      Line.markMultiLine(address, object);
+      Line.markMultiLine(address, object, lineMarkState);
+  }
+
+  public int getNextUnavailableLine(Address baseLineAvailAddress, int line) {
+    return Line.getNextUnavailable(baseLineAvailAddress, line, lineUnavailState);
+  }
+
+  public int getNextAvailableLine(Address baseLineAvailAddress, int line) {
+    return Line.getNextAvailable(baseLineAvailAddress, line, lineUnavailState);
   }
 
   /****************************************************************************

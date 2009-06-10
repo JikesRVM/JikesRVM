@@ -1,11 +1,11 @@
 /*
  *  This file is part of the Jikes RVM project (http://jikesrvm.org).
  *
- *  This file is licensed to You under the Common Public License (CPL);
+ *  This file is licensed to You under the Eclipse Public License (EPL);
  *  You may not use this file except in compliance with the License. You
  *  may obtain a copy of the License at
  *
- *      http://www.opensource.org/licenses/cpl1.0.php
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
  *
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
@@ -47,6 +47,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.LazyCompilationTrampoline;
 import org.jikesrvm.ArchitectureSpecific.OutOfLineMachineCode;
+import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
@@ -69,7 +70,6 @@ import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.scheduler.Scheduler;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -949,9 +949,16 @@ public class BootImageWriter extends BootImageWriterMessages
     //
     if (verbose >= 1) say("copying jtoc");
     // Pointer to middle of JTOC
-    Address jtocImageAddress = Address.zero();
+    Address jtocImageAddress = Address.max();
     try {
-      jtocImageAddress = copyToBootImage(Statics.getSlotsAsIntArray(), false, Address.max(), null, false);
+      if (VM.BuildForIA32) {
+        // Force 16byte alignment of the JTOC on Intel
+        int[] slots = Statics.getSlotsAsIntArray();
+        jtocImageAddress = bootImage.allocateArray(RVMArray.IntArray, slots.length, false, 0, 16);
+        BootImageMap.Entry jtocEntry = BootImageMap.findOrCreateEntry(slots);
+        jtocEntry.imageAddress = jtocImageAddress;
+      }
+      jtocImageAddress = copyToBootImage(Statics.getSlotsAsIntArray(), false, jtocImageAddress, null, false);
       if (jtocImageAddress.EQ(OBJECT_NOT_PRESENT)) {
         fail("can't copy jtoc");
       }
@@ -1026,7 +1033,7 @@ public class BootImageWriter extends BootImageWriterMessages
     bootRecord.spRegister  = BootImageMap.getImageAddress(startupStack, true).plus(startupStack.length);
     bootRecord.ipRegister  = BootImageMap.getImageAddress(startupCode.getBacking(), true);
 
-    bootRecord.greenProcessorsOffset = Entrypoints.greenProcessorsField.getOffset();
+    bootRecord.bootThreadOffset = Entrypoints.bootThreadField.getOffset();
 
     bootRecord.bootImageDataStart = bootImageDataAddress;
     bootRecord.bootImageDataEnd   = bootImageDataAddress.plus(bootImage.getDataSize());
@@ -1374,14 +1381,14 @@ public class BootImageWriter extends BootImageWriterMessages
       // allocations and then reset the boot image allocator.
       BootRecord bootRecord = BootRecord.the_boot_record;
       RVMClass rvmBRType = getRvmType(bootRecord.getClass()).asClass();
-      RVMArray intArrayType =  RVMArray.getPrimitiveArrayType(10);
+      RVMArray intArrayType =  RVMArray.IntArray;
       // allocate storage for boot record
       bootImage.allocateDataStorage(rvmBRType.getInstanceSize(),
                                     ObjectModel.getAlignment(rvmBRType),
                                     ObjectModel.getOffsetForAlignment(rvmBRType, false));
-      // allocate storeage for JTOC
+      // allocate storage for JTOC (force 16byte alignment of the JTOC on Intel)
       Address jtocAddress = bootImage.allocateDataStorage(intArrayType.getInstanceSize(0),
-                                                          ObjectModel.getAlignment(intArrayType),
+                                                          VM.BuildForIA32 ? 16 : ObjectModel.getAlignment(intArrayType),
                                                           ObjectModel.getOffsetForAlignment(intArrayType, false));
       bootImage.resetAllocator();
       bootRecord.tocRegister = jtocAddress.plus(intArrayType.getInstanceSize(Statics.middleOfTable));
@@ -1527,7 +1534,7 @@ public class BootImageWriter extends BootImageWriterMessages
       //
       // Create stack, thread, and processor context in which rvm will begin
       // execution.
-      startupThread = Scheduler.setupBootThread();
+      startupThread = RVMThread.setupBootThread();
       byte[] stack = startupThread.getStack();
       // sanity check for bootstrap loader
       int idx = stack.length - 1;
@@ -1576,6 +1583,45 @@ public class BootImageWriter extends BootImageWriterMessages
           Offset rvmFieldOffset = rvmField.getOffset();
           String   rvmFieldName = rvmField.getName().toString();
           Field    jdkFieldAcc  = null;
+
+          if (jdkType!=null &&
+              jdkType.equals(java.util.concurrent.locks.AbstractQueuedSynchronizer.class)) {
+            RVMClass c=(RVMClass)rvmType;
+            if (rvmFieldName.equals("stateOffset")) {
+              Statics.setSlotContents(
+                rvmFieldOffset,
+                c.findDeclaredField(Atom.findOrCreateAsciiAtom("state")).getOffset().toLong());
+              continue;
+            } else if (rvmFieldName.equals("headOffset")) {
+              Statics.setSlotContents(
+                rvmFieldOffset,
+                c.findDeclaredField(Atom.findOrCreateAsciiAtom("head")).getOffset().toLong());
+              continue;
+            } else if (rvmFieldName.equals("tailOffset")) {
+              Statics.setSlotContents(
+                rvmFieldOffset,
+                c.findDeclaredField(Atom.findOrCreateAsciiAtom("tail")).getOffset().toLong());
+              continue;
+            } else if (rvmFieldName.equals("waitStatusOffset")) {
+              try {
+              Statics.setSlotContents(
+                rvmFieldOffset,
+                ((RVMClass)getRvmType(Class.forName("java.util.concurrent.locks.AbstractQueuedSynchronizer$Node"))).findDeclaredField(Atom.findOrCreateAsciiAtom("waitStatus")).getOffset().toLong());
+              } catch (ClassNotFoundException e) {
+                throw new Error(e);
+              }
+              continue;
+            }
+          } else if (jdkType!=null &&
+                     jdkType.equals(java.util.concurrent.locks.LockSupport.class)) {
+            RVMClass c=(RVMClass)rvmType;
+            if (rvmFieldName.equals("parkBlockerOffset")) {
+              Statics.setSlotContents(
+                rvmFieldOffset,
+                ((RVMClass)getRvmType(java.lang.Thread.class)).findDeclaredField(Atom.findOrCreateAsciiAtom("parkBlocker")).getOffset().toLong());
+              continue;
+            }
+          }
 
           if (jdkType != null)
             jdkFieldAcc = getJdkFieldAccessor(jdkType, j, STATIC_FIELD);
@@ -2791,14 +2837,24 @@ public class BootImageWriter extends BootImageWriterMessages
         }
       } else if (jdkObject instanceof java.lang.ref.ReferenceQueue) {
         if(rvmFieldName.equals("lock")) {
-          // cause reference queues in the boot image to lock upon themselves
-          Address imageAddress = BootImageMap.findOrCreateEntry(jdkObject).imageAddress;
-          if (imageAddress.EQ(OBJECT_NOT_PRESENT) || imageAddress.EQ(OBJECT_NOT_ALLOCATED) || imageAddress.EQ(Address.zero())) {
-            throw new Error("Trying to copy known field into unavailable object!");
+          VM.sysWriteln("writing the lock field.");
+          Object value = new org.jikesrvm.scheduler.LightMonitor();
+          if (verbose>=2) traceContext.push(value.getClass().getName(),
+                                            "java.lang.ref.ReferenceQueue",
+                                            "lock");
+          Address imageAddress = BootImageMap.findOrCreateEntry(value).imageAddress;
+          if (imageAddress.EQ(OBJECT_NOT_PRESENT)) {
+            if (verbose >= 2) traceContext.traceObjectNotInBootImage();
+            throw new Error("Failed to populate lock in ReferenceQueue");
+          } else if (imageAddress.EQ(OBJECT_NOT_ALLOCATED)) {
+            imageAddress = copyToBootImage(value, false, Address.max(), jdkObject, false);
+            if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
+            bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), true, false);
           } else {
             if (verbose >= 3) traceContext.traceObjectFoundThroughKnown();
             bootImage.setAddressWord(rvmFieldAddress, imageAddress.toWord(), true, false);
           }
+          if (verbose>=2) traceContext.pop();
           return true;
         } else if (rvmFieldName.equals("first")){
           return false;
@@ -3102,7 +3158,7 @@ public class BootImageWriter extends BootImageWriterMessages
     for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < RVMType.numTypes(); ++i) {
       RVMType type = RVMType.getType(i);
       if (type == null) continue;
-      if (type.isPrimitiveType())
+      if (type.isPrimitiveType() || type.isUnboxedType())
         continue;
       if (!type.isResolved())
         continue;
