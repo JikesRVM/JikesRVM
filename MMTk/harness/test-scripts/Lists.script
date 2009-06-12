@@ -36,10 +36,16 @@ type list {
   cell tail;
 }
 
+/* A singly-linked list, so we can provide a chain of pointers stack -> nursery -> mature */
+type single {
+  single next;
+}
+
 void main() {
   int nLists = 15;
   int rotations = 10000;
   object lists = alloc(nLists,0,false);
+  single s = alloc(single);
   
   // Create the lists
   int i=0;
@@ -64,6 +70,7 @@ void main() {
     if ( (j%1000) == 0 ) {
       lengths(lists,nLists);
     }
+    s = cons(s);
     j = j + 1;
   }
 }
@@ -136,3 +143,13 @@ int length(list l) {
   }
   return n;
 }
+
+/*
+ * Prepend a singly-linked list cell onto a list 
+ */
+single cons(single l) {
+  single result = alloc(single);
+  result.next = l;
+  return result;
+}
+
