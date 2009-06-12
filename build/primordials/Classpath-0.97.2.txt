@@ -227,7 +227,6 @@ Ljava/util/Vector$1;
 Ljava/util/AbstractCollection;
 Ljava/util/Collections;
 Ljava/util/Collections$1;
-Ljava/util/Collections$2;
 Ljava/util/Collections$CheckedCollection;
 Ljava/util/Collections$CheckedIterator;
 Ljava/util/Collections$CheckedList;
