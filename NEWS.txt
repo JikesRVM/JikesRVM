@@ -5,11 +5,103 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-* Jikes RVM 3.0.2  (Future)
+* Jikes RVM 3.1.1  (Future)
 
 NOTE:  Release notes are generated directly from JIRA.
 If you want something mentioned in the release notes, make sure there is
-a JIRA item for it that when it is closed, you make it as fixed for 3.0.2.
+a JIRA item for it that when it is closed, you make it as fixed for 3.1.1.
+
+* Jikes RVM 3.1.0  (June 10, 2009)
+
+It's been almost nine months since the release of Jikes RVM 3.0.1, and
+quite a bit has changed in Jikes RVM. 
+
+We'd like to call out several items that may be of particular interest
+to the community. 
+  1. Jikes RVM has switched to using native threading instead of
+     m-to-n (aka green) threading.
+  2. The default mature space collector has changed from Mark-Sweep to Immix. 
+  3. Jikes RVM is now licensed under the Eclipse Public License (EPL).
+  4. The 3.1 release significantly improves over the performance of  
+     3.0.1, with speedups of 10% and 21% on average for DaCapo and SPEC  
+     benchmarks respectively on an Intel C2Q.  Highlights include a 29%  
+     improvement in jbb and a 32% improvement in jython.
+
+Details are given below, or are browsable online in our JIRA instance
+at http://jira.codehaus.org/browse/RVM/fixforversion/14620.
+
+** New Feature
+    * [RVM-641] - Make Immix the default mature space collector
+    * [RVM-682] - Assertion checking in sysMalloc
+    * [RVM-802] - Debugging hooks in MMTk
+    * [RVM-806] - Heavyweight sanity checker for MMTk Harness
+    * [RVM-807] - Simple type system for MMTk Harness scripting language
+
+** Bug
+    * [RVM-460] - Not accounting for nursery promotion AND defrag in GenImmix
+    * [RVM-498] - ppc-linux32 dying on SPEC jbb 2005 with 4 threads
+    * [RVM-613] - asking if a method has a hasBaselineSaveLSRegistersAnnotation triggers classloading (and thus GC) when GC is disabled during OSR
+    * [RVM-625] - FullAdaptiveImmix and FullAdaptiveStickyImmix broken on ppc32-linux
+    * [RVM-638] - Crash in Poisoned configs on PPC (aix/linux, 32/64) apparently relating to clone
+    * [RVM-662] - Error growing discontiguous space
+    * [RVM-664] - Occasional digest validation errors on lusearch performance runs
+    * [RVM-683] - Fix race in AOS controller/organizer synchronication during startup
+    * [RVM-690] - Class loader and reflection problems for unboxed types
+    * [RVM-696] - Don't recomend copying project contents with eclipse-project
+    * [RVM-698] - Don't clear most significant bits for <32bit return types on Intel [breaks Ubuntu 8.10]
+    * [RVM-700] - Not running class initializer for InetAddress causing ServerSocket failures
+    * [RVM-701] - Edge Counter and Dynamic Call Graph output after run fails
+    * [RVM-703] - Throwable.getStackTrace() implementation is incorrect
+    * [RVM-704] - Regressions from 2.9.1 not allowing jetty web server to run
+    * [RVM-708] - Bad reference map created by IA32 baseline compiler
+    * [RVM-712] - Uninterruptible code should not be allowed to call UnpremptibleNoWarn methods
+    * [RVM-722] - Bug in Static Spliting induces unconditional OSR invalidations when running _228_jack in measure compilation mode
+    * [RVM-729] - enabling simple_escape_ipa causes a ClassCastException
+    * [RVM-732] - Exception in thread "MainThread" java.security.AccessControlException: permission (java.lang.RuntimePermission exitVM) not granted: no protection domains
+    * [RVM-733] - rvm crash when closing a file in ExitMonitor.notifyExit(int value)
+    * [RVM-738] - Fix debugging output when extracting long variable values for OSR
+    * [RVM-743] - compress-3GC fails with OOME
+    * [RVM-744] - Terminal not in grammar: read_ceiling (BURS)
+    * [RVM-748] - Bug in type checking when > 32767 types
+    * [RVM-756] - Intel unnecessarily restricts boot image to be at addresses > 0x30000000
+    * [RVM-774] - Incorrect implementation of static initializers in the case of initializers that throw exceptions
+    * [RVM-795] - Baseline GC Maps with JSRs fails to set reference flag for aload operations
+    * [RVM-800] - In TemplateCompilerFramework.genCode, case JBC_anewarray,  I don't believe that the array resolution and instantiation path is ever taken
+    * [RVM-808] - OutOfMemoryError when allocating a 200 MB tab
+    * [RVM-811] - Immix: "Chunk map overflow" on jbb2005 ppc64-linux
+    * [RVM-814] - Wrong exception from Java reflection
+    * [RVM-828] - Do not search superclasses for a method unless no method is found.
+
+** Improvement
+    * [RVM-91] - Modularize threading system (native thread support)
+    * [RVM-283] - Increase frequency of timer-based method sampling
+    * [RVM-362] - Sort accumulating operands on to LHS of commutative operations
+    * [RVM-462] - Immix code still contains huge number of experimental variables
+    * [RVM-532] - Harmony's OSMemory implementation uses JNI
+    * [RVM-612] - Assertion checking on stack height in baseline compiler
+    * [RVM-689] - Update MMTk tutorial
+    * [RVM-709] - Document meaning of constants in build reference maps
+    * [RVM-725] - Increase command line options for tuning opt compiler behaviour
+    * [RVM-736] - Disable ImmutableEntryHashSetRVM.remove()
+    * [RVM-737] - Support local variable table for methods
+    * [RVM-739] - Made org.jikesrvm.compilers.opt.util.Pair generic and moved it to package org.jikesrvm.util
+    * [RVM-740] - Support for floating point conditional moves on Intel with SSE
+    * [RVM-741] - Support for negation and abs() using SSE2 bit masks
+    * [RVM-775] - Cleanup up code that obtains targets of pseudo_invokestatic instruction
+    * [RVM-791] - Clean up and modularize locking
+    * [RVM-801] - Minor change: Reorganize ClassFileReader by moving code for reading in the constant pool into a separate function
+    * [RVM-803] - Use for-each loop in RVMClass wherever possible
+
+** Tasks and Sub-tasks
+    * [RVM-817] - Change Jikes RVM license from Common Public License to Eclipse Public License
+    * [RVM-685] - Implement x86 64 JNI Compiler
+    * [RVM-751] - Implement PowerPC syscalls
+    * [RVM-759] - Stack maps seem to be broken
+    * [RVM-779] - Update userguide to decribe native threads
+    * [RVM-783] - Fix baseline Intel 64bit reference maps
+    * [RVM-786] - Adjust sampling mechanism in AOS to account for native threads
+    * [RVM-787] - Outline exception raising code in gnu.java.lang.CPStringBuilder to enable better inlining
+    * [RVM-29] - Track website traffic via sourceforge logo requests
 
 * Jikes RVM 3.0.1  (October 16, 2008)
 
