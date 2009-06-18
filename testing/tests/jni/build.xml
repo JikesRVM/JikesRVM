@@ -103,6 +103,7 @@
 
     <!-- JNI 1.4 -->
     <jniTest class="TestJNIDirectBuffers"/>
+    <jniTest class="TestJNIGetFieldID"/>
 
     <finishResults/>
   </target>

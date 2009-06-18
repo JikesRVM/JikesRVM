@@ -2238,9 +2238,12 @@ public class JNIFunctions implements SizeConstants {
       String descriptorString = JNIHelpers.createStringFromC(descriptorAddress);
       Atom descriptor = Atom.findOrCreateAsciiAtom(descriptorString);
 
-      // list of all instance fields including superclasses
+      // list of all instance fields including superclasses.
+      // Iterate in reverse order since if there are multiple instance
+      // fields of the same name & descriptor we want to find the most derived one.
       RVMField[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getInstanceFields();
-      for (RVMField f : fields) {
+      for (int i = fields.length-1; i>=0; i--) {
+        RVMField f = fields[i];
         if (f.getName() == fieldName && f.getDescriptor() == descriptor) {
           return f.getId();
         }
@@ -3434,11 +3437,23 @@ public class JNIFunctions implements SizeConstants {
       String descriptorString = JNIHelpers.createStringFromC(descriptorAddress);
       Atom descriptor = Atom.findOrCreateAsciiAtom(descriptorString);
 
-      // list of all instance fields including superclasses
-      RVMField[] fields = java.lang.JikesRVMSupport.getTypeForClass(cls).getStaticFields();
-      for (RVMField field : fields) {
-        if (field.getName() == fieldName && field.getDescriptor() == descriptor) {
-          return field.getId();
+      RVMType rvmType = java.lang.JikesRVMSupport.getTypeForClass(cls);
+      if (rvmType.isClassType()) {
+        // First search for the fields in the class and its superclasses
+        for (RVMClass curClass = rvmType.asClass(); curClass != null; curClass = curClass.getSuperClass()) {
+          for (RVMField field : curClass.getStaticFields()) {
+            if (field.getName() == fieldName && field.getDescriptor() == descriptor) {
+              return field.getId();
+            }
+          }
+        }
+        // Now search all implemented interfaces (includes inherited interfaces)
+        for (RVMClass curClass : rvmType.asClass().getAllImplementedInterfaces()) {
+          for (RVMField field : curClass.getStaticFields()) {
+            if (field.getName() == fieldName && field.getDescriptor() == descriptor) {
+              return field.getId();
+            }
+          }
         }
       }
 
