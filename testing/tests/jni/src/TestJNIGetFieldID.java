@@ -74,6 +74,18 @@ public class TestJNIGetFieldID {
       allTestPass = false;
     }
 
+    try {
+      if (getStaticFinalF(I.class) == 1) {
+        if (verbose) System.out.println("static_I.f: pass");
+      } else {
+        if (verbose) System.out.println("static_I.f: fail");
+        allTestPass = false;
+      }
+    } catch(Throwable e) {
+      if (verbose) System.out.println("static_f: fail");
+      allTestPass = false;
+    }
+
     if (allTestPass) {
       System.out.println("PASS: TestJNIGetFieldID");
     } else {
