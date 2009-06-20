@@ -557,7 +557,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   @NoInline
   private void throwNoSuchMethodException(String name, Class<?>... parameterTypes) throws NoSuchMethodException {
     String typeString;
-    if (parameterTypes.length == 0) {
+    if (parameterTypes == null || parameterTypes.length == 0) {
       typeString = "()";
     } else {
       typeString = "(";
