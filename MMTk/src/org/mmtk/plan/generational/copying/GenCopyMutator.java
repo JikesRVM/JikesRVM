@@ -142,7 +142,7 @@ public class GenCopyMutator extends GenMutator {
    */
   public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
-      if (phaseId == GenCopy.PREPARE) {
+      if (phaseId == GenCopy.RELEASE) {
         super.collectionPhase(phaseId, primary);
         if (global().gcFullHeap) mature.rebind(GenCopy.toSpace());
         return;
