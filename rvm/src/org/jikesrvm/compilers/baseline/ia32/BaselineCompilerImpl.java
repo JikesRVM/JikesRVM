@@ -754,7 +754,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_lastore() {
-    Barriers.compileModifyCheck(asm, 3*WORDSIZE);
+    Barriers.compileModifyCheck(asm, 12);
     if (VM.BuildFor32Addr) {
       if (SSE2_BASE) {
         asm.emitMOVQ_Reg_RegInd(XMM0,SP); // XMM0 is the value
@@ -2850,6 +2850,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_unresolved_putfield(FieldReference fieldRef) {
+    Barriers.compileModifyCheck(asm, fieldRef.getNumberOfStackSlots() * WORDSIZE);
     TypeReference fieldType = fieldRef.getFieldContentsType();
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (fieldType.isReferenceType()) {
@@ -2920,9 +2921,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_resolved_putfield(FieldReference fieldRef) {
+    Barriers.compileModifyCheck(asm, fieldRef.getNumberOfStackSlots() * WORDSIZE);
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
-    Barriers.compileModifyCheck(asm, 4);
     if (field.isReferenceType()) {
       // 32/64bit reference store
       if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
