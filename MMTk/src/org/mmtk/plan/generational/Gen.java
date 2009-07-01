@@ -60,7 +60,12 @@ public abstract class Gen extends StopTheWorld {
   public static final boolean USE_OBJECT_BARRIER_FOR_AASTORE = false; // choose between slot and object barriers
   public static final boolean USE_OBJECT_BARRIER_FOR_PUTFIELD = false; // choose between slot and object barriers
   public static final boolean USE_OBJECT_BARRIER = USE_OBJECT_BARRIER_FOR_AASTORE || USE_OBJECT_BARRIER_FOR_PUTFIELD;
-  private static final boolean USE_DISCONTIGUOUS_NURSERY = false;
+
+  /** Fraction of available virtual memory to give to the nursery (if contiguous) */
+  protected static final float NURSERY_VM_FRACTION = 0.15f;
+
+  /** Switch between a contiguous and discontiguous nursery (experimental) */
+  static final boolean USE_DISCONTIGUOUS_NURSERY = false;
 
   // Allocators
   public static final int ALLOC_NURSERY        = ALLOC_DEFAULT;
@@ -85,12 +90,11 @@ public abstract class Gen extends StopTheWorld {
   public static final SizeCounter nurseryCons;
 
   /** The nursery space is where all new objects are allocated by default */
-  private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.create() : VMRequest.create(0.15f, true);
+  private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.create() : VMRequest.create(NURSERY_VM_FRACTION, true);
   public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, vmRequest);
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   private static final Address NURSERY_START = nurserySpace.getStart();
-  protected static final int MAX_NURSERY_ALLOC_BYTES = USE_DISCONTIGUOUS_NURSERY ? org.mmtk.utility.Constants.MAX_INT : nurserySpace.getExtent().toInt();
 
   /*****************************************************************************
    *

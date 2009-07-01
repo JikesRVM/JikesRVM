@@ -670,6 +670,7 @@ public abstract class Space implements Constants {
    * @param addr The address to be aligned
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
+   * @return The chunk-aligned address
    */
   public static Address chunkAlign(Address addr, boolean down) {
     if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
@@ -680,8 +681,9 @@ public abstract class Space implements Constants {
    * Align an extent to a space chunk
    *
    * @param bytes The extent to be aligned
-   * @param down If true the address will be rounded down, otherwise
+   * @param down If true the extent will be rounded down, otherwise
    * it will rounded up.
+   * @return The chunk-aligned extent
    */
   public static Extent chunkAlign(Extent bytes, boolean down) {
     if (!down) bytes = bytes.plus(BYTES_IN_CHUNK - 1);
@@ -692,10 +694,10 @@ public abstract class Space implements Constants {
    * Convert a fraction into a number of bytes according to the
    * fraction of available bytes.
    *
-   * @param frac The fraction of avialable virtual memory desired
+   * @param frac The fraction of available virtual memory desired
    * @return The corresponding number of bytes, chunk-aligned.
    */
-  private static Extent getFracAvailable(float frac) {
+  public static Extent getFracAvailable(float frac) {
     long bytes = (long) (frac * AVAILABLE_BYTES.toLong());
     Word mb = Word.fromIntSignExtend((int) (bytes >> LOG_BYTES_IN_MBYTE));
     Extent rtn = mb.lsh(LOG_BYTES_IN_MBYTE).toExtent();

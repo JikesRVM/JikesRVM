@@ -16,6 +16,7 @@ import org.mmtk.plan.StopTheWorldConstraints;
 
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.policy.Space;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Word;
@@ -63,10 +64,21 @@ public class GenConstraints extends StopTheWorldConstraints {
 
   /** @return A bit which represents that a header is unlogged */
   @Override
-  public Word unloggedBit() {return MarkSweepSpace.UNLOGGED_BIT; }
+  public Word unloggedBit() { return MarkSweepSpace.UNLOGGED_BIT; }
 
-  /** @return The maximum size of an object that may be allocated directly into the nursery */
+  /**
+   * @return The maximum size of an object that may be allocated directly into the nursery
+   */
   @Override
-  public int maxNonLOSDefaultAllocBytes() { return Gen.MAX_NURSERY_ALLOC_BYTES; }
+  public int maxNonLOSDefaultAllocBytes() {
+    /*
+     * If the nursery is discontiguous, the maximum object is essentially unbounded.  In
+     * a contiguous nursery, we can't attempt to nursery-allocate objects larger than the
+     * available nursery virtual memory.
+     */
+    return  Gen.USE_DISCONTIGUOUS_NURSERY ?
+        org.mmtk.utility.Constants.MAX_INT :
+        Space.getFracAvailable(Gen.NURSERY_VM_FRACTION).toInt();
+  }
 
 }
