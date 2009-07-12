@@ -12,11 +12,11 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.ForwardingWord;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
@@ -42,21 +42,6 @@ import org.vmmagic.pragma.*;
 
   private static final int META_DATA_PAGES_PER_REGION = CARD_META_PAGES_PER_REGION;
 
-  /*
-   *  The forwarding process uses three states to deal with a GC race:
-   *  1.      !GC_FORWARDED: Unforwarded
-   *  2. GC_BEING_FORWARDED: Being forwarded (forwarding is underway)
-   *  3.       GC_FORWARDED: Forwarded
-   */
-  /** If this bit is set, then forwarding of this object has commenced */
-  private static final Word GC_FORWARDED = Word.one().lsh(1); // ...10
-  /** If this bit is set, then forwarding of this object is incomplete */
-  private static final Word GC_BEING_FORWARDED  = Word.one().lsh(2).minus(Word.one());  // ...11
-  /** This mask is used to reveal which state this object is in with respect to forwarding */
-  private static final Word GC_FORWARDING_MASK  = GC_FORWARDED.or(GC_BEING_FORWARDED);
-
-  /** A single bit is used to indicate a mark when tracing (but not copying) the space */
-  private static final Word GC_MARK_BIT_MASK = Word.one();
 
   /****************************************************************************
    *
@@ -177,21 +162,21 @@ import org.vmmagic.pragma.*;
     if (!fromSpace) return object;
 
     /* Try to forward the object */
-    Word forwardingPtr = attemptToForward(object);
+    Word forwardingWord = ForwardingWord.attemptToForward(object);
 
-    if (stateIsForwardedOrBeingForwarded(forwardingPtr)) {
+    if (ForwardingWord.stateIsForwardedOrBeingForwarded(forwardingWord)) {
       /* Somebody else got to it first. */
 
       /* We must wait (spin) if the object is not yet fully forwarded */
-      while (stateIsBeingForwarded(forwardingPtr))
-        forwardingPtr = getForwardingWord(object);
+      while (ForwardingWord.stateIsBeingForwarded(forwardingWord))
+        forwardingWord = VM.objectModel.readAvailableBitsWord(object);
 
       /* Now extract the object reference from the forwarding word and return it */
-      return forwardingPtr.and(GC_FORWARDING_MASK.not()).toAddress().toObjectReference();
+      return ForwardingWord.extractForwardingPointer(forwardingWord);
     } else {
       /* We are the designated copier, so forward it and enqueue it */
       ObjectReference newObject = VM.objectModel.copy(object, allocator);
-      setForwardingPointer(object, newObject);
+      ForwardingWord.setForwardingPointer(object, newObject);
       trace.processNode(newObject); // Scan it later
 
       if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
@@ -212,7 +197,7 @@ import org.vmmagic.pragma.*;
    * @return True if this object is live in this GC (has it been forwarded?)
    */
   public boolean isLive(ObjectReference object) {
-    return isForwarded(object);
+    return ForwardingWord.isForwarded(object);
   }
 
   /**
@@ -223,26 +208,7 @@ import org.vmmagic.pragma.*;
    * @return True if the object is reachable.
    */
   public boolean isReachable(ObjectReference object) {
-    return !fromSpace || isForwarded(object);
-  }
-
-  /****************************************************************************
-   *
-   * Non-copying tracing (just mark, don't forward)
-   */
-
-  /**
-   * Mark an object as having been traversed, *WITHOUT* forwarding the object.
-   * This is only used when
-   *
-   * @param object The object to be marked
-   * @param markState The sense of the mark bit (flips from 0 to 1)
-   */
-  @Inline
-  public static void markObject(TraceLocal trace, ObjectReference object,
-      Word markState) {
-    if (testAndMark(object, markState))
-      trace.processNode(object);
+    return !fromSpace || ForwardingWord.isForwarded(object);
   }
 
   /****************************************************************************
@@ -260,148 +226,4 @@ import org.vmmagic.pragma.*;
    @Inline
    public void postAlloc(ObjectReference object) {}
 
-  /**
-   * Clear the GC portion of the header for an object.
-   *
-   * @param object the object ref to the storage to be initialized
-   */
-  @Inline
-  public static void clearGCBits(ObjectReference object) {
-    Word header = VM.objectModel.readAvailableBitsWord(object);
-    VM.objectModel.writeAvailableBitsWord(object, header.and(GC_FORWARDING_MASK.not()));
-  }
-
-  /**
-   * Has an object been forwarded?
-   *
-   * @param object The object to be checked
-   * @return True if the object has been forwarded
-   */
-  @Inline
-  public static boolean isForwarded(ObjectReference object) {
-    return stateIsForwarded(getForwardingWord(object));
-  }
-
-  /**
-   * Has an object been forwarded or being forwarded?
-   *
-   * @param object The object to be checked
-   * @return True if the object has been forwarded or is being forwarded
-   */
-  @Inline
-  public static boolean isForwardedOrBeingForwarded(ObjectReference object) {
-    return stateIsForwardedOrBeingForwarded(getForwardingWord(object));
-  }
-
-  /**
-   * Non-atomic read of forwarding pointer word
-   *
-   * @param object The object whose forwarding word is to be read
-   * @return The forwarding word stored in <code>object</code>'s
-   * header.
-   */
-  @Inline
-  private static Word getForwardingWord(ObjectReference object) {
-    return VM.objectModel.readAvailableBitsWord(object);
-  }
-
-  /**
-   * Non-atomic read of forwarding pointer
-   *
-   * @param object The object whose forwarding pointer is to be read
-   * @return The forwarding pointer stored in <code>object</code>'s
-   * header.
-   */
-  @Inline
-  public static ObjectReference getForwardingPointer(ObjectReference object) {
-    return getForwardingWord(object).and(GC_FORWARDING_MASK.not()).toAddress().toObjectReference();
-  }
-
-  /**
-   * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
-   *
-   * @param object The object to be marked
-   * @param value The value to store in the mark bit
-   */
-  @Inline
-  private static boolean testAndMark(ObjectReference object, Word value) {
-    Word oldValue;
-    do {
-      oldValue = VM.objectModel.prepareAvailableBits(object);
-      Word markBit = oldValue.and(GC_MARK_BIT_MASK);
-      if (markBit.EQ(value)) return false;
-    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
-                                                oldValue.xor(GC_MARK_BIT_MASK)));
-    return true;
-  }
-
-  /**
-   * Either return the forwarding pointer if the object is already
-   * forwarded (or being forwarded) or write the bit pattern that
-   * indicates that the object is being forwarded
-   *
-   * @param object The object to be forwarded
-   * @return The forwarding pointer for the object if it has already
-   * been forwarded.
-   */
-  @Inline
-  private static Word attemptToForward(ObjectReference object) {
-    Word oldValue;
-    do {
-      oldValue = VM.objectModel.prepareAvailableBits(object);
-      if (oldValue.and(GC_FORWARDING_MASK).EQ(GC_FORWARDED)) return oldValue;
-    } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
-                                                oldValue.or(GC_BEING_FORWARDED)));
-    return oldValue;
-  }
-
-  /**
-   * Is the state of the forwarding word being forwarded?
-   *
-   * @param fword A forwarding word.
-   * @return True if the forwarding word's state is being forwarded.
-   */
-  @Inline
-  private static boolean stateIsBeingForwarded(Word fword) {
-    return fword.and(GC_FORWARDING_MASK).EQ(GC_BEING_FORWARDED);
-  }
-
-  /**
-   * Is the state of the forwarding word forwarded?
-   *
-   * @param fword A forwarding word.
-   * @return True if the forwarding word's state is forwarded.
-   */
-  @Inline
-  private static boolean stateIsForwarded(Word fword) {
-    return fword.and(GC_FORWARDING_MASK).EQ(GC_FORWARDED);
-  }
-
-  /**
-   * Is the state of the forwarding word forwarded or being forwarded?
-   *
-   * @param fword A forwarding word.
-   * @return True if the forwarding word's state is forwarded or being
-   *         forwarded.
-   */
-  @Inline
-  public static boolean stateIsForwardedOrBeingForwarded(Word fword) {
-    return !(fword.and(GC_FORWARDED).isZero());
-  }
-
-  /**
-   * Non-atomic write of forwarding pointer word (assumption, thread
-   * doing the set has done attempt to forward and owns the right to
-   * copy the object)
-   *
-   * @param object The object whose forwarding pointer is to be set
-   * @param ptr The forwarding pointer to be stored in the object's
-   * forwarding word
-   */
-  @Inline
-  private static void setForwardingPointer(ObjectReference object,
-                                           ObjectReference ptr) {
-    VM.objectModel.writeAvailableBitsWord(object, ptr.toAddress().toWord().or(GC_FORWARDED));
-  }
 }

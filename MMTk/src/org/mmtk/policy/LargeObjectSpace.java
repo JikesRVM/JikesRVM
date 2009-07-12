@@ -12,10 +12,10 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.heap.VMRequest;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.Treadmill;
 
 import org.mmtk.vm.VM;
@@ -36,15 +36,15 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    */
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
-  private static final Word MARK_BIT = Word.one(); // ...01
-  private static final Word NURSERY_BIT = Word.fromIntZeroExtend(2); // ...10
-  private static final Word LOS_BIT_MASK = Word.fromIntZeroExtend(3); // ...11
+  private static final byte MARK_BIT =     1; // ...01
+  private static final byte NURSERY_BIT =  2; // ...10
+  private static final byte LOS_BIT_MASK = 3; // ...11
 
   /****************************************************************************
    *
    * Instance variables
    */
-  private Word markState;
+  private byte markState;
   private boolean inNurseryGC;
   private final Treadmill treadmill;
 
@@ -66,7 +66,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
   public LargeObjectSpace(String name, int pageBudget, VMRequest vmRequest) {
     super(name, pageBudget, vmRequest);
     treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
-    markState = Word.zero();
+    markState = 0;
   }
 
   /****************************************************************************
@@ -84,7 +84,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
       if (VM.VERIFY_ASSERTIONS) {
         VM.assertions._assert(treadmill.fromSpaceEmpty());
       }
-      markState = MARK_BIT.minus(markState);
+      markState = (byte) (MARK_BIT - markState);
     }
     treadmill.flip(fullHeap);
     inNurseryGC = !fullHeap;
@@ -194,11 +194,11 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    */
   @Inline
   public void initializeHeader(ObjectReference object, boolean alloc) {
-    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(LOS_BIT_MASK.not()).or(markState);
-    if (alloc) newValue = newValue.or(NURSERY_BIT);
-    if (Plan.NEEDS_LOG_BIT_IN_HEADER) newValue = newValue.or(Plan.UNLOGGED_BIT);
-    VM.objectModel.writeAvailableBitsWord(object, newValue);
+    byte oldValue = VM.objectModel.readAvailableByte(object);
+    byte newValue = (byte) ((oldValue & ~LOS_BIT_MASK) | markState);
+    if (alloc) newValue |= NURSERY_BIT;
+    if (HeaderByte.NEEDS_UNLOGGED_BIT) newValue |= HeaderByte.UNLOGGED_BIT;
+    VM.objectModel.writeAvailableByte(object, newValue);
     Address cell = VM.objectModel.objectStartRef(object);
     treadmill.addToTreadmill(Treadmill.midPayloadToNode(cell), alloc);
   }
@@ -211,14 +211,14 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * @param value The value to which the mark bit will be set
    */
   @Inline
-  private boolean testAndMark(ObjectReference object, Word value) {
-    Word oldValue, markBit;
+  private boolean testAndMark(ObjectReference object, byte value) {
+    Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
-      markBit = oldValue.and(inNurseryGC ? LOS_BIT_MASK : MARK_BIT);
-      if (markBit.EQ(value)) return false;
+      byte markBit = (byte) (oldValue.toInt() & (inNurseryGC ? LOS_BIT_MASK : MARK_BIT));
+      if (markBit == value) return false;
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
-                                                  oldValue.and(LOS_BIT_MASK.not()).or(value)));
+                                                  oldValue.and(Word.fromIntZeroExtend(LOS_BIT_MASK).not()).or(Word.fromIntZeroExtend(value))));
     return true;
   }
 
@@ -230,8 +230,8 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * @return True if the mark bit for the object has the given value.
    */
   @Inline
-  private boolean testMarkBit(ObjectReference object, Word value) {
-    return VM.objectModel.readAvailableBitsWord(object).and(MARK_BIT).EQ(value);
+  private boolean testMarkBit(ObjectReference object, byte value) {
+    return (byte) (VM.objectModel.readAvailableByte(object) & MARK_BIT) == value;
   }
 
   /**
@@ -242,7 +242,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    */
   @Inline
   private boolean isInNursery(ObjectReference object) {
-     return VM.objectModel.readAvailableBitsWord(object).and(NURSERY_BIT).EQ(NURSERY_BIT);
+     return (byte)(VM.objectModel.readAvailableByte(object) & NURSERY_BIT) == NURSERY_BIT;
   }
 
   /**

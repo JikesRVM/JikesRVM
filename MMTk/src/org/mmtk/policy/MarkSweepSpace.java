@@ -12,13 +12,13 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.MarkSweepMarkBits;
 import org.mmtk.utility.options.EagerCompleteSweep;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.HeaderByte;
 
 import org.mmtk.vm.VM;
 
@@ -48,21 +48,20 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    */
   public static final boolean HEADER_MARK_BITS = VM.config.HEADER_MARK_BITS;
   /** highest bit bits we may use */
-  private static final int MAX_BITS = 4;
+  private static final int AVAILABLE_LOCAL_BITS = 8 - HeaderByte.USED_GLOBAL_BITS;
 
   /* mark bits */
   private static final int COUNT_BASE = 0;
-  public static final int DEFAULT_MARKCOUNT_BITS = 2;
-  public static final int MAX_MARKCOUNT_BITS = Plan.NEEDS_LOG_BIT_IN_HEADER ? MAX_BITS - 1 : MAX_BITS;
-  public static final Word UNLOGGED_BIT = Word.one().lsh(MAX_BITS - 1).lsh(COUNT_BASE);
-  private static final Word MARK_COUNT_INCREMENT = Word.one().lsh(COUNT_BASE);
-  private static final Word MARK_COUNT_MASK = Word.one().lsh(MAX_MARKCOUNT_BITS).minus(Word.one()).lsh(COUNT_BASE);
-  private static final Word MARK_BITS_MASK = Word.one().lsh(MAX_BITS).minus(Word.one());
 
-  private static final boolean EAGER_MARK_CLEAR = Plan.NEEDS_LOG_BIT_IN_HEADER;
+  public static final int DEFAULT_MARKCOUNT_BITS = 4;
+  public static final int MAX_MARKCOUNT_BITS = AVAILABLE_LOCAL_BITS - COUNT_BASE;
+  private static final byte MARK_COUNT_INCREMENT = (byte) (1<<COUNT_BASE);
+  private static final byte MARK_COUNT_MASK = (byte) (((1<<MAX_MARKCOUNT_BITS)-1) << COUNT_BASE);
+
+  private static final boolean EAGER_MARK_CLEAR = HeaderByte.NEEDS_UNLOGGED_BIT;
 
   /* header requirements */
-  public static final int LOCAL_GC_BITS_REQUIRED = MAX_BITS;
+  public static final int LOCAL_GC_BITS_REQUIRED = MAX_MARKCOUNT_BITS;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
@@ -71,8 +70,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    *
    * Instance variables
    */
-  private Word markState = Word.one();
-  private Word allocState = Word.zero();
+  private byte markState = 1;
+  private byte allocState = 0;
   private boolean inMSCollection;
   private static final boolean usingStickyMarkBits = VM.activePlan.constraints().needsLogBitInHeader(); /* are sticky mark bits in use? */
   private boolean isAgeSegregated = false; /* is this space a nursery space? */
@@ -99,7 +98,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    */
   public MarkSweepSpace(String name, int pageBudget, VMRequest vmRequest) {
     super(name, pageBudget, 0, vmRequest);
-    if (usingStickyMarkBits) allocState = allocState.or(UNLOGGED_BIT);
+    if (usingStickyMarkBits) allocState |= HeaderByte.UNLOGGED_BIT;
   }
 
   /**
@@ -109,7 +108,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   public void isAgeSegregatedSpace() {
     /* we must be using sticky mark bits */
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(usingStickyMarkBits);
-    allocState = allocState.and(UNLOGGED_BIT.not()); /* clear the unlogged bit for nursery allocs */
+    allocState &= ~HeaderByte.UNLOGGED_BIT; /* clear the unlogged bit for nursery allocs */
     isAgeSegregated = true;
   }
 
@@ -193,7 +192,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
       if (gcWholeMS) {
         allocState = markState;
         if (usingStickyMarkBits && !isAgeSegregated) /* if true, we allocate as "mature", not nursery */
-          allocState = allocState.or(UNLOGGED_BIT);
+          allocState |= HeaderByte.UNLOGGED_BIT;
         markState = deltaMarkState(true);
         if (EAGER_MARK_CLEAR)
           clearAllBlockMarks();
@@ -235,7 +234,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
     if (!HEADER_MARK_BITS) {
       return super.isCellLive(object);
     }
-    return testMarkState(object, markState);
+    return testMarkState(object);
   }
 
   /****************************************************************************
@@ -259,8 +258,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (HEADER_MARK_BITS) {
-      Word markValue = Plan.NEEDS_LOG_BIT_IN_HEADER ? markState.or(Plan.UNLOGGED_BIT) : markState;
-      if (testAndMark(object, markValue)) {
+      if (testAndMark(object)) {
         markBlock(object);
         trace.processNode(object);
       }
@@ -280,21 +278,10 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   @Inline
   public boolean isLive(ObjectReference object) {
     if (HEADER_MARK_BITS) {
-      return testMarkState(object, markState);
+      return testMarkState(object);
     } else {
       return liveBitSet(object);
     }
-  }
-
-  /**
-   * Get the current mark state
-   *
-   * @return The current mark state.
-   */
-  @Inline
-  public Word getMarkState() {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markState.and(MARK_COUNT_MASK.not()).isZero());
-    return markState;
   }
 
   /**
@@ -303,7 +290,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * @return The previous mark state.
    */
   @Inline
-  public Word getPreviousMarkState() {
+  public byte getPreviousMarkState() {
     return deltaMarkState(false);
   }
 
@@ -313,11 +300,11 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * @param increment If true, then return the incremented value else return the decremented value
    * @return the mark state incremented or decremented by one.
    */
-  private Word deltaMarkState(boolean increment) {
-    Word mask = Word.fromIntZeroExtend((1 << Options.markSweepMarkBits.getValue()) - 1).lsh(COUNT_BASE);
-    Word rtn = increment ? markState.plus(MARK_COUNT_INCREMENT) : markState.minus(MARK_COUNT_INCREMENT);
-    rtn = rtn.and(mask);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(markState.and(MARK_COUNT_MASK.not()).isZero());
+  private byte deltaMarkState(boolean increment) {
+    byte mask = (byte) (((1 << Options.markSweepMarkBits.getValue()) - 1)<<COUNT_BASE);
+    byte rtn = (byte) (increment ? markState + MARK_COUNT_INCREMENT : markState - MARK_COUNT_INCREMENT);
+    rtn &= mask;
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((markState & ~MARK_COUNT_MASK) == 0);
     return rtn;
   }
 
@@ -362,12 +349,12 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   @Inline
   public void initializeHeader(ObjectReference object, boolean alloc) {
     if (HEADER_MARK_BITS) {
-      if (alloc) {
-        writeAllocState(object);
-      } else {
-        writeMarkState(object);
-      }
-    }
+      byte oldValue = VM.objectModel.readAvailableByte(object);
+      byte newValue = (byte) ((oldValue & ~MARK_COUNT_MASK) | (alloc ? allocState : markState));
+      if (HeaderByte.NEEDS_UNLOGGED_BIT) newValue |= HeaderByte.UNLOGGED_BIT;
+      VM.objectModel.writeAvailableByte(object, newValue);
+    } else if (HeaderByte.NEEDS_UNLOGGED_BIT)
+      HeaderByte.markAsUnlogged(object);
   }
 
   /**
@@ -378,12 +365,12 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * @param value The value to which the mark bits will be set
    */
   @Inline
-  private static boolean testAndMark(ObjectReference object, Word value) {
-    int oldValue, markBits;
+  private boolean testAndMark(ObjectReference object) {
+    byte oldValue, markBits;
     oldValue = VM.objectModel.readAvailableByte(object);
-    markBits = oldValue & MARK_BITS_MASK.toInt();
-    if (markBits == value.toInt()) return false;
-    VM.objectModel.writeAvailableByte(object, (byte)(oldValue & ~MARK_BITS_MASK.toInt() | value.toInt()));
+    markBits = (byte) (oldValue & MARK_COUNT_MASK);
+    if (markBits == markState) return false;
+    VM.objectModel.writeAvailableByte(object, (byte)((oldValue & ~MARK_COUNT_MASK) | markState));
     return true;
   }
 
@@ -395,34 +382,8 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * @return True if the mark bit for the object has the given value.
    */
   @Inline
-  public static boolean testMarkState(ObjectReference object, Word value) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(MARK_COUNT_MASK.not()).isZero());
-    return VM.objectModel.readAvailableBitsWord(object).and(MARK_COUNT_MASK).EQ(value);
-  }
-
-  /**
-   * Write the allocState into the mark state fields of an object non-atomically.
-   * This is appropriate for allocation time initialization.
-   *
-   * @param object The object whose mark state is to be written
-   */
-  @Inline
-  private void writeAllocState(ObjectReference object) {
-    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(allocState);
-    VM.objectModel.writeAvailableBitsWord(object, newValue);
-  }
-
-  /**
-   * Write the markState into the mark state fields of an object non-atomically.
-   * This is appropriate for collection time initialization.
-   *
-   * @param object The object whose mark state is to be written
-   */
-  @Inline
-  private void writeMarkState(ObjectReference object) {
-    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(MARK_BITS_MASK.not()).or(markState);
-    VM.objectModel.writeAvailableBitsWord(object, newValue);
+  private boolean testMarkState(ObjectReference object) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((markState & ~MARK_COUNT_MASK) == 0);
+    return (VM.objectModel.readAvailableByte(object) & MARK_COUNT_MASK) == markState;
   }
 }

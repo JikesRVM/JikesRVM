@@ -12,9 +12,9 @@
  */
 package org.mmtk.plan.generational;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.*;
 
 import org.mmtk.vm.VM;
@@ -124,7 +124,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
     logMessage(5, "clearing modbuf");
     ObjectReference obj;
     while (!(obj = modbuf.pop()).isNull()) {
-      Plan.markAsUnlogged(obj);
+      HeaderByte.markAsUnlogged(obj);
     }
     logMessage(5, "clearing remset");
     while (!remset.isEmpty()) {

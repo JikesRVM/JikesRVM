@@ -17,6 +17,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.generational.*;
 import org.mmtk.policy.MarkSweepLocal;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.statistics.Stats;
 
@@ -115,7 +116,7 @@ public class GenMSCollector extends GenCollector {
     else
       GenMS.msSpace.postCopy(object, allocator == GenMS.ALLOC_MATURE_MAJORGC);
     if (Gen.USE_OBJECT_BARRIER)
-      Plan.markAsUnlogged(object);
+      HeaderByte.markAsUnlogged(object);
   }
 
   /*****************************************************************************

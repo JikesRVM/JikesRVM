@@ -16,6 +16,7 @@ import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.generational.*;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.ImmixAllocator;
 import org.mmtk.utility.statistics.Stats;
@@ -119,7 +120,7 @@ public class GenImmixCollector extends GenCollector {
       GenImmix.immixSpace.postCopy(object, bytes, allocator == GenImmix.ALLOC_MATURE_MAJORGC);
     }
     if (Gen.USE_OBJECT_BARRIER)
-      Plan.markAsUnlogged(object);
+      HeaderByte.markAsUnlogged(object);
   }
 
   /*****************************************************************************

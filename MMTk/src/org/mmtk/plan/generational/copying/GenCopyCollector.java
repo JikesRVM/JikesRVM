@@ -17,7 +17,8 @@ import org.mmtk.plan.generational.GenCollector;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.CopyLocal;
-import org.mmtk.policy.CopySpace;
+import org.mmtk.utility.ForwardingWord;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.vm.VM;
 
@@ -111,13 +112,13 @@ public class GenCopyCollector extends GenCollector {
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
-    CopySpace.clearGCBits(object);
+    ForwardingWord.clearForwardingBits(object);
     if (allocator == Plan.ALLOC_LOS)
       Plan.loSpace.initializeHeader(object, false);
     else if (GenCopy.IGNORE_REMSETS)
-      CopySpace.markObject(getCurrentTrace(),object, GenCopy.immortalSpace.getMarkState());
+      GenCopy.immortalSpace.traceObject(getCurrentTrace(), object); // FIXME this does not look right
     if (Gen.USE_OBJECT_BARRIER)
-      Plan.markAsUnlogged(object);
+      HeaderByte.markAsUnlogged(object);
   }
 
 

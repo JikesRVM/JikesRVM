@@ -647,8 +647,8 @@ public class JavaHeader implements JavaHeaderConstants {
    * Non-atomic write of word containing available bits
    */
   @Interruptible
-  public static void writeAvailableBitsWord(BootImageInterface bootImage, Address ref, Word val) {
-    bootImage.setAddressWord(ref.plus(STATUS_OFFSET), val, false, false);
+  public static void writeAvailableByte(BootImageInterface bootImage, Address ref, byte val) {
+    bootImage.setByte(ref.plus(AVAILABLE_BITS_OFFSET), val);
   }
 
   /**

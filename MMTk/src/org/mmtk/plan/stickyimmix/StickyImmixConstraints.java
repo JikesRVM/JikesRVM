@@ -16,10 +16,7 @@ import static org.mmtk.policy.immix.ImmixConstants.MAX_IMMIX_OBJECT_BYTES;
 
 import org.mmtk.plan.immix.ImmixConstraints;
 
-import org.mmtk.policy.MarkSweepSpace;
-
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.Word;
 
 /**
  * This class and its subclasses communicate to the host VM/Runtime
@@ -40,10 +37,6 @@ public class StickyImmixConstraints extends ImmixConstraints {
   /** @return True if this Plan requires a header bit for object logging */
   @Override
   public boolean needsLogBitInHeader() { return true; }
-
-  /** @return A bit which represents that a header is unlogged */
-  @Override
-  public Word unloggedBit() {return MarkSweepSpace.UNLOGGED_BIT; }
 
   /** @return Size (in bytes) beyond which new regular objects must be allocated to the LOS */
   @Override

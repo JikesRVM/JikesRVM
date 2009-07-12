@@ -110,9 +110,6 @@ public abstract class Plan implements Constants {
 
 /* Do we support a log bit in the object header?  Some write barriers may use it */
   public static final boolean NEEDS_LOG_BIT_IN_HEADER = VM.activePlan.constraints().needsLogBitInHeader();
-  public static final Word LOG_SET_MASK = VM.activePlan.constraints().unloggedBit();
-  private static final Word LOG_CLEAR_MASK = LOG_SET_MASK.not();
-  public static final Word UNLOGGED_BIT = VM.activePlan.constraints().unloggedBit();
 
   /****************************************************************************
    * Class variables
@@ -255,26 +252,6 @@ public abstract class Plan implements Constants {
    * @param totals Print totals
    */
   protected void printDetailedTiming(boolean totals) {}
-
-  /**
-   * Perform any required initialization of the GC portion of the header.
-   * Called for objects created at boot time.
-   *
-   * @param ref the object ref to the storage to be initialized
-   * @param typeRef the type reference for the instance being created
-   * @param size the number of bytes allocated by the GC system for
-   * this object.
-   * @param status the initial value of the status word
-   * @return The new value of the status word
-   */
-  @Inline
-  public Word setBootTimeGCBits(Address ref, ObjectReference typeRef,
-                                int size, Word status) {
-    if (NEEDS_LOG_BIT_IN_HEADER)
-      return status.or(UNLOGGED_BIT);
-    else
-    return status; // nothing to do (no bytes of GC header)
-  }
 
   /**
    * Perform any required write barrier action when installing an object reference
@@ -989,46 +966,6 @@ public abstract class Plan implements Constants {
      * Individual plans should override for non-moving spaces they define.
      */
     return false;
-  }
-
-  /****************************************************************************
-   * Support for logging bits (this is cross-cutting).
-   */
-
-  /**
-   * Return true if the specified object needs to be logged.
-   *
-   * @param src The object in question
-   * @return True if the object in question needs to be logged (remembered).
-   */
-  public static final boolean logRequired(ObjectReference src) {
-    int value = VM.objectModel.readAvailableByte(src);
-    return !((value & LOG_SET_MASK.toInt()) == 0);
-  }
-
-  /**
-   * Mark an object as logged.  Since duplicate logging does
-   * not raise any correctness issues, we do <i>not</i> worry
-   * about synchronization and allow threads to race to log the
-   * object, potentially including it twice (unlike reference
-   * counting where duplicates would lead to incorrect reference
-   * counts).
-   *
-   * @param object The object to be marked as logged
-   */
-  public static final void markAsLogged(ObjectReference object) {
-    int value = VM.objectModel.readAvailableByte(object);
-    VM.objectModel.writeAvailableByte(object, (byte) (value & LOG_CLEAR_MASK.toInt()));
-  }
-
-  /**
-   * Mark an object as unlogged.
-   *
-   * @param object The object to be marked as unlogged
-   */
-  public static final void markAsUnlogged(ObjectReference object) {
-    int value = VM.objectModel.readAvailableByte(object);
-    VM.objectModel.writeAvailableByte(object, (byte) (value | UNLOGGED_BIT.toInt()));
   }
 
   /****************************************************************************

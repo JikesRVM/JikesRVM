@@ -15,11 +15,9 @@ package org.mmtk.plan.generational;
 import org.mmtk.plan.StopTheWorldConstraints;
 
 import org.mmtk.policy.CopySpace;
-import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.Word;
 
 /**
  * This class and its subclasses communicate to the host VM/Runtime
@@ -61,10 +59,6 @@ public class GenConstraints extends StopTheWorldConstraints {
   /** @return True if this Plan requires a header bit for object logging */
   @Override
   public boolean needsLogBitInHeader() { return Gen.USE_OBJECT_BARRIER; }
-
-  /** @return A bit which represents that a header is unlogged */
-  @Override
-  public Word unloggedBit() { return MarkSweepSpace.UNLOGGED_BIT; }
 
   /**
    * @return The maximum size of an object that may be allocated directly into the nursery

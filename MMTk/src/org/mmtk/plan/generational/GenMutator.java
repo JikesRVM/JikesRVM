@@ -15,6 +15,7 @@ package org.mmtk.plan.generational;
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.statistics.Stats;
@@ -144,9 +145,9 @@ import org.vmmagic.unboxed.*;
     if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
     if ((mode == AASTORE_WRITE_BARRIER && USE_OBJECT_BARRIER_FOR_AASTORE) ||
         (mode == PUTFIELD_WRITE_BARRIER && USE_OBJECT_BARRIER_FOR_PUTFIELD)) {
-      if (Plan.logRequired(src)) {
+      if (HeaderByte.isUnlogged(src)) {
         if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
-        Plan.markAsLogged(src);
+        HeaderByte.markAsLogged(src);
         modbuf.insert(src);
       }
     } else {

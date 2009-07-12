@@ -15,6 +15,7 @@ package org.mmtk.plan.stickyimmix;
 import org.mmtk.plan.*;
 import org.mmtk.plan.immix.ImmixMutator;
 
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.vm.VM;
 
@@ -81,7 +82,7 @@ public class StickyImmixMutator extends ImmixMutator {
   @Inline
   public final void writeBarrier(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
-    if (Plan.logRequired(src))
+    if (HeaderByte.isUnlogged(src))
       logSource(src);
     VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
   }
@@ -110,7 +111,7 @@ public class StickyImmixMutator extends ImmixMutator {
   @Inline
   public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset, int bytes) {
-    if (Plan.logRequired(src))
+    if (HeaderByte.isUnlogged(src))
       logSource(src);
     return false;
   }
@@ -127,8 +128,8 @@ public class StickyImmixMutator extends ImmixMutator {
    * @param src The object to be logged
    */
   private void logSource(ObjectReference src) {
-   Plan.markAsLogged(src);
-   modBuffer.push(src);
+    HeaderByte.markAsLogged(src);
+    modBuffer.push(src);
   }
 
   /**

@@ -17,9 +17,9 @@ import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.refcount.RCBase;
 import org.mmtk.plan.refcount.RCBaseCollector;
 import org.mmtk.plan.refcount.RCHeader;
-import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ExplicitFreeListLocal;
 import org.mmtk.policy.ExplicitFreeListSpace;
+import org.mmtk.utility.ForwardingWord;
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
@@ -102,7 +102,7 @@ public class GenRCCollector extends RCBaseCollector {
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
                              int bytes, int allocator) {
-    CopySpace.clearGCBits(object);
+    ForwardingWord.clearForwardingBits(object);
     RCHeader.initializeHeader(object, false);
     RCHeader.makeUnlogged(object);
     ExplicitFreeListSpace.unsyncSetLiveBit(object);

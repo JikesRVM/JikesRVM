@@ -13,10 +13,10 @@
 package org.mmtk.plan.semispace;
 
 import org.mmtk.plan.*;
-import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.ForwardingWord;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -111,7 +111,7 @@ public class SSCollector extends StopTheWorldCollector {
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
-    CopySpace.clearGCBits(object);
+    ForwardingWord.clearForwardingBits(object);
     if (allocator == Plan.ALLOC_LOS)
       Plan.loSpace.initializeHeader(object, false);
   }

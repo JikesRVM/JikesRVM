@@ -1273,8 +1273,8 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
                                       boolean isScalar) {
     //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
-    Word status = Selected.Plan.get().setBootTimeGCBits(ref, ObjectReference.fromObject(tib), size, Word.zero());
-    JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
+    byte status = org.mmtk.utility.HeaderByte.setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
+    JavaHeader.writeAvailableByte(bootImage, ref, status);
   }
 
   /**

@@ -14,7 +14,6 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.SegregatedFreeListSpace;
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.Word;
 
 /**
  * This class and its subclasses communicate to the host VM/Runtime
@@ -83,10 +82,4 @@ import org.vmmagic.unboxed.Word;
 
   /** @return True if this Plan requires a header bit for object logging */
   public boolean needsLogBitInHeader() { return false; }
-
-  /** @return A bit which represents that a header is unlogged */
-  public Word unloggedBit() {return Word.zero(); }
-
-  /** @return A bit which represents that a header is unlogged */
-  public Word logSetBitMask() {return Word.zero(); }
 }
