@@ -89,6 +89,10 @@ public abstract class OptionSet {
     return head;
   }
 
+  /**
+   * Log an option change
+   * @param o The option that changed
+   */
   public void logChange(Option o) {
     if (loggingChanges) {
       logString("Option Update: ");
