@@ -14,22 +14,41 @@
 # Temporary script
 
 TEST_DIR=MMTk/harness/test-scripts
-ant clean compile-mmtk mmtk-harness
-rm -rf results/mmtk
-mkdir -p results/mmtk
 
 plans="org.mmtk.plan.copyms.CopyMS org.mmtk.plan.generational.copying.GenCopy org.mmtk.plan.generational.immix.GenImmix org.mmtk.plan.generational.marksweep.GenMS org.mmtk.plan.immix.Immix org.mmtk.plan.markcompact.MC org.mmtk.plan.marksweep.MS org.mmtk.plan.poisoned.Poisoned org.mmtk.plan.refcount.fullheap.RC org.mmtk.plan.refcount.generational.GenRC org.mmtk.plan.semispace.SS org.mmtk.plan.stickyimmix.StickyImmix org.mmtk.plan.stickyms.StickyMS"
 
-opts="variableSizeHeap=false $*"
+opts="variableSizeHeap=false"
 #opts="$opts gcEvery=SAFEPOINT"
 
 jvm_opts="-ea"
+build=true
+
+scripts="*"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -plan) plans="$2"; shift;;
+    -opts) opts="$opts $2"; shift;;
+    -script) scripts="$2"; shift;;
+    -nobuild) build=false;;
+    *) echo "Unknown parameter $1"
+       echo "Usage: $0 [-plan plan] [-opts harness-options] "
+       exit 1;;
+  esac
+  shift
+done
+
+if [ $build = true ]; then
+  ant clean compile-mmtk mmtk-harness
+fi
+rm -rf results/mmtk
+mkdir -p results/mmtk
 
 for plan in $plans
 do
   showplan=`echo $plan | sed -e "s/.*\.//g"`
   mkdir results/mmtk/$showplan
-  for script in `ls $TEST_DIR/*.script`
+  for script in `ls $TEST_DIR/${scripts}.script`
   do
     showscript=`echo $script | sed -e "s/.*[\/]//g" | sed -e "s/\.script$//g"`
     if [ -f $TEST_DIR/$showscript.options ]; then
