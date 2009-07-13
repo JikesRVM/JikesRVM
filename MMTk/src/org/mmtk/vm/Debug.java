@@ -12,6 +12,7 @@
  */
 package org.mmtk.vm;
 
+import org.mmtk.plan.TraceLocal;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
@@ -73,6 +74,12 @@ public abstract class Debug {
    * @param before true at the start of the phase, false at the end
    */
   public void mutatorPhase(short phaseId, int ordinal, boolean before) { }
+
+  /**
+   * Trace an object during GC
+   * @param object The object
+   */
+  public void traceObject(TraceLocal trace, ObjectReference object) { }
 
   /*
    * NOTE: These methods should not be called by anything other than the
