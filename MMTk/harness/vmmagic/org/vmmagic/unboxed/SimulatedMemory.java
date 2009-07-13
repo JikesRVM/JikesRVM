@@ -17,6 +17,9 @@ import java.util.HashMap;
 
 import org.mmtk.harness.scheduler.Scheduler;
 
+/**
+ * Simulated memory
+ */
 public final class SimulatedMemory {
   /** Set to true to print debug information */
   private static final boolean VERBOSE = false;
@@ -32,21 +35,35 @@ public final class SimulatedMemory {
     }
   }
 
+  /** Log_2 of page size */
   public static final int LOG_BYTES_IN_PAGE = 12;
+  /** Log_2 of size(long) */
   public static final int LOG_BYTES_IN_LONG = 3;
+  /** Log_2 of size(address) */
   public static final int LOG_BYTES_IN_WORD = ArchitecturalWord.getModel().logBytesInWord();
+  /** Log_2 of size(int) */
   public static final int LOG_BYTES_IN_INT = 2;
+  /** Log_2 of size(short) */
   public static final int LOG_BYTES_IN_SHORT = 1;
+  /** Log_2 of size(byte) */
   public static final int LOG_BITS_IN_BYTE = 3;
+  /** size in bytes of a memory page */
   public static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
+  /** size(long) */
   public static final int BYTES_IN_LONG = 1 << LOG_BYTES_IN_LONG;
+  /** size(address), size(word) etc */
   public static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
+  /** size(int) */
   public static final int BYTES_IN_INT = 1 << LOG_BYTES_IN_INT;
+  /** size(short) */
   public static final int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;
+  /** size(byte) */
   public static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
-  public static final int PAGE_SIZE = 1 << LOG_BYTES_IN_PAGE;
-  public static final int INDEX_MASK = (PAGE_SIZE - 1);
+  /** Mask of index into page */
+  private static final int INDEX_MASK = (BYTES_IN_PAGE - 1);
+  /** Mask an offset within an int */
   public static final int INT_MASK = ~(BYTES_IN_INT - 1);
+  /** Mask an offset within a word */
   public static final int WORD_MASK = ~(BYTES_IN_WORD - 1);
 
   /* Dimensions of memory cells (the contents of a memory page) */
@@ -133,8 +150,8 @@ public final class SimulatedMemory {
 
   /**
    * Watch an address range ('bytes' bytes starting from watchAddress).
-   * @param watchAddress
-   * @param bytes
+   * @param watchAddress Address to watch
+   * @param bytes Number of bytes to watch
    */
   public static void addWatch(Address watchAddress, int bytes) {
     while (bytes > 0) {
@@ -306,7 +323,7 @@ public final class SimulatedMemory {
   /**
    * Zero a region of memory.
    * @param start Start of address range (inclusive)
-   * @param len Length in bytes of range to zero
+   * @param size Length in bytes of range to zero
    * Returned: nothing
    */
   public static void zero(Address start, Extent size) {
@@ -317,7 +334,7 @@ public final class SimulatedMemory {
   /**
    * Zero a region of memory.
    * @param start Start of address range (inclusive)
-   * @param len Length in bytes of range to zero
+   * @param size Length in bytes of range to zero
    * Returned: nothing
    */
   public static void zero(Address start, int size) {
@@ -338,7 +355,7 @@ public final class SimulatedMemory {
   /**
    * Zero a range of pages of memory.
    * @param start Start of address range (must be a page address)
-   * @param len Length in bytes of range (must be multiple of page size)
+   * @param size Length in bytes of range (must be multiple of page size)
    */
   public static void zeroPages(Address start, int size) {
     log("zeroPages(%s,%d)\n", start.toString(), size);
@@ -385,7 +402,7 @@ public final class SimulatedMemory {
     private MemoryPage(Address pageAddress) {
       this.pageAddress = pageAddress;
       this.readable = true;
-      this.data = new int[PAGE_SIZE >>> LOG_BYTES_IN_CELL];
+      this.data = new int[BYTES_IN_PAGE >>> LOG_BYTES_IN_CELL];
       this.watch = getWatchPoints();
       if (VERBOSE) log("Mapping page %s%n",pageAddress);
     }
@@ -434,6 +451,8 @@ public final class SimulatedMemory {
 
     /**
      * Load a byte value from this page.
+     * @param address Address of byte to return
+     * @return The contents of the byte at the address
      */
     public byte getByte(Address address) {
       int bitShift = ((address.toInt()) & ~CELL_MASK) << LOG_BITS_IN_BYTE;
@@ -443,28 +462,34 @@ public final class SimulatedMemory {
 
     /**
      * Load a char value from this page.
+     * @param address Address of char to return
+     * @return The contents of the char at the address
      */
     public char getChar(Address address) {
       int bitShift = ((address.toInt()) & ~CELL_MASK) << LOG_BITS_IN_BYTE;
-      assert bitShift == 0 || bitShift == 16: "misaligned char access";
+      assert bitShift == 0 || bitShift == 16: "misaligned char access at "+address;
       int index = getIndex(address);
       return (char)(read(index) >>> bitShift);
     }
 
     /**
      * Load an integer value from this page.
+     * @param address Address of int to return
+     * @return The contents of the int at the address
      */
     public int getInt(Address address) {
-      assert ((address.toInt()) % BYTES_IN_INT) == 0: "misaligned 4b access";
+      assert ((address.toInt()) % BYTES_IN_INT) == 0: "misaligned 4b access at "+address;
       return read(getIndex(address));
     }
 
     /**
      * Load a long value from this page.
+     * @param address Address of long to return
+     * @return The contents of the long at the address
      */
     public long getLong(Address address) {
       if (ALIGN_CHECK_LONG) {
-        assert ((address.toLong()) % BYTES_IN_LONG) == 0: "misaligned 8b access";
+        assert ((address.toLong()) % BYTES_IN_LONG) == 0: "misaligned 8b access at "+address;
       }
       return longFrom2Ints(getInt(address), getInt(address.plus(BYTES_IN_CELL)));
     }
@@ -484,7 +509,7 @@ public final class SimulatedMemory {
     @SuppressWarnings("cast")
     public char setChar(Address address, char value) {
       int shift = ((address.toInt()) & ~WORD_MASK) << LOG_BITS_IN_BYTE;
-      assert shift == 0 || shift == 16: "misaligned 2b access";
+      assert shift == 0 || shift == 16: "misaligned 2b access at "+address;
       int mask = 0x0000FFFF << shift;
       int newValue = (((int)value) << shift) & mask;
       int index = getIndex(address);
@@ -495,7 +520,7 @@ public final class SimulatedMemory {
     }
 
     public int setInt(Address address, int value) {
-      assert ((address.toInt()) % BYTES_IN_INT) == 0: "misaligned 4b access";
+      assert ((address.toInt()) % BYTES_IN_INT) == 0: "misaligned 4b access at "+address;
       int index = getIndex(address);
       int old = read(index);
       write(index, value);
@@ -504,7 +529,7 @@ public final class SimulatedMemory {
 
     public long setLong(Address address, long value) {
       if (ALIGN_CHECK_LONG) {
-        assert ((address.toInt()) % BYTES_IN_LONG) == 0: "misaligned 8b access";
+        assert ((address.toInt()) % BYTES_IN_LONG) == 0: "misaligned 8b access at "+address;
       }
       try {
       int index = getIndex(address);
@@ -563,9 +588,12 @@ public final class SimulatedMemory {
      * Return a boolean array indicating which words in this page are being watched.
      */
     private boolean[] getWatchPoints() {
-      boolean[] result = new boolean[data.length];
+      boolean[] result = null;
       for(Address addr: SimulatedMemory.watches) {
         if (onSamePage(addr,pageAddress)) {
+          if (result == null) {
+            result = new boolean[data.length];
+          }
           int index = getIndex(addr);
           result[index] = true;
           System.err.println("Watching address "+addr);
@@ -580,7 +608,7 @@ public final class SimulatedMemory {
      * @return
      */
     private boolean isWatched(int index) {
-      return watch[index];
+      return watch == null ? false : watch[index];
     }
   }
 }
