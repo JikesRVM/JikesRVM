@@ -28,6 +28,16 @@ public class MethodTable {
 
   private Map<String, Method> table = new HashMap<String, Method>();
 
+  MethodTable(Method...methods) {
+    for (Method method : methods) {
+      add(method);
+    }
+  }
+
+  /**
+   * Add a new method
+   * @param m The method to add
+   */
   public void add(Method m) {
     Trace.trace(Trace.Item.PARSER,"defining method %s", m.getName());
     if (SymbolTable.reservedWords.contains(m.getName()))
@@ -37,12 +47,19 @@ public class MethodTable {
     table.put(m.getName(), m);
   }
 
+  /**
+   * @param name The name of the method
+   * @return The method with the given name
+   */
   public Method get(String name) {
     if (!table.containsKey(name))
       throw new RuntimeException("Method " + name + " not found");
     return table.get(name);
   }
 
+  /**
+   * @return The normal (ie not intrinsic) methods
+   */
   public Iterable<NormalMethod> normalMethods() {
     List<NormalMethod> result = new ArrayList<NormalMethod>();
     for (Method m : table.values()) {

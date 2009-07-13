@@ -12,12 +12,35 @@
  */
 package org.mmtk.harness.lang.parser;
 
+import org.mmtk.harness.lang.ast.IntrinsicMethod;
+import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.lang.type.Type;
+
 /**
  * The global definitions passed around by the parser
+ *
+ * The initializer defines the pre-defined types and intrinsic methods.
  */
 public class GlobalDefs {
 
-  public final TypeTable types = new TypeTable();
-  public final MethodTable methods = new MethodTable();
+  /**
+   * The types - predeclared ones are passed to the constructor
+   */
+  public final TypeTable types = new TypeTable(Type.INT,Type.STRING,Type.BOOLEAN,
+      Type.OBJECT,Type.VOID);
 
+  private final String intrinsics = "org.mmtk.harness.lang.Intrinsics";
+
+  /**
+   * The methods
+   */
+  public final MethodTable methods = new MethodTable(
+      new IntrinsicMethod("gc",intrinsics,"gc"),
+      new IntrinsicMethod("tid",intrinsics,"threadId"),
+      new IntrinsicMethod("hash",intrinsics,"hash", new Class<?>[] { ObjectValue.class }),
+      new IntrinsicMethod("random",intrinsics,"random",
+          new Class<?>[] { int.class, int.class }),
+      new IntrinsicMethod("setSeed",intrinsics,"setRandomSeed", new Class<?>[] { int.class }),
+      new IntrinsicMethod("heapDump",intrinsics,"heapDump")
+  );
 }
