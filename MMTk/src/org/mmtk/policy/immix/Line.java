@@ -52,7 +52,7 @@ public class Line implements Constants {
     Address line = Line.align(start.plus(BYTES_IN_LINE));
     while (line.LT(endLine)) {
       if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(Block.align(start) == Block.align(line));
+        VM.assertions._assert(Block.align(start).EQ(Block.align(line)));
       mark(line, markValue);
       line = line.plus(BYTES_IN_LINE);
     }
