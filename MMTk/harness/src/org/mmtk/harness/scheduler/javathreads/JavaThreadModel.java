@@ -17,7 +17,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.mmtk.harness.Collector;
-import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.Trace;
@@ -33,10 +32,16 @@ public final class JavaThreadModel extends ThreadModel {
   }
 
   /**
-   * Count of collector threads scheduled through scheduleCollector(Schedulable)
+   * Collector threads scheduled through #scheduleCollector(Schedulable)
    */
-  Set<CollectorContextThread> collectorTestThreads =
-    Collections.synchronizedSet(new HashSet<CollectorContextThread>());
+  Set<CollectorThread> collectorThreads =
+    Collections.synchronizedSet(new HashSet<CollectorThread>());
+
+  /**
+   * Mutator threads scheduled through scheduleMutator(Schedulable)
+   */
+  Set<MutatorThread> mutatorThreads =
+    Collections.synchronizedSet(new HashSet<MutatorThread>());
 
   /**
    * Create a new mutator thread
@@ -44,7 +49,8 @@ public final class JavaThreadModel extends ThreadModel {
   @Override
   public void scheduleMutator(Schedulable code) {
     Trace.trace(Item.SCHEDULER, "Scheduling new mutator");
-    Thread t = new MutatorThread(code);
+    MutatorThread t = new MutatorThread(code);
+    mutatorThreads.add(t);
     t.start();
   }
 
@@ -54,18 +60,21 @@ public final class JavaThreadModel extends ThreadModel {
   @Override
   public void scheduleCollector() {
     Trace.trace(Item.SCHEDULER, "Scheduling new collector");
-    Thread t = new CollectorThread();
+    CollectorThread t = new CollectorThread();
+    collectorThreads.add(t);
     t.start();
   }
 
   /**
    * Create a new collector thread with a specific Schedulable
+   *
+   * Used for scheduling unit tests in collector context
    */
   @Override
   public Thread scheduleCollector(Schedulable code) {
     Trace.trace(Item.SCHEDULER, "Scheduling new collector");
     CollectorContextThread t = new CollectorContextThread(code);
-    collectorTestThreads.add(t);
+    collectorThreads.add(t);
     t.start();
     return t;
   }
@@ -83,10 +92,12 @@ public final class JavaThreadModel extends ThreadModel {
     }
   }
 
+  @Override
   public Log currentLog() {
     return currentMMTkThread().getLog();
   }
 
+  @Override
   public Mutator currentMutator() {
     assert Thread.currentThread() instanceof MutatorThread  : "Current thread is not a Mutator";
     return ((MutatorThread)Thread.currentThread()).env;
@@ -105,6 +116,7 @@ public final class JavaThreadModel extends ThreadModel {
       Trace.trace(Item.SCHEDULER, "MutatorThread created");
     }
 
+    @Override
     public void run() {
       Trace.trace(Item.SCHEDULER, "Env.begin()");
       env.begin();
@@ -197,7 +209,7 @@ public final class JavaThreadModel extends ThreadModel {
       collectorThreadLocal.set(collector);
       waitForGCStart();
       code.execute(new Env());
-      collectorTestThreads.remove(this);
+      collectorThreads.remove(this);
       exitGC();
     }
 
@@ -210,7 +222,7 @@ public final class JavaThreadModel extends ThreadModel {
    */
 
   /** Synchronisation object used for GC triggering */
-  private Object trigger = new Object();
+  private final Object trigger = new Object();
 
   /**
    * Wait for a GC to complete
@@ -255,7 +267,7 @@ public final class JavaThreadModel extends ThreadModel {
   public void triggerGC(int why) {
     synchronized (trigger) {
       triggerReason = why;
-      inGC = Harness.collectors.getValue();
+      inGC = collectorThreads.size();
       setState(BEGIN_GC);
       trigger.notifyAll();
     }
@@ -326,14 +338,20 @@ public final class JavaThreadModel extends ThreadModel {
   @Override
   public void schedule() {
     startRunning();
-    // Do nothing - java does it :)
+    /* Wait for the mutators */
+    for (Thread mutator : mutatorThreads) {
+      try {
+        mutator.join();
+      } catch (InterruptedException e) {
+      }
+    }
   }
 
   @Override
   public void scheduleGcThreads() {
     synchronized (trigger) {
       startRunning();
-      inGC = collectorTestThreads.size();
+      inGC = collectorThreads.size();
       setState(GC);
       trigger.notifyAll();
       while (!isState(MUTATOR)) {
