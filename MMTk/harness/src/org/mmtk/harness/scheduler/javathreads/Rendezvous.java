@@ -12,15 +12,36 @@
  */
 package org.mmtk.harness.scheduler.javathreads;
 
+/**
+ * Rendezvous of all collector threads in the Java threading model.
+ *
+ * Each rendezvous is mediated by a separate Rendezvous object, 'current'.  The
+ * first thread to arrive will find this static field null, and create the
+ * current Rendezvous object.  Subsequent threads will rendezvous on the existing object.
+ *
+ * The last thread to arrive clears the 'current' field, ready for the next
+ * rendezvous to start.
+ */
 final class Rendezvous {
 
+  /**
+   * The current active rendezvous.  If this is null, the most recent rendezvous
+   * (if any) has reached its quota, and the next thread to arrive will start
+   * a new rendezvous.
+   */
   private static Rendezvous current = null;
 
+  /**
+   * Return the current rendezvous, creating a new one if required.
+   * @param where
+   * @return
+   */
   private static synchronized Rendezvous current(int where) {
     if (current == null) {
       current = new Rendezvous(where);
     } else {
       if (where != current.where) {
+        /* Logic error - this should never happen */
         throw new RuntimeException(String.format("Arriving at barrier %d when %d is active",
             where,current.where));
       }
@@ -28,6 +49,17 @@ final class Rendezvous {
     return current;
   }
 
+  /**
+   * Clear the <code>current</code> field atomically.
+   */
+  private static synchronized void clearCurrent() {
+    current = null;
+  }
+
+  /**
+   * Create a new rendezvous with the given identifier
+   * @param where The rendezvous identifier
+   */
   private Rendezvous(int where) {
     this.where = where;
   }
@@ -46,13 +78,12 @@ final class Rendezvous {
     int rank = ++currentRank;
     if (currentRank == org.mmtk.vm.VM.activePlan.collectorCount()) {
       /* This is no longer the current barrier */
-      synchronized(Rendezvous.class) {
-        current = null;
-      }
+      clearCurrent();
       notifyAll();
     } else {
       while (currentRank != org.mmtk.vm.VM.activePlan.collectorCount()) {
         try {
+          /* Wait for the remaining collectors to arrive */
           wait();
         } catch (InterruptedException ie) {
         }
