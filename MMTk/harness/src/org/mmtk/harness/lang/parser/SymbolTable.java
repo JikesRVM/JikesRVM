@@ -80,7 +80,7 @@ public class SymbolTable {
       throw new RuntimeException("Symbol "+name+" already defined");
     Symbol symbol = new Symbol(this,name,type);
     table.put(name, symbol);
-    stackMap.add(new Declaration(symbol,type.initialValue()));
+    stackMap.add(new Declaration(symbol));
   }
 
   /**

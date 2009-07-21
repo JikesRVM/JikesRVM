@@ -23,22 +23,15 @@ public class Declaration {
   /** Name of the variable */
   private final Symbol symbol;
 
-  /** Initial value - actually holds the value for the lifetime of the variable */
-  private final Value initial;
-
   /** Stack frame slot */
   private final int slot;
 
   /**
    * Constructor
-   *
-   * @param name
-   * @param initial
-   * @param slot
+   * @param symbol The symbol to declare
    */
-  public Declaration(Symbol symbol, Value initial) {
+  public Declaration(Symbol symbol) {
     this.symbol = symbol;
-    this.initial = initial;
     this.slot = symbol.getLocation();
   }
 
@@ -51,7 +44,7 @@ public class Declaration {
   }
 
   public Value getInitial() {
-    return initial;
+    return symbol.getType().initialValue();
   }
 
   public int getSlot() {
