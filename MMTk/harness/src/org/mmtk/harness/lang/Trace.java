@@ -27,22 +27,27 @@ public final class Trace {
    */
   public enum Item {
     /** Object allocation */                                    ALLOC,
+    /** Available byte operations */                            AVBYTE,
     /** Procedure calls in the harness language */              CALL,
-    /** Object reads and writes */                              OBJECT,
+    /** Harness language semantic checker */                    CHECKER,
+    /** Garbage collection */                                   COLLECT,
+    /** P-code compiler */                                      COMPILER,
+    /** Environment (stack frame) loads/stores */               ENV,
+    /** P-code evaluation */                                    EVAL,
+    /** Hashcode operations */                                  HASH,
     /** Calls to intrinsic methods in the harness language */   INTRINSIC,
     /** Load operations in the harness language */              LOAD,
-    /** Store operations in the harness language */             STORE,
-    /** Hashcode operations */                                  HASH,
-    /** Environment (stack frame) loads/stores */               ENV,
-    /** Tracing of roots */                                     ROOTS,
-    /** Garbage collection */                                   COLLECT,
-    /** Available byte operations */                            AVBYTE,
-    /** P-code evaluation */                                    EVAL,
-    /** P-code compiler */                                      COMPILER,
-    /** Harness language semantic checker */                    CHECKER,
-    /** Harness language thread scheduler */                   SCHEDULER,
+    /** Memory operations (mmap, zero etc) */                   MEMORY,
+    /** Object reads and writes */                              OBJECT,
     /** Harness language parser */                              PARSER,
-    /** Harness language simplifier */                          SIMPLIFIER
+    /** Reference type processing */                            REFERENCES,
+    /** Remset */                                               REMSET,
+    /** Tracing of roots */                                     ROOTS,
+    /** Sanity checker - verbose output */                      SANITY,
+    /** Harness language thread scheduler */                    SCHEDULER,
+    /** Harness language simplifier */                          SIMPLIFIER,
+    /** Store operations in the harness language */             STORE,
+    /** calls to traceObject during GC */                       TRACEOBJECT,
     }
 
   private static EnumSet<Item> enabled = EnumSet.noneOf(Item.class);
@@ -88,21 +93,44 @@ public final class Trace {
     return enabled.contains(item);
   }
 
+  /**
+   * Print a message iff tracing for the given item is enabled.
+   * @param item The trace item
+   * @param pattern String pattern (as per java.lang.String#format(...))
+   * @param args Format arguments
+   */
   public static synchronized void trace(Item item, String pattern, Object...args) {
     if (isEnabled(item)) {
-      printf(item, pattern, args);
+      printf(item, pattern + "%n", args);
     }
   }
 
+  /**
+   * Message prefix for messages enabled by a given trace item
+   * @param item The trace item
+   * @return The string prefix
+   */
   public static String prefix(Item item) {
     return "["+item+"] ";
   }
 
+  /**
+   * Print a message as trace output.
+   * @param item The trace item
+   * @param pattern String pattern (as per java.lang.String#format(...))
+   * @param args Format arguments
+   */
   public static void printf(Item item, String pattern, Object... args) {
-    printf(prefix(item) + pattern + "%n",args);
+    printf(prefix(item) + pattern ,args);
   }
 
+  /**
+   * Print a raw message as trace output.
+   * @param pattern String pattern (as per java.lang.String#format(...))
+   * @param args Format arguments
+   */
   public static void printf(String pattern, Object...args) {
     System.err.printf(pattern,args);
+    System.err.flush();
   }
 }
