@@ -1,0 +1,33 @@
+/*
+ *
+ * test reference type processing
+ *
+ */
+ 
+void main() {
+  object w_stable = alloc(0,0);
+  weakref w_stable_ref = weakRef(w_stable);
+  weakref w_gone_ref = weakRef(alloc(0,0));
+  
+  object roots = alloc(100,0);
+  
+  int i = 0;
+  while (i < 1000) {
+    object newObject = alloc(10,10); 
+    weakref w_new_ref = weakRef(newObject);
+    roots.object[i%100] = newObject;
+    
+    int j = 0;
+    while (j < 1000) {
+      object temp =  alloc(11,11); // Fill up the heap
+      j = j + 1;
+    }
+    assert(getWeakReferent(w_new_ref) == newObject, "Lost referent to new object");
+    assert(getWeakReferent(w_stable_ref) == w_stable, "Lost referent to stable object");
+    i = i + 1;
+    if ((i%100)==0) { print("Allocated ",i," reference objects"); }
+  }
+  setOption("fullHeapSystemGC=true");
+  gc();
+  assert(getWeakReferent(w_gone_ref) == null, "Incorrectly retained referent");
+}

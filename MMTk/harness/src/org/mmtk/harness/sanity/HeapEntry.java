@@ -134,4 +134,14 @@ public class HeapEntry implements Comparable<HeapEntry> {
     }
     return 1;
   }
+
+  @Override
+  public String toString() {
+    String result = String.format("Heap entry: %s%n",id,ObjectModel.getString(object));
+    result += String.format("incoming pointers: %n");
+    for (ObjectReference ref : getReferrers()) {
+      result += String.format(" %s%n",ref);
+    }
+    return result;
+  }
 }

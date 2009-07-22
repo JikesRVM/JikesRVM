@@ -15,6 +15,9 @@ package org.mmtk.harness.vm;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
+/**
+ * MMTk Harness implementation of Barriers interface
+ */
 @Uninterruptible
 public class Barriers extends org.mmtk.vm.Barriers {
   /**
@@ -27,6 +30,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param index the index of the element to set
    * @param value the new value for the element
    */
+  @Override
   public void setArrayNoBarrier(Object [] dst, int index, Object value) {
     dst[index] = value;
   }
@@ -41,6 +45,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    */
+  @Override
   public void performWriteInBarrier(ObjectReference ref, Address slot,
                                     ObjectReference target, Word metaDataA,
                                     Word metaDataB, int mode) {
@@ -57,6 +62,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param metaDataB Unused
    * @param mode The context in which the write is occuring
    */
+  @Override
   public void performRawWriteInBarrier(ObjectReference ref, Address slot,
                                        Word rawTarget, Word metaDataA,
                                        Word metaDataB, int mode) {
@@ -73,6 +79,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param mode The context in which the write is occuring
    * @return the read value
    */
+  @Override
   public ObjectReference performReadInBarrier(ObjectReference ref, Address slot,
                                               Word metaDataA, Word metaDataB, int mode) {
     return slot.loadObjectReference();
@@ -88,6 +95,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param mode The context in which the write is occuring
    * @return the read value
    */
+  @Override
   public Word performRawReadInBarrier(ObjectReference ref, Address slot,
                                       Word metaDataA, Word metaDataB, int mode) {
     return slot.loadWord();
@@ -105,6 +113,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
+  @Override
   public ObjectReference performWriteInBarrierAtomic(ObjectReference ref, Address slot,
                                                      ObjectReference target, Word metaDataA,
                                                      Word metaDataB, int mode) {
@@ -127,6 +136,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param mode The context in which the write is occuring
    * @return The raw value that was replaced by the write.
    */
+  @Override
   public Word performRawWriteInBarrierAtomic(ObjectReference ref, Address slot,
                                              Word rawTarget, Word metaDataA,
                                              Word metaDataB, int mode) {
@@ -149,6 +159,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param mode The context in which the write is occuring
    * @return True if the compare and swap was successful
    */
+  @Override
   public boolean tryCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
                                                  ObjectReference old, ObjectReference target,
                                                  Word metaDataA, Word metaDataB, int mode) {
@@ -167,6 +178,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param mode The context in which the write is occuring
    * @return True if the compare and swap was successful
    */
+  @Override
   public boolean tryRawCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
                                                     Word rawOld, Word rawTarget,
                                                     Word metaDataA, Word metaDataB, int mode) {

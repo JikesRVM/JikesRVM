@@ -17,9 +17,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
+import org.mmtk.harness.Mutators;
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
+import org.mmtk.plan.MutatorContext;
+import org.mmtk.plan.Plan;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -28,6 +35,10 @@ import org.vmmagic.unboxed.ObjectReference;
  * the HeapVisitor object supplied.
  */
 public final class Traversal {
+
+  private static final boolean VERBOSE = true;
+
+  private static final MutatorContext mutatorContext = Mutator.createMutatorContext();
 
   /**
    * Traverse the heap.  This is the only public method in the class
@@ -56,14 +67,24 @@ public final class Traversal {
    * @param object
    */
   private void scan(ObjectReference object) {
+    if (VERBOSE) {
+      Trace.trace(Item.SANITY, "scanning object %s", ObjectModel.getString(object));
+    }
     for (int i=0; i < ObjectModel.getRefs(object); i++) {
       Address slot = ObjectModel.getRefSlot(object, i);
-      ObjectReference ref = slot.loadObjectReference();
+      ObjectReference ref = loadReferenceSlot(object, slot);
       if (!ref.isNull()) {
         visitor.visitPointer(object, slot, ref);
         traceObject(ref,false);
       }
     }
+  }
+
+  private ObjectReference loadReferenceSlot(ObjectReference object, Address slot) {
+    if (ActivePlan.constraints.needsReadBarrier() && Harness.sanityUsesReadBarrier.getValue()) {
+      return mutatorContext.readBarrier(object, slot, null, null, Plan.GETFIELD_READ_BARRIER);
+    }
+    return slot.loadObjectReference();
   }
 
   /**
@@ -72,6 +93,9 @@ public final class Traversal {
    * @param root
    */
   private void traceObject(ObjectReference object, boolean root) {
+    if (VERBOSE) {
+      Trace.trace(Item.SANITY, "tracing object %s", ObjectModel.getString(object));
+    }
     if (object.isNull()) return;
     boolean marked = blackSet.contains(object);
     if (!marked) {
@@ -85,7 +109,7 @@ public final class Traversal {
    * Trace the harness root set
    */
   private void traceRoots() {
-    for (Mutator m : Mutator.getMutators()) {
+    for (Mutator m : Mutators.getAll()) {
       for (ObjectValue value : m.getRoots()) {
         traceObject(value.getObjectValue(), true);
       }

@@ -16,6 +16,7 @@ import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.sanity.FromSpaceInvariant;
 import org.mmtk.plan.Simple;
+import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -48,7 +49,7 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void arrayRemsetEntry(Address start, Address guard) {
-    Trace.trace(Item.COLLECT, "arrayRemset: [%s,%s)", start, guard);
+    Trace.trace(Item.REMSET, "arrayRemset: [%s,%s)", start, guard);
   }
 
   /**
@@ -56,7 +57,7 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void modbufEntry(ObjectReference object) {
-    Trace.trace(Item.COLLECT, "modbuf: %s", format(object));
+    Trace.trace(Item.REMSET, "modbuf: %s", format(object));
   }
 
   /**
@@ -64,7 +65,7 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void remsetEntry(Address slot) {
-    Trace.trace(Item.COLLECT, "remset: %s->%s", format(slot), format(slot.loadObjectReference()));
+    Trace.trace(Item.REMSET, "remset: %s->%s", format(slot), format(slot.loadObjectReference()));
   }
 
   /**
@@ -76,4 +77,14 @@ public final class Debug extends org.mmtk.vm.Debug {
       new FromSpaceInvariant();
     }
   }
+
+  /**
+   * @see org.mmtk.vm.Debug#traceObject(org.mmtk.plan.TraceLocal, org.vmmagic.unboxed.ObjectReference)
+   */
+  @Override
+  public void traceObject(TraceLocal trace, ObjectReference object) {
+    Trace.trace(Item.TRACEOBJECT, "traceObject: %s", format(object));
+  }
+
+
 }

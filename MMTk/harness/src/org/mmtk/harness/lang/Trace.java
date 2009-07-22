@@ -32,6 +32,7 @@ public final class Trace {
     /** Harness language semantic checker */                    CHECKER,
     /** Garbage collection */                                   COLLECT,
     /** P-code compiler */                                      COMPILER,
+    /** Expected exceptions */                                  EXCEPTION,
     /** Environment (stack frame) loads/stores */               ENV,
     /** P-code evaluation */                                    EVAL,
     /** Hashcode operations */                                  HASH,

@@ -14,6 +14,8 @@ package org.vmmagic.unboxed;
 
 import org.vmmagic.Unboxed;
 import org.vmmagic.pragma.RawStorage;
+import org.vmmagic.unboxed.harness.ArchitecturalWord;
+import org.vmmagic.unboxed.harness.SimulatedMemory;
 
 /**
  * <b>Stub</b> implementation of an Address type, intended only to

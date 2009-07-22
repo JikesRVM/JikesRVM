@@ -13,7 +13,7 @@
 package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.Harness;
-import org.mmtk.harness.Mutator.OutOfMemory;
+import org.mmtk.harness.exception.OutOfMemory;
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.compiler.Register;

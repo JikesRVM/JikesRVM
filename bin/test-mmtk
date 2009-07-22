@@ -22,6 +22,10 @@ opts="variableSizeHeap=false"
 
 jvm_opts="-ea"
 build=true
+buildonly=false
+clean=true
+results=
+stats=true
 
 scripts="*"
 
@@ -31,24 +35,44 @@ while [ $# -gt 0 ]; do
     -opts) opts="$opts $2"; shift;;
     -script) scripts="$2"; shift;;
     -nobuild) build=false;;
+    -build) build=true;;
+    -buildonly) buildonly=true;;
+    -clean) clean=true;;
+    -noclean) clean=false;;
+    -results) results="$2/"; shift;;
+    -stats) stats="true";;
+    -nostats) stats="false";;
     *) echo "Unknown parameter $1"
-       echo "Usage: $0 [-plan plan] [-opts harness-options] "
+       echo "Usage: $0 [-plan plan] [-opts harness-options]"
+       echo "          [-script script1[,script2...]] "
+       echo "          [-[no]build]                   [Don't] build MMTk Harness before running tests"
+       echo "          [-[no]clean]                   [Don't] delete old results before running tests"
+       echo "          [-buildonly]                   Build only, don't run any tests"
+       echo "          [-nostats]                     Suppress listing pass/fail statistics after running tests"
+       echo "          [-results]                     Results directory"
        exit 1;;
   esac
   shift
 done
 
+RESULTS=results/${results}mmtk
+
 if [ $build = true ]; then
   ant clean compile-mmtk mmtk-harness
+  if [ $buildonly = true ]; then
+    exit 0;
+  fi
 fi
-rm -rf results/mmtk
-mkdir -p results/mmtk
+if [ $clean = true ]; then
+  rm -rf $RESULTS
+fi
+mkdir -p $RESULTS
 
 for plan in $plans
 do
   showplan=`echo $plan | sed -e "s/.*\.//g"`
-  mkdir results/mmtk/$showplan
-  for script in `ls $TEST_DIR/${scripts}.script`
+  mkdir -p ${RESULTS}/$showplan
+  for script in `ls -1 $TEST_DIR/${scripts}.script`
   do
     showscript=`echo $script | sed -e "s/.*[\/]//g" | sed -e "s/\.script$//g"`
     if [ -f $TEST_DIR/$showscript.options ]; then
@@ -59,23 +83,25 @@ do
     (
       echo /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts;
       /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts
-    ) &> results/mmtk/temp.out
-    if [ ${?} == 0 ]
+    ) &> ${RESULTS}/temp.out
+    if [ $? == 0 ]
     then
-      echo "PASSED: $showplan $showscript"
-      mv results/mmtk/temp.out results/mmtk/$showplan/$showscript.out.pass
+      echo "PASSED: ${results%/} $showplan $showscript"
+      mv ${RESULTS}/temp.out ${RESULTS}/$showplan/$showscript.out.pass
     else
-      echo "FAILED: $showplan $showscript"
-      mv results/mmtk/temp.out results/mmtk/$showplan/$showscript.out.fail
+      echo "FAILED: ${results%/} $showplan $showscript"
+      mv ${RESULTS}/temp.out ${RESULTS}/$showplan/$showscript.out.fail
     fi
   done
 done
 
-passed=`find results/mmtk -name "*.pass" | wc -l`
-failed=`find results/mmtk -name "*.fail" | wc -l`
+if [ $stats = true ]; then
+  passed=`find ${RESULTS} -name "*.pass" | wc -l`
+  failed=`find ${RESULTS} -name "*.fail" | wc -l`
 
-echo
-echo "FAILURES:"
-find results/mmtk -name "*.fail" | sed -e "s/results\/mmtk\///g" -e "s/\.out\.fail$//g" -e "s/\// /g"
-echo
-echo "PASSED $passed/$[$passed + failed] tests ($[(100 * $passed) / ($passed + $failed)]%)"
+  echo
+  echo "FAILURES:"
+  find ${RESULTS} -name "*.fail" | sed -e "s/results\/mmtk\///g" -e "s/\.out\.fail$//g" -e "s/\// /g"
+  echo
+  echo "PASSED $passed/$[passed + failed] tests ($[(100 * passed) / (passed + failed)]%)"
+fi

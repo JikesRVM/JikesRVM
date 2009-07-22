@@ -12,8 +12,12 @@
  */
 package org.mmtk.harness.lang;
 
+import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.lang.runtime.PhantomReferenceValue;
+import org.mmtk.harness.lang.runtime.SoftReferenceValue;
+import org.mmtk.harness.lang.runtime.WeakReferenceValue;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
@@ -25,8 +29,7 @@ import org.mmtk.vm.VM;
 public class Intrinsics {
   /**
    * Force GC
-   * @param env
-   * @return
+   * @param env Thread-local environment (language-dependent mutator context)
    */
   public static void gc(Env env) {
     VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
@@ -34,8 +37,8 @@ public class Intrinsics {
 
   /**
    * Return the thread ID
-   * @param env
-   * @return
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @return the thread ID
    */
   public static int threadId(Env env) {
     return Mutator.current().getContext().getId();
@@ -43,18 +46,18 @@ public class Intrinsics {
 
   /**
    * Return the (identity) hash code
-   * @param env
-   * @param val
-   * @return
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param val The object to hash
+   * @return the (identity) hash code
    */
   public static int hash(Env env, ObjectValue val) {
     return env.hash(val.getObjectValue());
   }
 
   /**
-   * Set the random seed for this thread
-   * @param env
-   * @param seed
+   * Set the random number generator seed for this thread
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param seed Pseudo-random seed value
    */
   public static void setRandomSeed(Env env, int seed) {
     env.random().setSeed(seed);
@@ -62,10 +65,10 @@ public class Intrinsics {
 
   /**
    * A random integer in the closed interval [low..high].
-   * @param env
-   * @param low
-   * @param high
-   * @return
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param low Low bound (inclusive)
+   * @param high High bound (inclusive)
+   * @return A random integer in the closed interval [low..high]
    */
   public static int random(Env env, int low, int high) {
     return env.random().nextInt(high-low+1) + low;
@@ -73,6 +76,7 @@ public class Intrinsics {
 
   /**
    * Dump the heap
+   * @param env Thread-local environment (language-dependent mutator context)
    */
   public static void heapDump(Env env) {
     Mutator.dumpHeap();
@@ -80,9 +84,83 @@ public class Intrinsics {
 
   /**
    * Unit test method for the Intrinsic method
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param x An int
+   * @param y A boolean
+   * @param string A string
+   * @param val An object
+   * @return The string representation of <code>val</code>
    */
   public static String testMethod(Env env, int x, boolean y, String string, ObjectValue val) {
     return String.format("successfully called testMethod(%d,%b,%s,%s)", x,y,string,val.toString());
   }
 
+  /**
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param referent The object to weakly refer to
+   * @return The created weak reference value
+   *
+   */
+  public static WeakReferenceValue weakRef(Env env, ObjectValue referent) {
+    return new WeakReferenceValue(referent.getObjectValue());
+  }
+
+  /**
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param referent The object to weakly refer to
+   * @return The created weak reference value
+   *
+   */
+  public static SoftReferenceValue softRef(Env env, ObjectValue referent) {
+    return new SoftReferenceValue(referent.getObjectValue());
+  }
+
+  /**
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param referent The object to weakly refer to
+   * @return The created weak reference value
+   *
+   */
+  public static PhantomReferenceValue phantomRef(Env env, ObjectValue referent) {
+    return new PhantomReferenceValue(referent.getObjectValue());
+  }
+
+  /**
+   * Dereference a reference type
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param value The reference value
+   * @return The referent
+   */
+  public static ObjectValue getReferent(Env env, WeakReferenceValue value) {
+    return new ObjectValue(value.getObjectValue());
+  }
+  /**
+   * Dereference a reference type
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param value The reference value
+   * @return The referent
+   */
+  public static ObjectValue getReferent(Env env, SoftReferenceValue value) {
+    return new ObjectValue(value.getObjectValue());
+  }
+  /**
+   * Dereference a reference type
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param value The reference value
+   * @return The referent
+   */
+  public static ObjectValue getReferent(Env env, PhantomReferenceValue value) {
+    return new ObjectValue(value.getObjectValue());
+  }
+
+  /**
+   * Set a command-line option from within a script
+   * @param env Thread-local environment (language-dependent mutator context)
+   * @param option The command-line option
+   */
+  public static void setOption(Env env, String option) {
+    if (!Harness.options.process(option)) {
+      System.err.println("Error processing option "+option);
+    }
+  }
 }

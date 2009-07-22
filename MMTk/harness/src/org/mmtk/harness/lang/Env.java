@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-import java.util.Stack;
 
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace.Item;
@@ -35,21 +34,29 @@ public class Env extends Mutator {
   /**
    * The stack
    */
-  private UnsyncStack<StackFrame> stack = new UnsyncStack<StackFrame>();
+  private final UnsyncStack<StackFrame> stack = new UnsyncStack<StackFrame>();
 
   /**
    * A source of random numbers (we have one per thread so that we can write
    * deterministic scripts).
    */
-  private Random rng = new Random();
+  private final Random rng = new Random();
 
+  /**
+   * The type of exception that is expected at the end of execution.
+   */
+  private Class<?> expectedThrowable;
+
+  /**
+   * Enable a CG on every safepoint
+   */
   public static void setGcEverySafepoint() {
     gcEverySafepoint = true;
   }
 
   /**
    * Enter a new procedure, pushing a new stack frame.
-   * @param frame
+   * @param frame Stack frame to push
    */
   public void push(StackFrame frame) {
     stack.push(frame);
@@ -90,6 +97,9 @@ public class Env extends Mutator {
     Trace.trace(Item.ROOTS, "Locals: %d", localCount);
   }
 
+  /**
+   * @see org.mmtk.harness.Mutator#getRoots()
+   */
   @Override
   public Collection<ObjectValue> getRoots() {
     List<ObjectValue> roots = new ArrayList<ObjectValue>();
@@ -103,17 +113,22 @@ public class Env extends Mutator {
    * Print the thread roots and add them to a stack for processing.
    */
   @Override
-  public void dumpThreadRoots(int width, Stack<ObjectReference> roots) {
+  public Collection<ObjectReference> dumpThreadRoots(int width) {
     int frameId = 0;
+    List<ObjectReference> roots = new ArrayList<ObjectReference>();
     for (StackFrame frame : stack) {
       System.err.printf("  Frame %5d [", frameId++);
-      frame.dumpRoots(width, roots);
+      roots.addAll(frame.dumpRoots(width));
       System.err.println(" ]");
     }
     System.err.println();
+    return roots;
   }
 
 
+  /**
+   * @see org.mmtk.harness.Mutator#gcSafePoint()
+   */
   @Override
   public boolean gcSafePoint() {
     if (gcEverySafepoint) {
@@ -122,6 +137,42 @@ public class Env extends Mutator {
     return super.gcSafePoint();
   }
 
+
+  /**
+   * @see org.mmtk.harness.Mutator#end()
+   */
+  @Override
+  public void end() {
+    check(expectedThrowable == null, "Expected exception of class " + expectedThrowable + " not found");
+    super.end();
+  }
+
+  /**
+   * Set an expectation that the execution will exit with a throw of this exception.
+   * @param expectedThrowable The expected exception class
+   */
+  public void setExpectedThrowable(Class<?> expectedThrowable) {
+    Trace.trace(Item.EXCEPTION, "Setting expected exception %s", expectedThrowable.getCanonicalName());
+    this.expectedThrowable = expectedThrowable;
+  }
+
+  /**
+   * Mutator-specific handling of uncaught exceptions.  The scheduler calls this when
+   * it catches an unhandled exception.
+   * @param t Thread object
+   * @param e Exception
+   */
+  public void uncaughtException(Thread t, Throwable e) {
+    Trace.trace(Item.EXCEPTION, "Processing uncaught exception %s", e.getClass().getCanonicalName());
+    if (e.getClass() == expectedThrowable) {
+      System.err.println("Mutator " + context.getId() + " exiting due to expected exception of class " + expectedThrowable);
+      System.exit(0);
+    } else {
+      System.err.print("Mutator " + context.getId() + " caused unexpected exception: ");
+      e.printStackTrace();
+      System.exit(1);
+    }
+  }
 
   /*******************************************************************
    * Utility methods
@@ -133,4 +184,5 @@ public class Env extends Mutator {
   public Random random() {
     return rng;
   }
+
 }

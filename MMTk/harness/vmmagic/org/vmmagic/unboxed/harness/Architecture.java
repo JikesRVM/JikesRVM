@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.vmmagic.unboxed;
+package org.vmmagic.unboxed.harness;
 
 /**
  * Constants to describe the current architecture, and basic conversion/

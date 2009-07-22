@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.sanity;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,6 +21,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.policy.Space;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
@@ -32,21 +36,15 @@ public class HeapSnapshot implements HeapVisitor {
   /** The objects in the heap, by address */
   private final Map<ObjectReference,HeapEntry> byAddress = new HashMap<ObjectReference,HeapEntry>();
   /** The objects in the heap, by ID */
-  private final Map<Integer,Set<HeapEntry>> byId = new HashMap<Integer,Set<HeapEntry>>();
+  private final Map<Integer,HeapEntry> byId = new HashMap<Integer,HeapEntry>();
   /** Statistics: objects in each space */
   private final Map<String,Integer> spaceStats = new TreeMap<String,Integer>();
   /** Duplicate objects */
-  private final Set<Set<HeapEntry>> duplicates = new HashSet<Set<HeapEntry>>();
+  private final Map<Integer,Set<HeapEntry>> duplicates = new HashMap<Integer,Set<HeapEntry>>();
 
   /** @return the space statistics */
   public Map<String, Integer> getSpaceStats() {
     return spaceStats;
-  }
-
-  /** @return the number of objects in the heap */
-  public int size() {
-    assert byAddress.size() == byId.size() : "Objects by address: "+byAddress.size()+", by id: "+byId.size();
-    return byId.size();
   }
 
   /** @return the number of distinct object addresses in the heap */
@@ -65,11 +63,20 @@ public class HeapSnapshot implements HeapVisitor {
   }
 
   /**
+   * Get an entry - fails with a runtime exception if the object is duplicated.
+   * @param id Entry ID
+   * @return The entry
+   */
+  public HeapEntry getEntry(int id) {
+    return byId.get(id);
+  }
+
+  /**
    * @return the set of duplicate objects (live objects that are pointed to
    * at more than one address
    */
   public Set<Set<HeapEntry>> getDuplicates() {
-    return Collections.unmodifiableSet(duplicates);
+    return Collections.unmodifiableSet(new HashSet<Set<HeapEntry>>(duplicates.values()));
   }
 
   /**
@@ -79,15 +86,26 @@ public class HeapSnapshot implements HeapVisitor {
     Traversal.traverse(this);
   }
 
-  private void addEntryById(HeapEntry entry) {
-    Set<HeapEntry> entries = byId.get(entry.getId());
+  private void addDuplicate(HeapEntry original, HeapEntry dup) {
+    Set<HeapEntry> entries = duplicates.get(original.getId());
     if (entries == null) {
       entries = new TreeSet<HeapEntry>();
-      byId.put(entry.getId(), entries);
-    } else if (!entries.contains(entry)) {
-      duplicates.add(entries);
+      entries.addAll(Arrays.asList(original,dup));
+      duplicates.put(original.getId(), entries);
+    } else {
+      entries.add(dup);
     }
-    entries.add(entry);
+  }
+
+  private void addEntryById(HeapEntry entry) {
+    Trace.trace(Item.SANITY,"Found object %d",entry.getId());
+    HeapEntry oldEntry = byId.get(entry.getId());
+    if (oldEntry == null) {
+      byId.put(entry.getId(), entry);
+    } else if (!oldEntry.equals(entry)) {
+      addDuplicate(oldEntry,entry);
+      Trace.printf(Item.SANITY,"Duplicate object found in heap %n%s",entry.toString());
+    }
   }
 
   private void addSpaceStats(ObjectReference object) {
@@ -104,6 +122,7 @@ public class HeapSnapshot implements HeapVisitor {
    */
   @Override
   public void visitObject(ObjectReference object, boolean root, boolean marked) {
+    Trace.trace(Item.SANITY,"Visiting object %d",ObjectModel.getId(object));
     HeapEntry entry = byAddress.get(object);
     if (!marked) {
       assert entry == null;

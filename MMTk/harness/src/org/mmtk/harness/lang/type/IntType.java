@@ -15,12 +15,18 @@ package org.mmtk.harness.lang.type;
 import org.mmtk.harness.lang.runtime.IntValue;
 import org.mmtk.harness.lang.runtime.Value;
 
+/**
+ * The built-in <code>int</code> type
+ */
 public class IntType extends AbstractType {
 
-  public IntType() {
+  IntType() {
     super("int");
   }
 
+  /**
+   * @see org.mmtk.harness.lang.type.Type#initialValue()
+   */
   @Override
   public Value initialValue() {
     return IntValue.ZERO;

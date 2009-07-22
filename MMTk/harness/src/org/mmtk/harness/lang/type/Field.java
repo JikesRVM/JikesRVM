@@ -33,12 +33,24 @@ public class Field {
     this.type = type;
     this.offset = offset;
   }
+
+  /**
+   * @return The name of this field
+   */
   public String getName() {
     return name;
   }
+
+  /**
+   * @return The type of the field
+   */
   public Type getType() {
     return type;
   }
+
+  /**
+   * @return The word-offset to this field
+   */
   public int getOffset() {
     return offset;
   }

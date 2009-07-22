@@ -29,7 +29,7 @@ public class ObjectValue extends Value {
   /**
    * The reference to the heap object
    *
-   * Not final because it may change during GC
+   * Not final because it may change during GC.
    */
   private ObjectReference value;
 

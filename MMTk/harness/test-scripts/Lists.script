@@ -67,9 +67,9 @@ void main() {
       rotate(lists.object[i]);
       i = i + 1;
     }
-    if ( (j%1000) == 0 ) {
-      lengths(lists,nLists);
-    }
+    //if ( (j%1000) == 0 ) {
+    //  lengths(lists,nLists);
+    //}
     s = cons(s);
     j = j + 1;
   }

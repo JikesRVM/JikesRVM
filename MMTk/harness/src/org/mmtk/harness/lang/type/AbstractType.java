@@ -12,8 +12,6 @@
  */
 package org.mmtk.harness.lang.type;
 
-import org.mmtk.harness.lang.runtime.Value;
-
 /**
  * Types in the scripting language.
  */
@@ -21,27 +19,41 @@ public abstract class AbstractType implements Type {
 
   private final String name;
 
+  /**
+   * @param name Name of this type
+   */
   public AbstractType(String name) {
     this.name = name;
   }
 
+  /**
+   * @see java.lang.Object#toString()
+   */
   @Override
   public String toString() {
     return getName();
   }
 
+  /**
+   * @see org.mmtk.harness.lang.type.Type#getName()
+   */
+  @Override
   public String getName() {
     return name;
   }
 
+  /**
+   * @see org.mmtk.harness.lang.type.Type#isObject()
+   */
   @Override
   public boolean isObject() {
     return false;
   }
 
+  /**
+   * @see org.mmtk.harness.lang.type.Type#isCompatibleWith(org.mmtk.harness.lang.type.Type)
+   */
   public boolean isCompatibleWith(Type rhs) {
     return this == rhs;
   }
-
-  public abstract Value initialValue();
 }

@@ -22,8 +22,11 @@ import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.runtime.BoolValue;
 import org.mmtk.harness.lang.runtime.IntValue;
 import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.lang.runtime.PhantomReferenceValue;
+import org.mmtk.harness.lang.runtime.SoftReferenceValue;
 import org.mmtk.harness.lang.runtime.StringValue;
 import org.mmtk.harness.lang.runtime.Value;
+import org.mmtk.harness.lang.runtime.WeakReferenceValue;
 import org.mmtk.harness.lang.type.Type;
 
 /**
@@ -65,8 +68,14 @@ public class IntrinsicMethod extends Method {
       return Type.BOOLEAN;
     } else if (externalType.equals(void.class)) {
       return Type.VOID;
+    } else if (externalType.equals(WeakReferenceValue.class)) {
+      return Type.WEAKREF;
+    } else if (externalType.equals(SoftReferenceValue.class)) {
+      return Type.SOFTREF;
+    } else if (externalType.equals(PhantomReferenceValue.class)) {
+      return Type.PHANTOMREF;
     }
-    return null;
+    throw new RuntimeException("Invalid return type for intrinsic method, "+externalType.getCanonicalName());
   }
 
   /**
@@ -147,6 +156,10 @@ public class IntrinsicMethod extends Method {
 
   /**
    * Constructor
+   * @param name The name of the method in the scripting language
+   * @param className The class that implements the method
+   * @param methodName The name of the method in the implementing class
+   * @param params The types of the parameters
    */
   public IntrinsicMethod(String name, String className, String methodName, List<String> params) {
     this(name,className, methodName,classesForParams(params));
@@ -231,6 +244,8 @@ public class IntrinsicMethod extends Method {
     } else if (obj instanceof Boolean) {
       assert returnType == Type.BOOLEAN : "mismatched return types";
       return BoolValue.valueOf(((Boolean)obj).booleanValue());
+    } else if (obj instanceof Value) {
+      return (Value)obj;
     }
     throw new RuntimeException("Can't unmarshall a "+obj.getClass().getCanonicalName());
   }

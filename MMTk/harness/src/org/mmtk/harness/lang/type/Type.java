@@ -13,6 +13,7 @@
 package org.mmtk.harness.lang.type;
 
 import org.mmtk.harness.lang.runtime.Value;
+import org.mmtk.vm.ReferenceProcessor.Semantics;
 
 /**
  * Types in the scripting language.
@@ -31,6 +32,12 @@ public interface Type {
   Type BOOLEAN = new BooleanType();
   /** The built-in "void" type */
   Type VOID = new VoidType();
+  /** The built-in "reference" type */
+  Type WEAKREF = new ReferenceType(Semantics.WEAK);
+  /** The built-in "reference" type */
+  Type SOFTREF = new ReferenceType(Semantics.SOFT);
+  /** The built-in "reference" type */
+  Type PHANTOMREF = new ReferenceType(Semantics.PHANTOM);
 
   /** @return The name of the type */
   String getName();

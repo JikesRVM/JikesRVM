@@ -14,6 +14,9 @@ package org.mmtk.harness.lang.parser;
 
 import org.mmtk.harness.lang.ast.IntrinsicMethod;
 import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.lang.runtime.PhantomReferenceValue;
+import org.mmtk.harness.lang.runtime.SoftReferenceValue;
+import org.mmtk.harness.lang.runtime.WeakReferenceValue;
 import org.mmtk.harness.lang.type.Type;
 
 /**
@@ -27,7 +30,7 @@ public class GlobalDefs {
    * The types - predeclared ones are passed to the constructor
    */
   public final TypeTable types = new TypeTable(Type.INT,Type.STRING,Type.BOOLEAN,
-      Type.OBJECT,Type.VOID);
+      Type.OBJECT,Type.VOID,Type.WEAKREF,Type.SOFTREF,Type.PHANTOMREF);
 
   private final String intrinsics = "org.mmtk.harness.lang.Intrinsics";
 
@@ -41,6 +44,20 @@ public class GlobalDefs {
       new IntrinsicMethod("random",intrinsics,"random",
           new Class<?>[] { int.class, int.class }),
       new IntrinsicMethod("setSeed",intrinsics,"setRandomSeed", new Class<?>[] { int.class }),
-      new IntrinsicMethod("heapDump",intrinsics,"heapDump")
+      new IntrinsicMethod("heapDump",intrinsics,"heapDump"),
+      new IntrinsicMethod("weakRef",intrinsics,"weakRef",
+          new Class<?>[] { ObjectValue.class }),
+      new IntrinsicMethod("getWeakReferent",intrinsics,"getReferent",
+          new Class<?>[] { WeakReferenceValue.class }),
+      new IntrinsicMethod("softRef",intrinsics,"softRef",
+          new Class<?>[] { ObjectValue.class }),
+      new IntrinsicMethod("getSoftReferent",intrinsics,"getReferent",
+          new Class<?>[] { SoftReferenceValue.class }),
+      new IntrinsicMethod("phantomRef",intrinsics,"phantomRef",
+          new Class<?>[] { ObjectValue.class }),
+      new IntrinsicMethod("getPhantomReferent",intrinsics,"getReferent",
+          new Class<?>[] { PhantomReferenceValue.class }),
+      new IntrinsicMethod("setOption",intrinsics,"setOption", new Class[] { String.class })
+
   );
 }

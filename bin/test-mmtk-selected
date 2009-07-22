@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# Run a broad sample of scripts, plans and MMTk harness options, across
+# the following dimensions:
+#
+#    Scripts
+#    plans
+#    scheduler (Deterministic or native)
+#    collectors: 1, 2, 8 and 32
+#
+
+BIN=$(dirname $0)
+MS=org.mmtk.plan.marksweep.MS
+MC=org.mmtk.plan.markcompact.MC
+SS=org.mmtk.plan.semispace.SS
+RC=org.mmtk.plan.refcount.RC
+IMMIX=org.mmtk.plan.immix.Immix
+COPYMS=org.mmtk.plan.copyms.CopyMS
+GENMS=org.mmtk.plan.generational.marksweep.GenMS
+GENCOPY=org.mmtk.plan.generational.semispace.GenCopy
+GENIMMIX=org.mmtk.plan.generational.immix.GenImmix
+GENRC=org.mmtk.plan.refcount.generational.GenRC
+POISONED=org.mmtk.plan.poisoned.Poisoned
+STICKYIMMIX=org.mmtk.plan.stickyimmix.StickyImmix
+STICKYMS=org.mmtk.plan.stickyms.StickyMS
+
+KEYPLANS="$GENIMMIX $GENMS"
+ALLPLANS="$MS $SS $MC $IMMIX $GENMS $GENIMMIX $GENCOPY $POISONED $STICKYIMMIX $STICKYMS $RC $GENRC $COPYMS" 
+
+
+runTests() {
+  local results=$1
+  local plans="$2"
+  local scripts="$3"
+  local opts="$4"
+
+  for plan in $plans; do
+    if [ ! -z "$scripts" ]; then
+      for script in $scripts; do
+        $BIN/test-mmtk -noclean -nobuild -nostats -results $results -plan $plan -script $script -opts "$opts"
+      done
+    else
+      $BIN/test-mmtk -noclean -nobuild -nostats -results $results -plan $plan -opts "$opts"
+    fi
+  done
+}
+
+$BIN/test-mmtk -buildonly -clean
+
+# Run every script across the most important collectors
+runTests allscripts "$GENMS $GENIMMIX" ""
+
+# Run some scripts across all the collectors
+runTests allplans "$ALLPLANS" "ReferenceTypes Alignment CyclicGarbage FixedLive HashCode"
+
+# Exercise the number of collectors
+for c in 2 4 16; do
+  runTests c$c "$KEYPLANS" "SpreadAlloc16 Lists FixedLive" "collectors=$c"
+  runTests d$c "$KEYPLANS" "SpreadAlloc16 Lists FixedLive" "collectors=$c scheduler=DETERMINISTIC"
+done
+
+$BIN/test-mmtk -noclean -nobuild -stats -plan ""

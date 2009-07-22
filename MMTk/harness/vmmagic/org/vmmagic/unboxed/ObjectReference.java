@@ -13,6 +13,7 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.Unboxed;
+import org.vmmagic.unboxed.harness.ArchitecturalWord;
 
 /**
  * The object reference type is used by the runtime system and collector to

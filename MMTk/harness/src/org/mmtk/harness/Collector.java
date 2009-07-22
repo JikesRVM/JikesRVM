@@ -200,6 +200,7 @@ public final class Collector implements Runnable {
       synchronized (this) {
         while (!started) {
           try {
+            /* Wait for the timeout thread to start running */
             wait();
           } catch (InterruptedException e) {
           }
@@ -214,10 +215,13 @@ public final class Collector implements Runnable {
     public void run() {
       long startTime = System.currentTimeMillis();
       synchronized (this) {
+        /* Inform the caller that the timeout thread has started */
+        started = true;
+        notify();
+
         while (!cancelled) {
           try {
-            started = true;
-            notify();
+            /* Sleep until woken by a cancel or the timer has expired */
             long now = System.currentTimeMillis();
             if (now - startTime >= timeout) {
               System.err.printf("Collection exceeded timeout %dms%n",timeout);
@@ -252,18 +256,20 @@ public final class Collector implements Runnable {
    */
   private void collect() {
     boolean primary = context.getId() == 0;
-    Sanity sanity = new Sanity();
+    Sanity sanity = null;
     TimeoutThread timeout = null;
+    rendezvous(5000);
     if (primary) {
       Plan.setCollectionTrigger(Scheduler.getTriggerReason());
+      sanity = new Sanity();
       sanity.snapshotBefore();
       timeout = new TimeoutThread(Harness.timeout.getValue());
     }
+    rendezvous(5001);
 
     long startTime = System.nanoTime();
     boolean internalPhaseTriggered = (Scheduler.getTriggerReason() == Collection.INTERNAL_PHASE_GC_TRIGGER);
     boolean userTriggered = (Scheduler.getTriggerReason() == Collection.EXTERNAL_GC_TRIGGER);
-    rendezvous(5000);
 
     do {
       context.collect();
@@ -306,8 +312,7 @@ public final class Collector implements Runnable {
       if (Plan.isEmergencyCollection()) {
         boolean gcFailed = ActivePlan.plan.lastCollectionFailed();
         // Allocate OOMEs (some of which *may* not get used)
-        for(int m=0; m < Mutator.count(); m++) {
-          Mutator mutator = Mutator.get(m);
+        for (Mutator mutator : Mutators.getAll()) {
           if (mutator.getCollectionAttempts() > 0) {
             /* this thread was allocating */
             if (gcFailed || mutator.isPhysicalAllocationFailure()) {
@@ -318,6 +323,7 @@ public final class Collector implements Runnable {
       }
     }
 
+    rendezvous(5202);
     if (primary) {
       sanity.snapshotAfter();
       sanity.assertSanity();
@@ -328,12 +334,10 @@ public final class Collector implements Runnable {
         Mutator.dumpHeap();
         heapDumpRequested = false;
       }
-    }
-    rendezvous(5202);
-    if (primary) {
       Plan.collectionComplete();
       timeout.cancel();
     }
+    rendezvous(5203);
   }
 
 }

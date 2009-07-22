@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.vmmagic.unboxed;
+package org.vmmagic.unboxed.harness;
 
 public final class ArchitecturalWord32 extends ArchitecturalWord {
 
@@ -48,7 +48,7 @@ public final class ArchitecturalWord32 extends ArchitecturalWord {
   }
 
   @Override
-  boolean EQ(ArchitecturalWord word) {
+  public boolean EQ(ArchitecturalWord word) {
     return value == word.toInt();
   }
 
@@ -56,68 +56,69 @@ public final class ArchitecturalWord32 extends ArchitecturalWord {
    * Unsigned comparison - flip bit 31 and then use signed comparison.
    */
   @Override
-  boolean LT(ArchitecturalWord word) {
+  public boolean LT(ArchitecturalWord word) {
     return (value ^ SIGN_BIT) < (word.toInt() ^ SIGN_BIT);
   }
 
   @Override
-  ArchitecturalWord minus(long offset) {
+  public ArchitecturalWord minus(long offset) {
     return fromLong(value-(int)offset);
   }
 
   @Override
-  ArchitecturalWord plus(long offset) {
+  public ArchitecturalWord plus(long offset) {
     return fromLong(value + (int)offset);
   }
 
   @Override
-  ArchitecturalWord and(ArchitecturalWord w) {
+  public ArchitecturalWord and(ArchitecturalWord w) {
     return fromLong(value & w.toInt());
   }
 
   @Override
-  ArchitecturalWord lsh(int amt) {
+  public ArchitecturalWord lsh(int amt) {
     return fromLong(value << amt);
   }
 
   @Override
-  ArchitecturalWord not() {
+  public ArchitecturalWord not() {
     return fromLong(~value);
   }
 
   @Override
-  ArchitecturalWord or(ArchitecturalWord w) {
+  public ArchitecturalWord or(ArchitecturalWord w) {
     return fromLong(value | w.toInt());
   }
 
   @Override
-  ArchitecturalWord rsha(int amt) {
+  public ArchitecturalWord rsha(int amt) {
     return fromLong(value >> amt);
   }
 
   @Override
-  ArchitecturalWord rshl(int amt) {
+  public ArchitecturalWord rshl(int amt) {
     return fromLong(value >>> amt);
   }
 
   @Override
-  ArchitecturalWord xor(ArchitecturalWord w) {
+  public ArchitecturalWord xor(ArchitecturalWord w) {
     return fromLong(value ^ w.toInt());
   }
 
   @Override
-  ArchitecturalWord diff(ArchitecturalWord w) {
+  public ArchitecturalWord diff(ArchitecturalWord w) {
     return fromLong(value - w.toInt());
   }
 
   @Override
-  boolean sLT(ArchitecturalWord word) {
+  public boolean sLT(ArchitecturalWord word) {
     return value < word.toInt();
   }
 
   /**
    * Create a string representation of the given int value as an address.
    */
+  @Override
   public String toString() {
     char[] chars = new char[10];
     int v = value;

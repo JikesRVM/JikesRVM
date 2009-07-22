@@ -14,6 +14,7 @@ package org.vmmagic.unboxed;
 
 import org.vmmagic.Unboxed;
 import org.vmmagic.pragma.RawStorage;
+import org.vmmagic.unboxed.harness.ArchitecturalWord;
 
 /**
  * (Mistakes in) comments by Robin Garner

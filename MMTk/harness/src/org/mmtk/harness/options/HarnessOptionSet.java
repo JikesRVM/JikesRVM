@@ -17,7 +17,7 @@ import java.util.TreeSet;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Word;
-import org.vmmagic.unboxed.SimulatedMemory;
+import org.vmmagic.unboxed.harness.MemoryConstants;
 import org.vmutil.options.AddressOption;
 import org.vmutil.options.BooleanOption;
 import org.vmutil.options.EnumOption;
@@ -420,7 +420,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
   @Override
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
-    return bytes.plus(SimulatedMemory.BYTES_IN_PAGE-1).toWord().rshl(SimulatedMemory.LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(MemoryConstants.BYTES_IN_PAGE-1).toWord().rshl(MemoryConstants.LOG_BYTES_IN_PAGE).toInt();
   }
 
   /**
@@ -431,6 +431,6 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
   @Override
   @Uninterruptible
   protected Extent pagesToBytes(int pages) {
-    return Word.fromIntZeroExtend(pages).lsh(SimulatedMemory.LOG_BYTES_IN_PAGE).toExtent();
+    return Word.fromIntZeroExtend(pages).lsh(MemoryConstants.LOG_BYTES_IN_PAGE).toExtent();
   }
 }

@@ -17,6 +17,8 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.heap.VMRequest;
 
 import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.harness.MemoryConstants;
+import org.vmmagic.unboxed.harness.SimulatedMemory;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
@@ -207,17 +209,17 @@ public class Memory extends org.mmtk.vm.Memory {
   /** @return The highest address in the contiguous address space available to MMTk */
   protected Address getAvailableEndConstant()  { return HEAP_END; }
   /** @return The log base two of the size of an address */
-  protected byte getLogBytesInAddressConstant() { return (byte) SimulatedMemory.LOG_BYTES_IN_WORD; }
+  protected byte getLogBytesInAddressConstant() { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
   /** @return The log base two of the size of a word */
-  protected byte getLogBytesInWordConstant() { return (byte) SimulatedMemory.LOG_BYTES_IN_WORD; }
+  protected byte getLogBytesInWordConstant() { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
   /** @return The log base two of the size of an OS page */
-  protected byte getLogBytesInPageConstant() { return SimulatedMemory.LOG_BYTES_IN_PAGE; }
+  protected byte getLogBytesInPageConstant() { return MemoryConstants.LOG_BYTES_IN_PAGE; }
   /** @return The log base two of the minimum allocation alignment */
-  protected byte getLogMinAlignmentConstant()  { return (byte) SimulatedMemory.LOG_BYTES_IN_WORD; }
+  protected byte getLogMinAlignmentConstant()  { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
   /** @return The log base two of (MAX_ALIGNMENT/MIN_ALIGNMENT) */
   protected byte getMaxAlignmentShiftConstant() { return 1; }
   /** @return The maximum number of bytes of padding to prepend to an object */
-  protected int getMaxBytesPaddingConstant() { return SimulatedMemory.BYTES_IN_WORD; }
+  protected int getMaxBytesPaddingConstant() { return MemoryConstants.BYTES_IN_WORD; }
   /** @return The value to store in alignment holes */
   protected int getAlignmentValueConstant() { return ObjectModel.ALIGNMENT_VALUE; }
 }

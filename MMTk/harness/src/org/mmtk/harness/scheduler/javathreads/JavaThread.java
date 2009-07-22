@@ -13,36 +13,10 @@
 package org.mmtk.harness.scheduler.javathreads;
 
 
-import org.mmtk.harness.MMTkThread;
-import org.mmtk.harness.scheduler.Policy;
-import org.mmtk.harness.scheduler.Scheduler;
+import org.mmtk.harness.scheduler.MMTkThread;
 
 /**
  * This class represents an MMTk thread (mutator or collector).
  */
 public class JavaThread extends MMTkThread {
-
-  /**
-   * The command-line selected yield policy
-   */
-  private Policy yieldPolicy = Scheduler.yieldPolicy(this);
-
-  /**
-   * Create an MMTk thread.
-   *
-   * @param entryPoint The entryPoint.
-   */
-  protected JavaThread(Runnable entryPoint) {
-    super(entryPoint);
-  }
-
-  /**
-   * Create an MMTk thread.
-   */
-  protected JavaThread() {
-  }
-
-  boolean yieldPolicy() {
-    return yieldPolicy.yieldNow();
-  }
 }

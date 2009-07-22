@@ -17,15 +17,26 @@ import org.mmtk.harness.lang.parser.Token;
 import org.mmtk.harness.lang.parser.TypeTable;
 import org.mmtk.harness.lang.runtime.Value;
 
+/**
+ * An unresolved reference to a type.
+ */
 public class TypeReference implements UserType {
 
   private final TypeTable table;
   private final String name;
 
+  /**
+   * Create a type reference
+   * @param table Table from which the type will eventually be resolved.
+   * @param name The type name
+   */
   public TypeReference(TypeTable table, String name) {
     this.table = table;
     this.name = name;
-    assert name != "int" && name != "boolean" && name != "string" && name != "void";
+    // CHECKSTYLE:OFF
+    assert name != "int" && name != "boolean" && name != "string" && name != "void" 
+      && name != "weakref";
+    // CHECKSTYLE:ON
   }
 
   public UserType resolve() {
