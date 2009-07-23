@@ -18,6 +18,7 @@ import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.lang.runtime.PhantomReferenceValue;
 import org.mmtk.harness.lang.runtime.SoftReferenceValue;
 import org.mmtk.harness.lang.runtime.WeakReferenceValue;
+import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
@@ -162,5 +163,16 @@ public class Intrinsics {
     if (!Harness.options.process(option)) {
       System.err.println("Error processing option "+option);
     }
+  }
+
+  /**
+   * A synchronization barrier for script-language threads
+   * @param env
+   * @param name
+   * @param threadCount
+   * @return
+   */
+  public static int barrierWait(Env env, String name, int threadCount) {
+    return Scheduler.mutatorRendezvous(name, threadCount);
   }
 }

@@ -25,6 +25,7 @@ import org.mmtk.harness.scheduler.Schedulable;
 import org.mmtk.harness.scheduler.ThreadModel;
 import static org.mmtk.harness.scheduler.ThreadModel.State.*;
 import org.mmtk.utility.Log;
+import org.mmtk.vm.VM;
 
 public final class JavaThreadModel extends ThreadModel {
   static {
@@ -269,7 +270,12 @@ public final class JavaThreadModel extends ThreadModel {
 
   @Override
   public int rendezvous(int where) {
-    return Rendezvous.rendezvous(where);
+    return Rendezvous.rendezvous(Integer.toString(where),VM.activePlan.collectorCount());
+  }
+
+  @Override
+  public int mutatorRendezvous(String where, int expected) {
+    return Rendezvous.rendezvous(where,expected);
   }
 
   @Override

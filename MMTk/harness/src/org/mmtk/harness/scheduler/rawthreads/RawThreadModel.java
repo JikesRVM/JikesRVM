@@ -13,8 +13,10 @@
 package org.mmtk.harness.scheduler.rawthreads;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.mmtk.harness.Collector;
 import org.mmtk.harness.Mutator;
@@ -170,6 +172,31 @@ public final class RawThreadModel extends ThreadModel {
     }
     current.setOrdinal(rendezvousQueue.size()+1);
     yield(rendezvousQueue);
+    Trace.trace(Item.SCHEDULER, "%d: rendezvous(%d) complete: ordinal = %d", current.getId(), where,current.getOrdinal());
+    return current.getOrdinal();
+  }
+
+
+  private final Map<String,List<RawThread>> rendezvousQueues = new HashMap<String,List<RawThread>>();
+
+  /**
+   * @see org.mmtk.harness.scheduler.ThreadModel#mutatorRendezvous(java.lang.String, int)
+   */
+  @Override
+  public int mutatorRendezvous(String where, int expected) {
+    Trace.trace(Item.SCHEDULER, "%s: rendezvous(%d)", current.getId(), where);
+    List<RawThread> queue = rendezvousQueues.get("Barrier-"+where);
+    if (queue == null) {
+      queue = new ArrayList<RawThread>(expected);
+      rendezvousQueues.put("Barrier-"+where, queue);
+    }
+    current.setOrdinal(queue.size()+1);
+    if (queue.size() == expected-1) {
+      makeRunnable(queue,false);
+      rendezvousQueues.put("Barrier-"+where, null);
+    } else {
+      yield(queue);
+    }
     Trace.trace(Item.SCHEDULER, "%d: rendezvous(%d) complete: ordinal = %d", current.getId(), where,current.getOrdinal());
     return current.getOrdinal();
   }

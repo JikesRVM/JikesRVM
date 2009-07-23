@@ -57,7 +57,9 @@ public class GlobalDefs {
           new Class<?>[] { ObjectValue.class }),
       new IntrinsicMethod("getPhantomReferent",intrinsics,"getReferent",
           new Class<?>[] { PhantomReferenceValue.class }),
-      new IntrinsicMethod("setOption",intrinsics,"setOption", new Class[] { String.class })
+      new IntrinsicMethod("setOption",intrinsics,"setOption", new Class[] { String.class }),
+      new IntrinsicMethod("barrierWait",intrinsics,"barrierWait",
+          new Class[] { String.class, int.class })
 
   );
 }

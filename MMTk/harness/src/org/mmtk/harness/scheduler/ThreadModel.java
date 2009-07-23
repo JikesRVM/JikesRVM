@@ -61,6 +61,8 @@ public abstract class ThreadModel {
 
   public abstract int rendezvous(int where);
 
+  public abstract int mutatorRendezvous(String where, int expected);
+
   public abstract Collector currentCollector();
 
   public abstract void waitForGC();

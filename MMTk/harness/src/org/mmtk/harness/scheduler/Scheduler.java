@@ -233,6 +233,10 @@ public class Scheduler {
     return model.rendezvous(where);
   }
 
+  public static int mutatorRendezvous(String name, int expected) {
+    return model.mutatorRendezvous(name,expected);
+  }
+
   /**
    * Cause the current thread to wait for a triggered GC to proceed.
    */
