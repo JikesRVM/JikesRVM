@@ -896,5 +896,25 @@ public final class Magic {
     }
     return -1.0d; // which should upset them even if assertions aren't enabled ...
   }
-}
 
+  /**
+   * How deeply inlined is this method (0 means no inlining).
+   */
+  public static int getInlineDepth() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+    return 0;
+  }
+
+  /**
+   * Is the specified parameter constant (due to either inlining or specialization).
+   * Count starts at zero and includes the 'this' parameter for instance methods.
+   */
+  public static boolean isConstantParameter(int index) {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+    return false;
+  }
+}

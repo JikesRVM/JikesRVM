@@ -2094,4 +2094,33 @@ final class BaselineMagic {
     MagicGenerator g = new Dsqrt();
     generators.put(getMethodReference(Magic.class, MagicNames.sqrt, double.class, double.class), g);
   }
+
+  /**
+   * Return the current inlining depth (always 0 for baseline)
+   */
+  private static final class GetInlineDepth extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPUSH_Imm(0);
+    }
+  }
+  static {
+    MagicGenerator g = new GetInlineDepth();
+    generators.put(getMethodReference(Magic.class, MagicNames.getInlineDepth, int.class), g);
+  }
+
+  /**
+   * Is the requested parameter a constant? Always false for baseline.
+   */
+  private static final class IsConstantParameter extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);
+      asm.emitPUSH_Imm(0);
+    }
+  }
+  static {
+    MagicGenerator g = new IsConstantParameter();
+    generators.put(getMethodReference(Magic.class, MagicNames.isConstantParameter, int.class, boolean.class), g);
+  }
 }

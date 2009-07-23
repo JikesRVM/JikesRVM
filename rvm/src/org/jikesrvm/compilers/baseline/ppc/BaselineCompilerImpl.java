@@ -4881,6 +4881,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         asm.emitFSQRT(F0, F0);
         pushDouble(F0);
       }
+    } else if (methodName == MagicNames.getInlineDepth ||
+               methodName == MagicNames.isConstantParameter) {
+      emit_iconst(0);
     } else if (methodName == MagicNames.wordToInt ||
                methodName == MagicNames.wordToAddress ||
                methodName == MagicNames.wordToOffset ||

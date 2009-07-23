@@ -75,6 +75,7 @@ import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
@@ -733,6 +734,16 @@ public class GenerateMagic implements TIBLayoutConstants  {
       RegisterOperand op0 = gc.temps.makeTempLong();
       bc2ir.appendInstruction(Nullary.create(GET_TIME_BASE, op0));
       bc2ir.pushDual(op0.copyD2U());
+    } else if (methodName == MagicNames.getInlineDepth) {
+      bc2ir.push(new IntConstantOperand(gc.inlineSequence.getInlineDepth()));
+    } else if (methodName == MagicNames.isConstantParameter) {
+      Operand requestedOperand = bc2ir.pop();
+      if (!(requestedOperand instanceof IntConstantOperand)) {
+        throw new OptimizingCompilerException("Must supply constant to Magic.isConstantParameter");
+      }
+      int requested = ((IntConstantOperand)(requestedOperand)).value;
+      boolean isConstant = gc.arguments[requested].isConstant();
+      bc2ir.push(new IntConstantOperand(isConstant ? 1 : 0));
     } else {
       // Wasn't machine-independent, so try the machine-dependent magics next.
       return GenerateMachineSpecificMagic.generateMagic(bc2ir, gc, meth);
