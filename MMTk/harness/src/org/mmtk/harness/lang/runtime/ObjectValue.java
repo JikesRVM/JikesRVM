@@ -42,7 +42,7 @@ public class ObjectValue extends Value {
 
   /**
    * An object value with the given initial value
-   * @param value
+   * @param value Initial value
    */
   public ObjectValue(ObjectReference value) {
     this.value = value;
@@ -51,6 +51,7 @@ public class ObjectValue extends Value {
   /**
    * Get this value as an object.
    */
+  @Override
   public ObjectReference getObjectValue() {
     return value;
   }
@@ -58,6 +59,7 @@ public class ObjectValue extends Value {
   /**
    * Get this value as a boolean.
    */
+  @Override
   public boolean getBoolValue() {
     return !value.isNull();
   }
@@ -83,11 +85,15 @@ public class ObjectValue extends Value {
 
   /**
    * GC-time processing of the contained object
+   * @param trace The trace object
    */
   public void traceObject(TraceLocal trace) {
     value = trace.traceObject(value, true);
   }
 
+  /**
+   * @see org.mmtk.harness.lang.runtime.Value#marshall(java.lang.Class)
+   */
   @Override
   public Object marshall(Class<?> klass) {
     if (klass.isAssignableFrom(ObjectValue.class)) {
@@ -104,6 +110,10 @@ public class ObjectValue extends Value {
     return (other instanceof ObjectValue && value.equals(((ObjectValue)other).value));
   }
 
+  /**
+   * Use the hash code of the underlying ObjectReference
+   * @see org.mmtk.harness.lang.runtime.Value#hashCode()
+   */
   @Override
   public int hashCode() {
     return value.hashCode();
