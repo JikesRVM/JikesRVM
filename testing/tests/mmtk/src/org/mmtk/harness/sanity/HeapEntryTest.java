@@ -4,15 +4,16 @@ import static org.junit.Assert.*;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mmtk.harness.Harness;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.ArchitecturalWord;
+import org.vmmagic.unboxed.harness.ArchitecturalWord;
 
 public class HeapEntryTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    ArchitecturalWord.init();
+    ArchitecturalWord.init(Harness.bits.getValue());
   }
 
   @Test

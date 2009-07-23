@@ -17,10 +17,11 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.vmmagic.unboxed.harness.MemoryConstants;
 
 public class ObjectReferenceTest {
 
-  final int BITS = SimulatedMemory.BYTES_IN_WORD * 8;
+  final int BITS = MemoryConstants.BYTES_IN_WORD * 8;
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -32,7 +33,7 @@ public class ObjectReferenceTest {
 
   @Test
   public void testHashCode() {
-    for (int i=SimulatedMemory.LOG_BITS_IN_BYTE; i < BITS; i++) {
+    for (int i=MemoryConstants.LOG_BITS_IN_BYTE; i < BITS; i++) {
       ObjectReference ref = Word.one().lsh(i).toAddress().toObjectReference();
       assertTrue(ref.hashCode() != 0);
     }

@@ -17,6 +17,10 @@ import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mmtk.harness.Harness;
+import org.vmmagic.unboxed.harness.ArchitecturalWord;
+import org.vmmagic.unboxed.harness.Architecture;
+import org.vmmagic.unboxed.harness.MemoryConstants;
+import org.vmmagic.unboxed.harness.SimulatedMemory;
 
 public class AddressTest {
 
@@ -57,7 +61,8 @@ public class AddressTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    Harness.init("plan=org.mmtk.plan.nogc.NoGC");
+    Harness.init("plan=org.mmtk.plan.nogc.NoGC","bits=32");
+//    Harness.init("plan=org.mmtk.plan.nogc.NoGC","bits=64");
 //    SimulatedMemory.addWatch(Address.fromIntSignExtend(LOW_TEST_PAGE), BYTES_IN_PAGE);
 //    SimulatedMemory.addWatch(Address.fromIntSignExtend(HIGH_TEST_PAGE), BYTES_IN_PAGE);
     SimulatedMemory.map(Address.fromIntSignExtend(LOW_TEST_PAGE), BYTES_IN_PAGE);
@@ -98,9 +103,9 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/SimulatedMemory.BYTES_IN_WORD; i++) {
-      Offset offset = Offset.fromIntSignExtend(i*SimulatedMemory.BYTES_IN_WORD);
-      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*SimulatedMemory.BYTES_IN_WORD);
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/MemoryConstants.BYTES_IN_WORD; i++) {
+      Offset offset = Offset.fromIntSignExtend(i*MemoryConstants.BYTES_IN_WORD);
+      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*MemoryConstants.BYTES_IN_WORD);
       assertTrue(lowAddr.loadObjectReference(offset).isNull());
       assertTrue(highAddr.loadObjectReference(offset).isNull());
       assertTrue(lowAddrEnd.loadObjectReference(negOffset).isNull());
@@ -119,12 +124,12 @@ public class AddressTest {
     zeroTestPages();
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
-    assertTrue(lowAddr.loadByte() == 0);
-    assertTrue(highAddr.loadByte() == 0);
+    assertEquals((byte)0,lowAddr.loadByte());
+    assertEquals((byte)0,highAddr.loadByte());
     lowAddr.store(BYTE_CONST1);
     highAddr.store(BYTE_CONST2);
-    assertTrue(lowAddr.loadByte() == BYTE_CONST1);
-    assertTrue(highAddr.loadByte() == BYTE_CONST2);
+    assertEquals(BYTE_CONST1,lowAddr.loadByte());
+    assertEquals(BYTE_CONST2,highAddr.loadByte());
   }
 
   @Test
@@ -134,19 +139,19 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_BYTE; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_BYTE; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_BYTE);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_BYTE);
-      assertTrue(lowAddr.loadByte(offset) == 0);
-      assertTrue(highAddr.loadByte(offset) == 0);
-      assertTrue(lowAddrEnd.loadByte(negOffset) == 0);
-      assertTrue(highAddrEnd.loadByte(negOffset) == 0);
+      assertEquals((byte)0,lowAddr.loadByte(offset));
+      assertEquals((byte)0,highAddr.loadByte(offset));
+      assertEquals((byte)0,lowAddrEnd.loadByte(negOffset));
+      assertEquals((byte)0,highAddrEnd.loadByte(negOffset));
       lowAddr.plus(offset).store(BYTE_CONST1);
       highAddr.plus(offset).store(BYTE_CONST2);
-      assertTrue(lowAddr.loadByte(offset) == BYTE_CONST1);
-      assertTrue(highAddr.loadByte(offset) == BYTE_CONST2);
-      assertTrue(lowAddrEnd.loadByte(negOffset) == BYTE_CONST1);
-      assertTrue(highAddrEnd.loadByte(negOffset) == BYTE_CONST2);
+      assertEquals(BYTE_CONST1,lowAddr.loadByte(offset));
+      assertEquals(BYTE_CONST2,highAddr.loadByte(offset));
+      assertEquals(BYTE_CONST1,lowAddrEnd.loadByte(negOffset));
+      assertEquals(BYTE_CONST2,highAddrEnd.loadByte(negOffset));
     }
   }
 
@@ -162,19 +167,19 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_CHAR; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_CHAR; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_CHAR);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_CHAR);
-      assertTrue(lowAddr.loadChar(offset) == 0);
-      assertTrue(highAddr.loadChar(offset) == 0);
-      assertTrue(lowAddrEnd.loadChar(negOffset) == 0);
-      assertTrue(highAddrEnd.loadChar(negOffset) == 0);
+      assertEquals((char)0,lowAddr.loadChar(offset));
+      assertEquals((char)0,highAddr.loadChar(offset));
+      assertEquals((char)0,lowAddrEnd.loadChar(negOffset));
+      assertEquals((char)0,highAddrEnd.loadChar(negOffset));
       lowAddr.plus(offset).store(CHAR_CONST1);
       highAddr.plus(offset).store(CHAR_CONST2);
-      assertTrue(lowAddr.loadChar(offset) == CHAR_CONST1);
-      assertTrue(highAddr.loadChar(offset) == CHAR_CONST2);
-      assertTrue(lowAddrEnd.loadChar(negOffset) == CHAR_CONST1);
-      assertTrue(highAddrEnd.loadChar(negOffset) == CHAR_CONST2);
+      assertEquals(CHAR_CONST1,lowAddr.loadChar(offset));
+      assertEquals(CHAR_CONST2,highAddr.loadChar(offset));
+      assertEquals(CHAR_CONST1,lowAddrEnd.loadChar(negOffset));
+      assertEquals(CHAR_CONST2,highAddrEnd.loadChar(negOffset));
     }
   }
 
@@ -190,19 +195,19 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_SHORT; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_SHORT; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_SHORT);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_SHORT);
-      assertTrue(lowAddr.loadShort(offset) == 0);
-      assertTrue(highAddr.loadShort(offset) == 0);
-      assertTrue(lowAddrEnd.loadShort(negOffset) == 0);
-      assertTrue(highAddrEnd.loadShort(negOffset) == 0);
+      assertEquals((short)0,lowAddr.loadShort(offset));
+      assertEquals((short)0,highAddr.loadShort(offset));
+      assertEquals((short)0,lowAddrEnd.loadShort(negOffset));
+      assertEquals((short)0,highAddrEnd.loadShort(negOffset));
       lowAddr.plus(offset).store(SHORT_CONST1);
       highAddr.plus(offset).store(SHORT_CONST2);
-      assertTrue(lowAddr.loadShort(offset) == SHORT_CONST1);
-      assertTrue(highAddr.loadShort(offset) == SHORT_CONST2);
-      assertTrue(lowAddrEnd.loadShort(negOffset) == SHORT_CONST1);
-      assertTrue(highAddrEnd.loadShort(negOffset) == SHORT_CONST2);
+      assertEquals(SHORT_CONST1,lowAddr.loadShort(offset));
+      assertEquals(SHORT_CONST2,highAddr.loadShort(offset));
+      assertEquals(SHORT_CONST1,lowAddrEnd.loadShort(negOffset));
+      assertEquals(SHORT_CONST2,highAddrEnd.loadShort(negOffset));
     }
   }
 
@@ -218,19 +223,19 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_FLOAT; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_FLOAT; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_FLOAT);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_FLOAT);
-      assertTrue(lowAddr.loadFloat(offset) == 0);
-      assertTrue(highAddr.loadFloat(offset) == 0);
-      assertTrue(lowAddrEnd.loadFloat(negOffset) == 0);
-      assertTrue(highAddrEnd.loadFloat(negOffset) == 0);
+      assertEquals(0.0f,lowAddr.loadFloat(offset));
+      assertEquals(0.0f,highAddr.loadFloat(offset));
+      assertEquals(0.0f,lowAddrEnd.loadFloat(negOffset));
+      assertEquals(0.0f,highAddrEnd.loadFloat(negOffset));
       lowAddr.plus(offset).store(FLOAT_CONST1);
       highAddr.plus(offset).store(FLOAT_CONST2);
-      assertTrue(lowAddr.loadFloat(offset) == FLOAT_CONST1);
-      assertTrue(highAddr.loadFloat(offset) == FLOAT_CONST2);
-      assertTrue(lowAddrEnd.loadFloat(negOffset) == FLOAT_CONST1);
-      assertTrue(highAddrEnd.loadFloat(negOffset) == FLOAT_CONST2);
+      assertEquals(FLOAT_CONST1,lowAddr.loadFloat(offset));
+      assertEquals(FLOAT_CONST2,highAddr.loadFloat(offset));
+      assertEquals(FLOAT_CONST1,lowAddrEnd.loadFloat(negOffset));
+      assertEquals(FLOAT_CONST2,highAddrEnd.loadFloat(negOffset));
     }
   }
 
@@ -246,19 +251,19 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_INT; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_INT; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_INT);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_INT);
-      assertTrue(lowAddr.loadInt(offset) == 0);
-      assertTrue(highAddr.loadInt(offset) == 0);
-      assertTrue(lowAddrEnd.loadInt(negOffset) == 0);
-      assertTrue(highAddrEnd.loadInt(negOffset) == 0);
+      assertEquals(0,lowAddr.loadInt(offset));
+      assertEquals(0,highAddr.loadInt(offset));
+      assertEquals(0,lowAddrEnd.loadInt(negOffset));
+      assertEquals(0,highAddrEnd.loadInt(negOffset));
       lowAddr.plus(offset).store(INT_CONST1);
       highAddr.plus(offset).store(INT_CONST2);
-      assertTrue(lowAddr.loadInt(offset) == INT_CONST1);
-      assertTrue(highAddr.loadInt(offset) == INT_CONST2);
-      assertTrue(lowAddrEnd.loadInt(negOffset) == INT_CONST1);
-      assertTrue(highAddrEnd.loadInt(negOffset) == INT_CONST2);
+      assertEquals(INT_CONST1,lowAddr.loadInt(offset));
+      assertEquals(INT_CONST2,highAddr.loadInt(offset));
+      assertEquals(INT_CONST1,lowAddrEnd.loadInt(negOffset));
+      assertEquals(INT_CONST2,highAddrEnd.loadInt(negOffset));
     }
   }
 
@@ -274,19 +279,19 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_LONG; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_LONG; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_LONG);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_LONG);
-      assertTrue(lowAddr.loadLong(offset) == 0);
-      assertTrue(highAddr.loadLong(offset) == 0);
-      assertTrue(lowAddrEnd.loadLong(negOffset) == 0);
-      assertTrue(highAddrEnd.loadLong(negOffset) == 0);
+      assertEquals(0l,lowAddr.loadLong(offset));
+      assertEquals(0l,highAddr.loadLong(offset));
+      assertEquals(0l,lowAddrEnd.loadLong(negOffset));
+      assertEquals(0l,highAddrEnd.loadLong(negOffset));
       lowAddr.plus(offset).store(LONG_CONST1);
       highAddr.plus(offset).store(LONG_CONST2);
-      assertTrue(lowAddr.loadLong(offset) == LONG_CONST1);
-      assertTrue(highAddr.loadLong(offset) == LONG_CONST2);
-      assertTrue(lowAddrEnd.loadLong(negOffset) == LONG_CONST1);
-      assertTrue(highAddrEnd.loadLong(negOffset) == LONG_CONST2);
+      assertEquals(LONG_CONST1,lowAddr.loadLong(offset));
+      assertEquals(LONG_CONST2,highAddr.loadLong(offset));
+      assertEquals(LONG_CONST1,lowAddrEnd.loadLong(negOffset));
+      assertEquals(LONG_CONST2,highAddrEnd.loadLong(negOffset));
     }
   }
 
@@ -302,19 +307,19 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_DOUBLE; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_DOUBLE; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_DOUBLE);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_DOUBLE);
-      assertTrue(lowAddr.loadDouble(offset) == 0);
-      assertTrue(highAddr.loadDouble(offset) == 0);
-      assertTrue(lowAddrEnd.loadDouble(negOffset) == 0);
-      assertTrue(highAddrEnd.loadDouble(negOffset) == 0);
+      assertEquals(0.0,lowAddr.loadDouble(offset));
+      assertEquals(0.0,highAddr.loadDouble(offset));
+      assertEquals(0.0,lowAddrEnd.loadDouble(negOffset));
+      assertEquals(0.0,highAddrEnd.loadDouble(negOffset));
       lowAddr.plus(offset).store(DOUBLE_CONST1);
       highAddr.plus(offset).store(DOUBLE_CONST2);
-      assertTrue(lowAddr.loadDouble(offset) == DOUBLE_CONST1);
-      assertTrue(highAddr.loadDouble(offset) == DOUBLE_CONST2);
-      assertTrue(lowAddrEnd.loadDouble(negOffset) == DOUBLE_CONST1);
-      assertTrue(highAddrEnd.loadDouble(negOffset) == DOUBLE_CONST2);
+      assertEquals(DOUBLE_CONST1,lowAddr.loadDouble(offset));
+      assertEquals(DOUBLE_CONST2,highAddr.loadDouble(offset));
+      assertEquals(DOUBLE_CONST1,lowAddrEnd.loadDouble(negOffset));
+      assertEquals(DOUBLE_CONST2,highAddrEnd.loadDouble(negOffset));
     }
   }
 
@@ -330,9 +335,9 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/SimulatedMemory.BYTES_IN_WORD; i++) {
-      Offset offset = Offset.fromIntSignExtend(i*SimulatedMemory.BYTES_IN_WORD);
-      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*SimulatedMemory.BYTES_IN_WORD);
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/MemoryConstants.BYTES_IN_WORD; i++) {
+      Offset offset = Offset.fromIntSignExtend(i*MemoryConstants.BYTES_IN_WORD);
+      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*MemoryConstants.BYTES_IN_WORD);
       assertTrue(lowAddr.loadAddress(offset).isZero());
       assertTrue(highAddr.loadAddress(offset).isZero());
       assertTrue(lowAddrEnd.loadAddress(negOffset).isZero());
@@ -358,9 +363,9 @@ public class AddressTest {
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address lowAddrEnd = lowAddr.plus(BYTES_IN_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/SimulatedMemory.BYTES_IN_WORD; i++) {
-      Offset offset = Offset.fromIntSignExtend(i*SimulatedMemory.BYTES_IN_WORD);
-      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*SimulatedMemory.BYTES_IN_WORD);
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/MemoryConstants.BYTES_IN_WORD; i++) {
+      Offset offset = Offset.fromIntSignExtend(i*MemoryConstants.BYTES_IN_WORD);
+      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*MemoryConstants.BYTES_IN_WORD);
       assertTrue(lowAddr.loadWord(offset).isZero());
       assertTrue(highAddr.loadWord(offset).isZero());
       assertTrue(lowAddrEnd.loadWord(negOffset).isZero());
@@ -381,9 +386,9 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/SimulatedMemory.BYTES_IN_WORD; i++) {
-      Offset offset = Offset.fromIntSignExtend(i*SimulatedMemory.BYTES_IN_WORD);
-      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*SimulatedMemory.BYTES_IN_WORD);
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/MemoryConstants.BYTES_IN_WORD; i++) {
+      Offset offset = Offset.fromIntSignExtend(i*MemoryConstants.BYTES_IN_WORD);
+      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*MemoryConstants.BYTES_IN_WORD);
       assertTrue(lowAddr.plus(offset).loadObjectReference().isNull());
       assertTrue(highAddr.plus(offset).loadObjectReference().isNull());
       lowAddr.store(Address.fromIntSignExtend(INT_CONST1).toObjectReference(),offset);
@@ -399,9 +404,9 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/SimulatedMemory.BYTES_IN_WORD; i++) {
-      Offset offset = Offset.fromIntSignExtend(i*SimulatedMemory.BYTES_IN_WORD);
-      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*SimulatedMemory.BYTES_IN_WORD);
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/MemoryConstants.BYTES_IN_WORD; i++) {
+      Offset offset = Offset.fromIntSignExtend(i*MemoryConstants.BYTES_IN_WORD);
+      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*MemoryConstants.BYTES_IN_WORD);
       assertTrue(lowAddr.plus(offset).loadAddress().isZero());
       assertTrue(highAddr.plus(offset).loadAddress().isZero());
       lowAddr.store(Address.fromIntSignExtend(INT_CONST1),offset);
@@ -417,7 +422,7 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_FLOAT; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_FLOAT; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_FLOAT);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_FLOAT);
       assertTrue(lowAddr.plus(offset).loadFloat() == 0f);
@@ -435,9 +440,9 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/SimulatedMemory.BYTES_IN_WORD; i++) {
-      Offset offset = Offset.fromIntSignExtend(i*SimulatedMemory.BYTES_IN_WORD);
-      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*SimulatedMemory.BYTES_IN_WORD);
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/MemoryConstants.BYTES_IN_WORD; i++) {
+      Offset offset = Offset.fromIntSignExtend(i*MemoryConstants.BYTES_IN_WORD);
+      Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*MemoryConstants.BYTES_IN_WORD);
       assertTrue(lowAddr.plus(offset).loadWord().isZero());
       assertTrue(highAddr.plus(offset).loadWord().isZero());
       lowAddr.store(Word.fromIntSignExtend(INT_CONST1),offset);
@@ -453,7 +458,7 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE; i++) {
       Offset offset = Offset.fromIntSignExtend(i*1);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*1);
       assertTrue(lowAddr.plus(offset).loadByte() == 0);
@@ -471,7 +476,7 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_INT; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_INT; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_INT);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_INT);
       assertTrue(lowAddr.plus(offset).loadInt() == 0);
@@ -489,7 +494,7 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_DOUBLE; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_DOUBLE; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_DOUBLE);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_DOUBLE);
       assertTrue(lowAddr.plus(offset).loadDouble() == 0);
@@ -507,7 +512,7 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_LONG; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_LONG; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_LONG);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_LONG);
       assertTrue(lowAddr.plus(offset).loadLong() == 0);
@@ -525,7 +530,7 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_CHAR; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_CHAR; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_CHAR);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_CHAR);
       assertTrue(lowAddr.plus(offset).loadChar() == 0);
@@ -543,7 +548,7 @@ public class AddressTest {
     Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
     Address highAddr = Address.fromIntSignExtend(HIGH_TEST_PAGE);
     Address highAddrEnd = highAddr.plus(BYTES_IN_PAGE);
-    for (int i=0; i < SimulatedMemory.BYTES_IN_PAGE/BYTES_IN_SHORT; i++) {
+    for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_SHORT; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_SHORT);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_SHORT);
       assertTrue(lowAddr.plus(offset).loadShort() == 0);
@@ -568,7 +573,7 @@ public class AddressTest {
 
   @Test
   public void testExchangeWordOffset() {
-    Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE+SimulatedMemory.BYTES_IN_PAGE/2);
+    Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE+MemoryConstants.BYTES_IN_PAGE/2);
     Offset posOffset = Offset.fromIntSignExtend(20);
     Offset negOffset = Offset.fromIntSignExtend(-20);
     Word w = lowAddr.prepareWord(posOffset);
@@ -607,7 +612,7 @@ public class AddressTest {
     Address baseAddr = Address.fromIntSignExtend(LOW_TEST_PAGE+BYTES_IN_PAGE/2);
     /* An address not on this page */
     ObjectReference outAddr = Address.fromIntSignExtend(LOW_TEST_PAGE+BYTES_IN_PAGE*2+8).toObjectReference();
-    for (int i = -BYTES_IN_PAGE/2; i < BYTES_IN_PAGE/2; i += SimulatedMemory.BYTES_IN_WORD) {
+    for (int i = -BYTES_IN_PAGE/2; i < BYTES_IN_PAGE/2; i += MemoryConstants.BYTES_IN_WORD) {
       Offset offset = Offset.fromIntSignExtend(i);
       ObjectReference x = Address.fromIntSignExtend(i).toObjectReference();
       ObjectReference w = baseAddr.prepareObjectReference(offset);
@@ -635,7 +640,7 @@ public class AddressTest {
     Address baseAddr = Address.fromIntSignExtend(LOW_TEST_PAGE+BYTES_IN_PAGE/2);
     /* An address not on this page */
     Address outAddr = Address.fromIntSignExtend(LOW_TEST_PAGE+BYTES_IN_PAGE*2+8);
-    for (int i = -BYTES_IN_PAGE/2; i < BYTES_IN_PAGE/2; i += SimulatedMemory.BYTES_IN_WORD) {
+    for (int i = -BYTES_IN_PAGE/2; i < BYTES_IN_PAGE/2; i += MemoryConstants.BYTES_IN_WORD) {
       Offset offset = Offset.fromIntSignExtend(i);
       Address x = Address.fromIntSignExtend(i);
       Address w = baseAddr.prepareAddress(offset);
