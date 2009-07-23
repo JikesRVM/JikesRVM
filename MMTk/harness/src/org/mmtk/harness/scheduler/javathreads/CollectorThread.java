@@ -31,7 +31,7 @@ class CollectorThread extends JavaThread {
 
   @Override
   public void run() {
-    JavaThreadModel.collectorThreadLocal.set(collector);
+    JavaThreadModel.setCurrentCollector(collector);
     collector.run();
   }
 

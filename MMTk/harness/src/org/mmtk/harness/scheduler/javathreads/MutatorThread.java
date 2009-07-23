@@ -65,7 +65,7 @@ final class MutatorThread extends JavaThread {
   }
 
   private void endMutator() {
-    model.leaveMutatorPool();
+    model.leaveMutatorPool(this);
   }
 
 }

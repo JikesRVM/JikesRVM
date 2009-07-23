@@ -34,13 +34,13 @@ public final class JavaThreadModel extends ThreadModel {
   /**
    * Collector threads scheduled through #scheduleCollector(Schedulable)
    */
-  Set<CollectorThread> collectorThreads =
+  private final Set<CollectorThread> collectorThreads =
     Collections.synchronizedSet(new HashSet<CollectorThread>());
 
   /**
    * Mutator threads scheduled through scheduleMutator(Schedulable)
    */
-  Set<MutatorThread> mutatorThreads =
+  private final Set<MutatorThread> mutatorThreads =
     Collections.synchronizedSet(new HashSet<MutatorThread>());
 
   /**
@@ -77,6 +77,10 @@ public final class JavaThreadModel extends ThreadModel {
     collectorThreads.add(t);
     t.start();
     return t;
+  }
+
+  void removeCollector(CollectorThread c) {
+    collectorThreads.remove(c);
   }
 
   private MMTkThread currentMMTkThread() {
@@ -132,6 +136,7 @@ public final class JavaThreadModel extends ThreadModel {
 
   private void incActiveMutators() {
     activeMutators++;
+    count.notify();
   }
 
   private void decActiveMutators() {
@@ -147,7 +152,8 @@ public final class JavaThreadModel extends ThreadModel {
    * join the GC (because we are required to trigger it) and then exit.
    * Otherwise, just decrement the mutator count and leave.
    */
-  void leaveMutatorPool() {
+  void leaveMutatorPool(MutatorThread m) {
+    Trace.trace(Item.SCHEDULER, "%d Leaving mutator pool", Thread.currentThread().getId());
     synchronized (count) {
       boolean lastToGC = (mutatorsWaitingForGC == (activeMutators - 1));
       if (!lastToGC) {
@@ -161,7 +167,7 @@ public final class JavaThreadModel extends ThreadModel {
         mutatorsWaitingForGC--;
         decActiveMutators();
     }
-
+    mutatorThreads.remove(m);
   }
 
   /** Synchronisation object used for GC triggering */
@@ -246,26 +252,20 @@ public final class JavaThreadModel extends ThreadModel {
     }
   }
 
-  /**
-   * The number of mutators waiting for a collection to proceed.
-   */
+  /** Object used for synchronizing mutatorsWaitingForGC and activeMutators */
+  private static final Object count = new Object();
+
+  /** The number of mutators waiting for a collection to proceed. */
   protected int mutatorsWaitingForGC;
 
   /** The number of collectors executing GC */
   protected int inGC;
 
-  /**
-   * The number of mutators currently executing in the system.
-   */
+  /** The number of mutators currently executing in the system. */
   protected int activeMutators;
 
-  /**
-   * Object used for synchronizing the number of mutators waiting for a gc.
-   */
-  public static final Object count = new Object();
-
   /** Thread access to current collector */
-  public static final ThreadLocal<Collector> collectorThreadLocal = new ThreadLocal<Collector>();
+  private static final ThreadLocal<Collector> collectorThreadLocal = new ThreadLocal<Collector>();
 
   @Override
   public int rendezvous(int where) {
@@ -275,6 +275,10 @@ public final class JavaThreadModel extends ThreadModel {
   @Override
   public Collector currentCollector() {
     return collectorThreadLocal.get();
+  }
+
+  static void setCurrentCollector(Collector c) {
+    collectorThreadLocal.set(c);
   }
 
   @Override
@@ -289,14 +293,24 @@ public final class JavaThreadModel extends ThreadModel {
   @Override
   public void schedule() {
     startRunning();
-    /* Wait for the mutators */
+    /* Wait for the mutators to start */
+    while (mutatorThreads.size() > activeMutators) {
+      synchronized (count) {
+        try {
+          count.wait();
+        } catch (InterruptedException e) {
+        }
+        Trace.trace(Item.SCHEDULER,"Active mutators = "+activeMutators);
+      }
+    }
+    /* Wait for the mutators to exit */
     while (activeMutators > 0) {
       synchronized (count) {
         try {
           count.wait();
         } catch (InterruptedException e) {
         }
-        System.err.println("Active mutators = "+activeMutators);
+        Trace.trace(Item.SCHEDULER,"Active mutators = "+activeMutators);
       }
     }
   }

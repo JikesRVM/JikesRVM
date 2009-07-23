@@ -27,10 +27,10 @@ final class CollectorContextThread extends CollectorThread {
 
   @Override
   public void run() {
-    JavaThreadModel.collectorThreadLocal.set(collector);
+    JavaThreadModel.setCurrentCollector(collector);
     model.waitForGCStart();
     code.execute(new Env());
-    model.collectorThreads.remove(this);
+    model.removeCollector(this);
     model.exitGC();
   }
 
