@@ -437,6 +437,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param to The region to be copied to.
    * @return The resulting reference.
    */
+  @Override
   public ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
     return to.toObjectReference();
   }
@@ -448,6 +449,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param object The object whose size is to be queried
    * @return The size required to copy <code>obj</code>
    */
+  @Override
   public int getSizeWhenCopied(ObjectReference object) {
     return getCopiedSize(object);
   }
@@ -458,6 +460,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param object The object whose size is to be queried
    * @return The alignment required for a copy of <code>obj</code>
    */
+  @Override
   public int getAlignWhenCopied(ObjectReference object) {
     boolean doubleAlign = (object.toAddress().loadInt(STATUS_OFFSET) & DOUBLE_ALIGN) == DOUBLE_ALIGN;
     return (doubleAlign ? 2 : 1) * MemoryConstants.BYTES_IN_WORD;
@@ -469,6 +472,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param object The object whose size is to be queried
    * @return The alignment offset required for a copy of <code>obj</code>
    */
+  @Override
   public int getAlignOffsetWhenCopied(ObjectReference object) {
     return 0;
   }
@@ -479,6 +483,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * @param object The object whose size is to be queried
    * @return The size of <code>obj</code>
    */
+  @Override
   public int getCurrentSize(ObjectReference object) {
     return getSize(object);
   }
@@ -757,7 +762,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     System.err.printf("  Object %s <%d %d %1s> [", ObjectModel.formatObject(width, object), refCount, dataCount, (hashed ? "H" : ""));
     if (refCount > 0) {
       for(int i=0; i < refCount; i++) {
-        ObjectReference ref = getRefSlot(object, i).loadObjectReference();
+        ObjectReference ref = ActivePlan.plan.loadObjectReference(getRefSlot(object, i));
         System.err.print(" ");
         System.err.print(ObjectModel.formatObject(width, ref));
         if (!ref.isNull()) {
