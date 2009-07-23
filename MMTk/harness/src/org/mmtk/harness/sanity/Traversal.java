@@ -25,8 +25,6 @@ import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
-import org.mmtk.plan.MutatorContext;
-import org.mmtk.plan.Plan;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -37,8 +35,6 @@ import org.vmmagic.unboxed.ObjectReference;
 public final class Traversal {
 
   private static final boolean VERBOSE = true;
-
-  private static final MutatorContext mutatorContext = Mutator.createMutatorContext();
 
   /**
    * Traverse the heap.  This is the only public method in the class
@@ -72,7 +68,7 @@ public final class Traversal {
     }
     for (int i=0; i < ObjectModel.getRefs(object); i++) {
       Address slot = ObjectModel.getRefSlot(object, i);
-      ObjectReference ref = loadReferenceSlot(object, slot);
+      ObjectReference ref = loadReferenceSlot(slot);
       if (!ref.isNull()) {
         visitor.visitPointer(object, slot, ref);
         traceObject(ref,false);
@@ -80,9 +76,9 @@ public final class Traversal {
     }
   }
 
-  private ObjectReference loadReferenceSlot(ObjectReference object, Address slot) {
-    if (ActivePlan.constraints.needsReadBarrier() && Harness.sanityUsesReadBarrier.getValue()) {
-      return mutatorContext.readBarrier(object, slot, null, null, Plan.GETFIELD_READ_BARRIER);
+  private ObjectReference loadReferenceSlot(Address slot) {
+    if (Harness.sanityUsesReadBarrier.getValue()) {
+      return ActivePlan.plan.loadObjectReference(slot);
     }
     return slot.loadObjectReference();
   }
