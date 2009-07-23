@@ -138,7 +138,7 @@ public final class ImmixSpace extends Space implements Constants {
     if (allocBlockCursor.isZero()) allocBlockCursor = chunkMap.getHeadChunk();
     allocBlockSentinel = allocBlockCursor;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isRecycleAllocChunkAligned(allocBlockSentinel));
-    exhaustedReusableSpace = false;
+    exhaustedReusableSpace = allocBlockCursor.isZero();
     if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
       Log.write("gr[allocBlockCursor: "); Log.write(allocBlockCursor); Log.write(" allocBlockSentinel: "); Log.write(allocBlockSentinel); Log.writeln("]");
     }
