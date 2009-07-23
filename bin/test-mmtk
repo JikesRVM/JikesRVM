@@ -15,7 +15,28 @@
 
 TEST_DIR=MMTk/harness/test-scripts
 
-plans="org.mmtk.plan.copyms.CopyMS org.mmtk.plan.generational.copying.GenCopy org.mmtk.plan.generational.immix.GenImmix org.mmtk.plan.generational.marksweep.GenMS org.mmtk.plan.immix.Immix org.mmtk.plan.markcompact.MC org.mmtk.plan.marksweep.MS org.mmtk.plan.poisoned.Poisoned org.mmtk.plan.refcount.fullheap.RC org.mmtk.plan.refcount.generational.GenRC org.mmtk.plan.semispace.SS org.mmtk.plan.stickyimmix.StickyImmix org.mmtk.plan.stickyms.StickyMS"
+classForPlan() {
+  local plan=$1
+  case $plan in
+    CopyMS) echo "org.mmtk.plan.copyms.CopyMS";;
+    GenCopy) echo "org.mmtk.plan.generational.copying.GenCopy";;
+    GenImmix) echo "org.mmtk.plan.generational.immix.GenImmix";;
+    GenMS) echo "org.mmtk.plan.generational.marksweep.GenMS";;
+    Immix) echo "org.mmtk.plan.immix.Immix";;
+    MC) echo "org.mmtk.plan.markcompact.MC";;
+    MS) echo "org.mmtk.plan.marksweep.MS";;
+    Poisoned) echo "org.mmtk.plan.poisoned.Poisoned";;
+    RC) echo "org.mmtk.plan.refcount.fullheap.RC";;
+    GenRC) echo "org.mmtk.plan.refcount.generational.GenRC";;
+    SS) echo "org.mmtk.plan.semispace.SS";;
+    StickyImmix) echo "org.mmtk.plan.stickyimmix.StickyImmix";;
+    StickyMS) echo "org.mmtk.plan.stickyms.StickyMS";;
+    *) echo "Unknown plan" >> /dev/stderr
+       return 1;;
+  esac
+}
+
+plans="CopyMS GenCopy GenImmix GenMS Immix MC MS Poisoned RC GenRC SS StickyImmix StickyMS"
 
 opts="variableSizeHeap=false"
 #opts="$opts gcEvery=SAFEPOINT"
@@ -39,7 +60,7 @@ while [ $# -gt 0 ]; do
     -buildonly) buildonly=true;;
     -clean) clean=true;;
     -noclean) clean=false;;
-    -results) results="$2/"; shift;;
+    -results) results="/$2"; shift;;
     -stats) stats="true";;
     -nostats) stats="false";;
     *) echo "Unknown parameter $1"
@@ -55,7 +76,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-RESULTS=results/${results}mmtk
+RESULTS=results/mmtk${results}
 
 if [ $build = true ]; then
   ant clean compile-mmtk mmtk-harness
@@ -70,8 +91,8 @@ mkdir -p $RESULTS
 
 for plan in $plans
 do
-  showplan=`echo $plan | sed -e "s/.*\.//g"`
-  mkdir -p ${RESULTS}/$showplan
+  planClass=$(classForPlan $plan)
+  mkdir -p ${RESULTS}/$plan
   for script in `ls -1 $TEST_DIR/${scripts}.script`
   do
     showscript=`echo $script | sed -e "s/.*[\/]//g" | sed -e "s/\.script$//g"`
@@ -82,15 +103,15 @@ do
     fi
     (
       echo /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts;
-      /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts
+      /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$planClass $opts $scriptopts
     ) &> ${RESULTS}/temp.out
     if [ $? == 0 ]
     then
-      echo "PASSED: ${results%/} $showplan $showscript"
-      mv ${RESULTS}/temp.out ${RESULTS}/$showplan/$showscript.out.pass
+      echo "PASSED: ${results#/} $plan $showscript"
+      mv ${RESULTS}/temp.out ${RESULTS}/$plan/$showscript.out.pass
     else
-      echo "FAILED: ${results%/} $showplan $showscript"
-      mv ${RESULTS}/temp.out ${RESULTS}/$showplan/$showscript.out.fail
+      echo "FAILED: ${results#/} $plan $showscript"
+      mv ${RESULTS}/temp.out ${RESULTS}/$plan/$showscript.out.fail
     fi
   done
 done
