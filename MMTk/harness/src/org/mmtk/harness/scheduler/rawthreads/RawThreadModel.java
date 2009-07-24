@@ -362,7 +362,6 @@ public final class RawThreadModel extends ThreadModel {
             break;
           case BEGIN_GC:
             if (runQueue.isEmpty()) {
-              assert gcWaitQueue.size() == mutators.size();
               setState(GC);
               Trace.trace(Item.SCHEDULER, "%d: Changing to state GC - scheduling %d GC threads",
                   scheduler.getId(),collectorWaitQueue.size());

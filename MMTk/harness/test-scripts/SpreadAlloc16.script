@@ -33,9 +33,11 @@ void thread() {
   int large = 2500;               // # scalars in the largest object
   int i=0;
   
+  barrierWait("begin",32);
   object parent = alloc(live, 0, false);       // Parent object with 'live' pointers
   while (i < n) {             // loop for a while
     parent.object[i%live] = alloc(0, random(small,large), false);
     i = i + 1;                // loop counter
   }
+  barrierWait("end",32);
 }

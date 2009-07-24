@@ -275,7 +275,14 @@ public final class JavaThreadModel extends ThreadModel {
 
   @Override
   public int mutatorRendezvous(String where, int expected) {
-    return Rendezvous.rendezvous(where,expected);
+    synchronized (count) {
+      mutatorsWaitingForGC++;
+    }
+    int ordinal = Rendezvous.rendezvous(where,expected);
+    synchronized (count) {
+      mutatorsWaitingForGC--;
+    }
+    return ordinal;
   }
 
   @Override
