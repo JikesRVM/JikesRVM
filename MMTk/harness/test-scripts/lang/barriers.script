@@ -34,6 +34,7 @@ void main() {
   print("Phase 2 - GC complete");
   barrierWait("thread2-end",3);  
   print("Phase 2 - end");
+  print ("PASSED");
 }
 
 

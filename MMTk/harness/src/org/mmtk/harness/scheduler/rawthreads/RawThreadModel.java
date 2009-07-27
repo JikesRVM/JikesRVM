@@ -52,6 +52,10 @@ public final class RawThreadModel extends ThreadModel {
   /** The global scheduler thread */
   private final Thread scheduler = Thread.currentThread();
 
+  private static void trace(String message) {
+    Trace.trace(Item.SCHEDULER, "%d: "+message, Thread.currentThread().getId());
+  }
+
   /**
    * The 'scheduler woken' flag.
    *
@@ -146,7 +150,7 @@ public final class RawThreadModel extends ThreadModel {
     return ((CollectorThread)current).c;
   }
 
-  private int currentRendezvous = 0;
+  private int currentRendezvous = -1;
 
   /**
    * The number of mutators waiting for a collection to proceed.
@@ -164,14 +168,18 @@ public final class RawThreadModel extends ThreadModel {
   @Override
   public int rendezvous(int where) {
     Trace.trace(Item.SCHEDULER, "%d: rendezvous(%d)", current.getId(), where);
-    if (!isState(RENDEZVOUS)) {
+    if (currentRendezvous == -1) {
       currentRendezvous = where;
-      setState(RENDEZVOUS);
     } else {
       assert currentRendezvous == where;
     }
     current.setOrdinal(rendezvousQueue.size()+1);
-    yield(rendezvousQueue);
+    if (rendezvousQueue.size() == collectors.size()-1) {
+      makeRunnable(rendezvousQueue);
+      currentRendezvous = -1;
+    } else {
+      yield(rendezvousQueue);
+    }
     Trace.trace(Item.SCHEDULER, "%d: rendezvous(%d) complete: ordinal = %d", current.getId(), where,current.getOrdinal());
     return current.getOrdinal();
   }
@@ -184,20 +192,21 @@ public final class RawThreadModel extends ThreadModel {
    */
   @Override
   public int mutatorRendezvous(String where, int expected) {
-    Trace.trace(Item.SCHEDULER, "%s: rendezvous(%d)", current.getId(), where);
-    List<RawThread> queue = rendezvousQueues.get("Barrier-"+where);
+    String barrierName = "Barrier-"+where;
+    Trace.trace(Item.SCHEDULER, "%s: rendezvous(%s)", current.getId(), barrierName);
+    List<RawThread> queue = rendezvousQueues.get(barrierName);
     if (queue == null) {
       queue = new ArrayList<RawThread>(expected);
-      rendezvousQueues.put("Barrier-"+where, queue);
+      rendezvousQueues.put(barrierName, queue);
     }
     current.setOrdinal(queue.size()+1);
     if (queue.size() == expected-1) {
       makeRunnable(queue,false);
-      rendezvousQueues.put("Barrier-"+where, null);
+      rendezvousQueues.put(barrierName, null);
     } else {
       yield(queue);
     }
-    Trace.trace(Item.SCHEDULER, "%d: rendezvous(%d) complete: ordinal = %d", current.getId(), where,current.getOrdinal());
+    Trace.trace(Item.SCHEDULER, "%d: rendezvous(%s) complete: ordinal = %d", current.getId(), barrierName,current.getOrdinal());
     return current.getOrdinal();
   }
 
@@ -268,9 +277,16 @@ public final class RawThreadModel extends ThreadModel {
     }
   }
 
+  /**
+   * A GC has been requested.  A Mutator thread calls this when it sees the request,
+   * and wishes to wait for the GC.  In the raw-threads case, we yield to the
+   * collectorWaitQueue.
+   *
+   * @see org.mmtk.harness.scheduler.ThreadModel#waitForGCStart()
+   */
   @Override
   public void waitForGCStart() {
-    Trace.trace(Item.SCHEDULER, "%d: Yielding to collector wait queue", Thread.currentThread().getId());
+    trace("Yielding to collector wait queue");
     yield(collectorWaitQueue);
   }
 
@@ -380,15 +396,6 @@ public final class RawThreadModel extends ThreadModel {
           case GC:
             assert ! unitTest && (mutators.size() == 0 || !runQueue.isEmpty()) :
               "Runqueue cannot be empty while GC is in progress";
-            break;
-          case RENDEZVOUS:
-            if (runQueue.isEmpty()) {
-              assert rendezvousQueue.size() == collectors.size();
-              Trace.trace(Item.SCHEDULER, "%d: Rendezvous complete - changing to state GC", scheduler.getId());
-              setState(GC);
-              makeRunnable(rendezvousQueue);
-              currentRendezvous = 0;
-            }
             break;
         }
       }
