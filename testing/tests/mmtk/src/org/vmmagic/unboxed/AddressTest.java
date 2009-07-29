@@ -282,10 +282,10 @@ public class AddressTest {
     for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_LONG; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_LONG);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_LONG);
-      assertEquals(0l,lowAddr.loadLong(offset));
-      assertEquals(0l,highAddr.loadLong(offset));
-      assertEquals(0l,lowAddrEnd.loadLong(negOffset));
-      assertEquals(0l,highAddrEnd.loadLong(negOffset));
+      assertEquals(0L,lowAddr.loadLong(offset));
+      assertEquals(0L,highAddr.loadLong(offset));
+      assertEquals(0L,lowAddrEnd.loadLong(negOffset));
+      assertEquals(0L,highAddrEnd.loadLong(negOffset));
       lowAddr.plus(offset).store(LONG_CONST1);
       highAddr.plus(offset).store(LONG_CONST2);
       assertEquals(LONG_CONST1,lowAddr.loadLong(offset));
