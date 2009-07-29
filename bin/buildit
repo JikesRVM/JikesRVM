@@ -201,7 +201,7 @@ if ($results_name eq "") {
   $results_name = "latest";
 }
 if ($shell eq "") {
-  $shell = "/bin/bash -c ";
+  $shell = "/bin/bash --login -c ";
 }
 
 $testsid = getid();
