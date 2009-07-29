@@ -488,7 +488,7 @@ public class Runtime {
    */
   @Deprecated
   public InputStream getLocalizedInputStream(InputStream stream) {
-    throw new Error("TODO");
+    return stream;
   }
 
   /**
@@ -496,7 +496,7 @@ public class Runtime {
    */
   @Deprecated
   public OutputStream getLocalizedOutputStream(OutputStream stream) {
-    throw new Error("TODO");
+    return stream;
   }
 
   /**
