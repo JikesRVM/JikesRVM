@@ -47,6 +47,16 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
+  <!-- Partially replicated from build.xml. Yuck. -->
+  <!-- The soot test needs to know which class libraries we are using because it impacts the test command line -->
+  <property name="classlib.provider" value="GNU Classpath"/>
+  <condition property="soot.vmlibs" value="${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar:${test.rvm.dir}/lib/luni.jar">
+    <equals arg1="${classlib.provider}" arg2="Harmony"/>
+  </condition>
+  <condition property="soot.vmlibs" value="${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar">
+    <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
+  </condition>
+
   <target name="test" depends="compile">
     <test-property name="external.lib.dir" location="${jikesrvm.dir}/.ant.properties"/>
     <test-file name="soot.dir" location="${jikesrvm.dir}/.ant.properties"/>
@@ -62,7 +72,7 @@
     <startResults/>
     <rvm tag="soot.Main"
          class="soot.Main"
-         args="-O -time -x org.jikesrvm -x org.mmtk -x org.vmmagic -d ${build.tests.dir} --soot-classpath ${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar:${soot.class.path} --app ${soot.class} -f J"/>
+         args="-O -time -x org.jikesrvm -x org.mmtk -x org.vmmagic -d ${build.tests.dir} --soot-classpath ${soot.vmlibs}:${soot.class.path} --app ${soot.class} -f J"/>
     <outputSingleStatisticResults tag="soot.Main" key="time" pattern="totalTime:(.*)s \(100.0\%\)"/>
     <finishResults/>
   </target>
