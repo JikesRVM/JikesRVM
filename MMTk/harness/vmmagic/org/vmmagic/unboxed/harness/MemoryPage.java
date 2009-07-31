@@ -142,7 +142,7 @@ final class MemoryPage {
   }
 
   @SuppressWarnings("cast")
-  public byte setByte(Address address, byte value) {
+  public synchronized byte setByte(Address address, byte value) {
     int shift = ((address.toInt()) & ~MemoryConstants.WORD_MASK) << MemoryConstants.LOG_BITS_IN_BYTE;
     int mask = 0x000000FF << shift;
     int newValue = (((int)value) << shift) & mask;
@@ -154,7 +154,7 @@ final class MemoryPage {
   }
 
   @SuppressWarnings("cast")
-  public char setChar(Address address, char value) {
+  public synchronized char setChar(Address address, char value) {
     int shift = ((address.toInt()) & ~MemoryConstants.WORD_MASK) << MemoryConstants.LOG_BITS_IN_BYTE;
     assert shift == 0 || shift == 16: "misaligned 2b access at "+address;
     int mask = 0x0000FFFF << shift;
@@ -166,7 +166,7 @@ final class MemoryPage {
     return (char)(oldValue >>> shift);
   }
 
-  public int setInt(Address address, int value) {
+  public synchronized int setInt(Address address, int value) {
     assert ((address.toInt()) % MemoryConstants.BYTES_IN_INT) == 0: "misaligned 4b access at "+address;
     int index = getIndex(address);
     int old = read(index);
@@ -174,7 +174,7 @@ final class MemoryPage {
     return old;
   }
 
-  public long setLong(Address address, long value) {
+  public synchronized long setLong(Address address, long value) {
     if (SimulatedMemory.ALIGN_CHECK_LONG) {
       assert ((address.toInt()) % MemoryConstants.BYTES_IN_LONG) == 0: "misaligned 8b access at "+address;
     }
@@ -207,10 +207,11 @@ final class MemoryPage {
   /**
    * Perform the actual read of memory.
    */
-  private int read(int index) {
+  private synchronized int read(int index) {
     int value = data[index];
     if (isWatched(index)) {
-      Trace.printf("%s = %08x%n", cellAddress(index), data[index]);
+      Trace.printf("%4d  load %s = %08x%n", Thread.currentThread().getId(),
+          cellAddress(index), value);
       //new Throwable().printStackTrace();
     }
     return value;
@@ -221,7 +222,8 @@ final class MemoryPage {
    */
   private void write(int index, int value) {
     if (isWatched(index)) {
-      Trace.printf("%s: %08x -> %08x%n", cellAddress(index), data[index], value);
+      Trace.printf("%4d store %s: %08x -> %08x%n", Thread.currentThread().getId(),
+          cellAddress(index), data[index], value);
       //new Throwable().printStackTrace();
     }
     data[index] = value;
