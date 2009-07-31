@@ -50,7 +50,7 @@
   <!-- Partially replicated from build.xml. Yuck. -->
   <!-- The soot test needs to know which class libraries we are using because it impacts the test command line -->
   <property name="classlib.provider" value="GNU Classpath"/>
-  <condition property="soot.vmlibs" value="${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar:${test.rvm.dir}/lib/luni.jar">
+  <condition property="soot.vmlibs" value="${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar:${test.rvm.dir}/lib/luni.jar:${test.rvm.dir}/lib/security.jar">
     <equals arg1="${classlib.provider}" arg2="Harmony"/>
   </condition>
   <condition property="soot.vmlibs" value="${test.rvm.dir}/jksvm.jar:${test.rvm.dir}/rvmrt.jar">
