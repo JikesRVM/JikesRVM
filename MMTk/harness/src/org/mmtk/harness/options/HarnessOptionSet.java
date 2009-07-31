@@ -18,6 +18,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.harness.MemoryConstants;
+import org.vmmagic.unboxed.harness.WordComparator;
 import org.vmutil.options.AddressOption;
 import org.vmutil.options.BooleanOption;
 import org.vmutil.options.EnumOption;
@@ -34,14 +35,17 @@ import org.vmutil.options.StringOption;
 public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
 
   /*
-   * The following 2 option types are used only by the MMTk Harness,
+   * The following option types are used only by the MMTk Harness,
    * since they are hard to implement without allocating.
    */
   /** A Set<Enum> valued option */
   public static final int ENUM_SET_OPTION = 1001;
 
   /** A multi-valued integer valued option */
-  public static final int INT_SET_OPTION = 1011;
+  public static final int INT_SET_OPTION = 1002;
+
+  /** A multi-valued integer valued option */
+  public static final int WORD_SET_OPTION = 1003;
 
   /**
    * Take a string (most likely a command-line argument) and try to proccess it
@@ -153,22 +157,43 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
           return false;
         }
         return true;
+      case WORD_SET_OPTION:
+        ((WordSetOption)o).setValue(parseWordSet(value));
+        return true;
     }
 
     // None of the above tests matched, so this wasn't an option
     return false;
   }
 
-  private int[] parseIntSet(String value) {
-    TreeSet<Integer> intSetValues = new TreeSet<Integer>();
-    for (String element : value.split(",")) {
-      intSetValues.add(Integer.valueOf(element));
+  private int[] parseIntSet(String str) {
+    TreeSet<Integer> values = new TreeSet<Integer>();
+    for (String element : str.split(",")) {
+      values.add(Integer.valueOf(element));
     }
-    int[] intValues = new int[intSetValues.size()];
-    for (int i=0; i < intValues.length; i++) {
-      intValues[i] = intSetValues.pollFirst();
+    int[] result = new int[values.size()];
+    for (int i=0; i < result.length; i++) {
+      result[i] = values.pollFirst();
     }
-    return intValues;
+    return result;
+  }
+
+  private Word[] parseWordSet(String str) {
+    TreeSet<Word> values = new TreeSet<Word>(new WordComparator());
+    for (String element : str.split(",")) {
+      Long value;
+      if (element.startsWith("0x")) {
+        value = Long.valueOf(element.substring(2),16);
+      } else {
+        value = Long.valueOf(element);
+      }
+      values.add(Word.fromLong(value));
+    }
+    Word[] result = new Word[values.size()];
+    for (int i=0; i < result.length; i++) {
+      result[i] = values.pollFirst();
+    }
+    return result;
   }
 
   /**

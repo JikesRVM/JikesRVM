@@ -22,7 +22,9 @@ import org.mmtk.harness.vm.*;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.harness.ArchitecturalWord;
+import org.vmmagic.unboxed.harness.SimulatedMemory;
 import org.vmutil.options.BooleanOption;
 
 /**
@@ -82,9 +84,13 @@ public class Harness {
   /** A set of objects to watch */
   public static final WatchObject watchObject = new WatchObject();
 
+  /** A set of addresses to watch */
+  public static final WatchAddress watchAddress = new WatchAddress();
+
   /** Timeout on unreasonably long GC */
   public static final Timeout timeout = new Timeout();
 
+  /** Whether the Harness sanity checker uses the read barrier */
   public static final BooleanOption sanityUsesReadBarrier = new SanityUsesReadBarrier();
 
   private static boolean isInitialized = false;
@@ -114,13 +120,18 @@ public class Harness {
         options.process(arg);
       }
     }
-    ArchitecturalWord.init(Harness.bits.getValue());  // Reads 'bits'
+    ArchitecturalWord.init(Harness.bits.getValue());
     for(String arg: args) {
       if (!options.process(arg)) newArgs.add(arg);
     }
     trace.apply();
     gcEvery.apply();
     org.mmtk.harness.scheduler.Scheduler.init();
+
+    for (Address watchAddr : watchAddress.getAddresses()) {
+      System.err.printf("Setting watch at %s%n",watchAddr);
+      SimulatedMemory.addWatch(watchAddr);
+    }
 
     /*
      * Perform MMTk initialization in a minimal environment, specifically to
