@@ -2212,7 +2212,7 @@ target.jni-suffix=${target.jni-suffix}
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
-  <target name="mmtk-harness-eclipse-project">
+  <target name="mmtk-harness-eclipse-project" depends="mmtk-harness">
     <delete dir="eclipse"/>
     <delete file=".project"/>
     <delete file=".classpath"/>
