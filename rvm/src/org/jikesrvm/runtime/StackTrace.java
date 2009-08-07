@@ -371,6 +371,9 @@ public class StackTrace {
               int lineNumber = ((NormalMethod)method).getLineNumberForBCIndex(bci);
               elements[element] = new Element(method, lineNumber);
               element++;
+              if (iei > 0) {
+                bci = OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
+              }
             }
           }
         }
