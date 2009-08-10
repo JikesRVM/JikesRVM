@@ -20,9 +20,6 @@ DESCRIP
 #   May want to consider moving some like NO_CHECKCAST NO_CHECKSTORE from
 #   opt only to here
 ##########
-PRELOAD_AS_BOOT -1 false
-Apply boot options to preload_class
-
 ##########
 # Next, declare all the printing options
 # MUST start with PRINT_ or VCG_ prefix
