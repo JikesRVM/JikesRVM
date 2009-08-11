@@ -2397,6 +2397,14 @@ public class BootImageWriter extends BootImageWriterMessages
                  rvmFieldName.equals("CACHE") && rvmFieldType.isArrayType()) {
         Statics.setSlotContents(rvmFieldOffset, new Byte[256]);
         return true;
+      } else if (jdkType.equals(java.lang.Integer.class)) {
+        if (rvmFieldName.equals("decimalScale") && rvmFieldType.isArrayType()) {
+          int[] java_lang_Integer_decimalScale = new int[] { 1000000000, 100000000, 10000000, 1000000, 100000, 10000, 1000, 100, 10, 1 };
+          Statics.setSlotContents(rvmFieldOffset, java_lang_Integer_decimalScale);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.lang.Integer " + rvmFieldName + " " + rvmFieldType);
+        }
       } else if (jdkType.equals(java.lang.Throwable.class) &&
                  rvmFieldName.equals("zeroLengthStackTrace") && rvmFieldType.isArrayType()) {
         Statics.setSlotContents(rvmFieldOffset, new StackTraceElement[0]);
