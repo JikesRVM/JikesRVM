@@ -409,6 +409,7 @@
     <attribute name="class"/>
     <attribute name="args" default=""/>
     <attribute name="classpath" default=""/>
+    <attribute name="bootclasspath" default=""/>
     <attribute name="processors" default=""/>
     <attribute name="initialHeapSize" default=""/>
     <attribute name="maxHeapSize" default=""/>
@@ -423,6 +424,7 @@
                   class="@{class}"
                   args="@{args}"
                   classpath="@{classpath}"
+                  bootclasspath="@{bootclasspath}"
                   processors="@{processors}"
                   initialHeapSize="@{initialHeapSize}"
                   maxHeapSize="@{maxHeapSize}"
@@ -441,6 +443,7 @@
     <attribute name="class"/>
     <attribute name="args" default=""/>
     <attribute name="classpath" default=""/>
+    <attribute name="bootclasspath" default=""/>
     <attribute name="processors" default=""/>
     <attribute name="initialHeapSize" default=""/>
     <attribute name="maxHeapSize" default=""/>
@@ -474,6 +477,7 @@
       <setTestProperty tag="@{tag}" key="extra.args" default="@{rvmArgs}"/>
       <setTestProperty tag="@{tag}" key="extra.rvm.args" default=""/>
       <setTestProperty tag="@{tag}" key="class.path" default="${default.test.@{tag}.classpath}"/>
+      <setTestProperty tag="@{tag}" key="bootclass.path" default="@{bootclasspath}"/>
       <setTestProperty tag="@{tag}" key="time.limit" default="${default.test.@{tag}.timeLimit}"/>
       <setTestProperty tag="@{tag}" key="initial.heapsize" default="${default.test.@{tag}.initialHeapSize}"/>
       <setTestProperty tag="@{tag}" key="max.heapsize" default="${default.test.@{tag}.maxHeapSize}"/>
@@ -512,7 +516,7 @@
       <property name="test.@{tag}.rvm.wrapper-args" value=""/>
 
       <property name="test.@{tag}.command"
-                value='${rvm.exe} ${test.@{tag}.rvm.args} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
+                value='${rvm.exe} ${test.@{tag}.rvm.args} ${test.@{tag}.bootclass.path} -classpath "${test.@{tag}.class.path}" ${test.@{tag}.class} ${test.@{tag}.args}'/>
     </sequential>
   </macrodef>
 
@@ -557,7 +561,7 @@
             <arg line="-o ${test.@{tag}.@{execution}.output.file}"/>
 
             <!-- The RVM execution -->
-            <arg line="${rvm.exe} ${test.@{tag}.rvm.args}"/>
+            <arg line="${rvm.exe} ${test.@{tag}.rvm.args} ${test.@{tag}.bootclass.path}"/>
             <arg value="-classpath"/>
             <arg value="${test.@{tag}.class.path}"/>
             <arg line="${test.@{tag}.class} ${test.@{tag}.args}"/>
@@ -613,6 +617,7 @@
     <attribute name="tag"/>
     <attribute name="class"/>
     <attribute name="classpath" default=""/>
+    <attribute name="bootclasspath" default=""/>
     <attribute name="args" default=""/>
     <attribute name="execution" default="default"/>
     <attribute name="initialHeapSize" default=""/>
@@ -624,6 +629,7 @@
            class="@{class}"
            args="@{args}"
            classpath="@{classpath}"
+           bootclasspath="@{bootclasspath}"
            initialHeapSize="@{initialHeapSize}"
            maxHeapSize="@{maxHeapSize}"
            rvmArgs="@{rvmArgs}"

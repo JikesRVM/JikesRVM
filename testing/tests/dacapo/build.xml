@@ -25,13 +25,23 @@
 
   <property name="test.class.path" value="${dacapo.jar}"/>
 
+  <target name="extract-xalan-jar" depends="init">
+    <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
+    <unzip src="${dacapo.jar}" dest="${build.tests.dir}">
+      <patternset>
+        <include name="xalan.jar"/>
+      </patternset>
+    </unzip>
+  </target>
+
   <macrodef name="dacapo">
     <attribute name="name"/>
     <attribute name="timeLimit" default=""/>
     <attribute name="heapsize" default=""/>
     <attribute name="requires-display" default="false"/>
+    <attribute name="bootclasspath" default=""/>
     <sequential>
-      <rvm tag="@{name}" class="Harness" requires-display="@{requires-display}" args="@{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}"/>
+      <rvm tag="@{name}" class="Harness" requires-display="@{requires-display}" args="@{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}" bootclasspath="@{bootclasspath}"/>
       <outputSingleStatisticResults tag="@{name}" key="time" pattern="===== DaCapo @{name} PASSED in (.*) msec ====="/>
     </sequential>
   </macrodef>
@@ -42,7 +52,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="test" depends="init">
+  <target name="test" depends="init,extract-xalan-jar">
     <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
 
     <startResults/>
@@ -58,7 +68,7 @@
     <dacapo name="luindex"  heapsize="120"/>
     <dacapo name="lusearch" heapsize="300"/>
     <dacapo name="pmd"      heapsize="200"/>
-    <dacapo name="xalan"    heapsize="150"/>
+    <dacapo name="xalan"    heapsize="150" bootclasspath="-Xbootclasspath/p:xalan.jar" />
 
     <finishResults/>
   </target>
