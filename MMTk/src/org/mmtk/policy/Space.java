@@ -219,7 +219,7 @@ public abstract class Space implements Constants {
   public final boolean isImmortal() { return immortal; }
 
   /** Movable getter @return True if objects in this space may move */
-  public final boolean isMovable() { return movable; }
+  public boolean isMovable() { return movable; }
 
   /** Allocationfailed getter @return true if an allocation has failed since GC */
   public final boolean allocationFailed() { return allocationFailed; }

@@ -53,6 +53,12 @@ import org.vmmagic.pragma.*;
     return fromSpace;
   }
 
+  /** fromSpace CopySpace can always move, toSpace will not move during current GC */
+  @Override
+  public boolean isMovable() {
+    return fromSpace;
+  }
+
   /****************************************************************************
    *
    * Initialization
