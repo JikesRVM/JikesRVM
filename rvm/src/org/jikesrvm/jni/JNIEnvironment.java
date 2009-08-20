@@ -352,9 +352,10 @@ public final class JNIEnvironment implements SizeConstants {
     }
 
     // Save current JNI ref stack pointer
-    int oldJNIRefsSavedFP = JNIRefsSavedFP;
-    JNIRefsSavedFP = JNIRefsTop;
-    uninterruptiblePushJNIRef(Address.fromIntSignExtend(oldJNIRefsSavedFP), false);
+    if (JNIRefsTop > 0) {
+      uninterruptiblePushJNIRef(Address.fromIntSignExtend(JNIRefsSavedFP), false);
+      JNIRefsSavedFP = JNIRefsTop;
+    }
 
     // Convert arguments on stack from objects to JNI references
     Address fp = Magic.getFramePointer();
@@ -387,9 +388,10 @@ public final class JNIEnvironment implements SizeConstants {
     RVMThread.leaveJNIFromCallIntoNative();
 
     // Restore JNI ref top and saved frame pointer
-    JNIRefsTop = JNIRefsSavedFP;
-    if (JNIRefsTop > 0) {
-      JNIRefsSavedFP = JNIRefs.get((JNIRefsTop >> LOG_BYTES_IN_ADDRESS) + 1).toInt();
+    JNIRefsTop = 0;
+    if (JNIRefsSavedFP > 0) {
+      JNIRefsTop = JNIRefsSavedFP - BYTES_IN_ADDRESS;
+      JNIRefsSavedFP = JNIRefs.get(JNIRefsSavedFP >> LOG_BYTES_IN_ADDRESS).toInt();
     }
 
     // Throw and clear any pending exceptions
