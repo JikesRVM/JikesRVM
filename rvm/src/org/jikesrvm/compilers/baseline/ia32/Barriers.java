@@ -52,7 +52,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 4);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.putfieldWriteBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.referenceFieldWriteBarrierMethod.getOffset()));
   }
 
   /**
@@ -69,7 +69,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 4);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.putfieldWriteBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.referenceFieldWriteBarrierMethod.getOffset()));
   }
 
   static void compilePutstaticBarrier(Assembler asm, GPR reg, int locationMetadata) {
@@ -78,7 +78,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Reg(reg); // offset
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.putstaticWriteBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.referenceNonHeapWriteBarrierMethod.getOffset()));
  }
 
   static void compilePutstaticBarrierImm(Assembler asm, Offset fieldOffset, int locationMetadata) {
@@ -86,14 +86,14 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.putstaticWriteBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.referenceNonHeapWriteBarrierMethod.getOffset()));
   }
 
   static void compileArrayLoadBarrier(Assembler asm, boolean pushResult) {
     // on entry java stack contains ...|target_array_ref|array_index|
     // SP -> index, SP+4 -> target_ref
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.arrayLoadReadBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.referenceArrayReadBarrierMethod.getOffset()));
     if (pushResult) asm.emitPUSH_Reg(T0);
   }
 
@@ -104,7 +104,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.getfieldReadBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.referenceFieldReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 
@@ -113,7 +113,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
     genNullCheck(asm, T0);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.getfieldReadBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.referenceFieldReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 
@@ -121,7 +121,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Reg(reg);
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.getstaticReadBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.referenceNonHeapReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 
@@ -129,7 +129,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.getstaticReadBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.referenceNonHeapReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 

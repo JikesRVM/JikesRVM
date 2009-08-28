@@ -18,6 +18,124 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public abstract class Barriers {
   /**
+   * Perform the actual write of the write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void referenceWrite(ObjectReference ref, ObjectReference target,
+      Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual write of the non-heap write barrier.  This is
+   * used when the store is not to an object, but to a non-heap location
+   * such as statics or the stack.
+   *
+   * @param slot The address that contains the reference field
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   */
+  public abstract void referenceWrite(Address slot, ObjectReference target,
+      Word metaDataA, Word metaDataB);
+
+  /**
+   * Atomically write a reference field of an object or array and return
+   * the old value of the reference field.
+   *
+   * @param ref The object that has the reference field
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return The value that was replaced by the write.
+   */
+  public abstract ObjectReference referenceAtomicWrite(ObjectReference ref, ObjectReference target,
+      Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Attempt an atomic compare and exchange in a write barrier sequence.
+   *
+   * @param ref The object that has the reference field
+   * @param old The old reference to be swapped out
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return True if the compare and swap was successful
+   */
+  public abstract boolean referenceTryCompareAndSwap(ObjectReference ref, ObjectReference old, ObjectReference target,
+      Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of the read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract ObjectReference referenceRead(ObjectReference ref,
+      Word metaDataA, Word metaDataB, int mode);
+
+
+  /**
+   * Perform the actual write of the write barrier, writing the value as a raw Word.
+   *
+   * @param ref The object that has the reference field
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void wordWrite(ObjectReference ref, Word target,
+      Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Atomically write a reference field of an object or array and return
+   * the old value of the reference field.
+   *
+   * @param ref The object that has the reference field
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return The raw value that was replaced by the write.
+   */
+  public abstract Word wordAtomicWrite(ObjectReference ref, Word rawTarget,
+      Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Attempt an atomic compare and exchange in a write barrier sequence.
+   *
+   * @param ref The object that has the reference field
+   * @param old The old reference to be swapped out
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return True if the compare and swap was successful
+   */
+  public abstract boolean wordTryCompareAndSwap(ObjectReference ref, Word old, Word target,
+      Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of the read barrier, returning the value as a raw Word.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract Word wordRead(ObjectReference ref,
+      Word metaDataA, Word metaDataB, int mode);
+
+  /**
    * Sets an element of an object array without invoking any write
    * barrier.  This method is called by the Map class to ensure
    * potentially-allocation-triggering write barriers do not occur in
@@ -27,123 +145,6 @@ public abstract class Barriers {
    * @param index the index of the element to set
    * @param value the new value for the element
    */
-  public abstract void setArrayNoBarrier(Object [] dst, int index, Object value);
+  public abstract void referenceArrayStoreNoGCBarrier(Object [] dst, int index, Object value);
 
-  /**
-   * Perform the actual write of the write barrier.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param target The value that the slot will be updated to
-   * @param metaDataA VM specific meta data
-   * @param metaDataB VM specific meta data
-   * @param mode The context in which the write is occuring
-   */
-  public abstract void performWriteInBarrier(ObjectReference ref, Address slot,
-                                             ObjectReference target, Word metaDataA,
-                                             Word metaDataB, int mode);
-
-  /**
-   * Perform the actual write of the write barrier, writing the value as a raw Word.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param rawTarget The value that the slot will be updated to
-   * @param metaDataA VM specific meta data
-   * @param metaDataB VM specific meta data
-   * @param mode The context in which the write is occuring
-   */
-  public abstract void performRawWriteInBarrier(ObjectReference ref, Address slot,
-                                                Word rawTarget, Word metaDataA,
-                                                Word metaDataB, int mode);
-
-  /**
-   * Perform the actual read of the read barrier.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param metaDataA VM specific meta data
-   * @param metaDataB VM specific meta data
-   * @param mode The context in which the write is occuring
-   * @return the read value
-   */
-  public abstract ObjectReference performReadInBarrier(ObjectReference ref, Address slot,
-                                                       Word metaDataA, Word metaDataB, int mode);
-
-  /**
-   * Perform the actual read of the read barrier, returning the value as a raw Word.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param metaDataA VM specific meta data
-   * @param metaDataB VM specific meta data
-   * @param mode The context in which the write is occuring
-   * @return the read value
-   */
-  public abstract Word performRawReadInBarrier(ObjectReference ref, Address slot,
-                                               Word metaDataA, Word metaDataB, int mode);
-
-  /**
-   * Atomically write a reference field of an object or array and return
-   * the old value of the reference field.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param target The value that the slot will be updated to
-   * @param metaDataA VM specific meta data
-   * @param metaDataB VM specific meta data
-   * @param mode The context in which the write is occuring
-   * @return The value that was replaced by the write.
-   */
-  public abstract ObjectReference performWriteInBarrierAtomic(ObjectReference ref, Address slot,
-                                                              ObjectReference target, Word metaDataA,
-                                                              Word metaDataB, int mode);
-
-  /**
-   * Atomically write a reference field of an object or array and return
-   * the old value of the reference field.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param rawTarget The raw value that the slot will be updated to
-   * @param metaDataA VM specific meta data
-   * @param metaDataB VM specific meta data
-   * @param mode The context in which the write is occuring
-   * @return The raw value that was replaced by the write.
-   */
-  public abstract Word performRawWriteInBarrierAtomic(ObjectReference ref, Address slot,
-                                                      Word rawTarget, Word metaDataA,
-                                                      Word metaDataB, int mode);
-
-  /**
-   * Attempt an atomic compare and exchange in a write barrier sequence.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param old The old reference to be swapped out
-   * @param target The value that the slot will be updated to
-   * @param metaDataA VM specific meta data
-   * @param metaDataB VM specific meta data
-   * @param mode The context in which the write is occuring
-   * @return True if the compare and swap was successful
-   */
-  public abstract boolean tryCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
-                                                          ObjectReference old, ObjectReference target,
-                                                          Word metaDataA, Word metaDataB, int mode);
-
-  /**
-   * Attempt an atomic compare and exchange in a write barrier sequence.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param rawOld The old reference to be swapped out
-   * @param rawTarget The value that the slot will be updated to
-   * @param metaDataA VM specific meta data
-   * @param metaDataB VM specific meta data
-   * @param mode The context in which the write is occuring
-   * @return True if the compare and swap was successful
-   */
-  public abstract boolean tryRawCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
-                                                             Word rawOld, Word rawTarget,
-                                                             Word metaDataA, Word metaDataB, int mode);
 }

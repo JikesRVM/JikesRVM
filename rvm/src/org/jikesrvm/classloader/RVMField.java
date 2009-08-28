@@ -15,12 +15,12 @@ package org.jikesrvm.classloader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
-import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Word;
+import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 /**
  * A field of a java class.
@@ -295,14 +295,14 @@ public final class RVMField extends RVMMember {
    */
   public Object getObjectValueUnchecked(Object obj) {
     if (isStatic()) {
-      if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER && !isUntraced()) {
-        return MemoryManager.getstaticReadBarrier(getOffset(), getId());
+      if (NEEDS_REFERENCE_GETSTATIC_BARRIER && !isUntraced()) {
+        return Barriers.referenceNonHeapRead(getOffset(), getId());
       } else {
         return Statics.getSlotContentsAsObject(getOffset());
       }
     } else {
-      if (MemoryManagerConstants.NEEDS_READ_BARRIER && !isUntraced()) {
-        return MemoryManager.getfieldReadBarrier(obj, getOffset(), getId());
+      if (NEEDS_REFERENCE_GETFIELD_BARRIER && !isUntraced()) {
+        return Barriers.referenceFieldRead(obj, getOffset(), getId());
       } else {
         return Magic.getObjectAtOffset(obj, getOffset());
       }
@@ -390,14 +390,14 @@ public final class RVMField extends RVMMember {
    */
   public void setObjectValueUnchecked(Object obj, Object ref) {
     if (isStatic()) {
-      if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && !isUntraced()) {
-        MemoryManager.putstaticWriteBarrier(ref, getOffset(), getId());
+      if (NEEDS_REFERENCE_PUTSTATIC_BARRIER && !isUntraced()) {
+        Barriers.referenceNonHeapWrite(ref, getOffset(), getId());
       } else {
         Statics.setSlotContents(getOffset(), ref);
       }
     } else {
-      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !isUntraced()) {
-        MemoryManager.putfieldWriteBarrier(obj, ref, getOffset(), getId());
+      if (NEEDS_REFERENCE_PUTFIELD_BARRIER && !isUntraced()) {
+        Barriers.referenceFieldWrite(obj, ref, getOffset(), getId());
       } else {
         Magic.setObjectAtOffset(obj, getOffset(), ref);
       }

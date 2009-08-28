@@ -13,8 +13,7 @@
 package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
-import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -94,8 +93,8 @@ public class Synchronization {
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, Object testValue, Object newValue) {
-    if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-      return MemoryManager.tryCompareAndSwapWriteBarrier(base, offset, testValue, newValue);
+    if (Barriers.NEEDS_REFERENCE_PUTFIELD_BARRIER) {
+      return Barriers.referenceTryCompareAndSwap(base, offset, testValue, newValue);
     } else {
       Object oldValue;
       do {

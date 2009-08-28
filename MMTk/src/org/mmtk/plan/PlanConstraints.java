@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
   public boolean needsWriteBarrier() { return false; }
 
   /** @return True of this Plan requires read barriers on reference types. */
-  public boolean needsReferenceTypeReadBarrier() { return false; }
+  public boolean needsJavaLangReferenceReadBarrier() { return false; }
 
   /** @return True of this Plan requires read barriers. */
   public boolean needsReadBarrier() { return false; }

@@ -31,6 +31,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PUTSTATIC_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
+import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 import java.lang.reflect.Constructor;
 
@@ -70,7 +71,6 @@ import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Entrypoints;
@@ -372,8 +372,8 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case REF_ASTORE_opcode: {
-          if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-            RVMMethod target = Entrypoints.arrayStoreWriteBarrierMethod;
+          if (NEEDS_REFERENCE_ASTORE_BARRIER) {
+            RVMMethod target = Entrypoints.referenceArrayWriteBarrierMethod;
             Instruction wb =
                 Call.create3(CALL,
                              null,
@@ -395,8 +395,8 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case REF_ALOAD_opcode: {
-          if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
-            RVMMethod target = Entrypoints.arrayLoadReadBarrierMethod;
+          if (NEEDS_REFERENCE_ALOAD_BARRIER) {
+            RVMMethod target = Entrypoints.referenceArrayReadBarrierMethod;
             Instruction rb =
               Call.create2(CALL,
                            ALoad.getClearResult(inst),
@@ -415,13 +415,13 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case PUTFIELD_opcode: {
-          if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
+          if (NEEDS_REFERENCE_PUTFIELD_BARRIER) {
             LocationOperand loc = PutField.getLocation(inst);
             FieldReference fieldRef = loc.getFieldRef();
             if (!fieldRef.getFieldContentsType().isPrimitiveType()) {
               RVMField field = fieldRef.peekResolvedField();
               if (field == null || !field.isUntraced()) {
-                RVMMethod target = Entrypoints.putfieldWriteBarrierMethod;
+                RVMMethod target = Entrypoints.referenceFieldWriteBarrierMethod;
                 Instruction wb =
                     Call.create4(CALL,
                                  null,
@@ -446,13 +446,13 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case GETFIELD_opcode: {
-          if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
+          if (NEEDS_REFERENCE_GETFIELD_BARRIER) {
             LocationOperand loc = GetField.getLocation(inst);
             FieldReference fieldRef = loc.getFieldRef();
             if (GetField.getResult(inst).getType().isReferenceType()) {
               RVMField field = fieldRef.peekResolvedField();
               if (field == null || !field.isUntraced()) {
-                RVMMethod target = Entrypoints.getfieldReadBarrierMethod;
+                RVMMethod target = Entrypoints.referenceFieldReadBarrierMethod;
                 Instruction rb =
                   Call.create3(CALL,
                                GetField.getClearResult(inst),
@@ -474,11 +474,11 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case PUTSTATIC_opcode: {
-          if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER) {
+          if (NEEDS_REFERENCE_PUTSTATIC_BARRIER) {
             LocationOperand loc = PutStatic.getLocation(inst);
             FieldReference field = loc.getFieldRef();
             if (!field.getFieldContentsType().isPrimitiveType()) {
-              RVMMethod target = Entrypoints.putstaticWriteBarrierMethod;
+              RVMMethod target = Entrypoints.referenceNonHeapWriteBarrierMethod;
               Instruction wb =
                   Call.create3(CALL,
                                null,
@@ -500,11 +500,11 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         break;
 
         case GETSTATIC_opcode: {
-          if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER) {
+          if (NEEDS_REFERENCE_GETSTATIC_BARRIER) {
             LocationOperand loc = GetStatic.getLocation(inst);
             FieldReference field = loc.getFieldRef();
             if (!field.getFieldContentsType().isPrimitiveType()) {
-              RVMMethod target = Entrypoints.getstaticReadBarrierMethod;
+              RVMMethod target = Entrypoints.referenceNonHeapReadBarrierMethod;
               Instruction rb =
                   Call.create2(CALL,
                                GetStatic.getClearResult(inst),

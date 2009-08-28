@@ -238,13 +238,13 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * @param mode The context in which the store occurred
    */
   @Inline
-  public void writeBarrier(ObjectReference src, Address slot,
+  public void referenceWrite(ObjectReference src, Address slot,
                            ObjectReference tgt, Word metaDataA,
                            Word metaDataB, int mode) {
     if (RCHeader.logRequired(src)) {
       coalescingWriteBarrierSlow(src);
     }
-    VM.barriers.performWriteInBarrier(src,slot,tgt, metaDataA, metaDataB, mode);
+    VM.barriers.referenceWrite(src,tgt,metaDataA, metaDataB, mode);
   }
 
   /**
@@ -265,13 +265,13 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * @return True if the swap was successful.
    */
   @Inline
-  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
+  public boolean referenceTryCompareAndSwap(ObjectReference src, Address slot,
                                                ObjectReference old, ObjectReference tgt, Word metaDataA,
                                                Word metaDataB, int mode) {
     if (RCHeader.logRequired(src)) {
       coalescingWriteBarrierSlow(src);
     }
-    return VM.barriers.tryCompareAndSwapWriteInBarrier(src,slot,old,tgt,metaDataA,metaDataB,mode);
+    return VM.barriers.referenceTryCompareAndSwap(src,old,tgt,metaDataA,metaDataB,mode);
   }
 
   /**
@@ -293,7 +293,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * left to the caller (always false in this case).
    */
   @Inline
-  public boolean writeBarrier(ObjectReference src, Offset srcOffset,
+  public boolean referenceBulkCopy(ObjectReference src, Offset srcOffset,
                               ObjectReference dst, Offset dstOffset, int bytes) {
     if (RCHeader.logRequired(dst)) {
       coalescingWriteBarrierSlow(dst);

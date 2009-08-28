@@ -303,7 +303,7 @@ public abstract class Mutator {
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     if (ActivePlan.constraints.needsWriteBarrier()) {
-      context.writeBarrier(object, referenceSlot, value, null, null, Plan.AASTORE_WRITE_BARRIER);
+      context.referenceWrite(object, referenceSlot, value, referenceSlot.toWord(), null, Plan.ARRAY_ELEMENT);
       if (gcEveryWB) {
         gc();
       }
@@ -347,7 +347,7 @@ public abstract class Mutator {
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     ObjectReference result;
     if (ActivePlan.constraints.needsReadBarrier()) {
-      result = context.readBarrier(object, referenceSlot, null, null, Plan.GETFIELD_READ_BARRIER);
+      result = context.referenceRead(object, referenceSlot, null, null, Plan.INSTANCE_FIELD);
     } else {
       result = referenceSlot.loadObjectReference();
     }

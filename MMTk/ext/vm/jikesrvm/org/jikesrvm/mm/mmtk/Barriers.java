@@ -25,78 +25,30 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * Perform the actual write of the write barrier.
    *
    * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
-   * @param metaDataA The offset from the ref
-   * @param metaDataB The index of the FieldReference
-   * @param mode The context in which the write is occuring
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
    */
   @Inline
-  public final void performWriteInBarrier(ObjectReference ref, Address slot,
-                                           ObjectReference target, Word metaDataA,
-                                           Word metaDataB, int mode) {
-    Object obj = ref.toObject();
-    Offset offset = metaDataA.toOffset();
-    int location = metaDataB.toInt();
-    Magic.setObjectAtOffset(obj, offset, target.toObject(), location);
+  public final void referenceWrite(ObjectReference ref, ObjectReference target,
+      Word offset, Word location, int mode) {
+    Magic.setObjectAtOffset(ref.toObject(), offset.toOffset(), target.toObject(), location.toInt());
   }
 
   /**
-   * Perform the actual write of the write barrier, writing the value as a raw word.
-   *
+   * Perform the actual write of the non-heap write barrier.  This is
+   * used when the store is not to an object, but to a non-heap location
+   * such as statics or the stack.
+   * @param target The value that the slot will be updated to
+   * @param unusedA The offset from the ref
+   * @param unusedB Unused
    * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param rawTarget The value that the slot will be updated to
-   * @param metaDataA The offset from the ref
-   * @param metaDataB The index of the FieldReference
-   * @param mode The context in which the write is occuring
    */
   @Inline
-  public final void performRawWriteInBarrier(ObjectReference ref, Address slot,
-                                             Word rawTarget, Word metaDataA,
-                                             Word metaDataB, int mode) {
-    Object obj = ref.toObject();
-    Offset offset = metaDataA.toOffset();
-    int location = metaDataB.toInt();
-    Magic.setWordAtOffset(obj, offset, rawTarget, location);
-  }
-
-  /**
-   * Perform the actual read of the read barrier.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param metaDataA The offset from the ref
-   * @param metaDataB The index of the FieldReference
-   * @param mode The context in which the write is occuring
-   * @return the read value
-   */
-  @Inline
-  public final ObjectReference performReadInBarrier(ObjectReference ref, Address slot,
-                                                    Word metaDataA, Word metaDataB, int mode) {
-    Object obj = ref.toObject();
-    Offset offset = metaDataA.toOffset();
-    int location = metaDataB.toInt();
-    return ObjectReference.fromObject(Magic.getObjectAtOffset(obj, offset, location));
-  }
-
-  /**
-   * Perform the actual read of the read barrier, returning the value as a raw word.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param metaDataA The offset from the ref
-   * @param metaDataB The index of the FieldReference
-   * @param mode The context in which the write is occuring
-   * @return the read value
-   */
-  @Inline
-  public final Word performRawReadInBarrier(ObjectReference ref, Address slot,
-                                            Word metaDataA, Word metaDataB, int mode) {
-    Object obj = ref.toObject();
-    Offset offset = metaDataA.toOffset();
-    int location = metaDataB.toInt();
-    return Magic.getWordAtOffset(obj, offset, location);
+  public final void referenceWrite(Address slot, ObjectReference target,
+      Word unusedA, Word unusedB) {
+    slot.store(target);
   }
 
   /**
@@ -104,52 +56,94 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * the old value of the reference field.
    *
    * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
    * @param target The value that the slot will be updated to
-   * @param metaDataA The offset from the ref
-   * @param metaDataB Unused
-   * @param mode The context in which the write is occuring
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
    * @return The value that was replaced by the write.
    */
   @Inline
-  public final ObjectReference performWriteInBarrierAtomic(
-                                           ObjectReference ref, Address slot,
-                                           ObjectReference target, Word metaDataA,
-                                           Word metaDataB, int mode) {
+  public final ObjectReference referenceAtomicWrite(ObjectReference ref, ObjectReference target,
+      Word offset, Word unused, int mode) {
     Object obj = ref.toObject();
     Object newObject = target.toObject();
-    Offset offset = metaDataA.toOffset();
     Object oldObject;
     do {
-      oldObject = Magic.prepareObject(obj, offset);
-    } while (!Magic.attemptObject(obj, offset, oldObject, newObject));
+      oldObject = Magic.prepareObject(obj, offset.toOffset());
+    } while (!Magic.attemptObject(obj, offset.toOffset(), oldObject, newObject));
     return ObjectReference.fromObject(oldObject);
   }
 
+  /**
+   * Attempt an atomic compare and exchange in a write barrier sequence.
+   *
+   * @param ref The object that has the reference field
+   * @param old The old reference to be swapped out
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return True if the compare and swap was successful
+   */
+  @Inline
+  public final boolean referenceTryCompareAndSwap(ObjectReference ref, ObjectReference old, ObjectReference target,
+      Word offset, Word unused, int mode) {
+    Object oldValue;
+    do {
+      oldValue = Magic.prepareObject(ref, offset.toOffset());
+      if (oldValue != old) return false;
+    } while (!Magic.attemptObject(ref, offset.toOffset(), oldValue, target));
+    return true;
+  }
+
+  /**
+   * Perform the actual read of the read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  public final ObjectReference referenceRead(ObjectReference ref,
+      Word offset, Word location, int mode) {
+    return ObjectReference.fromObject(Magic.getObjectAtOffset(ref.toObject(), offset.toOffset(), location.toInt()));
+  }
+
+  /**
+   * Perform the actual write of the write barrier, writing the value as a raw word.
+   *
+   * @param ref The object that has the reference field
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  public final void wordWrite(ObjectReference ref, Word target,
+      Word offset, Word location, int mode) {
+    Magic.setWordAtOffset(ref.toObject(), offset.toOffset(), target, location.toInt());
+  }
 
   /**
    * Atomically write a raw reference field of an object or array and return
    * the old value of the reference field.
    *
    * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param rawTarget The value that the slot will be updated to
-   * @param metaDataA The offset from the ref
-   * @param metaDataB Unused
-   * @param mode The context in which the write is occuring
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
    * @return The value that was replaced by the write.
    */
   @Inline
-  public final Word performRawWriteInBarrierAtomic(
-                                           ObjectReference ref, Address slot,
-                                           Word rawTarget, Word metaDataA,
-                                           Word metaDataB, int mode) {
-    Object obj = ref.toObject();
-    Offset offset = metaDataA.toOffset();
+  public final Word wordAtomicWrite(ObjectReference ref, Word target,
+      Word offset, Word unused, int mode) {
     Word oldValue;
     do {
-      oldValue = Magic.prepareWord(obj, offset);
-    } while (!Magic.attemptWord(obj, offset, oldValue, rawTarget));
+      oldValue = Magic.prepareWord(ref.toObject(), offset.toOffset());
+    } while (!Magic.attemptWord(ref.toObject(), offset.toOffset(), oldValue, target));
     return oldValue;
   }
 
@@ -157,50 +151,36 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * Attempt an atomic compare and exchange in a write barrier sequence.
    *
    * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
    * @param old The old reference to be swapped out
    * @param target The value that the slot will be updated to
-   * @param metaDataA The offset from the ref
-   * @param metaDataB Unused
-   * @param mode The context in which the write is occuring
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
    * @return True if the compare and swap was successful
    */
   @Inline
-  public final boolean tryCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
-                                                       ObjectReference old, ObjectReference target,
-                                                       Word metaDataA, Word metaDataB, int mode) {
-    Object oldValue;
-    Offset offset = metaDataA.toOffset();
+  public final boolean wordTryCompareAndSwap(ObjectReference ref, Word old, Word target,
+      Word offset, Word unused, int mode) {
     do {
-      oldValue = Magic.prepareObject(ref, offset);
-      if (oldValue != old) return false;
-    } while (!Magic.attemptObject(ref, offset, oldValue, target));
+      Word currentValue = Magic.prepareWord(ref, offset.toOffset());
+      if (currentValue != old) return false;
+    } while (!Magic.attemptObject(ref, offset.toOffset(), old, target));
     return true;
   }
 
-
   /**
-   * Attempt an atomic compare and exchange in a write barrier sequence.
+   * Perform the actual read of the read barrier, returning the value as a raw word.
    *
    * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
-   * @param rawOld The old reference to be swapped out
-   * @param rawTarget The value that the slot will be updated to
-   * @param metaDataA The offset from the ref
-   * @param metaDataB Unused
-   * @param mode The context in which the write is occuring
-   * @return True if the compare and swap was successful
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   * @return the read value
    */
   @Inline
-  public final boolean tryRawCompareAndSwapWriteInBarrier(ObjectReference ref, Address slot,
-                                                          Word rawOld, Word rawTarget, Word metaDataA,
-                                                          Word metaDataB, int mode) {
-    Offset offset = metaDataA.toOffset();
-    do {
-      Word currentValue = Magic.prepareWord(ref, offset);
-      if (currentValue != rawOld) return false;
-    } while (!Magic.attemptObject(ref, offset, rawOld, rawTarget));
-    return true;
+  public final Word wordRead(ObjectReference ref,
+        Word offset, Word location, int mode) {
+    return Magic.getWordAtOffset(ref.toObject(), offset.toOffset(), location.toInt());
   }
 
   /**
@@ -214,7 +194,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param value the new value for the element
    */
   @UninterruptibleNoWarn
-  public final void setArrayNoBarrier(Object [] dst, int index, Object value) {
+  public final void referenceArrayStoreNoGCBarrier(Object[] dst, int index, Object value) {
     if (org.jikesrvm.VM.runningVM) {
       Address base = ObjectReference.fromObject(dst).toAddress();
       Address slot = base.plus(Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS));

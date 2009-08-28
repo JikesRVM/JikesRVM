@@ -32,12 +32,8 @@ public interface Constants {
    *
    * MMTk constants
    */
-  int PUTFIELD_WRITE_BARRIER = 0;
-  int GETFIELD_READ_BARRIER = 0;
-  int PUTSTATIC_WRITE_BARRIER = 1;
-  int GETSTATIC_READ_BARRIER = 1;
-  int AASTORE_WRITE_BARRIER = 2;
-  int AALOAD_READ_BARRIER = 2;
+  int INSTANCE_FIELD = 0;
+  int ARRAY_ELEMENT = 1;
 
 
   /****************************************************************************

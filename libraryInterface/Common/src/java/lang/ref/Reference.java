@@ -12,8 +12,7 @@
  */
 package java.lang.ref;
 
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
-import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -86,8 +85,8 @@ public abstract class Reference<T> {
     } else {
       Object ref = Magic.addressAsObject(tmp);
 
-      if (MemoryManagerConstants.NEEDS_REFTYPE_READ_BARRIER) {
-        ref = MemoryManager.referenceTypeReadBarrier(ref);
+      if (Barriers.NEEDS_JAVA_LANG_REFERENCE_READ_BARRIER) {
+        ref = Barriers.javaLangReferenceReadBarrier(ref);
       }
       return ref;
     }

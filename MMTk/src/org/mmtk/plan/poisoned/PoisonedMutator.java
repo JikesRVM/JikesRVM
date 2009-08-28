@@ -50,8 +50,8 @@ public class PoisonedMutator extends MSMutator {
    */
   @Inline
   @Override
-  public void writeBarrier(ObjectReference src, Address slot, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
-    VM.barriers.performRawWriteInBarrier(src, slot, Poisoned.poison(tgt), metaDataA, metaDataB, mode);
+  public void referenceWrite(ObjectReference src, Address slot, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
+    VM.barriers.wordWrite(src, Poisoned.poison(tgt), metaDataA, metaDataB, mode);
   }
 
   /**
@@ -72,9 +72,9 @@ public class PoisonedMutator extends MSMutator {
    * @return True if the swap was successful.
    */
   @Override
-  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
+  public boolean referenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
                                                Word metaDataA, Word metaDataB, int mode) {
-    return VM.barriers.tryRawCompareAndSwapWriteInBarrier(src, slot, Poisoned.poison(old), Poisoned.poison(tgt), metaDataA, metaDataB, mode);
+    return VM.barriers.wordTryCompareAndSwap(src, Poisoned.poison(old), Poisoned.poison(tgt), metaDataA, metaDataB, mode);
   }
 
   /**
@@ -96,7 +96,7 @@ public class PoisonedMutator extends MSMutator {
    * left to the caller (always false in this case).
    */
   @Override
-  public boolean writeBarrier(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
+  public boolean referenceBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     // TODO: Currently, read barriers implies that this is never used, perhaps
     //       we might want to use it sometime anyway?
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
@@ -117,7 +117,7 @@ public class PoisonedMutator extends MSMutator {
    */
   @Inline
   @Override
-  public ObjectReference readBarrier(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
-    return Poisoned.depoison(VM.barriers.performRawReadInBarrier(src, slot, metaDataA, metaDataB, mode));
+  public ObjectReference referenceRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
+    return Poisoned.depoison(VM.barriers.wordRead(src, metaDataA, metaDataB, mode));
   }
 }

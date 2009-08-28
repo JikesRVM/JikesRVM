@@ -280,9 +280,28 @@ public abstract class MutatorContext implements Constants {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
-  public void writeBarrier(ObjectReference src, Address slot,
+  public void referenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
+    // Either: write barriers are used and this is overridden, or
+    // write barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+  }
+
+  /**
+   * A new reference is about to be created in a location that is not
+   * a regular heap object.  Take appropriate write barrier actions.<p>
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param tgt The target of the new reference
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   */
+  public void referenceNonHeapWrite(Address slot, ObjectReference tgt,
+      Word metaDataA, Word metaDataB) {
     // Either: write barriers are used and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
@@ -305,7 +324,7 @@ public abstract class MutatorContext implements Constants {
    * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
-  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
+  public boolean referenceTryCompareAndSwap(ObjectReference src, Address slot,
       ObjectReference old, ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
     // Either: write barriers are used and this is overridden, or
@@ -332,7 +351,7 @@ public abstract class MutatorContext implements Constants {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public boolean writeBarrier(ObjectReference src, Offset srcOffset,
+  public boolean referenceBulkCopy(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset,
       int bytes) {
     // Either: write barriers are used and this is overridden, or
@@ -349,7 +368,7 @@ public abstract class MutatorContext implements Constants {
    * @return The new referent.
    */
   @Inline
-  public ObjectReference referenceTypeReadBarrier(ObjectReference referent) {
+  public ObjectReference javaLangReferenceReadBarrier(ObjectReference referent) {
     // Either: read barriers are used and this is overridden, or
     // read barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
@@ -369,13 +388,30 @@ public abstract class MutatorContext implements Constants {
    * @return The reference that was read.
    */
   @Inline
-  public ObjectReference readBarrier(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
+  public ObjectReference referenceRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
     // Either: read barriers are used and this is overridden, or
     // read barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }
 
+  /**
+   * Read a reference. Take appropriate read barrier action, and
+   * return the value that was read.<p> This is a <b>substituting<b>
+   * barrier.  The call to this barrier takes the place of a load.<p>
+   *
+   * @param slot The address of the slot being read.
+   * @param metaDataA A value that assists the host VM in creating a load
+   * @param metaDataB A value that assists the host VM in creating a load
+   * @return The reference that was read.
+   */
+  @Inline
+  public ObjectReference referenceNonHeapRead(Address slot, Word metaDataA, Word metaDataB) {
+    // Either: read barriers are used and this is overridden, or
+    // read barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return ObjectReference.nullReference();
+  }
   /**
    * Flush mutator context, in response to a requestMutatorFlush.
    * Also called by the default implementation of deinitMutator.

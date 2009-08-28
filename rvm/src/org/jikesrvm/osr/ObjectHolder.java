@@ -14,8 +14,7 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
-import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -94,8 +93,8 @@ public class ObjectHolder implements SizeConstants {
       VM.sysWriteln("ObjectHolder cleanRefs");
     }
     /* refs[h] = null; */
-    if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
-      MemoryManager.arrayStoreWriteBarrier(refs, h, null);
+    if (Barriers.NEEDS_REFERENCE_ASTORE_BARRIER) {
+      Barriers.referenceArrayWrite(refs, h, null);
     } else {
       Magic.setObjectAtOffset(refs, Offset.fromIntSignExtend(h << LOG_BYTES_IN_ADDRESS), null);
     }

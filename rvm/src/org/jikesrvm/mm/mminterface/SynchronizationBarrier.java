@@ -14,6 +14,7 @@ package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.Monitor;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -27,18 +28,26 @@ import org.vmmagic.pragma.Uninterruptible;
  * but that is all obsolete now that we're using native threads.  Hence this
  * class is somewhat vestigial.
  */
-public final class SynchronizationBarrier {
+public class SynchronizationBarrier {
 
   private static final int verbose = 0;
 
-  final Barrier barrier = new Barrier();
+  private Monitor lock;
+  private int target;
+  private int[] counters = new int[2];
+  private int[] modes = new int[2];
+  private int countIdx;
+
   /**
    * Constructor
    */
   public SynchronizationBarrier() {
   }
+
   public void boot() {
-    barrier.boot(RVMThread.numProcessors);
+    lock=new Monitor();
+    this.target=RVMThread.numProcessors;
+    countIdx=0;
   }
 
   /**
@@ -50,7 +59,7 @@ public final class SynchronizationBarrier {
     if (false) {
       VM.sysWriteln("thread ",RVMThread.getCurrentThreadSlot()," rendezvousing at ",where);
     }
-    barrier.arrive(where);
+    arrive(where);
 
     Magic.isync(); // so subsequent instructions won't see stale values
 
@@ -80,7 +89,7 @@ public final class SynchronizationBarrier {
     }
 
     if (myNumber > 1) {
-      barrier.arrive(100); // wait for designated guy to do his job
+      arrive(100); // wait for designated guy to do his job
       Magic.isync();     // so subsequent instructions won't see stale values
       if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  leaving as ", myNumber);
       return;               // leave barrier
@@ -91,11 +100,60 @@ public final class SynchronizationBarrier {
     if (verbose > 0) {
       VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
     }
-    barrier.arrive(100);    // all setup now complete and we can proceed
+    arrive(100);    // all setup now complete and we can proceed
     Magic.sync();   // update main memory so other processors will see it in "while" loop
     Magic.isync();  // so subsequent instructions won't see stale values
     if (verbose > 0) {
       VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
     }
   }  // startupRendezvous
+
+  @Uninterruptible
+  private boolean arrive(int mode) {
+    if (false) {
+      VM.sysWriteln("thread ",RVMThread.getCurrentThreadSlot(),
+                    " entered ",RVMThread.getCurrentThread().barriersEntered++,
+                    " barriers");
+    }
+    lock.lockNoHandshake();
+    int myCountIdx=countIdx;
+    boolean result;
+    if (VM.VerifyAssertions) {
+      if (counters[myCountIdx]==0) {
+        modes[myCountIdx]=mode;
+      } else {
+        int oldMode=modes[myCountIdx];
+        if (oldMode!=mode) {
+          VM.sysWriteln("Thread ",RVMThread.getCurrentThreadSlot()," encountered "+
+                        "incorrect mode entering barrier.");
+          VM.sysWriteln("Thread ",RVMThread.getCurrentThreadSlot(),"'s mode: ",mode);
+          VM.sysWriteln("Thread ",RVMThread.getCurrentThreadSlot()," saw others in mode: ",oldMode);
+          VM._assert(modes[myCountIdx]==mode);
+          VM._assert(oldMode==mode);
+        }
+      }
+    }
+    counters[myCountIdx]++;
+    if (counters[myCountIdx]==target) {
+      counters[myCountIdx]=0;
+      countIdx^=1;
+      lock.broadcast();
+      if (false) {
+        VM.sysWriteln("waking everyone");
+      }
+      result=true;
+    } else {
+      while (counters[myCountIdx]!=0) {
+        lock.waitNoHandshake();
+      }
+      result=false;
+    }
+    lock.unlock();
+    if (false) {
+      VM.sysWriteln("thread ",RVMThread.getCurrentThreadSlot(),
+                    " exited ",RVMThread.getCurrentThread().barriersExited++,
+                    " barriers");
+    }
+    return result;
+  }
 }
