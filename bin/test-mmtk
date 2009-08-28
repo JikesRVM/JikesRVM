@@ -89,6 +89,12 @@ if [ $clean = true ]; then
 fi
 mkdir -p $RESULTS
 
+if [ ! -z "$JAVA_HOME" ]; then
+  JAVA=$JAVA_HOME/bin/java
+else
+  JAVA=java
+fi
+
 for plan in $plans
 do
   planClass=$(classForPlan $plan)
@@ -102,8 +108,8 @@ do
       scriptopts=
     fi
     (
-      echo /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts;
-      /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$planClass $opts $scriptopts
+      echo $JAVA ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts;
+      $JAVA ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$planClass $opts $scriptopts
     ) &> ${RESULTS}/temp.out
     if [ $? == 0 ]
     then
