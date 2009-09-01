@@ -1288,10 +1288,13 @@ public class RVMThread extends ThreadContext {
     bindIfRequested();
 
     threadingInitialized = true;
+
+    // Always run timer thread, so we can respond to debug requests
+    TimerThread tt = new TimerThread();
+    tt.makeDaemon(true);
+    tt.start();
+
     if (VM.BuildForAdaptiveSystem) {
-      TimerThread tt = new TimerThread();
-      tt.makeDaemon(true);
-      tt.start();
       ObjectHolder.boot();
     }
     CollectorThread.boot();
