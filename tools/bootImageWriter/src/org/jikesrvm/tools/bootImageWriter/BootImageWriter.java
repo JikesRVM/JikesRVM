@@ -2415,7 +2415,12 @@ public class BootImageWriter extends BootImageWriterMessages
       } else if (jdkType.equals(java.lang.Short.class)) {
           throw new Error("Unknown field in java.lang.Short " + rvmFieldName + " " + rvmFieldType);
       } else if (jdkType.equals(java.util.HashMap.class)) {
-        throw new Error("Unknown field in java.util.HashMap " + rvmFieldName + " " + rvmFieldType);
+        if (rvmFieldName.equals("DEFAULT_SIZE") && rvmFieldType.isIntType()) {
+          Statics.setSlotContents(rvmFieldOffset, 16);
+          return true;
+        } else {
+          throw new Error("Unknown field in java.util.HashMap " + rvmFieldName + " " + rvmFieldType);
+        }
       } else if (jdkType.equals(java.util.AbstractMap.class)) {
         throw new Error("Unknown field in java.util.AbstractMap " + rvmFieldName + " " + rvmFieldType);
       } else if (jdkType.equals(java.lang.ref.ReferenceQueue.class)) {
