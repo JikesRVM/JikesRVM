@@ -42,8 +42,11 @@
 #include <strings.h> /* bzero */
 #include <libgen.h>  /* basename */
 #include <sys/utsname.h>        // for uname(2)
-#if (defined __linux__) || (defined __MACH__) || (defined (__SVR4) && defined (__sun))
+#if (defined __linux__) || (defined (__SVR4) && defined (__sun))
 #include <ucontext.h>
+#include <signal.h>
+#elif (defined __MACH__)
+#include <sys/ucontext.h>
 #include <signal.h>
 #else
 #include <sys/cache.h>
