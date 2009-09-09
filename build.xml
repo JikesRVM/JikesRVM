@@ -1536,7 +1536,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.includes"
               value="-I${bl.dir} -I${basedir}/include -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes} ${classlib.includes}"/>
 
-    <property name="rvm.defines" value="-D_REENTRANT ${filter} "/>
+    <property name="rvm.defines" value="-D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE ${filter} "/>
 
     <condition property="rvm.sse.args" value="" else="-mfpmath=sse">
         <equals arg1="${target.arch.sse2}" arg2="none"/>
