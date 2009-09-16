@@ -302,7 +302,7 @@ public abstract class Mutator {
     check(index < limit, "Index "+index+" out of bounds "+limit);
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
-    if (ActivePlan.constraints.needsWriteBarrier()) {
+    if (ActivePlan.constraints.needsReferenceWriteBarrier()) {
       context.referenceWrite(object, referenceSlot, value, referenceSlot.toWord(), null, Plan.ARRAY_ELEMENT);
       if (gcEveryWB) {
         gc();
@@ -346,7 +346,7 @@ public abstract class Mutator {
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     ObjectReference result;
-    if (ActivePlan.constraints.needsReadBarrier()) {
+    if (ActivePlan.constraints.needsReferenceReadBarrier()) {
       result = context.referenceRead(object, referenceSlot, null, null, Plan.INSTANCE_FIELD);
     } else {
       result = referenceSlot.loadObjectReference();

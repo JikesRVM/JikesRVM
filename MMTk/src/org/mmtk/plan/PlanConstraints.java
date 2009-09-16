@@ -22,20 +22,20 @@ import org.vmmagic.pragma.*;
  * issues with ordering of static initialization.
  */
 @Uninterruptible public abstract class PlanConstraints {
-  /** @return True if this Plan requires write barriers. */
-  public boolean needsWriteBarrier() { return false; }
-
-  /** @return True of this Plan requires read barriers on reference types. */
+  /** @return True of this Plan requires read barriers on java.lang.reference types. */
   public boolean needsJavaLangReferenceReadBarrier() { return false; }
 
-  /** @return True of this Plan requires read barriers. */
-  public boolean needsReadBarrier() { return false; }
+  /** @return True if this Plan requires write barriers on reference types. */
+  public boolean needsReferenceWriteBarrier() { return false; }
 
-  /** @return True if this Plan requires static write barriers. */
-  public boolean needsStaticWriteBarrier() { return false;}
+  /** @return True of this Plan requires read barriers on reference types. */
+  public boolean needsReferenceReadBarrier() { return false; }
 
-  /** @return True if this Plan requires static read barriers. */
-  public boolean needsStaticReadBarrier() { return false; }
+  /** @return True if this Plan requires static write barriers on reference types. */
+  public boolean needsReferenceStaticWriteBarrier() { return false;}
+
+  /** @return True if this Plan requires static read barriers on reference types. */
+  public boolean needsReferenceStaticReadBarrier() { return false; }
 
   /** @return True if this Plan requires linear scanning. */
   public boolean needsLinearScan() { return org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING;}

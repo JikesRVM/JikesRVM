@@ -32,7 +32,7 @@ public class StickyImmixConstraints extends ImmixConstraints {
 
   /** @return True if this plan requires a write barrier */
   @Override
-  public boolean needsWriteBarrier() { return true; }
+  public boolean needsReferenceWriteBarrier() { return true; }
 
   /** @return True if this Plan requires a header bit for object logging */
   @Override

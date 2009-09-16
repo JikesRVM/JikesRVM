@@ -46,11 +46,11 @@ public class GenConstraints extends StopTheWorldConstraints {
 
   /** @return True if this plan requires a write barrier */
   @Override
-  public boolean needsWriteBarrier() { return true; }
+  public boolean needsReferenceWriteBarrier() { return true; }
 
   /** @return True if this plan requires a static barrier */
   @Override
-  public boolean needsStaticWriteBarrier() { return Gen.USE_STATIC_WRITE_BARRIER; }
+  public boolean needsReferenceStaticWriteBarrier() { return Gen.USE_STATIC_WRITE_BARRIER; }
 
   /** @return The specialized scan methods required */
   @Override
