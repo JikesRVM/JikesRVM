@@ -60,7 +60,7 @@ class Barriers implements BaselineConstants {
   // T1 already contains the offset of the field on entry
   static void compilePutstaticBarrier(BaselineCompilerImpl comp, int locationMetadata) {
     Assembler asm = comp.asm;
-    asm.emitLAddrToc(S0, Entrypoints.objectNonHeapWriteBarrierMethod.getOffset());
+    asm.emitLAddrToc(S0, Entrypoints.objectStaticWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
     comp.peekAddr(T0, 0);                 // value to store
     asm.emitLVAL(T2, locationMetadata);
@@ -70,7 +70,7 @@ class Barriers implements BaselineConstants {
   //  on entry java stack contains ...|ref_to_store|
   static void compilePutstaticBarrierImm(BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
     Assembler asm = comp.asm;
-    asm.emitLAddrToc(S0, Entrypoints.objectNonHeapWriteBarrierMethod.getOffset());
+    asm.emitLAddrToc(S0, Entrypoints.objectStaticWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
     asm.emitLVALAddr(T1, fieldOffset);    // offset
     comp.peekAddr(T0, 0);                 // value to store
@@ -114,7 +114,7 @@ class Barriers implements BaselineConstants {
   // T0 already contains the offset of the field on entry
   static void compileGetstaticBarrier(BaselineCompilerImpl comp, int locationMetadata) {
     Assembler asm = comp.asm;
-    asm.emitLAddrToc(S0, Entrypoints.objectNonHeapReadBarrierMethod.getOffset());
+    asm.emitLAddrToc(S0, Entrypoints.objectStaticReadBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
     asm.emitLVAL(T1, locationMetadata);
     asm.emitBCCTRL(); // MemoryManager.getstaticReadBarrier(T0,T1)
@@ -123,7 +123,7 @@ class Barriers implements BaselineConstants {
   //  on entry java stack contains ...|
   static void compileGetstaticBarrierImm(BaselineCompilerImpl comp, Offset fieldOffset, int locationMetadata) {
     Assembler asm = comp.asm;
-    asm.emitLAddrToc(S0, Entrypoints.objectNonHeapReadBarrierMethod.getOffset());
+    asm.emitLAddrToc(S0, Entrypoints.objectStaticReadBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
     asm.emitLVALAddr(T0, fieldOffset);    // offset
     asm.emitLVAL(T1, locationMetadata);

@@ -78,7 +78,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Reg(reg); // offset
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectNonHeapWriteBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectStaticWriteBarrierMethod.getOffset()));
  }
 
   static void compilePutstaticBarrierImm(Assembler asm, Offset fieldOffset, int locationMetadata) {
@@ -86,7 +86,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 3);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectNonHeapWriteBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectStaticWriteBarrierMethod.getOffset()));
   }
 
   static void compileArrayLoadBarrier(Assembler asm, boolean pushResult) {
@@ -121,7 +121,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Reg(reg);
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectNonHeapReadBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectStaticReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 
@@ -129,7 +129,7 @@ class Barriers implements BaselineConstants {
     asm.emitPUSH_Imm(fieldOffset.toInt());
     asm.emitPUSH_Imm(locationMetadata);
     BaselineCompilerImpl.genParameterRegisterLoad(asm, 2);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectNonHeapReadBarrierMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.objectStaticReadBarrierMethod.getOffset()));
     asm.emitPUSH_Reg(T0);
   }
 

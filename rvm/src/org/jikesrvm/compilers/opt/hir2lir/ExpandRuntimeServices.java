@@ -478,7 +478,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
             LocationOperand loc = PutStatic.getLocation(inst);
             FieldReference field = loc.getFieldRef();
             if (!field.getFieldContentsType().isPrimitiveType()) {
-              RVMMethod target = Entrypoints.objectNonHeapWriteBarrierMethod;
+              RVMMethod target = Entrypoints.objectStaticWriteBarrierMethod;
               Instruction wb =
                   Call.create3(CALL,
                                null,
@@ -504,7 +504,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
             LocationOperand loc = GetStatic.getLocation(inst);
             FieldReference field = loc.getFieldRef();
             if (!field.getFieldContentsType().isPrimitiveType()) {
-              RVMMethod target = Entrypoints.objectNonHeapReadBarrierMethod;
+              RVMMethod target = Entrypoints.objectStaticReadBarrierMethod;
               Instruction rb =
                   Call.create2(CALL,
                                GetStatic.getClearResult(inst),

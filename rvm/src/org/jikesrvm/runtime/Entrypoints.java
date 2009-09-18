@@ -273,9 +273,9 @@ public class Entrypoints {
   public static final NormalMethod objectFieldReadBarrierMethod =
       getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
 
-  public static final NormalMethod objectNonHeapWriteBarrierMethod =
+  public static final NormalMethod objectStaticWriteBarrierMethod =
     getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectStaticWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
-  public static final NormalMethod objectNonHeapReadBarrierMethod =
+  public static final NormalMethod objectStaticReadBarrierMethod =
       getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectStaticRead", "(Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
 
   public static final NormalMethod modifyCheckMethod =
