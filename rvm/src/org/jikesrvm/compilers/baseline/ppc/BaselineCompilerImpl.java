@@ -965,7 +965,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   @Override
   protected final void emit_aaload() {
     genBoundsCheck();
-    if (NEEDS_REFERENCE_ALOAD_BARRIER) {
+    if (NEEDS_OBJECT_ALOAD_BARRIER) {
       Barriers.compileArrayLoadBarrier(this);
       pushAddr(T0);
     } else {
@@ -2470,7 +2470,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_unresolved_getstatic(FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     TypeReference fieldType = fieldRef.getFieldContentsType();
-    if (NEEDS_REFERENCE_GETSTATIC_BARRIER && fieldType.isReferenceType()) {
+    if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType()) {
       Barriers.compileGetstaticBarrier(this, fieldType.getId());
       pushAddr(T0);
       return;
@@ -2500,7 +2500,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     TypeReference fieldType = fieldRef.getFieldContentsType();
-    if (NEEDS_REFERENCE_GETSTATIC_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
+    if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
       Barriers.compileGetstaticBarrierImm(this, fieldOffset, fieldType.getId());
       pushAddr(T0);
       return;
@@ -2528,7 +2528,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (NEEDS_REFERENCE_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       Barriers.compilePutstaticBarrier(this, fieldRef.getId()); // NOTE: offset is in T0 from emitDynamicLinkingSequence
       discardSlots(1);
       return;
@@ -2557,7 +2557,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_resolved_putstatic(FieldReference fieldRef) {
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
-    if (NEEDS_REFERENCE_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
+    if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
       Barriers.compilePutstaticBarrierImm(this, fieldOffset, fieldRef.getId());
       discardSlots(1);
       return;
@@ -2587,7 +2587,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     TypeReference fieldType = fieldRef.getFieldContentsType();
     // T1 = field offset from emitDynamicLinkingSequence()
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (NEEDS_REFERENCE_GETFIELD_BARRIER && fieldType.isReferenceType()) {
+    if (NEEDS_OBJECT_GETFIELD_BARRIER && fieldType.isReferenceType()) {
       Barriers.compileGetfieldBarrier(this, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
@@ -2637,7 +2637,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     RVMField field = fieldRef.peekResolvedField();
     TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = field.getOffset();
-    if (NEEDS_REFERENCE_GETFIELD_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
+    if (NEEDS_OBJECT_GETFIELD_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
       Barriers.compileGetfieldBarrierImm(this, fieldOffset, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
@@ -2688,7 +2688,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     emitDynamicLinkingSequence(T2, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
-      if (NEEDS_REFERENCE_PUTFIELD_BARRIER) {
+      if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
         // NOTE: offset is in T2 from emitDynamicLinkingSequence
         Barriers.compilePutfieldBarrier(this, fieldRef.getId());
         discardSlots(2);
@@ -2742,7 +2742,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     TypeReference fieldType = fieldRef.getFieldContentsType();
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
-      if (NEEDS_REFERENCE_PUTFIELD_BARRIER && !field.isUntraced()) {
+      if (NEEDS_OBJECT_PUTFIELD_BARRIER && !field.isUntraced()) {
         Barriers.compilePutfieldBarrierImm(this, fieldOffset, fieldRef.getId());
         discardSlots(2);
       } else {
@@ -3743,7 +3743,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg The register to hold the counter array.
    */
   private void loadCounterArray(int reg) {
-    if (NEEDS_REFERENCE_ALOAD_BARRIER) {
+    if (NEEDS_OBJECT_ALOAD_BARRIER) {
       asm.emitLAddrToc(T0, Entrypoints.edgeCountersField.getOffset());
       asm.emitLVAL(T1, getEdgeCounterIndex());
       Barriers.compileArrayLoadBarrier(this);
