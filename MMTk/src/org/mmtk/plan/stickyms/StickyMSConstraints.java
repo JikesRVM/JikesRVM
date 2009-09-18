@@ -32,7 +32,7 @@ public class StickyMSConstraints extends MSConstraints {
 
   /** @return True if this plan requires a write barrier */
   @Override
-  public boolean needsReferenceWriteBarrier() { return true; }
+  public boolean needsObjectReferenceWriteBarrier() { return true; }
 
   /** @return True if this Plan requires a header bit for object logging */
   @Override

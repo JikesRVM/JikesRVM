@@ -93,8 +93,8 @@ public class ObjectHolder implements SizeConstants {
       VM.sysWriteln("ObjectHolder cleanRefs");
     }
     /* refs[h] = null; */
-    if (Barriers.NEEDS_REFERENCE_ASTORE_BARRIER) {
-      Barriers.referenceArrayWrite(refs, h, null);
+    if (Barriers.NEEDS_OBJECT_ASTORE_BARRIER) {
+      Barriers.objectArrayWrite(refs, h, null);
     } else {
       Magic.setObjectAtOffset(refs, Offset.fromIntSignExtend(h << LOG_BYTES_IN_ADDRESS), null);
     }

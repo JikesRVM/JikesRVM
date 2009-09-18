@@ -25,17 +25,17 @@ import org.vmmagic.pragma.*;
   /** @return True of this Plan requires read barriers on java.lang.reference types. */
   public boolean needsJavaLangReferenceReadBarrier() { return false; }
 
-  /** @return True if this Plan requires write barriers on reference types. */
-  public boolean needsReferenceWriteBarrier() { return false; }
+  /** @return True if this Plan requires write barriers on object references. */
+  public boolean needsObjectReferenceWriteBarrier() { return false; }
 
-  /** @return True of this Plan requires read barriers on reference types. */
-  public boolean needsReferenceReadBarrier() { return false; }
+  /** @return True of this Plan requires read barriers on object references. */
+  public boolean needsObjectReferenceReadBarrier() { return false; }
 
-  /** @return True if this Plan requires static write barriers on reference types. */
-  public boolean needsReferenceStaticWriteBarrier() { return false;}
+  /** @return True if this Plan requires non-heap write barriers on object references. */
+  public boolean needsObjectReferenceNonHeapWriteBarrier() { return false;}
 
-  /** @return True if this Plan requires static read barriers on reference types. */
-  public boolean needsReferenceStaticReadBarrier() { return false; }
+  /** @return True if this Plan requires non-heap read barriers on object references. */
+  public boolean needsObjectReferenceNonHeapReadBarrier() { return false; }
 
   /** @return True if this Plan requires linear scanning. */
   public boolean needsLinearScan() { return org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING;}

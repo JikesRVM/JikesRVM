@@ -50,7 +50,7 @@ public class PoisonedMutator extends MSMutator {
    */
   @Inline
   @Override
-  public void referenceWrite(ObjectReference src, Address slot, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
+  public void objectReferenceWrite(ObjectReference src, Address slot, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.wordWrite(src, Poisoned.poison(tgt), metaDataA, metaDataB, mode);
   }
 
@@ -72,7 +72,7 @@ public class PoisonedMutator extends MSMutator {
    * @return True if the swap was successful.
    */
   @Override
-  public boolean referenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
+  public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
                                                Word metaDataA, Word metaDataB, int mode) {
     return VM.barriers.wordTryCompareAndSwap(src, Poisoned.poison(old), Poisoned.poison(tgt), metaDataA, metaDataB, mode);
   }
@@ -96,7 +96,7 @@ public class PoisonedMutator extends MSMutator {
    * left to the caller (always false in this case).
    */
   @Override
-  public boolean referenceBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
+  public boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     // TODO: Currently, read barriers implies that this is never used, perhaps
     //       we might want to use it sometime anyway?
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
@@ -117,7 +117,7 @@ public class PoisonedMutator extends MSMutator {
    */
   @Inline
   @Override
-  public ObjectReference referenceRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
+  public ObjectReference objectReferenceRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
     return Poisoned.depoison(VM.barriers.wordRead(src, metaDataA, metaDataB, mode));
   }
 }

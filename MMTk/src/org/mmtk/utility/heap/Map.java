@@ -97,7 +97,7 @@ public class Map {
         VM.assertions.fail("exiting");
       }
       descriptorMap[index] = descriptor;
-      VM.barriers.referenceArrayStoreNoGCBarrier(spaceMap, index, space);
+      VM.barriers.objectArrayStoreNoGCBarrier(spaceMap, index, space);
       e = e.plus(Space.BYTES_IN_CHUNK);
     }
   }
@@ -208,7 +208,7 @@ public class Map {
     totalAvailableDiscontiguousChunks += chunks;
     for (int offset = 0; offset < chunks; offset++) {
       descriptorMap[chunk + offset] = 0;
-      VM.barriers.referenceArrayStoreNoGCBarrier(spaceMap, chunk + offset, null);
+      VM.barriers.objectArrayStoreNoGCBarrier(spaceMap, chunk + offset, null);
       linkageMap[chunk + offset] = 0;
     }
     return chunks;

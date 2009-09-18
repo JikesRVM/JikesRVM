@@ -31,22 +31,8 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param mode The context in which the write is occurring
    */
   @Inline
-  public final void referenceWrite(ObjectReference objref, ObjectReference target, Word offset, Word location, int mode) {
+  public final void objectReferenceWrite(ObjectReference objref, ObjectReference target, Word offset, Word location, int mode) {
     Magic.setObjectAtOffset(objref.toObject(), offset.toOffset(), target.toObject(), location.toInt());
-  }
-
-  /**
-   * Perform the actual write of the non-heap write barrier.  This is
-   * used when the store is not to an object, but to a non-heap location
-   * such as statics or the stack.
-   * @param target The value that the slot will be updated to
-   * @param unusedA The offset from the ref
-   * @param unusedB Unused
-   * @param ref The object that has the reference field
-   */
-  @Inline
-  public final void referenceWrite(Address slot, ObjectReference target, Word unusedA, Word unusedB) {
-    slot.store(target);
   }
 
   /**
@@ -59,29 +45,22 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @return the read value
    */
   @Inline
-  public final ObjectReference referenceRead(ObjectReference objref, Word offset, Word location, int mode) {
+  public final ObjectReference objectReferenceRead(ObjectReference objref, Word offset, Word location, int mode) {
     return ObjectReference.fromObject(Magic.getObjectAtOffset(objref.toObject(), offset.toOffset(), location.toInt()));
   }
 
   /**
-   * Sets an element of an object array without invoking any write
-   * barrier.  This method is called by the Map class to ensure
-   * potentially-allocation-triggering write barriers do not occur in
-   * allocation slow path code.
-   *
-   * @param dst the destination array
-   * @param index the index of the element to set
-   * @param value the new value for the element
+   * Perform the actual write of the non-heap write barrier.  This is
+   * used when the store is not to an object, but to a non-heap location
+   * such as statics or the stack.
+   * @param target The value that the slot will be updated to
+   * @param unusedA The offset from the ref
+   * @param unusedB Unused
+   * @param ref The object that has the reference field
    */
-  @UninterruptibleNoWarn
-  public final void referenceArrayStoreNoGCBarrier(Object[] dst, int index, Object value) {
-    if (org.jikesrvm.VM.runningVM) {
-      Address base = ObjectReference.fromObject(dst).toAddress();
-      Address slot = base.plus(Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS));
-      VM.activePlan.global().storeObjectReference(slot, ObjectReference.fromObject(value));
-    } else {
-      dst[index] = value;
-    }
+  @Inline
+  public final void objectReferenceWrite(Address slot, ObjectReference target, Word unusedA, Word unusedB) {
+    slot.store(target);
   }
 
   /**
@@ -96,7 +75,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @return The value that was replaced by the write.
    */
   @Inline
-  public final ObjectReference referenceAtomicWrite(ObjectReference objref, ObjectReference target, Word offset, Word unused, int mode) {
+  public final ObjectReference objectReferenceAtomicWrite(ObjectReference objref, ObjectReference target, Word offset, Word unused, int mode) {
     Object obj = objref.toObject();
     Object newObject = target.toObject();
     Object oldObject;
@@ -118,7 +97,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @return True if the compare and swap was successful
    */
   @Inline
-  public final boolean referenceTryCompareAndSwap(ObjectReference objref, ObjectReference old, ObjectReference target, Word offset, Word unused, int mode) {
+  public final boolean objectReferenceTryCompareAndSwap(ObjectReference objref, ObjectReference old, ObjectReference target, Word offset, Word unused, int mode) {
     Object oldValue;
     do {
       oldValue = Magic.prepareObject(objref, offset.toOffset());
@@ -199,4 +178,24 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
     return Magic.getWordAtOffset(ref.toObject(), offset.toOffset(), location.toInt());
   }
 
+  /**
+   * Sets an element of an object array without invoking any write
+   * barrier.  This method is called by the Map class to ensure
+   * potentially-allocation-triggering write barriers do not occur in
+   * allocation slow path code.
+   *
+   * @param dst the destination array
+   * @param index the index of the element to set
+   * @param value the new value for the element
+   */
+  @UninterruptibleNoWarn
+  public final void objectArrayStoreNoGCBarrier(Object[] dst, int index, Object value) {
+    if (org.jikesrvm.VM.runningVM) {
+      Address base = ObjectReference.fromObject(dst).toAddress();
+      Address slot = base.plus(Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS));
+      VM.activePlan.global().storeObjectReference(slot, ObjectReference.fromObject(value));
+    } else {
+      dst[index] = value;
+    }
+  }
 }

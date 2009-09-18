@@ -175,11 +175,11 @@ import org.vmmagic.unboxed.*;
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
-  public final void referenceWrite(ObjectReference src, Address slot,
+  public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
     fastPath(src, slot, tgt, mode);
-    VM.barriers.referenceWrite(src, tgt, metaDataA, metaDataB, mode);
+    VM.barriers.objectReferenceWrite(src, tgt, metaDataA, metaDataB, mode);
   }
 
 
@@ -216,10 +216,10 @@ import org.vmmagic.unboxed.*;
    * @param metaDataB A value that assists the host VM in creating a store
    */
   @Inline
-  public final void referenceNonHeapWrite(Address slot, ObjectReference tgt,
+  public final void objectReferenceNonHeapWrite(Address slot, ObjectReference tgt,
       Word metaDataA, Word metaDataB) {
     fastPath(slot, tgt);
-    VM.barriers.referenceWrite(slot, tgt, metaDataA, metaDataB);
+    VM.barriers.objectReferenceWrite(slot, tgt, metaDataA, metaDataB);
   }
 
   /**
@@ -242,9 +242,9 @@ import org.vmmagic.unboxed.*;
    * @return True if the swap was successful.
    */
   @Inline
-  public boolean referenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
+  public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
       Word metaDataA, Word metaDataB, int mode) {
-    boolean result = VM.barriers.referenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
+    boolean result = VM.barriers.objectReferenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
     if (result)
       fastPath(src, slot, tgt, mode);
     return result;
@@ -272,7 +272,7 @@ import org.vmmagic.unboxed.*;
    * left to the caller (always false in this case).
    */
   @Inline
-  public final boolean referenceBulkCopy(ObjectReference src, Offset srcOffset,
+  public final boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset,
       int bytes) {
     // We can ignore when src is in old space, right?

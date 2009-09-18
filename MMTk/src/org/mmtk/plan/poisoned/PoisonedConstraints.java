@@ -24,11 +24,11 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class PoisonedConstraints extends MSConstraints {
   @Override
-  public boolean needsReferenceWriteBarrier() { return true; }
+  public boolean needsObjectReferenceWriteBarrier() { return true; }
   @Override
-  public boolean needsReferenceReadBarrier() { return true; }
+  public boolean needsObjectReferenceReadBarrier() { return true; }
   @Override
-  public boolean needsReferenceStaticWriteBarrier() { return false; }
+  public boolean needsObjectReferenceNonHeapWriteBarrier() { return false; }
   @Override
-  public boolean needsReferenceStaticReadBarrier() { return false; }
+  public boolean needsObjectReferenceNonHeapReadBarrier() { return false; }
 }

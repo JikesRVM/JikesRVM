@@ -337,8 +337,8 @@ public class Services implements SizeConstants {
   @Inline
   public static void setArrayUninterruptible(Object[] dst, int index, Object value) {
     if (VM.runningVM) {
-      if (Barriers.NEEDS_REFERENCE_ASTORE_BARRIER) {
-        Barriers.referenceArrayWrite(dst, index, value);
+      if (Barriers.NEEDS_OBJECT_ASTORE_BARRIER) {
+        Barriers.objectArrayWrite(dst, index, value);
       } else {
         Magic.setObjectAtOffset(dst, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS), value);
       }

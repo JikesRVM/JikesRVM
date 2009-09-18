@@ -81,11 +81,11 @@ public class StickyMSMutator extends MSMutator {
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
-  public final void referenceWrite(ObjectReference src, Address slot,
+  public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
     if (HeaderByte.isUnlogged(src))
       logSource(src);
-    VM.barriers.referenceWrite(src, tgt, metaDataA, metaDataB, mode);
+    VM.barriers.objectReferenceWrite(src, tgt, metaDataA, metaDataB, mode);
   }
 
   /**
@@ -110,7 +110,7 @@ public class StickyMSMutator extends MSMutator {
    * left to the caller (always false in this case).
    */
   @Inline
-  public final boolean referenceBulkCopy(ObjectReference src, Offset srcOffset,
+  public final boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset, int bytes) {
     if (HeaderByte.isUnlogged(src))
       logSource(src);

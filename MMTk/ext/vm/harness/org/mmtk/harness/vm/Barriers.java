@@ -30,9 +30,22 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param mode The context in which the write is occurring
    */
   @Override
-  public void referenceWrite(ObjectReference ref, ObjectReference target,
-        Word slot, Word unused, int mode) {
+  public void objectReferenceWrite(ObjectReference ref, ObjectReference target, Word slot, Word unused, int mode) {
     slot.toAddress().store(target);
+  }
+
+  /**
+   * Perform the actual read of the read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The address to be read from
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public ObjectReference objectReferenceRead(ObjectReference ref,Word slot, Word unused, int mode) {
+    return slot.toAddress().loadObjectReference();
   }
 
   /**
@@ -46,8 +59,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param unusedB Opaque, VM-specific, meta-data identifying the slot
    */
   @Override
-  public void referenceWrite(Address slot, ObjectReference target,
-        Word unusedA, Word unusedB) {
+  public void objectReferenceWrite(Address slot, ObjectReference target, Word unusedA, Word unusedB) {
     slot.store(target);
   }
 
@@ -63,8 +75,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @return The value that was replaced by the write.
    */
   @Override
-  public ObjectReference referenceAtomicWrite(ObjectReference ref, ObjectReference target,
-      Word slot, Word unused, int mode) {
+  public ObjectReference objectReferenceAtomicWrite(ObjectReference ref, ObjectReference target, Word slot, Word unused, int mode) {
     ObjectReference old;
     do {
       old = slot.toAddress().prepareObjectReference();
@@ -84,25 +95,10 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @return True if the compare and swap was successful
    */
   @Override
-  public boolean referenceTryCompareAndSwap(ObjectReference ref, ObjectReference old, ObjectReference target,
-      Word slot, Word unused, int mode) {
+  public boolean objectReferenceTryCompareAndSwap(ObjectReference ref, ObjectReference old, ObjectReference target, Word slot, Word unused, int mode) {
     return slot.toAddress().attempt(old, target);
   }
 
-  /**
-   * Perform the actual read of the read barrier.
-   *
-   * @param ref The object that has the reference field
-   * @param slot The address to be read from
-   * @param unused Unused
-   * @param mode The context in which the write is occurring
-   * @return the read value
-   */
-  @Override
-  public ObjectReference referenceRead(ObjectReference ref,
-      Word slot, Word unused, int mode) {
-    return slot.toAddress().loadObjectReference();
-  }
 
   /**
    * Perform the actual write of the write barrier, writing the value as a raw Word.
@@ -114,8 +110,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param mode The context in which the write is occurring
    */
   @Override
-  public void wordWrite(ObjectReference ref, Word target,
-      Word slot, Word unused, int mode) {
+  public void wordWrite(ObjectReference ref, Word target, Word slot, Word unused, int mode) {
     slot.toAddress().store(target);
   }
 
@@ -168,8 +163,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @return the read value
    */
   @Override
-  public Word wordRead(ObjectReference ref,
-      Word slot, Word unused, int mode) {
+  public Word wordRead(ObjectReference ref, Word slot, Word unused, int mode) {
     return slot.toAddress().loadWord();
   }
 
@@ -184,8 +178,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param value the new value for the element
    */
   @Override
-  public void referenceArrayStoreNoGCBarrier(Object [] dst, int index, Object value) {
+  public void objectArrayStoreNoGCBarrier(Object [] dst, int index, Object value) {
     dst[index] = value;
   }
-
 }

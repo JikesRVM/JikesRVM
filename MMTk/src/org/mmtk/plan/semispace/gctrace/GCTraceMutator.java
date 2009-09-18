@@ -89,12 +89,12 @@ import org.vmmagic.pragma.*;
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
-  public final void referenceWrite(ObjectReference src, Address slot,
+  public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
     TraceGenerator.processPointerUpdate(mode == INSTANCE_FIELD,
         src, slot, tgt);
-    VM.barriers.referenceWrite(src, tgt, metaDataA, metaDataB, mode);
+    VM.barriers.objectReferenceWrite(src, tgt, metaDataA, metaDataB, mode);
   }
 
   /**
@@ -115,10 +115,10 @@ import org.vmmagic.pragma.*;
    * @return True if the swap was successful.
    */
   @Inline
-  public boolean referenceTryCompareAndSwap(ObjectReference src, Address slot,
+  public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot,
       ObjectReference old, ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
-    boolean result = VM.barriers.referenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
+    boolean result = VM.barriers.objectReferenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
     if (result) {
       TraceGenerator.processPointerUpdate(mode == INSTANCE_FIELD, src, slot, tgt);
     }
@@ -143,7 +143,7 @@ import org.vmmagic.pragma.*;
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public boolean referenceBulkCopy(ObjectReference src, Offset srcOffset,
+  public boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset, int bytes) {
     /* These names seem backwards, but are defined to be compatable with the
      * previous writeBarrier method. */

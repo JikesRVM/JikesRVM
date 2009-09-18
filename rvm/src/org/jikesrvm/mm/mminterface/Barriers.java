@@ -44,30 +44,20 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /** True if the garbage collector requires write barriers on reference putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_REFERENCE_GC_WRITE_BARRIER     = Selected.Constraints.get().needsReferenceWriteBarrier();
+  private static final boolean NEEDS_OBJECT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsObjectReferenceWriteBarrier();
   /** True if the VM requires write barriers on reference putfield */
-  public static final boolean  NEEDS_REFERENCE_PUTFIELD_BARRIER     = NEEDS_REFERENCE_GC_WRITE_BARRIER;
+  public static final boolean  NEEDS_OBJECT_PUTFIELD_BARRIER     = NEEDS_OBJECT_GC_WRITE_BARRIER;
   /** True if the VM requires write barriers on reference arraystore */
-  public static final boolean  NEEDS_REFERENCE_ASTORE_BARRIER       = NEEDS_REFERENCE_GC_WRITE_BARRIER;
+  public static final boolean  NEEDS_OBJECT_ASTORE_BARRIER       = NEEDS_OBJECT_GC_WRITE_BARRIER;
   /** True if the garbage collector requires read barriers on reference getfield or arrayload */
-  private static final boolean NEEDS_REFERENCE_GC_READ_BARRIER      = Selected.Constraints.get().needsReferenceReadBarrier();
+  private static final boolean NEEDS_OBJECT_GC_READ_BARRIER      = Selected.Constraints.get().needsObjectReferenceReadBarrier();
   /** True if the VM requires read barriers on reference getfield */
-  public static final boolean  NEEDS_REFERENCE_GETFIELD_BARRIER     = NEEDS_REFERENCE_GC_READ_BARRIER;
+  public static final boolean  NEEDS_OBJECT_GETFIELD_BARRIER     = NEEDS_OBJECT_GC_READ_BARRIER;
   /** True if the VM requires read barriers on reference arrayload */
-  public static final boolean  NEEDS_REFERENCE_ALOAD_BARRIER        = NEEDS_REFERENCE_GC_READ_BARRIER;
-
-  /** True if the selected plan requires write barriers on reference putstatic */
-  private static final boolean NEEDS_REFERENCE_GC_PUTSTATIC_BARRIER = Selected.Constraints.get().needsReferenceStaticWriteBarrier();
-  /** True if the selected plan requires write barriers on reference putstatic */
-  public static final boolean  NEEDS_REFERENCE_PUTSTATIC_BARRIER    = NEEDS_REFERENCE_GC_PUTSTATIC_BARRIER;
-  /** True if the selected plan requires read barriers on reference getstatic */
-  private static final boolean NEEDS_REFERENCE_GC_GETSTATIC_BARRIER = Selected.Constraints.get().needsReferenceStaticReadBarrier();
-  /** True if the selected plan requires read barriers on reference getstatic */
-  public static final boolean  NEEDS_REFERENCE_GETSTATIC_BARRIER    = NEEDS_REFERENCE_GC_GETSTATIC_BARRIER;
-
+  public static final boolean  NEEDS_OBJECT_ALOAD_BARRIER        = NEEDS_OBJECT_GC_READ_BARRIER;
 
   /**
-   * Barrier for writes of references into fields of instances (ie putfield).
+   * Barrier for writes of objects into fields of instances (ie putfield).
    *
    * @param ref the object which is the subject of the putfield
    * @param value the new value for the field
@@ -76,10 +66,10 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void referenceFieldWrite(Object ref, Object value, Offset offset, int locationMetadata) {
-    if (NEEDS_REFERENCE_GC_WRITE_BARRIER) {
+  public static void objectFieldWrite(Object ref, Object value, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
-      Selected.Mutator.get().referenceWrite(src,
+      Selected.Mutator.get().objectReferenceWrite(src,
           src.toAddress().plus(offset),
           ObjectReference.fromObject(value),
           offset.toWord(),
@@ -90,7 +80,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of references into arrays (ie astore).
+   * Barrier for writes of objects into arrays (ie astore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -100,11 +90,11 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void referenceArrayWrite(Object ref, int index, Object value) {
-    if (NEEDS_REFERENCE_GC_WRITE_BARRIER) {
+  public static void objectArrayWrite(Object ref, int index, Object value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
-      Selected.Mutator.get().referenceWrite(array,
+      Selected.Mutator.get().objectReferenceWrite(array,
           array.toAddress().plus(offset),
           ObjectReference.fromObject(value),
           offset.toWord(),
@@ -115,7 +105,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of references from fields of instances (ie getfield).
+   * Barrier for loads of objects from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -124,10 +114,10 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static Object referenceFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (NEEDS_REFERENCE_GC_READ_BARRIER) {
+  public static Object objectFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
-      return Selected.Mutator.get().referenceRead(src,
+      return Selected.Mutator.get().objectReferenceRead(src,
           src.toAddress().plus(offset),
           offset.toWord(),
           Word.fromIntZeroExtend(locationMetadata),
@@ -138,7 +128,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of references from fields of arrays (ie aload).
+   * Barrier for loads of objects from fields of arrays (ie aload).
    *
    * @param ref the array containing the reference.
    * @param index the index into the array were the reference resides.
@@ -146,11 +136,11 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static Object referenceArrayRead(Object ref, int index) {
-    if (NEEDS_REFERENCE_GC_READ_BARRIER) {
+  public static Object objectArrayRead(Object ref, int index) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
-      return Selected.Mutator.get().referenceRead(array,
+      return Selected.Mutator.get().objectReferenceRead(array,
           array.toAddress().plus(offset),
           offset.toWord(),
           Word.zero(), // don't know metadata
@@ -161,7 +151,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for a copy (i.e. in an array copy).
+   * Barrier for a bulk copy of objects (i.e. in an array copy).
    *
    * @param src       The source object
    * @param srcOffset The offset of the first source address, in
@@ -176,9 +166,9 @@ public class Barriers implements org.mmtk.utility.Constants {
    * left to the caller (always false in this case).
    */
   @Inline
-  public static boolean referenceBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_REFERENCE_GC_WRITE_BARRIER || NEEDS_REFERENCE_GC_READ_BARRIER) {
-      return Selected.Mutator.get().referenceBulkCopy(ObjectReference.fromObject(src),
+  public static boolean objectBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      return Selected.Mutator.get().objectReferenceBulkCopy(ObjectReference.fromObject(src),
           srcOffset,
           ObjectReference.fromObject(tgt),
           tgtOffset,
@@ -188,8 +178,38 @@ public class Barriers implements org.mmtk.utility.Constants {
     return false;
   }
 
+
+  /** True if the selected plan requires write barriers on reference putstatic */
+  private static final boolean NEEDS_OBJECT_GC_PUTSTATIC_BARRIER = Selected.Constraints.get().needsObjectReferenceNonHeapWriteBarrier();
+  /** True if the selected plan requires write barriers on reference putstatic */
+  public static final boolean  NEEDS_OBJECT_PUTSTATIC_BARRIER    = NEEDS_OBJECT_GC_PUTSTATIC_BARRIER;
+  /** True if the selected plan requires read barriers on reference getstatic */
+  private static final boolean NEEDS_OBJECT_GC_GETSTATIC_BARRIER = Selected.Constraints.get().needsObjectReferenceNonHeapReadBarrier();
+  /** True if the selected plan requires read barriers on reference getstatic */
+  public static final boolean  NEEDS_OBJECT_GETSTATIC_BARRIER    = NEEDS_OBJECT_GC_GETSTATIC_BARRIER;
+
   /**
-   * Barrier for loads of references from non-heap locations (ie getstatic)
+   * Barrier for writes of objects from statics (eg putstatic)
+   *
+   * @param value the new value to be stored
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void objectStaticWrite(Object value, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_PUTSTATIC_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
+      Selected.Mutator.get().objectReferenceNonHeapWrite(src.toAddress().plus(offset),
+          ObjectReference.fromObject(value),
+          offset.toWord(),
+          Word.fromIntZeroExtend(locationMetadata));
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from statics (ie getstatic)
    *
    * @param offset the offset of the field to be modified
    * @param locationMetadata an int that encodes the source location being read
@@ -197,10 +217,10 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static Object referenceNonHeapRead(Offset offset, int locationMetadata) {
-    if (NEEDS_REFERENCE_GC_GETSTATIC_BARRIER) {
+  public static Object objectStaticRead(Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_GETSTATIC_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
-      return Selected.Mutator.get().referenceNonHeapRead(
+      return Selected.Mutator.get().objectReferenceNonHeapRead(
           src.toAddress().plus(offset),
           offset.toWord(),
           Word.fromIntZeroExtend(locationMetadata)).toObject();
@@ -211,26 +231,6 @@ public class Barriers implements org.mmtk.utility.Constants {
 
 
   /**
-   * Barrier for writes of references to non-heap locations (eg statics)
-   *
-   * @param value the new value to be stored
-   * @param offset the offset of the field to be modified
-   * @param locationMetadata an int that encodes the source location being modified
-   */
-  @Inline
-  @Entrypoint
-  public static void referenceNonHeapWrite(Object value, Offset offset, int locationMetadata) {
-    if (NEEDS_REFERENCE_GC_PUTSTATIC_BARRIER) {
-      ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
-      Selected.Mutator.get().referenceNonHeapWrite(src.toAddress().plus(offset),
-          ObjectReference.fromObject(value),
-          offset.toWord(),
-          Word.fromIntZeroExtend(locationMetadata));
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-  }
-
-  /**
    * Barrier for conditional compare and exchange of reference fields.
    *
    * @param ref the object which is the subject of the compare and exchanges
@@ -239,10 +239,10 @@ public class Barriers implements org.mmtk.utility.Constants {
    * @param value the new value for the field
    */
   @Inline
-  public static boolean referenceTryCompareAndSwap(Object ref, Offset offset, Object old, Object value) {
-    if (NEEDS_REFERENCE_GC_WRITE_BARRIER || NEEDS_REFERENCE_GC_READ_BARRIER) {
+  public static boolean objectTryCompareAndSwap(Object ref, Offset offset, Object old, Object value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
-      return Selected.Mutator.get().referenceTryCompareAndSwap(src,
+      return Selected.Mutator.get().objectReferenceTryCompareAndSwap(src,
           src.toAddress().plus(offset),
           ObjectReference.fromObject(old),
           ObjectReference.fromObject(value),

@@ -263,19 +263,20 @@ public class Entrypoints {
   public static final RVMField synchronizedCounterField =
       getField(org.jikesrvm.mm.mmtk.SynchronizedCounter.class, "count", int.class);
 
-  public static final NormalMethod referenceArrayWriteBarrierMethod =
-      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "referenceArrayWrite", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final NormalMethod referenceFieldWriteBarrierMethod =
-      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "referenceFieldWrite", "(Ljava/lang/Object;Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
-  public static final NormalMethod referenceNonHeapWriteBarrierMethod =
-      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "referenceNonHeapWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
+  public static final NormalMethod objectArrayWriteBarrierMethod =
+      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectArrayWrite", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  public static final NormalMethod objectFieldWriteBarrierMethod =
+      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectFieldWrite", "(Ljava/lang/Object;Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
 
-  public static final NormalMethod referenceArrayReadBarrierMethod =
-      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "referenceArrayRead", "(Ljava/lang/Object;I)Ljava/lang/Object;");
-  public static final NormalMethod referenceFieldReadBarrierMethod =
-      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "referenceFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
-  public static final NormalMethod referenceNonHeapReadBarrierMethod =
-      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "referenceNonHeapRead", "(Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
+  public static final NormalMethod objectArrayReadBarrierMethod =
+      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectArrayRead", "(Ljava/lang/Object;I)Ljava/lang/Object;");
+  public static final NormalMethod objectFieldReadBarrierMethod =
+      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
+
+  public static final NormalMethod objectNonHeapWriteBarrierMethod =
+    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectStaticWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
+  public static final NormalMethod objectNonHeapReadBarrierMethod =
+      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectStaticRead", "(Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
 
   public static final NormalMethod modifyCheckMethod =
       getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "modifyCheck", "(Ljava/lang/Object;)V");

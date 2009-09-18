@@ -617,8 +617,8 @@ public class Statics implements Constants {
     // happen as the fault would only ever occur when not running the
     // VM. We suppress the warning as we know the error can't happen.
 
-    if (VM.runningVM && Barriers.NEEDS_REFERENCE_PUTSTATIC_BARRIER) {
-      Barriers.referenceNonHeapWrite(object, offset, 0);
+    if (VM.runningVM && Barriers.NEEDS_OBJECT_PUTSTATIC_BARRIER) {
+      Barriers.objectStaticWrite(object, offset, 0);
     } else {
       setSlotContents(offset, Magic.objectAsAddress(object).toWord());
     }

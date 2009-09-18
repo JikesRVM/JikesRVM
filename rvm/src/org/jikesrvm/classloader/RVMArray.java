@@ -1025,9 +1025,9 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_ADDRESS);
     int bytes = len << LOG_BYTES_IN_ADDRESS;
 
-    if (!NEEDS_REFERENCE_ALOAD_BARRIER && ((src != dst) || loToHi)) {
-      if (!NEEDS_REFERENCE_ASTORE_BARRIER ||
-          !Barriers.referenceBulkCopy(src, srcOffset, dst, dstOffset, bytes)) {
+    if (!NEEDS_OBJECT_ALOAD_BARRIER && ((src != dst) || loToHi)) {
+      if (!NEEDS_OBJECT_ASTORE_BARRIER ||
+          !Barriers.objectBulkCopy(src, srcOffset, dst, dstOffset, bytes)) {
         Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset),
                                   Magic.objectAsAddress(src).plus(srcOffset),
                                   bytes);
@@ -1046,13 +1046,13 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
       // perform the copy
       while (len-- != 0) {
         Object value;
-        if (NEEDS_REFERENCE_GETFIELD_BARRIER) {
-          value = Barriers.referenceArrayRead(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
+        if (NEEDS_OBJECT_GETFIELD_BARRIER) {
+          value = Barriers.objectArrayRead(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
         } else {
           value = Magic.getObjectAtOffset(src, srcOffset);
         }
-        if (NEEDS_REFERENCE_PUTFIELD_BARRIER) {
-          Barriers.referenceArrayWrite(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
+        if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+          Barriers.objectArrayWrite(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
         } else {
           Magic.setObjectAtOffset(dst, dstOffset, value);
         }

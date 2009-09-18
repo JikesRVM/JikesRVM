@@ -93,8 +93,8 @@ public class Synchronization {
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, Object testValue, Object newValue) {
-    if (Barriers.NEEDS_REFERENCE_PUTFIELD_BARRIER) {
-      return Barriers.referenceTryCompareAndSwap(base, offset, testValue, newValue);
+    if (Barriers.NEEDS_OBJECT_PUTFIELD_BARRIER) {
+      return Barriers.objectTryCompareAndSwap(base, offset, testValue, newValue);
     } else {
       Object oldValue;
       do {
