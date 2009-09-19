@@ -219,7 +219,7 @@ import org.vmmagic.unboxed.*;
   public final void objectReferenceNonHeapWrite(Address slot, ObjectReference tgt,
       Word metaDataA, Word metaDataB) {
     fastPath(slot, tgt);
-    VM.barriers.objectReferenceWrite(slot, tgt, metaDataA, metaDataB);
+    VM.barriers.objectReferenceNonHeapWrite(slot, tgt, metaDataA, metaDataB);
   }
 
   /**

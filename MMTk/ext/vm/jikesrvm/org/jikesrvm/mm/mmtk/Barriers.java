@@ -59,7 +59,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param ref The object that has the reference field
    */
   @Inline
-  public final void objectReferenceWrite(Address slot, ObjectReference target, Word unusedA, Word unusedB) {
+  public final void objectReferenceNonHeapWrite(Address slot, ObjectReference target, Word unusedA, Word unusedB) {
     slot.store(target);
   }
 

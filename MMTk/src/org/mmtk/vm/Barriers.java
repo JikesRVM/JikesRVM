@@ -49,7 +49,7 @@ public abstract class Barriers {
    * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
    * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
    */
-  public abstract void objectReferenceWrite(Address slot, ObjectReference target, Word metaDataA, Word metaDataB);
+  public abstract void objectReferenceNonHeapWrite(Address slot, ObjectReference target, Word metaDataA, Word metaDataB);
 
   /**
    * Atomically write a reference field of an object or array and return

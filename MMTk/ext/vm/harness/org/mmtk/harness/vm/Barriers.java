@@ -59,7 +59,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param unusedB Opaque, VM-specific, meta-data identifying the slot
    */
   @Override
-  public void objectReferenceWrite(Address slot, ObjectReference target, Word unusedA, Word unusedB) {
+  public void objectReferenceNonHeapWrite(Address slot, ObjectReference target, Word unusedA, Word unusedB) {
     slot.store(target);
   }
 
