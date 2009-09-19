@@ -303,6 +303,17 @@ public class GenerateMagic implements TIBLayoutConstants  {
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, object, offset, null));
+    } else if (methodName == MagicNames.getFloatAtOffset) {
+      Operand offset = bc2ir.popAddress();
+      Operand object = bc2ir.popRef();
+      RegisterOperand val = gc.temps.makeTempFloat();
+      bc2ir.appendInstruction(Load.create(FLOAT_LOAD, val, object, offset, null));
+      bc2ir.push(val.copyD2U());
+    } else if (methodName == MagicNames.setFloatAtOffset) {
+      Operand val = bc2ir.popFloat();
+      Operand offset = bc2ir.popAddress();
+      Operand object = bc2ir.popRef();
+      bc2ir.appendInstruction(Store.create(FLOAT_STORE, val, object, offset, null));
     } else if (methodName == MagicNames.getWordAtOffset) {
       LocationOperand loc = null;
       if (meth.getParameterTypes().length == 3) {
@@ -398,7 +409,7 @@ public class GenerateMagic implements TIBLayoutConstants  {
       RegisterOperand val = gc.temps.makeTemp(TypeReference.Char);
       bc2ir.appendInstruction(Load.create(USHORT_LOAD, val, object, offset, null));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == MagicNames.setCharAtOffset) {
+    } else if (methodName == MagicNames.setCharAtOffset || methodName == MagicNames.setShortAtOffset) {
       Operand val = bc2ir.popInt();
       Operand offset = bc2ir.popAddress();
       Operand object = bc2ir.popRef();

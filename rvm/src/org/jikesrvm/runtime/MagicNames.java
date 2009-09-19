@@ -69,21 +69,24 @@ public class MagicNames {
 
   public static final Atom getUnsignedByteAtOffset = Atom.findOrCreateAsciiAtom("getUnsignedByteAtOffset");
   public static final Atom getByteAtOffset = Atom.findOrCreateAsciiAtom("getByteAtOffset");
-  public static final Atom getShortAtOffset = Atom.findOrCreateAsciiAtom("getShortAtOffset");
   public static final Atom getCharAtOffset = Atom.findOrCreateAsciiAtom("getCharAtOffset");
+  public static final Atom getShortAtOffset = Atom.findOrCreateAsciiAtom("getShortAtOffset");
   public static final Atom getIntAtOffset = Atom.findOrCreateAsciiAtom("getIntAtOffset");
+  public static final Atom getLongAtOffset = Atom.findOrCreateAsciiAtom("getLongAtOffset");
+  public static final Atom getFloatAtOffset = Atom.findOrCreateAsciiAtom("getFloatAtOffset");
+  public static final Atom getDoubleAtOffset = Atom.findOrCreateAsciiAtom("getDoubleAtOffset");
   public static final Atom getWordAtOffset = Atom.findOrCreateAsciiAtom("getWordAtOffset");
   public static final Atom getObjectAtOffset = Atom.findOrCreateAsciiAtom("getObjectAtOffset");
   public static final Atom getTIBAtOffset = Atom.findOrCreateAsciiAtom("getTIBAtOffset");
-  public static final Atom getLongAtOffset = Atom.findOrCreateAsciiAtom("getLongAtOffset");
-  public static final Atom getDoubleAtOffset = Atom.findOrCreateAsciiAtom("getDoubleAtOffset");
   public static final Atom setByteAtOffset = Atom.findOrCreateAsciiAtom("setByteAtOffset");
   public static final Atom setCharAtOffset = Atom.findOrCreateAsciiAtom("setCharAtOffset");
+  public static final Atom setShortAtOffset = Atom.findOrCreateAsciiAtom("setShortAtOffset");
   public static final Atom setIntAtOffset = Atom.findOrCreateAsciiAtom("setIntAtOffset");
+  public static final Atom setLongAtOffset = Atom.findOrCreateAsciiAtom("setLongAtOffset");
+  public static final Atom setFloatAtOffset = Atom.findOrCreateAsciiAtom("setFloatAtOffset");
+  public static final Atom setDoubleAtOffset = Atom.findOrCreateAsciiAtom("setDoubleAtOffset");
   public static final Atom setWordAtOffset = Atom.findOrCreateAsciiAtom("setWordAtOffset");
   public static final Atom setObjectAtOffset = Atom.findOrCreateAsciiAtom("setObjectAtOffset");
-  public static final Atom setLongAtOffset = Atom.findOrCreateAsciiAtom("setLongAtOffset");
-  public static final Atom setDoubleAtOffset = Atom.findOrCreateAsciiAtom("setDoubleAtOffset");
 
   public static final Atom getMemoryInt = Atom.findOrCreateAsciiAtom("getMemoryInt");
   public static final Atom setMemoryInt = Atom.findOrCreateAsciiAtom("setMemoryInt");

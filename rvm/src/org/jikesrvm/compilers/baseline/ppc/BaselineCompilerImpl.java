@@ -4615,6 +4615,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       popAddr(T0); // pop object
       asm.emitLIntX(T0, T1, T0); // *(object+offset)
       pushInt(T0); // push *(object+offset)
+    } else if (methodName == MagicNames.getFloatAtOffset) {
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      asm.emitLWZX(T0, T1, T0); // *(object+offset)
+      pushInt(T0); // push *(object+offset),
+//    asm.emitLFSX  (F0, T1, T0); // *(object+offset)
+//    pushFloat(F0);
     } else if (methodName == MagicNames.getObjectAtOffset ||
                methodName == MagicNames.getWordAtOffset ||
                methodName == MagicNames.getTIBAtOffset) {
@@ -4651,6 +4658,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue
+    } else if (methodName == MagicNames.setFloatAtOffset) {
+      popInt(T2); // pop newvalue
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue
     } else if (methodName == MagicNames.setObjectAtOffset || methodName == MagicNames.setWordAtOffset) {
       if (methodToBeCalled.getParameterTypes().length == 4) {
         discardSlot(); // discard locationMetadata parameter
@@ -4664,7 +4676,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTBX(T2, T1, T0); // *(object+offset) = newvalue
-    } else if (methodName == MagicNames.setCharAtOffset) {
+    } else if (methodName == MagicNames.setCharAtOffset || methodName == MagicNames.setShortAtOffset) {
       popInt(T2); // pop newvalue
       popInt(T1); // pop offset
       popAddr(T0); // pop object
