@@ -25,6 +25,54 @@ import org.vmmagic.pragma.*;
   /** @return True of this Plan requires read barriers on java.lang.reference types. */
   public boolean needsJavaLangReferenceReadBarrier() { return false; }
 
+  /** @return True if this Plan requires write barriers on booleans. */
+  public boolean needsBooleanWriteBarrier() { return false; }
+
+  /** @return True of this Plan requires read barriers on booleans. */
+  public boolean needsBooleanReadBarrier() { return false; }
+
+  /** @return True if this Plan requires write barriers on bytes. */
+  public boolean needsByteWriteBarrier() { return false; }
+
+  /** @return True of this Plan requires read barriers on bytes. */
+  public boolean needsByteReadBarrier() { return false; }
+
+  /** @return True if this Plan requires write barriers on chars. */
+  public boolean needsCharWriteBarrier() { return false; }
+
+  /** @return True of this Plan requires read barriers on chars. */
+  public boolean needsCharReadBarrier() { return false; }
+
+  /** @return True if this Plan requires write barriers on shorts. */
+  public boolean needsShortWriteBarrier() { return false; }
+
+  /** @return True of this Plan requires read barriers on shorts. */
+  public boolean needsShortReadBarrier() { return false; }
+
+  /** @return True if this Plan requires write barriers on ints. */
+  public boolean needsIntWriteBarrier() { return false; }
+
+  /** @return True of this Plan requires read barriers on ints. */
+  public boolean needsIntReadBarrier() { return false; }
+
+  /** @return True if this Plan requires write barriers on longs. */
+  public boolean needsLongWriteBarrier() { return false; }
+
+  /** @return True of this Plan requires read barriers on longs. */
+  public boolean needsLongReadBarrier() { return false; }
+
+  /** @return True if this Plan requires write barriers on floats. */
+  public boolean needsFloatWriteBarrier() { return false; }
+
+  /** @return True of this Plan requires read barriers on floats. */
+  public boolean needsFloatReadBarrier() { return false; }
+
+  /** @return True if this Plan requires write barriers on doubles. */
+  public boolean needsDoubleWriteBarrier() { return false; }
+
+  /** @return True of this Plan requires read barriers on doubles. */
+  public boolean needsDoubleReadBarrier() { return false; }
+
   /** @return True if this Plan requires write barriers on object references. */
   public boolean needsObjectReferenceWriteBarrier() { return false; }
 

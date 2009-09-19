@@ -22,29 +22,271 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
-   * Perform the actual write of the write barrier.
+   * Perform the actual write of a boolean write barrier.
    *
    * @param objref The object that has the reference field
-   * @param target The value that the slot will be updated to
+   * @param value The value that the slot will be updated to
    * @param offset The offset from the ref
-   * @param location The index of the FieldReference
+   * @param unused Unused
    * @param mode The context in which the write is occurring
    */
   @Inline
-  public final void objectReferenceWrite(ObjectReference objref, ObjectReference target, Word offset, Word location, int mode) {
-    Magic.setObjectAtOffset(objref.toObject(), offset.toOffset(), target.toObject(), location.toInt());
+  @Override
+  public final void booleanWrite(ObjectReference objref, boolean value, Word offset, Word location, int mode) {
+    Magic.setByteAtOffset(objref.toObject(), offset.toOffset(), (byte) (value ? 1 : 0));
   }
 
   /**
-   * Perform the actual read of the read barrier.
+   * Perform the actual read of a boolean read barrier.
    *
    * @param objref The object that has the reference field
    * @param offset The offset from the ref
-   * @param location The index of the FieldReference
+   * @param unused Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
   @Inline
+  @Override
+  public final boolean booleanRead(ObjectReference objref, Word offset, Word location, int mode) {
+    return Magic.getByteAtOffset(objref.toObject(), offset.toOffset()) == 0;
+  }
+
+  /**
+   * Perform the actual write of a byte write barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void byteWrite(ObjectReference objref, byte value, Word offset, Word location, int mode) {
+    Magic.setByteAtOffset(objref.toObject(), offset.toOffset(), value);
+  }
+
+  /**
+   * Perform the actual read of a byte read barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final byte byteRead(ObjectReference objref, Word offset, Word location, int mode) {
+    return Magic.getByteAtOffset(objref.toObject(), offset.toOffset());
+  }
+
+  /**
+   * Perform the actual write of a char write barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void charWrite(ObjectReference objref, char value, Word offset, Word location, int mode) {
+    Magic.setCharAtOffset(objref.toObject(), offset.toOffset(), value);
+  }
+
+  /**
+   * Perform the actual read of a char read barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final char charRead(ObjectReference objref, Word offset, Word location, int mode) {
+    return Magic.getCharAtOffset(objref.toObject(), offset.toOffset());
+  }
+
+  /**
+   * Perform the actual write of a short write barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void shortWrite(ObjectReference objref, short value, Word offset, Word location, int mode) {
+    Magic.setShortAtOffset(objref.toObject(), offset.toOffset(), value);
+  }
+
+  /**
+   * Perform the actual read of a short read barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final short shortRead(ObjectReference objref, Word offset, Word location, int mode) {
+    return Magic.getShortAtOffset(objref.toObject(), offset.toOffset());
+  }
+
+  /**
+   * Perform the actual write of a int write barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void intWrite(ObjectReference objref, int value, Word offset, Word location, int mode) {
+    Magic.setIntAtOffset(objref.toObject(), offset.toOffset(), value);
+  }
+
+  /**
+   * Perform the actual read of a int read barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final int intRead(ObjectReference objref, Word offset, Word location, int mode) {
+    return Magic.getIntAtOffset(objref.toObject(), offset.toOffset());
+  }
+
+  /**
+   * Perform the actual write of a long write barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void longWrite(ObjectReference objref, long value, Word offset, Word location, int mode) {
+    Magic.setLongAtOffset(objref.toObject(), offset.toOffset(), value);
+  }
+
+  /**
+   * Perform the actual read of a long read barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final long longRead(ObjectReference objref, Word offset, Word location, int mode) {
+    return Magic.getLongAtOffset(objref.toObject(), offset.toOffset());
+  }
+
+  /**
+   * Perform the actual write of a float write barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void floatWrite(ObjectReference objref, float value, Word offset, Word location, int mode) {
+    Magic.setFloatAtOffset(objref.toObject(), offset.toOffset(), value);
+  }
+
+  /**
+   * Perform the actual read of a float read barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final float floatRead(ObjectReference objref, Word offset, Word location, int mode) {
+    return Magic.getFloatAtOffset(objref.toObject(), offset.toOffset());
+  }
+
+  /**
+   * Perform the actual write of a double write barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void doubleWrite(ObjectReference objref, double value, Word offset, Word location, int mode) {
+    Magic.setDoubleAtOffset(objref.toObject(), offset.toOffset(), value);
+  }
+
+  /**
+   * Perform the actual read of a double read barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final double doubleRead(ObjectReference objref, Word offset, Word location, int mode) {
+    return Magic.getDoubleAtOffset(objref.toObject(), offset.toOffset());
+  }
+
+  /**
+   * Perform the actual write of an object reference write barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void objectReferenceWrite(ObjectReference objref, ObjectReference value, Word offset, Word location, int mode) {
+    Magic.setObjectAtOffset(objref.toObject(), offset.toOffset(), value.toObject(), location.toInt());
+  }
+
+  /**
+   * Perform the actual read of an object reference read barrier.
+   *
+   * @param objref The object that has the reference field
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   * @return the object reference read value
+   */
+  @Inline
+  @Override
   public final ObjectReference objectReferenceRead(ObjectReference objref, Word offset, Word location, int mode) {
     return ObjectReference.fromObject(Magic.getObjectAtOffset(objref.toObject(), offset.toOffset(), location.toInt()));
   }
@@ -59,6 +301,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param ref The object that has the reference field
    */
   @Inline
+  @Override
   public final void objectReferenceNonHeapWrite(Address slot, ObjectReference target, Word unusedA, Word unusedB) {
     slot.store(target);
   }
@@ -75,6 +318,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @return The value that was replaced by the write.
    */
   @Inline
+  @Override
   public final ObjectReference objectReferenceAtomicWrite(ObjectReference objref, ObjectReference target, Word offset, Word unused, int mode) {
     Object obj = objref.toObject();
     Object newObject = target.toObject();
@@ -97,6 +341,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @return True if the compare and swap was successful
    */
   @Inline
+  @Override
   public final boolean objectReferenceTryCompareAndSwap(ObjectReference objref, ObjectReference old, ObjectReference target, Word offset, Word unused, int mode) {
     Object oldValue;
     do {
@@ -116,6 +361,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param mode The context in which the write is occurring
    */
   @Inline
+  @Override
   public final void wordWrite(ObjectReference ref, Word target,
       Word offset, Word location, int mode) {
     Magic.setWordAtOffset(ref.toObject(), offset.toOffset(), target, location.toInt());
@@ -133,6 +379,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @return The value that was replaced by the write.
    */
   @Inline
+  @Override
   public final Word wordAtomicWrite(ObjectReference ref, Word target,
       Word offset, Word unused, int mode) {
     Word oldValue;
@@ -154,6 +401,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @return True if the compare and swap was successful
    */
   @Inline
+  @Override
   public final boolean wordTryCompareAndSwap(ObjectReference ref, Word old, Word target,
       Word offset, Word unused, int mode) {
     do {
@@ -173,6 +421,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @return the read value
    */
   @Inline
+  @Override
   public final Word wordRead(ObjectReference ref,
         Word offset, Word location, int mode) {
     return Magic.getWordAtOffset(ref.toObject(), offset.toOffset(), location.toInt());
@@ -189,6 +438,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * @param value the new value for the element
    */
   @UninterruptibleNoWarn
+  @Override
   public final void objectArrayStoreNoGCBarrier(Object[] dst, int index, Object value) {
     if (org.jikesrvm.VM.runningVM) {
       Address base = ObjectReference.fromObject(dst).toAddress();

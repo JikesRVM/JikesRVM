@@ -21,21 +21,245 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public class Barriers extends org.mmtk.vm.Barriers {
   /**
-   * Perform the actual write of the write barrier.
+   * Perform the actual write of a boolean write barrier.
    *
    * @param ref The object that has the reference field
-   * @param target The value that the slot will be updated to
+   * @param value The value that the slot will be updated to
    * @param slot The address to be written to
    * @param unused Unused
    * @param mode The context in which the write is occurring
    */
   @Override
-  public void objectReferenceWrite(ObjectReference ref, ObjectReference target, Word slot, Word unused, int mode) {
-    slot.toAddress().store(target);
+  public void booleanWrite(ObjectReference ref, boolean value, Word slot, Word unused, int mode) {
+    slot.toAddress().store((byte) (value ? 1 : 0));
   }
 
   /**
-   * Perform the actual read of the read barrier.
+   * Perform the actual read of a boolean read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The address to be read from
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public boolean booleanRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    return slot.toAddress().loadByte() != 0;
+  }
+
+  /**
+   * Perform the actual write of a byte write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param slot The address to be written to
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void byteWrite(ObjectReference ref, byte value, Word slot, Word unused, int mode) {
+    slot.toAddress().store(value);
+  }
+
+  /**
+   * Perform the actual read of a byte read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The address to be read from
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public byte byteRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    return slot.toAddress().loadByte();
+  }
+
+  /**
+   * Perform the actual write of a char write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param slot The address to be written to
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void charWrite(ObjectReference ref, char value, Word slot, Word unused, int mode) {
+    slot.toAddress().store(value);
+  }
+
+  /**
+   * Perform the actual read of a char read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The address to be read from
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public char charRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    return slot.toAddress().loadChar();
+  }
+
+  /**
+   * Perform the actual write of a short write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param slot The address to be written to
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void shortWrite(ObjectReference ref, short value, Word slot, Word unused, int mode) {
+    slot.toAddress().store(value);
+  }
+
+  /**
+   * Perform the actual read of a short read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The address to be read from
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public short shortRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    return slot.toAddress().loadShort();
+  }
+
+  /**
+   * Perform the actual write of a int write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param slot The address to be written to
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void intWrite(ObjectReference ref, int value, Word slot, Word unused, int mode) {
+    slot.toAddress().store(value);
+  }
+
+  /**
+   * Perform the actual read of a int read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The address to be read from
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public int intRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    return slot.toAddress().loadInt();
+  }
+
+  /**
+   * Perform the actual write of a long write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param slot The address to be written to
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void longWrite(ObjectReference ref, long value, Word slot, Word unused, int mode) {
+    slot.toAddress().store(value);
+  }
+
+  /**
+   * Perform the actual read of a long read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The address to be read from
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public long longRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    return slot.toAddress().loadLong();
+  }
+
+  /**
+   * Perform the actual write of a float write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param slot The address to be written to
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void floatWrite(ObjectReference ref, float value, Word slot, Word unused, int mode) {
+    slot.toAddress().store(value);
+  }
+
+  /**
+   * Perform the actual read of a float read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The address to be read from
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public float floatRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    return slot.toAddress().loadFloat();
+  }
+
+  /**
+   * Perform the actual write of a double write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param slot The address to be written to
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void doubleWrite(ObjectReference ref, double value, Word slot, Word unused, int mode) {
+    slot.toAddress().store(value);
+  }
+
+  /**
+   * Perform the actual read of a double read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The address to be read from
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public double doubleRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    return slot.toAddress().loadDouble();
+  }
+
+  /**
+   * Perform the actual write of an object reference write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param slot The address to be written to
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void objectReferenceWrite(ObjectReference ref, ObjectReference value, Word slot, Word unused, int mode) {
+    slot.toAddress().store(value);
+  }
+
+  /**
+   * Perform the actual read of an object reference read barrier.
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from

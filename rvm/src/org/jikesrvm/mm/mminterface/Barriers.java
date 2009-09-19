@@ -43,6 +43,919 @@ public class Barriers implements org.mmtk.utility.Constants {
     return null;
   }
 
+  /* bool byte char short int long float double */
+
+  /** True if the garbage collector requires write barriers on boolean putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_BOOLEAN_GC_WRITE_BARRIER     = Selected.Constraints.get().needsBooleanWriteBarrier();
+  /** True if the VM requires write barriers on boolean putfield */
+  public static final boolean  NEEDS_BOOLEAN_PUTFIELD_BARRIER     = NEEDS_BOOLEAN_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on boolean arraystore */
+  public static final boolean  NEEDS_BOOLEAN_ASTORE_BARRIER       = NEEDS_BOOLEAN_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on boolean getfield or arrayload */
+  private static final boolean NEEDS_BOOLEAN_GC_READ_BARRIER      = Selected.Constraints.get().needsBooleanReadBarrier();
+  /** True if the VM requires read barriers on boolean getfield */
+  public static final boolean  NEEDS_BOOLEAN_GETFIELD_BARRIER     = NEEDS_BOOLEAN_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on boolean arrayload */
+  public static final boolean  NEEDS_BOOLEAN_ALOAD_BARRIER        = NEEDS_BOOLEAN_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of booleans into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void booleanFieldWrite(Object ref, boolean value, Offset offset, int locationMetadata) {
+    if (NEEDS_BOOLEAN_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().booleanWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for writes of booleans into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void booleanArrayWrite(Object ref, int index, boolean value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().booleanWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for loads of booleans from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static boolean booleanFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().booleanRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+  /**
+   * Barrier for loads of booleans from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static boolean booleanArrayRead(Object ref, int index) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().booleanRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+  /**
+   * Barrier for a bulk copy of booleans (i.e. in an array copy).
+   *
+   * @param src       The source object
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param tgt        The target object
+   * @param tgtOffset  The offset of the first target address, in bytes
+   * relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  @Inline
+  public static boolean booleanBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      return Selected.Mutator.get().booleanBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+  /** True if the garbage collector requires write barriers on byte putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_BYTE_GC_WRITE_BARRIER     = Selected.Constraints.get().needsByteWriteBarrier();
+  /** True if the VM requires write barriers on byte putfield */
+  public static final boolean  NEEDS_BYTE_PUTFIELD_BARRIER     = NEEDS_BYTE_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on byte arraystore */
+  public static final boolean  NEEDS_BYTE_ASTORE_BARRIER       = NEEDS_BYTE_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on byte getfield or arrayload */
+  private static final boolean NEEDS_BYTE_GC_READ_BARRIER      = Selected.Constraints.get().needsByteReadBarrier();
+  /** True if the VM requires read barriers on byte getfield */
+  public static final boolean  NEEDS_BYTE_GETFIELD_BARRIER     = NEEDS_BYTE_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on byte arrayload */
+  public static final boolean  NEEDS_BYTE_ALOAD_BARRIER        = NEEDS_BYTE_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of bytes into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void byteFieldWrite(Object ref, byte value, Offset offset, int locationMetadata) {
+    if (NEEDS_BYTE_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().byteWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for writes of objects into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void byteArrayWrite(Object ref, int index, byte value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().byteWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static byte byteFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().byteRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for loads of objects from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static byte byteArrayRead(Object ref, int index) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().byteRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   *
+   * @param src       The source object
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param tgt        The target object
+   * @param tgtOffset  The offset of the first target address, in bytes
+   * relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  @Inline
+  public static boolean byteBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      return Selected.Mutator.get().byteBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+
+  /** True if the garbage collector requires write barriers on char putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_CHAR_GC_WRITE_BARRIER     = Selected.Constraints.get().needsCharWriteBarrier();
+  /** True if the VM requires write barriers on char putfield */
+  public static final boolean  NEEDS_CHAR_PUTFIELD_BARRIER     = NEEDS_CHAR_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on char arraystore */
+  public static final boolean  NEEDS_CHAR_ASTORE_BARRIER       = NEEDS_CHAR_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on char getfield or arrayload */
+  private static final boolean NEEDS_CHAR_GC_READ_BARRIER      = Selected.Constraints.get().needsCharReadBarrier();
+  /** True if the VM requires read barriers on char getfield */
+  public static final boolean  NEEDS_CHAR_GETFIELD_BARRIER     = NEEDS_CHAR_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on char arrayload */
+  public static final boolean  NEEDS_CHAR_ALOAD_BARRIER        = NEEDS_CHAR_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of chars into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void charFieldWrite(Object ref, char value, Offset offset, int locationMetadata) {
+    if (NEEDS_CHAR_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().charWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for writes of objects into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void charArrayWrite(Object ref, int index, char value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().charWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static char charFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().charRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for loads of objects from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static char charArrayRead(Object ref, int index) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().charRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   *
+   * @param src       The source object
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param tgt        The target object
+   * @param tgtOffset  The offset of the first target address, in bytes
+   * relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  @Inline
+  public static boolean charBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      return Selected.Mutator.get().charBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+
+  /** True if the garbage collector requires write barriers on short putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_SHORT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsShortWriteBarrier();
+  /** True if the VM requires write barriers on short putfield */
+  public static final boolean  NEEDS_SHORT_PUTFIELD_BARRIER     = NEEDS_SHORT_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on short arraystore */
+  public static final boolean  NEEDS_SHORT_ASTORE_BARRIER       = NEEDS_SHORT_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on short getfield or arrayload */
+  private static final boolean NEEDS_SHORT_GC_READ_BARRIER      = Selected.Constraints.get().needsShortReadBarrier();
+  /** True if the VM requires read barriers on short getfield */
+  public static final boolean  NEEDS_SHORT_GETFIELD_BARRIER     = NEEDS_SHORT_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on short arrayload */
+  public static final boolean  NEEDS_SHORT_ALOAD_BARRIER        = NEEDS_SHORT_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of shorts into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void shortFieldWrite(Object ref, short value, Offset offset, int locationMetadata) {
+    if (NEEDS_SHORT_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().shortWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for writes of objects into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void shortArrayWrite(Object ref, int index, short value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().shortWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static short shortFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().shortRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for loads of objects from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static short shortArrayRead(Object ref, int index) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().shortRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   *
+   * @param src       The source object
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param tgt        The target object
+   * @param tgtOffset  The offset of the first target address, in bytes
+   * relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  @Inline
+  public static boolean shortBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      return Selected.Mutator.get().shortBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+
+  /** True if the garbage collector requires write barriers on int putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_INT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsIntWriteBarrier();
+  /** True if the VM requires write barriers on int putfield */
+  public static final boolean  NEEDS_INT_PUTFIELD_BARRIER     = NEEDS_INT_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on int arraystore */
+  public static final boolean  NEEDS_INT_ASTORE_BARRIER       = NEEDS_INT_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on int getfield or arrayload */
+  private static final boolean NEEDS_INT_GC_READ_BARRIER      = Selected.Constraints.get().needsIntReadBarrier();
+  /** True if the VM requires read barriers on int getfield */
+  public static final boolean  NEEDS_INT_GETFIELD_BARRIER     = NEEDS_INT_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on int arrayload */
+  public static final boolean  NEEDS_INT_ALOAD_BARRIER        = NEEDS_INT_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of ints into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void intFieldWrite(Object ref, int value, Offset offset, int locationMetadata) {
+    if (NEEDS_INT_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().intWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for writes of objects into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void intArrayWrite(Object ref, int index, int value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().intWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static int intFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().intRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for loads of objects from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static int intArrayRead(Object ref, int index) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().intRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   *
+   * @param src       The source object
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param tgt        The target object
+   * @param tgtOffset  The offset of the first target address, in bytes
+   * relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  @Inline
+  public static boolean intBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      return Selected.Mutator.get().intBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+
+  /** True if the garbage collector requires write barriers on long putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_LONG_GC_WRITE_BARRIER     = Selected.Constraints.get().needsLongWriteBarrier();
+  /** True if the VM requires write barriers on long putfield */
+  public static final boolean  NEEDS_LONG_PUTFIELD_BARRIER     = NEEDS_LONG_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on long arraystore */
+  public static final boolean  NEEDS_LONG_ASTORE_BARRIER       = NEEDS_LONG_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on long getfield or arrayload */
+  private static final boolean NEEDS_LONG_GC_READ_BARRIER      = Selected.Constraints.get().needsLongReadBarrier();
+  /** True if the VM requires read barriers on long getfield */
+  public static final boolean  NEEDS_LONG_GETFIELD_BARRIER     = NEEDS_LONG_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on long arrayload */
+  public static final boolean  NEEDS_LONG_ALOAD_BARRIER        = NEEDS_LONG_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of longs into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void longFieldWrite(Object ref, long value, Offset offset, int locationMetadata) {
+    if (NEEDS_LONG_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().longWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for writes of objects into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void longArrayWrite(Object ref, int index, long value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().longWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static long longFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().longRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for loads of objects from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static long longArrayRead(Object ref, int index) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().longRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   *
+   * @param src       The source object
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param tgt        The target object
+   * @param tgtOffset  The offset of the first target address, in bytes
+   * relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  @Inline
+  public static boolean longBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      return Selected.Mutator.get().longBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+
+  /** True if the garbage collector requires write barriers on float putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_FLOAT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsFloatWriteBarrier();
+  /** True if the VM requires write barriers on float putfield */
+  public static final boolean  NEEDS_FLOAT_PUTFIELD_BARRIER     = NEEDS_FLOAT_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on float arraystore */
+  public static final boolean  NEEDS_FLOAT_ASTORE_BARRIER       = NEEDS_FLOAT_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on float getfield or arrayload */
+  private static final boolean NEEDS_FLOAT_GC_READ_BARRIER      = Selected.Constraints.get().needsFloatReadBarrier();
+  /** True if the VM requires read barriers on float getfield */
+  public static final boolean  NEEDS_FLOAT_GETFIELD_BARRIER     = NEEDS_FLOAT_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on float arrayload */
+  public static final boolean  NEEDS_FLOAT_ALOAD_BARRIER        = NEEDS_FLOAT_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of floats into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void floatFieldWrite(Object ref, float value, Offset offset, int locationMetadata) {
+    if (NEEDS_FLOAT_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().floatWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for writes of objects into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void floatArrayWrite(Object ref, int index, float value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().floatWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static float floatFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().floatRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for loads of objects from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static float floatArrayRead(Object ref, int index) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().floatRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   *
+   * @param src       The source object
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param tgt        The target object
+   * @param tgtOffset  The offset of the first target address, in bytes
+   * relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  @Inline
+  public static boolean floatBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      return Selected.Mutator.get().floatBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+
+  /** True if the garbage collector requires write barriers on double putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_DOUBLE_GC_WRITE_BARRIER     = Selected.Constraints.get().needsDoubleWriteBarrier();
+  /** True if the VM requires write barriers on double putfield */
+  public static final boolean  NEEDS_DOUBLE_PUTFIELD_BARRIER     = NEEDS_DOUBLE_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on double arraystore */
+  public static final boolean  NEEDS_DOUBLE_ASTORE_BARRIER       = NEEDS_DOUBLE_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on double getfield or arrayload */
+  private static final boolean NEEDS_DOUBLE_GC_READ_BARRIER      = Selected.Constraints.get().needsDoubleReadBarrier();
+  /** True if the VM requires read barriers on double getfield */
+  public static final boolean  NEEDS_DOUBLE_GETFIELD_BARRIER     = NEEDS_DOUBLE_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on double arrayload */
+  public static final boolean  NEEDS_DOUBLE_ALOAD_BARRIER        = NEEDS_DOUBLE_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of doubles into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void doubleFieldWrite(Object ref, double value, Offset offset, int locationMetadata) {
+    if (NEEDS_DOUBLE_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().doubleWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for writes of objects into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void doubleArrayWrite(Object ref, int index, double value) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().doubleWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static double doubleFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().doubleRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for loads of objects from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static double doubleArrayRead(Object ref, int index) {
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().doubleRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return 0;
+  }
+
+  /**
+   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   *
+   * @param src       The source object
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param tgt        The target object
+   * @param tgtOffset  The offset of the first target address, in bytes
+   * relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  @Inline
+  public static boolean doubleBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      return Selected.Mutator.get().doubleBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
+    } else if (VM.VERIFY_ASSERTIONS)
+      VM.assertions._assert(false);
+    return false;
+  }
+
+
   /** True if the garbage collector requires write barriers on reference putfield, arraystore or modifycheck */
   private static final boolean NEEDS_OBJECT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsObjectReferenceWriteBarrier();
   /** True if the VM requires write barriers on reference putfield */
@@ -69,12 +982,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void objectFieldWrite(Object ref, Object value, Offset offset, int locationMetadata) {
     if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
-      Selected.Mutator.get().objectReferenceWrite(src,
-          src.toAddress().plus(offset),
-          ObjectReference.fromObject(value),
-          offset.toWord(),
-          Word.fromIntZeroExtend(locationMetadata),
-          INSTANCE_FIELD);
+      Selected.Mutator.get().objectReferenceWrite(src, src.toAddress().plus(offset), ObjectReference.fromObject(value), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false);
   }
@@ -94,12 +1002,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
-      Selected.Mutator.get().objectReferenceWrite(array,
-          array.toAddress().plus(offset),
-          ObjectReference.fromObject(value),
-          offset.toWord(),
-          Word.zero(),      // don't know metadata
-          ARRAY_ELEMENT);
+      Selected.Mutator.get().objectReferenceWrite(array, array.toAddress().plus(offset), ObjectReference.fromObject(value), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false);
   }
@@ -117,11 +1020,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static Object objectFieldRead(Object ref, Offset offset, int locationMetadata) {
     if (NEEDS_OBJECT_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
-      return Selected.Mutator.get().objectReferenceRead(src,
-          src.toAddress().plus(offset),
-          offset.toWord(),
-          Word.fromIntZeroExtend(locationMetadata),
-          INSTANCE_FIELD).toObject();
+      return Selected.Mutator.get().objectReferenceRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD).toObject();
     } else if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false);
     return null;
@@ -140,11 +1039,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_OBJECT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
-      return Selected.Mutator.get().objectReferenceRead(array,
-          array.toAddress().plus(offset),
-          offset.toWord(),
-          Word.zero(), // don't know metadata
-          ARRAY_ELEMENT).toObject();
+      return Selected.Mutator.get().objectReferenceRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT).toObject();
     } else if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false);
     return null;
@@ -168,11 +1063,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   @Inline
   public static boolean objectBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
     if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().objectReferenceBulkCopy(ObjectReference.fromObject(src),
-          srcOffset,
-          ObjectReference.fromObject(tgt),
-          tgtOffset,
-          bytes);
+      return Selected.Mutator.get().objectReferenceBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
     } else if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false);
     return false;

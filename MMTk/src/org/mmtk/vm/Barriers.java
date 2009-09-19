@@ -18,18 +18,194 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public abstract class Barriers {
   /**
-   * Perform the actual write of an object reference write barrier.
+   * Perform the actual write of a boolean write barrier.
    *
    * @param ref The object that has the reference field
-   * @param target The value that the slot will be updated to
+   * @param value The value that the slot will be updated to
    * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
    * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
    * @param mode The context in which the write is occurring
    */
-  public abstract void objectReferenceWrite(ObjectReference ref, ObjectReference target, Word metaDataA, Word metaDataB, int mode);
+  public abstract void booleanWrite(ObjectReference ref, boolean value, Word metaDataA, Word metaDataB, int mode);
 
   /**
-   * Perform the actual read of the read barrier.
+   * Perform the actual read of a boolean read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract boolean booleanRead(ObjectReference ref, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual write of a byte write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void byteWrite(ObjectReference ref, byte value, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of a byte read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract byte byteRead(ObjectReference ref, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual write of a char write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void charWrite(ObjectReference ref, char value, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of a char read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract char charRead(ObjectReference ref, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual write of a short write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void shortWrite(ObjectReference ref, short value, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of a short read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract short shortRead(ObjectReference ref, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual write of a int write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void intWrite(ObjectReference ref, int value, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of a int read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract int intRead(ObjectReference ref, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual write of a long write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void longWrite(ObjectReference ref, long value, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of a long read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract long longRead(ObjectReference ref, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual write of a float write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void floatWrite(ObjectReference ref, float value, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of a float read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract float floatRead(ObjectReference ref, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual write of a double write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void doubleWrite(ObjectReference ref, double value, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of a double read barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  public abstract double doubleRead(ObjectReference ref, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual write of an object reference write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param value The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  public abstract void objectReferenceWrite(ObjectReference ref, ObjectReference value, Word metaDataA, Word metaDataB, int mode);
+
+  /**
+   * Perform the actual read of a read barrier.
    *
    * @param ref The object that has the reference field
    * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
