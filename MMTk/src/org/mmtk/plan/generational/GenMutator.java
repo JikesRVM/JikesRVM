@@ -259,26 +259,21 @@ import org.vmmagic.unboxed.*;
    * In this case, we remember the mutated source address range and
    * will scan that address range at GC time.
    *
-   * @param src The source of the values to copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
+   * @param src The source of the values to be copied
+   * @param srcIdx The starting source index
    * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param srcIdx The starting source index
+   * @param len The number of array elements to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   @Inline
-  public final boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
-      ObjectReference dst, Offset dstOffset,
-      int bytes) {
-    // We can ignore when src is in old space, right?
-    if (!Gen.inNursery(dst))
-      arrayRemset.insert(dst.toAddress().plus(dstOffset),
-          dst.toAddress().plus(dstOffset.plus(bytes)));
+  @Override
+  public final boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
+    if (!Gen.inNursery(dst)) {
+      Address start = dst.toAddress().plus(dstOffset);
+      arrayRemset.insert(start, start.plus(bytes));
+    }
     return false;
   }
 

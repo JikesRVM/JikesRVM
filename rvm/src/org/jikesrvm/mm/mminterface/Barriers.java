@@ -13,7 +13,8 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.runtime.Magic;
-import org.mmtk.vm.VM;
+import org.jikesrvm.runtime.Memory;
+import org.jikesrvm.VM;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -38,8 +39,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_JAVA_LANG_REFERENCE_GC_READ_BARRIER) {
       ObjectReference result = Selected.Mutator.get().javaLangReferenceReadBarrier(ObjectReference.fromObject(obj));
       return result.toObject();
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return null;
   }
 
@@ -57,6 +58,8 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static final boolean  NEEDS_BOOLEAN_GETFIELD_BARRIER     = NEEDS_BOOLEAN_GC_READ_BARRIER;
   /** True if the VM requires read barriers on boolean arrayload */
   public static final boolean  NEEDS_BOOLEAN_ALOAD_BARRIER        = NEEDS_BOOLEAN_GC_READ_BARRIER;
+  /** True if the garbage collector does not support the bulk copy operation */
+  public static final boolean BOOLEAN_BULK_COPY_SUPPORTED         = !(NEEDS_BOOLEAN_ASTORE_BARRIER || NEEDS_BOOLEAN_ALOAD_BARRIER) || Selected.Constraints.get().booleanBulkCopySupported();
 
   /**
    * Barrier for writes of booleans into fields of instances (ie putfield).
@@ -72,8 +75,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_BOOLEAN_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().booleanWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -87,13 +90,13 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void booleanArrayWrite(Object ref, int index, boolean value) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+  public static void booleanArrayWrite(boolean[] ref, int index, boolean value) {
+    if (NEEDS_BOOLEAN_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_BOOLEAN);
       Selected.Mutator.get().booleanWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -107,11 +110,11 @@ public class Barriers implements org.mmtk.utility.Constants {
   @Inline
   @Entrypoint
   public static boolean booleanFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+    if (NEEDS_BOOLEAN_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().booleanRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return false;
   }
 
@@ -124,38 +127,32 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static boolean booleanArrayRead(Object ref, int index) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+  public static boolean booleanArrayRead(boolean[] ref, int index) {
+    if (NEEDS_BOOLEAN_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_BOOLEAN);
       return Selected.Mutator.get().booleanRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return false;
   }
 
   /**
    * Barrier for a bulk copy of booleans (i.e. in an array copy).
    *
-   * @param src       The source object
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param tgt        The target object
-   * @param tgtOffset  The offset of the first target address, in bytes
-   * relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
-  public static boolean booleanBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().booleanBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-    return false;
+  public static void booleanBulkCopy(boolean[] src, Offset srcOffset, boolean[] dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(BOOLEAN_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().booleanBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.arraycopy8Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
   /** True if the garbage collector requires write barriers on byte putfield, arraystore or modifycheck */
@@ -170,6 +167,8 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static final boolean  NEEDS_BYTE_GETFIELD_BARRIER     = NEEDS_BYTE_GC_READ_BARRIER;
   /** True if the VM requires read barriers on byte arrayload */
   public static final boolean  NEEDS_BYTE_ALOAD_BARRIER        = NEEDS_BYTE_GC_READ_BARRIER;
+  /** True if the garbage collector does not support the bulk copy operation */
+  public static final boolean BYTE_BULK_COPY_SUPPORTED         = !(NEEDS_BYTE_ASTORE_BARRIER || NEEDS_BYTE_ALOAD_BARRIER) || Selected.Constraints.get().byteBulkCopySupported();
 
   /**
    * Barrier for writes of bytes into fields of instances (ie putfield).
@@ -185,8 +184,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_BYTE_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().byteWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -200,13 +199,13 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void byteArrayWrite(Object ref, int index, byte value) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+  public static void byteArrayWrite(byte[] ref, int index, byte value) {
+    if (NEEDS_BYTE_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index);
       Selected.Mutator.get().byteWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -220,11 +219,11 @@ public class Barriers implements org.mmtk.utility.Constants {
   @Inline
   @Entrypoint
   public static byte byteFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+    if (NEEDS_BYTE_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().byteRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
@@ -237,38 +236,32 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static byte byteArrayRead(Object ref, int index) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+  public static byte byteArrayRead(byte[] ref, int index) {
+    if (NEEDS_BYTE_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index);
       return Selected.Mutator.get().byteRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
   /**
-   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   * Barrier for a bulk copy of bytes (i.e. in an array copy).
    *
-   * @param src       The source object
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param tgt        The target object
-   * @param tgtOffset  The offset of the first target address, in bytes
-   * relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
-  public static boolean byteBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().byteBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-    return false;
+  public static void byteBulkCopy(byte[] src, Offset srcOffset, byte[] dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(BYTE_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().byteBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.arraycopy8Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
@@ -284,6 +277,8 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static final boolean  NEEDS_CHAR_GETFIELD_BARRIER     = NEEDS_CHAR_GC_READ_BARRIER;
   /** True if the VM requires read barriers on char arrayload */
   public static final boolean  NEEDS_CHAR_ALOAD_BARRIER        = NEEDS_CHAR_GC_READ_BARRIER;
+  /** True if the garbage collector does not support the bulk copy operation */
+  public static final boolean CHAR_BULK_COPY_SUPPORTED         = !(NEEDS_CHAR_ASTORE_BARRIER || NEEDS_CHAR_ALOAD_BARRIER) || Selected.Constraints.get().charBulkCopySupported();
 
   /**
    * Barrier for writes of chars into fields of instances (ie putfield).
@@ -299,8 +294,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_CHAR_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().charWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -314,13 +309,13 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void charArrayWrite(Object ref, int index, char value) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+  public static void charArrayWrite(char[] ref, int index, char value) {
+    if (NEEDS_CHAR_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
       Selected.Mutator.get().charWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -334,11 +329,11 @@ public class Barriers implements org.mmtk.utility.Constants {
   @Inline
   @Entrypoint
   public static char charFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+    if (NEEDS_CHAR_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().charRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
@@ -351,38 +346,32 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static char charArrayRead(Object ref, int index) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+  public static char charArrayRead(char[] ref, int index) {
+    if (NEEDS_CHAR_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_CHAR);
       return Selected.Mutator.get().charRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
   /**
-   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   * Barrier for a bulk copy of chars (i.e. in an array copy).
    *
-   * @param src       The source object
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param tgt        The target object
-   * @param tgtOffset  The offset of the first target address, in bytes
-   * relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
-  public static boolean charBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().charBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-    return false;
+  public static void charBulkCopy(char[] src, Offset srcOffset, char[] dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(CHAR_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().charBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.arraycopy16Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
@@ -398,6 +387,8 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static final boolean  NEEDS_SHORT_GETFIELD_BARRIER     = NEEDS_SHORT_GC_READ_BARRIER;
   /** True if the VM requires read barriers on short arrayload */
   public static final boolean  NEEDS_SHORT_ALOAD_BARRIER        = NEEDS_SHORT_GC_READ_BARRIER;
+  /** True if the garbage collector does not support the bulk copy operation */
+  public static final boolean SHORT_BULK_COPY_SUPPORTED         = !(NEEDS_SHORT_ASTORE_BARRIER || NEEDS_SHORT_ALOAD_BARRIER) || Selected.Constraints.get().shortBulkCopySupported();
 
   /**
    * Barrier for writes of shorts into fields of instances (ie putfield).
@@ -413,8 +404,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_SHORT_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().shortWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -428,13 +419,13 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void shortArrayWrite(Object ref, int index, short value) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+  public static void shortArrayWrite(short[] ref, int index, short value) {
+    if (NEEDS_SHORT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_SHORT);
       Selected.Mutator.get().shortWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -448,11 +439,11 @@ public class Barriers implements org.mmtk.utility.Constants {
   @Inline
   @Entrypoint
   public static short shortFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+    if (NEEDS_SHORT_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().shortRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
@@ -465,39 +456,34 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static short shortArrayRead(Object ref, int index) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+  public static short shortArrayRead(short[] ref, int index) {
+    if (NEEDS_SHORT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_SHORT);
       return Selected.Mutator.get().shortRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
   /**
-   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   * Barrier for a bulk copy of shorts (i.e. in an array copy).
    *
-   * @param src       The source object
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param tgt        The target object
-   * @param tgtOffset  The offset of the first target address, in bytes
-   * relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
-  public static boolean shortBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().shortBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-    return false;
+  public static void shortBulkCopy(short[] src, Offset srcOffset, short[] dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(SHORT_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().shortBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.arraycopy16Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
+
 
 
   /** True if the garbage collector requires write barriers on int putfield, arraystore or modifycheck */
@@ -512,6 +498,8 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static final boolean  NEEDS_INT_GETFIELD_BARRIER     = NEEDS_INT_GC_READ_BARRIER;
   /** True if the VM requires read barriers on int arrayload */
   public static final boolean  NEEDS_INT_ALOAD_BARRIER        = NEEDS_INT_GC_READ_BARRIER;
+  /** True if the garbage collector does not support the bulk copy operation */
+  public static final boolean INT_BULK_COPY_SUPPORTED         = !(NEEDS_INT_ASTORE_BARRIER || NEEDS_INT_ALOAD_BARRIER) || Selected.Constraints.get().intBulkCopySupported();
 
   /**
    * Barrier for writes of ints into fields of instances (ie putfield).
@@ -527,8 +515,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_INT_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().intWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -542,13 +530,13 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void intArrayWrite(Object ref, int index, int value) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+  public static void intArrayWrite(int[] ref, int index, int value) {
+    if (NEEDS_INT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_INT);
       Selected.Mutator.get().intWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -562,11 +550,11 @@ public class Barriers implements org.mmtk.utility.Constants {
   @Inline
   @Entrypoint
   public static int intFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+    if (NEEDS_INT_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().intRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
@@ -579,39 +567,34 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static int intArrayRead(Object ref, int index) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+  public static int intArrayRead(int[] ref, int index) {
+    if (NEEDS_INT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_INT);
       return Selected.Mutator.get().intRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
   /**
-   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   * Barrier for a bulk copy of ints (i.e. in an array copy).
    *
-   * @param src       The source object
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param tgt        The target object
-   * @param tgtOffset  The offset of the first target address, in bytes
-   * relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
-  public static boolean intBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().intBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-    return false;
+  public static void intBulkCopy(int[] src, Offset srcOffset, int[] dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(INT_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().intBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.arraycopy32Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
+
 
 
   /** True if the garbage collector requires write barriers on long putfield, arraystore or modifycheck */
@@ -626,6 +609,8 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static final boolean  NEEDS_LONG_GETFIELD_BARRIER     = NEEDS_LONG_GC_READ_BARRIER;
   /** True if the VM requires read barriers on long arrayload */
   public static final boolean  NEEDS_LONG_ALOAD_BARRIER        = NEEDS_LONG_GC_READ_BARRIER;
+  /** True if the garbage collector supports the bulk copy operation */
+  public static final boolean LONG_BULK_COPY_SUPPORTED         = !(NEEDS_LONG_ASTORE_BARRIER || NEEDS_LONG_ALOAD_BARRIER) || Selected.Constraints.get().longBulkCopySupported();
 
   /**
    * Barrier for writes of longs into fields of instances (ie putfield).
@@ -641,8 +626,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_LONG_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().longWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -656,13 +641,13 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void longArrayWrite(Object ref, int index, long value) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+  public static void longArrayWrite(long[] ref, int index, long value) {
+    if (NEEDS_LONG_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_LONG);
       Selected.Mutator.get().longWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -676,11 +661,11 @@ public class Barriers implements org.mmtk.utility.Constants {
   @Inline
   @Entrypoint
   public static long longFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+    if (NEEDS_LONG_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().longRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
@@ -693,38 +678,32 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static long longArrayRead(Object ref, int index) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+  public static long longArrayRead(long[] ref, int index) {
+    if (NEEDS_LONG_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_LONG);
       return Selected.Mutator.get().longRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
   /**
-   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   * Barrier for a bulk copy of longs (i.e. in an array copy).
    *
-   * @param src       The source object
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param tgt        The target object
-   * @param tgtOffset  The offset of the first target address, in bytes
-   * relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
-  public static boolean longBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().longBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-    return false;
+  public static void longBulkCopy(long[] src, Offset srcOffset, long[] dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(LONG_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().longBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.arraycopy64Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
@@ -740,6 +719,8 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static final boolean  NEEDS_FLOAT_GETFIELD_BARRIER     = NEEDS_FLOAT_GC_READ_BARRIER;
   /** True if the VM requires read barriers on float arrayload */
   public static final boolean  NEEDS_FLOAT_ALOAD_BARRIER        = NEEDS_FLOAT_GC_READ_BARRIER;
+  /** True if the garbage collector supports the bulk copy operation */
+  public static final boolean FLOAT_BULK_COPY_SUPPORTED         = !(NEEDS_FLOAT_ASTORE_BARRIER || NEEDS_FLOAT_ALOAD_BARRIER) || Selected.Constraints.get().floatBulkCopySupported();
 
   /**
    * Barrier for writes of floats into fields of instances (ie putfield).
@@ -755,8 +736,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_FLOAT_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().floatWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -770,13 +751,13 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void floatArrayWrite(Object ref, int index, float value) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+  public static void floatArrayWrite(float[] ref, int index, float value) {
+    if (NEEDS_FLOAT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_FLOAT);
       Selected.Mutator.get().floatWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -790,11 +771,11 @@ public class Barriers implements org.mmtk.utility.Constants {
   @Inline
   @Entrypoint
   public static float floatFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+    if (NEEDS_FLOAT_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().floatRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
@@ -807,38 +788,32 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static float floatArrayRead(Object ref, int index) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+  public static float floatArrayRead(float[] ref, int index) {
+    if (NEEDS_FLOAT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_FLOAT);
       return Selected.Mutator.get().floatRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
   /**
-   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   * Barrier for a bulk copy of floats (i.e. in an array copy).
    *
-   * @param src       The source object
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param tgt        The target object
-   * @param tgtOffset  The offset of the first target address, in bytes
-   * relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting source index
+   * @param len The number of array elements to be copied
    */
   @Inline
-  public static boolean floatBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().floatBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-    return false;
+  public static void floatBulkCopy(float[] src, Offset srcOffset, float[] dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(FLOAT_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().floatBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.arraycopy32Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
@@ -854,6 +829,8 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static final boolean  NEEDS_DOUBLE_GETFIELD_BARRIER     = NEEDS_DOUBLE_GC_READ_BARRIER;
   /** True if the VM requires read barriers on double arrayload */
   public static final boolean  NEEDS_DOUBLE_ALOAD_BARRIER        = NEEDS_DOUBLE_GC_READ_BARRIER;
+  /** True if the garbage collector supports the bulk copy operation */
+  public static final boolean DOUBLE_BULK_COPY_SUPPORTED         = !(NEEDS_DOUBLE_ASTORE_BARRIER || NEEDS_DOUBLE_ALOAD_BARRIER) || Selected.Constraints.get().doubleBulkCopySupported();
 
   /**
    * Barrier for writes of doubles into fields of instances (ie putfield).
@@ -869,8 +846,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_DOUBLE_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().doubleWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -884,13 +861,13 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void doubleArrayWrite(Object ref, int index, double value) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+  public static void doubleArrayWrite(double[] ref, int index, double value) {
+    if (NEEDS_DOUBLE_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_DOUBLE);
       Selected.Mutator.get().doubleWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -904,11 +881,11 @@ public class Barriers implements org.mmtk.utility.Constants {
   @Inline
   @Entrypoint
   public static double doubleFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+    if (NEEDS_DOUBLE_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().doubleRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
@@ -921,38 +898,32 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static double doubleArrayRead(Object ref, int index) {
-    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+  public static double doubleArrayRead(double[] ref, int index) {
+    if (NEEDS_DOUBLE_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_DOUBLE);
       return Selected.Mutator.get().doubleRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return 0;
   }
 
   /**
-   * Barrier for a bulk copy of objects (i.e. in an array copy).
+   * Barrier for a bulk copy of doubles (i.e. in an array copy).
    *
-   * @param src       The source object
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param tgt        The target object
-   * @param tgtOffset  The offset of the first target address, in bytes
-   * relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
-  public static boolean doubleBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().doubleBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-    return false;
+  public static void doubleBulkCopy(double[] src, Offset srcOffset, double[] dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(DOUBLE_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().doubleBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.arraycopy64Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
@@ -968,6 +939,8 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static final boolean  NEEDS_OBJECT_GETFIELD_BARRIER     = NEEDS_OBJECT_GC_READ_BARRIER;
   /** True if the VM requires read barriers on reference arrayload */
   public static final boolean  NEEDS_OBJECT_ALOAD_BARRIER        = NEEDS_OBJECT_GC_READ_BARRIER;
+  /** True if the garbage collector supports the bulk copy operation */
+  public static final boolean OBJECT_BULK_COPY_SUPPORTED         = !(NEEDS_OBJECT_ASTORE_BARRIER || NEEDS_OBJECT_ALOAD_BARRIER) || Selected.Constraints.get().objectReferenceBulkCopySupported();
 
   /**
    * Barrier for writes of objects into fields of instances (ie putfield).
@@ -983,8 +956,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().objectReferenceWrite(src, src.toAddress().plus(offset), ObjectReference.fromObject(value), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -998,13 +971,13 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static void objectArrayWrite(Object ref, int index, Object value) {
+  public static void objectArrayWrite(Object[] ref, int index, Object value) {
     if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
       Selected.Mutator.get().objectReferenceWrite(array, array.toAddress().plus(offset), ObjectReference.fromObject(value), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -1021,8 +994,8 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (NEEDS_OBJECT_GC_READ_BARRIER) {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().objectReferenceRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD).toObject();
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return null;
   }
 
@@ -1035,38 +1008,32 @@ public class Barriers implements org.mmtk.utility.Constants {
    */
   @Inline
   @Entrypoint
-  public static Object objectArrayRead(Object ref, int index) {
+  public static Object objectArrayRead(Object[] ref, int index) {
     if (NEEDS_OBJECT_GC_READ_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
       return Selected.Mutator.get().objectReferenceRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT).toObject();
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return null;
   }
 
   /**
    * Barrier for a bulk copy of objects (i.e. in an array copy).
    *
-   * @param src       The source object
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param tgt        The target object
-   * @param tgtOffset  The offset of the first target address, in bytes
-   * relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
-  public static boolean objectBulkCopy(Object src, Offset srcOffset, Object tgt, Offset tgtOffset, int bytes) {
-    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
-      return Selected.Mutator.get().objectReferenceBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(tgt), tgtOffset, bytes);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
-    return false;
+  public static void objectBulkCopy(Object[] src, Offset srcOffset, Object[] dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(OBJECT_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().objectReferenceBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
@@ -1095,8 +1062,8 @@ public class Barriers implements org.mmtk.utility.Constants {
           ObjectReference.fromObject(value),
           offset.toWord(),
           Word.fromIntZeroExtend(locationMetadata));
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
   }
 
   /**
@@ -1115,8 +1082,8 @@ public class Barriers implements org.mmtk.utility.Constants {
           src.toAddress().plus(offset),
           offset.toWord(),
           Word.fromIntZeroExtend(locationMetadata)).toObject();
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return null;
   }
 
@@ -1140,8 +1107,8 @@ public class Barriers implements org.mmtk.utility.Constants {
           offset.toWord(),
           Word.zero(), // do not have location metadata
           INSTANCE_FIELD);
-    } else if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
     return false;
   }
 }

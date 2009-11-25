@@ -72,6 +72,11 @@ public interface Constants {
    *
    * TODO MMTk should really become independent of these Java types
    */
+  byte LOG_BYTES_IN_CHAR= 1;
+  int BYTES_IN_CHAR = 1 << LOG_BYTES_IN_CHAR;
+  byte LOG_BITS_IN_CHAR = LOG_BITS_IN_BYTE + LOG_BYTES_IN_CHAR;
+  int BITS_IN_CHAR = 1 << LOG_BITS_IN_CHAR;
+
   byte LOG_BYTES_IN_SHORT = 1;
   int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;
   byte LOG_BITS_IN_SHORT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_SHORT;

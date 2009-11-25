@@ -616,20 +616,34 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS)) {
-        Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
+      if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS)) && BYTE_BULK_COPY_SUPPORTED) {
+        if (NEEDS_BOOLEAN_ASTORE_BARRIER || NEEDS_BOOLEAN_ALOAD_BARRIER) {
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx);
+          Barriers.byteBulkCopy(src, srcOffset, dst, dstOffset, len);
+        } else {
+          Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
+        }
       } else {
-        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
+        arraycopyPiecemeal(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
 
-  // Outlined unlikely case of potentially overlapping subarrays
-  // Motivation is to reduce code space costs of inlined array copy.
-  @NoInline
-  private static void arraycopyOverlap(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) {
+  /**
+   * Perform element-by-element arraycopy for array of bytes.  Used
+   * when bulk copy is not possible.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  @NoInline // unlikely case, so reduce code space costs
+  private static void arraycopyPiecemeal(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -663,20 +677,34 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_BOOLEAN)) {
-        Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
+      if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_BOOLEAN)) && BOOLEAN_BULK_COPY_SUPPORTED) {
+        if (NEEDS_BOOLEAN_ASTORE_BARRIER || NEEDS_BOOLEAN_ALOAD_BARRIER) {
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_BOOLEAN);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_BOOLEAN);
+          Barriers.booleanBulkCopy(src, srcOffset, dst, dstOffset, len);
+        } else {
+          Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
+        }
       } else {
-        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
+        arraycopyPiecemeal(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
 
-  // Outlined unlikely case of potentially overlapping subarrays
-  // Motivation is to reduce code space costs of inlined array copy.
-  @NoInline
-  private static void arraycopyOverlap(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) {
+  /**
+   * Perform element-by-element arraycopy for array of booleans.  Used
+   * when bulk copy is not possible.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  @NoInline // unlikely case, so reduce code space costs
+  private static void arraycopyPiecemeal(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -710,20 +738,34 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_SHORT)) {
-        Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
+      if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_SHORT)) && SHORT_BULK_COPY_SUPPORTED) {
+        if (NEEDS_SHORT_ASTORE_BARRIER || NEEDS_SHORT_ALOAD_BARRIER) {
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_SHORT);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_SHORT);
+          Barriers.shortBulkCopy(src, srcOffset, dst, dstOffset, len);
+        } else {
+          Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
+        }
       } else {
-        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
+        arraycopyPiecemeal(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
 
-  // Outlined unlikely case of potentially overlapping subarrays
-  // Motivation is to reduce code space costs of inlined array copy.
-  @NoInline
-  private static void arraycopyOverlap(short[] src, int srcIdx, short[] dst, int dstIdx, int len) {
+  /**
+   * Perform element-by-element arraycopy for array of shorts.  Used
+   * when bulk copy is not possible.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  @NoInline // unlikely case, so reduce code space costs
+  private static void arraycopyPiecemeal(short[] src, int srcIdx, short[] dst, int dstIdx, int len) {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -757,20 +799,34 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if (src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_CHAR)) {
-        Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
+      if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS / BYTES_IN_CHAR)) && CHAR_BULK_COPY_SUPPORTED) {
+        if (NEEDS_CHAR_ASTORE_BARRIER || NEEDS_CHAR_ALOAD_BARRIER) {
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_CHAR);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_CHAR);
+          Barriers.charBulkCopy(src, srcOffset, dst, dstOffset, len);
+        } else {
+          Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
+        }
       } else {
-        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
+        arraycopyPiecemeal(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
 
-  // Outlined unlikely case of potentially overlapping subarrays
-  // Motivation is to reduce code space costs of inlined array copy.
-  @NoInline
-  private static void arraycopyOverlap(char[] src, int srcIdx, char[] dst, int dstIdx, int len) {
+  /**
+   * Perform element-by-element arraycopy for array of chars.  Used
+   * when bulk copy is not possible.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  @NoInline // unlikely case, so reduce code space costs
+  private static void arraycopyPiecemeal(char[] src, int srcIdx, char[] dst, int dstIdx, int len) {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -804,20 +860,34 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if (src != dst || srcIdx >= dstIdx) {
-        Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
+      if ((src != dst || srcIdx >= dstIdx) && INT_BULK_COPY_SUPPORTED) {
+        if (NEEDS_INT_ASTORE_BARRIER || NEEDS_INT_ALOAD_BARRIER) {
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_INT);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_INT);
+          Barriers.intBulkCopy(src, srcOffset, dst, dstOffset, len);
+        } else {
+          Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
+        }
       } else {
-        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
+        arraycopyPiecemeal(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
 
-  // Outlined unlikely case of potentially overlapping subarrays
-  // Motivation is to reduce code space costs of inlined array copy.
-  @NoInline
-  private static void arraycopyOverlap(int[] src, int srcIdx, int[] dst, int dstIdx, int len) {
+  /**
+   * Perform element-by-element arraycopy for array of ints.  Used
+   * when bulk copy is not possible.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  @NoInline // unlikely case, so reduce code space costs
+  private static void arraycopyPiecemeal(int[] src, int srcIdx, int[] dst, int dstIdx, int len) {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -851,20 +921,34 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if (src != dst || srcIdx > dstIdx) {
-        Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
+      if (src != dst || srcIdx > dstIdx && FLOAT_BULK_COPY_SUPPORTED) {
+        if (NEEDS_FLOAT_ASTORE_BARRIER || NEEDS_FLOAT_ALOAD_BARRIER) {
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_FLOAT);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_FLOAT);
+          Barriers.floatBulkCopy(src, srcOffset, dst, dstOffset, len);
+        } else {
+          Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
+        }
       } else {
-        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
+        arraycopyPiecemeal(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
 
-  // Outlined unlikely case of potentially overlapping subarrays
-  // Motivation is to reduce code space costs of inlined array copy.
-  @NoInline
-  private static void arraycopyOverlap(float[] src, int srcIdx, float[] dst, int dstIdx, int len) {
+  /**
+   * Perform element-by-element arraycopy for array of floats.  Used
+   * when bulk copy is not possible.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  @NoInline // unlikely case, so reduce code space costs
+  private static void arraycopyPiecemeal(float[] src, int srcIdx, float[] dst, int dstIdx, int len) {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -898,20 +982,34 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if (src != dst || srcIdx > dstIdx) {
-        Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
+      if ((src != dst || srcIdx > dstIdx) && LONG_BULK_COPY_SUPPORTED) {
+        if (NEEDS_LONG_ASTORE_BARRIER || NEEDS_LONG_ALOAD_BARRIER) {
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_LONG);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_LONG);
+          Barriers.longBulkCopy(src, srcOffset, dst, dstOffset, len);
+        } else {
+          Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
+        }
       } else {
-        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
+        arraycopyPiecemeal(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
 
-  // Outlined unlikely case of potentially overlapping subarrays
-  // Motivation is to reduce code space costs of inlined array copy.
-  @NoInline
-  private static void arraycopyOverlap(long[] src, int srcIdx, long[] dst, int dstIdx, int len) {
+  /**
+   * Perform element-by-element arraycopy for array of longs.  Used
+   * when bulk copy is not possible.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  @NoInline // unlikely case, so reduce code space costs
+  private static void arraycopyPiecemeal(long[] src, int srcIdx, long[] dst, int dstIdx, int len) {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -945,20 +1043,34 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (srcIdx + len) <= src.length &&
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
-      if (src != dst || srcIdx > dstIdx) {
-        Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
+      if ((src != dst || srcIdx > dstIdx) && DOUBLE_BULK_COPY_SUPPORTED) {
+        if (NEEDS_DOUBLE_ASTORE_BARRIER || NEEDS_DOUBLE_ALOAD_BARRIER) {
+          Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_DOUBLE);
+          Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_DOUBLE);
+          Barriers.doubleBulkCopy(src, srcOffset, dst, dstOffset, len);
+        } else {
+          Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
+        }
       } else {
-        arraycopyOverlap(src, srcIdx, dst, dstIdx, len);
+        arraycopyPiecemeal(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
     }
   }
 
-  // Outlined unlikely case of potentially overlapping subarrays
-  // Motivation is to reduce code space costs of inlined array copy.
-  @NoInline
-  private static void arraycopyOverlap(double[] src, int srcIdx, double[] dst, int dstIdx, int len) {
+  /**
+   * Perform element-by-element arraycopy for array of doubles.  Used
+   * when bulk copy is not possible.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  @NoInline // unlikely case, so reduce code space costs
+  private static void arraycopyPiecemeal(double[] src, int srcIdx, double[] dst, int dstIdx, int len) {
     if (srcIdx < dstIdx) {
       srcIdx += len;
       dstIdx += len;
@@ -994,10 +1106,11 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) <= dst.length) {
       RVMType lhs = Magic.getObjectType(dst).asArray().getElementType();
       RVMType rhs = Magic.getObjectType(src).asArray().getElementType();
+
       if ((lhs == rhs) || (lhs == RVMType.JavaLangObjectType) || RuntimeEntrypoints.isAssignableWith(lhs, rhs)) {
-        fastArrayCopy(src, srcIdx, dst, dstIdx, len);
+        arraycopyNoCheckcast(src, srcIdx, dst, dstIdx, len);
       } else {
-        slowArrayCopy(src, srcIdx, dst, dstIdx, len);
+        arraycopyPiecemeal(src, srcIdx, dst, dstIdx, len);
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -1015,50 +1128,65 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param src The source array
    * @param srcIdx The starting source index
    * @param dst The destination array
-   * @param dstIdx The starting destination index
+   * @param dstIdx The starting source index
    * @param len The number of array elements to be copied
    */
-  private static void fastArrayCopy(Object[] src, int srcIdx, Object[] dst, int dstIdx, int len) {
-
-    boolean loToHi = (srcIdx > dstIdx);  // direction of copy
+  private static void arraycopyNoCheckcast(Object[] src, int srcIdx, Object[] dst, int dstIdx, int len) {
     Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_ADDRESS);
     Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_ADDRESS);
     int bytes = len << LOG_BYTES_IN_ADDRESS;
 
-    if (!NEEDS_OBJECT_ALOAD_BARRIER && ((src != dst) || loToHi)) {
-      if (!NEEDS_OBJECT_ASTORE_BARRIER ||
-          !Barriers.objectBulkCopy(src, srcOffset, dst, dstOffset, bytes)) {
-        Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset),
-                                  Magic.objectAsAddress(src).plus(srcOffset),
-                                  bytes);
+    if (((src != dst) || (srcIdx > dstIdx)) && OBJECT_BULK_COPY_SUPPORTED) {
+      if (NEEDS_OBJECT_ASTORE_BARRIER || NEEDS_OBJECT_ALOAD_BARRIER) {
+        Barriers.objectBulkCopy(src, srcOffset, dst, dstOffset, bytes);
+      } else {
+        Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
       }
     } else {
-      // set up things according to the direction of the copy
-      int increment;
-      if (loToHi) {
-        increment = BYTES_IN_ADDRESS;
-      } else {
-        srcOffset = srcOffset.plus(bytes - BYTES_IN_ADDRESS);
-        dstOffset = dstOffset.plus(bytes - BYTES_IN_ADDRESS);
-        increment = -BYTES_IN_ADDRESS;
-      }
+      arraycopyPiecemealNoCheckcast(src, dst, len, srcOffset, dstOffset, bytes);
+    }
+  }
 
-      // perform the copy
-      while (len-- != 0) {
-        Object value;
-        if (NEEDS_OBJECT_GETFIELD_BARRIER) {
-          value = Barriers.objectArrayRead(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
-        } else {
-          value = Magic.getObjectAtOffset(src, srcOffset);
-        }
-        if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
-          Barriers.objectArrayWrite(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
-        } else {
-          Magic.setObjectAtOffset(dst, dstOffset, value);
-        }
-        srcOffset = srcOffset.plus(increment);
-        dstOffset = dstOffset.plus(increment);
+  /**
+   * Perform element-by-element arraycopy for array of objects without
+   * performing checkcast.  Used when bulk copy is not possible, but
+   * checkcast is still not necessary.  If barriers are required they
+   * must be explicitly invoked.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  private static void arraycopyPiecemealNoCheckcast(Object[] src, Object[] dst, int len,
+      Offset srcOffset, Offset dstOffset, int bytes) {
+
+    // set up things according to the direction of the copy
+    int increment;
+    if (srcOffset.sGT(dstOffset)) { // direction of copy
+      increment = BYTES_IN_ADDRESS;
+    } else {
+      srcOffset = srcOffset.plus(bytes - BYTES_IN_ADDRESS);
+      dstOffset = dstOffset.plus(bytes - BYTES_IN_ADDRESS);
+      increment = -BYTES_IN_ADDRESS;
+    }
+
+    // perform the copy
+    while (len-- != 0) {
+      Object value;
+      if (NEEDS_OBJECT_GETFIELD_BARRIER) {
+        value = Barriers.objectArrayRead(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
+      } else {
+        value = Magic.getObjectAtOffset(src, srcOffset);
       }
+      if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+        Barriers.objectArrayWrite(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
+      } else {
+        Magic.setObjectAtOffset(dst, dstOffset, value);
+      }
+      srcOffset = srcOffset.plus(increment);
+      dstOffset = dstOffset.plus(increment);
     }
   }
 
@@ -1076,7 +1204,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
    */
-  private static void slowArrayCopy(Object[] src, int srcIdx, Object[] dst, int dstIdx, int len) {
+  private static void arraycopyPiecemeal(Object[] src, int srcIdx, Object[] dst, int dstIdx, int len) {
     // must perform copy in correct order
     if ((src != dst) || srcIdx > dstIdx) {
       // non-overlapping case: straightforward

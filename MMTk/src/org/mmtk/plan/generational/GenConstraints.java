@@ -52,6 +52,10 @@ public class GenConstraints extends StopTheWorldConstraints {
   @Override
   public boolean needsObjectReferenceNonHeapWriteBarrier() { return Gen.USE_NON_HEAP_OBJECT_REFERENCE_WRITE_BARRIER; }
 
+  /** @return True if this Plan can perform bulk object arraycopy barriers. */
+  @Override
+  public boolean objectReferenceBulkCopySupported() { return true; }
+
   /** @return The specialized scan methods required */
   @Override
   public int numSpecializedScans() { return 2; }

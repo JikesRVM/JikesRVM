@@ -94,14 +94,29 @@ public class Memory {
    * @param len     number of array elements to copy
    */
   public static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) {
-    if (USE_NATIVE && len > NATIVE_THRESHOLD) {
-      memcopy(Magic.objectAsAddress(dst).plus(dstPos), Magic.objectAsAddress(src).plus(srcPos), len);
+    Address srcPtr = Magic.objectAsAddress(src).plus(srcPos);
+    Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos);
+    arraycopy8Bit(srcPtr, dstPtr, len);
+  }
+
+  /**
+   * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
+   *
+   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
+   *
+   * @param srcPtr The source start address
+   * @param dstPtr The destination start address
+   * @param copyBytes The number of bytes to be copied
+   */
+  public static void arraycopy8Bit(Address srcPtr, Address dstPtr , int copyBytes) {
+    if (USE_NATIVE && copyBytes > NATIVE_THRESHOLD) {
+      memcopy(dstPtr, srcPtr, copyBytes);
     } else {
-      if (len >= BYTES_IN_COPY && (srcPos & (BYTES_IN_COPY - 1)) == (dstPos & (BYTES_IN_COPY - 1))) {
+      if (copyBytes >= BYTES_IN_COPY &&
+          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)) ==
+          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1))))) {
         // relative alignment is the same
-        Address srcPtr = Magic.objectAsAddress(src).plus(srcPos);
-        Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos);
-        Address endPtr = srcPtr.plus(len);
+        Address endPtr = srcPtr.plus(copyBytes);
         Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
 
         if (BYTES_IN_COPY == 8) {
@@ -167,9 +182,7 @@ public class Memory {
           }
         }
       } else {
-        Address srcPtr = Magic.objectAsAddress(src).plus(srcPos);
-        Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos);
-        Address endPtr = srcPtr.plus(len);
+        Address endPtr = srcPtr.plus(copyBytes);
         while (srcPtr.LT(endPtr)) {
           dstPtr.store(srcPtr.loadByte());
           srcPtr = srcPtr.plus(1);
@@ -191,18 +204,29 @@ public class Memory {
    * @param len     number of array elements to copy
    */
   public static void arraycopy16Bit(Object src, int srcPos, Object dst, int dstPos, int len) {
-    if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_SHORT)) {
-      memcopy(Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT),
-              Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT),
-              len << LOG_BYTES_IN_SHORT);
+    Address srcPtr = Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
+    Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
+    int copyBytes = len << LOG_BYTES_IN_SHORT;
+    arraycopy16Bit(srcPtr, dstPtr, copyBytes);
+  }
+  /**
+   * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
+   *
+   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 2 bytes.
+   *
+   * @param srcPtr The source start address
+   * @param dstPtr The destination start address
+   * @param copyBytes The number of bytes to be copied
+   */
+  public static void arraycopy16Bit(Address srcPtr, Address dstPtr , int copyBytes) {
+    if (USE_NATIVE && copyBytes > NATIVE_THRESHOLD) {
+      memcopy(dstPtr, srcPtr, copyBytes);
     } else {
-      if (len >= (BYTES_IN_COPY >>> LOG_BYTES_IN_SHORT) &&
-          (srcPos & ((BYTES_IN_COPY - 1) >>> LOG_BYTES_IN_SHORT)) ==
-          (dstPos & ((BYTES_IN_COPY - 1) >>> LOG_BYTES_IN_SHORT))) {
+      if (copyBytes >= BYTES_IN_COPY &&
+          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)) ==
+          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1))))) {
         // relative alignment is the same
-        Address srcPtr = Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
-        Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
-        Address endPtr = srcPtr.plus(len << LOG_BYTES_IN_SHORT);
+        Address endPtr = srcPtr.plus(copyBytes);
         Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
 
         if (BYTES_IN_COPY == 8) {
@@ -248,9 +272,7 @@ public class Memory {
           }
         }
       } else {
-        Address srcPtr = Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
-        Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
-        Address endPtr = srcPtr.plus(len << LOG_BYTES_IN_SHORT);
+        Address endPtr = srcPtr.plus(copyBytes);
         while (srcPtr.LT(endPtr)) {
           copy2Bytes(dstPtr, srcPtr);
           srcPtr = srcPtr.plus(2);
@@ -275,7 +297,20 @@ public class Memory {
     Address srcPtr = Magic.objectAsAddress(src).plus(srcIdx << LOG_BYTES_IN_INT);
     Address dstPtr = Magic.objectAsAddress(dst).plus(dstIdx << LOG_BYTES_IN_INT);
     int copyBytes = len << LOG_BYTES_IN_INT;
-    if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_INT)) {
+    arraycopy32Bit(srcPtr, dstPtr, copyBytes);
+  }
+
+  /**
+   * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
+   *
+   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
+   *
+   * @param srcPtr The source start address
+   * @param dstPtr The destination start address
+   * @param copyBytes The number of bytes to be copied
+   */
+  public static void arraycopy32Bit(Address srcPtr, Address dstPtr , int copyBytes) {
+    if (USE_NATIVE && copyBytes > NATIVE_THRESHOLD) {
       memcopy(dstPtr, srcPtr, copyBytes);
     } else {
       // The elements of int[] and float[] are always 32 bit aligned
@@ -290,7 +325,6 @@ public class Memory {
       }
     }
   }
-
   /**
    * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    *
@@ -303,10 +337,23 @@ public class Memory {
    * @param len     number of array elements to copy
    */
   public static void arraycopy64Bit(Object src, int srcIdx, Object dst, int dstIdx, int len) {
-    Address srcPtr = Magic.objectAsAddress(src).plus(srcIdx << LOG_BYTES_IN_DOUBLE);
-    Address dstPtr = Magic.objectAsAddress(dst).plus(dstIdx << LOG_BYTES_IN_DOUBLE);
+    Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_DOUBLE);
+    Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_DOUBLE);
     int copyBytes = len << LOG_BYTES_IN_DOUBLE;
-    if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_DOUBLE)) {
+    arraycopy64Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), copyBytes);
+  }
+
+  /**
+   * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
+   *
+   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 8 bytes.
+   *
+   * @param srcPtr The source start address
+   * @param dstPtr The destination start address
+   * @param copyBytes The number of bytes to be copied
+   */
+  public static void arraycopy64Bit(Address srcPtr, Address dstPtr , int copyBytes) {
+    if (USE_NATIVE && copyBytes > NATIVE_THRESHOLD) {
       memcopy(dstPtr, srcPtr, copyBytes);
     } else {
       // The elements of long[] and double[] are always doubleword aligned
@@ -319,6 +366,7 @@ public class Memory {
       }
     }
   }
+
 
   /**
    * Copy numbytes from src to dst.

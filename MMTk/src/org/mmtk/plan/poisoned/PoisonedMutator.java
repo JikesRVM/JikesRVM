@@ -18,7 +18,6 @@ import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
@@ -75,32 +74,6 @@ public class PoisonedMutator extends MSMutator {
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
                                                Word metaDataA, Word metaDataB, int mode) {
     return VM.barriers.wordTryCompareAndSwap(src, Poisoned.poison(old), Poisoned.poison(tgt), metaDataA, metaDataB, mode);
-  }
-
-  /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
-   *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
-   */
-  @Override
-  public boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // TODO: Currently, read barriers implies that this is never used, perhaps
-    //       we might want to use it sometime anyway?
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
-    return false;
   }
 
   /**

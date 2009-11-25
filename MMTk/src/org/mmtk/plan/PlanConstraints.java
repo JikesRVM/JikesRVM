@@ -31,11 +31,17 @@ import org.vmmagic.pragma.*;
   /** @return True of this Plan requires read barriers on booleans. */
   public boolean needsBooleanReadBarrier() { return false; }
 
+  /** @return True if this Plan can perform bulk boolean arraycopy barriers. */
+  public boolean booleanBulkCopySupported() { return false; }
+
   /** @return True if this Plan requires write barriers on bytes. */
   public boolean needsByteWriteBarrier() { return false; }
 
   /** @return True of this Plan requires read barriers on bytes. */
   public boolean needsByteReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk byte arraycopy barriers. */
+  public boolean byteBulkCopySupported() { return false; }
 
   /** @return True if this Plan requires write barriers on chars. */
   public boolean needsCharWriteBarrier() { return false; }
@@ -43,11 +49,17 @@ import org.vmmagic.pragma.*;
   /** @return True of this Plan requires read barriers on chars. */
   public boolean needsCharReadBarrier() { return false; }
 
+  /** @return True if this Plan can perform bulk char arraycopy barriers. */
+  public boolean charBulkCopySupported() { return false; }
+
   /** @return True if this Plan requires write barriers on shorts. */
   public boolean needsShortWriteBarrier() { return false; }
 
   /** @return True of this Plan requires read barriers on shorts. */
   public boolean needsShortReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk short arraycopy barriers. */
+  public boolean shortBulkCopySupported() { return false; }
 
   /** @return True if this Plan requires write barriers on ints. */
   public boolean needsIntWriteBarrier() { return false; }
@@ -55,11 +67,17 @@ import org.vmmagic.pragma.*;
   /** @return True of this Plan requires read barriers on ints. */
   public boolean needsIntReadBarrier() { return false; }
 
+  /** @return True if this Plan can perform bulk int arraycopy barriers. */
+  public boolean intBulkCopySupported() { return false; }
+
   /** @return True if this Plan requires write barriers on longs. */
   public boolean needsLongWriteBarrier() { return false; }
 
   /** @return True of this Plan requires read barriers on longs. */
   public boolean needsLongReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk long arraycopy barriers. */
+  public boolean longBulkCopySupported() { return false; }
 
   /** @return True if this Plan requires write barriers on floats. */
   public boolean needsFloatWriteBarrier() { return false; }
@@ -67,11 +85,17 @@ import org.vmmagic.pragma.*;
   /** @return True of this Plan requires read barriers on floats. */
   public boolean needsFloatReadBarrier() { return false; }
 
+  /** @return True if this Plan can perform bulk float arraycopy barriers. */
+  public boolean floatBulkCopySupported() { return false; }
+
   /** @return True if this Plan requires write barriers on doubles. */
   public boolean needsDoubleWriteBarrier() { return false; }
 
   /** @return True of this Plan requires read barriers on doubles. */
   public boolean needsDoubleReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk double arraycopy barriers. */
+  public boolean doubleBulkCopySupported() { return false; }
 
   /** @return True if this Plan requires write barriers on object references. */
   public boolean needsObjectReferenceWriteBarrier() { return false; }
@@ -84,6 +108,9 @@ import org.vmmagic.pragma.*;
 
   /** @return True if this Plan requires non-heap read barriers on object references. */
   public boolean needsObjectReferenceNonHeapReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk object arraycopy barriers. */
+  public boolean objectReferenceBulkCopySupported() { return false; }
 
   /** @return True if this Plan requires linear scanning. */
   public boolean needsLinearScan() { return org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING;}

@@ -326,20 +326,16 @@ public abstract class MutatorContext implements Constants {
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean booleanBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // Either: write barriers are used and this is overridden, or
+    // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
@@ -390,20 +386,16 @@ public abstract class MutatorContext implements Constants {
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean byteBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // Either: write barriers are used and this is overridden, or
+    // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
@@ -454,20 +446,16 @@ public abstract class MutatorContext implements Constants {
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean charBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // Either: write barriers are used and this is overridden, or
+    // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
@@ -518,24 +506,21 @@ public abstract class MutatorContext implements Constants {
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean shortBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // Either: write barriers are used and this is overridden, or
+    // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
   }
+
 
   /**
    * Write a int. Take appropriate write barrier actions.<p>
@@ -582,20 +567,16 @@ public abstract class MutatorContext implements Constants {
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean intBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // Either: write barriers are used and this is overridden, or
+    // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
@@ -646,20 +627,16 @@ public abstract class MutatorContext implements Constants {
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean longBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // Either: write barriers are used and this is overridden, or
+    // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
@@ -710,20 +687,16 @@ public abstract class MutatorContext implements Constants {
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean floatBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // Either: write barriers are used and this is overridden, or
+    // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
@@ -774,20 +747,16 @@ public abstract class MutatorContext implements Constants {
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean doubleBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // Either: write barriers are used and this is overridden, or
+    // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
@@ -838,20 +807,16 @@ public abstract class MutatorContext implements Constants {
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
    *
-   * @param src The source of the values to be copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
-    // Either: write barriers are used and this is overridden, or
+    // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
