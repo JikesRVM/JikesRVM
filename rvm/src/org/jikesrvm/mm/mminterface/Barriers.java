@@ -18,9 +18,12 @@ import org.jikesrvm.VM;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.WordArray;
 
 @Uninterruptible
 public class Barriers implements org.mmtk.utility.Constants {
@@ -912,10 +915,10 @@ public class Barriers implements org.mmtk.utility.Constants {
    * Barrier for a bulk copy of doubles (i.e. in an array copy).
    *
    * @param src The source array
-   * @param srcOffset The starting source offset
+   * @param srcIdx The starting source index
    * @param dst The destination array
-   * @param dstOffset The starting destination offset
-   * @param bytes The number of bytes to be copied
+   * @param dstIdx The starting source index
+   * @param len The number of array elements to be copied
    */
   @Inline
   public static void doubleBulkCopy(double[] src, Offset srcOffset, double[] dst, Offset dstOffset, int bytes) {
@@ -923,6 +926,226 @@ public class Barriers implements org.mmtk.utility.Constants {
 
     if (!Selected.Mutator.get().doubleBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
       Memory.arraycopy64Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
+  }
+
+
+  /** True if the garbage collector requires write barriers on word putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_WORD_GC_WRITE_BARRIER     = Selected.Constraints.get().needsWordWriteBarrier();
+  /** True if the VM requires write barriers on word putfield */
+  public static final boolean  NEEDS_WORD_PUTFIELD_BARRIER     = NEEDS_WORD_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on word arraystore */
+  public static final boolean  NEEDS_WORD_ASTORE_BARRIER       = NEEDS_WORD_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on word getfield or arrayload */
+  private static final boolean NEEDS_WORD_GC_READ_BARRIER      = Selected.Constraints.get().needsWordReadBarrier();
+  /** True if the VM requires read barriers on word getfield */
+  public static final boolean  NEEDS_WORD_GETFIELD_BARRIER     = NEEDS_WORD_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on word arrayload */
+  public static final boolean  NEEDS_WORD_ALOAD_BARRIER        = NEEDS_WORD_GC_READ_BARRIER;
+  /** True if the garbage collector supports the bulk copy operation */
+  public static final boolean WORD_BULK_COPY_SUPPORTED         = !(NEEDS_WORD_ASTORE_BARRIER || NEEDS_WORD_ALOAD_BARRIER) || Selected.Constraints.get().wordBulkCopySupported();
+
+  /**
+   * Barrier for writes of words into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void wordFieldWrite(Object ref, Word value, Offset offset, int locationMetadata) {
+    if (NEEDS_WORD_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().wordWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+  }
+
+  /**
+   * Barrier for writes of objects into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void wordArrayWrite(WordArray ref, int index, Word value) {
+    if (NEEDS_WORD_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_WORD);
+      Selected.Mutator.get().wordWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static Word wordFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_WORD_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().wordRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+    return Word.zero();
+  }
+
+  /**
+   * Barrier for loads of objects from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static Word wordArrayRead(WordArray ref, int index) {
+    if (NEEDS_WORD_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_WORD);
+      return Selected.Mutator.get().wordRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+    return Word.zero();
+  }
+
+  /**
+   * Barrier for a bulk copy of words (i.e. in an array copy).
+   *
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
+   */
+  @Inline
+  public static void wordBulkCopy(WordArray src, Offset srcOffset, WordArray dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(WORD_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().wordBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
+  }
+
+
+  /** True if the garbage collector requires write barriers on address putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_ADDRESS_GC_WRITE_BARRIER     = Selected.Constraints.get().needsAddressWriteBarrier();
+  /** True if the VM requires write barriers on address putfield */
+  public static final boolean  NEEDS_ADDRESS_PUTFIELD_BARRIER     = NEEDS_ADDRESS_GC_WRITE_BARRIER;
+  /** True if the VM requires write barriers on address arraystore */
+  public static final boolean  NEEDS_ADDRESS_ASTORE_BARRIER       = NEEDS_ADDRESS_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on address getfield or arrayload */
+  private static final boolean NEEDS_ADDRESS_GC_READ_BARRIER      = Selected.Constraints.get().needsAddressReadBarrier();
+  /** True if the VM requires read barriers on address getfield */
+  public static final boolean  NEEDS_ADDRESS_GETFIELD_BARRIER     = NEEDS_ADDRESS_GC_READ_BARRIER;
+  /** True if the VM requires read barriers on address arrayload */
+  public static final boolean  NEEDS_ADDRESS_ALOAD_BARRIER        = NEEDS_ADDRESS_GC_READ_BARRIER;
+  /** True if the garbage collector supports the bulk copy operation */
+  public static final boolean ADDRESS_BULK_COPY_SUPPORTED         = !(NEEDS_ADDRESS_ASTORE_BARRIER || NEEDS_ADDRESS_ALOAD_BARRIER) || Selected.Constraints.get().addressBulkCopySupported();
+
+  /**
+   * Barrier for writes of addresss into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void addressFieldWrite(Object ref, Address value, Offset offset, int locationMetadata) {
+    if (NEEDS_ADDRESS_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().addressWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+  }
+
+  /**
+   * Barrier for writes of objects into arrays (ie astore).
+   *
+   * @param ref the array which is the subject of the astore
+   * @param index the index into the array where the new reference
+   * resides.  The index is the "natural" index into the array, for
+   * example a[index].
+   * @param value the value to be stored.
+   */
+  @Inline
+  @Entrypoint
+  public static void addressArrayWrite(AddressArray ref, int index, Address value) {
+    if (NEEDS_ADDRESS_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().addressWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+  }
+
+  /**
+   * Barrier for loads of objects from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static Address addressFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_ADDRESS_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().addressRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+    return Address.zero();
+  }
+
+  /**
+   * Barrier for loads of objects from fields of arrays (ie aload).
+   *
+   * @param ref the array containing the reference.
+   * @param index the index into the array were the reference resides.
+   * @return the value read from the array
+   */
+  @Inline
+  @Entrypoint
+  public static Address addressArrayRead(AddressArray ref, int index) {
+    if (NEEDS_ADDRESS_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().addressRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+    return Address.zero();
+  }
+
+  /**
+   * Barrier for a bulk copy of addresss (i.e. in an array copy).
+   *
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
+   */
+  @Inline
+  public static void addressBulkCopy(AddressArray src, Offset srcOffset, AddressArray dst, Offset dstOffset, int bytes) {
+    if (VM.VerifyAssertions) VM._assert(ADDRESS_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().addressBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
     }
   }
 
