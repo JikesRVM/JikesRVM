@@ -406,7 +406,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 int
 main(int argc, const char **argv)
 {
-    Me            = strrchr(*argv, '/') + 1;
+    Me            = strrchr((char *)*argv, '/') + 1;
     ++argv, --argc;
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;
