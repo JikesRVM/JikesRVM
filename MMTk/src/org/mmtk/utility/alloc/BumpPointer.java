@@ -416,14 +416,30 @@ import org.vmmagic.pragma.*;
 
     /* dataEnd = zero represents the current region. */
     Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
-    ObjectReference current =
-      VM.objectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
-
-    while (VM.objectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
-      ObjectReference next = VM.objectModel.getNextObject(current);
-      scanner.scan(current); // Scan this object.
-      current = next;
+    if (currentLimit.EQ(start.plus(DATA_END_OFFSET).plus(BYTES_IN_ADDRESS))) {
+      /* Empty region, so we can not call getObjectFromStartAddress() */
+      return;
     }
+
+    ObjectReference current = VM.objectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
+
+    /* Loop through each object up to the limit */
+    do {
+      /* Read end address first, as scan may be destructive */
+      Address currentObjectEnd = VM.objectModel.getObjectEndAddress(current);
+      scanner.scan(current);
+      if (currentObjectEnd.GE(currentLimit)) {
+        /* We have scanned the last object */
+        break;
+      }
+      /* Find the next object from the start address (dealing with alignment gaps, etc.) */
+      ObjectReference next = VM.objectModel.getObjectFromStartAddress(currentObjectEnd);
+      if (VM.VERIFY_ASSERTIONS) {
+        /* Must be monotonically increasing */
+        VM.assertions._assert(next.toAddress().GT(current.toAddress()));
+      }
+      current = next;
+    } while (true);
   }
 
   /**
