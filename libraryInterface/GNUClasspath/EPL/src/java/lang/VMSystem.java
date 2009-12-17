@@ -17,7 +17,6 @@ import java.io.PrintStream;
 import java.util.List;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.UnimplementedError;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Time;
 
