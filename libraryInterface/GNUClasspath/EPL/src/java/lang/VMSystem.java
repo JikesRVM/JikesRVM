@@ -71,7 +71,5 @@ public final class VMSystem {
     return VMCommonLibrarySupport.getenv(envarName);
   }
 
-  static List<?> environ() {
-    throw new UnimplementedError();
-  }
+  static native List<?> environ();
 }
