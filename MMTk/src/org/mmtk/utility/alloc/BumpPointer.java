@@ -79,6 +79,8 @@ import org.vmmagic.pragma.*;
       Address.zero().plus(DATA_END_OFFSET.plus(BYTES_IN_ADDRESS)),
       MAX_ALIGNMENT, 0).toWord().toOffset();
 
+  public static final int MINIMUM_DATA_SIZE = (1 << LOG_BLOCK_SIZE) - MAX_DATA_START_OFFSET.toInt();
+
   /****************************************************************************
    *
    * Instance variables

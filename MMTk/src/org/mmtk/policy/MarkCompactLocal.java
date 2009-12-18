@@ -53,59 +53,60 @@ import org.vmmagic.unboxed.ObjectReference;
     Address start = initialRegion;
     Address allocStart = initialRegion;
     Address allocEnd = initialRegion.plus(REGION_LIMIT_OFFSET).loadAddress();
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocEnd.GT(allocStart));
     Address allocCursor = allocStart.plus(DATA_START_OFFSET);
 
     /* Keep track of which regions are being used */
     int oldPages = 0;
-    int newPages = Conversions.bytesToPages(allocEnd.diff(allocStart).plus(BYTES_IN_ADDRESS));
+    int newPages = Conversions.bytesToPages(allocEnd.diff(allocStart));
 
     while (!start.isZero()) {
       /* Get the end of this region */
       Address end = start.plus(REGION_LIMIT_OFFSET).loadAddress();
       Address dataEnd = start.plus(DATA_END_OFFSET).loadAddress();
       Address nextRegion = start.plus(NEXT_REGION_OFFSET).loadAddress();
-      oldPages += Conversions.bytesToPages(end.diff(start).plus(BYTES_IN_ADDRESS));
+      oldPages += Conversions.bytesToPages(end.diff(start));
 
       /* dataEnd = zero represents the current region. */
       Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
-      ObjectReference current =
-        VM.objectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
-
-      while (VM.objectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
-        ObjectReference next = VM.objectModel.getNextObject(current);
+      Address lastEnd = start.plus(DATA_START_OFFSET);
+      while (lastEnd.LT(currentLimit)) {
+        ObjectReference current = VM.objectModel.getObjectFromStartAddress(lastEnd);
+        lastEnd = VM.objectModel.getObjectEndAddress(current);
 
         ObjectReference copyTo = MarkCompactSpace.getForwardingPointer(current);
 
         if (!copyTo.isNull() && Space.isInSpace(MC.MARK_COMPACT, copyTo)) {
           if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!MarkCompactSpace.isMarked(current));
           // To be copied.
-          if (copyTo.toAddress().GT(allocEnd) || copyTo.toAddress().LT(allocStart)) {
+          if (copyTo.toAddress().GE(allocEnd) || copyTo.toAddress().LT(allocStart)) {
             // changed regions.
-
-            VM.memory.zero(allocCursor, allocEnd.diff(allocCursor).toWord().toExtent().plus(BYTES_IN_ADDRESS));
+            VM.memory.zero(allocCursor, allocEnd.diff(allocCursor).toWord().toExtent());
 
             allocStart.store(allocCursor, DATA_END_OFFSET);
             allocStart = allocStart.plus(NEXT_REGION_OFFSET).loadAddress();
             allocEnd = allocStart.plus(REGION_LIMIT_OFFSET).loadAddress();
+            if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocEnd.GT(allocStart));
             allocCursor = allocStart.plus(DATA_START_OFFSET);
+            if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocCursor.LE(allocEnd));
 
-            newPages += Conversions.bytesToPages(allocEnd.diff(allocStart).plus(BYTES_IN_ADDRESS));
+            newPages += Conversions.bytesToPages(allocEnd.diff(allocStart));
 
             if (VM.VERIFY_ASSERTIONS) {
               VM.assertions._assert(allocCursor.LT(allocEnd) && allocCursor.GE(allocStart));
             }
           }
           allocCursor = VM.objectModel.copyTo(current, copyTo, allocCursor);
+          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocCursor.LE(allocEnd));
           MarkCompactSpace.setForwardingPointer(copyTo, ObjectReference.nullReference());
         }
-        current = next;
       }
       if (dataEnd.isZero()) {
         break;
       }
       start = nextRegion;
     }
-    Extent zeroBytes = allocEnd.diff(allocCursor).toWord().toExtent().plus(BYTES_IN_ADDRESS);
+    Extent zeroBytes = allocEnd.diff(allocCursor).toWord().toExtent();
     VM.memory.zero(allocCursor, zeroBytes);
 
     allocStart.store(Address.zero(), DATA_END_OFFSET);
@@ -122,7 +123,8 @@ import org.vmmagic.unboxed.ObjectReference;
       allocStart.store(Address.zero(), DATA_END_OFFSET);
       if (VM.VERIFY_ASSERTIONS) {
         Address low = allocStart.plus(DATA_START_OFFSET);
-        Extent size = allocStart.loadAddress(REGION_LIMIT_OFFSET).diff(allocStart).toWord().toExtent().minus(2 * BYTES_IN_ADDRESS);
+        Address high = allocStart.loadAddress(REGION_LIMIT_OFFSET);
+        Extent size = high.diff(low).toWord().toExtent();
         VM.memory.zero(low, size);
       }
       allocStart = allocStart.loadAddress(NEXT_REGION_OFFSET);
@@ -150,15 +152,14 @@ import org.vmmagic.unboxed.ObjectReference;
 
       /* dataEnd = zero represents the current region. */
       Address currentLimit = (dataEnd.isZero() ? cursor : dataEnd);
-      ObjectReference current =
-        VM.objectModel.getObjectFromStartAddress(start.plus(DATA_START_OFFSET));
+      Address lastEnd = start.plus(DATA_START_OFFSET);
 
-      while (VM.objectModel.refToAddress(current).LT(currentLimit) && !current.isNull()) {
-        ObjectReference next = VM.objectModel.getNextObject(current);
+      while (lastEnd.LT(currentLimit)) {
+        ObjectReference current = VM.objectModel.getObjectFromStartAddress(lastEnd);
+        lastEnd = VM.objectModel.getObjectEndAddress(current);
 
         if (MarkCompactSpace.toBeCompacted(current)) {
-          if (VM.VERIFY_ASSERTIONS)
-            VM.assertions._assert(MarkCompactSpace.getForwardingPointer(current).isNull());
+          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(MarkCompactSpace.getForwardingPointer(current).isNull());
 
           // Fake - allocate it.
           int size = VM.objectModel.getSizeWhenCopied(current);
@@ -168,7 +169,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
           boolean sameRegion = allocStart.EQ(start);
 
-          if (!sameRegion && allocCursor.plus(size).GT(allocLimit)) {
+          if (!sameRegion && allocCursor.plus(size).GE(allocLimit)) {
             allocStart = allocStart.plus(NEXT_REGION_OFFSET).loadAddress();
             allocDataEnd = allocStart.plus(DATA_END_OFFSET).loadAddress();
             allocLimit = (allocDataEnd.isZero() ? cursor : allocDataEnd);
@@ -183,8 +184,8 @@ import org.vmmagic.unboxed.ObjectReference;
             MarkCompactSpace.setForwardingPointer(current, target);
             allocCursor = allocCursor.plus(size);
           }
+          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocCursor.LE(allocLimit));
         }
-        current = next;
       }
       if (dataEnd.isZero()) {
         break;
