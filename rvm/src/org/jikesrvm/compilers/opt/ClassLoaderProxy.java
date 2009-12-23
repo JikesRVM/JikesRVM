@@ -63,7 +63,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
           if (VM.VerifyAssertions) VM._assert(false);
           return null;
         }
-      } else if (t1.isWordType() && t2.isWordType()) {
+      } else if (t1.isWordLikeType() && t2.isWordLikeType()) {
         return TypeReference.Word;
       } else {
         // other primitive and unboxed types have no commonality so return null
@@ -207,13 +207,13 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
     // NOTE: The ordering of these tests is critical!
     if (childType == TypeReference.NULL_TYPE) {
       // Sanity assertion that a null isn't being assigned to an unboxed type
-      if (VM.VerifyAssertions && parentType.isReferenceType()) VM._assert(!parentType.isWordType());
+      if (VM.VerifyAssertions && parentType.isReferenceType()) VM._assert(!parentType.isWordLikeType());
       return parentType.isReferenceType() ? YES : NO;
     } else if (parentType == TypeReference.NULL_TYPE) {
       return NO;
     } else if (parentType == childType) {
       return YES;
-    } else if (parentType == TypeReference.Word && childType.isWordType()) {
+    } else if (parentType == TypeReference.Word && childType.isWordLikeType()) {
       return YES;
     } else if (parentType.isPrimitiveType() || childType.isPrimitiveType()) {
       return NO;
@@ -222,7 +222,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
     } else {
       // Unboxed types are handled in the word and primitive type case
       if (VM.VerifyAssertions) {
-        VM._assert(!parentType.isWordType() && !childType.isWordType());
+        VM._assert(!parentType.isWordLikeType() && !childType.isWordLikeType());
       }
       // Oh well, we're going to have to try to actually look
       // at the type hierarchy.

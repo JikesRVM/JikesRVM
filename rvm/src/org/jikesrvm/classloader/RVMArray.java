@@ -742,7 +742,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         if (NEEDS_SHORT_ASTORE_BARRIER || NEEDS_SHORT_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_SHORT);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_SHORT);
-          Barriers.shortBulkCopy(src, srcOffset, dst, dstOffset, len);
+          Barriers.shortBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_SHORT);
         } else {
           Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
         }
@@ -803,7 +803,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         if (NEEDS_CHAR_ASTORE_BARRIER || NEEDS_CHAR_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_CHAR);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_CHAR);
-          Barriers.charBulkCopy(src, srcOffset, dst, dstOffset, len);
+          Barriers.charBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_CHAR);
         } else {
           Memory.arraycopy16Bit(src, srcIdx, dst, dstIdx, len);
         }
@@ -864,7 +864,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         if (NEEDS_INT_ASTORE_BARRIER || NEEDS_INT_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_INT);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_INT);
-          Barriers.intBulkCopy(src, srcOffset, dst, dstOffset, len);
+          Barriers.intBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_INT);
         } else {
           Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
         }
@@ -925,7 +925,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         if (NEEDS_FLOAT_ASTORE_BARRIER || NEEDS_FLOAT_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_FLOAT);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_FLOAT);
-          Barriers.floatBulkCopy(src, srcOffset, dst, dstOffset, len);
+          Barriers.floatBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_FLOAT);
         } else {
           Memory.arraycopy32Bit(src, srcIdx, dst, dstIdx, len);
         }
@@ -986,7 +986,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         if (NEEDS_LONG_ASTORE_BARRIER || NEEDS_LONG_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_LONG);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_LONG);
-          Barriers.longBulkCopy(src, srcOffset, dst, dstOffset, len);
+          Barriers.longBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_LONG);
         } else {
           Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
         }
@@ -1047,7 +1047,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         if (NEEDS_DOUBLE_ASTORE_BARRIER || NEEDS_DOUBLE_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx<<LOG_BYTES_IN_DOUBLE);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx<<LOG_BYTES_IN_DOUBLE);
-          Barriers.doubleBulkCopy(src, srcOffset, dst, dstOffset, len);
+          Barriers.doubleBulkCopy(src, srcOffset, dst, dstOffset, len << LOG_BYTES_IN_DOUBLE);
         } else {
           Memory.arraycopy64Bit(src, srcIdx, dst, dstIdx, len);
         }

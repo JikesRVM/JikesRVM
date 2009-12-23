@@ -206,7 +206,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
     for (int i = inst.getNumberOfOperands() - 1; i >= 0; --i) {
       Operand op = inst.getOperand(i);
       if (op instanceof RegisterOperand) {
-        if (op.asRegister().getType().isWordType() || op.asRegister().getRegister().isPhysical()) {
+        if (op.asRegister().getType().isWordLikeType() || op.asRegister().getRegister().isPhysical()) {
           return true;
         }
       }

@@ -24,22 +24,22 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
    * Perform the actual write of a boolean write barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the boolean field
    * @param value The value that the slot will be updated to
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location The FieldReference index to assist the store
    * @param mode The context in which the write is occurring
    */
   @Inline
   @Override
   public final void booleanWrite(ObjectReference objref, boolean value, Word offset, Word location, int mode) {
-    Magic.setByteAtOffset(objref.toObject(), offset.toOffset(), (byte) (value ? 1 : 0));
+    Magic.setBooleanAtOffset(objref.toObject(), offset.toOffset(), value, location.toInt());
   }
 
   /**
    * Perform the actual read of a boolean read barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the boolean field
    * @param offset The offset from the ref
    * @param unused Unused
    * @param mode The context in which the write is occurring
@@ -54,22 +54,22 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
    * Perform the actual write of a byte write barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the byte field
    * @param value The value that the slot will be updated to
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location The FieldReference index to assist the store
    * @param mode The context in which the write is occurring
    */
   @Inline
   @Override
   public final void byteWrite(ObjectReference objref, byte value, Word offset, Word location, int mode) {
-    Magic.setByteAtOffset(objref.toObject(), offset.toOffset(), value);
+    Magic.setByteAtOffset(objref.toObject(), offset.toOffset(), value, location.toInt());
   }
 
   /**
    * Perform the actual read of a byte read barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the byte field
    * @param offset The offset from the ref
    * @param unused Unused
    * @param mode The context in which the write is occurring
@@ -84,22 +84,22 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
    * Perform the actual write of a char write barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the char field
    * @param value The value that the slot will be updated to
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location The FieldReference index to assist the store
    * @param mode The context in which the write is occurring
    */
   @Inline
   @Override
   public final void charWrite(ObjectReference objref, char value, Word offset, Word location, int mode) {
-    Magic.setCharAtOffset(objref.toObject(), offset.toOffset(), value);
+    Magic.setCharAtOffset(objref.toObject(), offset.toOffset(), value, location.toInt());
   }
 
   /**
    * Perform the actual read of a char read barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the char field
    * @param offset The offset from the ref
    * @param unused Unused
    * @param mode The context in which the write is occurring
@@ -114,22 +114,22 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
    * Perform the actual write of a short write barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the short field
    * @param value The value that the slot will be updated to
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location The FieldReference index to assist the store
    * @param mode The context in which the write is occurring
    */
   @Inline
   @Override
   public final void shortWrite(ObjectReference objref, short value, Word offset, Word location, int mode) {
-    Magic.setShortAtOffset(objref.toObject(), offset.toOffset(), value);
+    Magic.setShortAtOffset(objref.toObject(), offset.toOffset(), value, location.toInt());
   }
 
   /**
    * Perform the actual read of a short read barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the short field
    * @param offset The offset from the ref
    * @param unused Unused
    * @param mode The context in which the write is occurring
@@ -144,22 +144,22 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
    * Perform the actual write of a int write barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the int field
    * @param value The value that the slot will be updated to
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location The FieldReference index to assist the store
    * @param mode The context in which the write is occurring
    */
   @Inline
   @Override
   public final void intWrite(ObjectReference objref, int value, Word offset, Word location, int mode) {
-    Magic.setIntAtOffset(objref.toObject(), offset.toOffset(), value);
+    Magic.setIntAtOffset(objref.toObject(), offset.toOffset(), value, location.toInt());
   }
 
   /**
    * Perform the actual read of a int read barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the int field
    * @param offset The offset from the ref
    * @param unused Unused
    * @param mode The context in which the write is occurring
@@ -172,24 +172,45 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   }
 
   /**
-   * Perform the actual write of a long write barrier.
+   * Attempt an atomic compare and exchange in a write barrier sequence.
    *
-   * @param objref The object that has the reference field
-   * @param value The value that the slot will be updated to
+   * @param objref The object that has the int field
+   * @param expected The old int to be swapped out
+   * @param newValue the new int
    * @param offset The offset from the ref
    * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return True if the compare and swap was successful
+   */
+  @Override
+  public boolean intTryCompareAndSwap(ObjectReference objref, int expected, int newValue, Word offset, Word unused, int mode) {
+    int oldValue;
+    do {
+      oldValue = Magic.prepareInt(objref, offset.toOffset());
+      if (oldValue != expected) return false;
+    } while (!Magic.attemptInt(objref, offset.toOffset(), oldValue, newValue));
+    return true;
+  }
+
+  /**
+   * Perform the actual write of a long write barrier.
+   *
+   * @param objref The object that has the long field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param location The FieldReference index to assist the store
    * @param mode The context in which the write is occurring
    */
   @Inline
   @Override
   public final void longWrite(ObjectReference objref, long value, Word offset, Word location, int mode) {
-    Magic.setLongAtOffset(objref.toObject(), offset.toOffset(), value);
+    Magic.setLongAtOffset(objref.toObject(), offset.toOffset(), value, location.toInt());
   }
 
   /**
    * Perform the actual read of a long read barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the long field
    * @param offset The offset from the ref
    * @param unused Unused
    * @param mode The context in which the write is occurring
@@ -202,24 +223,45 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   }
 
   /**
-   * Perform the actual write of a float write barrier.
+   * Attempt an atomic compare and exchange in a write barrier sequence.
    *
-   * @param objref The object that has the reference field
-   * @param value The value that the slot will be updated to
+   * @param objref The object that has the long field
+   * @param expected The old long to be swapped out
+   * @param newValue the new long
    * @param offset The offset from the ref
    * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return True if the compare and swap was successful
+   */
+  @Override
+  public boolean longTryCompareAndSwap(ObjectReference objref, long expected, long newValue, Word offset, Word unused, int mode) {
+    long oldValue;
+    do {
+      oldValue = Magic.prepareLong(objref, offset.toOffset());
+      if (oldValue != expected) return false;
+    } while (!Magic.attemptLong(objref, offset.toOffset(), oldValue, newValue));
+    return true;
+  }
+
+  /**
+   * Perform the actual write of a float write barrier.
+   *
+   * @param objref The object that has the float field
+   * @param value The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param location The FieldReference index to assist the store
    * @param mode The context in which the write is occurring
    */
   @Inline
   @Override
   public final void floatWrite(ObjectReference objref, float value, Word offset, Word location, int mode) {
-    Magic.setFloatAtOffset(objref.toObject(), offset.toOffset(), value);
+    Magic.setFloatAtOffset(objref.toObject(), offset.toOffset(), value, location.toInt());
   }
 
   /**
    * Perform the actual read of a float read barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the float field
    * @param offset The offset from the ref
    * @param unused Unused
    * @param mode The context in which the write is occurring
@@ -234,22 +276,22 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
    * Perform the actual write of a double write barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the double field
    * @param value The value that the slot will be updated to
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location The FieldReference index to assist the store
    * @param mode The context in which the write is occurring
    */
   @Inline
   @Override
   public final void doubleWrite(ObjectReference objref, double value, Word offset, Word location, int mode) {
-    Magic.setDoubleAtOffset(objref.toObject(), offset.toOffset(), value);
+    Magic.setDoubleAtOffset(objref.toObject(), offset.toOffset(), value, location.toInt());
   }
 
   /**
    * Perform the actual read of a double read barrier.
    *
-   * @param objref The object that has the reference field
+   * @param objref The object that has the double field
    * @param offset The offset from the ref
    * @param unused Unused
    * @param mode The context in which the write is occurring
@@ -352,9 +394,9 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   }
 
   /**
-   * Perform the actual write of the write barrier, writing the value as a raw word.
+   * Perform the actual write of the write barrier, writing the value as a raw Word.
    *
-   * @param ref The object that has the reference field
+   * @param ref The object that has the Word field
    * @param target The value that the slot will be updated to
    * @param offset The offset from the ref
    * @param location The index of the FieldReference
@@ -371,7 +413,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * Atomically write a raw reference field of an object or array and return
    * the old value of the reference field.
    *
-   * @param ref The object that has the reference field
+   * @param ref The object that has the Word field
    * @param target The value that the slot will be updated to
    * @param offset The offset from the ref
    * @param unused Unused
@@ -392,8 +434,8 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   /**
    * Attempt an atomic compare and exchange in a write barrier sequence.
    *
-   * @param ref The object that has the reference field
-   * @param old The old reference to be swapped out
+   * @param ref The object that has the Word field
+   * @param old The old Word to be swapped out
    * @param target The value that the slot will be updated to
    * @param offset The offset from the ref
    * @param unused Unused
@@ -407,14 +449,14 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
     do {
       Word currentValue = Magic.prepareWord(ref, offset.toOffset());
       if (currentValue != old) return false;
-    } while (!Magic.attemptObject(ref, offset.toOffset(), old, target));
+    } while (!Magic.attemptWord(ref, offset.toOffset(), old, target));
     return true;
   }
 
   /**
-   * Perform the actual read of the read barrier, returning the value as a raw word.
+   * Perform the actual read of the read barrier, returning the value as a raw Word.
    *
-   * @param ref The object that has the reference field
+   * @param ref The object that has the Word field
    * @param offset The offset from the ref
    * @param location The index of the FieldReference
    * @param mode The context in which the write is occurring
@@ -425,6 +467,123 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   public final Word wordRead(ObjectReference ref,
         Word offset, Word location, int mode) {
     return Magic.getWordAtOffset(ref.toObject(), offset.toOffset(), location.toInt());
+  }
+
+  /**
+   * Perform the actual write of the write barrier, writing the value as a raw Address.
+   *
+   * @param ref The object that has the Address field
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void addressWrite(ObjectReference ref, Address target,
+      Word offset, Word location, int mode) {
+    Magic.setAddressAtOffset(ref.toObject(), offset.toOffset(), target, location.toInt());
+  }
+
+  /**
+   * Perform the actual read of the read barrier, returning the value as a raw Address.
+   *
+   * @param ref The object that has the Address field
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final Address addressRead(ObjectReference ref,
+        Word offset, Word location, int mode) {
+    return Magic.getAddressAtOffset(ref.toObject(), offset.toOffset(), location.toInt());
+  }
+
+  /**
+   * Attempt an atomic compare and exchange in a write barrier sequence.
+   *
+   * @param objref The object that has the Address field
+   * @param expected The old Address to be swapped out
+   * @param newValue the new Address
+   * @param offset The offset from the ref
+   * @param unused Unused
+   * @param mode The context in which the write is occurring
+   * @return True if the compare and swap was successful
+   */
+  @Override
+  public boolean addressTryCompareAndSwap(ObjectReference objref, Address expected, Address newValue, Word offset, Word unused, int mode) {
+    Address oldValue;
+    do {
+      oldValue = Magic.prepareAddress(objref, offset.toOffset());
+      if (oldValue != expected) return false;
+    } while (!Magic.attemptAddress(objref, offset.toOffset(), oldValue, newValue));
+    return true;
+  }
+
+  /**
+   * Perform the actual write of the write barrier, writing the value as a raw Offset.
+   *
+   * @param ref The object that has the Offset field
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void offsetWrite(ObjectReference ref, Offset target,
+      Word offset, Word location, int mode) {
+    Magic.setOffsetAtOffset(ref.toObject(), offset.toOffset(), target, location.toInt());
+  }
+
+  /**
+   * Perform the actual read of the read barrier, returning the value as a raw Offset.
+   *
+   * @param ref The object that has the Offset field
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final Offset offsetRead(ObjectReference ref,
+        Word offset, Word location, int mode) {
+    return Magic.getOffsetAtOffset(ref.toObject(), offset.toOffset(), location.toInt());
+  }
+
+  /**
+   * Perform the actual write of the write barrier, writing the value as a raw Extent.
+   *
+   * @param ref The object that has the Extent field
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   */
+  @Inline
+  @Override
+  public final void extentWrite(ObjectReference ref, Extent target,
+      Word offset, Word location, int mode) {
+    Magic.setExtentAtOffset(ref.toObject(), offset.toOffset(), target, location.toInt());
+  }
+
+  /**
+   * Perform the actual read of the read barrier, returning the value as a raw Extent.
+   *
+   * @param ref The object that has the Extent field
+   * @param offset The offset from the ref
+   * @param location The index of the FieldReference
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Inline
+  @Override
+  public final Extent extentRead(ObjectReference ref,
+        Word offset, Word location, int mode) {
+    return Magic.getExtentAtOffset(ref.toObject(), offset.toOffset(), location.toInt());
   }
 
   /**

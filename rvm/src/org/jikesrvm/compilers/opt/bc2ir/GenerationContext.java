@@ -510,7 +510,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
       return longLocals;
     } else if (type == TypeReference.Double) {
       return doubleLocals;
-    } else if (type.isReferenceType() || type.isWordType()) {
+    } else if (type.isReferenceType() || type.isWordLikeType()) {
       return addressLocals;
     } else {
       return intLocals;

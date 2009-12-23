@@ -300,6 +300,9 @@ final class BaselineMagic {
     generators.put(getMethodReference(Magic.class, MagicNames.getIntAtOffset, Object.class, Offset.class, int.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getFloatAtOffset, Object.class, Offset.class, float.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.getWordAtOffset, Object.class, Offset.class, Word.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.getAddressAtOffset, Object.class, Offset.class, Address.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.getExtentAtOffset, Object.class, Offset.class, Extent.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.getOffsetAtOffset, Object.class, Offset.class, Offset.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.prepareInt, Object.class, Offset.class, int.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.prepareAddress, Object.class, Offset.class, Address.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.prepareWord, Object.class, Offset.class, Word.class), g);
@@ -329,6 +332,9 @@ final class BaselineMagic {
   static {
     MagicGenerator g = new Magic_Load32_MD();
     generators.put(getMethodReference(Magic.class, MagicNames.getWordAtOffset, Object.class, Offset.class, int.class, Word.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.getAddressAtOffset, Object.class, Offset.class, int.class, Address.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.getExtentAtOffset, Object.class, Offset.class, int.class, Extent.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.getOffsetAtOffset, Object.class, Offset.class, int.class, Offset.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new LateReferenceCheckDecorator(NO_SLOT, g);
     }
@@ -581,6 +587,9 @@ final class BaselineMagic {
     generators.put(getMethodReference(Magic.class, MagicNames.setIntAtOffset, Object.class, Offset.class, int.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setFloatAtOffset, Object.class, Offset.class, float.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setWordAtOffset, Object.class, Offset.class, Word.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setAddressAtOffset, Object.class, Offset.class, Address.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setExtentAtOffset, Object.class, Offset.class, Extent.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setOffsetAtOffset, Object.class, Offset.class, Offset.class, void.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new EarlyReferenceCheckDecorator(NO_SLOT, g);
     }
@@ -603,7 +612,12 @@ final class BaselineMagic {
   }
   static {
     MagicGenerator g = new Magic_Store32_MD();
+    generators.put(getMethodReference(Magic.class, MagicNames.setIntAtOffset, Object.class, Offset.class, int.class, int.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setWordAtOffset, Object.class, Offset.class, Word.class, int.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setAddressAtOffset, Object.class, Offset.class, Address.class, int.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setOffsetAtOffset, Object.class, Offset.class, Offset.class, int.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setExtentAtOffset, Object.class, Offset.class, Extent.class, int.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setFloatAtOffset, Object.class, Offset.class, float.class, int.class, void.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new EarlyReferenceCheckDecorator(ONE_SLOT, g);
     }
@@ -611,9 +625,9 @@ final class BaselineMagic {
   }
 
   /**
-   * Store a byte quantity to an address plus offset
+   * Store a 8bit quantity to an address plus offset
    */
-  private static final class StoreByte extends MagicGenerator {
+  private static final class Store8 extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // No offset
@@ -623,14 +637,15 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new StoreByte();
+    MagicGenerator g = new Store8();
     generators.put(getMethodReference(Address.class, MagicNames.store, byte.class, void.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.store, boolean.class, void.class), g);
   }
 
   /**
-   * Store a byte quantity to an address plus offset
+   * Store a 8bit quantity to an address plus offset
    */
-  private static final class StoreByte_Offset extends MagicGenerator {
+  private static final class Store8_Offset extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       // Store at offset
@@ -641,14 +656,15 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new StoreByte_Offset();
+    MagicGenerator g = new Store8_Offset();
     generators.put(getMethodReference(Address.class, MagicNames.store, byte.class, Offset.class, void.class), g);
+    generators.put(getMethodReference(Address.class, MagicNames.store, boolean.class, Offset.class, void.class), g);
   }
 
   /**
-   * Store a byte quantity to an address plus offset in the format used in {@link Magic}
+   * Store a 8bit quantity to an address plus offset in the format used in {@link Magic}
    */
-  private static final class Magic_StoreByte extends MagicGenerator {
+  private static final class Magic_Store8 extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(T0);                   // value
@@ -658,8 +674,29 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new Magic_StoreByte();
+    MagicGenerator g = new Magic_Store8();
+    generators.put(getMethodReference(Magic.class, MagicNames.setBooleanAtOffset, Object.class, Offset.class, boolean.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setByteAtOffset, Object.class, Offset.class, byte.class, void.class), g);
+  }
+
+  /**
+   * Store a 8bit quantity to an address plus offset in the format used in
+   * {@link Magic} with an additional meta-data argument
+   */
+  private static final class Magic_Store8_MD extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);                   // discard meta-data
+      asm.emitPOP_Reg(T0);                   // value
+      asm.emitPOP_Reg(S0);                   // offset
+      asm.emitPOP_Reg(T1);                   // obj ref
+      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
+    }
+  }
+  static {
+    MagicGenerator g = new Magic_Store8_MD();
+    generators.put(getMethodReference(Magic.class, MagicNames.setBooleanAtOffset, Object.class, Offset.class, boolean.class, int.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setByteAtOffset, Object.class, Offset.class, byte.class, int.class, void.class), g);
   }
 
   /**
@@ -715,6 +752,26 @@ final class BaselineMagic {
     MagicGenerator g = new Magic_Store16();
     generators.put(getMethodReference(Magic.class, MagicNames.setCharAtOffset, Object.class, Offset.class, char.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setShortAtOffset, Object.class, Offset.class, short.class, void.class), g);
+  }
+
+  /**
+   * Store a 16bit quantity to an address plus offset in the format used in
+   * {@link Magic} with an additional meta-data argument
+   */
+  private static final class Magic_Store16_MD extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);                   // discard meta-data
+      asm.emitPOP_Reg(T0);                   // value
+      asm.emitPOP_Reg(S0);                   // offset
+      asm.emitPOP_Reg(T1);                   // obj ref
+      asm.emitMOV_RegIdx_Reg_Word(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0
+    }
+  }
+  static {
+    MagicGenerator g = new Magic_Store16_MD();
+    generators.put(getMethodReference(Magic.class, MagicNames.setCharAtOffset, Object.class, Offset.class, char.class, int.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setShortAtOffset, Object.class, Offset.class, short.class, int.class, void.class), g);
   }
 
   /**
@@ -800,6 +857,37 @@ final class BaselineMagic {
     MagicGenerator g = new Magic_Store64();
     generators.put(getMethodReference(Magic.class, MagicNames.setLongAtOffset, Object.class, Offset.class, long.class, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.setDoubleAtOffset, Object.class, Offset.class, double.class, void.class), g);
+  }
+
+  /**
+   * Store a 64bit quantity to an address plus offset in the format used in
+   * {@link Magic} with an additional meta-data argument
+   */
+  private static final class Magic_Store64_MD extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitPOP_Reg(T0);                   // discard meta-data
+      if (VM.BuildFor32Addr) {
+        asm.emitPOP_Reg(T0);                       // value low
+        asm.emitPOP_Reg(T1);                       // value high
+        asm.emitPOP_Reg(S0);                       // S0 = offset
+        asm.emitADD_Reg_RegInd(S0, SP);            // S0 = base+offset
+        asm.emitMOV_RegInd_Reg(S0, T0);            // [S0] <- value low
+        asm.emitPOP_Reg(T0);                       // throw away slot
+        asm.emitMOV_RegDisp_Reg(S0, ONE_SLOT, T1); // [S0+4] <- value high
+      } else {
+        asm.emitPOP_Reg(T0);                       // value
+        asm.emitPOP_Reg(T1);                       // throw away slot
+        asm.emitPOP_Reg(T1);                       // T1 = offset
+        asm.emitPOP_Reg(S0);                       // S0 = base
+        asm.emitMOV_RegIdx_Reg_Quad(S0, T1, Assembler.BYTE, NO_SLOT, T0); // [base+offset] <- T0
+      }
+    }
+  }
+  static {
+    MagicGenerator g = new Magic_Store64_MD();
+    generators.put(getMethodReference(Magic.class, MagicNames.setLongAtOffset, Object.class, Offset.class, long.class, int.class, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.setDoubleAtOffset, Object.class, Offset.class, double.class, int.class, void.class), g);
   }
 
   /**
@@ -1993,9 +2081,9 @@ final class BaselineMagic {
   }
 
   /**
-   * Set a byte in a runtime table
+   * Set a 8bit in a runtime table
    */
-  private static final class StoreByte_Array extends MagicGenerator {
+  private static final class Store8_Array extends MagicGenerator {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       Barriers.compileModifyCheck(asm, 8);
@@ -2007,7 +2095,7 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator g = new StoreByte_Array();
+    MagicGenerator g = new Store8_Array();
     generators.put(getMethodReference(CodeArray.class, MagicNames.addressArraySet, int.class, byte.class, void.class), g);
   }
 

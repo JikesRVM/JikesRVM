@@ -97,23 +97,41 @@ import org.vmmagic.pragma.*;
   /** @return True if this Plan can perform bulk double arraycopy barriers. */
   public boolean doubleBulkCopySupported() { return false; }
 
-  /** @return True if this Plan requires write barriers on words. */
+  /** @return True if this Plan requires write barriers on Words. */
   public boolean needsWordWriteBarrier() { return false; }
 
-  /** @return True if this Plan requires read barriers on words. */
+  /** @return True if this Plan requires read barriers on Words. */
   public boolean needsWordReadBarrier() { return false; }
 
-  /** @return True if this Plan can perform bulk word arraycopy barriers. */
+  /** @return True if this Plan can perform bulk Word arraycopy barriers. */
   public boolean wordBulkCopySupported() { return false; }
 
-  /** @return True if this Plan requires write barriers on addresss. */
+  /** @return True if this Plan requires write barriers on Address's. */
   public boolean needsAddressWriteBarrier() { return false; }
 
-  /** @return True if this Plan requires read barriers on addresss. */
+  /** @return True if this Plan requires read barriers on Address's. */
   public boolean needsAddressReadBarrier() { return false; }
 
-  /** @return True if this Plan can perform bulk address arraycopy barriers. */
+  /** @return True if this Plan can perform bulk Address arraycopy barriers. */
   public boolean addressBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on Extents. */
+  public boolean needsExtentWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on Extents. */
+  public boolean needsExtentReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk Extent arraycopy barriers. */
+  public boolean extentBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on Offsets. */
+  public boolean needsOffsetWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on Offsets. */
+  public boolean needsOffsetReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk Offset arraycopy barriers. */
+  public boolean offsetBulkCopySupported() { return false; }
 
   /** @return True if this Plan requires write barriers on object references. */
   public boolean needsObjectReferenceWriteBarrier() { return false; }

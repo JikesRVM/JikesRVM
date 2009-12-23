@@ -1160,12 +1160,12 @@ public class EnterSSA extends CompilerPhase {
         TypeReference meet = ClassLoaderProxy.findCommonSuperclass(result, t);
         if (meet == null) {
           // TODO: This horrific kludge should go away once we get rid of Address.toInt()
-          if ((result.isIntLikeType() && (t.isReferenceType() || t.isWordType())) ||
-              ((result.isReferenceType() || result.isWordType()) && t.isIntLikeType())) {
+          if ((result.isIntLikeType() && (t.isReferenceType() || t.isWordLikeType())) ||
+              ((result.isReferenceType() || result.isWordLikeType()) && t.isIntLikeType())) {
             meet = TypeReference.Int;
-          } else if (result.isReferenceType() && t.isWordType()) {
+          } else if (result.isReferenceType() && t.isWordLikeType()) {
             meet = t;
-          } else if (result.isWordType() && t.isReferenceType()) {
+          } else if (result.isWordLikeType() && t.isReferenceType()) {
             meet = result;
           }
         }

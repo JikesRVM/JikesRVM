@@ -21,6 +21,8 @@ import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
+import static org.jikesrvm.mm.mminterface.Barriers.*;
+
 public final class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
 
@@ -59,22 +61,39 @@ public final class Unsafe {
 
   public void putOrderedInt(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
-    Magic.setIntAtOffset(obj,off,value);
+    if (NEEDS_INT_PUTFIELD_BARRIER) {
+      intFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setIntAtOffset(obj, off, value);
+    }
   }
 
   public void putOrderedLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
-    Magic.setLongAtOffset(obj,off,value);
+    if (NEEDS_LONG_PUTFIELD_BARRIER) {
+      longFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setLongAtOffset(obj, off, value);
+    }
   }
 
   public void putOrderedObject(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
-    Magic.setObjectAtOffset(obj,off,value);
+    if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+      objectFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setObjectAtOffset(obj, off, value);
+    }
    }
 
   public void putIntVolatile(Object obj,long offset,int value) {
+    // may not comply with the intended volatile semantic of the store
     Offset off = longToOffset(offset);
-    Magic.setIntAtOffset(obj,off,value);
+    if (NEEDS_INT_PUTFIELD_BARRIER) {
+      intFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setIntAtOffset(obj,off,value);
+    }
   }
 
   public int getIntVolatile(Object obj,long offset) {
@@ -83,13 +102,22 @@ public final class Unsafe {
   }
 
   public void putLongVolatile(Object obj,long offset,long value) {
+    // may not comply with the intended volatile semantic of the store
     Offset off = longToOffset(offset);
-    Magic.setLongAtOffset(obj,off,value);
+    if (NEEDS_LONG_PUTFIELD_BARRIER) {
+      longFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setLongAtOffset(obj,off,value);
+    }
    }
 
   public void putLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
-    Magic.setLongAtOffset(obj,off,value);
+    if (NEEDS_LONG_PUTFIELD_BARRIER) {
+      longFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setLongAtOffset(obj,off,value);
+    }
   }
 
   public long getLongVolatile(Object obj,long offset) {
@@ -103,13 +131,22 @@ public final class Unsafe {
   }
 
   public void putObjectVolatile(Object obj,long offset,Object value) {
+    // may not comply with the intended volatile semantic of the store
     Offset off = longToOffset(offset);
-    Magic.setObjectAtOffset(obj,off,value);
+    if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+      objectFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setObjectAtOffset(obj,off,value);
+    }
   }
 
   public void putObject(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
-    Magic.setObjectAtOffset(obj,off,value);
+    if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+      objectFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setObjectAtOffset(obj,off,value);
+    }
   }
 
   public Object getObjectVolatile(Object obj,long offset) {

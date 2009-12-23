@@ -3319,7 +3319,7 @@ public class BootImageWriter extends BootImageWriterMessages
             long lval= Statics.getSlotContentsAsLong(jtocOff);
             contents = Double.toString(Double.longBitsToDouble(lval)) + pad;
             jtocSlot++;
-          } else if (type.isWordType()) {
+          } else if (type.isWordLikeType()) {
             if (VM.BuildFor32Addr) {
               int ival = Statics.getSlotContentsAsInt(jtocOff);
               contents = VM.intAsHexString(ival) + pad;

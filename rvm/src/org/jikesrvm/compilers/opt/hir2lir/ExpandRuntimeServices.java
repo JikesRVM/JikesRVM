@@ -30,6 +30,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PUTFIELD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.PUTSTATIC_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ALOAD_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ASTORE_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 
@@ -394,6 +400,52 @@ public final class ExpandRuntimeServices extends CompilerPhase {
         }
         break;
 
+        case BYTE_ASTORE_opcode: {
+          if (NEEDS_BYTE_ASTORE_BARRIER) {
+            primitiveArrayStoreHelper(Entrypoints.byteArrayWriteBarrierMethod, inst, next, ir);
+          }
+        }
+        break;
+
+        case DOUBLE_ASTORE_opcode: {
+          if (NEEDS_DOUBLE_ASTORE_BARRIER) {
+            primitiveArrayStoreHelper(Entrypoints.doubleArrayWriteBarrierMethod, inst, next, ir);
+          }
+        }
+        break;
+
+        case FLOAT_ASTORE_opcode: {
+          if (NEEDS_FLOAT_ASTORE_BARRIER) {
+            primitiveArrayStoreHelper(Entrypoints.floatArrayWriteBarrierMethod, inst, next, ir);
+          }
+        }
+        break;
+
+        case INT_ASTORE_opcode: {
+          if (NEEDS_INT_ASTORE_BARRIER) {
+            primitiveArrayStoreHelper(Entrypoints.intArrayWriteBarrierMethod, inst, next, ir);
+          }
+        }
+        break;
+
+        case LONG_ASTORE_opcode: {
+          if (NEEDS_LONG_ASTORE_BARRIER) {
+            primitiveArrayStoreHelper(Entrypoints.longArrayWriteBarrierMethod, inst, next, ir);
+          }
+        }
+        break;
+
+        case SHORT_ASTORE_opcode: {
+          TypeReference type = AStore.getLocation(inst).getElementType();
+          if (NEEDS_SHORT_ASTORE_BARRIER && type.isShortType()) {
+            primitiveArrayStoreHelper(Entrypoints.shortArrayWriteBarrierMethod, inst, next, ir);
+          } else if (NEEDS_CHAR_ASTORE_BARRIER) {
+            if (VM.VerifyAssertions) VM._assert(type.isCharType());
+            primitiveArrayStoreHelper(Entrypoints.charArrayWriteBarrierMethod, inst, next, ir);
+          }
+        }
+        break;
+
         case REF_ALOAD_opcode: {
           if (NEEDS_OBJECT_ALOAD_BARRIER) {
             RVMMethod target = Entrypoints.objectArrayReadBarrierMethod;
@@ -419,6 +471,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
             LocationOperand loc = PutField.getLocation(inst);
             FieldReference fieldRef = loc.getFieldRef();
             if (!fieldRef.getFieldContentsType().isPrimitiveType()) {
+              // reference PUTFIELD
               RVMField field = fieldRef.peekResolvedField();
               if (field == null || !field.isUntraced()) {
                 RVMMethod target = Entrypoints.objectFieldWriteBarrierMethod;
@@ -439,6 +492,33 @@ public final class ExpandRuntimeServices extends CompilerPhase {
                 if (ir.options.H2L_INLINE_WRITE_BARRIER) {
                   inline(wb, ir, true);
                 }
+              }
+            } else {
+              // primitive PUTFIELD
+              if (NEEDS_BOOLEAN_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isBooleanType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.booleanFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_BYTE_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isByteType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.byteFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_CHAR_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isCharType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.charFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_DOUBLE_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isDoubleType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.doubleFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_FLOAT_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isFloatType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.floatFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_INT_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isIntType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.intFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_LONG_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isLongType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.longFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_SHORT_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isShortType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.shortFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_WORD_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isWordType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.wordFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_ADDRESS_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isAddressType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.addressFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_EXTENT_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isExtentType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.extentFieldWriteBarrierMethod, inst, next, ir, fieldRef);
+              } else if (NEEDS_OFFSET_PUTFIELD_BARRIER && fieldRef.getFieldContentsType().isOffsetType()) {
+                primitiveObjectFieldStoreHelper(Entrypoints.offsetFieldWriteBarrierMethod, inst, next, ir, fieldRef);
               }
             }
           }
@@ -573,5 +653,58 @@ public final class ExpandRuntimeServices extends CompilerPhase {
       ir.options.OSR_GUARDED_INLINING = savedOsrGI;
     }
     didSomething = true;
+  }
+
+  /**
+   * Helper method to generate call to primitive arrayStore write barrier
+   * @param target entry point for write barrier method
+   * @param inst the current instruction
+   * @param next the next instruction
+   * @param ir the IR
+   */
+  private void primitiveArrayStoreHelper(RVMMethod target, Instruction inst, Instruction next, IR ir) {
+    Instruction wb =
+      Call.create3(CALL,
+                   null,
+                   IRTools.AC(target.getOffset()),
+                   MethodOperand.STATIC(target),
+                   AStore.getClearGuard(inst),
+                   AStore.getArray(inst).copy(),
+                   AStore.getIndex(inst).copy(),
+                   AStore.getValue(inst).copy());
+    wb.bcIndex = RUNTIME_SERVICES_BCI;
+    wb.position = inst.position;
+    inst.replace(wb);
+    next = wb.prevInstructionInCodeOrder();
+    if (ir.options.H2L_INLINE_WRITE_BARRIER) {
+      inline(wb, ir, true);
+    }
+  }
+
+  /**
+   * Helper method to generate call to primitive putfield write barrier
+   * @param target entry point for write barrier method
+   * @param inst the current instruction
+   * @param next the next instruction
+   * @param ir the IR
+   */
+  private void primitiveObjectFieldStoreHelper(RVMMethod target, Instruction inst, Instruction next, IR ir, FieldReference fieldRef) {
+    Instruction wb =
+      Call.create4(CALL,
+                   null,
+                   IRTools.AC(target.getOffset()),
+                   MethodOperand.STATIC(target),
+                   PutField.getClearGuard(inst),
+                   PutField.getRef(inst).copy(),
+                   PutField.getValue(inst).copy(),
+                   PutField.getOffset(inst).copy(),
+                   IRTools.IC(fieldRef.getId()));
+    wb.bcIndex = RUNTIME_SERVICES_BCI;
+    wb.position = inst.position;
+    inst.replace(wb);
+    next = wb.prevInstructionInCodeOrder();
+    if (ir.options.H2L_INLINE_PRIMITIVE_WRITE_BARRIER) {
+      inline(wb, ir, true);
+    }
   }
 }

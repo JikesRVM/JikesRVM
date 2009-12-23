@@ -19,11 +19,10 @@ import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
-import org.vmmagic.unboxed.WordArray;
 
 @Uninterruptible
 public class Barriers implements org.mmtk.utility.Constants {
@@ -83,7 +82,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of booleans into arrays (ie astore).
+   * Barrier for writes of booleans into arrays (ie bastore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -154,7 +153,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(BOOLEAN_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().booleanBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy8Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+      Memory.arraycopy8Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
     }
   }
 
@@ -192,7 +191,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
+   * Barrier for writes of bytes into arrays (ie bastore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -212,7 +211,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of instances (ie getfield).
+   * Barrier for loads of bytes from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -231,7 +230,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for loads of bytes from fields of arrays (ie baload).
    *
    * @param ref the array containing the reference.
    * @param index the index into the array were the reference resides.
@@ -263,7 +262,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(BYTE_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().byteBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy8Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+      Memory.arraycopy8Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
     }
   }
 
@@ -302,7 +301,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
+   * Barrier for writes of chars into arrays (ie castore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -315,14 +314,14 @@ public class Barriers implements org.mmtk.utility.Constants {
   public static void charArrayWrite(char[] ref, int index, char value) {
     if (NEEDS_CHAR_GC_WRITE_BARRIER) {
       ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
+      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_CHAR);
       Selected.Mutator.get().charWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
       VM._assert(false);
   }
 
   /**
-   * Barrier for loads of objects from fields of instances (ie getfield).
+   * Barrier for loads of chars from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -341,7 +340,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for loads of chars from fields of arrays (ie caload).
    *
    * @param ref the array containing the reference.
    * @param index the index into the array were the reference resides.
@@ -373,7 +372,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(CHAR_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().charBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy16Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+      Memory.arraycopy16Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
     }
   }
 
@@ -412,7 +411,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
+   * Barrier for writes of shorts into arrays (ie sastore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -432,7 +431,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of instances (ie getfield).
+   * Barrier for loads of shorts from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -451,7 +450,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for loads of shorts from fields of arrays (ie saload).
    *
    * @param ref the array containing the reference.
    * @param index the index into the array were the reference resides.
@@ -483,7 +482,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(SHORT_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().shortBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy16Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+      Memory.arraycopy16Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
     }
   }
 
@@ -523,7 +522,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
+   * Barrier for writes of ints into arrays (ie iastore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -543,7 +542,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of instances (ie getfield).
+   * Barrier for loads of ints from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -562,7 +561,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for loads of ints from fields of arrays (ie iaload).
    *
    * @param ref the array containing the reference.
    * @param index the index into the array were the reference resides.
@@ -594,10 +593,28 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(INT_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().intBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy32Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+      Memory.arraycopy32Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
     }
   }
 
+  /**
+   * Barrier for conditional compare and exchange of int fields.
+   * @param ref the object which is the subject of the compare and exchanges
+   * @param offset the offset of the field to be modified
+   * @param old the old value to swap out
+   * @param value the new value for the field
+   */
+  @Inline
+  public static boolean intTryCompareAndSwap(Object ref, Offset offset, int old, int value) {
+    if (NEEDS_INT_GC_WRITE_BARRIER || NEEDS_INT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().intTryCompareAndSwap(src, src.toAddress().plus(offset), old, value, offset.toWord(),
+                                                         Word.zero(), // do not have location metadata
+                                                         INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+    return false;
+  }
 
 
   /** True if the garbage collector requires write barriers on long putfield, arraystore or modifycheck */
@@ -634,7 +651,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
+   * Barrier for writes of longs into arrays (ie lastore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -654,7 +671,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of instances (ie getfield).
+   * Barrier for loads of longs from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -673,7 +690,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for loads of longs from fields of arrays (ie laload).
    *
    * @param ref the array containing the reference.
    * @param index the index into the array were the reference resides.
@@ -692,8 +709,26 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
+   * Barrier for conditional compare and exchange of long fields.
+   * @param ref the object which is the subject of the compare and exchanges
+   * @param offset the offset of the field to be modified
+   * @param old the old value to swap out
+   * @param value the new value for the field
+   */
+  @Inline
+  public static boolean longTryCompareAndSwap(Object ref, Offset offset, long old, long value) {
+    if (NEEDS_LONG_GC_WRITE_BARRIER || NEEDS_LONG_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().longTryCompareAndSwap(src, src.toAddress().plus(offset), old, value, offset.toWord(),
+                                                          Word.zero(), // do not have location metadata
+                                                          INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+    return false;
+  }
+
+  /**
    * Barrier for a bulk copy of longs (i.e. in an array copy).
-   *
    * @param src The source array
    * @param srcOffset The starting source offset
    * @param dst The destination array
@@ -705,7 +740,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(LONG_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().longBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy64Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+      Memory.arraycopy64Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
     }
   }
 
@@ -744,7 +779,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
+   * Barrier for writes of floats into arrays (ie fastore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -764,7 +799,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of instances (ie getfield).
+   * Barrier for loads of floats from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -783,7 +818,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for loads of floats from fields of arrays (ie faload).
    *
    * @param ref the array containing the reference.
    * @param index the index into the array were the reference resides.
@@ -815,7 +850,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(FLOAT_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().floatBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy32Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+      Memory.arraycopy32Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
     }
   }
 
@@ -854,7 +889,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
+   * Barrier for writes of doubles into arrays (ie dastore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -874,7 +909,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of instances (ie getfield).
+   * Barrier for loads of doubles from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -893,7 +928,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for loads of doubles from fields of arrays (ie daload).
    *
    * @param ref the array containing the reference.
    * @param index the index into the array were the reference resides.
@@ -925,28 +960,31 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(DOUBLE_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().doubleBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy64Bit(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+      Memory.arraycopy64Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
     }
   }
 
+  /********************************************************************************
+   * Begin support for org.vmmagic.unboxed types (Word, Address, Extent and Offset)
+   *
+   * These types can be witten or read from Object fields via putfield and getfield
+   * Arrays of these special types should not be created in the normal Java way
+   * (ie new Word[]) but should be created using WordArray.create() etc.
+   *
+   * TODO: is there a RVM mechanism that prevents new Word[]?
+   */
 
-  /** True if the garbage collector requires write barriers on word putfield, arraystore or modifycheck */
+  /** True if the garbage collector requires write barriers on Word putfield, arraystore or modifycheck */
   private static final boolean NEEDS_WORD_GC_WRITE_BARRIER     = Selected.Constraints.get().needsWordWriteBarrier();
-  /** True if the VM requires write barriers on word putfield */
+  /** True if the VM requires write barriers on Word putfield */
   public static final boolean  NEEDS_WORD_PUTFIELD_BARRIER     = NEEDS_WORD_GC_WRITE_BARRIER;
-  /** True if the VM requires write barriers on word arraystore */
-  public static final boolean  NEEDS_WORD_ASTORE_BARRIER       = NEEDS_WORD_GC_WRITE_BARRIER;
-  /** True if the garbage collector requires read barriers on word getfield or arrayload */
+  /** True if the garbage collector requires read barriers on Word getfield or arrayload */
   private static final boolean NEEDS_WORD_GC_READ_BARRIER      = Selected.Constraints.get().needsWordReadBarrier();
-  /** True if the VM requires read barriers on word getfield */
+  /** True if the VM requires read barriers on Word getfield */
   public static final boolean  NEEDS_WORD_GETFIELD_BARRIER     = NEEDS_WORD_GC_READ_BARRIER;
-  /** True if the VM requires read barriers on word arrayload */
-  public static final boolean  NEEDS_WORD_ALOAD_BARRIER        = NEEDS_WORD_GC_READ_BARRIER;
-  /** True if the garbage collector supports the bulk copy operation */
-  public static final boolean WORD_BULK_COPY_SUPPORTED         = !(NEEDS_WORD_ASTORE_BARRIER || NEEDS_WORD_ALOAD_BARRIER) || Selected.Constraints.get().wordBulkCopySupported();
 
   /**
-   * Barrier for writes of words into fields of instances (ie putfield).
+   * Barrier for writes of Words into fields of instances (ie putfield).
    *
    * @param ref the object which is the subject of the putfield
    * @param value the new value for the field
@@ -964,27 +1002,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
-   *
-   * @param ref the array which is the subject of the astore
-   * @param index the index into the array where the new reference
-   * resides.  The index is the "natural" index into the array, for
-   * example a[index].
-   * @param value the value to be stored.
-   */
-  @Inline
-  @Entrypoint
-  public static void wordArrayWrite(WordArray ref, int index, Word value) {
-    if (NEEDS_WORD_GC_WRITE_BARRIER) {
-      ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_WORD);
-      Selected.Mutator.get().wordWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VerifyAssertions)
-      VM._assert(false);
-  }
-
-  /**
-   * Barrier for loads of objects from fields of instances (ie getfield).
+   * Barrier for loads of Words from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -1003,60 +1021,36 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for conditional compare and exchange of Word fields.
    *
-   * @param ref the array containing the reference.
-   * @param index the index into the array were the reference resides.
-   * @return the value read from the array
+   * @param ref the object which is the subject of the compare and exchanges
+   * @param offset the offset of the field to be modified
+   * @param old the old value to swap out
+   * @param value the new value for the field
    */
   @Inline
-  @Entrypoint
-  public static Word wordArrayRead(WordArray ref, int index) {
-    if (NEEDS_WORD_GC_READ_BARRIER) {
-      ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_WORD);
-      return Selected.Mutator.get().wordRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+  public static boolean wordTryCompareAndSwap(Object ref, Offset offset, Word old, Word value) {
+    if (NEEDS_WORD_GC_WRITE_BARRIER || NEEDS_WORD_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().wordTryCompareAndSwap(src, src.toAddress().plus(offset), old, value, offset.toWord(),
+                                                          Word.zero(), // do not have location metadata
+                                                          INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
       VM._assert(false);
-    return Word.zero();
+    return false;
   }
 
-  /**
-   * Barrier for a bulk copy of words (i.e. in an array copy).
-   *
-   * @param src The source array
-   * @param srcOffset The starting source offset
-   * @param dst The destination array
-   * @param dstOffset The starting destination offset
-   * @param bytes The number of bytes to be copied
-   */
-  @Inline
-  public static void wordBulkCopy(WordArray src, Offset srcOffset, WordArray dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(WORD_BULK_COPY_SUPPORTED);
-
-    if (!Selected.Mutator.get().wordBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
-    }
-  }
-
-
-  /** True if the garbage collector requires write barriers on address putfield, arraystore or modifycheck */
+  /** True if the garbage collector requires write barriers on Address putfield, arraystore or modifycheck */
   private static final boolean NEEDS_ADDRESS_GC_WRITE_BARRIER     = Selected.Constraints.get().needsAddressWriteBarrier();
-  /** True if the VM requires write barriers on address putfield */
+  /** True if the VM requires write barriers on Address putfield */
   public static final boolean  NEEDS_ADDRESS_PUTFIELD_BARRIER     = NEEDS_ADDRESS_GC_WRITE_BARRIER;
-  /** True if the VM requires write barriers on address arraystore */
-  public static final boolean  NEEDS_ADDRESS_ASTORE_BARRIER       = NEEDS_ADDRESS_GC_WRITE_BARRIER;
-  /** True if the garbage collector requires read barriers on address getfield or arrayload */
+  /** True if the garbage collector requires read barriers on Address getfield or arrayload */
   private static final boolean NEEDS_ADDRESS_GC_READ_BARRIER      = Selected.Constraints.get().needsAddressReadBarrier();
-  /** True if the VM requires read barriers on address getfield */
+  /** True if the VM requires read barriers on Address getfield */
   public static final boolean  NEEDS_ADDRESS_GETFIELD_BARRIER     = NEEDS_ADDRESS_GC_READ_BARRIER;
-  /** True if the VM requires read barriers on address arrayload */
-  public static final boolean  NEEDS_ADDRESS_ALOAD_BARRIER        = NEEDS_ADDRESS_GC_READ_BARRIER;
-  /** True if the garbage collector supports the bulk copy operation */
-  public static final boolean ADDRESS_BULK_COPY_SUPPORTED         = !(NEEDS_ADDRESS_ASTORE_BARRIER || NEEDS_ADDRESS_ALOAD_BARRIER) || Selected.Constraints.get().addressBulkCopySupported();
 
   /**
-   * Barrier for writes of addresss into fields of instances (ie putfield).
+   * Barrier for writes of Address's into fields of instances (ie putfield).
    *
    * @param ref the object which is the subject of the putfield
    * @param value the new value for the field
@@ -1074,27 +1068,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
-   *
-   * @param ref the array which is the subject of the astore
-   * @param index the index into the array where the new reference
-   * resides.  The index is the "natural" index into the array, for
-   * example a[index].
-   * @param value the value to be stored.
-   */
-  @Inline
-  @Entrypoint
-  public static void addressArrayWrite(AddressArray ref, int index, Address value) {
-    if (NEEDS_ADDRESS_GC_WRITE_BARRIER) {
-      ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
-      Selected.Mutator.get().addressWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
-    } else if (VM.VerifyAssertions)
-      VM._assert(false);
-  }
-
-  /**
-   * Barrier for loads of objects from fields of instances (ie getfield).
+   * Barrier for loads of Address's from fields of instances (ie getfield).
    *
    * @param ref the object which is the subject of the getfield
    * @param offset the offset of the field to be read
@@ -1113,42 +1087,116 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for conditional compare and exchange of Address fields.
    *
-   * @param ref the array containing the reference.
-   * @param index the index into the array were the reference resides.
-   * @return the value read from the array
+   * @param ref the object which is the subject of the compare and exchanges
+   * @param offset the offset of the field to be modified
+   * @param old the old value to swap out
+   * @param value the new value for the field
+   */
+  @Inline
+  public static boolean addressTryCompareAndSwap(Object ref, Offset offset, Address old, Address value) {
+    if (NEEDS_ADDRESS_GC_WRITE_BARRIER || NEEDS_ADDRESS_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().addressTryCompareAndSwap(src, src.toAddress().plus(offset), old, value, offset.toWord(),
+                                                          Word.zero(), // do not have location metadata
+                                                          INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+    return false;
+  }
+
+  /** True if the garbage collector requires write barriers on Extent putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_EXTENT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsExtentWriteBarrier();
+  /** True if the VM requires write barriers on Extent putfield */
+  public static final boolean  NEEDS_EXTENT_PUTFIELD_BARRIER     = NEEDS_EXTENT_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on Extent getfield or arrayload */
+  private static final boolean NEEDS_EXTENT_GC_READ_BARRIER      = Selected.Constraints.get().needsExtentReadBarrier();
+  /** True if the VM requires read barriers on Extent getfield */
+  public static final boolean  NEEDS_EXTENT_GETFIELD_BARRIER     = NEEDS_EXTENT_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of Extents into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
    */
   @Inline
   @Entrypoint
-  public static Address addressArrayRead(AddressArray ref, int index) {
-    if (NEEDS_ADDRESS_GC_READ_BARRIER) {
-      ObjectReference array = ObjectReference.fromObject(ref);
-      Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
-      return Selected.Mutator.get().addressRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+  public static void extentFieldWrite(Object ref, Extent value, Offset offset, int locationMetadata) {
+    if (NEEDS_EXTENT_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().extentWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
       VM._assert(false);
-    return Address.zero();
   }
 
   /**
-   * Barrier for a bulk copy of addresss (i.e. in an array copy).
+   * Barrier for loads of Extents from fields of instances (ie getfield).
    *
-   * @param src The source array
-   * @param srcOffset The starting source offset
-   * @param dst The destination array
-   * @param dstOffset The starting destination offset
-   * @param bytes The number of bytes to be copied
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
    */
   @Inline
-  public static void addressBulkCopy(AddressArray src, Offset srcOffset, AddressArray dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(ADDRESS_BULK_COPY_SUPPORTED);
-
-    if (!Selected.Mutator.get().addressBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
-    }
+  @Entrypoint
+  public static Extent extentFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_EXTENT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().extentRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+    return Extent.zero();
   }
 
+  /** True if the garbage collector requires write barriers on Offset putfield, arraystore or modifycheck */
+  private static final boolean NEEDS_OFFSET_GC_WRITE_BARRIER     = Selected.Constraints.get().needsOffsetWriteBarrier();
+  /** True if the VM requires write barriers on Offset putfield */
+  public static final boolean  NEEDS_OFFSET_PUTFIELD_BARRIER     = NEEDS_OFFSET_GC_WRITE_BARRIER;
+  /** True if the garbage collector requires read barriers on Offset getfield or arrayload */
+  private static final boolean NEEDS_OFFSET_GC_READ_BARRIER      = Selected.Constraints.get().needsOffsetReadBarrier();
+  /** True if the VM requires read barriers on Offset getfield */
+  public static final boolean  NEEDS_OFFSET_GETFIELD_BARRIER     = NEEDS_OFFSET_GC_READ_BARRIER;
+
+  /**
+   * Barrier for writes of Offsets into fields of instances (ie putfield).
+   *
+   * @param ref the object which is the subject of the putfield
+   * @param value the new value for the field
+   * @param offset the offset of the field to be modified
+   * @param locationMetadata an int that encodes the source location being modified
+   */
+  @Inline
+  @Entrypoint
+  public static void offsetFieldWrite(Object ref, Offset value, Offset offset, int locationMetadata) {
+    if (NEEDS_OFFSET_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().offsetWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+  }
+
+  /**
+   * Barrier for loads of Offsets from fields of instances (ie getfield).
+   *
+   * @param ref the object which is the subject of the getfield
+   * @param offset the offset of the field to be read
+   * @param locationMetadata an int that encodes the source location being read
+   * @return The value read from the field.
+   */
+  @Inline
+  @Entrypoint
+  public static Offset offsetFieldRead(Object ref, Offset offset, int locationMetadata) {
+    if (NEEDS_OFFSET_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().offsetRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(false);
+    return Offset.zero();
+  }
 
   /** True if the garbage collector requires write barriers on reference putfield, arraystore or modifycheck */
   private static final boolean NEEDS_OBJECT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsObjectReferenceWriteBarrier();
@@ -1184,7 +1232,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for writes of objects into arrays (ie astore).
+   * Barrier for writes of objects into arrays (ie aastore).
    *
    * @param ref the array which is the subject of the astore
    * @param index the index into the array where the new reference
@@ -1223,7 +1271,7 @@ public class Barriers implements org.mmtk.utility.Constants {
   }
 
   /**
-   * Barrier for loads of objects from fields of arrays (ie aload).
+   * Barrier for loads of objects from fields of arrays (ie aaload).
    *
    * @param ref the array containing the reference.
    * @param index the index into the array were the reference resides.

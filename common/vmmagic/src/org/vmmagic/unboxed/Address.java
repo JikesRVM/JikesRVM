@@ -644,6 +644,25 @@ public final class Address {
   }
 
   /**
+   * Stores the boolean value in the memory location pointed to by the
+   * current instance.
+   *
+   * @param value The boolean value to store.
+   */
+  public void store(boolean value) {
+  }
+
+  /**
+   * Stores the boolean value in the memory location pointed to by the
+   * current instance.
+   *
+   * @param value The boolean value to store.
+   * @param offset the offset to the value.
+   */
+  public void store(boolean value, Offset offset) {
+  }
+
+  /**
    * Stores the byte value in the memory location pointed to by the
    * current instance.
    *
@@ -661,7 +680,6 @@ public final class Address {
    */
   public void store(byte value, Offset offset) {
   }
-
 
   /**
    * Stores an int value in memory location pointed to by the

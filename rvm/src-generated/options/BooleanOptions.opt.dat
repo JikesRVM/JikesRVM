@@ -179,6 +179,9 @@ Inline allocation of scalars and arrays
 H2L_INLINE_WRITE_BARRIER 1 true
 Inline write barriers for generational collectors
 
+H2L_INLINE_PRIMITIVE_WRITE_BARRIER 1 true
+Inline primitive write barriers for certain collectors
+
 H2L_NO_CALLEE_EXCEPTIONS -1 false
 Assert that any callee of this compiled method will not throw exceptions. Cannot be properly set on command line.
 

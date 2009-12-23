@@ -493,8 +493,40 @@ public final class TypeReference {
    * Does 'this' refer to Word, Address, Offset or Extent
    */
   @Uninterruptible
-  public boolean isWordType() {
+  public boolean isWordLikeType() {
     return this == Word || this == Offset || this == Address || this == Extent;
+  }
+
+  /**
+   * Does 'this' refer to Word
+   */
+  @Uninterruptible
+  public boolean isWordType() {
+    return this == Word;
+  }
+
+  /**
+   * Does 'this' refer to Address
+   */
+  @Uninterruptible
+  public boolean isAddressType() {
+    return this == Address;
+  }
+
+  /**
+   * Does 'this' refer to Offset
+   */
+  @Uninterruptible
+  public boolean isOffsetType() {
+    return this == Offset;
+  }
+
+  /**
+   * Does 'this' refer to Extent
+   */
+  @Uninterruptible
+  public boolean isExtentType() {
+    return this == Extent;
   }
 
   /**
@@ -502,7 +534,7 @@ public final class TypeReference {
    */
   @Uninterruptible
   public boolean isUnboxedType() {
-    return isWordType() || isCodeType();
+    return isWordLikeType() || isCodeType();
   }
 
   /**

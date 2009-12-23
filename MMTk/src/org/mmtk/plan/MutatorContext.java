@@ -583,6 +583,29 @@ public abstract class MutatorContext implements Constants {
   }
 
   /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value.
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the value will be stored
+   * @param slot The address into which the value will be
+   * stored.
+   * @param old The old int to be swapped out
+   * @param value The new int
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occurred
+   * @return True if the swap was successful.
+   */
+  public boolean intTryCompareAndSwap(ObjectReference src, Address slot, int old, int value, Word metaDataA, Word metaDataB, int mode) {
+    // Either: write barriers are used and this is overridden, or
+    // write barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return false;
+  }
+
+  /**
    * Write a long. Take appropriate write barrier actions.<p>
    *
    * <b>By default do nothing, override if appropriate.</b>
@@ -590,7 +613,7 @@ public abstract class MutatorContext implements Constants {
    * @param src The object into which the new reference will be stored
    * @param slot The address into which the new reference will be
    * stored.
-   * @param value The value of the new int
+   * @param value The value of the new long
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
@@ -637,6 +660,29 @@ public abstract class MutatorContext implements Constants {
    */
   public boolean longBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     // Either: bulk copy is supported and this is overridden, or
+    // write barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return false;
+  }
+
+  /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value.
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the value will be stored
+   * @param slot The address into which the value will be
+   * stored.
+   * @param old The old long to be swapped out
+   * @param value The new long
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occurred
+   * @return True if the swap was successful.
+   */
+  public boolean longTryCompareAndSwap(ObjectReference src, Address slot, long old, long value, Word metaDataA, Word metaDataB, int mode) {
+    // Either: write barriers are used and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
@@ -763,14 +809,14 @@ public abstract class MutatorContext implements Constants {
   }
 
   /**
-   * Write a word. Take appropriate write barrier actions.<p>
+   * Write a Word. Take appropriate write barrier actions.<p>
    *
    * <b>By default do nothing, override if appropriate.</b>
    *
    * @param src The object into which the new reference will be stored
    * @param slot The address into which the new reference will be
    * stored.
-   * @param value The value of the new word
+   * @param value The value of the new Word
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
@@ -782,7 +828,7 @@ public abstract class MutatorContext implements Constants {
   }
 
   /**
-   * Read a word. Take appropriate read barrier action, and
+   * Read a Word. Take appropriate read barrier action, and
    * return the value that was read.<p> This is a <b>substituting<b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
@@ -791,7 +837,7 @@ public abstract class MutatorContext implements Constants {
    * @param metaDataA A value that assists the host VM in creating a load
    * @param metaDataB A value that assists the host VM in creating a load
    * @param mode The context in which the load occurred
-   * @return The word that was read.
+   * @return The Word that was read.
    */
   @Inline
   public Word wordRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
@@ -802,7 +848,7 @@ public abstract class MutatorContext implements Constants {
   }
 
   /**
-   * A number of words are about to be copied from object
+   * A number of Words are about to be copied from object
    * <code>src</code> to object <code>dst</code> (as in an array
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
@@ -823,14 +869,37 @@ public abstract class MutatorContext implements Constants {
   }
 
   /**
-   * Write an address. Take appropriate write barrier actions.<p>
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value.
    *
    * <b>By default do nothing, override if appropriate.</b>
    *
    * @param src The object into which the new reference will be stored
    * @param slot The address into which the new reference will be
    * stored.
-   * @param value The value of the new address
+   * @param old The old Word to be swapped out
+   * @param value The new Word
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occurred
+   * @return True if the swap was successful.
+   */
+  public boolean wordTryCompareAndSwap(ObjectReference src, Address slot, Word old, Word value, Word metaDataA, Word metaDataB, int mode) {
+    // Either: write barriers are used and this is overridden, or
+    // write barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return false;
+  }
+
+  /**
+   * Write an Address. Take appropriate write barrier actions.<p>
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the Word will be stored
+   * @param slot The address into which the Word will be
+   * stored.
+   * @param value The value of the new Address
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
@@ -842,7 +911,7 @@ public abstract class MutatorContext implements Constants {
   }
 
   /**
-   * Read an address. Take appropriate read barrier action, and
+   * Read an Address. Take appropriate read barrier action, and
    * return the value that was read.<p> This is a <b>substituting<b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
@@ -851,7 +920,7 @@ public abstract class MutatorContext implements Constants {
    * @param metaDataA A value that assists the host VM in creating a load
    * @param metaDataB A value that assists the host VM in creating a load
    * @param mode The context in which the load occurred
-   * @return The address that was read.
+   * @return The Address that was read.
    */
   @Inline
   public Address addressRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
@@ -862,7 +931,7 @@ public abstract class MutatorContext implements Constants {
   }
 
   /**
-   * A number of addresses are about to be copied from object
+   * A number of Addresse's are about to be copied from object
    * <code>src</code> to object <code>dst</code> (as in an array
    * copy).  Thus, <code>dst</code> is the mutated object.  Take
    * appropriate write barrier actions.<p>
@@ -876,6 +945,149 @@ public abstract class MutatorContext implements Constants {
    * left to the caller (always false in this case).
    */
   public boolean addressBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
+    // Either: bulk copy is supported and this is overridden, or
+    // write barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return false;
+  }
+
+  /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value.
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the Address will be stored
+   * @param slot The address into which the Address will be
+   * stored.
+   * @param old The old Address to be swapped out
+   * @param value The new Address
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occurred
+   * @return True if the swap was successful.
+   */
+  public boolean addressTryCompareAndSwap(ObjectReference src, Address slot, Address old, Address value, Word metaDataA, Word metaDataB, int mode) {
+    // Either: write barriers are used and this is overridden, or
+    // write barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return false;
+  }
+
+  /**
+   * Write an Extent. Take appropriate write barrier actions.<p>
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param value The value of the new Extent
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occurred
+   */
+  public void extentWrite(ObjectReference src, Address slot, Extent value, Word metaDataA, Word metaDataB, int mode) {
+    // Either: write barriers are used and this is overridden, or
+    // write barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+  }
+
+  /**
+   * Read an Extent. Take appropriate read barrier action, and
+   * return the value that was read.<p> This is a <b>substituting<b>
+   * barrier.  The call to this barrier takes the place of a load.<p>
+   *
+   * @param src The object reference holding the field being read.
+   * @param slot The address of the slot being read.
+   * @param metaDataA A value that assists the host VM in creating a load
+   * @param metaDataB A value that assists the host VM in creating a load
+   * @param mode The context in which the load occurred
+   * @return The Extent that was read.
+   */
+  @Inline
+  public Extent extentRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
+    // Either: read barriers are used and this is overridden, or
+    // read barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return Extent.zero();
+  }
+
+  /**
+   * A number of Extents are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  public boolean extentBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
+    // Either: bulk copy is supported and this is overridden, or
+    // write barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return false;
+  }
+
+  /**
+   * Write an Offset. Take appropriate write barrier actions.<p>
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param value The value of the new Offset
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occurred
+   */
+  public void offsetWrite(ObjectReference src, Address slot, Offset value, Word metaDataA, Word metaDataB, int mode) {
+    // Either: write barriers are used and this is overridden, or
+    // write barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+  }
+
+  /**
+   * Read an Offset. Take appropriate read barrier action, and
+   * return the value that was read.<p> This is a <b>substituting<b>
+   * barrier.  The call to this barrier takes the place of a load.<p>
+   *
+   * @param src The object reference holding the field being read.
+   * @param slot The address of the slot being read.
+   * @param metaDataA A value that assists the host VM in creating a load
+   * @param metaDataB A value that assists the host VM in creating a load
+   * @param mode The context in which the load occurred
+   * @return The Offset that was read.
+   */
+  @Inline
+  public Offset offsetRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
+    // Either: read barriers are used and this is overridden, or
+    // read barriers are not used and this is never called
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+    return Offset.zero();
+  }
+
+  /**
+   * A number of Offsets are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * @param src The source array
+   * @param srcOffset The starting source offset
+   * @param dst The destination array
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  public boolean offsetBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     // Either: bulk copy is supported and this is overridden, or
     // write barriers are not used and this is never called
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
@@ -1002,10 +1214,6 @@ public abstract class MutatorContext implements Constants {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return false;
   }
-
-
-
-
 
   /**
    * Flush mutator context, in response to a requestMutatorFlush.

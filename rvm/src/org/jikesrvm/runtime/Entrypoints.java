@@ -344,6 +344,26 @@ public class Entrypoints {
   public static final NormalMethod objectArrayReadBarrierMethod =
     getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectArrayRead", "([Ljava/lang/Object;I)Ljava/lang/Object;");
 
+  public static final NormalMethod wordFieldWriteBarrierMethod =
+    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "wordFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Word;Lorg/vmmagic/unboxed/Offset;I)V");
+  public static final NormalMethod wordFieldReadBarrierMethod =
+    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "wordFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Word;");
+
+  public static final NormalMethod addressFieldWriteBarrierMethod =
+    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "addressFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Address;Lorg/vmmagic/unboxed/Offset;I)V");
+  public static final NormalMethod addressFieldReadBarrierMethod =
+    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "addressFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Address;");
+
+  public static final NormalMethod offsetFieldWriteBarrierMethod =
+    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "offsetFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Lorg/vmmagic/unboxed/Offset;I)V");
+  public static final NormalMethod offsetFieldReadBarrierMethod =
+    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "offsetFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Offset;");
+
+  public static final NormalMethod extentFieldWriteBarrierMethod =
+    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "extentFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Extent;Lorg/vmmagic/unboxed/Offset;I)V");
+  public static final NormalMethod extentFieldReadBarrierMethod =
+    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "extentFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Extent;");
+
   public static final NormalMethod objectStaticWriteBarrierMethod =
     getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectStaticWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod objectStaticReadBarrierMethod =

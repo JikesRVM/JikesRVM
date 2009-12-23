@@ -970,7 +970,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
         constantPool[i+1] = ClassFileReader.packCPEntry(CP_CLASS, parameters[i].getId());
         bytecodes[curBC+6] = (byte)((i+1) >>> 8);
         bytecodes[curBC+7] = (byte)(i+1);
-      } else if (parameters[i].isWordType()) {
+      } else if (parameters[i].isWordLikeType()) {
         bytecodes[curBC+5] =
           bytecodes[curBC+6] =
           bytecodes[curBC+7] =
@@ -1035,7 +1035,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       curBC+=2;
     }
     TypeReference returnType = getReturnType();
-    if (!returnType.isPrimitiveType() || returnType.isWordType()) {
+    if (!returnType.isPrimitiveType() || returnType.isWordLikeType()) {
       bytecodes[curBC+3] = (byte)JBC_nop;
       bytecodes[curBC+4] = (byte)JBC_nop;
       bytecodes[curBC+5] = (byte)JBC_nop;

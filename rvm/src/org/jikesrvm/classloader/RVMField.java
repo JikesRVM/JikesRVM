@@ -19,6 +19,9 @@ import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 
@@ -317,6 +320,30 @@ public final class RVMField extends RVMMember {
     }
   }
 
+  public Address getAddressValueUnchecked(Object obj) {
+    if (isStatic()) {
+      return Statics.getSlotContentsAsAddress(getOffset()).toWord().toAddress();
+    } else {
+      return Magic.getAddressAtOffset(obj, getOffset());
+    }
+  }
+
+  public Offset getOffsetValueUnchecked(Object obj) {
+    if (isStatic()) {
+      return Statics.getSlotContentsAsAddress(getOffset()).toWord().toOffset();
+    } else {
+      return Magic.getOffsetAtOffset(obj, getOffset());
+    }
+  }
+
+  public Extent getExtentValueUnchecked(Object obj) {
+    if (isStatic()) {
+      return Statics.getSlotContentsAsAddress(getOffset()).toWord().toExtent();
+    } else {
+      return Magic.getExtentAtOffset(obj, getOffset());
+    }
+  }
+
   public boolean getBooleanValueUnchecked(Object obj) {
     byte bits;
     if (isStatic()) {
@@ -413,7 +440,47 @@ public final class RVMField extends RVMMember {
     if (isStatic()) {
       Statics.setSlotContents(getOffset(), ref);
     } else {
-      Magic.setWordAtOffset(obj, getOffset(), ref);
+      if (Barriers.NEEDS_WORD_PUTFIELD_BARRIER) {
+        Barriers.wordFieldWrite(obj, ref, getOffset(), getId());
+      } else {
+        Magic.setWordAtOffset(obj, getOffset(), ref);
+      }
+    }
+  }
+
+  public void setAddressValueUnchecked(Object obj, Address ref) {
+    if (isStatic()) {
+      Statics.setSlotContents(getOffset(), ref);
+    } else {
+      if (Barriers.NEEDS_ADDRESS_PUTFIELD_BARRIER) {
+        Barriers.addressFieldWrite(obj, ref, getOffset(), getId());
+      } else {
+        Magic.setAddressAtOffset(obj, getOffset(), ref);
+      }
+    }
+  }
+
+  public void setExtentValueUnchecked(Object obj, Extent ref) {
+    if (isStatic()) {
+      Statics.setSlotContents(getOffset(), ref);
+    } else {
+      if (Barriers.NEEDS_EXTENT_PUTFIELD_BARRIER) {
+        Barriers.extentFieldWrite(obj, ref, getOffset(), getId());
+      } else {
+        Magic.setExtentAtOffset(obj, getOffset(), ref);
+      }
+    }
+  }
+
+  public void setOffsetValueUnchecked(Object obj, Offset ref) {
+    if (isStatic()) {
+      Statics.setSlotContents(getOffset(), ref);
+    } else {
+      if (Barriers.NEEDS_OFFSET_PUTFIELD_BARRIER) {
+        Barriers.offsetFieldWrite(obj, ref, getOffset(), getId());
+      } else {
+        Magic.setOffsetAtOffset(obj, getOffset(), ref);
+      }
     }
   }
 
@@ -421,7 +488,11 @@ public final class RVMField extends RVMMember {
     if (isStatic()) {
       Statics.setSlotContents(getOffset(), b ? 1 : 0);
     } else {
-      Magic.setByteAtOffset(obj, getOffset(), b ? (byte) 1 : (byte) 0);
+      if (Barriers.NEEDS_BOOLEAN_PUTFIELD_BARRIER) {
+        Barriers.booleanFieldWrite(obj, b, getOffset(), getId());
+      } else {
+        Magic.setBooleanAtOffset(obj, getOffset(), b);
+      }
     }
   }
 
@@ -429,7 +500,11 @@ public final class RVMField extends RVMMember {
     if (isStatic()) {
       Statics.setSlotContents(getOffset(), b);
     } else {
-      Magic.setByteAtOffset(obj, getOffset(), b);
+      if (Barriers.NEEDS_BYTE_PUTFIELD_BARRIER) {
+        Barriers.byteFieldWrite(obj, b, getOffset(), getId());
+      } else {
+        Magic.setByteAtOffset(obj, getOffset(), b);
+      }
     }
   }
 
@@ -437,7 +512,11 @@ public final class RVMField extends RVMMember {
     if (isStatic()) {
       Statics.setSlotContents(getOffset(), c);
     } else {
-      Magic.setCharAtOffset(obj, getOffset(), c);
+      if (Barriers.NEEDS_CHAR_PUTFIELD_BARRIER) {
+        Barriers.charFieldWrite(obj, c, getOffset(), getId());
+      } else {
+        Magic.setCharAtOffset(obj, getOffset(), c);
+      }
     }
   }
 
@@ -445,39 +524,59 @@ public final class RVMField extends RVMMember {
     if (isStatic()) {
       Statics.setSlotContents(getOffset(), i);
     } else {
-      Magic.setCharAtOffset(obj, getOffset(), (char) i);
+      if (Barriers.NEEDS_SHORT_PUTFIELD_BARRIER) {
+        Barriers.shortFieldWrite(obj, i, getOffset(), getId());
+      } else {
+        Magic.setShortAtOffset(obj, getOffset(), i);
+      }
     }
   }
 
   public void setIntValueUnchecked(Object obj, int i) {
-    put32(obj, i);
-  }
-
-  public void setFloatValueUnchecked(Object obj, float f) {
-    put32(obj, Magic.floatAsIntBits(f));
-  }
-
-  public void setLongValueUnchecked(Object obj, long l) {
-    put64(obj, l);
-  }
-
-  public void setDoubleValueUnchecked(Object obj, double d) {
-    put64(obj, Magic.doubleAsLongBits(d));
-  }
-
-  private void put32(Object obj, int value) {
     if (isStatic()) {
-      Statics.setSlotContents(getOffset(), value);
+      Statics.setSlotContents(getOffset(), i);
     } else {
-      Magic.setIntAtOffset(obj, getOffset(), value);
+      if (Barriers.NEEDS_INT_PUTFIELD_BARRIER) {
+        Barriers.intFieldWrite(obj, i, getOffset(), getId());
+      } else {
+        Magic.setIntAtOffset(obj, getOffset(), i);
+      }
     }
   }
 
-  private void put64(Object obj, long value) {
+  public void setFloatValueUnchecked(Object obj, float f) {
     if (isStatic()) {
-      Statics.setSlotContents(getOffset(), value);
+      Statics.setSlotContents(getOffset(), f);
     } else {
-      Magic.setLongAtOffset(obj, getOffset(), value);
+      if (Barriers.NEEDS_FLOAT_PUTFIELD_BARRIER) {
+        Barriers.floatFieldWrite(obj, f, getOffset(), getId());
+      } else {
+        Magic.setFloatAtOffset(obj, getOffset(), f);
+      }
+    }
+  }
+
+  public void setLongValueUnchecked(Object obj, long l) {
+    if (isStatic()) {
+      Statics.setSlotContents(getOffset(), l);
+    } else {
+      if (Barriers.NEEDS_LONG_PUTFIELD_BARRIER) {
+        Barriers.longFieldWrite(obj, l, getOffset(), getId());
+      } else {
+        Magic.setLongAtOffset(obj, getOffset(), l);
+      }
+    }
+  }
+
+  public void setDoubleValueUnchecked(Object obj, double d) {
+    if (isStatic()) {
+      Statics.setSlotContents(getOffset(), d);
+    } else {
+      if (Barriers.NEEDS_DOUBLE_PUTFIELD_BARRIER) {
+        Barriers.doubleFieldWrite(obj, d, getOffset(), getId());
+      } else {
+        Magic.setDoubleAtOffset(obj, getOffset(), d);
+      }
     }
   }
 }

@@ -589,6 +589,38 @@ public class Statics implements Constants {
   }
 
   /**
+   * Set contents of a slot, as an float.
+   */
+  @Uninterruptible
+  public static void setSlotContents(Offset offset, float value) {
+    if (VM.runningVM) {
+      Magic.setFloatAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
+    } else {
+      slots[offsetAsSlot(offset)] = Magic.floatAsIntBits(value);
+    }
+  }
+
+  /**
+   * Set contents of a slot, as a double.
+   */
+  @Uninterruptible
+  public static void setSlotContents(Offset offset, double value) {
+    if (VM.runningVM) {
+      Magic.setDoubleAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
+    } else {
+      int slot = offsetAsSlot(offset);
+      long value64bits = Magic.doubleAsLongBits(value);
+      if (VM.LittleEndian) {
+        slots[slot + 1] = (int) (value64bits >>> BITS_IN_INT); // hi
+        slots[slot] = (int) (value64bits); // lo
+      } else {
+        slots[slot] = (int) (value64bits >>> BITS_IN_INT); // hi
+        slots[slot + 1] = (int) (value64bits); // lo
+      }
+    }
+  }
+
+  /**
    * Set contents of a slot, as a long integer.
    */
   @Uninterruptible
@@ -658,6 +690,54 @@ public class Statics implements Constants {
         setSlotContents(offset, word.toInt());
       } else {
         setSlotContents(offset, word.toLong());
+      }
+    }
+  }
+
+  /**
+   * Set contents of a slot, as a Address
+   */
+  @Uninterruptible
+  public static void setSlotContents(Offset offset, Address value) {
+    if (VM.runningVM) {
+      Magic.setAddressAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
+    } else {
+      if (VM.BuildFor32Addr) {
+        setSlotContents(offset, value.toInt());
+      } else {
+        setSlotContents(offset, value.toLong());
+      }
+    }
+  }
+
+  /**
+   * Set contents of a slot, as a Extent
+   */
+  @Uninterruptible
+  public static void setSlotContents(Offset offset, Extent value) {
+    if (VM.runningVM) {
+      Magic.setExtentAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
+    } else {
+      if (VM.BuildFor32Addr) {
+        setSlotContents(offset, value.toInt());
+      } else {
+        setSlotContents(offset, value.toLong());
+      }
+    }
+  }
+
+  /**
+   * Set contents of a slot, as a Offset
+   */
+  @Uninterruptible
+  public static void setSlotContents(Offset offset, Offset value) {
+    if (VM.runningVM) {
+      Magic.setOffsetAtOffset(slots, offset.plus(middleOfTable << LOG_BYTES_IN_INT), value);
+    } else {
+      if (VM.BuildFor32Addr) {
+        setSlotContents(offset, value.toInt());
+      } else {
+        setSlotContents(offset, value.toLong());
       }
     }
   }
