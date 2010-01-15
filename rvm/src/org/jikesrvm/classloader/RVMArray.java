@@ -1175,12 +1175,12 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     // perform the copy
     while (len-- != 0) {
       Object value;
-      if (NEEDS_OBJECT_GETFIELD_BARRIER) {
+      if (NEEDS_OBJECT_ALOAD_BARRIER) {
         value = Barriers.objectArrayRead(src, srcOffset.toInt() >> LOG_BYTES_IN_ADDRESS);
       } else {
         value = Magic.getObjectAtOffset(src, srcOffset);
       }
-      if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
+      if (NEEDS_OBJECT_ASTORE_BARRIER) {
         Barriers.objectArrayWrite(dst, dstOffset.toInt() >> LOG_BYTES_IN_ADDRESS, value);
       } else {
         Magic.setObjectAtOffset(dst, dstOffset, value);
@@ -1205,24 +1205,15 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * @param len The number of array elements to be copied
    */
   private static void arraycopyPiecemeal(Object[] src, int srcIdx, Object[] dst, int dstIdx, int len) {
-    // must perform copy in correct order
-    if ((src != dst) || srcIdx > dstIdx) {
-      // non-overlapping case: straightforward
+    if ((src != dst) || srcIdx >= dstIdx) {
       while (len-- != 0) {
         dst[dstIdx++] = src[srcIdx++];
       }
     } else {
-      // the arrays overlap: must use temp array
-      RVMArray ary = Magic.getObjectType(src).asArray();
-      Object[] temp = (Object[]) RuntimeEntrypoints.resolvedNewArray(len, ary);
-      int cnt = len;
-      int tempIdx = 0;
-      while (cnt-- != 0) {
-        temp[tempIdx++] = src[srcIdx++];
-      }
-      tempIdx = 0;
+      srcIdx += len;
+      dstIdx += len;
       while (len-- != 0) {
-        dst[dstIdx++] = temp[tempIdx++];
+        dst[--dstIdx] = src[--srcIdx];
       }
     }
   }
