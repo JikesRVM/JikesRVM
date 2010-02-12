@@ -1024,7 +1024,6 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   public static boolean mightBeTIB(ObjectReference obj) {
     return !obj.isNull() &&
            Space.isMappedObject(obj) &&
-           Space.isImmortal(obj) &&
            Space.isMappedObject(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
   }
 
