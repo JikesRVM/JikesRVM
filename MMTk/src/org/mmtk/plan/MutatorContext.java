@@ -118,13 +118,13 @@ public abstract class MutatorContext implements Constants {
   protected final LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
 
   /** Per-mutator allocator into the small code space */
-  private final MarkSweepLocal smcode = Plan.USE_CODE_SPACE ? new MarkSweepLocal(Plan.smallCodeSpace) : null;
+  protected final MarkSweepLocal smcode = Plan.USE_CODE_SPACE ? new MarkSweepLocal(Plan.smallCodeSpace) : null;
 
   /** Per-mutator allocator into the large code space */
-  private final LargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new LargeObjectLocal(Plan.largeCodeSpace) : null;
+  protected final LargeObjectLocal lgcode = Plan.USE_CODE_SPACE ? new LargeObjectLocal(Plan.largeCodeSpace) : null;
 
   /** Per-mutator allocator into the non moving space */
-  private final MarkSweepLocal nonmove = new MarkSweepLocal(Plan.nonMovingSpace);
+  protected final MarkSweepLocal nonmove = new MarkSweepLocal(Plan.nonMovingSpace);
 
 
   /****************************************************************************
