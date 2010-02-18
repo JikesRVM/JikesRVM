@@ -42,7 +42,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   *
   * Class variables
   */
-  protected static final boolean LAZY_SWEEP = false;
+  protected static final boolean LAZY_SWEEP = true;
   private static final boolean COMPACT_SIZE_CLASSES = false;
   protected static final int MIN_CELLS = 6;
   protected static final int MAX_CELLS = 99; // (1<<(INUSE_BITS-1))-1;
