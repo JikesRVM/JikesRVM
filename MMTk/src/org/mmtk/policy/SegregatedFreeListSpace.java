@@ -42,7 +42,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   *
   * Class variables
   */
-  protected static final boolean LAZY_SWEEP = true;
+  protected static final boolean LAZY_SWEEP = false;
   private static final boolean COMPACT_SIZE_CLASSES = false;
   protected static final int MIN_CELLS = 6;
   protected static final int MAX_CELLS = 99; // (1<<(INUSE_BITS-1))-1;
@@ -536,7 +536,13 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    */
   protected final void consumeBlocks() {
     for (int sizeClass = 0; sizeClass < sizeClassCount(); sizeClass++) {
-      while (!getAllocationBlock(sizeClass, null).isZero());
+      while (!availableBlockHead.get(sizeClass).isZero()) {
+        Address block = availableBlockHead.get(sizeClass);
+        availableBlockHead.set(sizeClass, BlockAllocator.getNext(block));
+        advanceToBlock(block, sizeClass);
+        BlockAllocator.setNext(block, consumedBlockHead.get(sizeClass));
+        consumedBlockHead.set(sizeClass, block);
+      }
     }
   }
 
