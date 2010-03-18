@@ -83,7 +83,7 @@ public class StickyMS extends MS {
    * Static initialization
    */
   {
-    msSpace.isAgeSegregatedSpace();  /* this space is to be collected generationally */
+    msSpace.makeAgeSegregatedSpace();  /* this space is to be collected generationally */
   }
 
   /*****************************************************************************

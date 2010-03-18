@@ -105,7 +105,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * This instance will be age-segregated using the sticky mark bits
    * algorithm. Perform appropriate initialization
    */
-  public void isAgeSegregatedSpace() {
+  public void makeAgeSegregatedSpace() {
     /* we must be using sticky mark bits */
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(usingStickyMarkBits);
     allocState &= ~HeaderByte.UNLOGGED_BIT; /* clear the unlogged bit for nursery allocs */
