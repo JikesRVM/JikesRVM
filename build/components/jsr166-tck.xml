@@ -15,11 +15,11 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
-  <property name="jsr166-tck.version" value="jsr166"/>
+  <property name="jsr166-tck.version" value="2006-12-22"/>
   <property name="jsr166-tck.description" value="jsr166 TCK"/>
 
-  <property name="jsr166-tck.package.dir" value="${components.dir}/jsr166-tck"/>
-  <property name="jsr166-tck.dir" location="${jsr166-tck.package.dir}/tck"/>
+  <property name="jsr166-tck.package.dir" value="${components.dir}/jsr166-tck/${jsr166-tck.version}"/>
+  <property name="jsr166-tck.dir" location="${jsr166-tck.package.dir}/jsr166/src/test/tck"/>
 
   <target name="init-jsr166-tck-properties" depends="prepare-ant-tasks">
     <condition property="jsr166-tck.from-web" value="true">
@@ -35,11 +35,10 @@
   <target name="fetch" depends="init-jsr166-tck-properties" if="jsr166-tck.from-web">
     <property name="jsr166-tck.web-archive" value="jsr166-tck.tar.gz"/>
     <mkdir dir="${jsr166-tck.package.dir}"/>
-    <cachedGet key="jsr166-tck.tar.gz"
-         src="http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/test/tck.tar.gz?view=tar"
-         dest="${jsr166-tck.package.dir}/${jsr166-tck.web-archive}"/>
-    <mkdir dir="${jsr166-tck.dir}"/>
-    <untar src="${jsr166-tck.package.dir}/${jsr166-tck.web-archive}" compression="gzip" dest="${jsr166-tck.package.dir}"/>
+    <cvs cvsRoot=":pserver:anonymous@gee.cs.oswego.edu/home/jsr166/jsr166"
+         package="jsr166/src/test/tck"
+         dest="${jsr166-tck.package.dir}"
+         date="2006-12-22"/>
     <writeComponentConstants dir="${jsr166-tck.dir}"/>
   </target>
 
