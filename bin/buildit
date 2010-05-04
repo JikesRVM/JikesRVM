@@ -464,7 +464,7 @@ if ($#gcs == -1 && $test_set && $compiler eq "") {
   @gcs = split(" ", $baseconfigs);
 }
 if ($#gcs == -1) {
-  if ($eclipse && $compile eq "") {
+  if ($eclipse && $compiler eq "") {
     $compiler = "production";
   }
   if ($compiler ne "") {
