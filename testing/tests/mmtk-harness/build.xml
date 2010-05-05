@@ -1,0 +1,170 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="mmtk" default="test">
+
+  <import file="../../../build/tests.xml"/>
+
+  <!-- Unused at the moment -->
+  <property name="test.time.limit" value="300"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            External components                           * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- The MMTk harness JAR file -->
+  <property name="build.mmtk-harness.jar" location="${jikesrvm.dir}/target/mmtk/mmtk-harness.jar"/>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Internal locations/properties                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <!-- Where we put the class files we generate -->
+  <property name="build.classes" location="${build.tests.dir}/classes"/>
+  <property name="test.class.path" location="${build.classes}"/>
+  <property name="test.script.path" location="${jikesrvm.dir}/MMTk/harness/test-scripts"/>
+  <property name="mmtk.junit.tests" location="${build.classes}/mmtk/harness/test"/>
+
+  <target name="ensure-mmtk-harness">
+    <ant antfile="build.xml" dir="${jikesrvm.dir}" target="mmtk-harness"/>
+    <echo message="${build.mmtk-harness.jar}"/>
+  </target>
+
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                            Run the tests                                 * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <macrodef name="runTest">
+    <attribute name="script"/>
+    <attribute name="tag"/>
+    <attribute name="plan" default="org.mmtk.plan.nogc.NoGC"/>
+    <attribute name="heap" default="3m"/>
+    <attribute name="scheduler" default="JAVA"/>
+    <attribute name="gcevery" default="NONE"/>
+    <attribute name="collectors" default="2"/>
+    <attribute name="bits" default="32"/>
+    <sequential>
+      <property name="test.@{tag}.@{script}.output.file" value="${output.dir}/@{tag}.@{script}.txt"/>
+
+      <outputMultiExecutionTestStart tag="@{tag}"/>
+      <outputExecutionStart tag="@{tag}" execution="@{script}"/>
+      <java classname="org.mmtk.harness.Main" fork="true"
+          output="${test.@{tag}.@{script}.output.file}">
+        <classpath>
+          <pathelement location="${build.mmtk-harness.jar}"/>
+        </classpath>
+        <arg value="${test.script.path}/@{script}.script"/>
+        <arg value="initHeap=@{heap}"/>
+	    <arg value="scheduler=@{scheduler}"/>
+	    <arg value="plan=@{plan}"/>
+	    <arg value="gcEvery=@{gcevery}"/>
+        <arg value="collectors=@{collectors}"/>
+        <arg value="bits=@{bits}"/>
+      </java>
+      <findStatistic tag="@{tag}" file="${test.@{tag}.@{script}.output.file}" execution="@{script}" pattern="SUCCESS" key="success"/>
+      <outputExecutionResults tag="@{tag}" execution="@{script}"/>
+      <outputExecutionEnd/>
+      <outputMultiExecutionTestEnd/>
+      <!-- <outputResults tag="@{tag}"/> -->
+      <displayExecutionResults tag="@{tag}" execution="@{script}"/>
+    </sequential>
+  </macrodef>
+    
+  <macrodef name="runAllScripts">
+    <attribute name="tag"/>
+    <attribute name="plan"/>
+    <sequential>
+      <runTest tag="@{tag}" plan="@{plan}" script="Alignment"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="Concurrent1"/>      
+      <runTest tag="@{tag}" plan="@{plan}" script="Concurrent2"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="CyclicGarbage"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="FixedLive"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="HashCode"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="LargeObject"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="Lists"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="OutOfMemory"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="Quicksort"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="ReferenceTypes"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="Spawn"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="SpreadAlloc16" heap="16m"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="SpreadAlloc"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="runFastScripts">
+    <attribute name="tag"/>
+    <attribute name="plan"/>
+    <sequential>
+      <runTest tag="@{tag}" plan="@{plan}" script="Alignment"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="Concurrent1"/>      
+      <runTest tag="@{tag}" plan="@{plan}" script="Concurrent2"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="CyclicGarbage"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="HashCode"/>
+  	  <runTest tag="@{tag}" plan="@{plan}" script="LargeObject"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="OutOfMemory"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="ReferenceTypes"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="Spawn"/>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="runMtScripts">
+    <attribute name="tag"/>
+    <attribute name="plan"/>
+    <sequential>
+      <runTest tag="@{tag}" plan="@{plan}" script="Concurrent1" collectors="8"/>      
+      <runTest tag="@{tag}" plan="@{plan}" script="Concurrent2" collectors="8"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="Spawn" collectors="4"/>
+      <runTest tag="@{tag}" plan="@{plan}" script="SpreadAlloc16" heap="16m" collectors="32"/>
+    </sequential>
+  </macrodef>
+
+  <target name="test" depends="prepare-ant-tasks,ensure-mmtk-harness,init">
+    <startResults/>
+
+    <!-- Run all scripts on the main collectors -->
+    <runAllScripts tag="GenImmix" plan="org.mmtk.plan.generational.immix.GenImmix"/>
+    <runAllScripts tag="GenMS" plan="org.mmtk.plan.generational.marksweep.GenMS"/>
+    <runAllScripts tag="GenCopy" plan="org.mmtk.plan.generational.copying.GenCopy"/>
+    <runAllScripts tag="SemiSpace" plan="org.mmtk.plan.semispace.SS"/>
+    <runAllScripts tag="MarkSweep" plan="org.mmtk.plan.marksweep.MS"/>
+    <runAllScripts tag="Immix" plan="org.mmtk.plan.immix.Immix"/>
+    <runAllScripts tag="Poisoned" plan="org.mmtk.plan.poisoned.Poisoned"/>
+
+    <!-- Run the faster scripts on the less mainstream collectors -->
+    <runFastScripts tag="CopyMS-fast"      plan="org.mmtk.plan.marksweep.MS"/>
+    <runFastScripts tag="RC-fast"          plan="org.mmtk.plan.refcount.fullheap.RC"/>
+    <runFastScripts tag="GenRC-fast"       plan="org.mmtk.plan.refcount.generational.GenRC"/>
+    <runFastScripts tag="MC-fast"          plan="org.mmtk.plan.markcompact.MC"/>
+    <runFastScripts tag="StickyImmix-fast" plan="org.mmtk.plan.stickyimmix.StickyImmix"/>
+    <runFastScripts tag="StickyMS-fast"    plan="org.mmtk.plan.stickyms.StickyMS"/>
+    
+    <!-- Run the multithreaded scripts on selected collectors -->
+    <runMtScripts tag="GenImmix-mt"    plan="org.mmtk.plan.generational.immix.GenImmix"/>
+    <runMtScripts tag="GenMS-mt" plan="org.mmtk.plan.generational.marksweep.GenMS"/>
+    <runMtScripts tag="SemiSpace-mt" plan="org.mmtk.plan.semispace.SS"/>
+    <runMtScripts tag="MarkSweep-mt" plan="org.mmtk.plan.marksweep.MS"/>
+    <runMtScripts tag="Immix-mt" plan="org.mmtk.plan.immix.Immix"/>
+    
+    <!-- Run the multithreaded scripts on selected collectors using the deterministic scheduler -->
+    <runMtScripts tag="GenImmix-dt"    plan="org.mmtk.plan.generational.immix.GenImmix"/>
+    <runMtScripts tag="GenMS-dt" plan="org.mmtk.plan.generational.marksweep.GenMS"/>
+    <finishResults/>
+  </target>
+
+</project>
