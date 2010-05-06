@@ -161,6 +161,24 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
+   * Attempt an atomic compare and exchange in a write barrier sequence.
+   *
+   * @param objref The object that has the int field
+   * @param old The old int to be swapped out
+   * @param value the new int
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return True if the compare and swap was successful
+   */
+  @Override
+  public boolean intTryCompareAndSwap(ObjectReference objref, int old,
+      int value, Word metaDataA, Word metaDataB, int mode) {
+    // TODO - implement
+    throw new UnsupportedOperationException();
+  }
+
+  /**
    * Perform the actual write of a long write barrier.
    *
    * @param ref The object that has the reference field
@@ -186,6 +204,24 @@ public class Barriers extends org.mmtk.vm.Barriers {
   @Override
   public long longRead(ObjectReference ref, Word slot, Word unused, int mode) {
     return slot.toAddress().loadLong();
+  }
+
+  /**
+   * Attempt an atomic compare and exchange in a write barrier sequence.
+   *
+   * @param objref The object that has the long field
+   * @param old The old long to be swapped out
+   * @param value the new long
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return True if the compare and swap was successful
+   */
+  @Override
+  public boolean longTryCompareAndSwap(ObjectReference objref, long old,
+      long value, Word metaDataA, Word metaDataB, int mode) {
+    // TODO - implement
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -363,7 +399,6 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * Attempt an atomic compare and exchange in a write barrier sequence.
    *
    * @param ref The object that has the reference field
-   * @param slot The slot that holds the reference
    * @param old The old reference to be swapped out
    * @param target The value that the slot will be updated to
    * @param slot The address to be written to
@@ -388,7 +423,122 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public Word wordRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    assert unused == null;
     return slot.toAddress().loadWord();
+  }
+
+  /**
+   * Perform the actual write of the write barrier, writing the value as a raw Address.
+   *
+   * @param ref The object that has the Address field
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void addressWrite(ObjectReference ref, Address target, Word metaDataA,
+      Word metaDataB, int mode) {
+    // TODO - implement
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Perform the actual read of the read barrier, returning the value as a raw Address.
+   *
+   * @param ref The object that has the Address field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public Address addressRead(ObjectReference ref, Word metaDataA,
+      Word metaDataB, int mode) {
+    // TODO - implement
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Attempt an atomic compare and exchange in a write barrier sequence.
+   *
+   * @param ref The object that has the Address field
+   * @param old The old address to be swapped out
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return True if the compare and swap was successful
+   */
+  @Override
+  public boolean addressTryCompareAndSwap(ObjectReference ref, Address old,
+      Address target, Word metaDataA, Word metaDataB, int mode) {
+    // TODO - implement
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Perform the actual write of the write barrier, writing the value as a raw Offset.
+   *
+   * @param ref The object that has the Offset field
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void offsetWrite(ObjectReference ref, Offset target, Word metaDataA,
+      Word metaDataB, int mode) {
+    // TODO - implement
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Perform the actual read of the read barrier, returning the value as a raw Offset.
+   *
+   * @param ref The object that has the Offset field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public Offset offsetRead(ObjectReference ref, Word metaDataA, Word metaDataB,
+      int mode) {
+    // TODO - implement
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Perform the actual write of the write barrier, writing the value as a raw Extent.
+   *
+   * @param ref The object that has the Extent field
+   * @param target The value that the slot will be updated to
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   */
+  @Override
+  public void extentWrite(ObjectReference ref, Extent target, Word metaDataA,
+      Word metaDataB, int mode) {
+    // TODO - implement
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Perform the actual read of the read barrier, returning the value as a raw Extent.
+   *
+   * @param ref The object that has the Extent field
+   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
+   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param mode The context in which the write is occurring
+   * @return the read value
+   */
+  @Override
+  public Extent extentRead(ObjectReference ref, Word metaDataA, Word metaDataB,
+      int mode) {
+    // TODO - implement
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -405,4 +555,5 @@ public class Barriers extends org.mmtk.vm.Barriers {
   public void objectArrayStoreNoGCBarrier(Object [] dst, int index, Object value) {
     dst[index] = value;
   }
+
 }
