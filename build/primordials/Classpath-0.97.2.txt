@@ -571,3 +571,12 @@ Lgnu/java/net/protocol/file/Connection;
 Lgnu/java/net/protocol/file/Connection$StaticData;
 Ljava/io/FilePermission;
 Lgnu/java/nio/charset/EncodingHelper;
+
+# Needed to resolve RVM-887
+Lgnu/java/lang/CPStringBuilder;
+Lgnu/java/util/jar/JarUtils;
+Ljava/io/ByteArrayOutputStream;
+Lgnu/java/util/regex/RETokenAny;
+Lgnu/java/util/regex/RETokenRepeated;
+Lgnu/java/util/regex/RETokenWordBoundary;
+Ljava/security/MessageDigest;
