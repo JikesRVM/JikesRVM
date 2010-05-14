@@ -141,9 +141,8 @@ import org.vmmagic.unboxed.ObjectReference;
 
     /* Loop through active regions or until the last region */
     Address start = initialRegion;
-    Address allocStart = initialRegion;
-    Address allocDataEnd = initialRegion.plus(DATA_END_OFFSET).loadAddress();
-    Address allocLimit = (allocDataEnd.isZero() ? cursor : allocDataEnd);
+    Address currentRegion = initialRegion;
+    Address allocLimit = initialRegion.plus(REGION_LIMIT_OFFSET).loadAddress();
     Address allocCursor = start.plus(DATA_START_OFFSET);
 
     while (!start.isZero()) {
@@ -167,13 +166,12 @@ import org.vmmagic.unboxed.ObjectReference;
           int offset = VM.objectModel.getAlignOffsetWhenCopied(current);
           allocCursor = Allocator.alignAllocationNoFill(allocCursor, align, offset);
 
-          boolean sameRegion = allocStart.EQ(start);
+          boolean sameRegion = currentRegion.EQ(start);
 
           if (!sameRegion && allocCursor.plus(size).GE(allocLimit)) {
-            allocStart = allocStart.plus(NEXT_REGION_OFFSET).loadAddress();
-            allocDataEnd = allocStart.plus(DATA_END_OFFSET).loadAddress();
-            allocLimit = (allocDataEnd.isZero() ? cursor : allocDataEnd);
-            allocCursor = Allocator.alignAllocationNoFill(allocStart.plus(DATA_START_OFFSET), align, offset);
+            currentRegion = currentRegion.plus(NEXT_REGION_OFFSET).loadAddress();
+            allocLimit = currentRegion.plus(REGION_LIMIT_OFFSET).loadAddress();
+            allocCursor = Allocator.alignAllocationNoFill(currentRegion.plus(DATA_START_OFFSET), align, offset);
           }
 
           ObjectReference target = VM.objectModel.getReferenceWhenCopiedTo(current, allocCursor);

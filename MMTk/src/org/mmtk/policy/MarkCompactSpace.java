@@ -12,6 +12,7 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
@@ -100,6 +101,13 @@ import org.vmmagic.pragma.*;
    */
   public void reusePages(int pages) {
     ((MonotonePageResource) pr).reusePages(pages);
+
+    /*
+     * Because we reuse pages, we need to duplicate GC accounting that would normally occur
+     * in Space.acquire()
+     */
+    boolean allowPoll = !Plan.gcInProgress() && Plan.isInitialized() && !VM.collection.isEmergencyAllocation();
+    if (allowPoll) VM.collection.reportAllocationSuccess();
   }
 
   /**
