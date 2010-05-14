@@ -35,6 +35,41 @@ public final class SimulatedMemory {
   static final PageTable pageTable = new PageTable();
 
   /**
+   * @param addr address
+   * @return {@code true} is the address is aligned to a page boundary
+   */
+  private static boolean isPageAligned(Address addr) {
+    return addr.toWord().and(Word.fromIntSignExtend(~PAGE_MASK)).EQ(Word.zero());
+  }
+
+  /**
+   * Align an address downward to the nearest multiple of modulus.
+   * @param addr An address
+   * @param modulus A power of 2
+   * @return addr rounded down accordingly
+   */
+  private static Address alignDown(Address addr, int modulus) {
+    Word mask = Word.fromIntSignExtend(modulus-1).not();
+    return addr.toWord().and(mask).toAddress();
+  }
+
+  /**
+   * Are two addresses on the same page ?
+   * @param addr1
+   * @param addr2
+   * @return
+   */
+  static boolean onSamePage(Address addr1, Address addr2) {
+    return addr2.toWord().xor(addr1.toWord()).LT(Word.fromIntSignExtend(BYTES_IN_PAGE));
+  }
+
+  /************************************************************************************
+  *
+  *                Watch points
+  *
+  */
+
+  /**
    * Watch mutations to an address (watches 4 byte values)
    * @param watchAddress Address to watch
    */
@@ -56,13 +91,34 @@ public final class SimulatedMemory {
   }
 
   /**
-   * Are two addresses on the same page ?
-   * @param addr1
-   * @param addr2
-   * @return
+   * @param alignedAddress An address, aligned to a word boundary
+   * @return {@code true} if the address is in the current watch set
    */
-  static boolean onSamePage(Address addr1, Address addr2) {
-    return addr2.toWord().xor(addr1.toWord()).LT(Word.fromIntSignExtend(BYTES_IN_PAGE));
+  public static boolean isWatched(Address alignedAddress) {
+    return watches.contains(alignedAddress);
+  }
+
+  /**
+   * @param watchAddress Base address
+   * @param bytes Size of region
+   * @return {@code true} if any address in the given range is being watched
+   */
+  public static boolean isWatched(Address watchAddress, int bytes) {
+    Address base = alignDown(watchAddress,BYTES_IN_INT);
+    Address cursor = base;
+    Address limit = base.plus(bytes);
+    if (onSamePage(base,limit) && !getPage(cursor).hasWatches())
+      return false;
+    while (cursor.LT(limit)) {
+      if (getPage(cursor).hasWatches()) {
+        if (isWatched(cursor))
+          return true;
+        cursor = cursor.plus(BYTES_IN_INT);
+      } else {
+        cursor = alignDown(cursor,BYTES_IN_PAGE).plus(BYTES_IN_PAGE);
+      }
+    }
+    return false;
   }
 
   /**
@@ -72,6 +128,7 @@ public final class SimulatedMemory {
    * @return
    */
   private static MemoryPage getPage(Address address) {
+    Clock.tick();
     Scheduler.yield();
     if (address.isZero()) {
       throw new RuntimeException("Attempted to dereference a null address");
@@ -139,7 +196,7 @@ public final class SimulatedMemory {
       case BITS64:
         return ArchitecturalWord.fromLong(getLong(address));
     }
-    throw new RuntimeException("ArchitecturalWord.model is neither 32 or 64 bits");
+    throw new AssertionError("ArchitecturalWord.model is neither 32 or 64 bits");
   }
 
   /**
@@ -230,6 +287,18 @@ public final class SimulatedMemory {
    */
   public static boolean exchangeInt(Address address, int oldValue, int value) {
     return getPage(address).exchangeInt(address, oldValue, value);
+  }
+
+  /**
+   * Atomic compare-and-swap operation
+   *
+   * @param address Address to swap
+   * @param oldValue Expected value of (address)
+   * @param value The new value
+   * @return Whether the exchange succeeded
+   */
+  public static boolean exchangeLong(Address address, long oldValue, long value) {
+    return getPage(address).exchangeLong(address, oldValue, value);
   }
 
   /**
@@ -340,12 +409,46 @@ public final class SimulatedMemory {
   }
 
   /**
+   * Zero a region of memory.
+   * @param start Start of address range (inclusive)
+   * @param size Length in bytes of range to zero
+   * Returned: nothing
+   */
+  public static void zeroNew(Address start, int size) {
+    Trace.trace(Item.MEMORY,"zero(%s,%d)\n", start.toString(), size);
+    assert (size % BYTES_IN_WORD == 0) : "Must zero word rounded bytes";
+    Address base = start;
+    final Address limit = start.plus(size);
+    if (!isPageAligned(base)) {
+      Address nextPage = alignDown(base,BYTES_IN_PAGE).plus(BYTES_IN_PAGE);
+      zeroIntraPage(base,nextPage);
+      base = nextPage;
+      if (base.GE(limit))
+        return;
+    }
+    final Address lastPage = alignDown(limit,BYTES_IN_PAGE);
+    zeroPages(base,lastPage.diff(base).toInt());
+    if (lastPage.LT(limit)) {
+      zeroIntraPage(lastPage,limit);
+    }
+  }
+
+  private static void zeroIntraPage(Address base, Address limit) {
+    MemoryPage page = getPage(base);
+    for(Address addr=base; addr.LT(limit); addr = addr.plus(BYTES_IN_INT)) {
+      page.setInt(addr, 0);
+    }
+  }
+
+
+  /**
    * Zero a range of pages of memory.
    * @param start Start of address range (must be a page address)
    * @param size Length in bytes of range (must be multiple of page size)
    */
   public static void zeroPages(Address start, int size) {
-    assert start.toWord().and(Word.fromIntSignExtend(~PAGE_MASK)).EQ(Word.zero());
+    assert isPageAligned(start);
+    assert (size > 0) && ((size & ~PAGE_MASK) == 0);
     Trace.trace(Item.MEMORY,"zeroPages(%s,%d)\n", start.toString(), size);
     Address last = start.plus(size);
     for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {

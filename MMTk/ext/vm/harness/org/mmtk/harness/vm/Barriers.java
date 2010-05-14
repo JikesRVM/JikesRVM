@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.vm;
 
+import org.mmtk.harness.sanity.Sanity;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
@@ -31,6 +32,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void booleanWrite(ObjectReference ref, boolean value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store((byte) (value ? 1 : 0));
   }
 
@@ -45,6 +48,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public boolean booleanRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadByte() != 0;
   }
 
@@ -59,6 +64,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void byteWrite(ObjectReference ref, byte value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store(value);
   }
 
@@ -73,6 +80,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public byte byteRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadByte();
   }
 
@@ -87,6 +96,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void charWrite(ObjectReference ref, char value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store(value);
   }
 
@@ -101,6 +112,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public char charRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadChar();
   }
 
@@ -115,6 +128,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void shortWrite(ObjectReference ref, short value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store(value);
   }
 
@@ -129,6 +144,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public short shortRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadShort();
   }
 
@@ -143,6 +160,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void intWrite(ObjectReference ref, int value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store(value);
   }
 
@@ -157,6 +176,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public int intRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadInt();
   }
 
@@ -166,16 +187,16 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param objref The object that has the int field
    * @param old The old int to be swapped out
    * @param value the new int
-   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
-   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param slot The address of the field
+   * @param unused Unused
    * @param mode The context in which the write is occurring
    * @return True if the compare and swap was successful
    */
   @Override
   public boolean intTryCompareAndSwap(ObjectReference objref, int old,
-      int value, Word metaDataA, Word metaDataB, int mode) {
-    // TODO - implement
-    throw new UnsupportedOperationException();
+      int value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    return slot.toAddress().attempt(old, value);
   }
 
   /**
@@ -189,6 +210,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void longWrite(ObjectReference ref, long value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store(value);
   }
 
@@ -203,25 +226,28 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public long longRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadLong();
   }
 
   /**
    * Attempt an atomic compare and exchange in a write barrier sequence.
    *
-   * @param objref The object that has the long field
+   * @param ref The object that has the long field
    * @param old The old long to be swapped out
    * @param value the new long
-   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
-   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param slot Opaque, VM-specific, meta-data identifying the slot
+   * @param unused Opaque, VM-specific, meta-data identifying the slot
    * @param mode The context in which the write is occurring
    * @return True if the compare and swap was successful
    */
   @Override
-  public boolean longTryCompareAndSwap(ObjectReference objref, long old,
-      long value, Word metaDataA, Word metaDataB, int mode) {
-    // TODO - implement
-    throw new UnsupportedOperationException();
+  public boolean longTryCompareAndSwap(ObjectReference ref, long old,
+      long value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
+    return slot.toAddress().attempt(old, value);
   }
 
   /**
@@ -235,6 +261,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void floatWrite(ObjectReference ref, float value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store(value);
   }
 
@@ -249,6 +277,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public float floatRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadFloat();
   }
 
@@ -263,6 +293,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void doubleWrite(ObjectReference ref, double value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store(value);
   }
 
@@ -277,6 +309,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public double doubleRead(ObjectReference ref, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadDouble();
   }
 
@@ -291,6 +325,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void objectReferenceWrite(ObjectReference ref, ObjectReference value, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store(value);
   }
 
@@ -305,6 +341,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public ObjectReference objectReferenceRead(ObjectReference ref,Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadObjectReference();
   }
 
@@ -320,6 +358,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void objectReferenceNonHeapWrite(Address slot, ObjectReference target, Word unusedA, Word unusedB) {
+    assert unusedA == null && unusedB == null;
+    Sanity.assertValid(target);
     slot.store(target);
   }
 
@@ -336,6 +376,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public ObjectReference objectReferenceAtomicWrite(ObjectReference ref, ObjectReference target, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     ObjectReference old;
     do {
       old = slot.toAddress().prepareObjectReference();
@@ -356,6 +398,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public boolean objectReferenceTryCompareAndSwap(ObjectReference ref, ObjectReference old, ObjectReference target, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().attempt(old, target);
   }
 
@@ -371,6 +415,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
    */
   @Override
   public void wordWrite(ObjectReference ref, Word target, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     slot.toAddress().store(target);
   }
 
@@ -388,6 +434,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
   @Override
   public Word wordAtomicWrite(ObjectReference ref, Word target,
       Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     Word old;
     do {
       old = slot.toAddress().prepareWord();
@@ -409,6 +457,8 @@ public class Barriers extends org.mmtk.vm.Barriers {
   @Override
   public boolean wordTryCompareAndSwap(ObjectReference ref, Word old, Word target,
       Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().attempt(old, target);
   }
 
@@ -424,6 +474,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   @Override
   public Word wordRead(ObjectReference ref, Word slot, Word unused, int mode) {
     assert unused == null;
+    Sanity.assertValid(ref);
     return slot.toAddress().loadWord();
   }
 
@@ -432,31 +483,33 @@ public class Barriers extends org.mmtk.vm.Barriers {
    *
    * @param ref The object that has the Address field
    * @param target The value that the slot will be updated to
-   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
-   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param slot Opaque, VM-specific, meta-data identifying the slot
+   * @param unused Unused
    * @param mode The context in which the write is occurring
    */
   @Override
-  public void addressWrite(ObjectReference ref, Address target, Word metaDataA,
-      Word metaDataB, int mode) {
-    // TODO - implement
-    throw new UnsupportedOperationException();
+  public void addressWrite(ObjectReference ref, Address target, Word slot,
+      Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
+    slot.toAddress().store(target);
   }
 
   /**
    * Perform the actual read of the read barrier, returning the value as a raw Address.
    *
    * @param ref The object that has the Address field
-   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
-   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param slot Opaque, VM-specific, meta-data identifying the slot
+   * @param unused Opaque, VM-specific, meta-data identifying the slot
    * @param mode The context in which the write is occurring
    * @return the read value
    */
   @Override
-  public Address addressRead(ObjectReference ref, Word metaDataA,
-      Word metaDataB, int mode) {
-    // TODO - implement
-    throw new UnsupportedOperationException();
+  public Address addressRead(ObjectReference ref, Word slot,
+      Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
+    return slot.toAddress().loadAddress();
   }
 
   /**
@@ -465,16 +518,17 @@ public class Barriers extends org.mmtk.vm.Barriers {
    * @param ref The object that has the Address field
    * @param old The old address to be swapped out
    * @param target The value that the slot will be updated to
-   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
-   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param slot Opaque, VM-specific, meta-data identifying the slot
+   * @param unused Opaque, VM-specific, meta-data identifying the slot
    * @param mode The context in which the write is occurring
    * @return True if the compare and swap was successful
    */
   @Override
   public boolean addressTryCompareAndSwap(ObjectReference ref, Address old,
-      Address target, Word metaDataA, Word metaDataB, int mode) {
-    // TODO - implement
-    throw new UnsupportedOperationException();
+      Address target, Word slot, Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
+    return slot.toAddress().attempt(old, target);
   }
 
   /**
@@ -482,31 +536,33 @@ public class Barriers extends org.mmtk.vm.Barriers {
    *
    * @param ref The object that has the Offset field
    * @param target The value that the slot will be updated to
-   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
-   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param slot Opaque, VM-specific, meta-data identifying the slot
+   * @param unused Opaque, VM-specific, meta-data identifying the slot
    * @param mode The context in which the write is occurring
    */
   @Override
-  public void offsetWrite(ObjectReference ref, Offset target, Word metaDataA,
-      Word metaDataB, int mode) {
-    // TODO - implement
-    throw new UnsupportedOperationException();
+  public void offsetWrite(ObjectReference ref, Offset target, Word slot,
+      Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
+    slot.toAddress().store(target);
   }
 
   /**
    * Perform the actual read of the read barrier, returning the value as a raw Offset.
    *
    * @param ref The object that has the Offset field
-   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
-   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param slot Opaque, VM-specific, meta-data identifying the slot
+   * @param unused Opaque, VM-specific, meta-data identifying the slot
    * @param mode The context in which the write is occurring
    * @return the read value
    */
   @Override
-  public Offset offsetRead(ObjectReference ref, Word metaDataA, Word metaDataB,
-      int mode) {
-    // TODO - implement
-    throw new UnsupportedOperationException();
+  public Offset offsetRead(ObjectReference ref, Word slot,
+      Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
+    return slot.toAddress().loadOffset();
   }
 
   /**
@@ -514,31 +570,33 @@ public class Barriers extends org.mmtk.vm.Barriers {
    *
    * @param ref The object that has the Extent field
    * @param target The value that the slot will be updated to
-   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
-   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param slot Opaque, VM-specific, meta-data identifying the slot
+   * @param unused Unused
    * @param mode The context in which the write is occurring
    */
   @Override
-  public void extentWrite(ObjectReference ref, Extent target, Word metaDataA,
-      Word metaDataB, int mode) {
-    // TODO - implement
-    throw new UnsupportedOperationException();
+  public void extentWrite(ObjectReference ref, Extent target, Word slot,
+      Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
+    slot.toAddress().store(target);
   }
 
   /**
    * Perform the actual read of the read barrier, returning the value as a raw Extent.
    *
    * @param ref The object that has the Extent field
-   * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
-   * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
+   * @param slot Opaque, VM-specific, meta-data identifying the slot
+   * @param unused Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
   @Override
-  public Extent extentRead(ObjectReference ref, Word metaDataA, Word metaDataB,
-      int mode) {
-    // TODO - implement
-    throw new UnsupportedOperationException();
+  public Extent extentRead(ObjectReference ref, Word slot,
+      Word unused, int mode) {
+    assert unused == null;
+    Sanity.assertValid(ref);
+    return slot.toAddress().loadExtent();
   }
 
   /**

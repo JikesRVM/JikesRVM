@@ -33,14 +33,26 @@ import org.vmmagic.unboxed.ObjectReference;
  */
 public class HeapSnapshot implements HeapVisitor {
 
+  private static final boolean VERBOSE = true;
+
   /** The objects in the heap, by address */
   private final Map<ObjectReference,HeapEntry> byAddress = new HashMap<ObjectReference,HeapEntry>();
+
   /** The objects in the heap, by ID */
   private final Map<Integer,HeapEntry> byId = new HashMap<Integer,HeapEntry>();
+
   /** Statistics: objects in each space */
   private final Map<String,Integer> spaceStats = new TreeMap<String,Integer>();
+
   /** Duplicate objects */
   private final Map<Integer,Set<HeapEntry>> duplicates = new HashMap<Integer,Set<HeapEntry>>();
+
+  /**
+   * Take a snapshot of the current heap
+   */
+  public HeapSnapshot() {
+    Traversal.traverse(this);
+  }
 
   /** @return the space statistics */
   public Map<String, Integer> getSpaceStats() {
@@ -62,6 +74,11 @@ public class HeapSnapshot implements HeapVisitor {
     return byId.keySet();
   }
 
+  /** @return the set of live object references */
+  public Set<ObjectReference> getLiveObjects() {
+    return byAddress.keySet();
+  }
+
   /**
    * Get an entry - fails with a runtime exception if the object is duplicated.
    * @param id Entry ID
@@ -79,13 +96,6 @@ public class HeapSnapshot implements HeapVisitor {
     return Collections.unmodifiableSet(new HashSet<Set<HeapEntry>>(duplicates.values()));
   }
 
-  /**
-   * Take a snapshot of the current heap
-   */
-  public HeapSnapshot() {
-    Traversal.traverse(this);
-  }
-
   private void addDuplicate(HeapEntry original, HeapEntry dup) {
     Set<HeapEntry> entries = duplicates.get(original.getId());
     if (entries == null) {
@@ -98,7 +108,7 @@ public class HeapSnapshot implements HeapVisitor {
   }
 
   private void addEntryById(HeapEntry entry) {
-    Trace.trace(Item.SANITY,"Found object %d",entry.getId());
+    if (VERBOSE) Trace.trace(Item.SANITY,"Found object %d at address %s",entry.getId(),entry.getObject());
     HeapEntry oldEntry = byId.get(entry.getId());
     if (oldEntry == null) {
       byId.put(entry.getId(), entry);
@@ -122,7 +132,16 @@ public class HeapSnapshot implements HeapVisitor {
    */
   @Override
   public void visitObject(ObjectReference object, boolean root, boolean marked) {
-    Trace.trace(Item.SANITY,"Visiting object %d",ObjectModel.getId(object));
+    if (VERBOSE) {
+      Trace.trace(Item.SANITY,"Visiting %sobject at address %s",root ? "root ":"",object);
+    }
+    int id = ObjectModel.getId(object);
+    if (!ObjectModel.hasValidId(object)) {
+      System.err.printf("### Invalid %sobject id=%d found at address %s%n",root ? "root ":"", id, object);
+    }
+    if (VERBOSE) {
+      Trace.trace(Item.SANITY,"Visiting %sobject %d at address %s",root ? "root ":"",id,object);
+    }
     HeapEntry entry = byAddress.get(object);
     if (!marked) {
       assert entry == null;

@@ -32,14 +32,14 @@ public abstract class Debug {
   /**
    * A modbuf (object remembering barrier) entry has been
    * traced during collection.
-   * @param object
+   * @param object The modbuf entry
    */
   public void modbufEntry(ObjectReference object) { }
 
   /**
    * A remset (slot remembering barrier) entry has been
    * traced during collection.
-   * @param slot
+   * @param slot The remset entry
    */
   public void remsetEntry(Address slot) { }
 
@@ -47,8 +47,8 @@ public abstract class Debug {
    * An array remset entry has been traced during collection.  Implicitly
    * the slots from start (inclusive) through to guard (non-inclusive)
    * are traced as remset entries
-   * @param start
-   * @param guard
+   * @param start The entry start address
+   * @param guard The guard
    */
   public void arrayRemsetEntry(Address start, Address guard) { }
 
@@ -77,9 +77,55 @@ public abstract class Debug {
 
   /**
    * Trace an object during GC
+   *
+   * *** Non-standard, requires plumbing into a collector during debugging ***
+   *
+   * @param trace The trace being performed
    * @param object The object
    */
   public void traceObject(TraceLocal trace, ObjectReference object) { }
+
+  /**
+   * An entry has been inserted at the head of a queue
+   *
+   * *** Non-standard, requires plumbing into a collector during debugging ***
+   *
+   * @param queueName The name of the queue
+   * @param value The value
+   */
+  public void queueHeadInsert(String queueName, Address value) {
+  }
+
+  /**
+   * An entry has been inserted at the head of a queue
+   *
+   * *** Non-standard, requires plumbing into a collector during debugging ***
+   *
+   * @param queueName The name of the queue
+   * @param value The value
+   */
+  public void queueTailInsert(String queueName, Address value) {
+  }
+
+  /**
+   * An entry has been inserted at the head of a queue
+   *
+   * *** Non-standard, requires plumbing into a collector during debugging ***
+   *
+   * @param queueName The name of the queue
+   * @param value The value
+   */
+  public void queueHeadRemove(String queueName, Address value) { }
+
+  /**
+   * An entry has been inserted at the head of a queue
+   *
+   * *** Non-standard, requires plumbing into a collector during debugging ***
+   *
+   * @param queueName The name of the queue
+   * @param value The value
+   */
+  public void queueTailRemove(String queueName, Address value) { }
 
   /*
    * NOTE: These methods should not be called by anything other than the

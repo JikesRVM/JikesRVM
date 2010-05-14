@@ -93,6 +93,9 @@ public class Harness {
   /** Whether the Harness sanity checker uses the read barrier */
   public static final BooleanOption sanityUsesReadBarrier = new SanityUsesReadBarrier();
 
+  /** Allocate during collection, to simulate JikesRVM thread iterator objects */
+  public static final BooleanOption allocDuringCollection = new AllocDuringCollection();
+
   private static boolean isInitialized = false;
 
   /**
@@ -203,5 +206,19 @@ public class Harness {
 
   public static boolean gcEveryAlloc() {
     return gcEveryAlloc;
+  }
+
+  static void mmtkShutdown() {
+    MMTkThread m = new MMTkThread() {
+      @Override
+      public void run() {
+        ActivePlan.plan.notifyExit(0);
+      }
+    };
+    m.start();
+    try {
+      m.join();
+    } catch (InterruptedException e) {
+    }
   }
 }

@@ -65,7 +65,12 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void remsetEntry(Address slot) {
+    try {
     Trace.trace(Item.REMSET, "remset: %s->%s", format(slot), format(slot.loadObjectReference()));
+    } catch (Throwable e) {
+      System.err.printf("Error encountered processing remset entry %s%n", slot);
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -84,6 +89,42 @@ public final class Debug extends org.mmtk.vm.Debug {
   @Override
   public void traceObject(TraceLocal trace, ObjectReference object) {
     Trace.trace(Item.TRACEOBJECT, "traceObject: %s", format(object));
+  }
+
+  /**
+   * Trace insertions at the head of a queue
+   * @param value Value inserted
+   */
+  @Override
+  public void queueHeadInsert(String queueName, Address value) {
+    Trace.trace(Item.QUEUE, "head insert %s to %s", value, queueName);
+  }
+
+  /**
+   * Trace removals from the head of a queue
+   * @param value Value inserted
+   */
+  @Override
+  public void queueHeadRemove(String queueName, Address value) {
+    Trace.trace(Item.QUEUE, "head remove %s from %s", value, queueName);
+  }
+
+  /**
+   * Trace insertions at the tail of a queue
+   * @param value Value inserted
+   */
+  @Override
+  public void queueTailInsert(String queueName, Address value) {
+    Trace.trace(Item.QUEUE, "tail insert %s to %s", value, queueName);
+  }
+
+  /**
+   * Trace removals from the tail of a queue
+   * @param value Value removed
+   */
+  @Override
+  public void queueTailRemove(String queueName, Address value) {
+    Trace.trace(Item.QUEUE, "tail remove %s from %s", value, queueName);
   }
 
 

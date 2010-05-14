@@ -29,11 +29,31 @@ public class AllocationSite {
 
   /**
    * Retrieve an allocation site by ID.
-   * @param id
-   * @return
+   * @param id Allocation site ID
+   * @return The corresponding site
    */
   public static AllocationSite getSite(int id) {
     return sites.get(id);
+  }
+
+  /**
+   * A pre-created allocation site for internal object allocation
+   */
+  public static final AllocationSite INTERNAL_SITE = new AllocationSite(0,0);
+
+  /**
+   * The ID of the internal site
+   */
+  public static final int INTERNAL_SITE_ID = INTERNAL_SITE.getId();
+
+  /**
+   * @param id A potential allocation site
+   * @return {@code true} if id is a valid site id
+   */
+  public static boolean isValid(int id) {
+    synchronized (sites) {
+      return id >= 0 && id < sites.size();
+    }
   }
 
   private final int id;
@@ -42,12 +62,14 @@ public class AllocationSite {
 
   /**
    * Create an allocation site for a given source code line/column.
-   * @param line
-   * @param column
+   * @param line Source code line
+   * @param column Source code column
    */
   public AllocationSite(int line, int column) {
-    this.id = sites.size();
-    sites.add(this);
+    synchronized (sites) {
+      this.id = sites.size();
+      sites.add(this);
+    }
     this.line = line;
     this.column = column;
   }
@@ -61,12 +83,13 @@ public class AllocationSite {
 
   /**
    * An allocation site for a given script token.
-   * @param token
+   * @param token A parser token
    */
   public AllocationSite(Token token) {
     this(token.beginLine,token.beginColumn);
   }
 
+  @Override
   public String toString() {
     return String.format("%d:%d", line, column);
   }

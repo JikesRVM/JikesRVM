@@ -226,16 +226,16 @@ public class AddressTest {
     for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_FLOAT; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_FLOAT);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_FLOAT);
-      assertEquals(0.0f,lowAddr.loadFloat(offset));
-      assertEquals(0.0f,highAddr.loadFloat(offset));
-      assertEquals(0.0f,lowAddrEnd.loadFloat(negOffset));
-      assertEquals(0.0f,highAddrEnd.loadFloat(negOffset));
+      assertEquals(0.0f,lowAddr.loadFloat(offset),0.0f);
+      assertEquals(0.0f,highAddr.loadFloat(offset),0.0f);
+      assertEquals(0.0f,lowAddrEnd.loadFloat(negOffset),0.0f);
+      assertEquals(0.0f,highAddrEnd.loadFloat(negOffset),0.0f);
       lowAddr.plus(offset).store(FLOAT_CONST1);
       highAddr.plus(offset).store(FLOAT_CONST2);
-      assertEquals(FLOAT_CONST1,lowAddr.loadFloat(offset));
-      assertEquals(FLOAT_CONST2,highAddr.loadFloat(offset));
-      assertEquals(FLOAT_CONST1,lowAddrEnd.loadFloat(negOffset));
-      assertEquals(FLOAT_CONST2,highAddrEnd.loadFloat(negOffset));
+      assertEquals(FLOAT_CONST1,lowAddr.loadFloat(offset),0.0f);
+      assertEquals(FLOAT_CONST2,highAddr.loadFloat(offset),0.0f);
+      assertEquals(FLOAT_CONST1,lowAddrEnd.loadFloat(negOffset),0.0f);
+      assertEquals(FLOAT_CONST2,highAddrEnd.loadFloat(negOffset),0.0f);
     }
   }
 
@@ -310,16 +310,16 @@ public class AddressTest {
     for (int i=0; i < MemoryConstants.BYTES_IN_PAGE/BYTES_IN_DOUBLE; i++) {
       Offset offset = Offset.fromIntSignExtend(i*BYTES_IN_DOUBLE);
       Offset negOffset = Offset.fromIntSignExtend(-BYTES_IN_PAGE+i*BYTES_IN_DOUBLE);
-      assertEquals(0.0,lowAddr.loadDouble(offset));
-      assertEquals(0.0,highAddr.loadDouble(offset));
-      assertEquals(0.0,lowAddrEnd.loadDouble(negOffset));
-      assertEquals(0.0,highAddrEnd.loadDouble(negOffset));
+      assertEquals(0.0,lowAddr.loadDouble(offset),0.0);
+      assertEquals(0.0,highAddr.loadDouble(offset),0.0);
+      assertEquals(0.0,lowAddrEnd.loadDouble(negOffset),0.0);
+      assertEquals(0.0,highAddrEnd.loadDouble(negOffset),0.0);
       lowAddr.plus(offset).store(DOUBLE_CONST1);
       highAddr.plus(offset).store(DOUBLE_CONST2);
-      assertEquals(DOUBLE_CONST1,lowAddr.loadDouble(offset));
-      assertEquals(DOUBLE_CONST2,highAddr.loadDouble(offset));
-      assertEquals(DOUBLE_CONST1,lowAddrEnd.loadDouble(negOffset));
-      assertEquals(DOUBLE_CONST2,highAddrEnd.loadDouble(negOffset));
+      assertEquals(DOUBLE_CONST1,lowAddr.loadDouble(offset),0.0);
+      assertEquals(DOUBLE_CONST2,highAddr.loadDouble(offset),0.0);
+      assertEquals(DOUBLE_CONST1,lowAddrEnd.loadDouble(negOffset),0.0);
+      assertEquals(DOUBLE_CONST2,highAddrEnd.loadDouble(negOffset),0.0);
     }
   }
 
@@ -618,6 +618,9 @@ public class AddressTest {
       ObjectReference w = baseAddr.prepareObjectReference(offset);
       assertTrue(baseAddr.attempt(w,x,offset));
       w = baseAddr.prepareObjectReference(offset);
+      if (!w.toAddress().EQ(x.toAddress())) {
+        System.err.printf("Exchanging ObjectReference at %s+%s, expected %s, actual %s%n",baseAddr,offset,x.toAddress(),w.toAddress());
+      }
       assertTrue(w.toAddress().EQ(x.toAddress()));
       baseAddr.store(outAddr,offset);
       assertFalse(baseAddr.attempt(w,ObjectReference.nullReference(),offset));
@@ -682,5 +685,102 @@ public class AddressTest {
       baseAddr.store(INT_CONST2,offset);
       assertFalse(baseAddr.attempt(w,0,offset));
     }
+  }
+
+  @Test
+  public void testExchangeLong() {
+    Address lowAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
+    long w = lowAddr.prepareLong();
+    assertTrue(lowAddr.attempt(w,LONG_CONST1));
+    w = lowAddr.prepareLong();
+    assertTrue(w == LONG_CONST1);
+    lowAddr.store(0L);
+    assertFalse(lowAddr.attempt(w,0L));
+
+    w = lowAddr.prepareLong();
+    assertTrue(lowAddr.attempt(w,LONG_CONST2));
+    w = lowAddr.prepareLong();
+    assertTrue(w == LONG_CONST2);
+    lowAddr.store(0L);
+    assertFalse(lowAddr.attempt(w,0L));
+  }
+
+  @Test
+  public void testExchangeLongOffset() {
+    Address baseAddr = Address.fromIntSignExtend(LOW_TEST_PAGE+BYTES_IN_PAGE/2);
+    for (int i = -BYTES_IN_PAGE/2; i < BYTES_IN_PAGE/2; i += BYTES_IN_LONG) {
+      Offset offset = Offset.fromIntSignExtend(i);
+      long w = baseAddr.prepareLong(offset);
+      assertTrue(baseAddr.attempt(w,LONG_CONST1,offset));
+      w = baseAddr.prepareLong(offset);
+      assertTrue(w == LONG_CONST1);
+      baseAddr.store(LONG_CONST2,offset);
+      assertFalse(baseAddr.attempt(w,0,offset));
+    }
+  }
+
+  /**
+   * Test whether bytes are read and written in the right
+   * order within words.
+   */
+  @Test
+  public void testByteEndianness() {
+    Address baseAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
+    baseAddr.store(0);
+    assertEquals(0,baseAddr.loadInt());
+    baseAddr.store((byte)1);
+    assertEquals(0x00000001,baseAddr.loadInt());
+    baseAddr.store((byte)2,Offset.fromIntSignExtend(1));
+    assertEquals(0x00000201,baseAddr.loadInt());
+    baseAddr.store((byte)3,Offset.fromIntSignExtend(2));
+    assertEquals(0x00030201,baseAddr.loadInt());
+    baseAddr.store((byte)4,Offset.fromIntSignExtend(3));
+    assertEquals(0x04030201,baseAddr.loadInt());
+    baseAddr.store((byte)0);
+    assertEquals(0x04030200,baseAddr.loadInt());
+    baseAddr.store((byte)0,Offset.fromIntSignExtend(1));
+    assertEquals(0x04030000,baseAddr.loadInt());
+    baseAddr.store((byte)0,Offset.fromIntSignExtend(2));
+    assertEquals(0x04000000,baseAddr.loadInt());
+    baseAddr.store((byte)0,Offset.fromIntSignExtend(3));
+    assertEquals(0,baseAddr.loadInt());
+  }
+
+  /**
+   * Test whether shorts are read and written in the right
+   * order within words.
+   */
+  @Test
+  public void testShortEndianness() {
+    Address baseAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
+    baseAddr.store(0);
+    assertEquals(0,baseAddr.loadInt());
+    baseAddr.store((short)1);
+    assertEquals(0x00000001,baseAddr.loadInt());
+    baseAddr.store((short)2,Offset.fromIntSignExtend(2));
+    assertEquals(0x00020001,baseAddr.loadInt());
+    baseAddr.store((short)0);
+    assertEquals(0x00020000,baseAddr.loadInt());
+    baseAddr.store((short)0,Offset.fromIntSignExtend(2));
+    assertEquals(0x00000000,baseAddr.loadInt());
+  }
+
+  /**
+   * Test whether ints are read and written in the right
+   * order within longs.
+   */
+  @Test
+  public void testIntEndianness() {
+    Address baseAddr = Address.fromIntSignExtend(LOW_TEST_PAGE);
+    baseAddr.store(0L);
+    assertEquals(0L,baseAddr.loadLong());
+    baseAddr.store(1);
+    assertEquals(0x0000000000000001L,baseAddr.loadLong());
+    baseAddr.store(2,Offset.fromIntSignExtend(4));
+    assertEquals(0x0000000200000001L,baseAddr.loadLong());
+    baseAddr.store(0);
+    assertEquals(0x0000000200000000L,baseAddr.loadLong());
+    baseAddr.store(0,Offset.fromIntSignExtend(4));
+    assertEquals(0x00000000L,baseAddr.loadLong());
   }
 }

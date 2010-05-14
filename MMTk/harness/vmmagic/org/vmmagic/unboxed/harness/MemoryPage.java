@@ -76,8 +76,8 @@ final class MemoryPage {
 
   /**
    * Construct a long value from 2 ints (high and low order 32-bit words)
-   * @param high TODO
-   * @param low TODO
+   * @param high High 32-bits of result
+   * @param low Low 32-bits of result
    * @return
    */
   @SuppressWarnings("cast") // Make cast explicit, because oddness can happen
@@ -138,12 +138,12 @@ final class MemoryPage {
     if (SimulatedMemory.ALIGN_CHECK_LONG) {
       assert ((address.toLong()) % MemoryConstants.BYTES_IN_LONG) == 0: "misaligned 8b access at "+address;
     }
-    return longFrom2Ints(getInt(address), getInt(address.plus(BYTES_IN_CELL)));
+    return longFrom2Ints(getInt(address.plus(BYTES_IN_CELL)),getInt(address));
   }
 
   @SuppressWarnings("cast")
   public synchronized byte setByte(Address address, byte value) {
-    int shift = ((address.toInt()) & ~MemoryConstants.WORD_MASK) << MemoryConstants.LOG_BITS_IN_BYTE;
+    int shift = ((address.toInt()) & ~MemoryConstants.INT_MASK) << MemoryConstants.LOG_BITS_IN_BYTE;
     int mask = 0x000000FF << shift;
     int newValue = (((int)value) << shift) & mask;
     int index = getIndex(address);
@@ -155,8 +155,8 @@ final class MemoryPage {
 
   @SuppressWarnings("cast")
   public synchronized char setChar(Address address, char value) {
-    int shift = ((address.toInt()) & ~MemoryConstants.WORD_MASK) << MemoryConstants.LOG_BITS_IN_BYTE;
-    assert shift == 0 || shift == 16: "misaligned 2b access at "+address;
+    int shift = (address.toInt() & ~MemoryConstants.INT_MASK) << MemoryConstants.LOG_BITS_IN_BYTE;
+    assert shift == 0 || shift == 16: "misaligned 2b access at "+address+", shift="+shift;
     int mask = 0x0000FFFF << shift;
     int newValue = (((int)value) << shift) & mask;
     int index = getIndex(address);
@@ -180,9 +180,9 @@ final class MemoryPage {
     }
     try {
     int index = getIndex(address);
-    long old = longFrom2Ints(read(index), read(index+1));
-    write(index, (int)(value >>> 32));
-    write(index+1, (int)(value & 0xFFFFFFFFL));
+    long old = longFrom2Ints(read(index+1), read(index));
+    write(index, (int)(value & 0xFFFFFFFFL));
+    write(index+1, (int)(value >>> 32));
     return old;
     } catch (RuntimeException e) {
       System.err.println("Error setting address "+address);
@@ -257,6 +257,13 @@ final class MemoryPage {
    * @return
    */
   private boolean isWatched(int index) {
-    return watch == null ? false : watch[index];
+    return hasWatches() ? watch[index] : false;
+  }
+
+  /**
+   * @return {@code true} if there are watch-points on this page
+   */
+  boolean hasWatches() {
+    return watch != null;
   }
 }

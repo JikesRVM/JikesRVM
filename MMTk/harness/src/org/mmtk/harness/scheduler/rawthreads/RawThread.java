@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.scheduler.rawthreads;
 
+import org.mmtk.harness.Main;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.scheduler.MMTkThread;
@@ -36,6 +37,12 @@ class RawThread extends MMTkThread {
 
   public RawThread(RawThreadModel model) {
     this.model = model;
+    this.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+      @Override public void uncaughtException(Thread t, Throwable e) {
+        e.printStackTrace();
+        Main.exitWithFailure();
+      }
+    });
   }
 
   protected void end() {

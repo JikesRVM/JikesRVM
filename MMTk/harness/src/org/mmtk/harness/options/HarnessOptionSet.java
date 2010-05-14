@@ -14,6 +14,7 @@ package org.mmtk.harness.options;
 
 import java.util.TreeSet;
 
+import org.mmtk.harness.Main;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Word;
@@ -273,7 +274,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
       o = o.getNext();
     }
 
-    System.exit(-1);
+    Main.exitWithFailure();
   }
 
   /**

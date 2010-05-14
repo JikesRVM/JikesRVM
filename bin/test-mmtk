@@ -26,6 +26,7 @@ classForPlan() {
     MC) echo "org.mmtk.plan.markcompact.MC";;
     MS) echo "org.mmtk.plan.marksweep.MS";;
     Poisoned) echo "org.mmtk.plan.poisoned.Poisoned";;
+    PrimitiveWB) echo "org.mmtk.plan.semispace.usePrimitiveWriteBarriers.UsePrimitiveWriteBarriers";;
     RC) echo "org.mmtk.plan.refcount.fullheap.RC";;
     GenRC) echo "org.mmtk.plan.refcount.generational.GenRC";;
     SS) echo "org.mmtk.plan.semispace.SS";;
@@ -36,7 +37,7 @@ classForPlan() {
   esac
 }
 
-plans="CopyMS GenCopy GenImmix GenMS Immix MC MS Poisoned RC GenRC SS StickyImmix StickyMS"
+plans="CopyMS GenCopy GenImmix GenMS Immix MC MS Poisoned PrimitiveWB RC GenRC SS StickyImmix StickyMS"
 
 opts="variableSizeHeap=false"
 #opts="$opts gcEvery=SAFEPOINT"
@@ -108,16 +109,18 @@ do
       scriptopts=
     fi
     (
-      echo $JAVA ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts;
+      echo $JAVA ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$planClass $opts $scriptopts;
       $JAVA ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$planClass $opts $scriptopts
     ) &> ${RESULTS}/temp.out
     if [ $? == 0 ]
     then
-      echo "PASSED: ${results#/} $plan $showscript"
-      mv ${RESULTS}/temp.out ${RESULTS}/$plan/$showscript.out.pass
+      logfile=${RESULTS}/$plan/$showscript.out.pass
+      printf "PASSED: %s %-15s %-15s %s\\n" "${results#/}" $plan $showscript $logfile
+      mv ${RESULTS}/temp.out $logfile
     else
-      echo "FAILED: ${results#/} $plan $showscript"
-      mv ${RESULTS}/temp.out ${RESULTS}/$plan/$showscript.out.fail
+      logfile=${RESULTS}/$plan/$showscript.out.fail
+      printf "FAILED: %s %-15s %-15s %s\\n" "${results#/}" $plan $showscript $logfile
+      mv ${RESULTS}/temp.out $logfile
     fi
   done
 done

@@ -25,6 +25,7 @@ import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
+import org.mmtk.harness.vm.Scanning;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -34,7 +35,7 @@ import org.vmmagic.unboxed.ObjectReference;
  */
 public final class Traversal {
 
-  private static final boolean VERBOSE = true;
+  private static final boolean VERBOSE = false;
 
   /**
    * Traverse the heap.  This is the only public method in the class
@@ -105,6 +106,9 @@ public final class Traversal {
    * Trace the harness root set
    */
   private void traceRoots() {
+    for (ObjectValue value : Scanning.getRoots()) {
+      traceObject(value.getObjectValue(), true);
+    }
     for (Mutator m : Mutators.getAll()) {
       for (ObjectValue value : m.getRoots()) {
         traceObject(value.getObjectValue(), true);
@@ -121,5 +125,7 @@ public final class Traversal {
       ObjectReference object = markStack.remove(markStack.size()-1);
       scan(object);
     }
+    blackSet.clear();
+    markStack.clear();
   }
 }

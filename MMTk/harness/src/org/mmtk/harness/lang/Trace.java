@@ -14,6 +14,8 @@ package org.mmtk.harness.lang;
 
 import java.util.EnumSet;
 
+import org.vmmagic.unboxed.harness.Clock;
+
 /**
  * Tracing of events in the harness, both for debugging MMTk
  * and the harness itself.
@@ -41,14 +43,17 @@ public final class Trace {
     /** Memory operations (mmap, zero etc) */                   MEMORY,
     /** Object reads and writes */                              OBJECT,
     /** Harness language parser */                              PARSER,
+    /** Queueing operations in the MMTk collectors */           QUEUE,
     /** Reference type processing */                            REFERENCES,
     /** Remset */                                               REMSET,
     /** Tracing of roots */                                     ROOTS,
     /** Sanity checker - verbose output */                      SANITY,
+    /** Scanning of objects */                                  SCAN,
     /** Harness language thread scheduler */                    SCHEDULER,
     /** Harness language simplifier */                          SIMPLIFIER,
     /** Store operations in the harness language */             STORE,
     /** calls to traceObject during GC */                       TRACEOBJECT,
+    /** Yieldpoints - used to debug scheduler policy */         YIELD,
     }
 
   private static EnumSet<Item> enabled = EnumSet.noneOf(Item.class);
@@ -112,7 +117,7 @@ public final class Trace {
    * @return The string prefix
    */
   public static String prefix(Item item) {
-    return "["+item+"] ";
+    return (Clock.ENABLE_CLOCK ? Clock.read()+":" : "") +"["+item+"] ";
   }
 
   /**

@@ -596,6 +596,48 @@ public final class Address {
   }
 
   /**
+   * Loads an offset value from the memory location pointed to by the
+   * current instance.
+   *
+   * @return the read word value.
+   */
+  public Offset loadOffset() {
+    return new Offset(loadArchitecturalWord());
+  }
+
+  /**
+   * Loads an offset value from the memory location pointed to by the
+   * current instance.
+   *
+   * @param offset the offset to the value.
+   * @return the read word value.
+   */
+  public Offset loadOffset(Offset offset) {
+    return new Offset(loadArchitecturalWord(offset));
+  }
+
+  /**
+   * Loads an extent value from the memory location pointed to by the
+   * current instance.
+   *
+   * @return the read word value.
+   */
+  public Extent loadExtent() {
+    return new Extent(loadArchitecturalWord());
+  }
+
+  /**
+   * Loads an extent value from the memory location pointed to by the
+   * current instance.
+   *
+   * @param offset the offset to the value.
+   * @return the read word value.
+   */
+  public Extent loadExtent(Offset offset) {
+    return new Extent(loadArchitecturalWord(offset));
+  }
+
+  /**
    * Stores the address value in the memory location pointed to by the
    * current instance.
    *
@@ -634,6 +676,48 @@ public final class Address {
    * @param offset the offset to the value.
    */
   public void store(Address val, Offset offset) {
+    this.plus(offset).store(val);
+  }
+
+  /**
+   * Stores the address value in the memory location pointed to by the
+   * current instance.
+   *
+   * @param val The address value to store.
+   */
+  public void store(Offset val) {
+    SimulatedMemory.setWord(this, val.value);
+  }
+
+  /**
+   * Stores the address value in the memory location pointed to by the
+   * current instance.
+   *
+   * @param val The address value to store.
+   * @param offset the offset to the value.
+   */
+  public void store(Extent val, Offset offset) {
+    this.plus(offset).store(val);
+  }
+
+  /**
+   * Stores the address value in the memory location pointed to by the
+   * current instance.
+   *
+   * @param val The address value to store.
+   */
+  public void store(Extent val) {
+    SimulatedMemory.setWord(this, val.value);
+  }
+
+  /**
+   * Stores the address value in the memory location pointed to by the
+   * current instance.
+   *
+   * @param val The address value to store.
+   * @param offset the offset to the value.
+   */
+  public void store(Offset val, Offset offset) {
     this.plus(offset).store(val);
   }
 
@@ -897,6 +981,27 @@ public final class Address {
   }
 
   /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @return the old value to be passed to an attempt call.
+   */
+  public long prepareLong() {
+    return loadLong();
+  }
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @param offset the offset to the value.
+   * @return the old value to be passed to an attempt call.
+   */
+  public long prepareLong(Offset offset) {
+    return loadLong(offset);
+  }
+
+  /**
    * Attempt an atomic store operation. This must be associated with a
    * related call to prepare.
    *
@@ -918,6 +1023,32 @@ public final class Address {
    * @return true if the attempt was successful.
    */
   public boolean attempt(int old, int val, Offset offset) {
+    return this.plus(offset).attempt(old,val);
+  }
+
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param val the new value.
+   * @return true if the attempt was successful.
+   */
+  public boolean attempt(long old, long val) {
+    return SimulatedMemory.exchangeLong(this, old, val);
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param val the new value.
+   * @param offset the offset to the value.
+   * @return true if the attempt was successful.
+   */
+  public boolean attempt(long old, long val, Offset offset) {
     return this.plus(offset).attempt(old,val);
   }
 
@@ -999,6 +1130,7 @@ public final class Address {
   /**
    * Return a string representation of this address.
    */
+  @Override
   public String toString() {
     return value.toString();
   }

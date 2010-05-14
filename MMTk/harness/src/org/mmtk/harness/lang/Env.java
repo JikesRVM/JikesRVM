@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
+import org.mmtk.harness.Main;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.runtime.ObjectValue;
@@ -143,7 +144,7 @@ public class Env extends Mutator {
    */
   @Override
   public void end() {
-    check(expectedThrowable == null, "Expected exception of class " + expectedThrowable + " not found");
+    if (!(expectedThrowable == null)) fail(("Expected exception of class " + expectedThrowable + " not found"));
     super.end();
   }
 
@@ -166,17 +167,13 @@ public class Env extends Mutator {
     Trace.trace(Item.EXCEPTION, "Processing uncaught exception %s", e.getClass().getCanonicalName());
     if (e.getClass() == expectedThrowable) {
       System.err.println("Mutator " + context.getId() + " exiting due to expected exception of class " + expectedThrowable);
-      System.exit(0);
+      Main.exitWithSuccess();
     } else {
       System.err.print("Mutator " + context.getId() + " caused unexpected exception: ");
       e.printStackTrace();
-      System.exit(1);
+      Main.exitWithFailure();
     }
   }
-
-  /*******************************************************************
-   * Utility methods
-   */
 
   /**
    * @return The per-thread random number generator

@@ -13,6 +13,9 @@
 package org.mmtk.harness.scheduler.javathreads;
 
 import org.mmtk.harness.Collector;
+import org.mmtk.harness.Main;
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
 
 class CollectorThread extends JavaThread {
   private static int collectorId = 0;
@@ -27,6 +30,15 @@ class CollectorThread extends JavaThread {
 
   CollectorThread() {
     this(true);
+    setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread t, Throwable e) {
+        Trace.trace(Item.SCHEDULER, "Catching uncaught exception for thread %s%n%s",
+            Thread.currentThread().getName(),
+            e.getClass().getCanonicalName());
+        e.printStackTrace();
+        Main.exitWithFailure();
+      }
+    });
   }
 
   @Override

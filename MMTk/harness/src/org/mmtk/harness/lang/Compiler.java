@@ -75,6 +75,9 @@ import org.mmtk.harness.lang.type.Field;
 import org.mmtk.harness.lang.type.Type;
 import org.mmtk.harness.lang.type.UserType;
 
+/**
+ * Compile a script to pcode.
+ */
 public final class Compiler extends Visitor {
 
   static {

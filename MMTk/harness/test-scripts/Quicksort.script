@@ -1,6 +1,5 @@
 /*
  * Create a list of random integers, then sort the list using quicksort.
- * It's (java) stack intensive, run with -Xss4m or more.
  */
 void main() {
   runTest(1);
@@ -20,8 +19,11 @@ void runTest(int size) {
 void test(int size) {
   int n = 0;
   object list = null;
+  int initial_sum = 0;
   while (n < size) {
-    list = cons(random(0,20000000),list);
+    int x = random(0,200000);
+    list = cons(x,list);
+    initial_sum = initial_sum + x;
     n = n + 1;
   }
   print("  List constructed, sorting ...");
@@ -29,7 +31,7 @@ void test(int size) {
   object sorted = qsort(list);
   print("  Sort complete, checking ...");
   gc();
-  checkList(sorted,size);
+  checkList(sorted,size,initial_sum);
 }
 
 /*
@@ -116,24 +118,24 @@ void printList(object list) {
  * Sanity check a list - ensure that the elements are in
  * monotonic order, and the list is the right length.
  */
-void checkList(object list, int len) {
+void checkList(object list, int len, int initial_sum) {
   int count = 0;
+  int sum = 0;
   if (list != null) {
     int v1 = head(list);
     count = 1;
+    sum = v1;
     list = tail(list);
     while (list != null) {
       int v2 = head(list);
       count = count + 1;
-      if (v1 > v2) {
-        print ("unsorted values in list :(");
-      }
+      sum = sum + v2;
+      assert (v1 <= v2, "unsorted values in list :( ", v1, ", ", v2);
       v1 = v2;
       list = tail(list);
     }
   }
-  if (count != len) {
-    print ("list has changed length (expected ",len," found ",count,")");
-  }
+  assert(count == len, "list has changed length (expected ",len," found ",count,")");
+  assert(initial_sum == sum, "Sorting has changed the sum of elements");
 }
  

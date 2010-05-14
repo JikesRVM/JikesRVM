@@ -37,7 +37,7 @@ public class StackFrame {
    * This is notably not true for MC, but can be useful for debugging other
    * collectors.
    */
-  private static final boolean ASSERT_WILL_NOT_MOVE = false;
+  public static final boolean ASSERT_WILL_NOT_MOVE = false;
 
   /** A sentinel for slots that have no value */
   public static final int NO_SUCH_SLOT = Integer.MAX_VALUE;
@@ -132,7 +132,7 @@ public class StackFrame {
     for (ObjectValue object : getRoots()) {
       if (!object.getObjectValue().isNull()) {
         if (Trace.isEnabled(Item.ROOTS)) {
-          Trace.trace(Item.ROOTS, "Tracing root %s", object.toString());
+          Trace.trace(Item.ROOTS, "Tracing root %s", ObjectModel.getString(object.getObjectValue()));
         }
         object.traceObject(trace);
         if (ASSERT_WILL_NOT_MOVE) {
@@ -140,8 +140,10 @@ public class StackFrame {
             object.getObjectValue()+" has been traced but willNotMoveInCurrentCollection is still false";
         }
         if (Trace.isEnabled(Item.ROOTS)) {
-          Trace.trace(Item.ROOTS, "new value of %s", object.toString());
+          Trace.trace(Item.ROOTS, "new value of %s", ObjectModel.getString(object.getObjectValue()));
         }
+        // We would like to assert the sanity of the new root value, but can't in collectors
+        // like MC that update roots before actually moving the objects.
         rootCount++;
       }
     }

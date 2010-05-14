@@ -299,11 +299,15 @@ public final class RawThreadModel extends ThreadModel {
     yield(gcWaitQueue);
   }
 
+  /** @see org.mmtk.harness.scheduler.ThreadModel#yield() */
   @Override
   public void yield() {
     if (isRunning()) {
       if (current.yieldPolicy()) {
+        Trace.trace(Item.YIELD, "%d: Yieldpoint", Thread.currentThread().getId());
         yield(runQueue);
+      } else {
+        Trace.trace(Item.YIELD, "%d: Yieldpoint - not taken", Thread.currentThread().getId());
       }
     }
   }

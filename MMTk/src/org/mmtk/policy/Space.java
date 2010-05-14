@@ -354,6 +354,18 @@ public abstract class Space implements Constants {
     return Map.getSpaceForAddress(VM.objectModel.refToAddress(object));
   }
 
+  /**
+   * Return the space for a given address, not necessarily the
+   * start address of an object.
+   *
+   * @param addr The address in question
+   * @return The space containing the address
+   */
+  public static Space getSpaceForAddress(Address addr) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
+    return Map.getSpaceForAddress(addr);
+  }
+
   /****************************************************************************
    *
    * Page management

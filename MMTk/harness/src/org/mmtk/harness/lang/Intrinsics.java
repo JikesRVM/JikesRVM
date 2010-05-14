@@ -85,6 +85,7 @@ public class Intrinsics {
 
   /**
    * Unit test method for the Intrinsic method
+   *
    * @param env Thread-local environment (language-dependent mutator context)
    * @param x An int
    * @param y A boolean

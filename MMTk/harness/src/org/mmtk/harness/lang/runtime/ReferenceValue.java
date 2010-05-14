@@ -21,9 +21,18 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Moral equivalent of java.lang.ref.Reference
+ *
+ * In the MMTk harness, Reference types aren't heap objects.  This has the up side
+ * that we can debug problems with forwarding of referents more easily, but means
+ * that we don't exercise the method getForwardedReference, just getForwardedReferent.
+ *
+ * TODO make this more comprehensive.
  */
 public abstract class ReferenceValue extends Value {
 
+  private static int nextId = 0x100001;
+
+  private final int id = nextId++;
   private ObjectReference ref;
   private final Semantics semantics;
   private boolean cleared = false;
@@ -41,6 +50,7 @@ public abstract class ReferenceValue extends Value {
   /**
    * @see org.mmtk.harness.lang.runtime.Value#getObjectValue()
    */
+  @Override
   public ObjectReference getObjectValue() {
     return cleared ? ObjectReference.nullReference() : ref;
   }
@@ -53,22 +63,54 @@ public abstract class ReferenceValue extends Value {
   }
 
   /**
+   * GC-time processing of the contained object.
+   *
+   * Corresponds to the core of the processReference method of the MMTk ReferenceProcessor
+   * for the WEAK reference type.
+   *
+   * @param trace The MMTk trace
+   */
+  public void processReference(TraceLocal trace) {
+    if (cleared)
+      return;
+    ObjectReference newRef = trace.getForwardedReferent(ref);
+    if (Trace.isEnabled(Item.REFERENCES)) {
+      Trace.trace(Item.REFERENCES, "Forwarded reference %x: %s reference (%s -> %s)",
+          id, semantics, ObjectModel.getString(ref), ObjectModel.getString(newRef));
+    }
+    ref = newRef;
+  }
+
+  /**
+   * Deferred GC-time processing of the contained object, used in collectors
+   * like MarkCompact which determine liveness separately from copying.
+   *
+   * Corresponds to the core of the forward method of the MMTk ReferenceProcessor
+   * for the WEAK reference type.
+   *
+   * @param trace The MMTk trace
+   */
+  public void forwardReference(TraceLocal trace) {
+    if (cleared)
+      return;
+    /*
+     * Currently, do exactly the same thing for process as for forward.
+     *
+     * TODO - perhaps make this different, only really relevant when we have different semantics
+     * for the different types of references.
+     */
+    Trace.trace(Item.REFERENCES, "Forwarding reference %x: %s reference %s",
+        System.identityHashCode(this), semantics,
+        ObjectModel.getString(ref));
+    processReference(trace);
+  }
+
+  /**
    * @see org.mmtk.harness.lang.runtime.Value#equals(java.lang.Object)
    */
   @Override
   public boolean equals(Object o) {
     return this == o;
-  }
-
-  /**
-   * GC-time processing of the contained object
-   * @param trace The MMTk trace
-   */
-  public void traceObject(TraceLocal trace) {
-    String before = ObjectModel.getString(ref);
-    ref = trace.traceObject(ref, true);
-    Trace.trace(Item.REFERENCES, "Forwarded reference %x: %s reference (%s -> %s)",
-        System.identityHashCode(this), semantics, before, ObjectModel.getString(ref));
   }
 
   @Override
@@ -78,7 +120,7 @@ public abstract class ReferenceValue extends Value {
 
   @Override
   public String toString() {
-    return String.format("%x: %s reference (-> %s)", System.identityHashCode(this), semantics, ObjectModel.getString(ref));
+    return String.format("%x: %s reference (-> %s)", id, semantics, ObjectModel.getString(ref));
   }
 }
 

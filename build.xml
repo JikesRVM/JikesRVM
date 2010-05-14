@@ -435,8 +435,9 @@ Check to make sure all required properties are specified. This includes properti
     <echo message="${javacc.dir}"/>
     <javacc target="${basedir}/MMTk/harness/src-generated/org/mmtk/harness/lang/parser/Parser.jj" javacchome="${javacc.dir}" outputdirectory="${generated.mmtk-harness-parser.java}"/>
     <mkdir dir="${build.mmtk-harness.classes}"/>
-    <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" source="1.5"
-           target="1.5">
+    <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" 
+        destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" 
+        source="1.6" target="1.6">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.mmtk.classes}"/>

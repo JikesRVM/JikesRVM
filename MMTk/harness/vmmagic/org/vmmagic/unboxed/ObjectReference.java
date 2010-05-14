@@ -33,7 +33,7 @@ public final class ObjectReference {
   }
 
   /**
-   * Return a null reference
+   * @return a null reference
    */
   public static ObjectReference nullReference() {
     return new ObjectReference(ArchitecturalWord.fromLong(0));
@@ -41,6 +41,7 @@ public final class ObjectReference {
 
   /**
    * Get a heap address for the object.
+   * @return The address of the referenced object
    */
   public Address toAddress() {
     return new Address(value);
@@ -49,6 +50,7 @@ public final class ObjectReference {
   /**
    * Object equality.
    */
+  @Override
   public boolean equals(Object other) {
     return other instanceof ObjectReference && ((ObjectReference)other).value.equals(value);
   }
@@ -56,6 +58,7 @@ public final class ObjectReference {
   /**
    * Object hashCode
    */
+  @Override
   public int hashCode() {
     long val = value.toLongZeroExtend();
     int high = (int)(val >>> 32);
@@ -64,12 +67,16 @@ public final class ObjectReference {
   }
 
   /**
-   * Is this a null reference?
+   * @return Is this a null reference?
    */
   public boolean isNull() {
     return value.isZero();
   }
 
+  /**
+   * @see java.lang.Object#toString()
+   */
+  @Override
   public String toString() {
     return value.toString();
   }

@@ -92,6 +92,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * Clear the contents of the table. This is called when reference types are
    * disabled to make it easier for VMs to change this setting at runtime.
    */
+  @Override
   public void clear() {
     Trace.trace(Item.REFERENCES, "Clearing %s references", semantics);
     currentRefs.clear();
@@ -108,6 +109,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param trace the thread local trace element.
    * @param nursery true if it is safe to only scan new references.
    */
+  @Override
   public synchronized void scan(TraceLocal trace, boolean nursery) {
     Trace.trace(Item.REFERENCES, "Scanning %s references: current = %d, new = %d, %s",
         semantics,currentRefs.size(), newRefs.size(), nursery  ? "nursery" : "full-heap");
@@ -126,7 +128,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     for (ReferenceValue value : set) {
       ObjectReference referent = value.getObjectValue();
       if (trace.isReferentLive(referent)) {
-        value.traceObject(trace);
+        value.processReference(trace);
       } else {
         value.clear();
       }
@@ -134,17 +136,24 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
-   * Iterate over all references and forward.
+   * Iterate over all references and forward.  Only relevant to collectors like
+   * MarkCompact.
    * @param trace The MMTk trace to forward to
    * @param nursery The nursery collection hint
    */
+  @Override
   public void forward(TraceLocal trace, boolean nursery) {
-    Assert.notImplemented();
+    Trace.trace(Item.REFERENCES, "Forwarding %s references: %s",
+        semantics,nursery ? "nursery" : "full-heap");
+    for (ReferenceValue value : oldRefs) {
+      value.forwardReference(trace);
+    }
   }
 
   /**
    * @return the number of references objects on the queue
    */
+  @Override
   public int countWaitingReferences() {
     return currentRefs.size() + newRefs.size();
   }

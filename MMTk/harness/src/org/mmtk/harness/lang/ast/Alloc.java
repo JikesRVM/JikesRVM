@@ -15,6 +15,9 @@ package org.mmtk.harness.lang.ast;
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Token;
 
+/**
+ * AST node for the general alloc(refs,nonrefs,align) allocation method
+ */
 public class Alloc extends AbstractAST implements Expression {
   /** Call site ID */
   private final int site;
@@ -27,6 +30,11 @@ public class Alloc extends AbstractAST implements Expression {
 
   /**
    * Allocate an object.
+   * @param t The parser token for this node
+   * @param site A unique site ID
+   * @param refCount Integer expression - number of reference fields
+   * @param dataCount Integer expression - number of data fields
+   * @param doubleAlign Boolean expression - whether to 8-byte align
    */
   public Alloc(Token t, int site, Expression refCount, Expression dataCount, Expression doubleAlign) {
     super(t);
@@ -36,12 +44,20 @@ public class Alloc extends AbstractAST implements Expression {
     this.doubleAlign = doubleAlign;
   }
 
+  /** @see org.mmtk.harness.lang.ast.AbstractAST#accept(org.mmtk.harness.lang.Visitor) */
+  @Override
   public Object accept(Visitor v) {
     return v.visit(this);
   }
 
+  /**
+   * @return The allocation site number
+   */
   public int getSite() { return site; }
+  /** @return refCount */
   public Expression getRefCount() { return refCount; }
+  /** @return dataCount */
   public Expression getDataCount() { return dataCount; }
+  /** @return doubleAlign */
   public Expression getDoubleAlign() { return doubleAlign; }
 }

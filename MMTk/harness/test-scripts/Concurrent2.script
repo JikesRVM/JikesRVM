@@ -47,7 +47,7 @@ void main() {
   int l = LENGTH;
   while (l > 0) {
     /* During building: the shared objects at this stage of the construction */
-    object shared = alloc(0,0);
+    object shared = alloc(1,0);
  
     int i = 0;
     // Allocate the list node for this stage

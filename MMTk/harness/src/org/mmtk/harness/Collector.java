@@ -14,6 +14,9 @@ package org.mmtk.harness;
 
 import java.util.ArrayList;
 
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.sanity.GcSanity;
 import org.mmtk.harness.sanity.Sanity;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.harness.vm.ActivePlan;
@@ -97,7 +100,7 @@ public final class Collector implements Runnable {
       public void uncaughtException(Thread t, Throwable e) {
         System.err.print("Collector " + context.getId() + " caused unexpected exception: ");
         e.printStackTrace();
-        System.exit(1);
+        Main.exitWithFailure();
       }
     });
   }
@@ -172,82 +175,10 @@ public final class Collector implements Runnable {
         collect();
       } catch (Exception e) {
         e.printStackTrace();
-        System.exit(1);
+        Main.exitWithFailure();
       }
 
       Scheduler.exitGC();
-    }
-  }
-
-  /**
-   * A timeout thread.  Exit the harness if it isn't cancelled in time.
-   */
-  private static final class TimeoutThread implements Runnable {
-    private static final boolean VERBOSE = false;
-    private static final int MILLIS_PER_SECOND = 1000;
-    private final long timeout;
-    private boolean cancelled = false;
-    private volatile boolean started = false;
-
-    /**
-     * Create a timeout object and start it running in its own
-     * thread.
-     * @param seconds Timeout in seconds
-     */
-    private TimeoutThread(int seconds) {
-      this.timeout = seconds * MILLIS_PER_SECOND;
-      new Thread(this).start();
-      synchronized (this) {
-        while (!started) {
-          try {
-            /* Wait for the timeout thread to start running */
-            wait();
-          } catch (InterruptedException e) {
-          }
-        }
-      }
-    }
-
-    /**
-     * @see java.lang.Thread#run()
-     */
-    @Override
-    public void run() {
-      long startTime = System.currentTimeMillis();
-      synchronized (this) {
-        /* Inform the caller that the timeout thread has started */
-        started = true;
-        notify();
-
-        while (!cancelled) {
-          try {
-            /* Sleep until woken by a cancel or the timer has expired */
-            long now = System.currentTimeMillis();
-            if (now - startTime >= timeout) {
-              System.err.printf("Collection exceeded timeout %dms%n",timeout);
-              System.exit(1);
-            }
-            long sleepTime = Math.max(1,timeout - (now - startTime));
-            if (VERBOSE) {
-              System.err.printf("Collection timeout: sleeping for %dms%n",sleepTime);
-            }
-            wait(sleepTime);
-          } catch (InterruptedException e) {
-            // Ignore interruptions
-          }
-        }
-      }
-    }
-
-    /** Cancel the timeout */
-    public void cancel() {
-      synchronized (this) {
-        if (VERBOSE) {
-          System.err.printf("Collection timeout: cancelled%n");
-        }
-        cancelled = true;
-        notify();
-      }
     }
   }
 
@@ -256,12 +187,13 @@ public final class Collector implements Runnable {
    */
   private void collect() {
     boolean primary = context.getId() == 0;
-    Sanity sanity = null;
+    Trace.trace(Item.COLLECT, "Collection beginning, collector #%d", context.getId());
+    GcSanity sanity = null;
     TimeoutThread timeout = null;
     rendezvous(5000);
     if (primary) {
       Plan.setCollectionTrigger(Scheduler.getTriggerReason());
-      sanity = new Sanity();
+      sanity = new GcSanity();
       sanity.snapshotBefore();
       timeout = new TimeoutThread(Harness.timeout.getValue());
     }
@@ -336,6 +268,10 @@ public final class Collector implements Runnable {
       }
       Plan.collectionComplete();
       timeout.cancel();
+      if (ActivePlan.plan.lastCollectionFullHeap() && !internalPhaseTriggered) {
+        Sanity.getObjectTable().trimToLiveSet(sanity.liveSet());
+      }
+      Sanity.getObjectTable().postGcCleanup();
     }
     rendezvous(5203);
   }

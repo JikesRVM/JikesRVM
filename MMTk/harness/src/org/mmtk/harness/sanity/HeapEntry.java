@@ -37,7 +37,7 @@ public class HeapEntry implements Comparable<HeapEntry> {
   /** */
   private int refCount = 0;
 
-  private Set<ObjectReference> referrers = new HashSet<ObjectReference>();
+  private final Set<ObjectReference> referrers = new HashSet<ObjectReference>();
 
   HeapEntry(ObjectReference object, int id) {
     this.object = object;
@@ -135,9 +135,12 @@ public class HeapEntry implements Comparable<HeapEntry> {
     return 1;
   }
 
+  /**
+   * @see java.lang.Object#toString()
+   */
   @Override
   public String toString() {
-    String result = String.format("Heap entry: %s%n",id,ObjectModel.getString(object));
+    String result = String.format("Heap entry: id=%s, ",id,ObjectModel.getString(object));
     result += String.format("incoming pointers: %n");
     for (ObjectReference ref : getReferrers()) {
       result += String.format(" %s%n",ref);

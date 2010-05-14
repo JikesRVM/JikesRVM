@@ -36,6 +36,8 @@ public class Assert extends AbstractAST implements Statement {
     this.exprs = exprs;
   }
 
+  /** @see org.mmtk.harness.lang.ast.AbstractAST#accept(org.mmtk.harness.lang.Visitor) */
+  @Override
   public Object accept(Visitor v) {
     return v.visit(this);
   }
