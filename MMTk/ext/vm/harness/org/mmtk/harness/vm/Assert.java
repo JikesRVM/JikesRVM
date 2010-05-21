@@ -85,6 +85,7 @@ public class Assert extends org.mmtk.vm.Assert {
   /** @return true if assertions should be verified */
   @Override
   protected boolean getVerifyAssertionsConstant() {
-    return true;
+    String value = System.getProperty("org.mmtk.harness.verify.assertions", "true");
+    return Boolean.valueOf(value);
   }
 }
