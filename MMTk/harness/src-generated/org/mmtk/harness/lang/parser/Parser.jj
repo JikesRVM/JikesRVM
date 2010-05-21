@@ -632,8 +632,11 @@ Expression expr5(GlobalDefs defs, SymbolTable symbols) : {
         | e=callExpr(t,id,defs,symbols) { return e; } 
         )?
   
-     /* Variable substitution */
+     /* Variable substitution or type name */
      { 
+       if (defs.types.isDefined(id)) {
+         return new TypeLiteral(t,defs.types.get(id));
+       }
        checkSymbol(symbols,t);
        return new Variable(t,symbols.getSymbol(id)); 
      }
@@ -687,22 +690,19 @@ Expression callExpr(Token t, String name, GlobalDefs defs, SymbolTable symbols) 
 
 
 Expression alloc(GlobalDefs defs, SymbolTable symbols) : {
-	Expression e,refCount,dataCount,doubleAlign = new Constant(BoolValue.FALSE);
 	AllocationSite site;
 	Token t;
-	Type type;
+	List<Expression> args = new ArrayList<Expression>();
+	Expression arg;
 }
 {
   t=<ALLOC> { site = new AllocationSite(t); } <LPAREN> 
-  ( refCount=expression(defs,symbols) <COMMA>
-    dataCount=expression(defs,symbols)
-    ( <COMMA> doubleAlign=expression(defs,symbols) )?
+  (
+    arg=expression(defs,symbols) { args.add(arg); }
+    ( <COMMA> arg=expression(defs,symbols) { args.add(arg); } )*
     <RPAREN>
-    { return new Alloc(t, site.getId(), refCount, dataCount, doubleAlign); }
-  |
-    type=type(defs)
-    <RPAREN>
-    { return new AllocUserType(t, site.getId(), type); }
+    {
+      return new Alloc(t, site.getId(), args); }
   )
 }
 
