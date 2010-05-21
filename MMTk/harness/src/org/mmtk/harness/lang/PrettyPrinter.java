@@ -21,7 +21,6 @@ import java.util.Iterator;
 import org.mmtk.harness.Harness;
 import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Alloc;
-import org.mmtk.harness.lang.ast.AllocUserType;
 import org.mmtk.harness.lang.ast.Assert;
 import org.mmtk.harness.lang.ast.Assignment;
 import org.mmtk.harness.lang.ast.Call;
@@ -40,6 +39,7 @@ import org.mmtk.harness.lang.ast.Spawn;
 import org.mmtk.harness.lang.ast.Statement;
 import org.mmtk.harness.lang.ast.StoreField;
 import org.mmtk.harness.lang.ast.StoreNamedField;
+import org.mmtk.harness.lang.ast.TypeLiteral;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
 import org.mmtk.harness.lang.parser.MethodTable;
@@ -314,20 +314,16 @@ public class PrettyPrinter extends Visitor {
   @Override
   public Object visit(Alloc alloc) {
     fmt.out("alloc(");
-    alloc.getDataCount().accept(this);
-    fmt.out(",");
-    alloc.getRefCount().accept(this);
-    if (alloc.getDoubleAlign() != null) {
-      fmt.out(",");
-      alloc.getDoubleAlign().accept(this);
+    final int nArgs = alloc.numArgs();
+    for (int i=0; i < nArgs; i++) {
+      Expression arg = alloc.getArg(i);
+      arg.accept(this);
+      if (i < nArgs-1) {
+        fmt.out(",");
+      } else {
+        fmt.out(")");
+      }
     }
-    fmt.out(")");
-    return null;
-   }
-
-  @Override
-  public Object visit(AllocUserType alloc) {
-    fmt.out("alloc(%s)",alloc.getType());
     return null;
    }
 
@@ -343,6 +339,11 @@ public class PrettyPrinter extends Visitor {
     return null;
   }
 
+  @Override
+  public Object visit(TypeLiteral type) {
+    fmt.out(type.getType().toString());
+    return null;
+  }
 
   /*******************************************************************
    * Utility methods

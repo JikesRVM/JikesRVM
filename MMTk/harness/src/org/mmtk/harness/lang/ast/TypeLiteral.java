@@ -17,35 +17,24 @@ import org.mmtk.harness.lang.parser.Token;
 import org.mmtk.harness.lang.type.Type;
 
 /**
- * Allocation of a user-defined type.
+ * A literal type name, used as an argument to (eg) the alloc function.
  */
-public class AllocUserType extends AbstractAST implements Expression {
-  /** Call site ID */
-  private final int site;
-  /** The type to allocate */
+public class TypeLiteral extends AbstractAST implements Expression {
+
+  /** The type of the literal */
   private final Type type;
 
-  /**
-   * Allocate an object.
-   * @param t The source token
-   * @param site The allocation site ID
-   * @param type The type to allocate
-   */
-  public AllocUserType(Token t, int site, Type type) {
+  public TypeLiteral(Token t, Type type) {
     super(t);
-    this.site = site;
     this.type = type;
   }
 
-  /** @see org.mmtk.harness.lang.ast.AbstractAST#accept(org.mmtk.harness.lang.Visitor) */
   @Override
   public Object accept(Visitor v) {
     return v.visit(this);
   }
 
-  /** @return The call site */
-  public int getSite() { return site; }
-
-  /** @return The type of the allocated object */
-  public Type getType() { return type; }
+  public Type getType() {
+    return type;
+  }
 }

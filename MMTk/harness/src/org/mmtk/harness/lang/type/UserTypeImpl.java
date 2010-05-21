@@ -96,6 +96,11 @@ public class UserTypeImpl extends AbstractType implements UserType {
     return true;
   }
 
+  @Override
+  public boolean isUserType() {
+    return true;
+  }
+
   /*
    * Delegate AST-nature to the 'ast' object
    */

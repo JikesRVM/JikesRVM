@@ -31,13 +31,12 @@ import org.vmmagic.unboxed.ObjectReference;
  * - alignment
  * Always produces a result.
  */
-public final class AllocUserOp extends NullaryOp {
+public final class AllocUserOp extends UnaryOp {
 
   /** Call site */
   private final int site;
   private final int dataCount;
   private final int refCount;
-  private final boolean doubleAlign;
   private final Type type;
 
   /**
@@ -48,13 +47,16 @@ public final class AllocUserOp extends NullaryOp {
    * @param doubleAlign Does the object require double-word alignment ?
    * @param site Call site identifier
    */
-  public AllocUserOp(AST source, Register resultTemp, UserType type, boolean doubleAlign, int site) {
-    super(source,"alloc",resultTemp);
+  public AllocUserOp(AST source, Register resultTemp, UserType type, Register doubleAlign, int site) {
+    super(source,"alloc",resultTemp,doubleAlign);
     this.site = site;
     this.dataCount = type.dataFieldCount();
     this.refCount = type.referenceFieldCount();
-    this.doubleAlign = doubleAlign;
     this.type = type;
+  }
+  /** Get the alignment operand from <code>frame</code> */
+  private boolean getDoubleAlign(StackFrame frame) {
+    return frame.get(operand).getBoolValue();
   }
 
   /**
@@ -65,12 +67,12 @@ public final class AllocUserOp extends NullaryOp {
     StackFrame frame = env.top();
     ObjectReference object;
     try {
-      object = env.alloc(refCount, dataCount, doubleAlign,site);
+      object = env.alloc(refCount, dataCount, getDoubleAlign(frame), site);
     } catch (OutOfMemory e) {
       throw e;
     } catch (Exception e) {
       throw new RuntimeException("Error allocating object id:"+ObjectModel.lastObjectId()+" refs:"+refCount+
-          " ints: "+dataCount+" align:"+doubleAlign+" site:"+site,e);
+          " ints: "+dataCount+" align:"+getDoubleAlign(frame)+" site:"+site,e);
     }
     setResult(frame,new ObjectValue(object));
     if (Harness.gcEveryAlloc()) {

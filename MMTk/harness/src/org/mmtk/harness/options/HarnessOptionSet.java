@@ -107,7 +107,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
         return false;
       case Option.ADDRESS_OPTION:
         try {
-          int ival = Integer.parseInt(value);
+          int ival = Integer.parseInt(value,16);
           ((AddressOption)o).setValue(ival);
           return true;
         } catch (NumberFormatException nfe) {}

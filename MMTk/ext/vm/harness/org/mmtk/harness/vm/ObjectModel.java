@@ -28,6 +28,7 @@ import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.alloc.Allocator;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.unboxed.harness.ArchitecturalWord;
@@ -417,7 +418,8 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    */
   @Override
   public Address copyTo(ObjectReference from, ObjectReference to, Address toRegion) {
-    if (Trace.isEnabled(Item.COLLECT) || isWatched(from)) {
+    boolean traceThisObject = Trace.isEnabled(Item.COLLECT) || isWatched(from);
+    if (traceThisObject) {
       Trace.printf(Item.COLLECT,"Copying object %s explicitly from %s/%s to %s/%s, region %s%n", objectIdString(from),
         from,Space.getSpaceForObject(from).getName(),
         to,Space.getSpaceForObject(to).getName(),
@@ -431,29 +433,36 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     int bytes = getSize(from);
 
     if (doCopy) {
-      Address fromRegion = from.toAddress();
+      Address srcRegion = from.toAddress();
+      Address dstRegion = to.toAddress();
       for(int i=0; i < bytes; i += MemoryConstants.BYTES_IN_INT) {
-        int before=fromRegion.plus(i).loadInt();
-        toRegion.plus(i).store(fromRegion.plus(i).loadInt());
-        int after=toRegion.plus(i).loadInt();
-        if (Trace.isEnabled(Item.COLLECT)) {
+        int before = srcRegion.plus(i).loadInt();
+        dstRegion.plus(i).store(before);
+        int after = dstRegion.plus(i).loadInt();
+        if (traceThisObject) {
           System.err.printf("copy %s/%08x -> %s/%08x%n",
-              fromRegion.plus(i),before,toRegion.plus(i),after);
+              srcRegion.plus(i),before,dstRegion.plus(i),after);
         }
       }
 
-      int status = toRegion.loadInt(STATUS_OFFSET);
+      int status = dstRegion.loadInt(STATUS_OFFSET);
       if ((status & HASHED_AND_MOVED) == HASHED) {
-        toRegion.store(status | HASHED_AND_MOVED, STATUS_OFFSET);
-        toRegion.store(getHashCode(from), Offset.fromIntZeroExtend(bytes));
+        dstRegion.store(status | HASHED_AND_MOVED, STATUS_OFFSET);
+        dstRegion.store(getHashCode(from), Offset.fromIntZeroExtend(bytes));
         bytes += MemoryConstants.BYTES_IN_WORD;
       }
+      Allocator.fillAlignmentGap(toRegion, dstRegion);
+    } else {
+      if (traceThisObject) {
+        Trace.printf(Item.COLLECT,"%s: no copy required%n", getString(from));
+      }
     }
-    if (Trace.isEnabled(Item.COLLECT)) {
+    Address objectEndAddress = getObjectEndAddress(to);
+    if (traceThisObject) {
       dumpObjectHeader("After copy: ", to);
     }
     Sanity.assertValid(to);
-    return toRegion.plus(bytes);
+    return objectEndAddress;
   }
 
   /**

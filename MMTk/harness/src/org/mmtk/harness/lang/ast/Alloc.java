@@ -12,8 +12,11 @@
  */
 package org.mmtk.harness.lang.ast;
 
+import java.util.List;
+
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Token;
+import org.mmtk.harness.lang.type.UserType;
 
 /**
  * AST node for the general alloc(refs,nonrefs,align) allocation method
@@ -21,27 +24,34 @@ import org.mmtk.harness.lang.parser.Token;
 public class Alloc extends AbstractAST implements Expression {
   /** Call site ID */
   private final int site;
-  /** Number of reference fields */
-  private final Expression refCount;
-  /** Number of data fields */
-  private final Expression dataCount;
-  /** Double align the object? */
-  private final Expression doubleAlign;
+
+  /** arguments - there are a couple of variants of 'alloc' */
+  private final List<Expression> args;
+
+  /**
+   * During semantic analysis, we decide what kind of allocation request this is,
+   * and set this flag to show which.  null indicates that analysis hasn't yet happened.
+   */
+  private Boolean typedAlloc = null;
+
+  /**
+   * The result type - only available if typedAlloc == true
+   */
+  private UserType type = null;
 
   /**
    * Allocate an object.
+   *
    * @param t The parser token for this node
    * @param site A unique site ID
    * @param refCount Integer expression - number of reference fields
    * @param dataCount Integer expression - number of data fields
    * @param doubleAlign Boolean expression - whether to 8-byte align
    */
-  public Alloc(Token t, int site, Expression refCount, Expression dataCount, Expression doubleAlign) {
+  public Alloc(Token t, int site, List<Expression> args) {
     super(t);
     this.site = site;
-    this.refCount = refCount;
-    this.dataCount = dataCount;
-    this.doubleAlign = doubleAlign;
+    this.args = args;
   }
 
   /** @see org.mmtk.harness.lang.ast.AbstractAST#accept(org.mmtk.harness.lang.Visitor) */
@@ -50,14 +60,44 @@ public class Alloc extends AbstractAST implements Expression {
     return v.visit(this);
   }
 
+  public void setTyped(boolean isTyped) {
+    assert typedAlloc == null;
+    typedAlloc = isTyped;
+  }
+
+  public boolean isTyped() {
+    assert typedAlloc != null : "Semantic analysis has not yet been run!";
+    return typedAlloc;
+  }
+
+  public void setType(UserType type) {
+    assert typedAlloc;
+    this.type = type;
+  }
+
   /**
    * @return The allocation site number
    */
-  public int getSite() { return site; }
+  public int getSite() {
+    return site;
+  }
+
   /** @return refCount */
-  public Expression getRefCount() { return refCount; }
-  /** @return dataCount */
-  public Expression getDataCount() { return dataCount; }
-  /** @return doubleAlign */
-  public Expression getDoubleAlign() { return doubleAlign; }
+  public Expression getArg(int i) {
+    return args.get(i);
+  }
+
+  /** Get # args */
+  public int numArgs() {
+    return args.size();
+  }
+
+  public List<Expression> getArgs() {
+    return args;
+  }
+
+  public UserType getType() {
+    assert typedAlloc;
+    return type;
+  }
 }

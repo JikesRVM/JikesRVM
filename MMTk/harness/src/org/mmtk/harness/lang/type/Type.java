@@ -53,4 +53,7 @@ public interface Type {
 
   /** @return is this an object type (as opposed to a primitive) */
   boolean isObject();
+
+  /** @return is this user-defined (as opposed to built-in) */
+  boolean isUserType();
 }

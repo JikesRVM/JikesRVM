@@ -51,6 +51,14 @@ public abstract class AbstractType implements Type {
   }
 
   /**
+   * @see org.mmtk.harness.lang.type.Type#isUserType()
+   */
+  @Override
+  public boolean isUserType() {
+    return false;
+  }
+
+  /**
    * @see org.mmtk.harness.lang.type.Type#isCompatibleWith(org.mmtk.harness.lang.type.Type)
    */
   public boolean isCompatibleWith(Type rhs) {

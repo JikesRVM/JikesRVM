@@ -50,7 +50,7 @@ public class Scanning extends org.mmtk.vm.Scanning {
    * @param m Calling mutator
    */
   public static void initThreadIteratorTable(Mutator m) {
-    if (threadIteratorTable == null) {
+    if (Harness.allocDuringCollection.getValue() && threadIteratorTable == null) {
       threadIteratorTable = new ObjectValue(m.allocThreadIteratorTable());
     }
   }

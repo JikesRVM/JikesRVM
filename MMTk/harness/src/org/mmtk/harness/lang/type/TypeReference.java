@@ -34,7 +34,7 @@ public class TypeReference implements UserType {
     this.table = table;
     this.name = name;
     // CHECKSTYLE:OFF
-    assert name != "int" && name != "boolean" && name != "string" && name != "void" 
+    assert name != "int" && name != "boolean" && name != "string" && name != "void"
       && name != "weakref";
     // CHECKSTYLE:ON
   }
@@ -109,6 +109,11 @@ public class TypeReference implements UserType {
   @Override
   public Token getToken() {
     return resolve().getToken();
+  }
+
+  @Override
+  public boolean isUserType() {
+    return true;
   }
 
 }

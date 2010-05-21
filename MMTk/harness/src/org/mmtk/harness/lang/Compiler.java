@@ -18,58 +18,14 @@ import java.util.List;
 
 import org.mmtk.harness.Harness;
 import org.mmtk.harness.lang.Trace.Item;
-import org.mmtk.harness.lang.ast.AST;
-import org.mmtk.harness.lang.ast.Alloc;
-import org.mmtk.harness.lang.ast.AllocUserType;
-import org.mmtk.harness.lang.ast.Assert;
-import org.mmtk.harness.lang.ast.Assignment;
-import org.mmtk.harness.lang.ast.BinaryExpression;
-import org.mmtk.harness.lang.ast.Call;
-import org.mmtk.harness.lang.ast.Constant;
-import org.mmtk.harness.lang.ast.Empty;
-import org.mmtk.harness.lang.ast.Expect;
-import org.mmtk.harness.lang.ast.Expression;
-import org.mmtk.harness.lang.ast.IfStatement;
-import org.mmtk.harness.lang.ast.IntrinsicMethod;
-import org.mmtk.harness.lang.ast.LoadField;
-import org.mmtk.harness.lang.ast.LoadNamedField;
-import org.mmtk.harness.lang.ast.Method;
-import org.mmtk.harness.lang.ast.NormalMethod;
-import org.mmtk.harness.lang.ast.PrintStatement;
-import org.mmtk.harness.lang.ast.Return;
-import org.mmtk.harness.lang.ast.Sequence;
-import org.mmtk.harness.lang.ast.Statement;
-import org.mmtk.harness.lang.ast.Spawn;
-import org.mmtk.harness.lang.ast.StoreField;
-import org.mmtk.harness.lang.ast.StoreNamedField;
-import org.mmtk.harness.lang.ast.UnaryExpression;
-import org.mmtk.harness.lang.ast.Variable;
-import org.mmtk.harness.lang.ast.WhileStatement;
+import org.mmtk.harness.lang.ast.*;
 import org.mmtk.harness.lang.compiler.CompiledMethod;
 import org.mmtk.harness.lang.compiler.CompiledMethodProxy;
 import org.mmtk.harness.lang.compiler.CompiledMethodTable;
 import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.compiler.Temporary;
 import org.mmtk.harness.lang.parser.MethodTable;
-import org.mmtk.harness.lang.pcode.AllocOp;
-import org.mmtk.harness.lang.pcode.AllocUserOp;
-import org.mmtk.harness.lang.pcode.BinaryOperation;
-import org.mmtk.harness.lang.pcode.Branch;
-import org.mmtk.harness.lang.pcode.CallIntrinsicOp;
-import org.mmtk.harness.lang.pcode.CallNormalOp;
-import org.mmtk.harness.lang.pcode.ExitOp;
-import org.mmtk.harness.lang.pcode.ExpectOp;
-import org.mmtk.harness.lang.pcode.Goto;
-import org.mmtk.harness.lang.pcode.LoadFieldOp;
-import org.mmtk.harness.lang.pcode.LoadFixedFieldOp;
-import org.mmtk.harness.lang.pcode.PrintOp;
-import org.mmtk.harness.lang.pcode.PseudoOp;
-import org.mmtk.harness.lang.pcode.ReturnOp;
-import org.mmtk.harness.lang.pcode.SpawnOp;
-import org.mmtk.harness.lang.pcode.StoreFieldOp;
-import org.mmtk.harness.lang.pcode.StoreFixedFieldOp;
-import org.mmtk.harness.lang.pcode.StoreLocal;
-import org.mmtk.harness.lang.pcode.UnaryOperation;
+import org.mmtk.harness.lang.pcode.*;
 import org.mmtk.harness.lang.runtime.ConstantPool;
 import org.mmtk.harness.lang.type.Field;
 import org.mmtk.harness.lang.type.Type;
@@ -162,20 +118,24 @@ public final class Compiler extends Visitor {
 
   @Override
   public Object visit(Alloc alloc) {
-    Register dataCount = compile(alloc.getDataCount());
-    Register refCount = compile(alloc.getRefCount());
-    Register doubleAlign = compile(alloc.getDoubleAlign());
     Register result = temps.acquire();
-    emit(new AllocOp(alloc,result,dataCount,refCount,doubleAlign,alloc.getSite()));
-    temps.release(dataCount,refCount,doubleAlign);
-    return result;
-  }
-
-  @Override
-  public Object visit(AllocUserType alloc) {
-    UserType type = (UserType)alloc.getType();
-    Register result = temps.acquire();
-    emit(new AllocUserOp(alloc,result,type,false,alloc.getSite()));
+    Register doubleAlign = ConstantPool.FALSE;
+    if (alloc.isTyped()) {
+      UserType type = alloc.getType();
+      if (alloc.numArgs() >= 2) {
+        doubleAlign = compile(alloc.getArg(1));
+      }
+      emit(new AllocUserOp(alloc,result,type,doubleAlign,alloc.getSite()));
+      temps.release(doubleAlign);
+    } else {
+      Register refCount = compile(alloc.getArg(0));
+      Register dataCount = compile(alloc.getArg(1));
+      if (alloc.numArgs() >= 3) {
+        doubleAlign = compile(alloc.getArg(2));
+      }
+      emit(new AllocOp(alloc,result,dataCount,refCount,doubleAlign,alloc.getSite()));
+      temps.release(dataCount,refCount,doubleAlign);
+    }
     return result;
   }
 
@@ -364,6 +324,11 @@ public final class Compiler extends Visitor {
         field.getType().isObject() ? Type.OBJECT : Type.INT));
     temps.release(value);
     return null;
+  }
+
+  @Override
+  public Object visit(TypeLiteral type) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
