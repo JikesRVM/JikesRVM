@@ -13,12 +13,19 @@
 package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.Space;
-import org.mmtk.utility.*;
+import org.mmtk.utility.Constants;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
 import org.mmtk.vm.VM;
-
-import org.vmmagic.unboxed.*;
-import org.vmmagic.pragma.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class implements a bump pointer allocator that allows linearly
@@ -65,6 +72,8 @@ import org.vmmagic.pragma.*;
   private static final int STEP_SIZE = 1<<(SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
   protected static final int LOG_BLOCK_SIZE = LOG_BYTES_IN_PAGE + 3;
   protected static final Word BLOCK_MASK = Word.one().lsh(LOG_BLOCK_SIZE).minus(Word.one());
+  private static final int BLOCK_SIZE = (1<<LOG_BLOCK_SIZE);
+
 
   // Offsets into header
   protected static final Offset REGION_LIMIT_OFFSET = Offset.zero();
@@ -80,6 +89,8 @@ import org.vmmagic.pragma.*;
       MAX_ALIGNMENT, 0).toWord().toOffset();
 
   public static final int MINIMUM_DATA_SIZE = (1 << LOG_BLOCK_SIZE) - MAX_DATA_START_OFFSET.toInt();
+
+  private static final boolean VERBOSE = false;
 
   /****************************************************************************
    *
@@ -245,6 +256,7 @@ import org.vmmagic.pragma.*;
    * @return The address of the first byte of the allocated region or
    * zero on failure
    */
+  @Override
   protected final Address allocSlowOnce(int bytes, int align, int offset) {
     /* Check we have been bound to a space */
     if (space == null) {
@@ -253,7 +265,7 @@ import org.vmmagic.pragma.*;
 
     /* Check if we already have a block to use */
     if (allowScanning && !region.isZero()) {
-      Address nextRegion = region.loadAddress(NEXT_REGION_OFFSET);
+      Address nextRegion = getNextRegion(region);
       if (!nextRegion.isZero()) {
         return consumeNextRegion(nextRegion, bytes, align, offset);
       }
@@ -297,7 +309,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * A bump pointer chuck/region has been consumed but the contiguous region
+   * A bump pointer chunk/region has been consumed but the contiguous region
    * is available, so consume it and then return the address of the start
    * of a memory region satisfying the outstanding allocation request.  This
    * is relevant when re-using memory, as in a mark-compact collector.
@@ -311,17 +323,145 @@ import org.vmmagic.pragma.*;
    */
   private Address consumeNextRegion(Address nextRegion, int bytes, int align,
         int offset) {
-    region.plus(DATA_END_OFFSET).store(cursor);
+    setNextRegion(region,cursor);
     region = nextRegion;
-    cursor = nextRegion.plus(DATA_START_OFFSET);
-    updateLimit(nextRegion.loadAddress(REGION_LIMIT_OFFSET), nextRegion, bytes);
-    nextRegion.store(Address.zero(), DATA_END_OFFSET);
+    cursor = getDataStart(nextRegion);
+    updateLimit(getRegionLimit(nextRegion), nextRegion, bytes);
+    setDataEnd(nextRegion,Address.zero());
     VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent());
     reusePages(Conversions.bytesToPages(limit.diff(region)));
 
     return alloc(bytes, align, offset);
   }
 
+  /******************************************************************************
+   *
+   *   Accessor methods for the region metadata fields.
+   *
+   */
+
+  /**
+   * The first offset in a region after the header
+   * @param region The region
+   * @return The lowest address at which data can be stored
+   */
+  @Inline
+  public static Address getDataStart(Address region) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    return region.plus(DATA_START_OFFSET);
+  }
+
+  /**
+   * The next region in the linked-list of regions
+   * @param region The region
+   * @return The next region in the list
+   */
+  @Inline
+  public static Address getNextRegion(Address region) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    Address result = region.plus(NEXT_REGION_OFFSET).loadAddress();
+    return result;
+  }
+
+  /**
+   * Set the next region in the linked-list of regions
+   * @param region The region
+   * @param the next region in the list
+   */
+  @Inline
+  public static void setNextRegion(Address region, Address nextRegion) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!nextRegion.EQ(Address.fromIntZeroExtend(0xdeadbeef)));
+    region.store(nextRegion,NEXT_REGION_OFFSET);
+  }
+
+  /**
+   * Clear the next region pointer in the linked-list of regions
+   * @param region The region
+   */
+  @Inline
+  public static void clearNextRegion(Address region) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    region.store(Address.zero(),NEXT_REGION_OFFSET);
+  }
+
+  /**
+   * @param region The bump-pointer region
+   * @return The DATA_END address from the region header
+   */
+  @Inline
+  public static Address getDataEnd(Address region) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    return region.plus(DATA_END_OFFSET).loadAddress();
+  }
+
+  /**
+   * @param region The bump-pointer region
+   * @param endAddress The new DATA_END address from the region header
+   */
+  public static void setDataEnd(Address region, Address endAddress) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    region.store(endAddress, DATA_END_OFFSET);
+    if (VERBOSE) {
+      Log.write("setDataEnd(");
+      Log.write(region);
+      Log.write(",");
+      Log.write(endAddress);
+      Log.writeln(")");
+    }
+  }
+
+  /**
+   * Return the end address of the given region.
+   * @param region The region.
+   * @return the allocation limit of the region.
+   */
+  public static Address getRegionLimit(Address region) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    return region.plus(REGION_LIMIT_OFFSET).loadAddress();
+  }
+
+  /**
+   * Return the end address of the given region.
+   * @param region The region.
+   * @return the allocation limit of the region.
+   */
+  public static void setRegionLimit(Address region, Address limit) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    region.plus(REGION_LIMIT_OFFSET).store(limit);
+  }
+
+  /**
+   * @param region The region.
+   * @return {@code true} if the address is region-aligned
+   */
+  public static boolean isRegionAligned(Address region) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    return region.toWord().and(BLOCK_MASK).isZero();
+  }
+
+  /**
+   * Sanity check a region header
+   * @param region Region to check
+   */
+  public static void checkRegionMetadata(Address region) {
+    if (VM.VERIFY_ASSERTIONS) {
+      Address nextRegion = getNextRegion(region);
+      Address dataStart = getDataStart(region);
+      Address dataEnd = getDataEnd(region);
+      Address regionLimit = getRegionLimit(region);
+
+      VM.assertions._assert(nextRegion.isZero() || isRegionAligned(nextRegion));
+      VM.assertions._assert(dataEnd.GE(dataStart));
+      if (dataEnd.GT(regionLimit)) {
+        Log.write("dataEnd="); Log.write(dataEnd);
+        Log.write(", regionLimit="); Log.writeln(regionLimit);
+      }
+      VM.assertions._assert(dataEnd.LE(regionLimit));
+      VM.assertions._assert(regionLimit.EQ(region.plus(BLOCK_SIZE)));
+    }
+
+  }
   /**
    * Update the metadata to reflect the addition of a new region.
    *
@@ -338,13 +478,13 @@ import org.vmmagic.pragma.*;
     } else if (limit.NE(start) ||
                region.diff(start.plus(size)).toWord().toExtent().GT(maximumRegionSize())) {
       /* non contiguous or over-size, initialize new region */
-      region.plus(NEXT_REGION_OFFSET).store(start);
-      region.plus(DATA_END_OFFSET).store(cursor);
+      setNextRegion(region,start);
+      setDataEnd(region,cursor);
       region = start;
       cursor = start.plus(DATA_START_OFFSET);
     }
     updateLimit(start.plus(size), start, bytes);
-    region.plus(REGION_LIMIT_OFFSET).store(limit);
+    setRegionLimit(region,limit);
   }
 
   /**
@@ -401,7 +541,7 @@ import org.vmmagic.pragma.*;
     Address start = initialRegion;
     while (!start.isZero()) {
       scanRegion(scanner, start); // Scan this region
-      start = start.plus(NEXT_REGION_OFFSET).loadAddress(); // Move on to next
+      start = getNextRegion(start); // Move on to next
     }
   }
 
@@ -462,6 +602,7 @@ import org.vmmagic.pragma.*;
   /** @return the current cursor value */
   public final Address getCursor() { return cursor; }
   /** @return the space associated with this bump pointer */
+  @Override
   public final Space getSpace() { return space; }
 
   /**

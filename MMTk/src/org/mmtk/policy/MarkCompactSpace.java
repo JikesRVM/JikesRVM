@@ -12,12 +12,14 @@
  */
 package org.mmtk.policy;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
+import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.Log;
 
+import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -40,6 +42,14 @@ import org.vmmagic.pragma.*;
 
   private static final Word GC_MARK_BIT_MASK = Word.one();
   private static final Offset FORWARDING_POINTER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
+
+  private static final Lock lock = VM.newLock("mcSpace");
+
+  /** The list of occupied regions */
+  private Address regionList = Address.zero();
+
+  // TODO - maintain a separate list of partially allocated regions
+  // for threads to allocate into immediately after a collection.
 
   /****************************************************************************
    *
@@ -64,9 +74,9 @@ import org.vmmagic.pragma.*;
   public MarkCompactSpace(String name, int pageBudget, VMRequest vmRequest) {
     super(name, true, false, vmRequest);
     if (vmRequest.isDiscontiguous()) {
-      pr = new MonotonePageResource(pageBudget, this, 0);
+      pr = new FreeListPageResource(pageBudget, this, 0);
     } else {
-      pr = new MonotonePageResource(pageBudget, this, start, extent, 0);
+      pr = new FreeListPageResource(pageBudget, this, start, extent, 0);
     }
   }
 
@@ -74,7 +84,6 @@ import org.vmmagic.pragma.*;
    * Prepare for a collection
    */
   public void prepare() {
-    // nothing to do
   }
 
   /**
@@ -86,40 +95,15 @@ import org.vmmagic.pragma.*;
 
 
   /**
-   * Notify that several pages are no longer in use.
-   *
-   * @param pages The number of pages
-   */
-  public void unusePages(int pages) {
-    ((MonotonePageResource) pr).unusePages(pages);
-  }
-
-  /**
-   * Notify that several pages are no longer in use.
-   *
-   * @param pages The number of pages
-   */
-  public void reusePages(int pages) {
-    ((MonotonePageResource) pr).reusePages(pages);
-
-    /*
-     * Because we reuse pages, we need to duplicate GC accounting that would normally occur
-     * in Space.acquire()
-     */
-    boolean allowPoll = !Plan.gcInProgress() && Plan.isInitialized() && !VM.collection.isEmergencyAllocation();
-    if (allowPoll) VM.collection.reportAllocationSuccess();
-  }
-
-  /**
    * Release an allocated page or pages.  In this case we do nothing
    * because we only release pages enmasse.
    *
    * @param start The address of the start of the page or pages
    */
+  @Override
   @Inline
   public void release(Address start) {
-    if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert(false); // this policy only releases pages enmasse
+    ((FreeListPageResource)pr).releasePages(start);
   }
 
   /**
@@ -132,6 +116,7 @@ import org.vmmagic.pragma.*;
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS)
@@ -151,10 +136,19 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public ObjectReference traceMarkObject(TraceLocal trace, ObjectReference object) {
+    if (MarkCompactCollector.VERY_VERBOSE) {
+      Log.write("marking "); Log.write(object);
+    }
     if (testAndMark(object)) {
       trace.processNode(object);
     } else if (!getForwardingPointer(object).isNull()) {
+      if (MarkCompactCollector.VERY_VERBOSE) {
+        Log.write(" -> "); Log.writeln(getForwardingPointer(object));
+      }
       return getForwardingPointer(object);
+    }
+    if (MarkCompactCollector.VERY_VERBOSE) {
+      Log.writeln();
     }
     return object;
   }
@@ -175,6 +169,10 @@ import org.vmmagic.pragma.*;
       trace.processNode(object);
     }
     ObjectReference newObject = getForwardingPointer(object);
+    if (MarkCompactCollector.VERY_VERBOSE) {
+      Log.write("forwarding "); Log.write(object);
+      Log.write(" -> "); Log.writeln(newObject);
+    }
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!newObject.isNull());
     return getForwardingPointer(object);
   }
@@ -185,6 +183,7 @@ import org.vmmagic.pragma.*;
    * @param object The object
    * @return True if the object is live
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     return isMarked(object);
   }
@@ -196,6 +195,7 @@ import org.vmmagic.pragma.*;
    * @param object The object reference.
    * @return True if the object is reachable.
    */
+  @Override
   public boolean isReachable(ObjectReference object) {
     return isMarked(object);
   }
@@ -339,5 +339,50 @@ import org.vmmagic.pragma.*;
   @Inline
   public static void clearForwardingPointer(ObjectReference object) {
     object.toAddress().store(Address.zero(), FORWARDING_POINTER_OFFSET);
+  }
+
+  /**
+   * @return A region of this space that has net yet been compacted during
+   *   the current collection
+   */
+  public Address getNextRegion() {
+    lock.acquire();
+    if (regionList.isZero()) {
+      lock.release();
+      return Address.zero();
+    }
+    Address result = regionList;
+    regionList = BumpPointer.getNextRegion(regionList);
+    BumpPointer.clearNextRegion(result);
+    lock.release();
+    return result;
+  }
+
+  /**
+   * Append a region or list of regions to the global list
+   * @param region
+   */
+  public void append(Address region) {
+    lock.acquire();
+    if (MarkCompactCollector.VERBOSE) {
+      Log.write("Appending region "); Log.write(region);
+      Log.writeln(" to global list");
+    }
+    if (regionList.isZero()) {
+      regionList = region;
+    } else {
+      appendRegion(regionList,region);
+    }
+    lock.release();
+  }
+
+  public static void appendRegion(Address listHead, Address region) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!listHead.isZero());
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
+    Address cursor = listHead;
+    while (!BumpPointer.getNextRegion(cursor).isZero()) {
+      cursor = BumpPointer.getNextRegion(cursor);
+    }
+    BumpPointer.setNextRegion(cursor,region);
   }
 }

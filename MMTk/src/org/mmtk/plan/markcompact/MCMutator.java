@@ -32,10 +32,6 @@ import org.vmmagic.unboxed.*;
  *
  * See {@link MC} for an overview of the mark-compact algorithm.<p>
  *
- * FIXME Currently MC does not properly separate mutator and collector
- * behaviors, so some of the collection logic here should really be
- * per-collector thread, not per-mutator thread.
- *
  * @see MC
  * @see MCCollector
  * @see org.mmtk.plan.StopTheWorldMutator
@@ -46,7 +42,7 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    * Instance fields
    */
-  private MarkCompactLocal mc;
+  private final MarkCompactLocal mc;
 
   /****************************************************************************
    *
@@ -77,6 +73,7 @@ import org.vmmagic.unboxed.*;
    * @param site Allocation site
    * @return The low address of the allocated memory.
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == MC.ALLOC_DEFAULT) {
@@ -95,6 +92,7 @@ import org.vmmagic.unboxed.*;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Override
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -113,6 +111,7 @@ import org.vmmagic.unboxed.*;
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == MC.mcSpace) return mc;
     return super.getAllocatorFromSpace(space);
@@ -130,22 +129,12 @@ import org.vmmagic.unboxed.*;
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MC.PREPARE) {
+      mc.prepare();
       super.collectionPhase(phaseId, primary);
-      return;
-    }
-
-    /* FIXME this needs to be made a per-collector phase */
-    if (phaseId == MC.CALCULATE_FP) {
-      mc.calculateForwardingPointers();
-      return;
-    }
-
-    /* FIXME this needs to be made a per-collector phase */
-    if (phaseId == MC.COMPACT) {
-      mc.compact();
       return;
     }
 
@@ -155,5 +144,19 @@ import org.vmmagic.unboxed.*;
     }
     super.collectionPhase(phaseId, primary);
   }
+
+  /**
+   * Flush the pages this mutator has allocated back to the global
+   * dirty page list, where the collectors can find them.
+   *
+   * @see org.mmtk.plan.MutatorContext#flush()
+   */
+  @Override
+  public void flush() {
+    super.flush();
+    mc.flush();
+  }
+
+
 
 }
