@@ -585,6 +585,17 @@ public abstract class Space implements Constants {
    */
   @Interruptible
   public static void eagerlyMmapMMTkSpaces() {
+    eagerlyMmapMMTkContiguousSpaces();
+    eagerlyMmapMMTkDiscontiguousSpaces();
+  }
+
+
+  /**
+   * Ensure that all contiguous MMTk spaces are mapped. Demand zero map
+   * all of them if they are not already mapped.
+   */
+  @Interruptible
+  public static void eagerlyMmapMMTkContiguousSpaces() {
     for (int i = 0; i < spaceCount; i++) {
       Space space = spaces[i];
       if (space != VM.memory.getVMSpace()) {
@@ -599,6 +610,22 @@ public abstract class Space implements Constants {
         Mmapper.ensureMapped(space.start, space.extent.toInt()>>LOG_BYTES_IN_PAGE);
       }
     }
+  }
+
+  /**
+   * Ensure that all discontiguous MMTk spaces are mapped. Demand zero map
+   * all of them if they are not already mapped.
+   */
+  @Interruptible
+  public static void eagerlyMmapMMTkDiscontiguousSpaces() {
+    Address regionStart = Space.getDiscontigStart();
+    Address regionEnd = Space.getDiscontigEnd();
+    int pages = regionEnd.diff(regionStart).toInt()>>LOG_BYTES_IN_PAGE;
+    Log.write("Mapping discontiguous spaces ");
+    Log.write(regionStart);
+    Log.write("->");
+    Log.writeln(regionEnd.minus(1));
+    Mmapper.ensureMapped(getDiscontigStart(), pages);
   }
 
   /**
