@@ -241,8 +241,8 @@ if ($target eq "localhost") {
   $target = $local;
 }
 
-$hostUser = $ENV{USER};
-$targetUser = $ENV{USER};
+$hostUser = undef;
+$targetUser = undef;
 
 if ($cmd_hostUser ne "") {
   $hostUser = $cmd_hostUser;
@@ -260,11 +260,11 @@ if ($cmd_targetUser ne "") {
   $targetUser = $config{"$target.user"};
 }
 
-$sshHost = $hostUser."@".$host;
+$sshHost = defined($hostUser) ? $hostUser."@".$host : $host;
 $sshHostCmd = "ssh $sshHost";
 $sshHostCmdT = "ssh $sshHost -t";
 
-$sshTarget = $targetUser."@".$target;
+$sshTarget = defined($targetUser) ? $targetUser."@".$target : $target;
 $sshTargetCmd = "ssh $sshTarget";
 $sshTargetCmdT = "ssh $sshTarget -t";
 
