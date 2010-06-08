@@ -27,7 +27,7 @@ final class CollectorContextThread extends CollectorThread {
 
   @Override
   public void run() {
-    JavaThreadModel.setCurrentCollector(collector);
+    init();
     model.waitForGCStart();
     code.execute(new Env());
     model.removeCollector(this);

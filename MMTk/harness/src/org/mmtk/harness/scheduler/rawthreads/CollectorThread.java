@@ -20,7 +20,7 @@ import org.mmtk.harness.lang.Trace.Item;
  * The super-class of collector threads
  */
 class CollectorThread extends RawThread {
-  protected final Collector c;
+  protected Collector c;
 
   /**
    * Create a collector thread, running the 'run'method of collector c
@@ -29,19 +29,13 @@ class CollectorThread extends RawThread {
    * @param c
    * @param daemon
    */
-  private CollectorThread(RawThreadModel model,Collector c, boolean daemon) {
+  protected CollectorThread(RawThreadModel model, boolean daemon) {
     super(model);
-    this.c = c;
     setName("Collector-"+model.collectors.size());
     model.collectors.add(this);
     setDaemon(daemon);
     Trace.trace(Item.SCHEDULER, "%d: collector thread %d \"%s\" created (%d total)",
         Thread.currentThread().getId(), getId(), getName(),model.collectors.size());
-  }
-
-  /** Create a collector thread, with a new collector */
-  protected CollectorThread(RawThreadModel model, boolean daemon) {
-    this(model,new Collector(), daemon);
   }
 
   /** Create a collector thread, with a new collector */
@@ -51,6 +45,7 @@ class CollectorThread extends RawThread {
 
   @Override
   public void run() {
+    c = new Collector();
     // Initial 'yield'
     waitTillCurrent();
     c.run();
