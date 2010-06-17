@@ -456,7 +456,7 @@ public class JavaHeader implements JavaHeaderConstants {
     }
 
     if (toObj != null) {
-      toAddress = Magic.objectAsAddress(toObj).minus(OBJECT_REF_OFFSET);
+      toAddress = Magic.objectAsAddress(toObj).minus(objRefOffset);
     }
 
     // Low memory word of source object
@@ -464,13 +464,18 @@ public class JavaHeader implements JavaHeaderConstants {
 
     // Do the copy
     Memory.aligned32Copy(toAddress, fromAddress, copyBytes);
-    toObj = Magic.addressAsObject(toAddress.plus(objRefOffset));
+
+    if (toObj == null) {
+      toObj = Magic.addressAsObject(toAddress.plus(objRefOffset));
+    } else {
+      if (VM.VerifyAssertions) VM._assert(toObj == Magic.addressAsObject(toAddress.plus(objRefOffset)));
+    }
 
     // Do we need to copy the hash code?
     if (hashState.EQ(HASH_STATE_HASHED)) {
       int hashCode = Magic.objectAsAddress(fromObj).toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
       if (DYNAMIC_HASH_OFFSET) {
-        Magic.setIntAtOffset(toObj, Offset.fromIntSignExtend(numBytes - objRefOffset - HASHCODE_BYTES), hashCode);
+        Magic.setIntAtOffset(toObj, Offset.fromIntSignExtend(numBytes - OBJECT_REF_OFFSET - HASHCODE_BYTES), hashCode);
       } else {
         Magic.setIntAtOffset(toObj, HASHCODE_OFFSET, (hashCode << 1) | ALIGNMENT_MASK);
       }
