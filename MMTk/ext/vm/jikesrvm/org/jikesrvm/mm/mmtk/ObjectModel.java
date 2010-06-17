@@ -64,7 +64,7 @@ import org.vmmagic.pragma.*;
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MemoryManager.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
-    Object toObj = org.jikesrvm.objectmodel.ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
+    Object toObj = org.jikesrvm.objectmodel.ObjectModel.moveObject(region, from.toObject(), bytes, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     return to;
@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
     allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
     Address region = MemoryManager.allocateSpace(plan, bytes, align, offset,
                                                 allocator, from);
-    Object toObj = org.jikesrvm.objectmodel.ObjectModel.moveObject(region, from.toObject(), bytes, false, type);
+    Object toObj = org.jikesrvm.objectmodel.ObjectModel.moveObject(region, from.toObject(), bytes, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
     plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     if (type == RVMType.CodeArrayType) {
@@ -132,12 +132,12 @@ import org.vmmagic.pragma.*;
       if (type.isClassType()) {
         RVMClass classType = type.asClass();
         bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), classType);
-        org.jikesrvm.objectmodel.ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, classType);
+        org.jikesrvm.objectmodel.ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, classType);
       } else {
       RVMArray arrayType = type.asArray();
         int elements = Magic.getArrayLength(from.toObject());
         bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), arrayType, elements);
-        org.jikesrvm.objectmodel.ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, false, arrayType);
+        org.jikesrvm.objectmodel.ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, arrayType);
       }
     } else {
       bytes = getCurrentSize(to);
