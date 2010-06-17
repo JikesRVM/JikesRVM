@@ -198,7 +198,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
           clearAllBlockMarks();
       }
     } else {
-      zeroLiveBits(start, ((FreeListPageResource) pr).getHighWater());
+      zeroLiveBits();
     }
     inMSCollection = true;
   }
