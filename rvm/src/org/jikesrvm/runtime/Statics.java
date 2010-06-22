@@ -328,7 +328,7 @@ public class Statics implements Constants {
       if ((nextNumericSlot & 1) != 0) {
         // slot isn't 8byte aligned so increase by 1 and record hole
         nextNumericSlot--;
-        numericSlotHole = nextNumericSlot + 2;
+        numericSlotHole = nextNumericSlot + 4;
       }
       if ((nextNumericSlot & 3) != 0) {
         // slot not 16byte aligned, ignore any holes
