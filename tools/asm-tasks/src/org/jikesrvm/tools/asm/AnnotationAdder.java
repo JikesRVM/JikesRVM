@@ -493,8 +493,9 @@ public final class AnnotationAdder {
 
   /**
    * Main entry point
-   * @param args args[0] is the classpath to use to read classes, args[1] is
-   *        the destination directory
+   * @param args args[0] is the class library (harmony or gnu classpath)
+   *             args[1] is the classpath to use to read classes,
+   *             args[2] is the destination directory
    */
   public static void main(final String[] args) {
     Set<Class<?>> processedClasses = new HashSet<Class<?>>();
