@@ -954,7 +954,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
         cursor = cursor.plus(EmbeddedMetaData.BYTES_IN_REGION);
       }
     } else {
-      for(Address cursor = lastDiscontiguousRegion; !cursor.isZero(); cursor = Map.getNextContiguousRegion(cursor)) {
+      for(Address cursor = headDiscontiguousRegion; !cursor.isZero(); cursor = Map.getNextContiguousRegion(cursor)) {
         Address metadata = EmbeddedMetaData.getMetaDataBase(cursor).plus(META_DATA_OFFSET);
         VM.memory.zero(metadata, bytes);
       }

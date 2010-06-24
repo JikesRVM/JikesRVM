@@ -39,7 +39,8 @@ public class Map {
    * Class variables
    */
   private static final int[] descriptorMap;
-  private static final int[] linkageMap;
+  private static final int[] prevLink;
+  private static final int[] nextLink;
   private static final Space[] spaceMap;
   private static final GenericFreeList regionMap;
   public static final GenericFreeList globalPageMap;
@@ -59,7 +60,8 @@ public class Map {
    */
   static {
     descriptorMap = new int[Space.MAX_CHUNKS];
-    linkageMap = new int[Space.MAX_CHUNKS];
+    prevLink = new int[Space.MAX_CHUNKS];
+    nextLink = new int[Space.MAX_CHUNKS];
     spaceMap = new Space[Space.MAX_CHUNKS];
     regionMap = new GenericFreeList(Space.MAX_CHUNKS);
     globalPageMap = new GenericFreeList(1, 1, Space.MAX_SPACES);
@@ -108,10 +110,10 @@ public class Map {
    * @param descriptor The descriptor for the space to which these chunks will be assigned
    * @param space The space to which these chunks will be assigned
    * @param chunks The number of chunks required
-   * @param previous The previous contgiuous set of chunks for this space (to create a linked list of contiguous regions for each space)
+   * @param head The previous contgiuous set of chunks for this space (to create a linked list of contiguous regions for each space)
    * @return The address of the assigned memory.  This always succeeds.  If the request fails we fail right here.
    */
-  public static Address allocateContiguousChunks(int descriptor, Space space, int chunks, Address previous) {
+  public static Address allocateContiguousChunks(int descriptor, Space space, int chunks, Address head) {
     lock.acquire();
     int chunk = regionMap.alloc(chunks);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk != 0);
@@ -126,7 +128,13 @@ public class Map {
     totalAvailableDiscontiguousChunks -= chunks;
     Address rtn = addressForChunkIndex(chunk);
     insert(rtn, Extent.fromIntZeroExtend(chunks<<Space.LOG_BYTES_IN_CHUNK), descriptor, space);
-    linkageMap[chunk] = previous.isZero() ? 0 : getChunkIndex(previous);
+    if (head.isZero()) {
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nextLink[chunk] == 0);
+    } else {
+      nextLink[chunk] = getChunkIndex(head);
+      prevLink[getChunkIndex(head)] = chunk;
+    }
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(prevLink[chunk] == 0);
     lock.release();
     return rtn;
   }
@@ -140,7 +148,7 @@ public class Map {
   public static Address getNextContiguousRegion(Address start) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(start.EQ(Space.chunkAlign(start, true)));
     int chunk = getChunkIndex(start);
-    return (chunk == 0) ? Address.zero() : (linkageMap[chunk] == 0) ? Address.zero() : addressForChunkIndex(linkageMap[chunk]);
+    return (chunk == 0) ? Address.zero() : (nextLink[chunk] == 0) ? Address.zero() : addressForChunkIndex(nextLink[chunk]);
   }
 
   /**
@@ -167,18 +175,22 @@ public class Map {
 
   /**
    * Free all chunks in a linked list of contiguous chunks.  This means starting
-   * with lastChunk and then walking the chain of contiguous regions, freeing each.
+   * with one and then walking the chains of contiguous regions, freeing each.
    *
-   * @param lastChunk The last chunk in the linked list of chunks to be freed
+   * @param anyChunk Any chunk in the linked list of chunks to be freed
    */
-  public static void freeAllChunks(Address lastChunk) {
+  public static void freeAllChunks(Address anyChunk) {
     lock.acquire();
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(lastChunk.EQ(Space.chunkAlign(lastChunk, true)));
-    int chunk = getChunkIndex(lastChunk);
-    while (chunk != 0) {
-      int next = linkageMap[chunk];
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(anyChunk.EQ(Space.chunkAlign(anyChunk, true)));
+    if (!anyChunk.isZero()) {
+      int chunk = getChunkIndex(anyChunk);
+      while (nextLink[chunk] != 0) {
+        freeContiguousChunks(nextLink[chunk]);
+      }
+      while (prevLink[chunk] != 0) {
+        freeContiguousChunks(prevLink[chunk]);
+      }
       freeContiguousChunks(chunk);
-      chunk = next;
     }
     lock.release();
   }
@@ -206,10 +218,14 @@ public class Map {
   private static int freeContiguousChunks(int chunk) {
     int chunks = regionMap.free(chunk);
     totalAvailableDiscontiguousChunks += chunks;
+    int next = nextLink[chunk];
+    int prev = prevLink[chunk];
+    if (next != 0) prevLink[next] = prev;
+    if (prev != 0) nextLink[prev] = next;
+    nextLink[chunk] = prevLink[chunk] = 0;
     for (int offset = 0; offset < chunks; offset++) {
       descriptorMap[chunk + offset] = 0;
       VM.barriers.objectArrayStoreNoGCBarrier(spaceMap, chunk + offset, null);
-      linkageMap[chunk + offset] = 0;
     }
     return chunks;
   }

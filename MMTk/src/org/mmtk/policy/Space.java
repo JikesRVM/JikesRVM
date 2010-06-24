@@ -98,7 +98,7 @@ public abstract class Space implements Constants {
   protected PageResource pr;
   protected final Address start;
   protected final Extent extent;
-  protected Address lastDiscontiguousRegion;
+  protected Address headDiscontiguousRegion;
 
   private boolean allocationFailed;
 
@@ -133,7 +133,7 @@ public abstract class Space implements Constants {
       this.descriptor = SpaceDescriptor.createDescriptor();
       this.start = Address.zero();
       this.extent = Extent.zero();
-      this.lastDiscontiguousRegion = Address.zero();
+      this.headDiscontiguousRegion = Address.zero();
       VM.memory.setHeapRange(index, HEAP_START, HEAP_END); // this should really be refined!  Once we have a code space, we can be a lot more specific about what is a valid code heap area
       return;
     }
@@ -432,8 +432,7 @@ public abstract class Space implements Constants {
    * @return The address of the new discontiguous space.
    */
   public Address growDiscontiguousSpace(int chunks) {
-    this.lastDiscontiguousRegion = Map.allocateContiguousChunks(descriptor, this, chunks, lastDiscontiguousRegion);
-    return lastDiscontiguousRegion;
+    return headDiscontiguousRegion = Map.allocateContiguousChunks(descriptor, this, chunks, headDiscontiguousRegion);
   }
 
   /**
@@ -467,8 +466,8 @@ public abstract class Space implements Constants {
    */
   public int releaseDiscontiguousChunks(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(chunkAlign(chunk, true)));
-    if (chunk.EQ(lastDiscontiguousRegion)) {
-      lastDiscontiguousRegion = Map.getNextContiguousRegion(chunk);
+    if (chunk.EQ(headDiscontiguousRegion)) {
+      headDiscontiguousRegion = Map.getNextContiguousRegion(chunk);
     }
     return Map.freeContiguousChunks(chunk);
   }
@@ -546,7 +545,7 @@ public abstract class Space implements Constants {
         Log.writeln();
       } else {
         Log.write("D [");
-        for(Address a = space.lastDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
+        for(Address a = space.headDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
           Log.write(a); Log.write("->");
           Log.write(a.plus(Map.getContiguousRegionSize(a).minus(1)));
           if (Map.getNextContiguousRegion(a) != Address.zero())
