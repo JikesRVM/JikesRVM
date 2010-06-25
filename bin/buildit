@@ -70,7 +70,7 @@ Options:
 Building Options:
      --x87            Use x87 Compatibility mode.
  -c, --cross-to       Crossbuild to target host (or copy post build).
-     --with-perfctr   Build with perfctr support
+     --with-perfevent Build with perf event support
  -a, --with-acheck    Build with align checks, implies --x87 --processors 1
  -g, --gdb-symbols    Build with gdb symbols
  -q, --quick          Quick build (not 100% safe - doesn't regenerate source)
@@ -160,7 +160,7 @@ GetOptions(
   "r|root=s" => \$root,
   "q|quick" => \$quick,
   "processors=s" => \$procs,
-  "with-perfctr" => \$with_perfctr,
+  "with-perfevent" => \$with_perfevent,
   "a|with-acheck" => \$with_acheck,
   "z|skip-build" => \$skip_build,
   "h|help" => \$help,
@@ -652,8 +652,8 @@ if ($ok) {
     if ($harmony ne "") {
       $defs .= "-Dclasslib.provider=Harmony ";
     }
-    if ($with_perfctr ne "") {
-      $defs .= "-Dconfig.include.perfctr=true ";
+    if ($with_perfevent ne "") {
+      $defs .= "-Dconfig.include.perfevent=true ";
     }
     if ($with_acheck ne "") {
       $defs .= "-Dconfig.alignment-checking=true ";

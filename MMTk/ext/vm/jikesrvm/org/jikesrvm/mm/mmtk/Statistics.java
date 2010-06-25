@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.statistics.PerfEvent;
 import org.jikesrvm.runtime.Time;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
@@ -20,7 +21,8 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 
 import org.vmmagic.pragma.*;
 
-@Uninterruptible public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
+@Uninterruptible
+public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
   /**
    * Returns the number of collections that have occurred.
    *
@@ -76,33 +78,34 @@ import org.vmmagic.pragma.*;
     return (long)(t * 1e9);
   }
 
-  /**
-   * Initialize performance counters
-   *
-   * @param metric An integer identifying the metric being read
-   */
-  public void perfCtrInit(int metric) {
-    sysCall.sysPerfCtrInit(metric);
-}
+  private PerfEvent[] perfEvents;
 
   /**
-   * Read the current cycle count from the perfctr libraries
-   *
-   * @return the current cycle count from the perfctr libraries
+   * Initialize performance events
    */
-  public long perfCtrReadCycles() {
-    return sysCall.sysPerfCtrReadCycles();
+  @Interruptible
+  public void perfEventInit(String events) {
+    if (events.isEmpty()) {
+      // no initialization needed
+      return;
+    }
+    // initialize perf event
+    String[] perfEventNames = events.split(",");
+    int n = perfEventNames.length;
+    sysCall.sysPerfEventInit(n);
+    perfEvents = new PerfEvent[n];
+    for (int i = 0; i < n; i++) {
+      sysCall.sysPerfEventCreate(i, perfEventNames[i].getBytes());
+      perfEvents[i] = new PerfEvent(i, perfEventNames[i]);
+    }
+    sysCall.sysPerfEventEnable();
   }
 
   /**
-   * Read the current event count for the metric being measured by the
-   * perfctr libraries
-   *
-   * @return the current event count for the metric being measured by the
-   * perfctr libraries
+   * Read a performance event
    */
-  public long perfCtrReadMetric() {
-    return sysCall.sysPerfCtrReadMetric();
-}
+  public void perfEventRead(int id, long[] values) {
+    sysCall.sysPerfEventRead(id, values);
+  }
 }
 

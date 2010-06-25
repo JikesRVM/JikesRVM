@@ -12,10 +12,12 @@
  */
 package org.mmtk.vm;
 
+import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
 
-@Uninterruptible public abstract class Statistics {
+@Uninterruptible
+public abstract class Statistics {
   /**
    * Returns the number of collections that have occurred.
    *
@@ -54,26 +56,13 @@ import org.vmmagic.pragma.Uninterruptible;
   public abstract long cycles();
 
   /**
-   * Initialize performance counters
-   *
-   * @param metric An integer identifying the metric being read
+   * Initialize performance events
    */
-  public abstract void perfCtrInit(int metric);
+  @Interruptible
+  public abstract void perfEventInit(String events);
 
   /**
-   * Read the current cycle count from the perfctr libraries
-   *
-   * @return the current cycle count from the perfctr libraries
+   * Read a performance event value
    */
-  public abstract long perfCtrReadCycles();
-
-  /**
-   * Read the current event count for the metric being measured by the
-   * perfctr libraries
-   *
-   * @return the current event count for the metric being measured by the
-   * perfctr libraries
-   */
-  public abstract long perfCtrReadMetric();
-
+  public abstract void perfEventRead(int counter, long[] values);
 }

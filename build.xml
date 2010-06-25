@@ -381,11 +381,11 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
     <property name="addr.filter" value="-DRVM_FOR_${target.address.size}_ADDR=1"/>
 
-    <condition property="perfctr.filter" value="-DRVM_WITH_PERFCTR=1" else="">
-      <equals arg1="${config.include.perfctr}" arg2="true"/>
+    <condition property="perfevent.filter" value="-DRVM_WITH_PERFEVENT=1" else="">
+      <equals arg1="${config.include.perfevent}" arg2="true"/>
     </condition>
 
-    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${alignment-checking.filter} ${perfctr.filter} ${classlib.filter}"/>
+    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${alignment-checking.filter} ${perfevent.filter} ${classlib.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -1555,11 +1555,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
-    <condition property="perfctr.src" value="${bl.dir}/perfctr.C" else="">
-      <equals arg1="${config.include.perfctr}" arg2="true"/>
-    </condition>
-
-    <property name="rvm.src" value="${bl.dir}/RunBootImage.C ${bl.dir}/sys.C ${rvm.arch.src} ${perfctr.src}"/>
+    <property name="rvm.src" value="${bl.dir}/RunBootImage.C ${bl.dir}/sys.C ${rvm.arch.src}"/>
   </target>
 
   <target name="build-ppc-bootThread" depends="check-bootloader-properties" if="gen-ppc-bootThread">
@@ -1635,8 +1631,8 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${bl.dir}/org_jikesrvm_runtime_DynamicLibrary.c"/>
     </exec>
 
-    <condition property="perfctr.lib" value="-lperfctr" else="">
-      <equals arg1="${config.include.perfctr}" arg2="true"/>
+    <condition property="perfevent.lib" value="-lpfm" else="">
+      <equals arg1="${config.include.perfevent}" arg2="true"/>
     </condition>
 
     <if>
@@ -1645,7 +1641,7 @@ Check to make sure all required properties are specified. This includes properti
       </conditions>
       <sequential>
         <exec executable="${c++.exe}" failonerror="true">
-          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfctr.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
+          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfevent.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
           <arg value="-o"/>
           <arg value="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
@@ -1660,7 +1656,7 @@ Check to make sure all required properties are specified. This includes properti
       </conditions>
       <sequential>
         <exec executable="${c++.exe}" failonerror="true">
-          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfctr.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
+          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfevent.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
           <arg value="-o"/>
           <arg value="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
@@ -1729,7 +1725,7 @@ config.runtime.compiler=${config.runtime.compiler}
 config.bootimage.compiler=${config.bootimage.compiler}
 config.mmtk.plan=${config.mmtk.plan}
 config.include.aos=${config.include.aos}
-config.include.perfctr=${config.include.perfctr}
+config.include.perfevent=${config.include.perfevent}
 config.include.gcspy=${config.include.gcspy}
 config.include.gcspy-client=${config.include.gcspy-client}
 config.assertions=${config.assertions}
@@ -1786,7 +1782,7 @@ config.runtime.compiler=${config.runtime.compiler}
 config.bootimage.compiler=${config.bootimage.compiler}
 config.mmtk.plan=${config.mmtk.plan}
 config.include.aos=${config.include.aos}
-config.include.perfctr=${config.include.perfctr}
+config.include.perfevent=${config.include.perfevent}
 config.include.gcspy=${config.include.gcspy}
 config.include.gcspy-client=${config.include.gcspy-client}
 config.assertions=${config.assertions}

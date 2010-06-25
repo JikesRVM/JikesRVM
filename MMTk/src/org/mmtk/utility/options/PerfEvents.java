@@ -15,14 +15,13 @@ package org.mmtk.utility.options;
 /**
  * Performance counter options.
  */
-public class PerfMetric extends org.vmutil.options.EnumOption {
+public class PerfEvents extends org.vmutil.options.StringOption {
   /**
    * Create the option.
    */
-  public PerfMetric() {
-    super(Options.set, "Perf Metric",
-          "Use this to select a performance metric to measure",
-          new String[] {"RI", "L1D_MISS", "L2_MISS", "DTLB_MISS", "ITLB_MISS", "ITLB_HIT", "BPU_TC", "TC_FLUSH", "L1I_MISS", "BRANCHES", "BRANCH_MISS"},
-          "RI");
+  public PerfEvents() {
+    super(Options.set, "Perf Events",
+        "Use this to specify a comma seperated list of performance events to measure",
+        "");
   }
 }
