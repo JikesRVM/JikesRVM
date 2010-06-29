@@ -85,7 +85,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
    */
   @Interruptible
   public void perfEventInit(String events) {
-    if (events.isEmpty()) {
+    if (events.length() == 0) {
       // no initialization needed
       return;
     }
