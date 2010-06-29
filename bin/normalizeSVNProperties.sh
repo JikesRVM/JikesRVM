@@ -20,7 +20,7 @@
 # Source code files should have the following properties set:
 #   svn:eol-style : native
 #   svn:mime-type : text/plain
-for extension in .java .c .h .C; do
+for extension in .java .c .h .C .jj; do
     find . -name "*$extension" -print | xargs svn propset svn:eol-style native
     find . -name "*$extension" -print | xargs svn propset svn:mime-type text/plain
 done
