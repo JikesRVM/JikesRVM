@@ -53,7 +53,7 @@ public final class Options {
   public static NoFinalizer noFinalizer;
   public static NoReferenceTypes noReferenceTypes;
   public static NurserySize nurserySize;
-  public static PerfMetric perfMetric;
+  public static PerfEvents perfEvents;
   public static PrintPhaseStats printPhaseStats;
   public static ProtectOnRelease protectOnRelease;
   public static SanityCheck sanityCheck;

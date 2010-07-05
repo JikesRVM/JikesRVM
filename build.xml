@@ -12,8 +12,8 @@
  -->
 <project name="JikesRVM" default="main" basedir=".">
 
-  <property name="rvm.version" value="3.1.0"/>
-  <property name="svn.revision" value="15702"/>
+  <property name="rvm.version" value="3.1.1"/>
+  <property name="svn.revision" value="15876"/>
 
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
@@ -188,7 +188,7 @@
     <test-file name="harmony.lib.dir" location="${components.file}"/>
     <property file="${harmony.lib.dir}/constants.properties"/>
     <property name="config.portable-native-sync" value="false"/> <!-- has no meaning for Harmony -->
-    <property name="build.extra.rt.jars" value=":${harmony.lib.dir}/yoko-rmi-impl.jar:${harmony.lib.dir}/instrument.jar:${harmony.lib.dir}/beans.jar:${harmony.lib.dir}/xml-apis.jar:${harmony.lib.dir}/mx4j.jar:${harmony.lib.dir}/nio.jar:${harmony.lib.dir}/xalan.jar:${harmony.lib.dir}/resolver.jar:${harmony.lib.dir}/logging.jar:${harmony.lib.dir}/bcprov.jar:${harmony.lib.dir}/security.jar:${harmony.lib.dir}/sql.jar:${harmony.lib.dir}/print.jar:${harmony.lib.dir}/mx4j-remote.jar:${harmony.lib.dir}/concurrent.jar:${harmony.lib.dir}/luni-kernel-stubs.jar:${harmony.lib.dir}/misc.jar:${harmony.lib.dir}/accessibility.jar:${harmony.lib.dir}/crypto.jar:${harmony.lib.dir}/yoko.jar:${harmony.lib.dir}/rmi.jar:${harmony.lib.dir}/security-kernel-stubs.jar:${harmony.lib.dir}/x-net.jar:${harmony.lib.dir}/icu4j-charsets-3_8.jar:${harmony.lib.dir}/imageio.jar:${harmony.lib.dir}/nio_char.jar:${harmony.lib.dir}/lang-management.jar:${harmony.lib.dir}/regex.jar:${harmony.lib.dir}/applet.jar:${harmony.lib.dir}/prefs.jar:${harmony.lib.dir}/annotation.jar:${harmony.lib.dir}/math.jar:${harmony.lib.dir}/luni.jar:${harmony.lib.dir}/archive.jar:${harmony.lib.dir}/awt.jar:${harmony.lib.dir}/nio_char-src.jar:${harmony.lib.dir}/xercesImpl.jar:${harmony.lib.dir}/yoko-rmi-spec.jar:${harmony.lib.dir}/swing.jar:${harmony.lib.dir}/auth.jar:${harmony.lib.dir}/yoko-core.jar:${harmony.lib.dir}/text.jar:${harmony.lib.dir}/jndi.jar:${harmony.lib.dir}/suncompat.jar:${harmony.lib.dir}/sound.jar:${harmony.lib.dir}/icu4j-3_8.jar:${harmony.lib.dir}/bcel-5.2.jar"/>
+    <property name="build.extra.rt.jars" value=":${harmony.lib.dir}/yoko-rmi-impl.jar:${harmony.lib.dir}/instrument.jar:${harmony.lib.dir}/beans.jar:${harmony.lib.dir}/xml-apis.jar:${harmony.lib.dir}/mx4j.jar:${harmony.lib.dir}/nio.jar:${harmony.lib.dir}/xalan.jar:${harmony.lib.dir}/resolver.jar:${harmony.lib.dir}/logging.jar:${harmony.lib.dir}/bcprov.jar:${harmony.lib.dir}/security.jar:${harmony.lib.dir}/sql.jar:${harmony.lib.dir}/print.jar:${harmony.lib.dir}/mx4j-remote.jar:${harmony.lib.dir}/concurrent.jar:${harmony.lib.dir}/luni-kernel-stubs.jar:${harmony.lib.dir}/misc.jar:${harmony.lib.dir}/accessibility.jar:${harmony.lib.dir}/crypto.jar:${harmony.lib.dir}/yoko.jar:${harmony.lib.dir}/rmi.jar:${harmony.lib.dir}/security-kernel-stubs.jar:${harmony.lib.dir}/x-net.jar:${harmony.lib.dir}/icu4j-charsets-4_0.jar:${harmony.lib.dir}/imageio.jar:${harmony.lib.dir}/nio_char.jar:${harmony.lib.dir}/lang-management.jar:${harmony.lib.dir}/regex.jar:${harmony.lib.dir}/applet.jar:${harmony.lib.dir}/prefs.jar:${harmony.lib.dir}/annotation.jar:${harmony.lib.dir}/math.jar:${harmony.lib.dir}/luni.jar:${harmony.lib.dir}/archive.jar:${harmony.lib.dir}/awt.jar:${harmony.lib.dir}/nio_char-src.jar:${harmony.lib.dir}/xercesImpl.jar:${harmony.lib.dir}/yoko-rmi-spec.jar:${harmony.lib.dir}/swing.jar:${harmony.lib.dir}/auth.jar:${harmony.lib.dir}/yoko-core.jar:${harmony.lib.dir}/text.jar:${harmony.lib.dir}/jndi.jar:${harmony.lib.dir}/suncompat.jar:${harmony.lib.dir}/sound.jar:${harmony.lib.dir}/icu4j-4_0.jar:${harmony.lib.dir}/bcel-5.2.jar"/>
   </target>
 
   <target name="check-mmtk-properties"  depends="check-host-name">
@@ -381,11 +381,11 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
     <property name="addr.filter" value="-DRVM_FOR_${target.address.size}_ADDR=1"/>
 
-    <condition property="perfctr.filter" value="-DRVM_WITH_PERFCTR=1" else="">
-      <equals arg1="${config.include.perfctr}" arg2="true"/>
+    <condition property="perfevent.filter" value="-DRVM_WITH_PERFEVENT=1" else="">
+      <equals arg1="${config.include.perfevent}" arg2="true"/>
     </condition>
 
-    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${alignment-checking.filter} ${perfctr.filter} ${classlib.filter}"/>
+    <property name="filter" value="${arch.filter} ${os.filter} ${addr.filter} ${gctrace.filter} ${gcspy.filter} ${alignment-checking.filter} ${perfevent.filter} ${classlib.filter}"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -435,8 +435,9 @@ Check to make sure all required properties are specified. This includes properti
     <echo message="${javacc.dir}"/>
     <javacc target="${basedir}/MMTk/harness/src-generated/org/mmtk/harness/lang/parser/Parser.jj" javacchome="${javacc.dir}" outputdirectory="${generated.mmtk-harness-parser.java}"/>
     <mkdir dir="${build.mmtk-harness.classes}"/>
-    <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" source="1.5"
-           target="1.5">
+    <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" 
+        destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" 
+        source="1.6" target="1.6">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.mmtk.classes}"/>
@@ -1536,7 +1537,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="rvm.includes"
               value="-I${bl.dir} -I${basedir}/include -I${dist.base}/include ${gcspy.includes.dir} ${arch.includes} ${classlib.includes}"/>
 
-    <property name="rvm.defines" value="-D_REENTRANT ${filter} "/>
+    <property name="rvm.defines" value="-D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE ${filter} "/>
 
     <condition property="rvm.sse.args" value="" else="-mfpmath=sse">
         <equals arg1="${target.arch.sse2}" arg2="none"/>
@@ -1554,11 +1555,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
-    <condition property="perfctr.src" value="${bl.dir}/perfctr.C" else="">
-      <equals arg1="${config.include.perfctr}" arg2="true"/>
-    </condition>
-
-    <property name="rvm.src" value="${bl.dir}/RunBootImage.C ${bl.dir}/sys.C ${rvm.arch.src} ${perfctr.src}"/>
+    <property name="rvm.src" value="${bl.dir}/RunBootImage.C ${bl.dir}/sys.C ${rvm.arch.src}"/>
   </target>
 
   <target name="build-ppc-bootThread" depends="check-bootloader-properties" if="gen-ppc-bootThread">
@@ -1634,8 +1631,8 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${bl.dir}/org_jikesrvm_runtime_DynamicLibrary.c"/>
     </exec>
 
-    <condition property="perfctr.lib" value="-lperfctr" else="">
-      <equals arg1="${config.include.perfctr}" arg2="true"/>
+    <condition property="perfevent.lib" value="-lpfm" else="">
+      <equals arg1="${config.include.perfevent}" arg2="true"/>
     </condition>
 
     <if>
@@ -1644,7 +1641,7 @@ Check to make sure all required properties are specified. This includes properti
       </conditions>
       <sequential>
         <exec executable="${c++.exe}" failonerror="true">
-          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfctr.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
+          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfevent.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
           <arg value="-o"/>
           <arg value="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
@@ -1659,7 +1656,7 @@ Check to make sure all required properties are specified. This includes properti
       </conditions>
       <sequential>
         <exec executable="${c++.exe}" failonerror="true">
-          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfctr.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
+          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfevent.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
           <arg value="-o"/>
           <arg value="${build.base}/JikesRVM"/>
           <arg value="-L${build.base}"/>
@@ -1728,7 +1725,7 @@ config.runtime.compiler=${config.runtime.compiler}
 config.bootimage.compiler=${config.bootimage.compiler}
 config.mmtk.plan=${config.mmtk.plan}
 config.include.aos=${config.include.aos}
-config.include.perfctr=${config.include.perfctr}
+config.include.perfevent=${config.include.perfevent}
 config.include.gcspy=${config.include.gcspy}
 config.include.gcspy-client=${config.include.gcspy-client}
 config.assertions=${config.assertions}
@@ -1785,7 +1782,7 @@ config.runtime.compiler=${config.runtime.compiler}
 config.bootimage.compiler=${config.bootimage.compiler}
 config.mmtk.plan=${config.mmtk.plan}
 config.include.aos=${config.include.aos}
-config.include.perfctr=${config.include.perfctr}
+config.include.perfevent=${config.include.perfevent}
 config.include.gcspy=${config.include.gcspy}
 config.include.gcspy-client=${config.include.gcspy-client}
 config.assertions=${config.assertions}
@@ -2212,7 +2209,7 @@ target.jni-suffix=${target.jni-suffix}
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
-  <target name="mmtk-harness-eclipse-project">
+  <target name="mmtk-harness-eclipse-project" depends="mmtk-harness">
     <delete dir="eclipse"/>
     <delete file=".project"/>
     <delete file=".classpath"/>

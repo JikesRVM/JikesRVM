@@ -12,11 +12,10 @@
  */
 package org.mmtk.harness.scheduler.rawthreads;
 
-import org.mmtk.harness.MMTkThread;
+import org.mmtk.harness.Main;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
-import org.mmtk.harness.scheduler.Policy;
-import org.mmtk.harness.scheduler.Scheduler;
+import org.mmtk.harness.scheduler.MMTkThread;
 
 /**
  * An MMTk thread in the RawThreads model
@@ -25,10 +24,7 @@ class RawThread extends MMTkThread {
   /**
    *
    */
-  private final RawThreadModel model;
-
-  /** The command-line configurable yield policy */
-  private final Policy yieldPolicy = Scheduler.yieldPolicy(this);
+  protected final RawThreadModel model;
 
   /** True if this thread is exiting */
   private boolean exiting = false;
@@ -41,6 +37,12 @@ class RawThread extends MMTkThread {
 
   public RawThread(RawThreadModel model) {
     this.model = model;
+    this.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+      @Override public void uncaughtException(Thread t, Throwable e) {
+        e.printStackTrace();
+        Main.exitWithFailure();
+      }
+    });
   }
 
   protected void end() {
@@ -61,10 +63,6 @@ class RawThread extends MMTkThread {
     model.wakeScheduler();
     waitTillCurrent();
     Trace.trace(Item.SCHEDULER, "%d: resuming", getId());
-  }
-
-  boolean yieldPolicy() {
-    return yieldPolicy.yieldNow();
   }
 
   void setOrdinal(int ordinal) {

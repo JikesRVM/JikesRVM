@@ -156,6 +156,12 @@ import org.vmmagic.pragma.*;
   String getName() { return name; }
 
   /**
+   * Return the (option) suffix to be used when reporting this counter
+   * @return The suffix
+   */
+  String getColumnSuffix() { return ""; }
+
+  /**
    * Return true if this counter is implicitly started when
    * <code>startAll()</code> is called.
    * @return True if this counter is implicitly started when

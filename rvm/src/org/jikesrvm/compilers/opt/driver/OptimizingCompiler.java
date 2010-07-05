@@ -12,14 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.Callbacks;
-import org.jikesrvm.classloader.Atom;
-import org.jikesrvm.classloader.BootstrapClassLoader;
-import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -72,14 +67,7 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
       options.ESCAPE_SIMPLE_IPA = false;
 
       initializeStatics();
-      if (VM.runningVM) {
-        // Make sure that OptSaveVolatile.java is opt
-        // compiled (to get special prologues/epilogues)
-        // TODO: This could be phased out as the new DynamicBridge
-        // magic comes on line.
-        loadSpecialClass("Lorg/jikesrvm/compilers/opt/runtimesupport/OptSaveVolatile;", options);
 
-      }
       // want to be notified when VM boot is done and ready to start application
       Callbacks.addStartupMonitor(new OptimizingCompiler());
       isInitialized = true;
@@ -129,49 +117,6 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
     // we can get a chance to either implement them on IA32 or fix the
     // analysis to not be so brittle.
     // options.SIMPLE_ESCAPE_IPA = true;
-  }
-
-  /**
-   * Load a class which must be compiled by the opt compiler in a special way
-   * @param klassName the class to load
-   * @param options compiler options for compiling the class
-   */
-  private static void loadSpecialClass(String klassName, OptOptions options) {
-    TypeReference tRef =
-        TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(),
-                                      Atom.findOrCreateAsciiAtom(klassName));
-    RVMClass klass = (RVMClass) tRef.peekType();
-    for (RVMMethod meth : klass.getDeclaredMethods()) {
-      if (meth.isClassInitializer()) {
-        continue;
-      }
-      if (!meth.isCompiled() || meth.getCurrentCompiledMethod().getCompilerType() != CompiledMethod.OPT) {
-        CompilationPlan cp =
-            new CompilationPlan((NormalMethod) meth,
-                                    OptimizationPlanner.createOptimizationPlan(options),
-                                    null,
-                                    options);
-        meth.replaceCompiledMethod(compile(cp));
-      }
-    }
-  }
-
-  public static void preloadSpecialClass(OptOptions options) {
-    String klassName = "L" + options.PRELOAD_CLASS + ";";
-
-    if (options.PRELOAD_AS_BOOT) {
-      setBootOptions(options);
-      // Make a local copy so that some options can be altered to mimic options
-      // during boot build
-      options = options.dup();
-    }
-
-    try {
-      loadSpecialClass(klassName, options);
-    } catch (Throwable e) {
-      e.printStackTrace();
-      VM.sysWrite("Ignoring failure of preloadSpecialClass of " + klassName + "\n");
-    }
   }
 
   /**

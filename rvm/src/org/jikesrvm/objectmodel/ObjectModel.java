@@ -383,29 +383,29 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
   /**
    * Copy a scalar object to the given raw storage address
    */
-  public static Object moveObject(Object fromObj, Object toObj, int numBytes, boolean noGCHeader, RVMClass type) {
-    return JavaHeader.moveObject(fromObj, toObj, numBytes, noGCHeader, type);
+  public static Object moveObject(Object fromObj, Object toObj, int numBytes, RVMClass type) {
+    return JavaHeader.moveObject(fromObj, toObj, numBytes, type);
   }
 
   /**
    * Copy an array object to the given raw storage address
    */
-  public static Object moveObject(Object fromObj, Object toObj, int numBytes, boolean noGCHeader, RVMArray type) {
-    return JavaHeader.moveObject(fromObj, toObj, numBytes, noGCHeader, type);
+  public static Object moveObject(Object fromObj, Object toObj, int numBytes, RVMArray type) {
+    return JavaHeader.moveObject(fromObj, toObj, numBytes, type);
   }
 
   /**
    * Copy a scalar object to the given raw storage address
    */
-  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, boolean noGCHeader, RVMClass type) {
-    return JavaHeader.moveObject(toAddress, fromObj, numBytes, noGCHeader, type);
+  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, RVMClass type) {
+    return JavaHeader.moveObject(toAddress, fromObj, numBytes, type);
   }
 
   /**
    * Copy an array object to the given raw storage address
    */
-  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, boolean noGCHeader, RVMArray type) {
-    return JavaHeader.moveObject(toAddress, fromObj, numBytes, noGCHeader, type);
+  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, RVMArray type) {
+    return JavaHeader.moveObject(toAddress, fromObj, numBytes, type);
   }
 
   /**

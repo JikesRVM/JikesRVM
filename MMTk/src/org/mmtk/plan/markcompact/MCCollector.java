@@ -13,6 +13,7 @@
 package org.mmtk.plan.markcompact;
 
 import org.mmtk.plan.*;
+import org.mmtk.policy.MarkCompactCollector;
 
 import org.mmtk.vm.VM;
 
@@ -29,12 +30,6 @@ import org.vmmagic.unboxed.*;
  * method), and collection-time allocation.<p>
  *
  * @see MC for an overview of the mark-compact algorithm.<p>
- *
- * FIXME Currently MC does not properly separate mutator and collector
- * behaviors, so some of the collection logic in MCMutator should
- * really be per-collector thread, not per-mutator thread.
- *
- * @see MC
  * @see MCMutator
  * @see StopTheWorldCollector
  * @see CollectorContext
@@ -50,6 +45,7 @@ import org.vmmagic.unboxed.*;
 
   private final MCMarkTraceLocal markTrace;
   private final MCForwardTraceLocal forwardTrace;
+  private final MarkCompactCollector mc;
   private boolean currentTrace;
 
   /****************************************************************************
@@ -63,6 +59,7 @@ import org.vmmagic.unboxed.*;
   public MCCollector() {
     markTrace = new MCMarkTraceLocal(global().markTrace);
     forwardTrace = new MCForwardTraceLocal(global().forwardTrace);
+    mc = new MarkCompactCollector(MC.mcSpace);
   }
 
 
@@ -81,6 +78,7 @@ import org.vmmagic.unboxed.*;
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
+  @Override
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
@@ -96,6 +94,7 @@ import org.vmmagic.unboxed.*;
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Override
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -113,6 +112,7 @@ import org.vmmagic.unboxed.*;
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == MC.PREPARE) {
@@ -124,6 +124,16 @@ import org.vmmagic.unboxed.*;
 
     if (phaseId == MC.CLOSURE) {
       markTrace.completeTrace();
+      return;
+    }
+
+    if (phaseId == MC.CALCULATE_FP) {
+      mc.calculateForwardingPointers();
+      return;
+    }
+
+    if (phaseId == MC.COMPACT) {
+      mc.compact();
       return;
     }
 
@@ -160,12 +170,12 @@ import org.vmmagic.unboxed.*;
    */
 
   /** @return The current trace instance. */
+  @Override
   public final TraceLocal getCurrentTrace() {
     if (currentTrace == TRACE_MARK) {
       return markTrace;
-    } else {
-      return forwardTrace;
     }
+    return forwardTrace;
   }
 
   /** @return The active global plan as an <code>MC</code> instance. */

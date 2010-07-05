@@ -193,7 +193,7 @@ public class ScanBootImage implements Constants {
    *
    * Build-time encoding (assumed to be single-threaded)
    */
-  private static int lastOffset = 0;
+  private static int lastOffset = Integer.MIN_VALUE / 2;  /* bootstrap value */
   private static int oldIndex = 0;
   private static int codeIndex = 0;
 

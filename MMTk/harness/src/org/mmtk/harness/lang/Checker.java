@@ -17,33 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.mmtk.harness.lang.Trace.Item;
-import org.mmtk.harness.lang.ast.AST;
-import org.mmtk.harness.lang.ast.Alloc;
-import org.mmtk.harness.lang.ast.AllocUserType;
-import org.mmtk.harness.lang.ast.Assert;
-import org.mmtk.harness.lang.ast.Assignment;
-import org.mmtk.harness.lang.ast.BinaryExpression;
-import org.mmtk.harness.lang.ast.Call;
-import org.mmtk.harness.lang.ast.Constant;
-import org.mmtk.harness.lang.ast.Empty;
-import org.mmtk.harness.lang.ast.Expect;
-import org.mmtk.harness.lang.ast.Expression;
-import org.mmtk.harness.lang.ast.IfStatement;
-import org.mmtk.harness.lang.ast.LoadField;
-import org.mmtk.harness.lang.ast.LoadNamedField;
-import org.mmtk.harness.lang.ast.Method;
-import org.mmtk.harness.lang.ast.NormalMethod;
-import org.mmtk.harness.lang.ast.Operator;
-import org.mmtk.harness.lang.ast.PrintStatement;
-import org.mmtk.harness.lang.ast.Return;
-import org.mmtk.harness.lang.ast.Sequence;
-import org.mmtk.harness.lang.ast.Spawn;
-import org.mmtk.harness.lang.ast.Statement;
-import org.mmtk.harness.lang.ast.StoreField;
-import org.mmtk.harness.lang.ast.StoreNamedField;
-import org.mmtk.harness.lang.ast.UnaryExpression;
-import org.mmtk.harness.lang.ast.Variable;
-import org.mmtk.harness.lang.ast.WhileStatement;
+import org.mmtk.harness.lang.ast.*;
 import org.mmtk.harness.lang.parser.MethodTable;
 import org.mmtk.harness.lang.type.Field;
 import org.mmtk.harness.lang.type.Type;
@@ -135,24 +109,33 @@ public class Checker extends Visitor {
 
   @Override
   public Object visit(Alloc alloc) {
-    if (!checkType(alloc.getRefCount(),Type.INT)) {
-      fail(alloc,"Allocation reference count must be integer");
-    }
-    if (!checkType(alloc.getDataCount(),Type.INT)) {
-      fail(alloc,"Allocation data count must be integer");
-    }
-    if (!checkType(alloc.getDoubleAlign(),Type.BOOLEAN)) {
-      fail(alloc,"Allocation double align must be boolean");
-    }
-    return Type.OBJECT;
-  }
+    Type p1Type = getTypeOf(alloc.getArg(0));
 
-  @Override
-  public Object visit(AllocUserType alloc) {
-    if (!alloc.getType().isObject() || alloc.getType() == Type.OBJECT) {
-      fail(alloc,"Can't allocate a %s using alloc(type)",alloc.getType().toString());
+    if (p1Type.equals(Type.INT)) {
+      alloc.setTyped(false);
+      // untyped 'object' allocation - int,int[,boolean]
+      if (!checkType(alloc.getArg(1),Type.INT)) {
+        fail(alloc,"Allocation data count must be integer");
+      }
+      if (alloc.numArgs() >= 3) {
+        if (!checkType(alloc.getArg(2),Type.BOOLEAN)) {
+          fail(alloc,"Allocation double align must be boolean");
+        }
+      }
+      return Type.OBJECT;
+    } else if (p1Type.isUserType()) {
+      alloc.setTyped(true);
+      alloc.setType((UserType)p1Type);
+      if (alloc.numArgs() >= 2) {
+        if (!checkType(alloc.getArg(1),Type.BOOLEAN)) {
+          fail(alloc,"Allocation double align must be boolean");
+        }
+      }
+      return p1Type;
+    } else {
+      fail(alloc,"Can't allocate a %s using alloc(...)",alloc.getType().toString());
+      throw new AssertionError("this line is unreachable");
     }
-    return alloc.getType();
   }
 
   @Override
@@ -366,6 +349,11 @@ public class Checker extends Visitor {
       fail(store,"Storefield to a "+fieldType+" must have type "+fieldType);
     }
     return Type.VOID;
+  }
+
+  @Override
+  public Object visit(TypeLiteral type) {
+    return type.getType();
   }
 
   @Override

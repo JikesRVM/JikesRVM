@@ -20,7 +20,6 @@
   <classpathentry kind="src" path="libraryInterface/Harmony/ASF/src"/>
   <classpathentry kind="src" path="libraryInterface/Harmony/EPL/src"/>
   <classpathentry kind="src" path="tools/bootImageWriter/src"/>
-  <classpathentry kind="src" path="tools/bootImageWriter/vmmagic/src"/>
   <classpathentry kind="src" path="common/vmmagic/src"/>
   <classpathentry kind="src" path="external/tuningforklib/src"/>
 
@@ -39,8 +38,8 @@
   <classpathentry kind="lib" path="eclipse/beans.jar"/>
   <classpathentry kind="lib" path="eclipse/concurrent.jar"/>
   <classpathentry kind="lib" path="eclipse/crypto.jar"/>
-  <classpathentry kind="lib" path="eclipse/icu4j-3_8.jar"/>
-  <classpathentry kind="lib" path="eclipse/icu4j-charsets-3_8.jar"/>
+  <classpathentry kind="lib" path="eclipse/icu4j-4_0.jar"/>
+  <classpathentry kind="lib" path="eclipse/icu4j-charsets-4_0.jar"/>
   <classpathentry kind="lib" path="eclipse/imageio.jar"/>
   <classpathentry kind="lib" path="eclipse/instrument.jar"/>
   <classpathentry kind="lib" path="eclipse/jndi.jar"/>

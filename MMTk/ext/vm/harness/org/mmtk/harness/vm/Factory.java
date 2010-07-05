@@ -135,12 +135,13 @@ public class Factory extends org.mmtk.vm.Factory {
   /**
    * Create a new ReferenceProcessor instance using the appropriate VM-specific
    * concrete ReferenceProcessor sub-class.
+   * @param semantics The reference semantics for this processor
    *
    * @see ReferenceProcessor
    * @return A concrete VM-specific ReferenceProcessor instance.
    */
   public ReferenceProcessor newReferenceProcessor(ReferenceProcessor.Semantics semantics) {
-    return new ReferenceProcessor();
+    return ReferenceProcessor.getProcessorFor(semantics);
   }
 
   /**

@@ -15,6 +15,7 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.StopTheWorldConstraints;
 
 import org.mmtk.policy.MarkCompactSpace;
+import org.mmtk.policy.MarkCompactLocal;
 
 import org.vmmagic.pragma.*;
 
@@ -32,6 +33,8 @@ public class MCConstraints extends StopTheWorldConstraints {
   public boolean needsForwardAfterLiveness() { return true; }
   @Override
   public boolean needsLinearScan() { return true; }
+  @Override
+  public int maxNonLOSDefaultAllocBytes() { return MarkCompactLocal.MINIMUM_DATA_SIZE; }
   @Override
   public int gcHeaderBits() { return MarkCompactSpace.LOCAL_GC_BITS_REQUIRED; }
   @Override

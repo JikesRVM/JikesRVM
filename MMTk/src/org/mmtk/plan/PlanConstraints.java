@@ -14,7 +14,6 @@ package org.mmtk.plan;
 
 import org.mmtk.policy.SegregatedFreeListSpace;
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.Word;
 
 /**
  * This class and its subclasses communicate to the host VM/Runtime
@@ -23,20 +22,131 @@ import org.vmmagic.unboxed.Word;
  * issues with ordering of static initialization.
  */
 @Uninterruptible public abstract class PlanConstraints {
-  /** @return True if this Plan requires write barriers. */
-  public boolean needsWriteBarrier() { return false; }
+  /** @return True if this Plan requires read barriers on java.lang.reference types. */
+  public boolean needsJavaLangReferenceReadBarrier() { return false; }
 
-  /** @return True of this Plan requires read barriers on reference types. */
-  public boolean needsReferenceTypeReadBarrier() { return false; }
+  /** @return True if this Plan requires write barriers on booleans. */
+  public boolean needsBooleanWriteBarrier() { return false; }
 
-  /** @return True of this Plan requires read barriers. */
-  public boolean needsReadBarrier() { return false; }
+  /** @return True if this Plan requires read barriers on booleans. */
+  public boolean needsBooleanReadBarrier() { return false; }
 
-  /** @return True if this Plan requires static write barriers. */
-  public boolean needsStaticWriteBarrier() { return false;}
+  /** @return True if this Plan can perform bulk boolean arraycopy barriers. */
+  public boolean booleanBulkCopySupported() { return false; }
 
-  /** @return True if this Plan requires static read barriers. */
-  public boolean needsStaticReadBarrier() { return false; }
+  /** @return True if this Plan requires write barriers on bytes. */
+  public boolean needsByteWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on bytes. */
+  public boolean needsByteReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk byte arraycopy barriers. */
+  public boolean byteBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on chars. */
+  public boolean needsCharWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on chars. */
+  public boolean needsCharReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk char arraycopy barriers. */
+  public boolean charBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on shorts. */
+  public boolean needsShortWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on shorts. */
+  public boolean needsShortReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk short arraycopy barriers. */
+  public boolean shortBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on ints. */
+  public boolean needsIntWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on ints. */
+  public boolean needsIntReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk int arraycopy barriers. */
+  public boolean intBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on longs. */
+  public boolean needsLongWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on longs. */
+  public boolean needsLongReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk long arraycopy barriers. */
+  public boolean longBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on floats. */
+  public boolean needsFloatWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on floats. */
+  public boolean needsFloatReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk float arraycopy barriers. */
+  public boolean floatBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on doubles. */
+  public boolean needsDoubleWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on doubles. */
+  public boolean needsDoubleReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk double arraycopy barriers. */
+  public boolean doubleBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on Words. */
+  public boolean needsWordWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on Words. */
+  public boolean needsWordReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk Word arraycopy barriers. */
+  public boolean wordBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on Address's. */
+  public boolean needsAddressWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on Address's. */
+  public boolean needsAddressReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk Address arraycopy barriers. */
+  public boolean addressBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on Extents. */
+  public boolean needsExtentWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on Extents. */
+  public boolean needsExtentReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk Extent arraycopy barriers. */
+  public boolean extentBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on Offsets. */
+  public boolean needsOffsetWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on Offsets. */
+  public boolean needsOffsetReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk Offset arraycopy barriers. */
+  public boolean offsetBulkCopySupported() { return false; }
+
+  /** @return True if this Plan requires write barriers on object references. */
+  public boolean needsObjectReferenceWriteBarrier() { return false; }
+
+  /** @return True if this Plan requires read barriers on object references. */
+  public boolean needsObjectReferenceReadBarrier() { return false; }
+
+  /** @return True if this Plan requires non-heap write barriers on object references. */
+  public boolean needsObjectReferenceNonHeapWriteBarrier() { return false;}
+
+  /** @return True if this Plan requires non-heap read barriers on object references. */
+  public boolean needsObjectReferenceNonHeapReadBarrier() { return false; }
+
+  /** @return True if this Plan can perform bulk object arraycopy barriers. */
+  public boolean objectReferenceBulkCopySupported() { return false; }
 
   /** @return True if this Plan requires linear scanning. */
   public boolean needsLinearScan() { return org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING;}
@@ -83,10 +193,4 @@ import org.vmmagic.unboxed.Word;
 
   /** @return True if this Plan requires a header bit for object logging */
   public boolean needsLogBitInHeader() { return false; }
-
-  /** @return A bit which represents that a header is unlogged */
-  public Word unloggedBit() {return Word.zero(); }
-
-  /** @return A bit which represents that a header is unlogged */
-  public Word logSetBitMask() {return Word.zero(); }
 }

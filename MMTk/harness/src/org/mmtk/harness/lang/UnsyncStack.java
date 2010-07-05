@@ -28,8 +28,8 @@ public class UnsyncStack<E> implements Iterable<E> {
 
   /**
    * Push to the top of the stack
-   * @param value
-   * @return
+   * @param value Value to push
+   * @return The value
    */
   public E push(E value) {
     elements.add(value);
@@ -38,7 +38,7 @@ public class UnsyncStack<E> implements Iterable<E> {
 
   /**
    * Pop off the stack
-   * @return
+   * @return The value at the top of the stack
    */
   public E pop() {
     return elements.remove(elements.size()-1);
@@ -46,7 +46,7 @@ public class UnsyncStack<E> implements Iterable<E> {
 
   /**
    * Look at the top element
-   * @return
+   * @return The value at the top of the stack
    */
   public E peek() {
     return elements.get(elements.size()-1);
@@ -54,7 +54,7 @@ public class UnsyncStack<E> implements Iterable<E> {
 
   /**
    * # elements in the stack.
-   * @return
+   * @return The number of elements in the list
    */
   public int size() {
     return elements.size();
@@ -62,7 +62,7 @@ public class UnsyncStack<E> implements Iterable<E> {
 
   /**
    * Are there any elements in the stack ?
-   * @return
+   * @return True is the stack is empty
    */
   public boolean isEmpty() {
     return size() == 0;

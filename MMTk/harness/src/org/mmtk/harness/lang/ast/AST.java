@@ -16,18 +16,35 @@ import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Token;
 
 /**
- * Abstract parent of all the components of an AST
+ * Abstract interface to all the components of an AST
  */
 public interface AST {
 
-  /** Accept visitors */
+  /**
+   * Accept visitors
+   * @param v The visitor
+   * @return A visitor-specific value
+   */
   Object accept(Visitor v);
 
+  /**
+   * @return The source line for this node
+   */
   int getLine();
 
+  /**
+   * @return The source column for this node
+   */
   int getColumn();
 
+  /**
+   * @return The source token for this node
+   */
   Token getToken();
 
+  /**
+   * @param prefix Prefix for the string (formatting)
+   * @return A string locating this node in the source file
+   */
   String sourceLocation(String prefix);
 }

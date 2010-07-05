@@ -70,7 +70,7 @@ Options:
 Building Options:
      --x87            Use x87 Compatibility mode.
  -c, --cross-to       Crossbuild to target host (or copy post build).
-     --with-perfctr   Build with perfctr support
+     --with-perfevent Build with perf event support
  -a, --with-acheck    Build with align checks, implies --x87 --processors 1
  -g, --gdb-symbols    Build with gdb symbols
  -q, --quick          Quick build (not 100% safe - doesn't regenerate source)
@@ -160,7 +160,7 @@ GetOptions(
   "r|root=s" => \$root,
   "q|quick" => \$quick,
   "processors=s" => \$procs,
-  "with-perfctr" => \$with_perfctr,
+  "with-perfevent" => \$with_perfevent,
   "a|with-acheck" => \$with_acheck,
   "z|skip-build" => \$skip_build,
   "h|help" => \$help,
@@ -201,7 +201,7 @@ if ($results_name eq "") {
   $results_name = "latest";
 }
 if ($shell eq "") {
-  $shell = "/bin/bash -c ";
+  $shell = "/bin/bash --login -c ";
 }
 
 $testsid = getid();
@@ -241,8 +241,8 @@ if ($target eq "localhost") {
   $target = $local;
 }
 
-$hostUser = $ENV{USER};
-$targetUser = $ENV{USER};
+$hostUser = undef;
+$targetUser = undef;
 
 if ($cmd_hostUser ne "") {
   $hostUser = $cmd_hostUser;
@@ -260,11 +260,11 @@ if ($cmd_targetUser ne "") {
   $targetUser = $config{"$target.user"};
 }
 
-$sshHost = $hostUser."@".$host;
+$sshHost = defined($hostUser) ? $hostUser."@".$host : $host;
 $sshHostCmd = "ssh $sshHost";
 $sshHostCmdT = "ssh $sshHost -t";
 
-$sshTarget = $targetUser."@".$target;
+$sshTarget = defined($targetUser) ? $targetUser."@".$target : $target;
 $sshTargetCmd = "ssh $sshTarget";
 $sshTargetCmdT = "ssh $sshTarget -t";
 
@@ -464,7 +464,7 @@ if ($#gcs == -1 && $test_set && $compiler eq "") {
   @gcs = split(" ", $baseconfigs);
 }
 if ($#gcs == -1) {
-  if ($eclipse && $compile eq "") {
+  if ($eclipse && $compiler eq "") {
     $compiler = "production";
   }
   if ($compiler ne "") {
@@ -652,8 +652,8 @@ if ($ok) {
     if ($harmony ne "") {
       $defs .= "-Dclasslib.provider=Harmony ";
     }
-    if ($with_perfctr ne "") {
-      $defs .= "-Dconfig.include.perfctr=true ";
+    if ($with_perfevent ne "") {
+      $defs .= "-Dconfig.include.perfevent=true ";
     }
     if ($with_acheck ne "") {
       $defs .= "-Dconfig.alignment-checking=true ";

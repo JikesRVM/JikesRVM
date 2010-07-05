@@ -12,8 +12,11 @@
  */
 package org.mmtk.harness.vm;
 
+import java.util.concurrent.BlockingQueue;
+
 import org.mmtk.harness.Collector;
 import org.mmtk.harness.Mutator;
+import org.mmtk.harness.Mutators;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
@@ -29,7 +32,10 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
-  /** Initialise static state */
+  /**
+   * Initialise static state
+   * @param prefix The name of the plan class (prefix for the associated classes)
+   */
   public static void init(String prefix) {
     try {
       constraints = (PlanConstraints)Class.forName(prefix + "Constraints").newInstance();
@@ -48,9 +54,6 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   /** The global constraints */
   public static PlanConstraints constraints;
-
-  /** Used for iterating over mutators */
-  private static int mutatorIndex;
 
   /** @return The active Plan instance. */
   @Override
@@ -76,9 +79,11 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
   @Override
   public int collectorCount() { return Collector.count(); }
 
+  private BlockingQueue<Mutator> mutators = null;
+
   /** Reset the mutator iterator */
   @Override
-  public void resetMutatorIterator() { mutatorIndex = 0; }
+  public void resetMutatorIterator() { mutators = null; }
 
   /**
    * Return the next <code>MutatorContext</code> in a
@@ -91,8 +96,11 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
   @Override
   public MutatorContext getNextMutator() {
     synchronized(ActivePlan.class) {
-      if (mutatorIndex >= Mutator.count()) return null;
-      return Mutator.get(mutatorIndex++).getContext();
+      if (mutators == null) {
+        mutators = Mutators.getAll();
+      }
     }
+    Mutator m = mutators.poll();
+    return m == null ? null : m.getContext();
   }
 }

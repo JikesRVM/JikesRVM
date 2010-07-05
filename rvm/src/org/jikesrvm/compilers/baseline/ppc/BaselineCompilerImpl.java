@@ -39,7 +39,7 @@ import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
 import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
 import org.jikesrvm.jni.ppc.JNICompiler;
 import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
-import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
+import static org.jikesrvm.mm.mminterface.Barriers.*;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.ppc.BaselineConstants;
@@ -413,7 +413,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     spTopOffset += BYTES_IN_STACKSLOT;
   }
 
-  private void discardSlots(int n) {
+  protected void discardSlots(int n) {
     spTopOffset += n * BYTES_IN_STACKSLOT;
   }
 
@@ -639,7 +639,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * from the expression stack into the register 'reg'.
    * @param reg register to peek the value into
    */
-  private void peekFloat(int reg, int idx) {
+  protected void peekFloat(int reg, int idx) {
     asm.emitLFS(reg, spTopOffset + BYTES_IN_STACKSLOT - BYTES_IN_FLOAT + (idx << LOG_BYTES_IN_STACKSLOT), FP);
   }
 
@@ -648,7 +648,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * from the expression stack into the register 'reg'.
    * @param reg register to peek the value into
    */
-  private void peekDouble(int reg, int idx) {
+  protected void peekDouble(int reg, int idx) {
     asm.emitLFD(reg, spTopOffset + 2 * BYTES_IN_STACKSLOT - BYTES_IN_DOUBLE + (idx << LOG_BYTES_IN_STACKSLOT), FP);
   }
 
@@ -658,7 +658,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg1 register to peek,  the most significant 32 bits on 32bit arch (lowest address), not used on 64bit
    * @param reg2 register to peek,  the least significant 32 bits on 32bit arch (highest address), the whole value on 64bit
    */
-  private void peekLong(int reg1, int reg2, int idx) {
+  protected void peekLong(int reg1, int reg2, int idx) {
     if (VM.BuildFor64Addr) {
       asm.emitLD(reg2, spTopOffset + 2 * BYTES_IN_STACKSLOT - BYTES_IN_LONG + (idx << LOG_BYTES_IN_STACKSLOT), FP);
     } else {
@@ -965,7 +965,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   @Override
   protected final void emit_aaload() {
     genBoundsCheck();
-    if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
+    if (NEEDS_OBJECT_ALOAD_BARRIER) {
       Barriers.compileArrayLoadBarrier(this);
       pushAddr(T0);
     } else {
@@ -1017,10 +1017,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_iastore() {
-    popInt(T2);      // T2 is value to store
-    genBoundsCheck();
-    asm.emitSLWI(T1, T1, LOG_BYTES_IN_INT);  // convert index to offset
-    asm.emitSTWX(T2, T0, T1);  // store int value in array
+    if (NEEDS_INT_ASTORE_BARRIER) {
+      genBoundsCheck(1, 2); // skip int value on stack and do bounds check
+      Barriers.compileArrayStoreBarrierInt(this);
+    } else {
+      popInt(T2); // T2 is value to store
+      genBoundsCheck();
+      asm.emitSLWI(T1, T1, LOG_BYTES_IN_INT); // convert index to offset
+      asm.emitSTWX(T2, T0, T1); // store int value in array
+    }
   }
 
   /**
@@ -1028,10 +1033,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_lastore() {
-    popLongAsDouble(F0);                    // F0 is value to store
-    genBoundsCheck();
-    asm.emitSLWI(T1, T1, LOG_BYTES_IN_LONG);  // convert index to offset
-    asm.emitSTFDX(F0, T0, T1);  // store long value in array
+    if (NEEDS_LONG_ASTORE_BARRIER) {
+      genBoundsCheck(2, 3); // skip long value on stack and do bounds check
+      Barriers.compileArrayStoreBarrierLong(this);
+    } else {
+      popLongAsDouble(F0);                    // F0 is value to store
+      genBoundsCheck();
+      asm.emitSLWI(T1, T1, LOG_BYTES_IN_LONG); // convert index to offset
+      asm.emitSTFDX(F0, T0, T1); // store long value in array
+    }
   }
 
   /**
@@ -1039,10 +1049,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_fastore() {
-    popInt(T2);      // T2 is value to store
-    genBoundsCheck();
-    asm.emitSLWI(T1, T1, LOG_BYTES_IN_FLOAT);  // convert index to offset
-    asm.emitSTWX(T2, T0, T1);  // store float value in array
+    if (NEEDS_FLOAT_ASTORE_BARRIER) {
+      genBoundsCheck(1, 2); // skip float value on stack and do bounds check
+      Barriers.compileArrayStoreBarrierFloat(this);
+    } else {
+      popInt(T2);      // T2 is value to store
+      genBoundsCheck();
+      asm.emitSLWI(T1, T1, LOG_BYTES_IN_FLOAT); // convert index to offset
+      asm.emitSTWX(T2, T0, T1); // store float value in array
+    }
   }
 
   /**
@@ -1050,10 +1065,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_dastore() {
-    popDouble(F0);         // F0 is value to store
-    genBoundsCheck();
-    asm.emitSLWI(T1, T1, LOG_BYTES_IN_DOUBLE);  // convert index to offset
-    asm.emitSTFDX(F0, T0, T1);  // store double value in array
+    if (NEEDS_DOUBLE_ASTORE_BARRIER) {
+      genBoundsCheck(2, 3); // skip double value on stack and do bounds check
+      Barriers.compileArrayStoreBarrierDouble(this);
+    } else {
+      popDouble(F0);         // F0 is value to store
+      genBoundsCheck();
+      asm.emitSLWI(T1, T1, LOG_BYTES_IN_DOUBLE); // convert index to offset
+      asm.emitSTFDX(F0, T0, T1); // store double value in array
+    }
   }
 
   /**
@@ -1073,9 +1093,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_bastore() {
-    popInt(T2);      // T2 is value to store
-    genBoundsCheck();
-    asm.emitSTBX(T2, T0, T1);  // store byte value in array
+    if (NEEDS_BYTE_ASTORE_BARRIER) {
+      genBoundsCheck(1, 2); // skip byte value on stack and do bounds check
+      Barriers.compileArrayStoreBarrierByte(this);
+    } else {
+      popInt(T2);      // T2 is value to store
+      genBoundsCheck();
+      asm.emitSTBX(T2, T0, T1); // store byte value in array
+    }
   }
 
   /**
@@ -1083,10 +1108,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_castore() {
-    popInt(T2);      // T2 is value to store
-    genBoundsCheck();
-    asm.emitSLWI(T1, T1, LOG_BYTES_IN_CHAR);  // convert index to offset
-    asm.emitSTHX(T2, T0, T1);  // store char value in array
+    if (NEEDS_CHAR_ASTORE_BARRIER) {
+      genBoundsCheck(1, 2); // skip char value on stack and do bounds check
+      Barriers.compileArrayStoreBarrierChar(this);
+    } else {
+      popInt(T2);      // T2 is value to store
+      genBoundsCheck();
+      asm.emitSLWI(T1, T1, LOG_BYTES_IN_CHAR); // convert index to offset
+      asm.emitSTHX(T2, T0, T1); // store char value in array
+    }
   }
 
   /**
@@ -1094,10 +1124,15 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   @Override
   protected final void emit_sastore() {
-    popInt(T2);      // T2 is value to store
-    genBoundsCheck();
-    asm.emitSLWI(T1, T1, LOG_BYTES_IN_SHORT);  // convert index to offset
-    asm.emitSTHX(T2, T0, T1);  // store short value in array
+    if (NEEDS_SHORT_ASTORE_BARRIER) {
+      genBoundsCheck(1, 2); // skip short value on stack and do bounds check
+      Barriers.compileArrayStoreBarrierShort(this);
+    } else {
+      popInt(T2);      // T2 is value to store
+      genBoundsCheck();
+      asm.emitSLWI(T1, T1, LOG_BYTES_IN_SHORT); // convert index to offset
+      asm.emitSTHX(T2, T0, T1); // store short value in array
+    }
   }
 
   /*
@@ -2470,7 +2505,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_unresolved_getstatic(FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     TypeReference fieldType = fieldRef.getFieldContentsType();
-    if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER && fieldType.isReferenceType()) {
+    if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType()) {
       Barriers.compileGetstaticBarrier(this, fieldType.getId());
       pushAddr(T0);
       return;
@@ -2500,7 +2535,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     TypeReference fieldType = fieldRef.getFieldContentsType();
-    if (MemoryManagerConstants.NEEDS_GETSTATIC_READ_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
+    if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
       Barriers.compileGetstaticBarrierImm(this, fieldOffset, fieldType.getId());
       pushAddr(T0);
       return;
@@ -2528,7 +2563,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       Barriers.compilePutstaticBarrier(this, fieldRef.getId()); // NOTE: offset is in T0 from emitDynamicLinkingSequence
       discardSlots(1);
       return;
@@ -2557,7 +2592,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   protected final void emit_resolved_putstatic(FieldReference fieldRef) {
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
-    if (MemoryManagerConstants.NEEDS_PUTSTATIC_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
+    if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
       Barriers.compilePutstaticBarrierImm(this, fieldOffset, fieldRef.getId());
       discardSlots(1);
       return;
@@ -2587,7 +2622,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     TypeReference fieldType = fieldRef.getFieldContentsType();
     // T1 = field offset from emitDynamicLinkingSequence()
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (MemoryManagerConstants.NEEDS_READ_BARRIER && fieldType.isReferenceType()) {
+    if (NEEDS_OBJECT_GETFIELD_BARRIER && fieldType.isReferenceType()) {
       Barriers.compileGetfieldBarrier(this, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
@@ -2596,7 +2631,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     // T2 = object reference
     popAddr(T2);
     if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-    if (fieldType.isReferenceType() || fieldType.isWordType()) {
+    if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
       // 32/64bit reference/word load
       asm.emitLAddrX(T0, T1, T2);
       pushAddr(T0);
@@ -2637,7 +2672,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     RVMField field = fieldRef.peekResolvedField();
     TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = field.getOffset();
-    if (MemoryManagerConstants.NEEDS_READ_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
+    if (NEEDS_OBJECT_GETFIELD_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
       Barriers.compileGetfieldBarrierImm(this, fieldOffset, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
@@ -2645,7 +2680,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
     popAddr(T1); // T1 = object reference
     if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
-    if (fieldType.isReferenceType() || fieldType.isWordType()) {
+    if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
       // 32/64bit reference/word load
       asm.emitLAddrOffset(T0, T1, fieldOffset);
       pushAddr(T0);
@@ -2688,7 +2723,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     emitDynamicLinkingSequence(T2, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
-      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER) {
+      if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
         // NOTE: offset is in T2 from emitDynamicLinkingSequence
         Barriers.compilePutfieldBarrier(this, fieldRef.getId());
         discardSlots(2);
@@ -2698,7 +2733,31 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
         asm.emitSTAddrX(T0, T1, T2);
       }
-    } else if (fieldType.isWordType()) {
+    } else if (NEEDS_BOOLEAN_PUTFIELD_BARRIER && fieldType.isBooleanType()) {
+      Barriers.compilePutfieldBarrierBoolean(this, fieldRef.getId());
+    } else if (NEEDS_BYTE_PUTFIELD_BARRIER && fieldType.isByteType()) {
+      Barriers.compilePutfieldBarrierByte(this, fieldRef.getId());
+    } else if (NEEDS_CHAR_PUTFIELD_BARRIER && fieldType.isCharType()) {
+      Barriers.compilePutfieldBarrierChar(this, fieldRef.getId());
+    } else if (NEEDS_DOUBLE_PUTFIELD_BARRIER && fieldType.isDoubleType()) {
+      Barriers.compilePutfieldBarrierDouble(this, fieldRef.getId());
+    } else if (NEEDS_FLOAT_PUTFIELD_BARRIER && fieldType.isFloatType()) {
+      Barriers.compilePutfieldBarrierFloat(this, fieldRef.getId());
+    } else if (NEEDS_INT_PUTFIELD_BARRIER && fieldType.isIntType()) {
+      Barriers.compilePutfieldBarrierInt(this, fieldRef.getId());
+    } else if (NEEDS_LONG_PUTFIELD_BARRIER && fieldType.isLongType()) {
+      Barriers.compilePutfieldBarrierLong(this, fieldRef.getId());
+    } else if (NEEDS_SHORT_PUTFIELD_BARRIER && fieldType.isShortType()) {
+      Barriers.compilePutfieldBarrierShort(this, fieldRef.getId());
+    } else if (NEEDS_WORD_PUTFIELD_BARRIER && fieldType.isWordType()) {
+      Barriers.compilePutfieldBarrierWord(this, fieldRef.getId());
+    } else if (NEEDS_ADDRESS_PUTFIELD_BARRIER && fieldType.isAddressType()) {
+      Barriers.compilePutfieldBarrierAddress(this, fieldRef.getId());
+    } else if (NEEDS_OFFSET_PUTFIELD_BARRIER && fieldType.isOffsetType()) {
+      Barriers.compilePutfieldBarrierOffset(this, fieldRef.getId());
+    } else if (NEEDS_EXTENT_PUTFIELD_BARRIER && fieldType.isExtentType()) {
+      Barriers.compilePutfieldBarrierExtent(this, fieldRef.getId());
+    } else if (fieldType.isWordLikeType()) {
       // 32/64bit word store
       popAddr(T0);                // T0 = value
       popAddr(T1);                // T1 = object reference
@@ -2742,7 +2801,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     TypeReference fieldType = fieldRef.getFieldContentsType();
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
-      if (MemoryManagerConstants.NEEDS_WRITE_BARRIER && !field.isUntraced()) {
+      if (NEEDS_OBJECT_PUTFIELD_BARRIER && !field.isUntraced()) {
         Barriers.compilePutfieldBarrierImm(this, fieldOffset, fieldRef.getId());
         discardSlots(2);
       } else {
@@ -2751,7 +2810,31 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
         asm.emitSTAddrOffset(T0, T1, fieldOffset);
       }
-    } else if (fieldType.isWordType()) {
+    } else if (NEEDS_BOOLEAN_PUTFIELD_BARRIER && fieldType.isBooleanType()) {
+      Barriers.compilePutfieldBarrierBooleanImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_BYTE_PUTFIELD_BARRIER && fieldType.isByteType()) {
+      Barriers.compilePutfieldBarrierByteImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_CHAR_PUTFIELD_BARRIER && fieldType.isCharType()) {
+      Barriers.compilePutfieldBarrierCharImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_DOUBLE_PUTFIELD_BARRIER && fieldType.isDoubleType()) {
+      Barriers.compilePutfieldBarrierDoubleImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_FLOAT_PUTFIELD_BARRIER && fieldType.isFloatType()) {
+      Barriers.compilePutfieldBarrierFloatImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_INT_PUTFIELD_BARRIER && fieldType.isIntType()) {
+      Barriers.compilePutfieldBarrierIntImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_LONG_PUTFIELD_BARRIER && fieldType.isLongType()) {
+      Barriers.compilePutfieldBarrierLongImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_SHORT_PUTFIELD_BARRIER && fieldType.isShortType()) {
+      Barriers.compilePutfieldBarrierShortImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_WORD_PUTFIELD_BARRIER && fieldType.isWordType()) {
+      Barriers.compilePutfieldBarrierWordImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_ADDRESS_PUTFIELD_BARRIER && fieldType.isAddressType()) {
+      Barriers.compilePutfieldBarrierAddressImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_OFFSET_PUTFIELD_BARRIER && fieldType.isOffsetType()) {
+      Barriers.compilePutfieldBarrierOffsetImm(this, fieldOffset, fieldRef.getId());
+    } else if (NEEDS_EXTENT_PUTFIELD_BARRIER && fieldType.isExtentType()) {
+      Barriers.compilePutfieldBarrierExtentImm(this, fieldOffset, fieldRef.getId());
+    } else if (fieldType.isWordLikeType()) {
       // 32/64bit word store
       popAddr(T0);                // T0 = value
       popAddr(T1);                // T1 = object reference
@@ -3591,6 +3674,17 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitTWLLE(S0, T1);      // trap if index < 0 or index >= length
   }
 
+  // Gen bounds check for array load/store bytecodes.
+  // Does implicit null check and array bounds check.
+  // Bounds check can always be implicit becuase array length is at negative offset from obj ptr.
+  // Kills S0.
+  private void genBoundsCheck(int arrayIndexSlot, int arrayRefSlot) {
+    peekInt(T1, arrayIndexSlot);
+    peekAddr(T0, arrayRefSlot);
+    asm.emitLIntOffset(S0, T0, ObjectModel.getArrayLengthOffset());
+    asm.emitTWLLE(S0, T1); // trap if index < 0 or index >= length
+  }
+
   // Emit code to buy a stackframe, store incoming parameters,
   // and acquire method synchronization lock.
   //
@@ -3743,7 +3837,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * @param reg The register to hold the counter array.
    */
   private void loadCounterArray(int reg) {
-    if (MemoryManagerConstants.NEEDS_READ_BARRIER) {
+    if (NEEDS_OBJECT_ALOAD_BARRIER) {
       asm.emitLAddrToc(T0, Entrypoints.edgeCountersField.getOffset());
       asm.emitLVAL(T1, getEdgeCounterIndex());
       Barriers.compileArrayLoadBarrier(this);
@@ -4209,7 +4303,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       TypeReference rtype = methodToBeCalled.getReturnType();
       if (rtype.isIntLikeType()) {
         pushInt(T0);
-      } else if (rtype.isWordType() || rtype.isReferenceType()) {
+      } else if (rtype.isWordLikeType() || rtype.isReferenceType()) {
         pushAddr(T0);
       } else if (rtype.isDoubleType()) {
         pushDouble(FIRST_OS_PARAMETER_FPR);
@@ -4452,7 +4546,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
           return true;
         }
 
-        if (types[0] == TypeReference.Byte) {
+        if (types[0] == TypeReference.Byte || types[0] == TypeReference.Boolean) {
           if (types.length == 1) {
             popInt(T1);                  // pop newvalue
             popAddr(T0);                 // pop base
@@ -4615,8 +4709,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       popAddr(T0); // pop object
       asm.emitLIntX(T0, T1, T0); // *(object+offset)
       pushInt(T0); // push *(object+offset)
+    } else if (methodName == MagicNames.getFloatAtOffset) {
+      popInt(T1); // pop offset
+      popAddr(T0); // pop object
+      asm.emitLWZX(T0, T1, T0); // *(object+offset)
+      pushInt(T0); // push *(object+offset),
+//    asm.emitLFSX  (F0, T1, T0); // *(object+offset)
+//    pushFloat(F0);
     } else if (methodName == MagicNames.getObjectAtOffset ||
                methodName == MagicNames.getWordAtOffset ||
+               methodName == MagicNames.getAddressAtOffset ||
+               methodName == MagicNames.getOffsetAtOffset ||
+               methodName == MagicNames.getExtentAtOffset ||
                methodName == MagicNames.getTIBAtOffset) {
       if (methodToBeCalled.getParameterTypes().length == 3) {
         discardSlot(); // discard locationMetadata parameter
@@ -4646,12 +4750,17 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       popAddr(T0);   // pop object
       asm.emitLHAX(T0, T1, T0);   // load short with sign extension.
       pushInt(T0);    // push *(object+offset)
-    } else if (methodName == MagicNames.setIntAtOffset) {
+    } else if (methodName == MagicNames.setIntAtOffset || methodName == MagicNames.setFloatAtOffset) {
+      if (methodToBeCalled.getParameterTypes().length == 4) {
+        discardSlot(); // discard locationMetadata parameter
+      }
       popInt(T2); // pop newvalue
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTWX(T2, T1, T0); // *(object+offset) = newvalue
-    } else if (methodName == MagicNames.setObjectAtOffset || methodName == MagicNames.setWordAtOffset) {
+    } else if (methodName == MagicNames.setObjectAtOffset || methodName == MagicNames.setWordAtOffset ||
+        methodName == MagicNames.setAddressAtOffset || methodName == MagicNames.setOffsetAtOffset ||
+        methodName == MagicNames.setExtentAtOffset) {
       if (methodToBeCalled.getParameterTypes().length == 4) {
         discardSlot(); // discard locationMetadata parameter
       }
@@ -4659,12 +4768,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTAddrX(T2, T1, T0); // *(object+offset) = newvalue
-    } else if (methodName == MagicNames.setByteAtOffset) {
+    } else if (methodName == MagicNames.setByteAtOffset || methodName == MagicNames.setBooleanAtOffset) {
+      if (methodToBeCalled.getParameterTypes().length == 4) {
+        discardSlot(); // discard locationMetadata parameter
+      }
       popInt(T2); // pop newvalue
       popInt(T1); // pop offset
       popAddr(T0); // pop object
       asm.emitSTBX(T2, T1, T0); // *(object+offset) = newvalue
-    } else if (methodName == MagicNames.setCharAtOffset) {
+    } else if (methodName == MagicNames.setCharAtOffset || methodName == MagicNames.setShortAtOffset) {
+      if (methodToBeCalled.getParameterTypes().length == 4) {
+        discardSlot(); // discard locationMetadata parameter
+      }
       popInt(T2); // pop newvalue
       popInt(T1); // pop offset
       popAddr(T0); // pop object
@@ -4675,6 +4790,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitLFDX(F0, T1, T2);
       pushDouble(F0);
     } else if ((methodName == MagicNames.setLongAtOffset) || (methodName == MagicNames.setDoubleAtOffset)) {
+      if (methodToBeCalled.getParameterTypes().length == 4) {
+        discardSlot(); // discard locationMetadata parameter
+      }
       popLong(T3, T2);
       popInt(T1); // pop offset
       popAddr(T0); // pop object
@@ -4881,6 +4999,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         asm.emitFSQRT(F0, F0);
         pushDouble(F0);
       }
+    } else if (methodName == MagicNames.getInlineDepth ||
+               methodName == MagicNames.isConstantParameter) {
+      emit_iconst(0);
     } else if (methodName == MagicNames.wordToInt ||
                methodName == MagicNames.wordToAddress ||
                methodName == MagicNames.wordToOffset ||

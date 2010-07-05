@@ -5,6 +5,45 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+* Jikes RVM 3.1.1  (July 4, 2010)
+
+Release Notes - RVM - Version 3.1.1
+
+** New Feature
+    * [RVM-839] - Support for Reference Types in the MMTk Harness
+    * [RVM-841] - Make it possible to query the compiler to direct optimization
+    * [RVM-845] - Primitive write barrier support
+
+** Improvement
+    * [RVM-846] - MMTk Harness: Provide command-line option for watching addresses
+    * [RVM-848] - Update bootimage writter with known static fields for Harmony classlib
+    * [RVM-861] - Refactor bulkCopy optimisations for RVMArray arraycopy's
+
+** Bug
+    * [RVM-184] - MarkCompactLocal.compact():80 assertion failure
+    * [RVM-604] - Require two different host JVMs to successfully build on Linux/PowerPC
+    * [RVM-639] - Spec JVM 98 javac failing with Harmony
+    * [RVM-693] - Regression in TestSerialization with Harmony
+    * [RVM-827] - Crash in GC while running Eclipse IDE
+    * [RVM-831] - Incomplete implementation of GetFieldID and GetStaticFieldID
+    * [RVM-832] - Mature space mutator allocator reset before semi-space flip
+    * [RVM-833] - GC failures with ia32 BaseBase compiler, ExtremeAssertions and -X:gc:verbose=1
+    * [RVM-834] - Assertion failure in ExtremeAssertionsBaseBaseSemiSpace
+    * [RVM-836] - Static initialization loop in Generational collectors
+    * [RVM-838] - MMTk Harness 'Spawn' script fails with an NPE on multiprocessors
+    * [RVM-840] - MMTk Harness fails on Poisoned heap collector
+    * [RVM-854] - Failed to find a value to spill when 
+    * [RVM-856] - RVM fails to build under OS X 10.6
+    * [RVM-860] - ExtremeAssertionsOptAdaptive compiler failure for jvm98 _227_mtrt on ppc32
+    * [RVM-862] - 2 static fields using an identic slot
+    * [RVM-863] - BumpPointer.scanRegion can cause a page fault
+    * [RVM-864] - Build failure using IBM Java 6 SDK as host JVM on linux-ia32
+    * [RVM-879] - Mark Compact does not work with Native Threads
+    * [RVM-887] - RVM failure at startup when using -Xbootclasspath (Trying to load a class too early in the booting process)
+    * [RVM-889] - JSR166 tck fails EntryTest, PriorityQueueTest and PriorityBlockingQueueTest
+    * [RVM-890] - MarkCompact broken by new threading model
+    * [RVM-894] - MMTk Harness doesn't allow Log.writeln in constructors
+
 * Jikes RVM 3.1.0  (June 10, 2009)
 
 It's been almost nine months since the release of Jikes RVM 3.0.1, and

@@ -42,8 +42,11 @@
 #include <strings.h> /* bzero */
 #include <libgen.h>  /* basename */
 #include <sys/utsname.h>        // for uname(2)
-#if (defined __linux__) || (defined __MACH__) || (defined (__SVR4) && defined (__sun))
+#if (defined __linux__) || (defined (__SVR4) && defined (__sun))
 #include <ucontext.h>
+#include <signal.h>
+#elif (defined __MACH__)
+#include <sys/ucontext.h>
 #include <signal.h>
 #else
 #include <sys/cache.h>
@@ -403,7 +406,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 int
 main(int argc, const char **argv)
 {
-    Me            = strrchr(*argv, '/') + 1;
+    Me            = strrchr((char *)*argv, '/') + 1;
     ++argv, --argc;
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;

@@ -282,7 +282,7 @@ public abstract class IRTools {
     if (type.isFloatType()) return FLOAT_MOVE;
     if (type.isDoubleType()) return DOUBLE_MOVE;
     if (type == TypeReference.VALIDATION_TYPE) return GUARD_MOVE;
-    if (type.isReferenceType() || type.isWordType()) return REF_MOVE;
+    if (type.isReferenceType() || type.isWordLikeType()) return REF_MOVE;
     return INT_MOVE;
   }
 
@@ -298,7 +298,7 @@ public abstract class IRTools {
     if (type.isFloatType()) return FLOAT_COND_MOVE;
     if (type.isDoubleType()) return DOUBLE_COND_MOVE;
     if (type == TypeReference.VALIDATION_TYPE) return GUARD_COND_MOVE;
-    if (type.isReferenceType() || type.isWordType()) return REF_COND_MOVE;
+    if (type.isReferenceType() || type.isWordLikeType()) return REF_COND_MOVE;
     return INT_COND_MOVE;
   }
 
@@ -336,7 +336,7 @@ public abstract class IRTools {
     if (type.isFloatType()) return FLOAT_LOAD;
     if (type.isDoubleType()) return DOUBLE_LOAD;
     if (type.isReferenceType()) return REF_LOAD;
-    if (type.isWordType()) return REF_LOAD;
+    if (type.isWordLikeType()) return REF_LOAD;
     return INT_LOAD;
   }
 
@@ -374,7 +374,7 @@ public abstract class IRTools {
     if (type.isFloatType()) return FLOAT_STORE;
     if (type.isDoubleType()) return DOUBLE_STORE;
     if (type.isReferenceType()) return REF_STORE;
-    if (type.isWordType()) return REF_STORE;
+    if (type.isWordLikeType()) return REF_STORE;
     return INT_STORE;
   }
 

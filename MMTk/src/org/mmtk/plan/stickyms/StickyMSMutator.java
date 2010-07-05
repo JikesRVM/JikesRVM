@@ -16,6 +16,7 @@ import org.mmtk.plan.*;
 import org.mmtk.plan.marksweep.MSMutator;
 import org.mmtk.policy.MarkSweepLocal;
 
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.vm.VM;
 
@@ -80,11 +81,11 @@ public class StickyMSMutator extends MSMutator {
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
-  public final void writeBarrier(ObjectReference src, Address slot,
+  public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
-    if (Plan.logRequired(src))
+    if (HeaderByte.isUnlogged(src))
       logSource(src);
-    VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+    VM.barriers.objectReferenceWrite(src, tgt, metaDataA, metaDataB, mode);
   }
 
   /**
@@ -109,9 +110,9 @@ public class StickyMSMutator extends MSMutator {
    * left to the caller (always false in this case).
    */
   @Inline
-  public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
+  public final boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset, int bytes) {
-    if (Plan.logRequired(src))
+    if (HeaderByte.isUnlogged(src))
       logSource(src);
     return false;
   }
@@ -128,8 +129,8 @@ public class StickyMSMutator extends MSMutator {
    * @param src The object to be logged
    */
   private void logSource(ObjectReference src) {
-   Plan.markAsLogged(src);
-   modBuffer.push(src);
+    HeaderByte.markAsLogged(src);
+    modBuffer.push(src);
   }
 
   /**

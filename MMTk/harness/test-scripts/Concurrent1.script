@@ -1,0 +1,108 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+ 
+/*
+ * Concurrency test.  Creates a data structure that allows for maximum
+ * heap contention.
+ */
+ 
+void main() {
+  int THREADS = 8;
+  int LENGTH = 16;
+  int ROUNDS = 10;
+ 
+  /* The per-thread list-heads */
+  object lists = alloc(THREADS,0);
+  
+  int l = LENGTH;
+  while (l > 0) {
+    /* During building: the shared objects at this stage of the construction */
+    object shared = alloc(THREADS,0);
+ 
+    int i = 0;
+    // Allocate the shared objects for this stage of the list
+    while (i < THREADS) {
+      print("Allocating shared object ",i," for position ",l);
+      object s = alloc(1,2);
+      s.int[0] = l;
+      s.int[1] = i;
+      shared.object[i] = s;
+      s = null;           // Because the interpreter has no liveness analysis
+      i = i + 1;
+    }
+    // Allocate the list node for this stage
+    i = 0;
+    while (i < THREADS) {
+      object tmp = alloc(3,0);
+      tmp.object[0] = lists.object[i];
+      lists.object[i] = tmp;
+      
+      tmp.object[1] = shared.object[i];
+      tmp.object[2] = shared.object[(i+1)%THREADS];
+      tmp = null;        // Because the interpreter has no liveness analysis
+      
+      i = i + 1;
+    }
+    l = l-1;
+    shared = null;      // Because the interpreter has no liveness analysis
+  }
+  int t=0;
+  while (t < THREADS) {
+    print("Spawning thread ",t);
+    spawn(thread, lists.object[t], THREADS+1, ROUNDS);
+    t = t + 1;
+  }
+  lists = null;
+  barrierWait("begin", THREADS+1);
+  
+  int round = 0;
+  while (round < ROUNDS) {
+    barrierWait("second",THREADS+1);
+    print("Round ",round);
+    gc();
+    round = round + 1;
+  }
+  print("Joining threads ");
+  barrierWait("wait", THREADS+1);
+}
+
+void thread(object list, int threads, int rounds) {
+  print("thread starting");
+
+  // Get a thread ID
+  int ordinal = barrierWait("getThreadId", threads-1); 
+  
+  // Wait until the main thread joins
+  barrierWait("begin", threads);
+  print("first barrier reached ",ordinal);
+  
+  int round = 0;
+  while (round < rounds) {
+    barrierWait("second",threads);
+    // Loop over the list, allocating a new child to the leftmost shared object
+    // in the graph.
+    decorate(list);
+    round = round + 1;
+  }
+  
+  barrierWait("wait", threads);
+  print("exiting thread ",ordinal);
+}
+
+void decorate(object list) {
+  while (list != null) {
+    object s = list.object[1];
+    s.object[0] = alloc(0,0);
+    list = list.object[0];
+  }
+}

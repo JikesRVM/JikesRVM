@@ -15,6 +15,7 @@ package org.mmtk.plan.generational;
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.statistics.Stats;
@@ -142,11 +143,11 @@ import org.vmmagic.unboxed.*;
   @Inline
   private void fastPath(ObjectReference src, Address slot, ObjectReference tgt, int mode) {
     if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
-    if ((mode == AASTORE_WRITE_BARRIER && USE_OBJECT_BARRIER_FOR_AASTORE) ||
-        (mode == PUTFIELD_WRITE_BARRIER && USE_OBJECT_BARRIER_FOR_PUTFIELD)) {
-      if (Plan.logRequired(src)) {
+    if ((mode == ARRAY_ELEMENT && USE_OBJECT_BARRIER_FOR_AASTORE) ||
+        (mode == INSTANCE_FIELD && USE_OBJECT_BARRIER_FOR_PUTFIELD)) {
+      if (HeaderByte.isUnlogged(src)) {
         if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
-        Plan.markAsLogged(src);
+        HeaderByte.markAsLogged(src);
         modbuf.insert(src);
       }
     } else {
@@ -174,11 +175,51 @@ import org.vmmagic.unboxed.*;
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
-  public final void writeBarrier(ObjectReference src, Address slot,
+  public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
       Word metaDataB, int mode) {
     fastPath(src, slot, tgt, mode);
-    VM.barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+    VM.barriers.objectReferenceWrite(src, tgt, metaDataA, metaDataB, mode);
+  }
+
+
+  /**
+   * Perform the root write barrier fast path, which may involve remembering
+   * a reference if necessary.
+   *
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param tgt The target of the new reference
+   * @param mode The mode of the store (eg putfield, putstatic etc)
+   */
+  @Inline
+  private void fastPath(Address slot, ObjectReference tgt) {
+    if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbFast.inc();
+    if (Gen.inNursery(tgt)) {
+      if (Gen.GATHER_WRITE_BARRIER_STATS) Gen.wbSlow.inc();
+      remset.insert(slot);
+    }
+  }
+
+  /**
+   * A new reference is about to be created in a location that is not
+   * a regular heap object.  Take appropriate write barrier actions.<p>
+   *
+   * In this case, we remember the address of the source of the
+   * pointer if the new reference points into the nursery from
+   * non-nursery space.
+   *
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param tgt The target of the new reference
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   */
+  @Inline
+  public final void objectReferenceNonHeapWrite(Address slot, ObjectReference tgt,
+      Word metaDataA, Word metaDataB) {
+    fastPath(slot, tgt);
+    VM.barriers.objectReferenceNonHeapWrite(slot, tgt, metaDataA, metaDataB);
   }
 
   /**
@@ -201,10 +242,9 @@ import org.vmmagic.unboxed.*;
    * @return True if the swap was successful.
    */
   @Inline
-  public boolean tryCompareAndSwapWriteBarrier(ObjectReference src, Address slot,
-      ObjectReference old, ObjectReference tgt, Word metaDataA,
-      Word metaDataB, int mode) {
-    boolean result = VM.barriers.tryCompareAndSwapWriteInBarrier(src, slot, old, tgt, metaDataA, metaDataB, mode);
+  public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
+      Word metaDataA, Word metaDataB, int mode) {
+    boolean result = VM.barriers.objectReferenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
     if (result)
       fastPath(src, slot, tgt, mode);
     return result;
@@ -219,26 +259,21 @@ import org.vmmagic.unboxed.*;
    * In this case, we remember the mutated source address range and
    * will scan that address range at GC time.
    *
-   * @param src The source of the values to copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
+   * @param src The source of the values to be copied
+   * @param srcIdx The starting source index
    * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
+   * @param srcIdx The starting source index
+   * @param len The number of array elements to be copied
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   @Inline
-  public final boolean writeBarrier(ObjectReference src, Offset srcOffset,
-      ObjectReference dst, Offset dstOffset,
-      int bytes) {
-    // We can ignore when src is in old space, right?
-    if (!Gen.inNursery(dst))
-      arrayRemset.insert(dst.toAddress().plus(dstOffset),
-          dst.toAddress().plus(dstOffset.plus(bytes)));
+  @Override
+  public final boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
+    if (!Gen.inNursery(dst)) {
+      Address start = dst.toAddress().plus(dstOffset);
+      arrayRemset.insert(start, start.plus(bytes));
+    }
     return false;
   }
 

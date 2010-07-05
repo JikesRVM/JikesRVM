@@ -26,14 +26,19 @@ public class TypeTable {
 
   private Map<String, Type> table = new HashMap<String, Type>();
 
-  TypeTable() {
-    add(Type.INT);
-    add(Type.STRING);
-    add(Type.BOOLEAN);
-    add(Type.OBJECT);
-    add(Type.VOID);
+  /**
+   * Constructor.  Pre-declares all the builtin types.
+   */
+  TypeTable(Type...predeclared) {
+    for (Type type : predeclared) {
+      add(type);
+    }
   }
 
+  /**
+   * Add a new type to the table
+   * @param t The type
+   */
   public void add(Type t) {
     Trace.trace(Trace.Item.PARSER,"defining type %s", t);
     if (table.containsKey(t.getName()))
@@ -43,8 +48,8 @@ public class TypeTable {
 
   /**
    * Return either the named type or a proxy for the named type.
-   * @param name
-   * @return
+   * @param name Type name
+   * @return The corresponding type
    */
   public Type get(String name) {
     if (!table.containsKey(name))
@@ -54,8 +59,8 @@ public class TypeTable {
 
   /**
    * Is there a type by the given name ?
-   * @param name
-   * @return
+   * @param name Type name
+   * @return true if the type is defined
    */
   public boolean isDefined(String name) {
     return table.containsKey(name);

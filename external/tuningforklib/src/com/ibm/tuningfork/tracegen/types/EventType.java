@@ -50,7 +50,7 @@ public final class EventType {
      * @return True if the event will accept attributes of the specified types.
      */
     public boolean admits(int numInt, int numLong, int numDouble, int numString) {
-	return (numInt == numberOfInts) && (numLong == numLong)
+	return (numInt == numberOfInts) && (numLong == numberOfLongs)
 		&& (numDouble == numberOfDoubles)
 		&& (numString == numberOfStrings);
     }

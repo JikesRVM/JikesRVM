@@ -54,7 +54,15 @@ public abstract class Value {
     throw new RuntimeException("Invalid use of " + type() + " as a string");
   }
 
+  /**
+   * Marshall a value of this type into the equivalent Java value
+   * @param klass The target class
+   * @return
+   */
   public Object marshall(Class<?> klass) {
+    if (klass.isAssignableFrom(this.getClass())) {
+      return this;
+    }
     throw new RuntimeException(getClass()+" cannot be marshalled into a Java Object");
   }
 

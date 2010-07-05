@@ -15,12 +15,18 @@ package org.mmtk.harness.lang.type;
 import org.mmtk.harness.lang.runtime.BoolValue;
 import org.mmtk.harness.lang.runtime.Value;
 
+/**
+ * The built-in <code>boolean</code> type
+ */
 public class BooleanType extends AbstractType {
 
-  public BooleanType() {
+  BooleanType() {
     super("boolean");
   }
 
+  /**
+   * @see org.mmtk.harness.lang.type.AbstractType#isCompatibleWith(org.mmtk.harness.lang.type.Type)
+   */
   @Override
   public boolean isCompatibleWith(Type rhs) {
     if (rhs == OBJECT) {
@@ -29,10 +35,11 @@ public class BooleanType extends AbstractType {
     return super.isCompatibleWith(rhs);
   }
 
+  /**
+   * @see org.mmtk.harness.lang.type.Type#initialValue()
+   */
   @Override
   public Value initialValue() {
     return BoolValue.FALSE;
   }
-
-
 }

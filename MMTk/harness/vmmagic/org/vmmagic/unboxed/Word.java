@@ -12,8 +12,10 @@
  */
 package org.vmmagic.unboxed;
 
+
 import org.vmmagic.Unboxed;
 import org.vmmagic.pragma.RawStorage;
+import org.vmmagic.unboxed.harness.ArchitecturalWord;
 
 /**
  * (Mistakes in) comments by Robin Garner
@@ -327,6 +329,10 @@ public final class Word {
     return new Word(value.rsha(amt));
   }
 
+  /**
+   * The natural string representation of a word, a series of hex digits.
+   */
+  @Override
   public String toString() {
     return value.toString();
   }

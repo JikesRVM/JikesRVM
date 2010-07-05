@@ -656,7 +656,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * This class sets up the IR state prior to entering SSA for load
    * elimination
    */
-  private static class LoadEliminationPreparation extends CompilerPhase {
+  public static class LoadEliminationPreparation extends CompilerPhase {
     /**
      * Cosntructor
      */
@@ -705,7 +705,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
   /**
    * This class sets up the IR state prior to entering SSA for GVN.
    */
-  private static class GVNPreparation extends CompilerPhase {
+  public static class GVNPreparation extends CompilerPhase {
 
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA_LOAD_ELIMINATION;

@@ -373,10 +373,11 @@ public class BootRecord {
   public Address gcspyFormatSizeIP;
   public Address gcspySprintfIP;
 
-   // perfctr
-   public Address sysPerfCtrInitIP;
-   public Address sysPerfCtrReadIP;
-   public Address sysPerfCtrReadCyclesIP;
-   public Address sysPerfCtrReadMetricIP;
+  // perf event support
+  public Address sysPerfEventInitIP;
+  public Address sysPerfEventCreateIP;
+  public Address sysPerfEventEnableIP;
+  public Address sysPerfEventDisableIP;
+  public Address sysPerfEventReadIP;
 
 }

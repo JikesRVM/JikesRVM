@@ -110,9 +110,6 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
   // you know what you're doing before modifying it!!!
   protected static boolean compilationInProgress;
 
-  // One time check to optionally preload and compile a specified class
-  protected static boolean preloadChecked = false;
-
   // Cache objects needed to cons up compilation plans
   // TODO: cutting link to opt compiler by declaring type as object.
   public static final Object /* Options */ options = VM.BuildForAdaptiveSystem ? new OptOptions() : null;
@@ -645,26 +642,6 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
         cm = baselineCompile(method);
         ControllerMemory.incrementNumBase();
       } else {
-        if (!preloadChecked) {
-          preloadChecked = true;                  // prevent subsequent calls
-          // N.B. This will use irc options
-          if (BaselineCompiler.options.PRELOAD_CLASS != null) {
-            compilationInProgress = true;         // use baseline during preload
-            // Other than when boot options are requested (processed during preloadSpecialClass
-            // It is hard to communicate options for these special compilations. Use the
-            // default options and at least pick up the verbose if requested for base/irc
-            OptOptions tmpoptions = ((OptOptions) options).dup();
-            tmpoptions.PRELOAD_CLASS = BaselineCompiler.options.PRELOAD_CLASS;
-            tmpoptions.PRELOAD_AS_BOOT = BaselineCompiler.options.PRELOAD_AS_BOOT;
-            if (BaselineCompiler.options.PRINT_METHOD) {
-              tmpoptions.PRINT_METHOD = true;
-            } else {
-              tmpoptions = (OptOptions) options;
-            }
-            OptimizingCompiler.preloadSpecialClass(tmpoptions);
-            compilationInProgress = false;
-          }
-        }
         if (Controller.options.optIRC()) {
           if (// will only run once: don't bother optimizing
               method.isClassInitializer() ||

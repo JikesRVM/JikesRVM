@@ -18,6 +18,10 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Expression consisting of a simple object value
+ *
+ * At GC time, these objects form the root set.  For the benefit of collectors
+ * like MarkCompact, we need to ensure that each root is only enumerated
+ * once when enumerating roots, hence the rootDiscoveryPhase field.
  */
 public class ObjectValue extends Value {
 
@@ -26,12 +30,26 @@ public class ObjectValue extends Value {
    */
   public static final ObjectValue NULL = NullValue.NULL;
 
+  private static volatile int currentRootDiscoveryPhase = 1;
+
+  /**
+   * Start a new root discovery phase, enabling every root to be traced again.
+   */
+  public static void startRootDiscoveryPhase() {
+    currentRootDiscoveryPhase++;
+  }
+
   /**
    * The reference to the heap object
    *
-   * Not final because it may change during GC
+   * Not final because it may change during GC.
    */
   private ObjectReference value;
+
+  /**
+   * When was this object last processed as a root ?
+   */
+  private int lastDiscoveryPhase = 0;
 
   /**
    * Construct an initially null object value
@@ -42,7 +60,7 @@ public class ObjectValue extends Value {
 
   /**
    * An object value with the given initial value
-   * @param value
+   * @param value Initial value
    */
   public ObjectValue(ObjectReference value) {
     this.value = value;
@@ -51,6 +69,7 @@ public class ObjectValue extends Value {
   /**
    * Get this value as an object.
    */
+  @Override
   public ObjectReference getObjectValue() {
     return value;
   }
@@ -58,6 +77,7 @@ public class ObjectValue extends Value {
   /**
    * Get this value as a boolean.
    */
+  @Override
   public boolean getBoolValue() {
     return !value.isNull();
   }
@@ -83,11 +103,18 @@ public class ObjectValue extends Value {
 
   /**
    * GC-time processing of the contained object
+   * @param trace The trace object
    */
   public void traceObject(TraceLocal trace) {
-    value = trace.traceObject(value, true);
+    if (lastDiscoveryPhase < currentRootDiscoveryPhase) {
+      value = trace.traceObject(value, true);
+      lastDiscoveryPhase = currentRootDiscoveryPhase;
+    }
   }
 
+  /**
+   * @see org.mmtk.harness.lang.runtime.Value#marshall(java.lang.Class)
+   */
   @Override
   public Object marshall(Class<?> klass) {
     if (klass.isAssignableFrom(ObjectValue.class)) {
@@ -104,6 +131,10 @@ public class ObjectValue extends Value {
     return (other instanceof ObjectValue && value.equals(((ObjectValue)other).value));
   }
 
+  /**
+   * Use the hash code of the underlying ObjectReference
+   * @see org.mmtk.harness.lang.runtime.Value#hashCode()
+   */
   @Override
   public int hashCode() {
     return value.hashCode();

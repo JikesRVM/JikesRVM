@@ -14,7 +14,6 @@ package org.mmtk.harness.lang;
 
 import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Alloc;
-import org.mmtk.harness.lang.ast.AllocUserType;
 import org.mmtk.harness.lang.ast.Assert;
 import org.mmtk.harness.lang.ast.Assignment;
 import org.mmtk.harness.lang.ast.BinaryExpression;
@@ -38,6 +37,7 @@ import org.mmtk.harness.lang.ast.Spawn;
 import org.mmtk.harness.lang.ast.Statement;
 import org.mmtk.harness.lang.ast.StoreField;
 import org.mmtk.harness.lang.ast.StoreNamedField;
+import org.mmtk.harness.lang.ast.TypeLiteral;
 import org.mmtk.harness.lang.ast.UnaryExpression;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
@@ -50,12 +50,9 @@ public abstract class Visitor {
 
   public Object visit(AST ast) { return ast; }
   public Object visit(Alloc alloc) {
-    alloc.getDataCount().accept(this);
-    alloc.getRefCount().accept(this);
-    alloc.getDoubleAlign().accept(this);
-    return alloc;
-  }
-  public Object visit(AllocUserType alloc) {
+    for (Expression arg : alloc.getArgs()) {
+      arg.accept(this);
+    }
     return alloc;
   }
   public Object visit(Assert ass) {
@@ -157,6 +154,9 @@ public abstract class Visitor {
   public Object visit(StoreNamedField store) {
     store.getRhs().accept(this);
     return store;
+  }
+  public Object visit(TypeLiteral type) {
+    return type;
   }
   public Object visit(UnaryExpression exp) {
     exp.getOperator().accept(this);

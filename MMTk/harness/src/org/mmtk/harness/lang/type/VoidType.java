@@ -14,17 +14,26 @@ package org.mmtk.harness.lang.type;
 
 import org.mmtk.harness.lang.runtime.Value;
 
+/**
+ * The builtin <code>void</code> type
+ */
 public class VoidType extends AbstractType {
 
-  public VoidType() {
+  VoidType() {
     super("void");
   }
 
+  /**
+   * @see org.mmtk.harness.lang.type.Type#initialValue()
+   */
   @Override
   public Value initialValue() {
     throw new RuntimeException("Can't instantiate a VOID value");
   }
 
+  /**
+   * @see org.mmtk.harness.lang.type.AbstractType#isCompatibleWith(org.mmtk.harness.lang.type.Type)
+   */
   @Override
   public boolean isCompatibleWith(Type rhs) {
     return false;

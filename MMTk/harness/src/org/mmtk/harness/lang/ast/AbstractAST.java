@@ -28,25 +28,30 @@ public class AbstractAST implements AST {
    * AST constructor.
    */
 
-  /* The source file currently being parsed */
+  /** The source file currently being parsed */
   private static Source currentSource = null;
 
-  /* Set the current source file */
+  /** Set the current source file */
   public static void setCurrentSource(Source source) {
     currentSource = source;
   }
 
-  /* Clear the current source file */
+  /** Clear the current source file */
   public static void clearCurrentSource() {
     currentSource = null;
   }
 
-  /* The source file */
-  private Source source = currentSource;
+  /** The source file */
+  private final Source source = currentSource;
 
   /** Source code token corresponding to this syntax element */
   private final Token t;
 
+  /**
+   * Create an AST for an actual source element
+   *
+   * @param t Source token
+   */
   public AbstractAST(Token t) {
     this.t = t;
   }
@@ -64,20 +69,24 @@ public class AbstractAST implements AST {
     this.t = tok;
   }
 
+  /** @return The source token */
   public Token getToken() {
     return t;
   }
 
+  /** @return The source line */
   @Override
   public int getLine() {
     return t.beginLine;
   }
 
+  /** @return The source column */
   @Override
   public int getColumn() {
     return t.beginColumn;
   }
 
+  /** @see org.mmtk.harness.lang.ast.AST#sourceLocation(java.lang.String) */
   @Override
   public String sourceLocation(String prefix) {
     if (source == null) {

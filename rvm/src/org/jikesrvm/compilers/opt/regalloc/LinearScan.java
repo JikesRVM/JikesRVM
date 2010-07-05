@@ -1596,7 +1596,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
           System.out.println(" must not spill: " + result.getRegister());
         }
         result = null;
-        minCost = Integer.MAX_VALUE;
+        minCost = Double.MAX_VALUE;
       }
       for (Iterator<BasicInterval> e = iterator(); e.hasNext();) {
         MappedBasicInterval b = (MappedBasicInterval) e.next();

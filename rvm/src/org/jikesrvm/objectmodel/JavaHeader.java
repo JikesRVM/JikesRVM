@@ -375,7 +375,7 @@ public class JavaHeader implements JavaHeaderConstants {
       // Read the hash state (used below)
       Word statusWord = Magic.getWordAtOffset(obj, STATUS_OFFSET);
       Word hashState = statusWord.and(HASH_STATE_MASK);
-      if (hashState.EQ(HASH_STATE_HASHED)) {
+      if (hashState.NE(HASH_STATE_UNHASHED)) {
         to = to.plus(HASHCODE_BYTES);
       }
     }
@@ -386,47 +386,48 @@ public class JavaHeader implements JavaHeaderConstants {
    * Copy a scalar to the given raw storage address
    */
   @Inline
-  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, boolean noGCHeader, RVMClass type) {
+  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, RVMClass type) {
 
     // We copy arrays and scalars the same way
-    return moveObject(toAddress, fromObj, null, numBytes, noGCHeader);
+    return moveObject(toAddress, fromObj, null, numBytes);
   }
 
   /**
    * Copy an array to the given location.
    */
   @Inline
-  public static Object moveObject(Object fromObj, Object toObj, int numBytes, boolean noGCHeader, RVMClass type) {
+  public static Object moveObject(Object fromObj, Object toObj, int numBytes, RVMClass type) {
 
     // We copy arrays and scalars the same way
-    return moveObject(Address.zero(), fromObj, toObj, numBytes, noGCHeader);
+    return moveObject(Address.zero(), fromObj, toObj, numBytes);
   }
 
   /**
    * Copy an array to the given raw storage address
    */
   @Inline
-  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, boolean noGCHeader, RVMArray type) {
+  public static Object moveObject(Address toAddress, Object fromObj, int numBytes, RVMArray type) {
 
     // We copy arrays and scalars the same way
-    return moveObject(toAddress, fromObj, null, numBytes, noGCHeader);
+    return moveObject(toAddress, fromObj, null, numBytes);
   }
 
   /**
    * Copy an array to the given location.
    */
   @Inline
-  public static Object moveObject(Object fromObj, Object toObj, int numBytes, boolean noGCHeader, RVMArray type) {
+  public static Object moveObject(Object fromObj, Object toObj, int numBytes, RVMArray type) {
 
     // We copy arrays and scalars the same way
-    return moveObject(Address.zero(), fromObj, toObj, numBytes, noGCHeader);
+    return moveObject(Address.zero(), fromObj, toObj, numBytes);
   }
 
   /**
    * Copy an object to the given raw storage address
    */
   @Inline
-  public static Object moveObject(Address toAddress, Object fromObj, Object toObj, int numBytes, boolean noGCHeader) {
+  public static Object moveObject(Address toAddress, Object fromObj, Object toObj, int numBytes) {
+    if (VM.VerifyAssertions) VM._assert(toAddress.isZero() || toObj == null);
 
     // Default values
     int copyBytes = numBytes;
@@ -455,34 +456,26 @@ public class JavaHeader implements JavaHeaderConstants {
     }
 
     if (toObj != null) {
-      toAddress = Magic.objectAsAddress(toObj).minus(OBJECT_REF_OFFSET);
+      toAddress = Magic.objectAsAddress(toObj).minus(objRefOffset);
     }
 
     // Low memory word of source object
     Address fromAddress = Magic.objectAsAddress(fromObj).minus(objRefOffset);
 
-    // Was the GC header stolen at allocation time? ok for arrays and scalars.
-    if (noGCHeader) {
-      if (VM.VerifyAssertions) {
-        // No object can be hashed and moved unless using dynamic hash offset
-        VM._assert(hashState.NE(HASH_STATE_HASHED_AND_MOVED) || DYNAMIC_HASH_OFFSET);
-      }
-
-      // We copy less but start higher in memory.
-      copyBytes -= GC_HEADER_BYTES;
-      objRefOffset -= GC_HEADER_BYTES;
-      toAddress = toAddress.plus(GC_HEADER_BYTES);
-    }
-
     // Do the copy
     Memory.aligned32Copy(toAddress, fromAddress, copyBytes);
-    toObj = Magic.addressAsObject(toAddress.plus(objRefOffset));
+
+    if (toObj == null) {
+      toObj = Magic.addressAsObject(toAddress.plus(objRefOffset));
+    } else {
+      if (VM.VerifyAssertions) VM._assert(toObj == Magic.addressAsObject(toAddress.plus(objRefOffset)));
+    }
 
     // Do we need to copy the hash code?
     if (hashState.EQ(HASH_STATE_HASHED)) {
       int hashCode = Magic.objectAsAddress(fromObj).toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
       if (DYNAMIC_HASH_OFFSET) {
-        Magic.setIntAtOffset(toObj, Offset.fromIntSignExtend(numBytes - objRefOffset - HASHCODE_BYTES), hashCode);
+        Magic.setIntAtOffset(toObj, Offset.fromIntSignExtend(numBytes - OBJECT_REF_OFFSET - HASHCODE_BYTES), hashCode);
       } else {
         Magic.setIntAtOffset(toObj, HASHCODE_OFFSET, (hashCode << 1) | ALIGNMENT_MASK);
       }
@@ -647,8 +640,8 @@ public class JavaHeader implements JavaHeaderConstants {
    * Non-atomic write of word containing available bits
    */
   @Interruptible
-  public static void writeAvailableBitsWord(BootImageInterface bootImage, Address ref, Word val) {
-    bootImage.setAddressWord(ref.plus(STATUS_OFFSET), val, false, false);
+  public static void writeAvailableByte(BootImageInterface bootImage, Address ref, byte val) {
+    bootImage.setByte(ref.plus(AVAILABLE_BITS_OFFSET), val);
   }
 
   /**

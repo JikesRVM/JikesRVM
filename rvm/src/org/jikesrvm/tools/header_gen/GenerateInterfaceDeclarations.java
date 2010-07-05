@@ -301,10 +301,10 @@ public class GenerateInterfaceDeclarations {
       } else if (t.isLongType()) {
         current = current.plus(8);
         p("   uint64_t " + name + ";\n");
-      } else if (t.isWordType()) {
+      } else if (t.isWordLikeType()) {
         p("   Address " + name + ";\n");
         current = current.plus(addrSize);
-      } else if (t.isArrayType() && t.getArrayElementType().isWordType()) {
+      } else if (t.isArrayType() && t.getArrayElementType().isWordLikeType()) {
         p("   Address * " + name + ";\n");
         current = current.plus(addrSize);
       } else if (t.isArrayType() && t.getArrayElementType().isIntType()) {

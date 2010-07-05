@@ -98,7 +98,7 @@ public abstract class Space implements Constants {
   protected PageResource pr;
   protected final Address start;
   protected final Extent extent;
-  protected Address lastDiscontiguousRegion;
+  protected Address headDiscontiguousRegion;
 
   private boolean allocationFailed;
 
@@ -133,7 +133,7 @@ public abstract class Space implements Constants {
       this.descriptor = SpaceDescriptor.createDescriptor();
       this.start = Address.zero();
       this.extent = Extent.zero();
-      this.lastDiscontiguousRegion = Address.zero();
+      this.headDiscontiguousRegion = Address.zero();
       VM.memory.setHeapRange(index, HEAP_START, HEAP_END); // this should really be refined!  Once we have a code space, we can be a lot more specific about what is a valid code heap area
       return;
     }
@@ -219,7 +219,7 @@ public abstract class Space implements Constants {
   public final boolean isImmortal() { return immortal; }
 
   /** Movable getter @return True if objects in this space may move */
-  public final boolean isMovable() { return movable; }
+  public boolean isMovable() { return movable; }
 
   /** Allocationfailed getter @return true if an allocation has failed since GC */
   public final boolean allocationFailed() { return allocationFailed; }
@@ -354,6 +354,18 @@ public abstract class Space implements Constants {
     return Map.getSpaceForAddress(VM.objectModel.refToAddress(object));
   }
 
+  /**
+   * Return the space for a given address, not necessarily the
+   * start address of an object.
+   *
+   * @param addr The address in question
+   * @return The space containing the address
+   */
+  public static Space getSpaceForAddress(Address addr) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!addr.isZero());
+    return Map.getSpaceForAddress(addr);
+  }
+
   /****************************************************************************
    *
    * Page management
@@ -420,8 +432,7 @@ public abstract class Space implements Constants {
    * @return The address of the new discontiguous space.
    */
   public Address growDiscontiguousSpace(int chunks) {
-    this.lastDiscontiguousRegion = Map.allocateContiguousChunks(descriptor, this, chunks, lastDiscontiguousRegion);
-    return lastDiscontiguousRegion;
+    return headDiscontiguousRegion = Map.allocateContiguousChunks(descriptor, this, chunks, headDiscontiguousRegion);
   }
 
   /**
@@ -455,8 +466,8 @@ public abstract class Space implements Constants {
    */
   public int releaseDiscontiguousChunks(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk.EQ(chunkAlign(chunk, true)));
-    if (chunk.EQ(lastDiscontiguousRegion)) {
-      lastDiscontiguousRegion = Map.getNextContiguousRegion(chunk);
+    if (chunk.EQ(headDiscontiguousRegion)) {
+      headDiscontiguousRegion = Map.getNextContiguousRegion(chunk);
     }
     return Map.freeContiguousChunks(chunk);
   }
@@ -534,7 +545,7 @@ public abstract class Space implements Constants {
         Log.writeln();
       } else {
         Log.write("D [");
-        for(Address a = space.lastDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
+        for(Address a = space.headDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
           Log.write(a); Log.write("->");
           Log.write(a.plus(Map.getContiguousRegionSize(a).minus(1)));
           if (Map.getNextContiguousRegion(a) != Address.zero())
@@ -573,6 +584,17 @@ public abstract class Space implements Constants {
    */
   @Interruptible
   public static void eagerlyMmapMMTkSpaces() {
+    eagerlyMmapMMTkContiguousSpaces();
+    eagerlyMmapMMTkDiscontiguousSpaces();
+  }
+
+
+  /**
+   * Ensure that all contiguous MMTk spaces are mapped. Demand zero map
+   * all of them if they are not already mapped.
+   */
+  @Interruptible
+  public static void eagerlyMmapMMTkContiguousSpaces() {
     for (int i = 0; i < spaceCount; i++) {
       Space space = spaces[i];
       if (space != VM.memory.getVMSpace()) {
@@ -587,6 +609,22 @@ public abstract class Space implements Constants {
         Mmapper.ensureMapped(space.start, space.extent.toInt()>>LOG_BYTES_IN_PAGE);
       }
     }
+  }
+
+  /**
+   * Ensure that all discontiguous MMTk spaces are mapped. Demand zero map
+   * all of them if they are not already mapped.
+   */
+  @Interruptible
+  public static void eagerlyMmapMMTkDiscontiguousSpaces() {
+    Address regionStart = Space.getDiscontigStart();
+    Address regionEnd = Space.getDiscontigEnd();
+    int pages = regionEnd.diff(regionStart).toInt()>>LOG_BYTES_IN_PAGE;
+    Log.write("Mapping discontiguous spaces ");
+    Log.write(regionStart);
+    Log.write("->");
+    Log.writeln(regionEnd.minus(1));
+    Mmapper.ensureMapped(getDiscontigStart(), pages);
   }
 
   /**
@@ -670,6 +708,7 @@ public abstract class Space implements Constants {
    * @param addr The address to be aligned
    * @param down If true the address will be rounded down, otherwise
    * it will rounded up.
+   * @return The chunk-aligned address
    */
   public static Address chunkAlign(Address addr, boolean down) {
     if (!down) addr = addr.plus(BYTES_IN_CHUNK - 1);
@@ -680,8 +719,9 @@ public abstract class Space implements Constants {
    * Align an extent to a space chunk
    *
    * @param bytes The extent to be aligned
-   * @param down If true the address will be rounded down, otherwise
+   * @param down If true the extent will be rounded down, otherwise
    * it will rounded up.
+   * @return The chunk-aligned extent
    */
   public static Extent chunkAlign(Extent bytes, boolean down) {
     if (!down) bytes = bytes.plus(BYTES_IN_CHUNK - 1);
@@ -692,10 +732,10 @@ public abstract class Space implements Constants {
    * Convert a fraction into a number of bytes according to the
    * fraction of available bytes.
    *
-   * @param frac The fraction of avialable virtual memory desired
+   * @param frac The fraction of available virtual memory desired
    * @return The corresponding number of bytes, chunk-aligned.
    */
-  private static Extent getFracAvailable(float frac) {
+  public static Extent getFracAvailable(float frac) {
     long bytes = (long) (frac * AVAILABLE_BYTES.toLong());
     Word mb = Word.fromIntSignExtend((int) (bytes >> LOG_BYTES_IN_MBYTE));
     Extent rtn = mb.lsh(LOG_BYTES_IN_MBYTE).toExtent();

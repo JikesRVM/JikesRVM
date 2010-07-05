@@ -17,7 +17,6 @@ import java.io.PrintStream;
 import java.util.List;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.UnimplementedError;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Time;
 
@@ -71,7 +70,5 @@ public final class VMSystem {
     return VMCommonLibrarySupport.getenv(envarName);
   }
 
-  static List<?> environ() {
-    throw new UnimplementedError();
-  }
+  static native List<?> environ();
 }

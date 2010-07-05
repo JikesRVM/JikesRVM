@@ -103,7 +103,7 @@ public class LiveSet {
           // already in there.  Check to see if we have an Address/Reference confusion.
           // If we do, then prefer to have the Reference in the LiveSet as that will
           // include item in the GC maps from this program point "up"
-          if (current.getRegisterType().isWordType() && item.getType().isReferenceType()) {
+          if (current.getRegisterType().isWordLikeType() && item.getType().isReferenceType()) {
             current.setRegisterOperand(item);
           }
         } else {

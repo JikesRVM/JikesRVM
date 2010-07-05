@@ -557,7 +557,7 @@ public abstract class Operand {
    * Does the operand represent a value of the address data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is an address as defined by {@link TypeReference#isWordType}
+   *         is an address as defined by {@link TypeReference#isAddressType}
    *         or <code>false</code> if it is not.
    */
   public boolean isAddress() {
@@ -750,7 +750,7 @@ public abstract class Operand {
           if ((rop1.scratchObject instanceof Operand) &&
               ((type2 == TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
-               (type2.isWordType() && op2.asAddressConstant().value.EQ(Address.zero())) ||
+               (type2.isWordLikeType() && op2.asAddressConstant().value.EQ(Address.zero())) ||
                (type2.isLongType() && op2.asLongConstant().value == 0L))) {
             if (IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("op1 non null guard will be incorrect");
@@ -1017,7 +1017,7 @@ public abstract class Operand {
           if ((rop1.scratchObject instanceof Operand) &&
               ((type2 == TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
-               (type2.isWordType() && op2.asAddressConstant().value.isZero()) ||
+               (type2.isWordLikeType() && op2.asAddressConstant().value.isZero()) ||
                (type2.isLongType() && op2.asLongConstant().value == 0L))) {
             res = res.copyU2U();
             res.scratchObject = null;

@@ -230,7 +230,7 @@ public abstract class AbstractRegisterPool {
       return getFloat();
     } else if (type == TypeReference.VALIDATION_TYPE) {
       return getValidation();
-    } else if (type.isWordType() || type.isReferenceType()) {
+    } else if (type.isWordLikeType() || type.isReferenceType()) {
       return getAddress();
     } else {
       return getInteger();

@@ -23,6 +23,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 
 import java.lang.ref.Reference;
@@ -87,6 +88,14 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * The table of reference objects for the current semantics
    */
   private volatile AddressArray references = AddressArray.create(INITIAL_SIZE);
+
+  /**
+   * In a MarkCompact (or similar) collector, we need to update the {@code references}
+   * field, and then update its contents.  We implement this by saving the pointer in
+   * this untraced field for use during the {@code forward} pass.
+   */
+  @Untraced
+  private volatile AddressArray unforwardedReferences = null;
 
   /**
    * Index into the <code>references</code> table for the start of
@@ -158,6 +167,10 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref The reference to insert
    */
   private void setReference(int i, ObjectReference ref) {
+    if (TRACE_DETAIL) {
+      VM.sysWrite("slot ",i);
+      VM.sysWriteln(" => ",ref);
+    }
     references.set(i,ref.toAddress());
   }
 
@@ -264,15 +277,24 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    */
   @Override
   public void forward(TraceLocal trace, boolean nursery) {
+    if (VM.VerifyAssertions) VM._assert(unforwardedReferences != null);
     if (TRACE) VM.sysWriteln("Starting ReferenceGlue.forward(",semanticsStr,")");
-
+    if (TRACE_DETAIL) {
+      VM.sysWrite(semanticsStr," Reference table is ",
+          Magic.objectAsAddress(references));
+      VM.sysWriteln("unforwardedReferences is ",
+          Magic.objectAsAddress(unforwardedReferences));
+    }
     for (int i=0; i < maxIndex; i++) {
-      ObjectReference reference = getReference(i);
+      if (TRACE_DETAIL) VM.sysWrite("slot ",i,": ");
+      ObjectReference reference = unforwardedReferences.get(i).toObjectReference();
+      if (TRACE_DETAIL) VM.sysWriteln("forwarding ",reference);
       setReferent(reference, trace.getForwardedReferent(getReferent(reference)));
       ObjectReference newReference = trace.getForwardedReference(reference);
-      setReference(i, newReference);
+      unforwardedReferences.set(i, newReference.toAddress());
     }
     if (TRACE) VM.sysWriteln("Ending ReferenceGlue.forward(",semanticsStr,")");
+    unforwardedReferences = null;
   }
 
   /**
@@ -298,8 +320,12 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    */
   @Override
   public void scan(TraceLocal trace, boolean nursery) {
+    unforwardedReferences = references;
+
+    if (TRACE) VM.sysWriteln("Starting ReferenceGlue.scan(",semanticsStr,")");
     int toIndex = nursery ? nurseryIndex : 0;
 
+    if (TRACE_DETAIL) VM.sysWriteln(semanticsStr," Reference table is ",Magic.objectAsAddress(references));
     for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
       ObjectReference reference = getReference(fromIndex);
 
@@ -307,6 +333,13 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       ObjectReference newReference = processReference(trace,reference);
       if (!newReference.isNull()) {
         setReference(toIndex++,newReference);
+        if (TRACE_DETAIL) {
+          int index = toIndex-1;
+          VM.sysWrite("SCANNED ",index);
+          VM.sysWrite(" ",references.get(index));
+          VM.sysWrite(" -> ");
+          VM.sysWriteln(getReferent(references.get(index).toObjectReference()));
+        }
       }
     }
     if (Options.verbose.getValue() >= 3) {
@@ -317,6 +350,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
 
     /* flush out any remset entries generated during the above activities */
     Selected.Mutator.get().flushRememberedSets();
+    if (TRACE) VM.sysWriteln("Ending ReferenceGlue.scan(",semanticsStr,")");
   }
 
   /**
@@ -514,6 +548,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @return the referent object reference.
    */
   protected ObjectReference getReferent(ObjectReference object) {
+    if (VM.VerifyAssertions) VM._assert(!object.isNull());
     return object.toAddress().loadObjectReference(Entrypoints.referenceReferentField.getOffset());
   }
 

@@ -1,0 +1,158 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+
+
+/*
+ * This script is designed to work-out the write barriers in a generational 
+ * collector.
+ *
+ * Initially we create a series of doubly-linked lists of length 
+ * 1,2,4,...,2^15, then iterate adding elements to the front and
+ * dropping them off the end.  At steady state we should have the
+ * list-heads in the mature space, the shorter lists entirely
+ * in the nursery, and longer lists with the head in
+ * the nursery and the tail in the mature space.
+ *
+ * This script differs from Lists in that roughly half of the objects
+ * are 64-bit aligned.
+ */
+ 
+/* A cell in a linked list */
+type cell {
+  cell next;
+  cell prev;
+}
+
+/* A list head - points to the head and tail */
+type list {
+  cell head;
+  cell tail;
+}
+
+/* A singly-linked list, so we can provide a chain of pointers stack -> nursery -> mature */
+type single {
+  single next;
+}
+
+void main() {
+  int nLists = 15;
+  int rotations = 10000;
+  object lists = alloc(nLists,0,false);
+  single s = alloc(single);
+  
+  // Create the lists
+  int i=0;
+  int n=1;
+  while (i < nLists) {
+    print( "Creating list of length ",n);
+    lists.object[i] = create(n);
+    i = i + 1;
+    n = n * 2;
+  }
+  gc();
+  
+  // Rotate them
+  print ("Rotating lists");
+  int j = 0;
+  while (j < rotations) {
+    i = 0;
+    while (i < nLists) {
+      rotate(lists.object[i],(j%2) == 1);
+      i = i + 1;
+    }
+    //if ( (j%1000) == 0 ) {
+    //  lengths(lists,nLists);
+    //}
+    s = cons(s,(j%2) == 1);
+    j = j + 1;
+  }
+}
+
+/*
+ * Create a list of length n
+ */
+list create(int n) {
+  list result = alloc(list,n > 255);
+  while (n > 0) {
+    insert(result,(n%2) == 0);
+    n = n - 1;
+  }
+  return result;
+}
+
+/*
+ * Insert a cell at the head of a list 
+ */
+void insert(list l, boolean align) {
+  cell c = alloc(cell,align);
+  if (l.head == null) {
+    l.head = c;
+    l.tail = c;
+    return;
+  }
+  cell head = l.head;       // Language doesn't (yet) support x.y.z
+  c.next = head;
+  head.prev = c;
+  l.head = c;
+}
+
+/*
+ * Insert a cell at the head, and remove one from the tail
+ * of a list
+ */
+void rotate(list l, boolean align) {
+  insert(l,align);
+  cell tail = l.tail;
+  cell prev = tail.prev;
+  l.tail = prev;
+  prev.next = null;         // Kill the last element
+}
+
+/*
+ * Print the lengths of an array of lists
+ */
+void lengths(object lists, int n) {
+  int i=0;
+  while (i < n) {
+	print("List has length ", length(lists.object[i]));
+    i = i + 1;
+  }
+}
+
+/*
+ * Return the length of a list
+ */
+int length(list l) {
+  if (l == null) {
+    return 0;
+  } elif (l.head == null) {
+    return 0;
+  }
+  cell c = l.head;
+  int n = 0;
+  while (c != null) {
+    c = c.next;
+    n = n + 1;
+  }
+  return n;
+}
+
+/*
+ * Prepend a singly-linked list cell onto a list 
+ */
+single cons(single l, boolean align) {
+  single result = alloc(single,align);
+  result.next = l;
+  return result;
+}
+

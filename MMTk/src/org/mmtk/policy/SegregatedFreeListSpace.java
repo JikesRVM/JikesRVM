@@ -15,6 +15,7 @@ package org.mmtk.policy;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.heap.FreeListPageResource;
+import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
@@ -536,7 +537,13 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    */
   protected final void consumeBlocks() {
     for (int sizeClass = 0; sizeClass < sizeClassCount(); sizeClass++) {
-      while (!getAllocationBlock(sizeClass, null).isZero());
+      while (!availableBlockHead.get(sizeClass).isZero()) {
+        Address block = availableBlockHead.get(sizeClass);
+        availableBlockHead.set(sizeClass, BlockAllocator.getNext(block));
+        advanceToBlock(block, sizeClass);
+        BlockAllocator.setNext(block, consumedBlockHead.get(sizeClass));
+        consumedBlockHead.set(sizeClass, block);
+      }
     }
   }
 
@@ -936,15 +943,21 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
     }
   }
 
-  /**
-   * Clear all live bits
-   */
-  protected static void zeroLiveBits(Address start, Address end) {
+  protected void zeroLiveBits() {
     Extent bytes = Extent.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION>>LOG_LIVE_COVERAGE);
-    while (start.LT(end)) {
-      Address metadata = EmbeddedMetaData.getMetaDataBase(start).plus(META_DATA_OFFSET);
-      VM.memory.zero(metadata, bytes);
-      start = start.plus(EmbeddedMetaData.BYTES_IN_REGION);
+   if (contiguous) {
+      Address end = ((FreeListPageResource)pr).getHighWater();
+      Address cursor = start;
+      while (cursor.LT(end)) {
+        Address metadata = EmbeddedMetaData.getMetaDataBase(cursor).plus(META_DATA_OFFSET);
+        VM.memory.zero(metadata, bytes);
+        cursor = cursor.plus(EmbeddedMetaData.BYTES_IN_REGION);
+      }
+    } else {
+      for(Address cursor = headDiscontiguousRegion; !cursor.isZero(); cursor = Map.getNextContiguousRegion(cursor)) {
+        Address metadata = EmbeddedMetaData.getMetaDataBase(cursor).plus(META_DATA_OFFSET);
+        VM.memory.zero(metadata, bytes);
+      }
     }
   }
 

@@ -12,19 +12,21 @@
  */
 package org.mmtk.harness;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Stack;
 
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.runtime.AllocationSite;
 import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.sanity.Sanity;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
+import org.mmtk.harness.vm.Scanning;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
@@ -46,6 +48,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * that a GC can not occur unless you execute commands on the mutator (or muEnd it).
  */
 public abstract class Mutator {
+
   private static boolean gcEveryWB = false;
 
   /**
@@ -55,55 +58,48 @@ public abstract class Mutator {
     gcEveryWB = true;
   }
 
-  /** Registered mutators */
-  protected static final ArrayList<Mutator> mutators = new ArrayList<Mutator>();
-
   /**
-   * @return The active mutators
+   * @return A mutator context for the current Plan
    */
-  public static java.util.Collection<Mutator> getMutators() {
-    return Collections.unmodifiableCollection(mutators);
-  }
-
-  /**
-   * Get a mutator by id.
-   */
-  public static Mutator get(int id) {
-    return mutators.get(id);
+  public static MutatorContext createMutatorContext() {
+    try {
+      String prefix = Harness.plan.getValue();
+      return (MutatorContext)Class.forName(prefix + "Mutator").newInstance();
+    } catch (Exception ex) {
+      throw new RuntimeException("Could not create Mutator", ex);
+    }
   }
 
   /**
    * Get the currently executing mutator.
+   * @return the currently executing mutator.
    */
   public static Mutator current() {
     return Scheduler.currentMutator();
   }
 
   /**
-   * Return the number of mutators that have been created.
-   */
-  public static int count() {
-    return mutators.size();
-  }
-
-  /**
    * Register a mutator, returning the allocated id.
+   * @param context The mutator context to register
    */
-  public static synchronized void register(MutatorContext context) {
-    int id = mutators.size();
-    mutators.add(null);
-    context.initMutator(id);
+  private static synchronized void register(MutatorContext context) {
+    context.initMutator(Mutators.registerMutator());
   }
 
   /** Is this thread out of memory if the gc cannot free memory */
   private boolean outOfMemory;
 
-  /** Get the out of memory status */
+  /** Get the out of memory status
+   * @return True if we're subject to an out-of-memory condition
+   */
   public boolean isOutOfMemory() {
     return outOfMemory;
   }
 
-  /** Set the out of memory status */
+  /**
+   * Set the out of memory status
+   * @param value The status
+   */
   public void setOutOfMemory(boolean value) {
     outOfMemory = value;
   }
@@ -111,7 +107,9 @@ public abstract class Mutator {
   /** The number of collection attempts this thread has had since allocation succeeded */
   private int collectionAttempts;
 
-  /** Get the number of collection attempts */
+  /**
+   * @return the number of collection attempts
+   */
   public int getCollectionAttempts() {
     return collectionAttempts;
   }
@@ -129,12 +127,16 @@ public abstract class Mutator {
   /** Was the last failure a physical allocation failure (rather than a budget failure) */
   private boolean physicalAllocationFailure;
 
-  /** Was the last failure a physical allocation failure */
+  /**
+   * Was the last failure a physical allocation failure
+   * @return Was the last failure a physical allocation failure
+   */
   public boolean isPhysicalAllocationFailure() {
     return physicalAllocationFailure;
   }
 
-  /** Set if last failure a physical allocation failure */
+  /** Set if last failure a physical allocation failure
+   * @param value The new status */
   public void setPhysicalAllocationFailure(boolean value) {
     physicalAllocationFailure = value;
   }
@@ -143,50 +145,23 @@ public abstract class Mutator {
   protected final MutatorContext context;
 
   /**
-   * The type of exception that is expected at the end of execution.
+   * Constructor
    */
-  private Class<?> expectedThrowable;
-
-  /**
-   * Set an expectation that the execution will exit with a throw of this exception.
-   */
-  public void setExpectedThrowable(Class<?> expectedThrowable) {
-    this.expectedThrowable = expectedThrowable;
-  }
-
   public Mutator() {
-    try {
-      String prefix = Harness.plan.getValue();
-      this.context = (MutatorContext)Class.forName(prefix + "Mutator").newInstance();
-      register(this.context);
-    } catch (Exception ex) {
-      throw new RuntimeException("Could not create Mutator", ex);
-    }
-  }
-
-  public void begin() {
-    mutators.set(context.getId(), this);
+    this.context = createMutatorContext();
+    register(this.context);
   }
 
   /**
-   * Mutator-specific handling of uncaught exceptions.
-   * @param t
-   * @param e
+   * Initial processing of a mutator.  Enters the mutator in the mutator table.
    */
-  public void uncaughtException(Thread t, Throwable e) {
-    if (e.getClass() == expectedThrowable) {
-      System.err.println("Mutator " + context.getId() + " exiting due to expected exception of class " + expectedThrowable);
-      expectedThrowable = null;
-      end();
-    } else {
-      System.err.print("Mutator " + context.getId() + " caused unexpected exception: ");
-      e.printStackTrace();
-      System.exit(1);
-    }
+  public void begin() {
+    Mutators.set(this);
+    Scanning.initThreadIteratorTable(this);
   }
 
   /**
-   * Return the MMTk MutatorContext for this mutator.
+   * @return the MMTk MutatorContext for this mutator.
    */
   public MutatorContext getContext() {
     return context;
@@ -194,6 +169,7 @@ public abstract class Mutator {
 
   /**
    * Compute the thread roots for this mutator.
+   * @param trace The MMTk TraceLocal to receive the roots
    */
   public void computeThreadRoots(TraceLocal trace) {
     // Nothing to do for the default mutator
@@ -201,39 +177,43 @@ public abstract class Mutator {
 
   /**
    * Return the roots
+   * @return The roots for this mutator
    */
   public abstract Iterable<ObjectValue> getRoots();
 
   /**
-   * Print the thread roots and add them to a stack for processing.
+   * Print the thread roots and return them for processing.
+   * @param width Output width
+   * @return The thread roots
    */
-  public void dumpThreadRoots(int width, Stack<ObjectReference> roots) {
-    // Nothing to do for the default mutator
+  public java.util.Collection<ObjectReference> dumpThreadRoots(int width) {
+    return Collections.emptyList();
   }
 
   /**
    * Print the thread roots and add them to a stack for processing.
    */
   public static void dumpHeap() {
-    int width = Integer.toHexString(ObjectModel.nextObjectId()).length()+8;
-    Stack<ObjectReference> workStack = new Stack<ObjectReference>();
+    int width = 80;
+    Deque<ObjectReference> workStack = new ArrayDeque<ObjectReference>();
     Set<ObjectReference> dumped = new HashSet<ObjectReference>();
-    for(Mutator m: mutators) {
+    for(Mutator m: Mutators.getAll()) {
       System.err.println("Mutator " + m.context.getId());
-      m.dumpThreadRoots(width, workStack);
+      workStack.addAll(m.dumpThreadRoots(width));
     }
     System.err.println("Heap (Depth First)");
     while(!workStack.isEmpty()) {
       ObjectReference object = workStack.pop();
       if (!dumped.contains(object)) {
         dumped.add(object);
-        ObjectModel.dumpLogicalObject(width, object, workStack);
+        workStack.addAll(ObjectModel.dumpLogicalObject(width, object));
       }
     }
   }
 
-/**
+  /**
    * A gc safe point for the mutator.
+   * @return Whether a GC has occurred
    */
   public boolean gcSafePoint() {
     if (Scheduler.gcTriggered()) {
@@ -244,20 +224,10 @@ public abstract class Mutator {
   }
 
   /**
-   * An out of memory error originating from within MMTk.
-   *
-   * Tests that try to exercise out of memory conditions can catch this exception.
-   */
-  public static class OutOfMemory extends RuntimeException {
-    public static final long serialVersionUID = 1;
-  }
-
-  /**
    * Mark a mutator as no longer active. If a GC has been triggered we must ensure
    * that it proceeds before we deactivate.
    */
   public void end() {
-    check(expectedThrowable == null, "Expected exception of class " + expectedThrowable + " not found");
   }
 
   /**
@@ -277,24 +247,17 @@ public abstract class Mutator {
 
   /**
    * Fail during execution.
-   * @param failMessage
+   * @param failMessage Message to write
    */
   public void fail(String failMessage) {
-    check(false, failMessage);
+    throw new RuntimeException(failMessage);
   }
 
   /**
    * Print a message that this code path should be impossible and exit.
    */
   public void notReached() {
-    check(false, "Unreachable code reached!");
-  }
-
-  /**
-   * Assert that the given condition is true or print the failure message.
-   */
-  public void check(boolean condition, String failMessage) {
-    if (!condition) throw new RuntimeException(failMessage);
+    fail("Unreachable code reached!");
   }
 
   /**
@@ -305,14 +268,21 @@ public abstract class Mutator {
    * @param value The value to store.
    */
   public void storeDataField(ObjectReference object, int index, int value) {
+    if (object.isNull()) fail("Object can not be null in object "+ObjectModel.getString(object));
+    Sanity.assertValid(object);
     int limit = ObjectModel.getDataCount(object);
-    check(!object.isNull(), "Object can not be null");
-    check(index >= 0, "Index must be non-negative");
-    check(index < limit, "Index "+index+" out of bounds "+limit);
+    if (index < 0) fail("Index must be non-negative in object "+ObjectModel.getString(object));
+    if (index >= limit) fail("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object));
 
     Address ref = ObjectModel.getDataSlot(object, index);
-    ref.store(value);
-    Trace.trace(Item.STORE,"%s.[%d] = %d",object.toString(),index,value);
+    if (ActivePlan.constraints.needsIntWriteBarrier()) {
+      context.intWrite(object, ref, value, ref.toWord(), null, Plan.INSTANCE_FIELD);
+    } else {
+      ref.store(value);
+    }
+    if (Trace.isEnabled(Item.STORE)) {
+      Trace.trace(Item.STORE,"%s.[%d] = %d", object.toString(), index, value);
+    }
   }
 
   /**
@@ -323,17 +293,19 @@ public abstract class Mutator {
    * @param value The value to store.
    */
   public void storeReferenceField(ObjectReference object, int index, ObjectReference value) {
+    if (object.isNull()) fail(("Object can not be null in object "+ObjectModel.getString(object)));
+    Sanity.assertValid(object);
+    Sanity.assertValid(value);
     int limit = ObjectModel.getRefs(object);
     if (Trace.isEnabled(Item.STORE) || ObjectModel.isWatched(object)) {
-      Trace.printf(Item.STORE,"[%s].object[%d/%d] = %s",ObjectModel.getString(object),index,limit,value.toString());
+      Trace.printf(Item.STORE,"[%s].object[%d/%d] = %s%n",ObjectModel.getString(object),index,limit,value.toString());
     }
-    check(!object.isNull(), "Object can not be null");
-    check(index >= 0, "Index must be non-negative");
-    check(index < limit, "Index "+index+" out of bounds "+limit);
+    if (!(index >= 0)) fail(("Index must be non-negative in object "+ObjectModel.getString(object)));
+    if (!(index < limit)) fail(("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object)));
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
-    if (ActivePlan.constraints.needsWriteBarrier()) {
-      context.writeBarrier(object, referenceSlot, value, null, null, Plan.AASTORE_WRITE_BARRIER);
+    if (ActivePlan.constraints.needsObjectReferenceWriteBarrier()) {
+      context.objectReferenceWrite(object, referenceSlot, value, referenceSlot.toWord(), null, Plan.INSTANCE_FIELD);
       if (gcEveryWB) {
         gc();
       }
@@ -347,16 +319,25 @@ public abstract class Mutator {
    *
    * @param object The object to load the field of.
    * @param index The field index.
+   * @return The contents of the data field
    */
   public int loadDataField(ObjectReference object, int index) {
+    if (object.isNull()) fail(("Object can not be null in object "+ObjectModel.getString(object)));
+    Sanity.assertValid(object);
     int limit = ObjectModel.getDataCount(object);
-    check(!object.isNull(), "Object can not be null");
-    check(index >= 0, "Index must be non-negative");
-    check(index < limit, "Index "+index+" out of bounds "+limit);
+    if (!(index >= 0)) fail(("Index must be non-negative in object "+ObjectModel.getString(object)));
+    if (!(index < limit)) fail(("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object)));
 
     Address dataSlot = ObjectModel.getDataSlot(object, index);
-    int result = dataSlot.loadInt();
-    Trace.trace(Item.LOAD,"[%s].int[%d] returned [%d]",ObjectModel.getString(object),index,result);
+    int result;
+    if (ActivePlan.constraints.needsIntReadBarrier()) {
+      result = context.intRead(object, dataSlot, dataSlot.toWord(), null, Plan.INSTANCE_FIELD);
+    } else {
+      result = dataSlot.loadInt();
+    }
+    if (Trace.isEnabled(Item.LOAD) || ObjectModel.isWatched(object)) {
+      Trace.printf(Item.LOAD,"[%s].int[%d] returned [%d]%n",ObjectModel.getString(object),index,result);
+    }
     return result;
   }
 
@@ -365,31 +346,40 @@ public abstract class Mutator {
    *
    * @param object The object to load the field of.
    * @param index The field index.
+   * @return The object reference
    */
   public ObjectReference loadReferenceField(ObjectReference object, int index) {
+    if (object.isNull()) fail(("Object can not be null in object "+ObjectModel.getString(object)));
+    Sanity.assertValid(object);
     int limit = ObjectModel.getRefs(object);
-    check(!object.isNull(), "Object can not be null");
-    check(index >= 0, "Index must be non-negative");
-    check(index < limit, "Index "+index+" out of bounds "+limit);
+    if (!(index >= 0)) fail(("Index must be non-negative in object "+ObjectModel.getString(object)));
+    if (!(index < limit)) fail(("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object)));
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     ObjectReference result;
-    if (ActivePlan.constraints.needsReadBarrier()) {
-      result = context.readBarrier(object, referenceSlot, null, null, Plan.AASTORE_WRITE_BARRIER);
+    if (ActivePlan.constraints.needsObjectReferenceReadBarrier()) {
+      result = context.objectReferenceRead(object, referenceSlot, referenceSlot.toWord(), null, Plan.INSTANCE_FIELD);
     } else {
       result = referenceSlot.loadObjectReference();
     }
-    Trace.trace(Item.LOAD,"[%s].object[%d] returned [%s]",ObjectModel.getString(object),index,result.toString());
+    Sanity.assertValid(object);
+    if (Trace.isEnabled(Item.LOAD) || ObjectModel.isWatched(object)) {
+      Trace.printf(Item.LOAD,"[%s].object[%d] returned [%s]%n",ObjectModel.getString(object),index,result.toString());
+    }
     return result;
   }
 
   /**
    * Get the hash code for the given object.
+   * @param object The object
+   * @return The hash code
    */
   public int hash(ObjectReference object) {
-    check(!object.isNull(), "Object can not be null");
+    if (object.isNull()) fail("Object can not be null");
     int result = ObjectModel.getHashCode(object);
-    Trace.trace(Item.HASH,"hash(%s) returned [%d]",ObjectModel.getString(object),result);
+    if (Trace.isEnabled(Item.HASH) || ObjectModel.isWatched(object)) {
+      Trace.printf(Item.HASH,"hash(%s) returned [%d]%n",ObjectModel.getString(object),result);
+    }
     return result;
   }
 
@@ -403,22 +393,35 @@ public abstract class Mutator {
    * @return The object reference.
    */
   public ObjectReference alloc(int refCount, int dataCount, boolean doubleAlign, int allocSite) {
-    check(refCount >= 0, "Non-negative reference field count required");
-    check(refCount <= ObjectModel.MAX_REF_FIELDS, "Maximum of "+ObjectModel.MAX_REF_FIELDS+" reference fields per object");
-    check(dataCount >= 0, "Non-negative data field count required");
-    check(dataCount <= ObjectModel.MAX_DATA_FIELDS, "Maximum of "+ObjectModel.MAX_DATA_FIELDS+" data fields per object");
+    if (!(refCount >= 0)) fail("Non-negative reference field count required");
+    if (!(refCount <= ObjectModel.MAX_REF_FIELDS)) fail(("Maximum of "+ObjectModel.MAX_REF_FIELDS+" reference fields per object"));
+    if (!(dataCount >= 0)) fail("Non-negative data field count required");
+    if (!(dataCount <= ObjectModel.MAX_DATA_FIELDS)) fail(("Maximum of "+ObjectModel.MAX_DATA_FIELDS+" data fields per object"));
     ObjectReference result = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign, allocSite);
-    Trace.trace(Item.ALLOC,"alloc(" + refCount + ", " + dataCount + ", " + doubleAlign + ") returned [" + result + "]");
-    check(result != null, "Allocation returned null");
+    if (Trace.isEnabled(Item.ALLOC) || ObjectModel.isWatched(result)) {
+      Trace.printf(Item.ALLOC,"alloc(%d,%d,%b) -> [%s]%n",refCount,dataCount,doubleAlign,ObjectModel.getString(result));
+    }
+    if (!(result != null)) fail("Allocation returned null");
     return result;
   }
 
   /**
    * Return a string identifying the allocation site of an object
-   * @param object
-   * @return
+   * @param object The object
+   * @return Where in the script it was allocated
    */
   public static String getSiteName(ObjectReference object) {
-    return AllocationSite.getSite(ObjectModel.getSite(object)).toString();
+    int site = ObjectModel.getSite(object);
+    if (!AllocationSite.isValid(site)) {
+      return "<invalid>";
+    }
+    return AllocationSite.getSite(site).toString();
+  }
+
+  /**
+   * @return The thread iterator table
+   */
+  public ObjectReference allocThreadIteratorTable() {
+    return alloc(Scanning.THREAD_ITERATOR_TABLE_ENTRIES,0,false,AllocationSite.INTERNAL_SITE_ID);
   }
 }

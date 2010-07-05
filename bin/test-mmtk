@@ -14,22 +14,93 @@
 # Temporary script
 
 TEST_DIR=MMTk/harness/test-scripts
-ant clean compile-mmtk mmtk-harness
-rm -rf results/mmtk
-mkdir -p results/mmtk
 
-plans="org.mmtk.plan.copyms.CopyMS org.mmtk.plan.generational.copying.GenCopy org.mmtk.plan.generational.immix.GenImmix org.mmtk.plan.generational.marksweep.GenMS org.mmtk.plan.immix.Immix org.mmtk.plan.markcompact.MC org.mmtk.plan.marksweep.MS org.mmtk.plan.poisoned.Poisoned org.mmtk.plan.refcount.fullheap.RC org.mmtk.plan.refcount.generational.GenRC org.mmtk.plan.semispace.SS org.mmtk.plan.stickyimmix.StickyImmix org.mmtk.plan.stickyms.StickyMS"
+classForPlan() {
+  local plan=$1
+  case $plan in
+    CopyMS) echo "org.mmtk.plan.copyms.CopyMS";;
+    GenCopy) echo "org.mmtk.plan.generational.copying.GenCopy";;
+    GenImmix) echo "org.mmtk.plan.generational.immix.GenImmix";;
+    GenMS) echo "org.mmtk.plan.generational.marksweep.GenMS";;
+    Immix) echo "org.mmtk.plan.immix.Immix";;
+    MC) echo "org.mmtk.plan.markcompact.MC";;
+    MS) echo "org.mmtk.plan.marksweep.MS";;
+    Poisoned) echo "org.mmtk.plan.poisoned.Poisoned";;
+    PrimitiveWB) echo "org.mmtk.plan.semispace.usePrimitiveWriteBarriers.UsePrimitiveWriteBarriers";;
+    RC) echo "org.mmtk.plan.refcount.fullheap.RC";;
+    GenRC) echo "org.mmtk.plan.refcount.generational.GenRC";;
+    SS) echo "org.mmtk.plan.semispace.SS";;
+    StickyImmix) echo "org.mmtk.plan.stickyimmix.StickyImmix";;
+    StickyMS) echo "org.mmtk.plan.stickyms.StickyMS";;
+    *) echo "Unknown plan" >> /dev/stderr
+       return 1;;
+  esac
+}
 
-opts="variableSizeHeap=false $*"
+plans="CopyMS GenCopy GenImmix GenMS Immix MC MS Poisoned PrimitiveWB RC GenRC SS StickyImmix StickyMS"
+
+opts="variableSizeHeap=false"
 #opts="$opts gcEvery=SAFEPOINT"
 
 jvm_opts="-ea"
+build=true
+buildonly=false
+clean=true
+results=
+stats=true
+
+scripts="*"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -plan) plans="$2"; shift;;
+    -opts) opts="$opts $2"; shift;;
+    -script) scripts="$2"; shift;;
+    -nobuild) build=false;;
+    -build) build=true;;
+    -buildonly) buildonly=true;;
+    -clean) clean=true;;
+    -noclean) clean=false;;
+    -results) results="/$2"; shift;;
+    -stats) stats="true";;
+    -nostats) stats="false";;
+    *) echo "Unknown parameter $1"
+       echo "Usage: $0 [-plan plan] [-opts harness-options]"
+       echo "          [-script script1[,script2...]] "
+       echo "          [-[no]build]                   [Don't] build MMTk Harness before running tests"
+       echo "          [-[no]clean]                   [Don't] delete old results before running tests"
+       echo "          [-buildonly]                   Build only, don't run any tests"
+       echo "          [-nostats]                     Suppress listing pass/fail statistics after running tests"
+       echo "          [-results]                     Results directory"
+       exit 1;;
+  esac
+  shift
+done
+
+RESULTS=results/mmtk${results}
+
+if [ $build = true ]; then
+  ant clean compile-mmtk mmtk-harness
+  if [ $buildonly = true ]; then
+    exit 0;
+  fi
+fi
+if [ $clean = true ]; then
+  rm -rf $RESULTS
+fi
+mkdir -p $RESULTS
+
+if [ ! -z "$JAVA_HOME" ]; then
+  JAVA=$JAVA_HOME/bin/java
+else
+  JAVA=java
+fi
 
 for plan in $plans
 do
-  showplan=`echo $plan | sed -e "s/.*\.//g"`
-  mkdir results/mmtk/$showplan
-  for script in `ls $TEST_DIR/*.script`
+  planClass=$(classForPlan $plan)
+  mkdir -p ${RESULTS}/$plan
+  for script in `ls -1 $TEST_DIR/${scripts}.script`
   do
     showscript=`echo $script | sed -e "s/.*[\/]//g" | sed -e "s/\.script$//g"`
     if [ -f $TEST_DIR/$showscript.options ]; then
@@ -38,25 +109,29 @@ do
       scriptopts=
     fi
     (
-      echo /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts;
-      /opt/jdk1.6.0/bin/java ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$plan $opts $scriptopts
-    ) &> results/mmtk/temp.out
-    if [ ${?} == 0 ]
+      echo $JAVA ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$planClass $opts $scriptopts;
+      $JAVA ${jvm_opts} -jar target/mmtk/mmtk-harness.jar $script plan=$planClass $opts $scriptopts
+    ) &> ${RESULTS}/temp.out
+    if [ $? == 0 ]
     then
-      echo "PASSED: $showplan $showscript"
-      mv results/mmtk/temp.out results/mmtk/$showplan/$showscript.out.pass
+      logfile=${RESULTS}/$plan/$showscript.out.pass
+      printf "PASSED: %s %-15s %-15s %s\\n" "${results#/}" $plan $showscript $logfile
+      mv ${RESULTS}/temp.out $logfile
     else
-      echo "FAILED: $showplan $showscript"
-      mv results/mmtk/temp.out results/mmtk/$showplan/$showscript.out.fail
+      logfile=${RESULTS}/$plan/$showscript.out.fail
+      printf "FAILED: %s %-15s %-15s %s\\n" "${results#/}" $plan $showscript $logfile
+      mv ${RESULTS}/temp.out $logfile
     fi
   done
 done
 
-passed=`find results/mmtk -name "*.pass" | wc -l`
-failed=`find results/mmtk -name "*.fail" | wc -l`
+if [ $stats = true ]; then
+  passed=`find ${RESULTS} -name "*.pass" | wc -l`
+  failed=`find ${RESULTS} -name "*.fail" | wc -l`
 
-echo
-echo "FAILURES:"
-find results/mmtk -name "*.fail" | sed -e "s/results\/mmtk\///g" -e "s/\.out\.fail$//g" -e "s/\// /g"
-echo
-echo "PASSED $passed/$[$passed + failed] tests ($[(100 * $passed) / ($passed + $failed)]%)"
+  echo
+  echo "FAILURES:"
+  find ${RESULTS} -name "*.fail" | sed -e "s/results\/mmtk\///g" -e "s/\.out\.fail$//g" -e "s/\// /g"
+  echo
+  echo "PASSED $passed/$[passed + failed] tests ($[(100 * passed) / (passed + failed)]%)"
+fi

@@ -13,24 +13,34 @@
 package org.mmtk.harness.scheduler.rawthreads;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.mmtk.harness.Collector;
-import org.mmtk.harness.MMTkThread;
 import org.mmtk.harness.Mutator;
-import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.scheduler.MMTkThread;
 import org.mmtk.harness.scheduler.Schedulable;
 import org.mmtk.harness.scheduler.ThreadModel;
 import static org.mmtk.harness.scheduler.ThreadModel.State.*;
 import org.mmtk.utility.Log;
 
+/**
+ * The deterministic thread scheduler.  Java threads are used for all
+ * program threads of execution, but only one thread is permitted
+ * to execute at a time, the scheduler selecting the next thread at
+ * each context switch.
+ */
 public final class RawThreadModel extends ThreadModel {
 
   private static boolean unitTest = false;
 
+  /**
+   * Enable unit-test mode
+   */
   public static void setUnitTest() {
     unitTest = true;
   }
@@ -42,6 +52,10 @@ public final class RawThreadModel extends ThreadModel {
   /** The global scheduler thread */
   private final Thread scheduler = Thread.currentThread();
 
+  private static void trace(String message) {
+    Trace.trace(Item.SCHEDULER, "%d: "+message, Thread.currentThread().getId());
+  }
+
   /**
    * The 'scheduler woken' flag.
    *
@@ -52,147 +66,48 @@ public final class RawThreadModel extends ThreadModel {
 
   private RawThread current = null;
 
-  private List<RawThread> collectors = new ArrayList<RawThread>();
-  private List<RawThread> mutators = new ArrayList<RawThread>();
+  final List<RawThread> collectors = new ArrayList<RawThread>();
+  private final List<RawThread> mutators = new ArrayList<RawThread>();
+
+  /** Unique mutator thread number - used to name thne mutator threads */
+  private volatile int mutatorId = 0;
+
+  int nextMutatorId() {
+    return ++mutatorId;
+  }
 
   /**
    * Scheduling queues.  A thread may be on exactly one of these queues,
    * or on a lock wait queue, or current.
    */
-  private List<RawThread> runQueue = new LinkedList<RawThread>();
-  private List<RawThread> rendezvousQueue = new LinkedList<RawThread>();
-  private List<RawThread> gcWaitQueue = new LinkedList<RawThread>();
-  private List<RawThread> collectorWaitQueue = new LinkedList<RawThread>();
+  private final List<RawThread> runQueue = new LinkedList<RawThread>();
+  private final List<RawThread> rendezvousQueue = new LinkedList<RawThread>();
+  private final List<RawThread> gcWaitQueue = new LinkedList<RawThread>();
+  private final List<RawThread> collectorWaitQueue = new LinkedList<RawThread>();
 
   /**
-   * The superclass of mutator threads in the raw threads model
+   * Remove a mutator from the pool when a mutator thread exits
+   * @param m The mutator thread
    */
-  private class MutatorThread extends RawThread {
-    final Env env = new Env();
-    final Schedulable code;
-
-    public MutatorThread(Schedulable code) {
-      super(RawThreadModel.this);
-      this.code = code;
-    }
-
-    /*
-     * Thread.run()
-     */
-    @Override
-    public void run() {
-      Trace.trace(Item.SCHEDULER, "%d: initial yield",this.getId());
-      // Initial 'yield'
-      waitTillCurrent();
-      Trace.trace(Item.SCHEDULER, "%d: Env.begin()",this.getId());
-      env.begin();
-      begin();
-      Trace.trace(Item.SCHEDULER, "%d: Running mutator code",this.getId());
-      code.execute(env);
-      env.end();
-      end();
-    }
-
-    private void uncaughtException(Thread t, Throwable e) {
-      env.uncaughtException(t, e);
-      end();
-    }
-
-    /**
-     * Mark a mutator as currently active. If a GC is currently in process we must
-     * wait for it to finish.
-     */
-    public void begin() {
-      // Trap uncaught exceptions
-      Trace.trace(Item.SCHEDULER, "Setting uncaught exception handler for thread %s",
-          Thread.currentThread().getName());
-      Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-        public void uncaughtException(Thread t, Throwable e) {
-          MutatorThread.this.uncaughtException(t, e);
-        }
-      });
-    }
-
-    protected void end() {
-      super.end();
-      synchronized(scheduler) {
-        mutators.remove(this);
-        wakeScheduler();
-      }
-      Trace.trace(Item.SCHEDULER, "%d: mutator thread exiting",this.getId());
+  void removeMutator(MutatorThread m) {
+    synchronized(scheduler) {
+      mutators.remove(m);
+      Trace.trace(Item.SCHEDULER, "%d: mutator removed, %d mutators remaining",m.getId(),mutators.size());
+      wakeScheduler();
     }
   }
 
   /**
-   * The super-class of collector threads
+   * Remove a collector from the pool when a collector thread exits.
+   * Only used for unit testing, since collectors are usually permanent
+   * @param c The collector thread
    */
-  private static class CollectorThread extends RawThread {
-    protected final Collector c;
-
-    /**
-     * Create a collector thread, running the 'run'method of collector c
-     *
-     * @param model
-     * @param c
-     * @param daemon
-     */
-    private CollectorThread(RawThreadModel model,Collector c, boolean daemon) {
-      super(model);
-      this.c = c;
-      setName("Collector-"+model.collectors.size());
-      model.collectors.add(this);
-      setDaemon(daemon);
-      Trace.trace(Item.SCHEDULER, "%d: collector thread %d \"%s\" created (%d total)",
-          Thread.currentThread().getId(), getId(), getName(),model.collectors.size());
-    }
-
-    /** Create a collector thread, with a new collector */
-    protected CollectorThread(RawThreadModel model, boolean daemon) {
-      this(model,new Collector(), daemon);
-    }
-
-    /** Create a collector thread, with a new collector */
-    public CollectorThread(RawThreadModel model) {
-      this(model,true);
-    }
-
-    @Override
-    public void run() {
-      // Initial 'yield'
-      waitTillCurrent();
-      c.run();
-      assert false : "Collector threads should never exit";
+  void removeCollector(CollectorThread c) {
+    synchronized(scheduler) {
+      collectors.remove(c);
+      wakeScheduler();
     }
   }
-
-  /**
-   * The super-class of collector-context threads.  These are unit tests
-   * that need to run in collector context.
-   */
-  private class CollectorContextThread extends CollectorThread {
-    private final Schedulable code;
-
-    public CollectorContextThread(RawThreadModel model,Schedulable code) {
-      super(model,false);
-      this.code = code;
-    }
-
-    @Override
-    public void run() {
-      // Initial 'yield'
-      waitTillCurrent();
-      Trace.trace(Item.SCHEDULER, "%d: Collector context waiting for GC", current.getId());
-      waitForGCStart();
-      Trace.trace(Item.SCHEDULER, "%d: Starting collector context", current.getId());
-      code.execute(new Env());
-      synchronized(scheduler) {
-        collectors.remove(this);
-        wakeScheduler();
-      }
-      Trace.trace(Item.SCHEDULER, "%d: Collector context complete", current.getId());
-    }
-  }
-
 
   void setCurrent(RawThread current) {
     this.current = current;
@@ -202,28 +117,40 @@ public final class RawThreadModel extends ThreadModel {
     return (MMTkThread)Thread.currentThread();
   }
 
+  /**
+   * @see org.mmtk.harness.scheduler.ThreadModel#currentLog()
+   */
   @Override
   public Log currentLog() {
     return current.getLog();
   }
 
+  /**
+   * @see org.mmtk.harness.scheduler.ThreadModel#currentMutator()
+   */
   @Override
   public Mutator currentMutator() {
     return ((MutatorThread)current).env;
   }
 
+  /**
+   * @see org.mmtk.harness.scheduler.ThreadModel#exitGC()
+   */
   @Override
   public void exitGC() {
     Trace.trace(Item.SCHEDULER, "%d: exiting GC", current.getId());
     setState(END_GC);
   }
 
+  /**
+   * @see org.mmtk.harness.scheduler.ThreadModel#currentCollector()
+   */
   @Override
   public Collector currentCollector() {
     return ((CollectorThread)current).c;
   }
 
-  private int currentRendezvous = 0;
+  private int currentRendezvous = -1;
 
   /**
    * The number of mutators waiting for a collection to proceed.
@@ -235,18 +162,51 @@ public final class RawThreadModel extends ThreadModel {
    */
   protected int activeMutators;
 
+  /**
+   * @see org.mmtk.harness.scheduler.ThreadModel#rendezvous(int)
+   */
   @Override
   public int rendezvous(int where) {
     Trace.trace(Item.SCHEDULER, "%d: rendezvous(%d)", current.getId(), where);
-    if (!isState(RENDEZVOUS)) {
+    if (currentRendezvous == -1) {
       currentRendezvous = where;
-      setState(RENDEZVOUS);
     } else {
       assert currentRendezvous == where;
     }
     current.setOrdinal(rendezvousQueue.size()+1);
-    yield(rendezvousQueue);
+    if (rendezvousQueue.size() == collectors.size()-1) {
+      makeRunnable(rendezvousQueue);
+      currentRendezvous = -1;
+    } else {
+      yield(rendezvousQueue);
+    }
     Trace.trace(Item.SCHEDULER, "%d: rendezvous(%d) complete: ordinal = %d", current.getId(), where,current.getOrdinal());
+    return current.getOrdinal();
+  }
+
+
+  private final Map<String,List<RawThread>> rendezvousQueues = new HashMap<String,List<RawThread>>();
+
+  /**
+   * @see org.mmtk.harness.scheduler.ThreadModel#mutatorRendezvous(java.lang.String, int)
+   */
+  @Override
+  public int mutatorRendezvous(String where, int expected) {
+    String barrierName = "Barrier-"+where;
+    Trace.trace(Item.SCHEDULER, "%s: rendezvous(%s)", current.getId(), barrierName);
+    List<RawThread> queue = rendezvousQueues.get(barrierName);
+    if (queue == null) {
+      queue = new ArrayList<RawThread>(expected);
+      rendezvousQueues.put(barrierName, queue);
+    }
+    current.setOrdinal(queue.size()+1);
+    if (queue.size() == expected-1) {
+      makeRunnable(queue,false);
+      rendezvousQueues.put(barrierName, null);
+    } else {
+      yield(queue);
+    }
+    Trace.trace(Item.SCHEDULER, "%d: rendezvous(%s) complete: ordinal = %d", current.getId(), barrierName,current.getOrdinal());
     return current.getOrdinal();
   }
 
@@ -278,7 +238,7 @@ public final class RawThreadModel extends ThreadModel {
    */
   @Override
   public void scheduleMutator(Schedulable method) {
-    MutatorThread m = new MutatorThread(method);
+    MutatorThread m = new MutatorThread(method, RawThreadModel.this);
     synchronized(scheduler) {
       Trace.trace(Item.SCHEDULER, "%d: creating new mutator, id=%d", Thread.currentThread().getId(), m.getId());
       m.setName("Mutator-"+mutators.size());
@@ -317,9 +277,16 @@ public final class RawThreadModel extends ThreadModel {
     }
   }
 
+  /**
+   * A GC has been requested.  A Mutator thread calls this when it sees the request,
+   * and wishes to wait for the GC.  In the raw-threads case, we yield to the
+   * collectorWaitQueue.
+   *
+   * @see org.mmtk.harness.scheduler.ThreadModel#waitForGCStart()
+   */
   @Override
   public void waitForGCStart() {
-    Trace.trace(Item.SCHEDULER, "%d: Yielding to collector wait queue", Thread.currentThread().getId());
+    trace("Yielding to collector wait queue");
     yield(collectorWaitQueue);
   }
 
@@ -332,11 +299,15 @@ public final class RawThreadModel extends ThreadModel {
     yield(gcWaitQueue);
   }
 
+  /** @see org.mmtk.harness.scheduler.ThreadModel#yield() */
   @Override
   public void yield() {
     if (isRunning()) {
       if (current.yieldPolicy()) {
+        Trace.trace(Item.YIELD, "%d: Yieldpoint", Thread.currentThread().getId());
         yield(runQueue);
+      } else {
+        Trace.trace(Item.YIELD, "%d: Yieldpoint - not taken", Thread.currentThread().getId());
       }
     }
   }
@@ -405,11 +376,12 @@ public final class RawThreadModel extends ThreadModel {
         }
         switch (getState()) {
           case MUTATOR:
-            assert mutators.isEmpty() || !runQueue.isEmpty();
+            /* If there are available mutators, at least one of them must be runnable */
+            assert mutators.isEmpty() || !runQueue.isEmpty() :
+              "mutators.isEmpty()="+mutators.isEmpty()+", runQueue.isEmpty()="+runQueue.isEmpty();
             break;
           case BEGIN_GC:
             if (runQueue.isEmpty()) {
-              assert gcWaitQueue.size() == mutators.size();
               setState(GC);
               Trace.trace(Item.SCHEDULER, "%d: Changing to state GC - scheduling %d GC threads",
                   scheduler.getId(),collectorWaitQueue.size());
@@ -428,15 +400,6 @@ public final class RawThreadModel extends ThreadModel {
           case GC:
             assert ! unitTest && (mutators.size() == 0 || !runQueue.isEmpty()) :
               "Runqueue cannot be empty while GC is in progress";
-            break;
-          case RENDEZVOUS:
-            if (runQueue.isEmpty()) {
-              assert rendezvousQueue.size() == collectors.size();
-              Trace.trace(Item.SCHEDULER, "%d: Rendezvous complete - changing to state GC", scheduler.getId());
-              setState(GC);
-              makeRunnable(rendezvousQueue);
-              currentRendezvous = 0;
-            }
             break;
         }
       }
@@ -473,11 +436,7 @@ public final class RawThreadModel extends ThreadModel {
     assert Thread.currentThread() == scheduler;
     while (!schedulerIsAwake) {
       try {
-//        Trace.trace(Item.SCHEDULER, "%d: waiting for scheduler wakeup",
-//            Thread.currentThread().getId());
         scheduler.wait(1);
-//        Trace.trace(Item.SCHEDULER, "%d: scheduler wakeup complete",
-//            Thread.currentThread().getId());
       } catch (InterruptedException e) {
       }
     }

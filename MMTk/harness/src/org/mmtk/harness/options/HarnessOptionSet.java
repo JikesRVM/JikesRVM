@@ -12,8 +12,14 @@
  */
 package org.mmtk.harness.options;
 
+import java.util.TreeSet;
+
+import org.mmtk.harness.Main;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.harness.MemoryConstants;
+import org.vmmagic.unboxed.harness.WordComparator;
 import org.vmutil.options.AddressOption;
 import org.vmutil.options.BooleanOption;
 import org.vmutil.options.EnumOption;
@@ -28,6 +34,19 @@ import org.vmutil.options.StringOption;
  * Class to handle command-line arguments and options for GC.
  */
 public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
+
+  /*
+   * The following option types are used only by the MMTk Harness,
+   * since they are hard to implement without allocating.
+   */
+  /** A Set<Enum> valued option */
+  public static final int ENUM_SET_OPTION = 1001;
+
+  /** A multi-valued integer valued option */
+  public static final int INT_SET_OPTION = 1002;
+
+  /** A multi-valued integer valued option */
+  public static final int WORD_SET_OPTION = 1003;
 
   /**
    * Take a string (most likely a command-line argument) and try to proccess it
@@ -88,7 +107,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
         return false;
       case Option.ADDRESS_OPTION:
         try {
-          int ival = Integer.parseInt(value);
+          int ival = Integer.parseInt(value,16);
           ((AddressOption)o).setValue(ival);
           return true;
         } catch (NumberFormatException nfe) {}
@@ -129,10 +148,53 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
           return true;
         } catch (NumberFormatException nfe) {}
         return false;
+      case ENUM_SET_OPTION:
+        ((EnumSetOption)o).setValue(value);
+        return true;
+      case INT_SET_OPTION:
+        try {
+          ((IntSetOption)o).setValue(parseIntSet(value));
+        } catch (NumberFormatException nfe) {
+          return false;
+        }
+        return true;
+      case WORD_SET_OPTION:
+        ((WordSetOption)o).setValue(parseWordSet(value));
+        return true;
     }
 
     // None of the above tests matched, so this wasn't an option
     return false;
+  }
+
+  private int[] parseIntSet(String str) {
+    TreeSet<Integer> values = new TreeSet<Integer>();
+    for (String element : str.split(",")) {
+      values.add(Integer.valueOf(element));
+    }
+    int[] result = new int[values.size()];
+    for (int i=0; i < result.length; i++) {
+      result[i] = values.pollFirst();
+    }
+    return result;
+  }
+
+  private Word[] parseWordSet(String str) {
+    TreeSet<Word> values = new TreeSet<Word>(new WordComparator());
+    for (String element : str.split(",")) {
+      Long value;
+      if (element.startsWith("0x")) {
+        value = Long.valueOf(element.substring(2),16);
+      } else {
+        value = Long.valueOf(element);
+      }
+      values.add(Word.fromLong(value));
+    }
+    Word[] result = new Word[values.size()];
+    for (int i=0; i < result.length; i++) {
+      result[i] = values.pollFirst();
+    }
+    return result;
   }
 
   /**
@@ -212,7 +274,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
       o = o.getNext();
     }
 
-    System.exit(-1);
+    Main.exitWithFailure();
   }
 
   /**
@@ -277,6 +339,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
    * @param o The option.
    * @param forXml Is this part of xml output?
    */
+  @Override
   protected void logValue(Option o, boolean forXml) {
     switch (o.getType()) {
     case Option.BOOLEAN_OPTION:
@@ -311,6 +374,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
   /**
    * Log a string.
    */
+  @Override
   protected void logString(String s) {
     System.err.print(s);
   }
@@ -318,6 +382,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
   /**
    * Print a new line.
    */
+  @Override
   protected void logNewLine() {
     System.err.println();
   }
@@ -329,6 +394,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
    * @param name The option name.
    * @return The VM specific key.
    */
+  @Override
   protected String computeKey(String name) {
     int space = name.indexOf(' ');
     if (space < 0) return name.toLowerCase();
@@ -354,6 +420,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
    * @param o The responsible option.
    * @param message The message associated with the warning.
    */
+  @Override
   protected void warn(Option o, String message) {
     System.err.println("WARNING: Option '" + o.getKey() + "' : " + message);
   }
@@ -365,6 +432,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
    * @param o The responsible option.
    * @param message The error message associated with the failure.
    */
+  @Override
   protected void fail(Option o, String message) {
     throw new RuntimeException("Option '" + o.getKey() + "' : " + message);
   }
@@ -375,9 +443,10 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
    * @param bytes The number of bytes.
    * @return The corresponding number of pages.
    */
+  @Override
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
-    return bytes.plus(SimulatedMemory.BYTES_IN_PAGE-1).toWord().rshl(SimulatedMemory.LOG_BYTES_IN_PAGE).toInt();
+    return bytes.plus(MemoryConstants.BYTES_IN_PAGE-1).toWord().rshl(MemoryConstants.LOG_BYTES_IN_PAGE).toInt();
   }
 
   /**
@@ -385,8 +454,9 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
    * @param pages the number of pages.
    * @return The corresponding number of bytes.
    */
+  @Override
   @Uninterruptible
   protected Extent pagesToBytes(int pages) {
-    return Word.fromIntZeroExtend(pages).lsh(SimulatedMemory.LOG_BYTES_IN_PAGE).toExtent();
+    return Word.fromIntZeroExtend(pages).lsh(MemoryConstants.LOG_BYTES_IN_PAGE).toExtent();
   }
 }

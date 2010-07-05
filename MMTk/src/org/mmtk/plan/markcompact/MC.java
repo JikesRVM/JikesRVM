@@ -48,10 +48,16 @@ import org.vmmagic.unboxed.ObjectReference;
    * Class variables
    */
 
+  /** The mark compact space itself */
   public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.6f));
+
+  /** The space descriptor */
   public static final int MARK_COMPACT = mcSpace.getDescriptor();
 
+  /** Specialized method identifier for the MARK phase */
   public static final int SCAN_MARK    = 0;
+
+  /** Specialized method identifier for the FORWARD phase */
   public static final int SCAN_FORWARD = 1;
 
   /* Phases */
@@ -59,8 +65,10 @@ import org.vmmagic.unboxed.ObjectReference;
   public static final short FORWARD_CLOSURE     = Phase.createSimple("fw-closure");
   public static final short RELEASE_FORWARD     = Phase.createSimple("fw-release");
 
-  /* FIXME these two phases need to be made per-collector phases */
+  /** Calculate forwarding pointers via a linear scan over the heap */
   public static final short CALCULATE_FP        = Phase.createSimple("calc-fp");
+
+  /** Perform compaction via a linear scan over the heap */
   public static final short COMPACT             = Phase.createSimple("compact");
 
   // CHECKSTYLE:OFF
@@ -75,7 +83,7 @@ import org.vmmagic.unboxed.ObjectReference;
       Phase.scheduleComplex  (rootClosurePhase),
       Phase.scheduleComplex  (refTypeClosurePhase),
       Phase.scheduleComplex  (completeClosurePhase),
-      Phase.scheduleMutator  (CALCULATE_FP),
+      Phase.scheduleCollector(CALCULATE_FP),
       Phase.scheduleGlobal   (PREPARE_FORWARD),
       Phase.scheduleCollector(PREPARE_FORWARD),
       Phase.scheduleMutator  (PREPARE),
@@ -87,7 +95,7 @@ import org.vmmagic.unboxed.ObjectReference;
       Phase.scheduleMutator  (RELEASE),
       Phase.scheduleCollector(RELEASE_FORWARD),
       Phase.scheduleGlobal   (RELEASE_FORWARD),
-      Phase.scheduleMutator  (COMPACT),
+      Phase.scheduleCollector(COMPACT),
       Phase.scheduleComplex  (finishPhase));
 
   // CHECKSTYLE:ON
@@ -96,7 +104,10 @@ import org.vmmagic.unboxed.ObjectReference;
    * Instance variables
    */
 
+  /** This trace sets the mark bit in live objects */
   public final Trace markTrace;
+
+  /** This trace updates pointers with the forwarded references */
   public final Trace forwardTrace;
 
   /**
@@ -119,6 +130,7 @@ import org.vmmagic.unboxed.ObjectReference;
    *
    * @param phaseId Collection phase to execute.
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
@@ -167,6 +179,7 @@ import org.vmmagic.unboxed.ObjectReference;
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return (mcSpace.reservedPages() + super.getPagesUsed());
   }
@@ -178,6 +191,7 @@ import org.vmmagic.unboxed.ObjectReference;
    * @return the number of pages a collection is required to free to satisfy
    * outstanding allocation requests.
    */
+  @Override
   public int getPagesRequired() {
     return super.getPagesRequired() + mcSpace.requiredPages();
   }
@@ -203,6 +217,7 @@ import org.vmmagic.unboxed.ObjectReference;
    *
    * @return The expected (root excluded) reference count.
    */
+  @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
 
@@ -212,14 +227,14 @@ import org.vmmagic.unboxed.ObjectReference;
       // This is not very satisfying but allows us to use the sanity checker to
       // detect dangling pointers.
       return SanityChecker.UNSURE;
-    } else {
-      return super.sanityExpectedRC(object, sanityRootRC);
     }
+    return super.sanityExpectedRC(object, sanityRootRC);
   }
 
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_MARK, MCMarkTraceLocal.class);

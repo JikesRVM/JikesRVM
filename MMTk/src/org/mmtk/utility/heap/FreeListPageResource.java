@@ -159,7 +159,7 @@ public final class FreeListPageResource extends PageResource implements Constant
     } else {
       pagesCurrentlyOnFreeList -= pages;
       if (pageOffset > highWaterMark) {
-        if ((pageOffset ^ highWaterMark) > EmbeddedMetaData.PAGES_IN_REGION) {
+        if (highWaterMark == 0 || (pageOffset ^ highWaterMark) > EmbeddedMetaData.PAGES_IN_REGION) {
           int regions = 1 + ((pageOffset - highWaterMark) >> EmbeddedMetaData.LOG_PAGES_IN_REGION);
           int metapages = regions * metaDataPagesPerRegion;
           reserved += metapages;

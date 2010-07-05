@@ -291,15 +291,15 @@ public final class RegisterOperand extends Operand {
   }
 
   /**
-   * Does the operand represent a value of the address data type?
+   * Does the operand represent an address like data type?
    *
    * @return <code>true</code> if the data type of <code>this</code>
-   *         is an address as defined by {@link TypeReference#isWordType}
+   *         is an address as defined by {@link TypeReference#isWordLikeType}
    *         or <code>false</code> if it is not.
    */
   @Override
   public boolean isAddress() {
-    return type.isWordType();
+    return type.isWordLikeType();
   }
 
   /**

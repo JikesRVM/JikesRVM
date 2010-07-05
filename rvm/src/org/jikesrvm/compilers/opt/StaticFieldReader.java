@@ -62,7 +62,7 @@ public abstract class StaticFieldReader implements SizeConstants {
         } else {
           return new NullConstantOperand();
         }
-      } else if (type.isWordType()) {
+      } else if (type.isWordLikeType()) {
         return new AddressConstantOperand(field.getWordValueUnchecked(obj).toAddress());
       } else if (type.isIntType()) {
         return new IntConstantOperand(field.getIntValueUnchecked(obj));
@@ -96,7 +96,7 @@ public abstract class StaticFieldReader implements SizeConstants {
           } else {
             return new NullConstantOperand();
           }
-        } else if (type.isWordType()) {
+        } else if (type.isWordLikeType()) {
           Object value = f.get(obj);
           if (type.equals(TypeReference.Word))
             return new AddressConstantOperand((Word)value);

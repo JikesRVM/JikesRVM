@@ -23,21 +23,29 @@ public class Expect extends AbstractAST implements Statement {
 
   /**
    * Constructor
+   * @param t The Parser token corresponding to this entity
+   * @param name The exception name
    */
   public Expect(Token t, String name) {
     super(t);
     try {
-      expectedThrowable = Class.forName("org.mmtk.harness.Mutator$" + name);
+      expectedThrowable = Class.forName("org.mmtk.harness.exception." + name);
     } catch (ClassNotFoundException cnfe) {
       throw new RuntimeException(cnfe);
     }
   }
 
+  /**
+   * @see org.mmtk.harness.lang.ast.AbstractAST#accept(org.mmtk.harness.lang.Visitor)
+   */
   @Override
   public Object accept(Visitor v) {
     return v.visit(this);
   }
 
+  /**
+   * @return The expected exception class
+   */
   public Class<?> getExpected() {
     return expectedThrowable;
   }

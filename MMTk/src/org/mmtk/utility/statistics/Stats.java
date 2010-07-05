@@ -127,6 +127,7 @@ import org.vmmagic.pragma.*;
       if (counter[c].getStart())
         counter[c].start();
     }
+
     if (Options.xmlStats.getValue()) {
       Xml.begin();
       Xml.openTag("mmtk-stats");
@@ -232,11 +233,14 @@ import org.vmmagic.pragma.*;
     for (int c = 0; c < counters; c++) {
       if (counter[c].mergePhases()) {
         Log.write(counter[c].getName());
+        Log.write(counter[c].getColumnSuffix());
         Log.write("\t");
       } else {
         Log.write(counter[c].getName());
+        Log.write(counter[c].getColumnSuffix());
         Log.write(".mu\t");
         Log.write(counter[c].getName());
+        Log.write(counter[c].getColumnSuffix());
         Log.write(".gc\t");
       }
     }
@@ -310,6 +314,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   private static void printTotalXml(Counter c, Phase phase) {
     openStatXml(c.getName());
+    Xml.attribute("suffix", c.getColumnSuffix());
     Xml.openAttribute("value");
     if (phase == Phase.COMBINED) {
       c.printTotal();
@@ -333,6 +338,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   private static void printPhaseStatXml(Counter c, int p, Phase phase) {
     openStatXml(c.getName());
+    Xml.attribute("suffix", c.getColumnSuffix());
     Xml.openAttribute("value");
     if (phase == Phase.COMBINED) {
       c.printCount(p);

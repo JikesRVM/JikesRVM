@@ -1,0 +1,16 @@
+--- java/awt/Toolkit.java	2009-12-17 22:19:41.000000000 +1100
++++ java/awt/Toolkit.java	2009-12-17 22:21:28.000000000 +1100
+@@ -567,6 +567,13 @@
+     if (toolkit != null)
+       return toolkit;
+ 
++    // Check for the headless property.
++    if (GraphicsEnvironment.isHeadless())
++      {
++        toolkit = new HeadlessToolkit();
++        return toolkit;
++      }
++
+     String toolkit_name = SystemProperties.getProperty("awt.toolkit",
+                                                        default_toolkit_name);
+     try

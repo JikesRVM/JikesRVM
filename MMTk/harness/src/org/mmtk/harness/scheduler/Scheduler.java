@@ -14,7 +14,6 @@ package org.mmtk.harness.scheduler;
 
 import org.mmtk.harness.Collector;
 import org.mmtk.harness.Harness;
-import org.mmtk.harness.MMTkThread;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.scheduler.javathreads.JavaThreadModel;
 import org.mmtk.harness.scheduler.rawthreads.RawThreadModel;
@@ -148,6 +147,7 @@ public class Scheduler {
   /**
    * Create and start a new collector thread running a particular code
    * sequence.  Used to schedule unit tests in collector context.
+   *
    * @param item The schedulable object
    * @return A java thread for the item
    */
@@ -231,6 +231,10 @@ public class Scheduler {
    */
   public static int rendezvous(int where) {
     return model.rendezvous(where);
+  }
+
+  public static int mutatorRendezvous(String name, int expected) {
+    return model.mutatorRendezvous(name,expected);
   }
 
   /**

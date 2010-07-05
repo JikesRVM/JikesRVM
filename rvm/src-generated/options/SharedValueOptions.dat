@@ -18,10 +18,6 @@ DESCRIP
 ENUMS
 #Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
 
-V PRELOAD_CLASS String null
-Class to preload upon 1st OPT compilation
-
-
 S METHOD_TO_PRINT String
 Only apply print options against methods whose name contains this string
 

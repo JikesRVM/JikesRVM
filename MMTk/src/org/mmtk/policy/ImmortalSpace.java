@@ -17,6 +17,7 @@ import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.HeaderByte;
 
 import org.mmtk.vm.VM;
 
@@ -37,14 +38,14 @@ import org.vmmagic.pragma.*;
    *
    * Class variables
    */
-  static final Word GC_MARK_BIT_MASK = Word.one();
+  static final byte GC_MARK_BIT_MASK = 1;
   private static final int META_DATA_PAGES_PER_REGION = CARD_META_PAGES_PER_REGION;
 
   /****************************************************************************
    *
    * Instance variables
    */
-  private Word markState = Word.zero(); // when GC off, the initialization value
+  private byte markState = 0; // when GC off, the initialization value
 
   /****************************************************************************
    *
@@ -71,7 +72,7 @@ import org.vmmagic.pragma.*;
 
   /** @return the current mark state */
   @Inline
-  public Word getMarkState() { return markState; }
+  public Word getMarkState() { return Word.fromIntZeroExtend(markState); }
 
   /****************************************************************************
    *
@@ -85,10 +86,10 @@ import org.vmmagic.pragma.*;
    * @param object The newly allocated object instance whose header we are initializing
    */
   public void initializeHeader(ObjectReference object) {
-    Word oldValue = VM.objectModel.readAvailableBitsWord(object);
-    Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(markState);
-    if (Plan.NEEDS_LOG_BIT_IN_HEADER) newValue = newValue.or(Plan.UNLOGGED_BIT);
-    VM.objectModel.writeAvailableBitsWord(object, newValue);
+    byte oldValue = VM.objectModel.readAvailableByte(object);
+    byte newValue = (byte) ((oldValue & GC_MARK_BIT_MASK) | markState);
+    if (HeaderByte.NEEDS_UNLOGGED_BIT) newValue |= HeaderByte.UNLOGGED_BIT;
+    VM.objectModel.writeAvailableByte(object, newValue);
   }
 
   /**
@@ -96,14 +97,14 @@ import org.vmmagic.pragma.*;
    * Returns true if marking was done.
    */
   @Inline
-  private static boolean testAndMark(ObjectReference object, Word value) {
+  private static boolean testAndMark(ObjectReference object, byte value) {
     Word oldValue;
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
-      Word markBit = oldValue.and(GC_MARK_BIT_MASK);
-      if (markBit.EQ(value)) return false;
+      byte markBit = (byte) (oldValue.toInt() & GC_MARK_BIT_MASK);
+      if (markBit == value) return false;
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue,
-                                               oldValue.xor(GC_MARK_BIT_MASK)));
+        oldValue.xor(Word.fromIntZeroExtend(GC_MARK_BIT_MASK))));
     return true;
   }
 
@@ -129,7 +130,7 @@ import org.vmmagic.pragma.*;
    * collections.
    */
   public void prepare() {
-    markState = GC_MARK_BIT_MASK.minus(markState);
+    markState = (byte) (GC_MARK_BIT_MASK - markState);
   }
 
   public void release() {}
@@ -166,6 +167,6 @@ import org.vmmagic.pragma.*;
     if (Plan.SCAN_BOOT_IMAGE && this == Plan.vmSpace)
       return true;  // ignore boot image "reachabilty" if we're not tracing it
     else
-      return (VM.objectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(markState));
+      return (VM.objectModel.readAvailableByte(object) & GC_MARK_BIT_MASK) == markState;
   }
 }

@@ -27,6 +27,7 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
@@ -477,56 +478,92 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     RVMClass cls = type.asClass();
     Object newObj = resolvedNewScalar(cls);
     for (RVMField f : cls.getInstanceFields()) {
-      int size = f.getSize();
-      if (VM.BuildFor32Addr) {
-        if (size == BYTES_IN_INT) {
-          if (f.isReferenceType()) {
-            // Do via slower "VM-internal reflection" to enable
-            // collectors to do the right thing wrt reference counting
-            // and write barriers.
-            f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
-          } else {
-            Offset offset = f.getOffset();
-            int bits = Magic.getIntAtOffset(obj, offset);
-            Magic.setIntAtOffset(newObj, offset, bits);
-          }
-          continue;
-        } else if (size == BYTES_IN_LONG) {
-          Offset offset = f.getOffset();
-          long bits = Magic.getLongAtOffset(obj, offset);
-          Magic.setLongAtOffset(newObj, offset, bits);
-          continue;
-        }
+      if (f.isReferenceType()) {
+        // Writing a reference
+        // Do via slower "VM-internal reflection" to enable
+        // collectors to do the right thing wrt reference counting
+        // and write barriers.
+        f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
       } else {
-        // BuildFor64Addr
-        if (size == BYTES_IN_LONG) {
-          if (f.isReferenceType()) {
-            // Do via slower "VM-internal reflection" to enable
-            // collectors to do the right thing wrt reference counting
-            // and write barriers.
-            f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
-          } else {
-            Offset offset = f.getOffset();
-            long bits = Magic.getLongAtOffset(obj, offset);
-            Magic.setLongAtOffset(newObj, offset, bits);
-          }
+        // Primitive type
+        // Check if we need to go via the slower barried path
+        TypeReference fieldType = f.getType();
+        if (Barriers.NEEDS_BOOLEAN_PUTFIELD_BARRIER && fieldType.isBooleanType()) {
+          f.setBooleanValueUnchecked(newObj, f.getBooleanValueUnchecked(obj));
           continue;
-        } else if (size == BYTES_IN_INT) {
+        } else if (Barriers.NEEDS_BYTE_PUTFIELD_BARRIER && fieldType.isByteType()) {
+          f.setByteValueUnchecked(newObj, f.getByteValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_CHAR_PUTFIELD_BARRIER && fieldType.isCharType()) {
+          f.setCharValueUnchecked(newObj, f.getCharValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_DOUBLE_PUTFIELD_BARRIER && fieldType.isDoubleType()) {
+          f.setDoubleValueUnchecked(newObj, f.getDoubleValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_FLOAT_PUTFIELD_BARRIER && fieldType.isFloatType()) {
+          f.setFloatValueUnchecked(newObj, f.getFloatValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_INT_PUTFIELD_BARRIER && fieldType.isIntType()) {
+          f.setIntValueUnchecked(newObj, f.getIntValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_LONG_PUTFIELD_BARRIER && fieldType.isLongType()) {
+          f.setLongValueUnchecked(newObj, f.getLongValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_SHORT_PUTFIELD_BARRIER && fieldType.isShortType()) {
+          f.setShortValueUnchecked(newObj, f.getShortValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_WORD_PUTFIELD_BARRIER && fieldType.isWordType()) {
+          f.setWordValueUnchecked(newObj, f.getWordValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_ADDRESS_PUTFIELD_BARRIER && fieldType.isAddressType()) {
+          f.setAddressValueUnchecked(newObj, f.getAddressValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_EXTENT_PUTFIELD_BARRIER && fieldType.isExtentType()) {
+          f.setExtentValueUnchecked(newObj, f.getExtentValueUnchecked(obj));
+          continue;
+        } else if (Barriers.NEEDS_OFFSET_PUTFIELD_BARRIER && fieldType.isOffsetType()) {
+          f.setOffsetValueUnchecked(newObj, f.getOffsetValueUnchecked(obj));
+          continue;
+        } else {
+          // Can perform raw copy of field
+          int size = f.getSize();
           Offset offset = f.getOffset();
-          int bits = Magic.getIntAtOffset(obj, offset);
-          Magic.setIntAtOffset(newObj, offset, bits);
-          continue;
+          if (VM.BuildFor32Addr) {
+            // As per pre primitive write barrier code we test the most likely
+            // case first
+            if (size == BYTES_IN_INT) {
+              int bits = Magic.getIntAtOffset(obj, offset);
+              Magic.setIntAtOffset(newObj, offset, bits);
+              continue;
+            } else if (size == BYTES_IN_LONG) {
+              long bits = Magic.getLongAtOffset(obj, offset);
+              Magic.setLongAtOffset(newObj, offset, bits);
+              continue;
+            }
+          } else {
+            // BuildFor64Addr
+            // As per pre primitive write barrier code we test the most likely
+            // case first
+            if (size == BYTES_IN_LONG) {
+              long bits = Magic.getLongAtOffset(obj, offset);
+              Magic.setLongAtOffset(newObj, offset, bits);
+              continue;
+            } else if (size == BYTES_IN_INT) {
+              int bits = Magic.getIntAtOffset(obj, offset);
+              Magic.setIntAtOffset(newObj, offset, bits);
+              continue;
+            }
+          }
+          if (size == BYTES_IN_CHAR) {
+            char bits = Magic.getCharAtOffset(obj, offset);
+            Magic.setCharAtOffset(newObj, offset, bits);
+          } else {
+            if (VM.VerifyAssertions)
+              VM._assert(size == BYTES_IN_BYTE);
+            byte bits = Magic.getByteAtOffset(obj, offset);
+            Magic.setByteAtOffset(newObj, offset, bits);
+          }
         }
-      }
-      if (size == BYTES_IN_CHAR) {
-        Offset offset = f.getOffset();
-        char bits = Magic.getCharAtOffset(obj, offset);
-        Magic.setCharAtOffset(newObj, offset, bits);
-      } else {
-        if (VM.VerifyAssertions) VM._assert(size == BYTES_IN_BYTE);
-        Offset offset = f.getOffset();
-        byte bits = Magic.getByteAtOffset(obj, offset);
-        Magic.setByteAtOffset(newObj, offset, bits);
       }
     }
     return newObj;

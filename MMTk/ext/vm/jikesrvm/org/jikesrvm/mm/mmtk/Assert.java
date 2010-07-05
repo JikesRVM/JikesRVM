@@ -42,6 +42,8 @@ import org.vmmagic.pragma.*;
    * @param message the string to log
    */
   public final void fail(String message) {
+    Space.printUsagePages();
+    Space.printUsageMB();
     VM.sysFail(message);
   }
 

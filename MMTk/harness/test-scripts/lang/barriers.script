@@ -1,0 +1,57 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+ 
+/*
+ * Test synchronization barriers
+ */
+void main() {
+  spawn(thread1);
+  spawn(thread1);
+  barrierWait("finish",3);
+  print("Phase 1 - complete");
+  
+  spawn(thread2);
+  spawn(thread2);
+  barrierWait("thread2-begin",3);
+  // Pause for a while
+  int i=0;
+  while (i < 1000) {
+    object tmp = alloc(10,10);
+    i = i + 1;
+  }
+  print("Phase 2 - requesting GC");
+  gc();
+  print("Phase 2 - GC complete");
+  barrierWait("thread2-end",3);  
+  print("Phase 2 - end");
+  print ("PASSED");
+}
+
+
+void thread1() {
+  barrierWait("begin",2);
+  print("Reached barrier <begin>");
+  int ordinal = barrierWait("end",2);
+  if (ordinal == 1) {
+    print("First thread");
+  }
+  barrierWait("finish",3);
+}
+
+void thread2() {
+  print("thread2 starting");
+  barrierWait("thread2-begin",3);
+  print("thread2 middle");
+  barrierWait("thread2-end",3);
+  print("thread2 end");
+}

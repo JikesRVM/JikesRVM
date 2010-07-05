@@ -12,10 +12,10 @@
  */
 package org.mmtk.plan.stickyms;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
 import org.mmtk.vm.VM;
 
@@ -94,7 +94,7 @@ public final class StickyMSNurseryTraceLocal extends TraceLocal {
     logMessage(2, "processing modBuffer");
     while (!modBuffer.isEmpty()) {
       ObjectReference src = modBuffer.pop();
-      Plan.markAsUnlogged(src);
+      HeaderByte.markAsUnlogged(src);
       processNode(src);
     }
   }

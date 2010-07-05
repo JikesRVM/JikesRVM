@@ -20,8 +20,7 @@
 				    </div>
 
 				    <p>This guide describes how to build Jikes RVM. The first section is an overview of the Jikes RVM build process and this is followed by your system requirements and a detailed description of the steps required to build Jikes RVM.</p>
-<div class='panelMacro'><table class='noteMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/warning.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Note</b><br />
-<p>Once you have things working, as described below, the <a href="Using buildit.html" title="Using buildit">buildit</a>&nbsp; script will provide a fast and easy way to build the system.&nbsp; We recommend you get things working as described below first, so you can be sure you've met the requisite dependencies etc.</p></td></tr></table></div>
+<div class='panelMacro'><table class='noteMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/warning.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Note</b><br />Once you have things working, as described below, the <a href="Using buildit.html" title="Using buildit">buildit</a>&nbsp; script will provide a fast and easy way to build the system.&nbsp; We recommend you get things working as described below first, so you can be sure you've met the requisite dependencies etc.</td></tr></table></div>
 
 <h2><a name="BuildingtheRVM-Overview"></a>Overview</h2>
 
@@ -29,8 +28,7 @@
 <h3><a name="BuildingtheRVM-Compilingthesourcecode"></a>Compiling the source code</h3>
 
 <p>The majority of Jikes RVM is written in Java and will be compiled into class files just as with other Java applications. There is also a small portion of Jikes RVM that is written in C that must be compiled with a C compiler such as gcc.&nbsp; Jikes RVM uses <a href="http://ant.apache.org">Ant</a> version 1.6.5 or later as the build tool that orchestrates the build process and executes the steps required in building Jikes RVM.</p>
-<div class='panelMacro'><table class='noteMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/warning.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Note</b><br />
-<p>Jikes RVM requires a complete install of ant, including the optional tasks. These are present if you download and install ant manually. Some Linux distributions have decided to break ant into multiple packages. So if you are installing on a platform such as Debian you may need to install another package such as 'ant-optional'.</p></td></tr></table></div>
+<div class='panelMacro'><table class='noteMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/warning.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Note</b><br />Jikes RVM requires a complete install of ant, including the optional tasks. These are present if you download and install ant manually. Some Linux distributions have decided to break ant into multiple packages. So if you are installing on a platform such as Debian you may need to install another package such as 'ant-optional'.</td></tr></table></div>
 
 <h3><a name="BuildingtheRVM-Generatingsourcecode"></a>Generating source code</h3>
 
@@ -78,6 +76,7 @@
 <h3><a name="BuildingtheRVM-SupportMatrix"></a>Support Matrix</h3>
 
 <p>The following table details the targets that have historically been supported and the current status of the support. The target.name column is the identifier that Jikes RVM uses to identify this target.</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> target.name </th>
@@ -88,17 +87,17 @@
 </tr>
 <tr>
 <td class='confluenceTd'> ia32-linux </td>
-<td class='confluenceTd'> Linux <br clear="all" /> </td>
-<td class='confluenceTd'> ia32 <br clear="all" /> </td>
-<td class='confluenceTd'> 32 bits <br clear="all" /> </td>
-<td class='confluenceTd'> OK <br clear="all" /> </td>
+<td class='confluenceTd'> Linux <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> ia32 <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> 32 bits <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> OK <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> ia32-osx </td>
-<td class='confluenceTd'> OSX <br clear="all" /> </td>
-<td class='confluenceTd'> ia32 <br clear="all" /> </td>
-<td class='confluenceTd'> 32 bits <br clear="all" /> </td>
-<td class='confluenceTd'> OK <br clear="all" /> </td>
+<td class='confluenceTd'> OSX <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> ia32 <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> 32 bits <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> OK <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> ia32-solaris </td>
@@ -117,46 +116,48 @@
 <tr>
 <td class='confluenceTd'> ppc32-aix </td>
 <td class='confluenceTd'> AIX </td>
-<td class='confluenceTd'> PowerPC <br clear="all" /> </td>
-<td class='confluenceTd'> 32 bits <br clear="all" /> </td>
-<td class='confluenceTd'> OK <br clear="all" /> </td>
+<td class='confluenceTd'> PowerPC <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> 32 bits <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> OK <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> ppc32-linux <br clear="all" /> </td>
-<td class='confluenceTd'> Linux <br clear="all" /> </td>
-<td class='confluenceTd'> PowerPC <br clear="all" /> </td>
-<td class='confluenceTd'> 32 bits <br clear="all" /> </td>
-<td class='confluenceTd'> OK <br clear="all" /> </td>
+<td class='confluenceTd'> ppc32-linux <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Linux <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> PowerPC <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> 32 bits <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> OK <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> ppc32-osx <br clear="all" /> </td>
-<td class='confluenceTd'> OSX <br clear="all" /> </td>
-<td class='confluenceTd'> PowerPC <br clear="all" /> </td>
-<td class='confluenceTd'> 32 bits <br clear="all" /> </td>
-<td class='confluenceTd'> OK <br clear="all" /> </td>
+<td class='confluenceTd'> ppc32-osx <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> OSX <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> PowerPC <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> 32 bits <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> OK <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> ppc64-aix <br clear="all" /> </td>
-<td class='confluenceTd'> AIX <br clear="all" /> </td>
-<td class='confluenceTd'> PowerPC <br clear="all" /> </td>
-<td class='confluenceTd'> 64 bits <br clear="all" /> </td>
-<td class='confluenceTd'> OK <br clear="all" /> </td>
+<td class='confluenceTd'> ppc64-aix <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> AIX <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> PowerPC <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> 64 bits <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> OK <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> ppc64-linux <br clear="all" /> </td>
-<td class='confluenceTd'> Linux <br clear="all" /> </td>
-<td class='confluenceTd'> PowerPC <br clear="all" /> </td>
+<td class='confluenceTd'> ppc64-linux <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Linux <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> PowerPC <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> 64 bits </td>
-<td class='confluenceTd'> OK <br clear="all" /> </td>
+<td class='confluenceTd'> OK <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> x86_64-linux <br clear="all" /> </td>
-<td class='confluenceTd'> Linux <br clear="all" /> </td>
-<td class='confluenceTd'> ia32 <br clear="all" /> </td>
-<td class='confluenceTd'> 32 bits&#42; <br clear="all" /> </td>
-<td class='confluenceTd'> OK <br clear="all" /> </td>
+<td class='confluenceTd'> x86_64-linux <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Linux <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> ia32 <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> 32 bits&#42; <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> OK <br class="atl-forced-newline" /> </td>
 </tr>
 </tbody></table>
+</div>
+
 <ul>
 	<li>x86_64 is currently only supported using the legacy 32bit addressing mode and instructions (<a href="http://jira.codehaus.org/browse/RVM-169">track progress on full 64bit support here</a>)</li>
 </ul>
@@ -199,6 +200,7 @@
 <h3><a name="BuildingtheRVM-DefiningAntproperties"></a>Defining Ant properties</h3>
 
 <p>There are a number of ant properties that are used to control the build process of Jikes RVM. These properties may either be specified on the command line by "<tt>&#45;Dproperty=variable</tt>" or they may be specified in a file named "<tt>.ant.properties</tt>" in the base directory of the jikesrvm source tree. The "<tt>.ant.properties</tt>" file is a standard Java proeprty file with each line containing a "<tt>property=variable</tt>" and comments starting with a <em>&#35;</em> and finishing at the end of the line. The following table describes some properties that are commonly specified.</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Property </th>
@@ -207,13 +209,13 @@
 </tr>
 <tr>
 <td class='confluenceTd'> host.name </td>
-<td class='confluenceTd'> The name of the host environment used for building Jikes RVM. The name should match one of the files located in the <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/hosts/"><tt>build/hosts/</tt></a> directory minus the '<tt>.properties</tt>' extension. <br clear="all" /> </td>
+<td class='confluenceTd'> The name of the host environment used for building Jikes RVM. The name should match one of the files located in the <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/hosts/"><tt>build/hosts/</tt></a> directory minus the '<tt>.properties</tt>' extension. <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> None </td>
 </tr>
 <tr>
 <td class='confluenceTd'> target.name </td>
-<td class='confluenceTd'> The name of the target environment for Jikes RVM. The name should match one of the files located in the <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/targets/"><tt>build/targets/</tt></a> directory minus the '<tt>.properties</tt>' extension. This should only be specified when cross compiling the Jikes RVM. See <a href="Cross-Platform Building.html" title="Cross-Platform Building">Cross&#45;Platform Building</a> for a detailed description of cross compilation. <br clear="all" /> </td>
-<td class='confluenceTd'> <tt>${host.name</tt>} <br clear="all" /> </td>
+<td class='confluenceTd'> The name of the target environment for Jikes RVM. The name should match one of the files located in the <a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/targets/"><tt>build/targets/</tt></a> directory minus the '<tt>.properties</tt>' extension. This should only be specified when cross compiling the Jikes RVM. See <a href="Cross-Platform Building.html" title="Cross-Platform Building">Cross&#45;Platform Building</a> for a detailed description of cross compilation. <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> <tt>${host.name</tt>} <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> config.name </td>
@@ -221,24 +223,24 @@
 <td class='confluenceTd'> None </td>
 </tr>
 <tr>
-<td class='confluenceTd'> patch.name <br clear="all" /> </td>
+<td class='confluenceTd'> patch.name <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> An identifier for the current patch applied to the source tree. See <a href="Building Patched Versions.html" title="Building Patched Versions">Building Patched Versions</a> for a description of how this fits into the standard usage patterns of Jikes RVM. </td>
 <td class='confluenceTd'> "" </td>
 </tr>
 <tr>
-<td class='confluenceTd'> components.dir <br clear="all" /> </td>
-<td class='confluenceTd'> The directory where Ant looks for external components when building the RVM. <br clear="all" /> </td>
-<td class='confluenceTd'> <tt>${jikesrvm.dir}/components</tt> <br clear="all" /> </td>
+<td class='confluenceTd'> components.dir <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> The directory where Ant looks for external components when building the RVM. <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> <tt>${jikesrvm.dir}/components</tt> <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> dist.dir <br clear="all" /> </td>
-<td class='confluenceTd'> The directory where Ant stores the final Jikes RVM runtime. <br clear="all" /> </td>
-<td class='confluenceTd'> <tt>${jikesrvm.dir}/dist</tt> <br clear="all" /> </td>
+<td class='confluenceTd'> dist.dir <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> The directory where Ant stores the final Jikes RVM runtime. <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> <tt>${jikesrvm.dir}/dist</tt> <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> build.dir <br clear="all" /> </td>
+<td class='confluenceTd'> build.dir <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> The directory where Ant stores the intermediate artifacts generated when building the Jikes RVM. </td>
-<td class='confluenceTd'> <tt>${jikesrvm.dir}/target</tt> <br clear="all" /> </td>
+<td class='confluenceTd'> <tt>${jikesrvm.dir}/target</tt> <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> protect.config-files </td>
@@ -247,10 +249,12 @@
 </tr>
 <tr>
 <td class='confluenceTd'> components.cache.dir </td>
-<td class='confluenceTd'> The directory where Ant caches downloaded components.&nbsp; If you explicitly download a component, place it in this directory. <br clear="all" /> </td>
+<td class='confluenceTd'> The directory where Ant caches downloaded components.&nbsp; If you explicitly download a component, place it in this directory. <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> (Undefined, forcing download) </td>
 </tr>
 </tbody></table>
+</div>
+
 <p>At a minimum it is recommended that the user specify the <tt>host.name</tt> property in the "<tt>.ant.properties</tt>" file.</p>
 
 <p>The configuration files in "<a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/targets/"><tt>build/targets/</tt></a>" and "<a href="http://svn.sourceforge.net/viewvc/jikesrvm/rvmroot/trunk/build/hosts/"><tt>build/hosts/</tt></a>" are designed to work with a typical install but it may be necessary to overide specific properties. The easiest way to achieve this is to specify the properties to override in the "<em>.ant.properties</em>" file.</p>
@@ -279,6 +283,7 @@
 <h3><a name="BuildingtheRVM-BuildingtheRVM"></a>Building the RVM</h3>
 
 <p>The next step in building Jikes RVM is to run the ant command "<tt>ant</tt>" or "<tt>ant &#45;Dconfig.name=...</tt>". This should build a complete RVM runtime in the directory "${dist.dir}/${config.name}_${target.name}". The following table describes some of the ant targets that can be executed. A complete list of documented targets can be listed by executing the command "<tt>ant &#45;projecthelp</tt>"</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Target </th>
@@ -290,7 +295,7 @@
 </tr>
 <tr>
 <td class='confluenceTd'> compile-mmtk </td>
-<td class='confluenceTd'> Compile MMTk toolkit. <br clear="all" /> </td>
+<td class='confluenceTd'> Compile MMTk toolkit. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> prepare-source </td>
@@ -298,35 +303,56 @@
 </tr>
 <tr>
 <td class='confluenceTd'> prepare-config-source </td>
-<td class='confluenceTd'> Generate source code for the current configuration if required or force.generation property is set. <br clear="all" /> </td>
+<td class='confluenceTd'> Generate source code for the current configuration if required or force.generation property is set. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> main or runtime <br clear="all" /> </td>
+<td class='confluenceTd'> main or runtime <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Build a runtime image. </td>
 </tr>
 <tr>
 <td class='confluenceTd'> clean </td>
-<td class='confluenceTd'> Remove the build and image directory for the current configuration. <br clear="all" /> </td>
+<td class='confluenceTd'> Remove the build and image directory for the current configuration. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> very-clean </td>
-<td class='confluenceTd'> As with clean but also remove Java files generated by scripts. <br clear="all" /> </td>
+<td class='confluenceTd'> As with clean but also remove Java files generated by scripts. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> real-clean </td>
-<td class='confluenceTd'> As with very-clean but remove all compiled images. <br clear="all" /> </td>
+<td class='confluenceTd'> As with very-clean but remove all compiled images. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> profiled-image </td>
-<td class='confluenceTd'> Compile a baseline version of the RVM for profiling then use the profile information to recompile the given <tt>config.name</tt> image. <br clear="all" /> </td>
+<td class='confluenceTd'> Compile a baseline version of the RVM for profiling then use the profile information to recompile the given <tt>config.name</tt> image. <br class="atl-forced-newline" /> </td>
 </tr>
 </tbody></table>
+</div>
+
 
 <h3><a name="BuildingtheRVM-RunningtheRVM"></a>Running the RVM</h3>
 
 <p>Jikes RVM can be executed in a similar way to most Java Virtual Machines. The difference is that the command is "<tt>rvm</tt>" and resides in the runtime directory (i.e. "${dist.dir}/${config.name}_${target.name}"). See <a href="Running the RVM.html" title="Running the RVM">Running the RVM</a> for a complete list of command line options.</p>
 
 				    
+                                            <div class="tabletitle">
+                            <a name="comments">Comments:</a>
+                        </div>
+
+                        <table border="0" width="100%">
+                                                        <tr>
+                                <td >
+                                    <a name="comment-142508157"></a>
+                                    <font class="smallfont"><p>If you want to use ant under proxy, you can add the following line to the "build.xml" file.</p>
+
+
+<p><font color="">&lt;setproxy proxyhost="proxy" proxyport="8080" proxyuser="username" proxypassword="userpass"/&gt;</font></p></font>
+                                    <div align="left" class="smallfont" style="color: #666666; width: 98%; margin-bottom: 10px;">
+                                        <img src="images/icons/comment_16.gif" height="16" width="16" border="0" align="absmiddle"/>
+                                        Posted by lgylym@gmail.com at Mar 20, 2010 13:50
+                                    </div>
+                                </td>
+                            </tr>
+                                                    </table>
                     			    </td>
 		    </tr>
 	    </table>
@@ -335,7 +361,7 @@
 				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Jun 10, 2009 09:12</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Jul 04, 2010 19:57</font></td>
 		    </tr>
 	    </table>
     </body>

@@ -249,10 +249,6 @@ public abstract class RecompilationStrategy {
       _options[i].setOptLevel(i);               // set optimization level specific optimiations
       processCommandLineOptions(_options[i], i, maxOptLevel, optCompilerOptions);
       _optPlans[i] = OptimizationPlanner.createOptimizationPlan(_options[i]);
-      if (_options[i].PRELOAD_CLASS != null) {
-        VM.sysWrite("PRELOAD_CLASS should be specified with -X:irc not -X:recomp\n");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-      }
     }
   }
 

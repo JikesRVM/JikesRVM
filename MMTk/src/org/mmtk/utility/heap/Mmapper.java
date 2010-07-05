@@ -129,7 +129,7 @@ import org.vmmagic.pragma.*;
           lock.release();
           Log.write("ensureMapped failed with errno "); Log.write(errno);
           Log.write(" on address "); Log.writeln(mmapStart);
-          if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
+          VM.assertions.fail("Can't get more space with mmap()");
         } else {
           if (verbose) {
             Log.write("mmap succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);

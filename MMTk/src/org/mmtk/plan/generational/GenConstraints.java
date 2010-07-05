@@ -15,10 +15,9 @@ package org.mmtk.plan.generational;
 import org.mmtk.plan.StopTheWorldConstraints;
 
 import org.mmtk.policy.CopySpace;
-import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.policy.Space;
 
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.Word;
 
 /**
  * This class and its subclasses communicate to the host VM/Runtime
@@ -47,11 +46,15 @@ public class GenConstraints extends StopTheWorldConstraints {
 
   /** @return True if this plan requires a write barrier */
   @Override
-  public boolean needsWriteBarrier() { return true; }
+  public boolean needsObjectReferenceWriteBarrier() { return true; }
 
   /** @return True if this plan requires a static barrier */
   @Override
-  public boolean needsStaticWriteBarrier() { return Gen.USE_STATIC_WRITE_BARRIER; }
+  public boolean needsObjectReferenceNonHeapWriteBarrier() { return Gen.USE_NON_HEAP_OBJECT_REFERENCE_WRITE_BARRIER; }
+
+  /** @return True if this Plan can perform bulk object arraycopy barriers. */
+  @Override
+  public boolean objectReferenceBulkCopySupported() { return true; }
 
   /** @return The specialized scan methods required */
   @Override
@@ -61,12 +64,19 @@ public class GenConstraints extends StopTheWorldConstraints {
   @Override
   public boolean needsLogBitInHeader() { return Gen.USE_OBJECT_BARRIER; }
 
-  /** @return A bit which represents that a header is unlogged */
+  /**
+   * @return The maximum size of an object that may be allocated directly into the nursery
+   */
   @Override
-  public Word unloggedBit() {return MarkSweepSpace.UNLOGGED_BIT; }
-
-  /** @return The maximum size of an object that may be allocated directly into the nursery */
-  @Override
-  public int maxNonLOSDefaultAllocBytes() { return Gen.MAX_NURSERY_ALLOC_BYTES; }
+  public int maxNonLOSDefaultAllocBytes() {
+    /*
+     * If the nursery is discontiguous, the maximum object is essentially unbounded.  In
+     * a contiguous nursery, we can't attempt to nursery-allocate objects larger than the
+     * available nursery virtual memory.
+     */
+    return  Gen.USE_DISCONTIGUOUS_NURSERY ?
+        org.mmtk.utility.Constants.MAX_INT :
+        Space.getFracAvailable(Gen.NURSERY_VM_FRACTION).toInt();
+  }
 
 }

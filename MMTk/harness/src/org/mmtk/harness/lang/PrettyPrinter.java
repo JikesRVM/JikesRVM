@@ -18,9 +18,9 @@ import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.util.Iterator;
 
+import org.mmtk.harness.Harness;
 import org.mmtk.harness.lang.ast.AST;
 import org.mmtk.harness.lang.ast.Alloc;
-import org.mmtk.harness.lang.ast.AllocUserType;
 import org.mmtk.harness.lang.ast.Assert;
 import org.mmtk.harness.lang.ast.Assignment;
 import org.mmtk.harness.lang.ast.Call;
@@ -39,25 +39,42 @@ import org.mmtk.harness.lang.ast.Spawn;
 import org.mmtk.harness.lang.ast.Statement;
 import org.mmtk.harness.lang.ast.StoreField;
 import org.mmtk.harness.lang.ast.StoreNamedField;
+import org.mmtk.harness.lang.ast.TypeLiteral;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
 import org.mmtk.harness.lang.parser.MethodTable;
 import org.mmtk.harness.lang.parser.Parser;
-import org.vmmagic.unboxed.ArchitecturalWord;
+import org.vmmagic.unboxed.harness.ArchitecturalWord;
 
+/**
+ * Format an AST back into Harness script-language code
+ *
+ * Implemented as a visitor over the AST
+ */
 public class PrettyPrinter extends Visitor {
 
   private final OutputFormatter fmt;
 
+  /**
+   * Create a pretty printer that sends output to an internal buffer
+   */
   public PrettyPrinter() {
-    fmt = new OutputFormatter();
+    this(new OutputFormatter());
   }
 
+  /**
+   * @param stream Where to send the output
+   */
   public PrettyPrinter(PrintStream stream) {
-    fmt = new OutputFormatter(stream);
+    this(new OutputFormatter(stream));
   }
 
-  private class OutputFormatter {
+
+  private PrettyPrinter(OutputFormatter outputFormatter) {
+    fmt = outputFormatter;
+  }
+
+  private static class OutputFormatter {
     private static final int INDENT = 2;
     private int indent = 0;
     private boolean pendingIndent = false;
@@ -103,6 +120,11 @@ public class PrettyPrinter extends Visitor {
   }
 
 
+  /**
+   * Visit a method definition
+   *
+   * @see org.mmtk.harness.lang.Visitor#visit(org.mmtk.harness.lang.ast.NormalMethod)
+   */
   @Override
   public Object visit(NormalMethod method) {
     fmt.out("%s %s(",method.getReturnType(),method.getName());
@@ -123,6 +145,11 @@ public class PrettyPrinter extends Visitor {
     return null;
   }
 
+  /**
+   * Visit a method-call
+   *
+   * @see org.mmtk.harness.lang.Visitor#visit(org.mmtk.harness.lang.ast.Call)
+   */
   @Override
   public Object visit(Call call) {
     fmt.out("%s(",call.getMethod().getName());
@@ -159,26 +186,21 @@ public class PrettyPrinter extends Visitor {
   public Object visit(IfStatement conditional) {
     String keyword = "if";
     Iterator<Expression> condIter = conditional.getConds().iterator();
-    Iterator<Statement> bodyIter = conditional.getStmts().iterator();
 
-    while (condIter.hasNext() && bodyIter.hasNext()) {
-      Expression cond = condIter.next();
-      Statement body = bodyIter.next();
-      fmt.out("%s (", keyword);
-      cond.accept(this);
-      fmt.out(") {"); fmt.newline();
+    for (Statement body : conditional.getStmts()) {
+      if (condIter.hasNext()) {
+        Expression cond = condIter.next();
+        fmt.out("%s (", keyword);
+        cond.accept(this);
+        fmt.out(") {"); fmt.newline();
+        keyword = "elif";
+      } else {
+        fmt.out("else {"); fmt.newline();
+      }
       fmt.increaseIndent();
       body.accept(this);
       fmt.decreaseIndent();
       fmt.out("} ");
-      keyword = "elif";
-    }
-    if (bodyIter.hasNext()) {
-      fmt.out("else {"); fmt.newline();
-      fmt.increaseIndent();
-      bodyIter.next().accept(this);
-      fmt.decreaseIndent();
-      fmt.out("}");
     }
     return null;
   }
@@ -292,20 +314,16 @@ public class PrettyPrinter extends Visitor {
   @Override
   public Object visit(Alloc alloc) {
     fmt.out("alloc(");
-    alloc.getDataCount().accept(this);
-    fmt.out(",");
-    alloc.getRefCount().accept(this);
-    if (alloc.getDoubleAlign() != null) {
-      fmt.out(",");
-      alloc.getDoubleAlign().accept(this);
+    final int nArgs = alloc.numArgs();
+    for (int i=0; i < nArgs; i++) {
+      Expression arg = alloc.getArg(i);
+      arg.accept(this);
+      if (i < nArgs-1) {
+        fmt.out(",");
+      } else {
+        fmt.out(")");
+      }
     }
-    fmt.out(")");
-    return null;
-   }
-
-  @Override
-  public Object visit(AllocUserType alloc) {
-    fmt.out("alloc(%s)",alloc.getType());
     return null;
    }
 
@@ -321,6 +339,11 @@ public class PrettyPrinter extends Visitor {
     return null;
   }
 
+  @Override
+  public Object visit(TypeLiteral type) {
+    fmt.out(type.getType().toString());
+    return null;
+  }
 
   /*******************************************************************
    * Utility methods
@@ -376,7 +399,7 @@ public class PrettyPrinter extends Visitor {
   }
 
   public static void main(String[] args) {
-    ArchitecturalWord.init();
+    ArchitecturalWord.init(Harness.bits.getValue());
     try {
       MethodTable methods = new Parser(new BufferedInputStream(new FileInputStream(args[0]))).script();
       PrettyPrinter.printMethodTable(methods);

@@ -1,0 +1,48 @@
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+ 
+/*
+ * Unit test script for soft reference types
+ */
+void main() {
+  setOption("fullHeapSystemGC=true");
+
+  object o = alloc(0,0,false);
+  object p = alloc(1,0,false);
+  p.object[0] = o;
+  
+  softref ref = softRef(o);
+  
+  object o_ref = getSoftReferent(ref);
+  
+  assert (o_ref == o, "Reference has not created its referent");
+  o_ref = null;
+  
+  gc();
+  o_ref = getSoftReferent(ref);
+  assert (o_ref == o, "Reference has lost its referent after a Forced GC");
+  
+  o = null;
+  o_ref = null;
+  gc();
+  o_ref = getSoftReferent(ref);
+  assert (o_ref != null, "Reference has lost its transitively reachable referent after a Forced GC");
+  
+  p = null;
+  o_ref = null;
+  gc();
+  o_ref = getSoftReferent(ref);
+  assert (o_ref == o, "Reference has not cleared its referent");
+  
+  print("Reference check OK");
+}

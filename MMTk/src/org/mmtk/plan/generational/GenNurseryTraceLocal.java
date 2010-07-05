@@ -12,9 +12,9 @@
  */
 package org.mmtk.plan.generational;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
+import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.*;
 import org.mmtk.vm.VM;
 
@@ -95,7 +95,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
     ObjectReference obj;
     while (!(obj = modbuf.pop()).isNull()) {
       if (VM.DEBUG) VM.debugging.modbufEntry(obj);
-      Plan.markAsUnlogged(obj);
+      HeaderByte.markAsUnlogged(obj);
       scanObject(obj);
     }
     logMessage(5, "processing remset");
