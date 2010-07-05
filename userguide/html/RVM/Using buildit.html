@@ -23,7 +23,8 @@
 
 <p>The buildit script is a handy way to build and test the system.&nbsp; It has countless features and options to make building and testing really easy, particularly in a multi-machine environment, where you edit on one machine and build and test on others.&nbsp; If you really want to get the most of it, take a look at all the options by running:</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit -h</pre>
+<pre class="code-java">bin/buildit -h
+</pre>
 </div></div>
 <p>...or read the script itself.</p>
 
@@ -35,27 +36,32 @@
 
 <p>To build a production image on your desktop, <em>habanero</em>, do the following:&nbsp;</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit habanero production</pre>
+<pre class="code-java">bin/buildit habanero production
+</pre>
 </div></div>
 <p>Or <em>equivalently</em>:</p>
 
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit localhost production</pre>
+<pre class="code-java">bin/buildit localhost production
+</pre>
 </div></div>
 <p>To build a production image on the remote machine <em>jalapeno</em>, do the following:&nbsp;</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit jalapeno production</pre>
+<pre class="code-java">bin/buildit jalapeno production
+</pre>
 </div></div>
 
 <h4><a name="Usingbuildit-CrossPlatformBuilding%26nbsp%3B"></a>Cross Platform Building&nbsp;</h4>
 
 <p>To build a production image on the remote PowerPC machine <em>chipotle</em>, do the following:&nbsp;</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit chipotle production</pre>
+<pre class="code-java">bin/buildit chipotle production
+</pre>
 </div></div>
 <p>Since building on a PowerPC machine can take a long time, you might prefer to build on your x86 machine <em>jalapeno</em> and cross-build to <em>chipotle</em>.&nbsp; In that case you would just do the following:&nbsp;</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit jalapeno -c chipotle production</pre>
+<pre class="code-java">bin/buildit jalapeno -c chipotle production
+</pre>
 </div></div>
 <p>In each case, buildit figures out the host types by interrogating them and does the right thing (forcing a PPC build on the x86 host jalapeno since you've told it you want a build for chipotle, which it knows is PPC).&nbsp; Buildit caches the host information, and will prompt you the first time it encounters a new host.&nbsp;</p>
 
@@ -63,21 +69,24 @@
 
 <p>If you want to specify the build fully, you can do something like this:</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit jalapeno FastAdaptive MarkSweep</pre>
+<pre class="code-java">bin/buildit jalapeno FastAdaptive MarkSweep
+</pre>
 </div></div>
 <p>If you want to specify multiple different GCs you could do:
-<br clear="all" /></p>
+<br class="atl-forced-newline" /></p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit jalapeno FastAdaptive MarkSweep SemiSpace GenMS</pre>
+<pre class="code-java">bin/buildit jalapeno FastAdaptive MarkSweep SemiSpace GenMS
+</pre>
 </div></div>
 <p>which would build all three configurations on jalapeno.
-<br clear="all" /></p>
+<br class="atl-forced-newline" /></p>
 
 <h4><a name="Usingbuildit-ProfiledBuilds"></a>Profiled Builds</h4>
 
 <p>Jikes RVM has the capacity to profile the boot image and then re-build an optimized boot image based on the profiles.&nbsp; This process takes a little longer, but results in measurably faster builds, and so should be used when doing performance testing.&nbsp; Buildit lets you do this trivially:</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit jalapeno --profile production</pre>
+<pre class="code-java">bin/buildit jalapeno --profile production
+</pre>
 </div></div>
 
 <h2><a name="Usingbuildit-Testing"></a>Testing</h2>
@@ -88,32 +97,37 @@
 
 <p>To run the pre-commit test-run on your host jalapeno just do:</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit jalapeno --test-run pre-commit jalapeno</pre>
+<pre class="code-java">bin/buildit jalapeno --test-run pre-commit jalapeno
+</pre>
 </div></div>
 
 <h4><a name="Usingbuildit-Runningatest"></a>Running a test</h4>
 
 <p>To run the dacapo tests against a production on the host jalapeno, do:</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit jalapeno -t dacapo production</pre>
+<pre class="code-java">bin/buildit jalapeno -t dacapo production
+</pre>
 </div></div>
 <p>To run the dacapo tests against a FastAdaptive MarkSweep build, on the host jalapeno, do:</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit jalapeno -t dacapo FastAdaptive MarkSweep</pre>
+<pre class="code-java">bin/buildit jalapeno -t dacapo FastAdaptive MarkSweep
+</pre>
 </div></div>
 <p>&nbsp;To run the dacapo and SPECjvm98 tests against production on the host jalapeno, do:
-<br clear="all" />
+<br class="atl-forced-newline" /></p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit jalapeno -t dacapo -t SPECjvm98 production</pre>
-</div></div><br clear="all" />
-<br clear="all" />
-<br clear="all" />
-<br clear="all" />
-<br clear="all" />
-<br clear="all" />
-<br clear="all" />
-<br clear="all" />
-<br clear="all" /></p>
+<pre class="code-java">bin/buildit jalapeno -t dacapo -t SPECjvm98 production
+</pre>
+</div></div>
+<p><br class="atl-forced-newline" />
+<br class="atl-forced-newline" />
+<br class="atl-forced-newline" />
+<br class="atl-forced-newline" />
+<br class="atl-forced-newline" />
+<br class="atl-forced-newline" />
+<br class="atl-forced-newline" />
+<br class="atl-forced-newline" />
+<br class="atl-forced-newline" /></p>
 
 				    
                     			    </td>
@@ -124,7 +138,7 @@
 				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Jun 10, 2009 09:12</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Jul 04, 2010 19:57</font></td>
 		    </tr>
 	    </table>
     </body>

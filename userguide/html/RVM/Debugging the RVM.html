@@ -16,7 +16,7 @@
                                                     </span>
 				    </div>
 				    <div class="pagesubheading">
-					    This page last changed on Mar 24, 2008 by <font color="#0050B2">steveblackburn</font>.
+					    This page last changed on Oct 23, 2009 by <font color="#0050B2">l.hellyer@kent.ac.uk</font>.
 				    </div>
 
 				    <p>There are different tools for debugging Jikes RVM:</p>
@@ -30,22 +30,37 @@
 </div></div>
 <p>The dynamically created Java code doesn't provide GDB with the necessary symbol information for debugging. As some of the Java code is created in the boot image, it is possible to find the location of some Java methods and to break upon them. To determine the location use the RVM.map file. A script to enable use of the RVM.map as debugger information inside GDB is provided <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=1160674&amp;group_id=128805&amp;atid=723235">here</a>.</p>
 
+<p>Details of how to manually walk the stack in GDB can be found <a href="GDB Stack Walking.html" title="GDB Stack Walking">here</a></p>
+
 <h2><a name="DebuggingtheRVM-OtherTools"></a>Other Tools</h2>
 
 <p>Other tools, such as valgrind, are occasionally useful in debugging or understanding the behaviour of JikesRVM.&nbsp; The rvm script facilitates using these tools with the '-wrap' argument.</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">rvm -wrap <span class="code-quote">"&lt;wrapper-script-and-args&gt;"</span> &lt;<span class="code-keyword">rest</span> of command line&gt;</pre>
+<pre class="code-java">
+rvm -wrap <span class="code-quote">"&lt;wrapper-script-and-args&gt;"</span> &lt;<span class="code-keyword">rest</span> of command line&gt;
+</pre>
 </div></div>
 <p>For example, cachegrind can be invoked by</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">rvm -wrap <span class="code-quote">"/path/to/valgrind --tool=cachegrind"</span> &lt;java-command-line&gt;</pre>
+<pre class="code-java">
+rvm -wrap <span class="code-quote">"/path/to/valgrind --tool=cachegrind"</span> &lt;java-command-line&gt;
+</pre>
 </div></div>
-<p>The command and arguments immediately after the &#45;wrap argument will be inserted into the script on the command line that invokes the boot image runner.&nbsp; One useful variant is</p>
+<p>The command and arguments immediately after the &#45;wrap argument will be inserted into the script on the command line that invokes the boot image runner.&nbsp; One useful variant is<br class="atl-forced-newline" /></p>
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">
+rvm -wrap echo &lt;<span class="code-keyword">rest</span> of command line&gt;
+</pre>
+</div></div>
 
-<p><div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">rvm -wrap echo &lt;<span class="code-keyword">rest</span> of command line&gt;</pre>
-</div></div><br clear="all" />
-<br clear="all" /></p>
+<h2><a name="DebuggingtheRVM-DebuggerThread"></a>Debugger Thread</h2>
+
+<p>Jikes has an interactive debugger that you can invoke by  sending SIGQUIT to Jikes while it's running:</p>
+
+<p>pkill &#45;SIGQUIT JikesRVM</p>
+
+<p>In previous versions of Jikes, that stopped all threads and provided an interactive prompt, but currently it just dumps the state of the VM and continues immediately (that's a known issue: <a href="http://jira.codehaus.org/browse/RVM-570">http://jira.codehaus.org/browse/RVM-570</a>).</p>
+
 
 <h2><a name="DebuggingtheRVM-%26nbsp%3BJavaPlatformDebuggerArchitecture%28JPDA%29"></a>&nbsp;<a href="http://java.sun.com/j2se/1.5.0/docs/guide/jpda/index.html">Java Platform Debugger Architecture (JPDA)</a></h2>
 
@@ -60,6 +75,28 @@
 <p>Currently JDWP code is being implemented in Jikes RVM based on the GNU Classpath implementation.</p>
 
 				    
+                                            <div class="tabletitle">
+                            <a name="comments">Comments:</a>
+                        </div>
+
+                        <table border="0" width="100%">
+                                                        <tr>
+                                <td >
+                                    <a name="comment-143818754"></a>
+                                    <font class="smallfont"><p>A heuristic method:</p>
+
+<p>1. use Log file to print out object header, so you can trace where these object come from, and details of its lifecycle</p>
+
+<p>2. use Magic or ObjectReference and instanceof or something else to print out object address, which is, the target objects you want to analyse</p>
+
+<p>3. use grep or perl to grab text from the huge log file obtained by set &#45;X:gc:verbose=11 &#45;X:sysLogfile=xx.txt &#45;X:gc:sanityCheck=true</p></font>
+                                    <div align="left" class="smallfont" style="color: #666666; width: 98%; margin-bottom: 10px;">
+                                        <img src="images/icons/comment_16.gif" height="16" width="16" border="0" align="absmiddle"/>
+                                        Posted by vondart at Mar 27, 2010 20:23
+                                    </div>
+                                </td>
+                            </tr>
+                                                    </table>
                     			    </td>
 		    </tr>
 	    </table>
@@ -68,7 +105,7 @@
 				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Jun 10, 2009 09:12</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Jul 04, 2010 19:57</font></td>
 		    </tr>
 	    </table>
     </body>

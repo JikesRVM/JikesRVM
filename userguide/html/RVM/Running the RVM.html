@@ -37,6 +37,7 @@
 <h3><a name="RunningtheRVM-StandardCommandLineOptions"></a>Standard Command-Line Options</h3>
 
 <p>We currently support a subset of the JDK 1.5 standard options. Below is a list of all options and their descriptions. Unless otherwise noted each option is supported in Jikes RVM.</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
@@ -83,6 +84,8 @@
 <td class='confluenceTd'> load Java programming language agent, see java.lang.instrument </td>
 </tr>
 </tbody></table>
+</div>
+
 
 <h3><a name="RunningtheRVM-NonStandardCommandLineOptions"></a>Non-Standard Command-Line Options</h3>
 
@@ -90,6 +93,7 @@
 
 <h4><a name="RunningtheRVM-CoreNonStandardCommandLineOptions"></a>Core Non-Standard Command-Line Options</h4>
 
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
@@ -128,9 +132,12 @@
 <td class='confluenceTd'> The number of processors that the garbage collector will use </td>
 </tr>
 </tbody></table>
+</div>
+
 
 <h4><a name="RunningtheRVM-MemoryNonStandardCommandLineOptions"></a>Memory Non-Standard Command-Line Options</h4>
 
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
@@ -145,12 +152,15 @@
 <td class='confluenceTd'> Maximum size of heap. See above for definition of &lt;number&gt; and &lt;unit&gt; </td>
 </tr>
 </tbody></table>
+</div>
+
 
 <h4><a name="RunningtheRVM-GarbageCollectorNonStandardCommandLineOptions"></a>Garbage Collector Non-Standard Command-Line Options</h4>
 
 <p>These options are all prefixed by <tt>&#45;X:gc:</tt>.</p>
 
 <p>Boolean options.</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
@@ -217,7 +227,10 @@
 <td class='confluenceTd'> Perform sanity checks before and after each collection? </td>
 </tr>
 </tbody></table>
+</div>
+
 <p>Value options.</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
@@ -260,10 +273,13 @@
 <td class='confluenceTd'> Specify an address at runtime for use in debugging </td>
 </tr>
 </tbody></table>
+</div>
+
 
 <h4><a name="RunningtheRVM-BaseCompilerNonStandardCommandLineOptions"></a>Base Compiler Non-Standard Command-Line Options</h4>
 
 <p>Boolean options</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
@@ -278,10 +294,13 @@
 <td class='confluenceTd'> Select methods for optimized recompilation by using invocation counters </td>
 </tr>
 </tbody></table>
+</div>
+
 
 <h4><a name="RunningtheRVM-OptCompilerNonStandardCommandLineOptions"></a>Opt Compiler Non-Standard Command-Line Options</h4>
 
 <p>Boolean options.</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
@@ -480,7 +499,10 @@
 <td class='confluenceTd'> Should yieldpoints be removed from the checking code (requires finite sample interval). </td>
 </tr>
 </tbody></table>
+</div>
+
 <p>Value options.</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
@@ -527,7 +549,7 @@
 <td class='confluenceTd'> Exclude methods from being opt compiled </td>
 </tr>
 <tr>
-<td class='confluenceTd'> unroll_log <br clear="all" /> </td>
+<td class='confluenceTd'> unroll_log <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Unroll loops. Duplicates the loop body 2^n times. </td>
 </tr>
 <tr>
@@ -552,28 +574,31 @@
 </tr>
 <tr>
 <td class='confluenceTd'> infrequent_threshold </td>
-<td class='confluenceTd'> Cumulative threshold which defines the set of infrequent basic blocks <br clear="all" /> </td>
+<td class='confluenceTd'> Cumulative threshold which defines the set of infrequent basic blocks <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> cbs_hotness </td>
 <td class='confluenceTd'> Threshold at which a conditional branch is considered to be skewed </td>
 </tr>
 <tr>
-<td class='confluenceTd'> ir_print_level <br clear="all" /> </td>
+<td class='confluenceTd'> ir_print_level <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Only print IR compiled above this level </td>
 </tr>
 </tbody></table>
+</div>
+
 
 <h4><a name="RunningtheRVM-AdaptiveSystemNonStandardCommandLineOptions"></a>Adaptive System Non-Standard Command-Line Options</h4>
 
 <p>Boolean options</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
 <th class='confluenceTh'> Description </th>
 </tr>
 <tr>
-<td class='confluenceTd'> enable_recompilation&nbsp; <br clear="all" /> </td>
+<td class='confluenceTd'> enable_recompilation&nbsp; <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Should the adaptive system recompile hot methods? </td>
 </tr>
 <tr>
@@ -625,26 +650,29 @@
 <td class='confluenceTd'> Enable easy insertion of (debugging) counters in opt recompiled code. </td>
 </tr>
 <tr>
-<td class='confluenceTd'> report_interrupt_stats <br clear="all" /> </td>
+<td class='confluenceTd'> report_interrupt_stats <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Report stats related to timer interrupts and AOS listeners on exit. </td>
 </tr>
 <tr>
-<td class='confluenceTd'> disable_recompile_all_methods <br clear="all" /> </td>
+<td class='confluenceTd'> disable_recompile_all_methods <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Disable the ability for an app to request all methods to be recompiled. </td>
 </tr>
 </tbody></table>
+</div>
+
 <p>Value options</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
 <th class='confluenceTh'> Description </th>
 </tr>
 <tr>
-<td class='confluenceTd'> method_sample_size <br clear="all" /> </td>
+<td class='confluenceTd'> method_sample_size <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> How many timer ticks of method samples to take before reporting method hotness to controller. </td>
 </tr>
 <tr>
-<td class='confluenceTd'> initial_compiler <br clear="all" /> </td>
+<td class='confluenceTd'> initial_compiler <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Selection of initial compiler. </td>
 </tr>
 <tr>
@@ -653,19 +681,19 @@
 </tr>
 <tr>
 <td class='confluenceTd'> method_listener_trigger </td>
-<td class='confluenceTd'> What triggers us to take a method sample? <br clear="all" /> </td>
+<td class='confluenceTd'> What triggers us to take a method sample? <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> call_graph_listener_trigger </td>
 <td class='confluenceTd'> What triggers us to take a method sample? </td>
 </tr>
 <tr>
-<td class='confluenceTd'> logfile_name&nbsp; <br clear="all" /> </td>
+<td class='confluenceTd'> logfile_name&nbsp; <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Name of log file. </td>
 </tr>
 <tr>
-<td class='confluenceTd'> compilation_advice_file_output <br clear="all" /> </td>
-<td class='confluenceTd'> Name of advice file. <br clear="all" /> </td>
+<td class='confluenceTd'> compilation_advice_file_output <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Name of advice file. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> dynamic_call_file_output </td>
@@ -704,7 +732,7 @@
 <td class='confluenceTd'> After how many timer interrupts do we update the weights in the dynamic call graph? </td>
 </tr>
 <tr>
-<td class='confluenceTd'> ai_seed_multiplier <br clear="all" /> </td>
+<td class='confluenceTd'> ai_seed_multiplier <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Initial edge weight of call graph is set to ai_seed_multiplier * (1/ai_control_point). </td>
 </tr>
 <tr>
@@ -728,34 +756,37 @@
 <td class='confluenceTd'> What is the sample interval for counter-based sampling. </td>
 </tr>
 <tr>
-<td class='confluenceTd'> ai_hot_callsite_threshold <br clear="all" /> </td>
+<td class='confluenceTd'> ai_hot_callsite_threshold <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> What percentage of the total weight of the dcg demarcates warm/hot edges. </td>
 </tr>
 <tr>
 <td class='confluenceTd'> max_opt_level </td>
-<td class='confluenceTd'> The maximum optimization level to enable. <br clear="all" /> </td>
+<td class='confluenceTd'> The maximum optimization level to enable. <br class="atl-forced-newline" /> </td>
 </tr>
 </tbody></table>
+</div>
+
 
 <h4><a name="RunningtheRVM-VirtualMachineNonStandardCommandLineOptions"></a>Virtual Machine Non-Standard Command-Line Options</h4>
 
 <p>Boolean Options</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
-<th class='confluenceTh'> Description <br clear="all" /> </th>
+<th class='confluenceTh'> Description <br class="atl-forced-newline" /> </th>
 </tr>
 <tr>
-<td class='confluenceTd'> measureCompilation<br clear="all" /> </td>
+<td class='confluenceTd'> measureCompilation<br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Time all compilations and report on exit. </td>
 </tr>
 <tr>
-<td class='confluenceTd'> measureCompilationPhases <br clear="all" /> </td>
-<td class='confluenceTd'> Time all compilation sub-phases and report on exit. <br clear="all" /> </td>
+<td class='confluenceTd'> measureCompilationPhases <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Time all compilation sub-phases and report on exit. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> stackTraceFull <br clear="all" /> </td>
-<td class='confluenceTd'> Stack traces to consist of VM and application frames. <br clear="all" /> </td>
+<td class='confluenceTd'> stackTraceFull <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Stack traces to consist of VM and application frames. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> stackTraceAtExit </td>
@@ -770,14 +801,17 @@
 <td class='confluenceTd'> Exit when non-fatal errors are detected; used for regression testing. </td>
 </tr>
 </tbody></table>
+</div>
+
 <p>&nbsp;Value options</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
 <th class='confluenceTh'> Option </th>
 <th class='confluenceTh'> Description </th>
 </tr>
 <tr>
-<td class='confluenceTd'> maxSystemTroubleRecursionDepth<br clear="all" /> </td>
+<td class='confluenceTd'> maxSystemTroubleRecursionDepth<br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> If we get deeper than this in one of the System Trouble functions, try to die. </td>
 </tr>
 <tr>
@@ -785,35 +819,35 @@
 <td class='confluenceTd'> Timer interrupt scheduling quantum in ms. </td>
 </tr>
 <tr>
-<td class='confluenceTd'> schedulingMultiplier <br clear="all" /> </td>
+<td class='confluenceTd'> schedulingMultiplier <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Scheduling quantum = interruptQuantum * schedulingMultiplier. </td>
 </tr>
 <tr>
-<td class='confluenceTd'> traceThreadScheduling <br clear="all" /> </td>
+<td class='confluenceTd'> traceThreadScheduling <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Trace actions taken by thread scheduling. </td>
 </tr>
 <tr>
 <td class='confluenceTd'> verboseStackTracePeriod </td>
-<td class='confluenceTd'> Trace every nth time a stack trace is created.<br clear="all" /> </td>
+<td class='confluenceTd'> Trace every nth time a stack trace is created.<br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> edgeCounterFile <br clear="all" /> </td>
-<td class='confluenceTd'> Input file of edge counter profile data. <br clear="all" /> </td>
+<td class='confluenceTd'> edgeCounterFile <br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Input file of edge counter profile data. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> CBSCallSamplesPerTick <br clear="all" /> </td>
+<td class='confluenceTd'> CBSCallSamplesPerTick <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> How many CBS call samples (Prologue/Epilogue) should we take per time tick. </td>
 </tr>
 <tr>
 <td class='confluenceTd'> CBSCallSampleStride </td>
-<td class='confluenceTd'> Stride between each CBS call sample (Prologue/Epilogue) within a sampling window. <br clear="all" /> </td>
+<td class='confluenceTd'> Stride between each CBS call sample (Prologue/Epilogue) within a sampling window. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> CBSMethodSamplesPerTick </td>
-<td class='confluenceTd'> How many CBS method samples (any yieldpoint) should we take per time tick. <br clear="all" /> </td>
+<td class='confluenceTd'> How many CBS method samples (any yieldpoint) should we take per time tick. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> CBSMethodSampleStride <br clear="all" /> </td>
+<td class='confluenceTd'> CBSMethodSampleStride <br class="atl-forced-newline" /> </td>
 <td class='confluenceTd'> Stride between each CBS method sample (any yieldpoint) within a sampling window. </td>
 </tr>
 <tr>
@@ -825,7 +859,9 @@
 <td class='confluenceTd'> Force all threads to run on one CPU.  The argument specifies which CPU (starting from 0). </td>
 </tr>
 </tbody></table>
-<p><br clear="all" /></p>
+</div>
+
+<p><br class="atl-forced-newline" /></p>
 
 <h2><a name="RunningtheRVM-RunningJikesRVMwithvalgrind"></a>Running Jikes RVM with valgrind</h2>
 
@@ -833,7 +869,9 @@
 
 <p>To run a Jikes RVM build with valgrind, use the <tt>&#45;wrap</tt> flag to invoke valgrind, eg</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">rvm -wrap <span class="code-quote">"path/to/valgrind --smc-check=all &lt;valgrind-options&gt;"</span> &lt;jikesrvm-options&gt; ...</pre>
+<pre class="code-java">
+rvm -wrap <span class="code-quote">"path/to/valgrind --smc-check=all &lt;valgrind-options&gt;"</span> &lt;jikesrvm-options&gt; ...
+</pre>
 </div></div>
 <p>this will insert the invocation of valgrind at the appropriate place for it to operate on Jikes RVM proper rather than a wrapper script.&nbsp;</p>
 
@@ -848,7 +886,7 @@
 				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Jun 10, 2009 09:12</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Jul 04, 2010 19:57</font></td>
 		    </tr>
 	    </table>
     </body>
