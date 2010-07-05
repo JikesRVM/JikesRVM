@@ -7,98 +7,42 @@ on October 14, 2001,
 
 * Jikes RVM 3.1.1  (July 4, 2010)
 
-** New Features and Improvements
-    * [RVM-115] - Finish removing all uses of LogicallyUninterruptible
-    * [RVM-116] - Solve/remove comments in ScanThread
-    * [RVM-122] - restructure sys.C into multiple source files.
-    * [RVM-151] - OutOfMemory exceptions should indicate which space was exhausted
-    * [RVM-162] - Remove x87 code generation from opt compiler.
-    * [RVM-268] - Update JikesRVM copies of classes (e.g. Constructor) to match the 1.5/current Classpath API
-    * [RVM-334] - Send SIGQUIT before terminating process in timedrun
-    * [RVM-398] - DaCapo 10 iteration lusearch stack walking is significant proportion of runtime (>13%)
-    * [RVM-413] - Long running tests using development/extreme assertion configurations
-    * [RVM-429] - Improvements to buildit
-    * [RVM-432] - Fix GNU classpath build on x86_64
-    * [RVM-463] - Replace calls to StringBuffer with CPStringBuilder where appropriate
-    * [RVM-481] - We have non-moving code spaces; simplify stack scanning logic & GC map iterators by removing logic to deal with moving code
-    * [RVM-545] - java.lang.instrument support for Harmony
-    * [RVM-561] - Change default thread stack size on command line
-    * [RVM-602] - OSR bytecodes cause the opt compiler bcIndex to be unintelligible
-    * [RVM-622] - Skipping Harmony classlib building, just copy over deploy/
-    * [RVM-653] - Remove nursery lists from LOS code
-    * [RVM-684] - TuningFork instrumentation of Adaptve System
-    * [RVM-713] - Enable x87 exceptions to catch badly behaving code
-    * [RVM-720] - Support for JNI helper methods on PowerPC
-    * [RVM-745] - Use @Intrinsic annotation to drive matching of magic method to magic code generators
-    * [RVM-769] - Clean up situation with pre-copy and @NonMoving
-    * [RVM-773] - Upgrade to Classpath 0.98
-    * [RVM-796] - Generalize objectAsThread, objectAsType, etc. magic wih Magic.eatCast
-    * [RVM-805] - Pretty printing application stacks
-    * [RVM-815] - Cleaner fix to avoid optimizing through final fields that are known to be modified via native code
-    * [RVM-884] - MMTk stats can be hard for humans to read
-    * [RVM-885] - Alternative performance counter implementation
+Release Notes - RVM - Version 3.1.1
 
-** Tasks and Sub-tasks
-    * [RVM-717] - Support for var arg JNI methods on 64bit platforms
-    * [RVM-728] - Design a mechanism to make it clear which options are internal vs. valid to be set from the command line
-    * [RVM-746] - Rework classloader plumbing for Unboxed types
-    * [RVM-749] - Only allow clean/expected transitions in thread execStatus
-    * [RVM-772] - Decide what 'available' processors means on native threads
-    * [RVM-780] - Figure out why native threads stability is proportional to the number of available processors
-    * [RVM-782] - Figure out if OSR's use of contextRegisters is correct and/or necessary, given their changed meaning in native threads
-    * [RVM-785] - handleHandshakeRequest should be called from enterNativeBlockedImpl
-    * [RVM-793] - Improve tracing support in RVMThread
-    * [RVM-888] - Process MMTk patch subbmitted via SF tracker
+** New Feature
+    * [RVM-839] - Support for Reference Types in the MMTk Harness
+    * [RVM-841] - Make it possible to query the compiler to direct optimization
+    * [RVM-845] - Primitive write barrier support
 
-** Bugs
-    * [RVM-118] - Javadoc errors not being reported in sanity reports
-    * [RVM-294] - JikesRVM fails to build using a Classpath VM
-    * [RVM-306] - IGNORE_REMSETS is not tested, may not be functional
-    * [RVM-407] - Is VM.disableGC() deprecated?
-    * [RVM-618] - DaCapo chart fails with Apache Harmony class library
-    * [RVM-620] - DaCapo jython fails with Apache Harmony class library
-    * [RVM-626] - Objects in SortTODObjectReferenceStack popped from data structure in wrong order, causing Merlin traces to be incorrect
-    * [RVM-629] - Incorrect usage of @Untraced?
-    * [RVM-642] - Problem with CMID/stackframe mapping in reflection
-    * [RVM-663] - Using object barrier casues sssertion failures in ObjectReferenceDeque.insert & other crashes
-    * [RVM-665] - Investigate sigstack/sigaltstack story
-    * [RVM-670] - Bad reference maps in JBB '05
-    * [RVM-675] - Chunk linked list broken on discontiguous space
-    * [RVM-691] - Assertion failure in org/jikesrvm/osr/ia32/OptExecutionStateExtractor
-    * [RVM-692] - Classpath Thread operations not supported because VMThreadMXBeanImpl is not implemented
-    * [RVM-721] - Improve extreme assertion sanity checking in regressions
-    * [RVM-730] - enabling live_range_splitting causes NullPointerException or NoSuchElementException for various benchmarks
-    * [RVM-731] - Bad reference in baseline IMT.IMTDict.populateIMT
-    * [RVM-734] - Deadlocks when using -X:aos:initial_compiler=opt
-    * [RVM-747] - Crash during GC while attempting to resize thread stack
-    * [RVM-776] - Multi-image build process causes problems with AIX linker (librvm.a not found)
-    * [RVM-781] - GNU Classpath 0.98 causes performance regression in luindex
-    * [RVM-797] - PreciseType is set when creating thread temporary registers in the opt compiler
-    * [RVM-809] - Image bloat
-    * [RVM-812] - Increase in failures in small heap perf runs since switch to GenImmix as production
-    * [RVM-813] - Incomplete dependencies on .dat files when determining whether or not to regenerate sources
-    * [RVM-816] - MMTK: LOG_BYTES_IN_PAGE is a hard coded compile time constant; should make sysCall to determine real value
-    * [RVM-820] - First iteration of lusearch slowed down between r15685 and r15688 (biased locking)
-    * [RVM-823] - Fix heap growth manager's reporting of heap size
-    * [RVM-824] - integer division doesn't follow VM spec
-    * [RVM-830] - Suspect code in ReflectionBase.invoke
-    * [RVM-849] - OOM in opt compiler compiling java.lang.Integer.toString in Harmony M10
-    * [RVM-853] - Protocol handlers do not work with Jikes RVM
-    * [RVM-855] - Error in XMLParser while loading Document Type Definition (.dtd) file
-    * [RVM-857] - Incorrect optimisation after call to native method
-    * [RVM-858] - GCTrace build failure
-    * [RVM-865] - Run svn with LANG=C in extract-svn-version
-    * [RVM-867] - Incomplete comment for alignAllocation in Allocator.java
-    * [RVM-868] - Method resolution code unable to resolve methods in some cases
-    * [RVM-870] - Deadlock in RVMThread code
-    * [RVM-871] - java.lang.reflect.VMMethod.getSignature() cause NullPointerException
-    * [RVM-872] - lusearch hangs with the production build
-    * [RVM-873] - "NullPointerException within uninterruptible region" when executing RVM in x86_64 debian
-    * [RVM-874] - Intermittent Object.notify() failure in Xalan with Base compiler
-    * [RVM-875] - Intermittent ClassFormatError whilst running Xalan
-    * [RVM-876] - Unnecessary CAS with multiple collector threads attempting to forward
-    * [RVM-878] - GNU Classpath does not properly respect headless mode
-    * [RVM-882] - user report of codegen problem with loops
+** Improvement
+    * [RVM-846] - MMTk Harness: Provide command-line option for watching addresses
+    * [RVM-848] - Update bootimage writter with known static fields for Harmony classlib
+    * [RVM-861] - Refactor bulkCopy optimisations for RVMArray arraycopy's
+
+** Bug
+    * [RVM-184] - MarkCompactLocal.compact():80 assertion failure
+    * [RVM-604] - Require two different host JVMs to successfully build on Linux/PowerPC
+    * [RVM-639] - Spec JVM 98 javac failing with Harmony
+    * [RVM-693] - Regression in TestSerialization with Harmony
+    * [RVM-827] - Crash in GC while running Eclipse IDE
+    * [RVM-831] - Incomplete implementation of GetFieldID and GetStaticFieldID
+    * [RVM-832] - Mature space mutator allocator reset before semi-space flip
+    * [RVM-833] - GC failures with ia32 BaseBase compiler, ExtremeAssertions and -X:gc:verbose=1
+    * [RVM-834] - Assertion failure in ExtremeAssertionsBaseBaseSemiSpace
+    * [RVM-836] - Static initialization loop in Generational collectors
+    * [RVM-838] - MMTk Harness 'Spawn' script fails with an NPE on multiprocessors
+    * [RVM-840] - MMTk Harness fails on Poisoned heap collector
+    * [RVM-854] - Failed to find a value to spill when 
+    * [RVM-856] - RVM fails to build under OS X 10.6
+    * [RVM-860] - ExtremeAssertionsOptAdaptive compiler failure for jvm98 _227_mtrt on ppc32
+    * [RVM-862] - 2 static fields using an identic slot
+    * [RVM-863] - BumpPointer.scanRegion can cause a page fault
+    * [RVM-864] - Build failure using IBM Java 6 SDK as host JVM on linux-ia32
+    * [RVM-879] - Mark Compact does not work with Native Threads
+    * [RVM-887] - RVM failure at startup when using -Xbootclasspath (Trying to load a class too early in the booting process)
+    * [RVM-889] - JSR166 tck fails EntryTest, PriorityQueueTest and PriorityBlockingQueueTest
+    * [RVM-890] - MarkCompact broken by new threading model
+    * [RVM-894] - MMTk Harness doesn't allow Log.writeln in constructors
 
 * Jikes RVM 3.1.0  (June 10, 2009)
 
