@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : GDB Stack Walking</title>
+	    <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
+    </head>
+
+    <body>
+	    <table class="pagecontent" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff">
+		    <tr>
+			    <td valign="top" class="pagebody">
+				    <div class="pageheader">
+					    <span class="pagetitle">
+                            RVM : GDB Stack Walking
+                                                    </span>
+				    </div>
+				    <div class="pagesubheading">
+					    This page last changed on Oct 23, 2009 by <font color="#0050B2">l.hellyer@kent.ac.uk</font>.
+				    </div>
+
+				    <p>Sometimes it is desirable to examine the state of the Java stack whilst using GDB to step instructions, break on addresses or watch particular variables.  These instructions are based on an email sent by Martin Hirzel to the rvm-devel list around 15th September 2003.  The instructions have been updated by Laurence Hellyer to deal with native threading and renamed RVM classes.</p>
+
+<p>1) To learn about the stack frame layout on IA32, look at rvm/src/org/jikesrvm/ia32/StackframeLayoutConstants.java </p>
+
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>Currently (2009/10/23) the layout is: 
++4: return address
+fp -&gt; 0: caller's fp
+-4: method id
+(remember stack grows from high to low)
+</pre>
+</div></div>
+
+<p>2) To learn how to get the current frame pointer and other context information, look at the genPrologue() method in rvm/src/org/jikesrvm/compilers/baseline/ia32/BaselineCompilerImpl.java.  It first retrieves the thread register (esi on IA32), which points to an instance of RVMThread, and then retrieve fields from that instance.</p>
+
+<p>3) To find the offset of field RVMThread.framePointer, add the following lines to the end of BootImageWriter.main(String[]):</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>    // added to get framePointer offset from RVMThread to manually walk stacks in GDB
+    say("offset of RVMThread.framePointer== " + ArchEntrypoints.framePointerField.getOffset());
+
+</pre>
+</div></div>
+<p>Do a build to print this info.  On my config I got +148, but this can change between versions</p>
+
+<p>4) To get started, let's examine an example stack that contains methods whose code is in the boot image. We pick one that is likely to be invoked even in a simple hello-world program. In my RVM.map, 0x351eae9c is the address of org.jikesrvm.mm.mmtk.ReferenceProcessor.growReferenceTable();</p>
+
+<p>5) Setting a break point on this address</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>(gdb) break *0x351eae9c
+Breakpoint 2 at 0x351eae9c
+</pre>
+</div></div>
+
+<p>And run the program to the break point</p>
+
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>Breakpoint 2, 0x351eae9c in ?? ()
+</pre>
+</div></div>
+
+<p>Step some instructions into the method and then dump the registers</p>
+
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>(gdb) stepi 30
+0x351eaf03 in ?? ()
+(gdb) info registers
+eax            0x200	512
+ecx            0x0	0
+edx            0x0	0
+ebx            0x7431	29745
+esp            0x420e1934	0x420e1934
+ebp            0xb0206ed0	0xb0206ed0
+esi            0x4100758c	1090549132
+edi            0x19c54	105556
+eip            0x351eaf03	0x351eaf03
+eflags         0x202	514
+cs             0x17	23
+ss             0x1f	31
+ds             0x1f	31
+es             0x1f	31
+fs             0x1f	31
+gs             0x37	55
+</pre>
+</div></div>
+
+<p>The current FP is stored in RVMThread.framePointer which we found out in 3) is at offset +148.  ESI points to the current RVMThread object so we can access the FP value like so:</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>(gdb) x ($esi+148)
+0x41007620:	0x420e1954
+</pre>
+</div></div>
+<p>Note that the FP is at a higher address than ESP which is what we would expect</p>
+
+
+<p>The return address is at FP+4 so to get the return address we can do:</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>(gdb) x (*($esi+148))+4
+0x420e1958:	0x351eadde
+</pre>
+</div></div>
+
+<p>We can look in RVM.map for the largest method address smaller than 0x351eadde which is org.jikesrvm.mm.mmtk.ReferenceProcessor.addCandidate(java.lang.ref.Reference, org.vmmagic.unboxed.ObjectReference).  Examining ReferenceProcessor.java we find that this is the only method that calls growReferenceTable so this is correct</p>
+
+<p>Get the return address from the next frame</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>(gdb) x *(*($esi+148))+4
+0x420e1980:	0x352ebd1e
+</pre>
+</div></div>
+
+<p>Which corresponds to org.jikesrvm.mm.mmtk.ReferenceProcessor.addSoftCandidate(java.lang.ref.SoftReference, org.vmmagic.unboxed.ObjectReference) which is a caller of addCandidate.</p>
+
+<p>We can follow the stack back up to the top where we will read a FP of 0 (look in rvm/src/org/jikesrvm/ia32/StackframeLayoutConstants.java for details)</p>
+
+				    
+                    			    </td>
+		    </tr>
+	    </table>
+	    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+			<tr>
+				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
+			</tr>
+		    <tr>
+			    <td align="center"><font color="grey">Document generated by Confluence on Jul 04, 2010 19:57</font></td>
+		    </tr>
+	    </table>
+    </body>
+</html>

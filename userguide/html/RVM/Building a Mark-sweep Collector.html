@@ -52,18 +52,19 @@
 	</li>
 	<li>Fix <tt>postAlloc()</tt> to initialize the mark-sweep header:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">if</span> (allocator == Tutorial.ALLOC_DEFAULT) {
+<pre class="code-java">
+<span class="code-keyword">if</span> (allocator == Tutorial.ALLOC_DEFAULT) {
   Tutorial.msSpace.postAlloc(ref);
 } <span class="code-keyword">else</span> {
   <span class="code-keyword">super</span>.postAlloc(ref, typeRef, bytes, allocator);
-}</pre>
+}
+</pre>
 </div></div></li>
 </ol>
 
 
 <p>With these changes, Tutorial should now work, just as it did before, only exercising a free list (mark-sweep) allocator rather than a bump pointer (immortal) allocator. Create a <tt>BaseBaseTutorial</tt> build, and test your system to ensure it performs just as it did before. You may notice that its memory is exhausted slightly earlier because the free list allocator is slightly less efficient in space utilization than the bump pointer allocator.</p>
-<div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br />
-<p>This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-1.zip">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2.  You can use the files in the archive to verify you've completed the above steps correctly.</p></td></tr></table></div>
+<div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br />This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-1.zip">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2.  You can use the files in the archive to verify you've completed the above steps correctly.</td></tr></table></div>
 
 <h5><a name="BuildingaMark-sweepCollector-MarksweepCollection."></a>Mark-sweep Collection.</h5>
 
@@ -71,7 +72,9 @@
 <ol>
 	<li>Change <tt>TutorialConstraints</tt> so that it inherits constraints from a collecting plan:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">public</span> class TutorialConstraints <span class="code-keyword">extends</span> StopTheWorldConstraints</pre>
+<pre class="code-java">
+  <span class="code-keyword">public</span> class TutorialConstraints <span class="code-keyword">extends</span> StopTheWorldConstraints
+</pre>
 </div></div></li>
 	<li>The plan needs to know how to perform a garbage collection.  Collections are performed in phases, coordinated by data structures deﬁned in <tt>StopTheWorld</tt>, and have global and thread-local components.  First ensure the global components are behaving correctly.  These are defined in <tt>Tutorial</tt> (which is implicitly <em>global</em>).
 	<ul>
@@ -82,50 +85,62 @@
 			<li>First remove the assertion that the code is never called (<tt>if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);</tt>).</li>
 			<li>Add the <em>prepare</em> phase, preparing both the global tracer (<tt>msTrace</tt>) and the space (<tt>msSpace</tt>), after first performing the preparation phases associated with the superclasses. Using the commented template in <tt>Tutorial.collectionPhase()</tt>, set the following within the clause for <tt>phaseId == PREPARE</tt>:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">if</span> (phaseId == PREPARE) {
+<pre class="code-java">
+<span class="code-keyword">if</span> (phaseId == PREPARE) {
   <span class="code-keyword">super</span>.collectionPhase(phaseId);
   msTrace.prepare();
   msSpace.prepare(<span class="code-keyword">true</span>);
   <span class="code-keyword">return</span>;
-}</pre>
+}
+</pre>
 </div></div></li>
 			<li>Add the <em>closure</em> phase, again preparing the global tracer (<tt>msTrace</tt>):
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">if</span> (phaseId == CLOSURE) {
+<pre class="code-java">
+<span class="code-keyword">if</span> (phaseId == CLOSURE) {
   msTrace.prepare();
   <span class="code-keyword">return</span>;
-}</pre>
+}
+</pre>
 </div></div></li>
 			<li>Add the <em>release</em> phase, releasing the global tracer (<tt>msTrace</tt>) and the space (<tt>msSpace</tt>) before performing the release phases associated with the superclass:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">if</span> (phaseId == RELEASE) {
+<pre class="code-java">
+<span class="code-keyword">if</span> (phaseId == RELEASE) {
   msTrace.release();
   msSpace.release();
   <span class="code-keyword">super</span>.collectionPhase(phaseId);
   <span class="code-keyword">return</span>;
-}</pre>
+}
+</pre>
 </div></div></li>
 			<li>Finally ensure that for all other cases, the phases are delegated to the superclass, uncommenting the following after all of the above conditionals:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">super</span>.collectionPhase(phaseId);</pre>
+<pre class="code-java">
+<span class="code-keyword">super</span>.collectionPhase(phaseId);
+</pre>
 </div></div></li>
 		</ul>
 		</li>
 		<li>Add a new accounting method that determines how much space a collection needs to yield to the mutator.  The method, <tt>getPagesRequired</tt>, overrides the one provided in the <tt>StopTheWorld</tt> superclass:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">@Override
+<pre class="code-java">
+@Override
 <span class="code-keyword">public</span> <span class="code-object">int</span> getPagesRequired() {
   <span class="code-keyword">return</span> <span class="code-keyword">super</span>.getPagesRequired() + msSpace.requiredPages();
-}</pre>
+}
+</pre>
 </div></div></li>
 		<li>Add a new method that determines whether an object will move during collection:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">@Override
+<pre class="code-java">
+@Override
 <span class="code-keyword">public</span> <span class="code-object">boolean</span> willNeverMove(ObjectReference object) {
   <span class="code-keyword">if</span> (Space.isInSpace(MARK_SWEEP, object))
     <span class="code-keyword">return</span> <span class="code-keyword">true</span>;
   <span class="code-keyword">return</span> <span class="code-keyword">super</span>.willNeverMove(object);
-}</pre>
+}
+</pre>
 </div></div></li>
 	</ul>
 	</li>
@@ -143,30 +158,38 @@
 			<li>First remove the assertion that the code is never called (<tt>if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);</tt>).</li>
 			<li>Add the <em>prepare</em> phase, preparing the local tracer (<tt>trace</tt>) after first performing the preparation phases associated with the superclasses. Using the commented template in <tt>Tutorial.collectionPhase()</tt>, set the following within the clause for <tt>phaseId == PREPARE</tt>:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">if</span> (phaseId == Tutorial.PREPARE) {
+<pre class="code-java">
+<span class="code-keyword">if</span> (phaseId == Tutorial.PREPARE) {
   <span class="code-keyword">super</span>.collectionPhase(phaseId, primary);
   trace.prepare();
   <span class="code-keyword">return</span>;
-}</pre>
+}
+</pre>
 </div></div></li>
 			<li>Add the <em>closure</em> phase, again preparing the local tracer (<tt>trace</tt>):
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">if</span> (phaseId == Tutorial.CLOSURE) {
+<pre class="code-java">
+<span class="code-keyword">if</span> (phaseId == Tutorial.CLOSURE) {
   trace.completeTrace();
   <span class="code-keyword">return</span>;
-}</pre>
+}
+</pre>
 </div></div></li>
 			<li>Add the <em>release</em> phase, releasing the local tracer (<tt>trace</tt>) before performing the release phases associated with the superclass:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">if</span> (phaseId == Tutorial.RELEASE) {
+<pre class="code-java">
+<span class="code-keyword">if</span> (phaseId == Tutorial.RELEASE) {
   trace.release();
   <span class="code-keyword">super</span>.collectionPhase(phaseId, primary);
   <span class="code-keyword">return</span>;
-}</pre>
+}
+</pre>
 </div></div></li>
 			<li>Finally ensure that for all other cases, the phases are delegated to the superclass, uncommenting the following after all of the above conditionals:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">super</span>.collectionPhase(phaseId, primary);</pre>
+<pre class="code-java">
+<span class="code-keyword">super</span>.collectionPhase(phaseId, primary);
+</pre>
 </div></div></li>
 		</ul>
 		</li>
@@ -184,23 +207,29 @@
 		<ul>
 			<li>Add the <em>prepare</em> phase to <tt>collectionPhase()</tt> which prepares mutator-side data structures(namely the per-thread free lists) for the <em>start</em> of a collection:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">if</span> (phaseId == MS.PREPARE) {
+<pre class="code-java">
+<span class="code-keyword">if</span> (phaseId == MS.PREPARE) {
   <span class="code-keyword">super</span>.collectionPhase(phaseId, primary);
   ms.prepare();
   <span class="code-keyword">return</span>;
-}</pre>
+}
+</pre>
 </div></div></li>
 			<li>Add the <em>release</em> phase to <tt>collectionPhase()</tt> which re-initializes mutator-side data structures (namely the per-thread free lists) after the <em>end</em> of a collection:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">if</span> (phaseId == MS.RELEASE) {
+<pre class="code-java">
+<span class="code-keyword">if</span> (phaseId == MS.RELEASE) {
   ms.release();
   <span class="code-keyword">super</span>.collectionPhase(phaseId, primary);
   <span class="code-keyword">return</span>;
-}</pre>
+}
+</pre>
 </div></div></li>
 			<li>Finally, delegate all other phases to the superclass:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">super</span>.collectionPhase(phaseId, primary);</pre>
+<pre class="code-java">
+<span class="code-keyword">super</span>.collectionPhase(phaseId, primary);
+</pre>
 </div></div></li>
 		</ul>
 		</li>
@@ -212,8 +241,7 @@
 
 <p>With these changes, Tutorial should now work with both mark-sweep allocation <em>and</em> collection. Create a <tt>BaseBaseTutorial</tt> build, and test your system to ensure it performs just as it did before. You can observe the effect of garbage collection as the program runs by adding <tt>-X:gc:verbose=1</tt> to your command line as the first argument after <tt>rvm</tt>.  If you run a very simple program (such as <tt>HelloWorld</tt>), you might not observe any garbage collection.  In that case, try running a larger program such as a DaCapo benchmark.  You may also observe that the output from <tt>-X:gc:verbose=1</tt> indicates that the heap is growing.   Dynamic heap resizing is normal default behavior for a JVM.  You can override this by providing minimum (<tt>-Xms</tt>) and maximum (<tt>-Xmx</tt>) heap sizes (these are standard arguments respected by all JVMs.  The heap size should be specified in bytes as an integer and a unit (<tt>K</tt>, <tt>M</tt>, <tt>G</tt>), for example: <tt>-Xms20M -Xmx20M</tt>.</p>
 
-<div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br />
-<p>This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-2.zip">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2.  You can use the patch to verify you've completed the above steps correctly.</p></td></tr></table></div>
+<div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br />This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-2.zip">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2.  You can use the patch to verify you've completed the above steps correctly.</td></tr></table></div>
 
 <h5><a name="BuildingaMark-sweepCollector-OptimizedMarksweepCollection."></a>Optimized Mark-sweep Collection.</h5>
 
@@ -224,12 +252,16 @@
 	<ul>
 		<li>Override the <tt>numSpecializedScans()</tt> getter method in <tt>TutorialConstraints</tt>:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">@Override
-<span class="code-keyword">public</span> <span class="code-object">int</span> numSpecializedScans() { <span class="code-keyword">return</span> 1; }</pre>
+<pre class="code-java">
+@Override
+<span class="code-keyword">public</span> <span class="code-object">int</span> numSpecializedScans() { <span class="code-keyword">return</span> 1; }
+</pre>
 </div></div></li>
 		<li>Define a constant to represent our (only) specialized scan in <tt>Tutorial</tt> (we will call this scan "mark"):
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">public</span> <span class="code-keyword">static</span> <span class="code-keyword">final</span> <span class="code-object">int</span> SCAN_MARK = 0;</pre>
+<pre class="code-java">
+<span class="code-keyword">public</span> <span class="code-keyword">static</span> <span class="code-keyword">final</span> <span class="code-object">int</span> SCAN_MARK = 0;
+</pre>
 </div></div></li>
 	</ul>
 	</li>
@@ -237,21 +269,24 @@
 	<ul>
 		<li>Add the following line to <tt>registerSpecializedMethods()</tt> method in <tt>Tutorial</tt>.:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">TransitiveClosure.registerSpecializedScan(SCAN_MARK, TutorialTraceLocal.class);</pre>
+<pre class="code-java">
+TransitiveClosure.registerSpecializedScan(SCAN_MARK, TutorialTraceLocal.class);
+</pre>
 </div></div></li>
 		<li>Add <tt>Tutorial.SCAN_MARK</tt> as the first argument to the superclass constructor for <tt>TutorialTraceLocal</tt>:
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java"><span class="code-keyword">public</span> TutorialTraceLocal(Trace trace) {
+<pre class="code-java">
+<span class="code-keyword">public</span> TutorialTraceLocal(Trace trace) {
   <span class="code-keyword">super</span>(Tutorial.SCAN_MARK, trace);
-}</pre>
+}
+</pre>
 </div></div></li>
 	</ul>
 	</li>
 </ol>
 
 
-<div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br />
-<p>This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-3.zip">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2.  You can use the archive to verify you've completed the above steps correctly.</p></td></tr></table></div>
+<div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br />This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-3.zip">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2.  You can use the archive to verify you've completed the above steps correctly.</td></tr></table></div>
 
 
 				    
@@ -263,7 +298,7 @@
 				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Jun 10, 2009 09:12</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Jul 04, 2010 19:57</font></td>
 		    </tr>
 	    </table>
     </body>

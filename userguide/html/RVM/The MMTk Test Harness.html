@@ -16,7 +16,7 @@
                                                     </span>
 				    </div>
 				    <div class="pagesubheading">
-					    This page last changed on Mar 09, 2009 by <font color="#0050B2">rgarner</font>.
+					    This page last changed on Nov 11, 2009 by <font color="#0050B2">rgarner</font>.
 				    </div>
 
 				    <h1><a name="TheMMTkTestHarness-Overview"></a>Overview</h1>
@@ -31,57 +31,103 @@
 
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
 <pre class="code-java">ant mmtk-harness
-java -jar target/mmtk/mmtk-harness.jar &lt;script-file&gt; [options...]</pre>
+java -jar target/mmtk/mmtk-harness.jar &lt;script-file&gt; [options...]
+</pre>
 </div></div>
 <p>There is a collection of sample scripts in the MMTk/harness/test-scripts directory.&nbsp; There is a simple wrapper script that runs all the available scripts against all the collectors,</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/test-mmtk [options...]</pre>
+<pre class="code-java">bin/test-mmtk [options...]
+</pre>
 </div></div>
 <p>&nbsp;This script prints a PASS/FAIL line as it goes, and puts detailed output in results/mmtk.</p>
 
 <h2><a name="TheMMTkTestHarness-InEclipse"></a>In Eclipse</h2>
 
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">ant mmtk-harness-eclipse-project</pre>
+<pre class="code-java">ant mmtk-harness-eclipse-project
+</pre>
 </div></div>
-<p>Define a new run configuration with main class org.mmtk.harness.Main.&nbsp; The harness makes extensive use of the java 'assert' keyword, so you should run the harness with '-ea' in the VM options.</p>
+<p>Or in versions before 3.1.1</p>
+<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
+<pre class="code-java">ant mmtk-harness &amp;&amp; ant mmtk-harness-eclipse-project
+</pre>
+</div></div>
+<p>Refresh the project (or import it into eclipse), and then run 'Project &gt; Clean'.</p>
+
+<p>Define a new run configuration with main class org.mmtk.harness.Main.</p>
+
+<p>Click Run (actually the down-arrow next to the the green button), choose 'Run Configurations...'
+<br class="atl-forced-newline" />  <span class="image-wrap" style=""><img src="attachments/91750431/128024604.png" style="border: 0px solid black"/></span><br/>
+&nbsp;
+<br class="atl-forced-newline" /></p>
+
+<p>Select "Java Application" from the left-hand panel, and click the "new" icon (top left).</p>
+
+<p>Fill out the Main tab as below
+<br class="atl-forced-newline" />  <span class="image-wrap" style=""><img src="attachments/91750431/128024605.png" style="border: 0px solid black"/></span></p>
+
+<p>&nbsp;
+<br class="atl-forced-newline" /></p>
+
+<p>Fill out the Arguments tab as below
+<br class="atl-forced-newline" />  <span class="image-wrap" style=""><img src="attachments/91750431/128024606.png" style="border: 0px solid black"/></span><br/>
+The harness makes extensive use of the java 'assert' keyword, so you should run the harness with '-ea' in the VM options.</p>
+
+<p>Click 'Apply' and then 'Run' to test the configuration.&nbsp; Eclipse will prompt for a value for the 'script' variable - enter the name of one of the available test scripts, such as 'Lists', and click OK.&nbsp; The scripts provided with MMTk are in the directory MMTk/harness/test-scripts.
+<br class="atl-forced-newline" /></p>
 
 <p>You can configure eclipse to display vmmagic values (Address/ObjectReference/etc) using their toString method through the Eclipse &#45;&gt; Preferences... &#45;&gt; Java &#45;&gt; Debug &#45;&gt; Detail Formatters menu. The simplest option is to check the box to use toString 'As the label for all variables'.</p>
 
 <h2><a name="TheMMTkTestHarness-Testharnessoptions"></a>Test harness options</h2>
 
 <p>Options are passed to the test harness as 'keyword=value' pairs.&nbsp; The standard MMTk options that are available through JikesRVM are accepted (leave off the "-X:gc:"), as well as the following harness-specific options:</p>
+<div class='table-wrap'>
 <table class='confluenceTable'><tbody>
 <tr>
-<th class='confluenceTh'> Option <br clear="all" /> </th>
+<th class='confluenceTh'> Option <br class="atl-forced-newline" /> </th>
 <th class='confluenceTh'> Meaning </th>
 </tr>
 <tr>
 <td class='confluenceTd'> plan </td>
-<td class='confluenceTd'> The MMTk plan class.&nbsp; Defaults to org.mmtk.plan.marksweep.MS <br clear="all" /> </td>
+<td class='confluenceTd'> The MMTk plan class.&nbsp; Defaults to org.mmtk.plan.marksweep.MS <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> collectors </td>
-<td class='confluenceTd'> The number of concurrent collector threads (default: 1) <br clear="all" /> </td>
+<td class='confluenceTd'> The number of concurrent collector threads (default: 1) <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> initHeap </td>
-<td class='confluenceTd'> Initial heap size.&nbsp; It is also a good idea to use 'variableSizeHeap=false', since the heap growth manager uses elapsed time to make its decisions, and time is seriously dilated by the MMTk Harness. <br clear="all" /> </td>
+<td class='confluenceTd'> Initial heap size.&nbsp; It is also a good idea to use 'variableSizeHeap=false', since the heap growth manager uses elapsed time to make its decisions, and time is seriously dilated by the MMTk Harness. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> maxHeap </td>
-<td class='confluenceTd'> Maximum heap size (default: 64 pages) <br clear="all" /> </td>
+<td class='confluenceTd'> Maximum heap size (default: 64 pages) <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> trace </td>
-<td class='confluenceTd'> Debugging messages from the MMTk Harness.&nbsp; Trace options include
+<td class='confluenceTd'> Debugging messages from the MMTk Harness.&nbsp; Useful trace options include
 <ul>
-	<li>CALL - trace procedure calls</li>
 	<li>ALLOC - trace object allocation</li>
-	<li>OBJECT - trace object mutation events<br clear="all" />
- See the class org.mmtk.harness.lang.Trace for more details and trace options. <br clear="all" /> </li>
+	<li>AVBYTE - Mutations of the 'available byte' in each object header</li>
+	<li>COLLECT - Detailed information during GC</li>
+	<li>HASH - Hash code operations</li>
+	<li>MEMORY - page-level memory operations (map, unmap, zero)</li>
+	<li>OBJECT - trace object mutation events&nbsp;</li>
+	<li>REFERENCES - Reference type processing</li>
+	<li>REMSET - Remembered set processing</li>
+	<li>SANITY - Gives detailed information during Harness sanity checking</li>
+	<li>TRACEOBJECT - Traces every call to traceObject during GC (requires MMTk support) <br class="atl-forced-newline" />
+See the class org.mmtk.harness.lang.Trace for more details and trace options - most of the remaining options are only of interest to maintainers of the Harness itself. <br class="atl-forced-newline" /> </li>
 </ul>
 </td>
+</tr>
+<tr>
+<td class='confluenceTd'> watchAddress </td>
+<td class='confluenceTd'> Set a watchpoint on a given address or comma-separated list of addresses.&nbsp; The harness will display every load and store to that address. <br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> watchObject </td>
+<td class='confluenceTd'> Watch modifications to a given object or comma-separated list of objects, identified by object ID (sequence number). <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> gcEvery </td>
@@ -113,38 +159,111 @@ java -jar target/mmtk/mmtk-harness.jar &lt;script-file&gt; [options...]</pre>
 </tr>
 <tr>
 <td class='confluenceTd'> yieldInterval </td>
-<td class='confluenceTd'> For the FIXED scheduling policy, the yield frequency. <br clear="all" /> </td>
+<td class='confluenceTd'> For the FIXED scheduling policy, the yield frequency. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
-<td class='confluenceTd'> randomPolicyLength <br clear="all" />
-randomPolicySeed <br clear="all" />
-randomPolicyMin <br clear="all" />
+<td class='confluenceTd'> randomPolicyLength <br class="atl-forced-newline" />
+randomPolicySeed <br class="atl-forced-newline" />
+randomPolicyMin <br class="atl-forced-newline" />
 randomPolicyMax </td>
-<td class='confluenceTd'> Parameters for the RANDOM scheduler policy.&nbsp; Whenever a thread is created, the scheduler fixes a yield pattern of 'length' integers between 'min' and 'max'.&nbsp; These numbers are used as yield intervals in a circular manner. <br clear="all" /> </td>
+<td class='confluenceTd'> Parameters for the RANDOM scheduler policy.&nbsp; Whenever a thread is created, the scheduler fixes a yield pattern of 'length' integers between 'min' and 'max'.&nbsp; These numbers are used as yield intervals in a circular manner. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> policyStats </td>
-<td class='confluenceTd'> Dump statistics for the deterministic scheduler's yield policy. <br clear="all" /> </td>
+<td class='confluenceTd'> Dump statistics for the deterministic scheduler's yield policy. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> bits=32&#124;64 </td>
-<td class='confluenceTd'> Select between 32 and 64-bit memory models. <br clear="all" /> </td>
+<td class='confluenceTd'> Select between 32 and 64-bit memory models. <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> dumpPcode </td>
-<td class='confluenceTd'> Dump the pseudo-code generated by the harness interpreter <br clear="all" /> </td>
+<td class='confluenceTd'> Dump the pseudo-code generated by the harness interpreter <br class="atl-forced-newline" /> </td>
 </tr>
 <tr>
 <td class='confluenceTd'> timeout </td>
-<td class='confluenceTd'> Abort collection if a GC takes longer than this value (in seconds) <br clear="all" /> </td>
+<td class='confluenceTd'> Abort collection if a GC takes longer than this value (seconds).&nbsp; Defaults to 30. <br class="atl-forced-newline" /> </td>
 </tr>
 </tbody></table>
-<p><br clear="all" /></p>
+</div>
+
+<p><br class="atl-forced-newline" /></p>
+
+<h1><a name="TheMMTkTestHarness-Scripts"></a>Scripts</h1>
+
+<p>The MMTk/harness/test-scripts directory contains several test scripts.</p>
+<div class='table-wrap'>
+<table class='confluenceTable'><tbody>
+<tr>
+<th class='confluenceTh'> Script<br class="atl-forced-newline" /> </th>
+<th class='confluenceTh'> Purpose<br class="atl-forced-newline" /> </th>
+<th class='confluenceTh'> Description<br class="atl-forced-newline" /> </th>
+</tr>
+<tr>
+<td class='confluenceTd'> Alignment<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Test allocator alignment behaviour<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Tests alignment by creating a list of objects aligned to a mixture of 4-byte and 8-byte boundaries.<br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> CyclicGarbage<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Test cycle detector in Reference Counting collectors<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Creates large amounts of cyclic garbage in the form of circular linked lists.<br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> FixedLive<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> General collection test<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Harness version of the FixedLive GC micro-benchmark.&nbsp; Creates a binary tree, then allocates short-lived objects to force garbage collections.<br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> HashCode<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Hash code test.<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Creates objects and verifies that their hashcode is unchanged after a GC.<br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> LargeObject<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Large object allocator test<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Creates objects with sizes ranging from 2 to 32 pages (8k to 128k bytes).<br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> Lists<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Generational collector stress test<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Creates a set of lists of varying lengths, and then allocates to force collections.&nbsp; Ensures that there are Mature-&gt;Nursery, Nursery-&gt;Mature and Stack-&gt;Nursery and Stack-&gt;Mature pointers at every GC.&nbsp; Remsets get a serious workout.<br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> OutOfMemory<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Tests out-of-memory handling.<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Allocates a linked list that grows until the heap fills up.<br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> Quicksort<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> General collection test<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Implements a list-based quicksort.&nbsp; <br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> ReferenceTypes<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Reference type test<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Creates Weak references, forces collections and ensures that they are correctly handled. <br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> Spawn<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Concurrency test<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Creates lots of threads which allocate objects.<br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> SpreadAlloc<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Free-list allocator test<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> Creates large numbers of objects with random size distributions, keeping a fraction of the objects alive.<br class="atl-forced-newline" /> </td>
+</tr>
+<tr>
+<td class='confluenceTd'> SpreadAlloc16 </td>
+<td class='confluenceTd'> Concurrent free-list allocator test<br class="atl-forced-newline" /> </td>
+<td class='confluenceTd'> A multithreaded version of SpreadAlloc.<br class="atl-forced-newline" /> </td>
+</tr>
+</tbody></table>
+</div>
+
 
 <h1><a name="TheMMTkTestHarness-Scriptinglanguage"></a>Scripting language</h1>
-
-
-<h1><a name="TheMMTkTestHarness-"></a></h1>
 
 
 <h2><a name="TheMMTkTestHarness-Basics"></a>Basics</h2>
@@ -158,13 +277,15 @@ randomPolicyMax </td>
 <pre class="code-java">type list {
   <span class="code-object">int</span> value;
   list next;
-}</pre>
+}
+</pre>
 </div></div>
 <p>and fields are accessed using java-style "dot" notation, eg</p>
 <div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
 <pre class="code-java">  list l = alloc(list);
   l.value = 0;
-  l.next = <span class="code-keyword">null</span>;</pre>
+  l.next = <span class="code-keyword">null</span>;
+</pre>
 </div></div>
 <p>At this stage, fields can only be dereferenced to one level, eg 'l.next.next' is not valid syntax - you need to introduce a temporary variable to achieve this.</p>
 
@@ -173,7 +294,7 @@ ie like a struct of arrays of the appropriate types.</p>
 
 <h2><a name="TheMMTkTestHarness-Syntax"></a>Syntax</h2>
 
-<p><br clear="all" /></p>
+<p><br class="atl-forced-newline" /></p>
 <div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
 <pre>script ::= (method|type)...
 
@@ -225,8 +346,39 @@ unop ::= "!" | "-"
 <p>There is a small set of unit tests available for MMTk, using the harness as scaffolding.&nbsp; These tests can be run in the standard test infrastructure using the 'mmtk-unit-tests' test set, or the shell script 'bin/unit-test-mmtk'.&nbsp; Possibly more usefully, they can be run from Eclipse.</p>
 
 <p>To run the unit tests in Eclipse, build the mmtk harness project (see above), and add the directory testing/tests/mmtk/src to your build path (navigate to the directory in the package explorer pane in eclipse, right-click&gt;build-path&gt;Use as Source Folder).&nbsp; Either open one of the test classes, or highlight it in the package explorer and press the 'run' button.
-<br clear="all" /></p>
+<br class="atl-forced-newline" /></p>
 
+				    					    <br/>
+                        <div class="tabletitle">
+                            <a name="attachments">Attachments:</a>
+                        </div>
+
+                        <div class="greybox" align="left">
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779393.png">Screenshot-Run Configurations .png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779395.png">Screenshot-Run Configurations -1.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779394.png">Screenshot-Run Configurations -1.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779397.png">Screenshot-Run Configurations -2.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779396.png">Screenshot-Run Configurations -2.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/128024604.png">Screenshot-Run_Configurations.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/128024605.png">Screenshot-Run_Configurations-1.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/128024606.png">Screenshot-Run_Configurations-2.png</a> (image/png)
+                                <br/>
+                                                    </div>
 				    
                     			    </td>
 		    </tr>
@@ -236,7 +388,7 @@ unop ::= "!" | "-"
 				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
 			</tr>
 		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Jun 10, 2009 09:12</font></td>
+			    <td align="center"><font color="grey">Document generated by Confluence on Jul 04, 2010 19:57</font></td>
 		    </tr>
 	    </table>
     </body>
