@@ -25,6 +25,7 @@ import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 public final class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
+  private static final Unsafe theUnsafe = unsafe; // alias to match name that DL's FJ framework appears to expect from class libs.
 
   private Unsafe() {}
 
@@ -96,7 +97,21 @@ public final class Unsafe {
     }
   }
 
+  public void putInt(Object obj,long offset,int value) {
+    Offset off = longToOffset(offset);
+    if (NEEDS_INT_PUTFIELD_BARRIER) {
+      intFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setIntAtOffset(obj,off,value);
+    }
+  }
+
   public int getIntVolatile(Object obj,long offset) {
+    Offset off = longToOffset(offset);
+    return Magic.getIntAtOffset(obj,off);
+  }
+
+  public int getInt(Object obj,long offset) {
     Offset off = longToOffset(offset);
     return Magic.getIntAtOffset(obj,off);
   }
