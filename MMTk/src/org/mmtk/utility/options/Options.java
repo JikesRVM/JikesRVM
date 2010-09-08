@@ -58,6 +58,7 @@ public final class Options {
   public static ProtectOnRelease protectOnRelease;
   public static SanityCheck sanityCheck;
   public static StressFactor stressFactor;
+  public static Threads threads;
   public static TraceRate traceRate;
   public static VariableSizeHeap variableSizeHeap;
   public static VerboseFragmentationStats verboseFragmentationStats;

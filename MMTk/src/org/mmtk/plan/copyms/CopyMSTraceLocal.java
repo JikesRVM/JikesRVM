@@ -81,23 +81,6 @@ public final class CopyMSTraceLocal extends TraceLocal {
     return super.traceObject(object);
   }
 
-
-  /**
-   * Ensure that this object will not move for the rest of the GC.
-   *
-   * @param object The object that must not move
-   * @return The new object, guaranteed stable for the rest of the GC.
-   */
-  @Inline
-  @Override
-  public ObjectReference precopyObject(ObjectReference object) {
-    if (object.isNull()) return object;
-    else if (Space.isInSpace(CopyMS.NURSERY, object))
-      return CopyMS.nurserySpace.traceObject(this, object, CopyMS.ALLOC_MS);
-    else
-      return object;
-  }
-
   /**
    * Will this object move from this point on, during the current collection ?
    *

@@ -15,7 +15,6 @@ package org.mmtk.plan.markcompact;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -83,20 +82,4 @@ public final class MCForwardTraceLocal extends TraceLocal {
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     return !Space.isInSpace(MC.MARK_COMPACT, object);
   }
-
-  /**
-   * Ensure that this object will not move for the rest of the GC.
-   *
-   * @param object The object that must not move
-   * @return The new object, guaranteed stable for the rest of the GC.
-   */
-  @Inline
-  public ObjectReference precopyObject(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) {
-      // All precopying must occur during the initial trace.
-      VM.assertions._assert(!Space.isInSpace(MC.MARK_COMPACT, object));
-    }
-    return super.precopyObject(object);
-  }
-
 }

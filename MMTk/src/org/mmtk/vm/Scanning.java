@@ -39,15 +39,6 @@ import org.vmmagic.unboxed.*;
   public abstract void specializedScanObject(int id, TransitiveClosure trace, ObjectReference object);
 
   /**
-   * Delegated precopying of a object's children, processing each pointer field
-   * encountered.
-   *
-   * @param trace The trace object to use for precopying.
-   * @param object The object to be scanned.
-   */
-  public abstract void precopyChildren(TraceLocal trace, ObjectReference object);
-
-  /**
    * Prepares for using the <code>computeAllRoots</code> method.  The
    * thread counter allows multiple GC threads to co-operatively
    * iterate through the thread data structure (if load balancing
@@ -55,19 +46,6 @@ import org.vmmagic.unboxed.*;
    * simply be replaced by a for loop).
    */
   public abstract void resetThreadCounter();
-
-  /**
-   * Pre-copy all potentially movable instances used in the course of
-   * GC.  This includes the thread objects representing the GC threads
-   * themselves.  It is crucial that these instances are forwarded
-   * <i>prior</i> to the GC proper.  Since these instances <i>are
-   * not</i> enqueued for scanning, it is important that when roots
-   * are computed the same instances are explicitly scanned and
-   * included in the set of roots.  The existence of this method
-   * allows the actions of calculating roots and forwarding GC
-   * instances to be decoupled.
-   */
-  public abstract void preCopyGCInstances(TraceLocal trace);
 
   /**
    * Computes static roots.  This method establishes all such roots for

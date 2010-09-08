@@ -16,7 +16,6 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.Intrinsic;
@@ -843,17 +842,6 @@ public final class Magic {
   public static double longBitsAsDouble(long number) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
-  }
-
-  /**
-   * Downcast.
-   * Note:     for use by gc to avoid checkcast during GC
-   * @param t Thread object reference
-   * @return CollectorThread object reference
-   */
-  public static CollectorThread threadAsCollectorThread(RVMThread t) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
   }
 
   /**

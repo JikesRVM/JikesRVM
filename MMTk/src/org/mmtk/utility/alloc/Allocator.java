@@ -12,10 +12,10 @@
  */
 package org.mmtk.utility.alloc;
 
+import org.mmtk.vm.Lock;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
-import org.mmtk.utility.statistics.*;
 
 import org.mmtk.vm.VM;
 
@@ -38,7 +38,25 @@ import org.vmmagic.pragma.*;
  * where the allocation that caused a GC or allocations immediately following
  * GC are run incorrectly.
  */
-@Uninterruptible public abstract class Allocator implements Constants {
+@Uninterruptible
+public abstract class Allocator implements Constants {
+
+  /** Lock used for out of memory handling */
+  private static Lock oomLock = VM.newLock("OOM Lock");
+  /** Has an allocation succeeded since the emergency collection? */
+  private static boolean allocationSuccess;
+  /** Maximum number of failed attempts by a single thread */
+  private static int maxCollectionAttempts;
+
+  /**
+   * @return the highest consecutive failure count for any allocating thread.
+   */
+  public static int getAndClearMaxCollectionAttempts() {
+    int result = maxCollectionAttempts;
+    allocationSuccess = false;
+    maxCollectionAttempts = 1;
+    return result;
+  }
 
   /**
    * Return the space this allocator is currently bound to.
@@ -230,34 +248,63 @@ import org.vmmagic.pragma.*;
    */
   @Inline
   public final Address allocSlowInline(int bytes, int alignment, int offset) {
-    int gcCountStart = Stats.gcCount();
     Allocator current = this;
     Space space = current.getSpace();
-    for (int i = 0; i < Plan.MAX_COLLECTION_ATTEMPTS; i++) {
+    int attempts = 0;
+    while (true) {
+      // Information about the previous collection.
+      boolean emergencyCollection = Plan.isEmergencyCollection();
+
+      // Try to allocate using the slow path
       Address result = current.allocSlowOnce(bytes, alignment, offset);
-      if (!result.isZero()) {
+
+      // Collector allocation always succeeds (or fails inside allocSlow).
+      if (!VM.activePlan.isMutator()) {
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!result.isZero());
         return result;
       }
-      if (!Plan.gcInProgress()) {
-        /* This is in case a GC occurs, and our mutator context is stale.
-         * In some VMs the scheduler can change the affinity between the
-         * current thread and the mutator context. This is possible for
-         * VMs that dynamically multiplex Java threads onto multiple mutator
-         * contexts, */
-        current = VM.activePlan.mutator().getAllocatorFromSpace(space);
+
+      if (!result.isZero()) {
+        // Report allocation success to assist OutOfMemory handling.
+        if (emergencyCollection) {
+          oomLock.acquire();
+          allocationSuccess = true;
+          oomLock.release();
+        }
+        return result;
       }
+
+      // Allocation failed!
+      if (!Plan.isInternalTriggeredCollection()) attempts++;
+
+      if (attempts > 1) {
+        if (emergencyCollection) {
+          // Check if we are in an OutOfMemory situation
+          oomLock.acquire();
+          boolean failWithOOM = !allocationSuccess;
+          oomLock.release();
+          if (failWithOOM) {
+            // Nobody has successfully allocated since an emergency collection: OutOfMemory
+            VM.collection.outOfMemory();
+            VM.assertions.fail("Not Reached");
+            return Address.zero();
+          }
+        } else {
+          // Do we need to escalate the failure count?
+          oomLock.acquire();
+          if (attempts > maxCollectionAttempts) {
+            maxCollectionAttempts = attempts;
+          }
+          oomLock.release();
+        }
+      }
+
+      /* This is in case a GC occurs, and our mutator context is stale.
+       * In some VMs the scheduler can change the affinity between the
+       * current thread and the mutator context. This is possible for
+       * VMs that dynamically multiplex Java threads onto multiple mutator
+       * contexts, */
+      current = VM.activePlan.mutator().getAllocatorFromSpace(space);
     }
-    Log.write("GC Error: Allocator.allocSlow failed on request of ");
-    Log.write(bytes);
-    Log.write(" on space ");
-    Log.writeln(space.getName());
-    Log.write("gcCountStart = ");
-    Log.writeln(gcCountStart);
-    Log.write("gcCount (now) = ");
-    Log.writeln(Stats.gcCount());
-    Space.printUsageMB();
-    VM.assertions.fail("Allocation Failed!");
-    /* NOTREACHED */
-    return Address.zero();
   }
 }

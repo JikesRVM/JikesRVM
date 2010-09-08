@@ -17,6 +17,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mmtk.harness.Harness;
 import org.vmmagic.unboxed.harness.MemoryConstants;
 
 public class ObjectReferenceTest {
@@ -25,6 +26,7 @@ public class ObjectReferenceTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
+    Harness.init();
   }
 
   @Before

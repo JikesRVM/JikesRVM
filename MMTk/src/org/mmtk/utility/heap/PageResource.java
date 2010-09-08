@@ -12,7 +12,6 @@
  */
 package org.mmtk.utility.heap;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.ProtectOnRelease;
@@ -57,7 +56,6 @@ public abstract class PageResource implements Constants {
   // page budgeting
   protected int reserved;
   protected int committed;
-  protected int required;
   private final int pageBudget;
 
   protected final boolean contiguous;
@@ -65,8 +63,7 @@ public abstract class PageResource implements Constants {
   protected Address start; // only for contiguous
 
   // locking
-  private final Lock gcLock; // used during GC
-  private final Lock mutatorLock; // used by mutators
+  private final Lock lock; // used by mutators
 
   /****************************************************************************
    *
@@ -88,8 +85,7 @@ public abstract class PageResource implements Constants {
     this.pageBudget = pageBudget;
     this.contiguous = contiguous;
     this.space = space;
-    gcLock = VM.newLock(space.getName() + ".gcLock");
-    mutatorLock = VM.newLock(space.getName() + ".mutatorLock");
+    lock = VM.newLock(space.getName() + ".lock");
   }
 
   /**
@@ -147,11 +143,10 @@ public abstract class PageResource implements Constants {
   @Inline
   public final boolean reservePages(int pages) {
     lock();
-    required += adjustForMetaData(pages);
-    reserved = committed + required;
-    boolean satisfied = reserved <= pageBudget;
+    reserved += adjustForMetaData(pages);
+    //boolean satisfied = reserved <= pageBudget;
     unlock();
-    return satisfied;
+    return false;//satisfied;
   }
 
   /**
@@ -162,7 +157,7 @@ public abstract class PageResource implements Constants {
   @Inline
   public final void clearRequest(int pages) {
     lock();
-    required -= adjustForMetaData(pages);
+    reserved -= adjustForMetaData(pages);
     unlock();
   }
 
@@ -250,11 +245,12 @@ public abstract class PageResource implements Constants {
   protected void commitPages(int requestedPages, int totalPages) {
     int predictedPages = adjustForMetaData(requestedPages);
     int delta = totalPages - predictedPages;
-    required -= predictedPages;
     reserved += delta;
     committed += totalPages;
-    if (!Plan.gcInProgress())
-      addToCommitted(totalPages); // only count mutator pages
+    if (VM.activePlan.isMutator()) {
+      // only count mutator pages
+      addToCommitted(totalPages);
+    }
   }
 
   /**
@@ -270,13 +266,6 @@ public abstract class PageResource implements Constants {
    * @return The number of committed pages.
    */
   public final int committedPages() { return committed; }
-
-  /**
-   * Return the number of required pages
-   *
-   * @return The number of required pages.
-   */
-  public final int requiredPages() { return required; }
 
   /**
    * Return the cumulative number of committed pages
@@ -297,24 +286,16 @@ public abstract class PageResource implements Constants {
   }
 
   /**
-   * Acquire the appropriate lock depending on whether the context is
-   * GC or mutator.
+   * Acquire the lock.
    */
   protected final void lock() {
-    if (Plan.gcInProgress())
-      gcLock.acquire();
-    else
-      mutatorLock.acquire();
+    lock.acquire();
   }
 
   /**
-   * Release the appropriate lock depending on whether the context is
-   * GC or mutator.
+   * Release the lock.
    */
   protected final void unlock() {
-    if (Plan.gcInProgress())
-      gcLock.release();
-    else
-      mutatorLock.release();
+    lock.release();
   }
 }

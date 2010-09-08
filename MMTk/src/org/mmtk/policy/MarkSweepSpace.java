@@ -75,6 +75,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   private boolean inMSCollection;
   private static final boolean usingStickyMarkBits = VM.activePlan.constraints().needsLogBitInHeader(); /* are sticky mark bits in use? */
   private boolean isAgeSegregated = false; /* is this space a nursery space? */
+  private boolean isAllocAsMarked = false;
 
   /****************************************************************************
    *
@@ -350,7 +351,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   public void initializeHeader(ObjectReference object, boolean alloc) {
     if (HEADER_MARK_BITS) {
       byte oldValue = VM.objectModel.readAvailableByte(object);
-      byte newValue = (byte) ((oldValue & ~MARK_COUNT_MASK) | (alloc ? allocState : markState));
+      byte newValue = (byte) ((oldValue & ~MARK_COUNT_MASK) | (alloc && !isAllocAsMarked ? allocState : markState));
       if (HeaderByte.NEEDS_UNLOGGED_BIT) newValue |= HeaderByte.UNLOGGED_BIT;
       VM.objectModel.writeAvailableByte(object, newValue);
     } else if (HeaderByte.NEEDS_UNLOGGED_BIT)
@@ -385,5 +386,9 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   private boolean testMarkState(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((markState & ~MARK_COUNT_MASK) == 0);
     return (VM.objectModel.readAvailableByte(object) & MARK_COUNT_MASK) == markState;
+  }
+
+  public void makeAllocAsMarked() {
+    isAllocAsMarked = true;
   }
 }

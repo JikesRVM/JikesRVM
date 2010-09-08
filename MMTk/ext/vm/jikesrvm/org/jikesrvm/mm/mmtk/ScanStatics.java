@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
@@ -19,7 +20,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
 import org.vmmagic.unboxed.*;
@@ -50,20 +50,20 @@ public final class ScanStatics implements Constants {
     // The address of the statics table
     // equivalent to Statics.getSlots()
     final Address slots = Magic.getJTOC();
-    // The number of collector threads
-    final int numberOfCollectors = CollectorThread.numCollectors();
     // This thread as a collector
-    final CollectorThread ct = Magic.threadAsCollectorThread(RVMThread.getCurrentThread());
+    final CollectorContext cc = RVMThread.getCurrentThread().getCollectorContext();
+    // The number of collector threads
+    final int numberOfCollectors = cc.parallelWorkerCount();
     // The number of static references
     final int numberOfReferences = Statics.getNumberOfReferenceSlots();
     // The size to give each thread
     final int chunkSize = (numberOfReferences / numberOfCollectors) & chunkSizeMask;
     // The number of this collector thread (1...n)
-    final int threadOrdinal = ct.getGCOrdinal();
+    final int threadOrdinal = cc.parallelWorkerOrdinal();
 
     // Start and end of statics region to be processed
-    final int start = (threadOrdinal == 1) ? refSlotSize : (threadOrdinal - 1) * chunkSize;
-    final int end = (threadOrdinal == numberOfCollectors) ? numberOfReferences : threadOrdinal * chunkSize;
+    final int start = (threadOrdinal == 0) ? refSlotSize : threadOrdinal * chunkSize;
+    final int end = (threadOrdinal+1 == numberOfCollectors) ? numberOfReferences : numberOfCollectors* chunkSize;
 
     // Process region
     for (int slot=start; slot < end; slot+=refSlotSize) {

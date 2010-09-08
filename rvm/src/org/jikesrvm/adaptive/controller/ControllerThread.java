@@ -30,8 +30,8 @@ import org.jikesrvm.adaptive.recompilation.InvocationCounts;
 import org.jikesrvm.adaptive.util.AOSGenerator;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.AOSOptions;
-import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.SoftLatch;
+import org.jikesrvm.scheduler.SystemThread;
 import org.vmmagic.pragma.NonMoving;
 
 /**
@@ -45,7 +45,7 @@ import org.vmmagic.pragma.NonMoving;
  *     d) all of the above.
  */
 @NonMoving
-public final class ControllerThread extends RVMThread {
+public final class ControllerThread extends SystemThread {
 
   /**
    * constructor
@@ -54,7 +54,6 @@ public final class ControllerThread extends RVMThread {
   ControllerThread(SoftLatch sentinel) {
     super("ControllerThread");
     this.sentinel = sentinel;
-    makeDaemon(true);
   }
 
   private final SoftLatch sentinel;

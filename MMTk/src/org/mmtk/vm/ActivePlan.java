@@ -35,6 +35,9 @@ import org.vmmagic.pragma.*;
   /** @return The active <code>CollectorContext</code> instance. */
   public abstract CollectorContext collector();
 
+  /** @return Is the active thread a mutator thread. */
+  public abstract boolean isMutator();
+
   /** @return The active <code>MutatorContext</code> instance. */
   public abstract MutatorContext mutator();
 

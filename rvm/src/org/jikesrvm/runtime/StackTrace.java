@@ -64,24 +64,14 @@ public class StackTrace {
       }
       isVerbose = (traceIndex % VM.VerboseStackTracePeriod == 0);
     }
-    RVMThread stackTraceThread = RVMThread.getCurrentThread().getThreadForStackTrace();
-    if (stackTraceThread != RVMThread.getCurrentThread()) {
-      // (1) Count the number of frames comprising the stack.
-      int numFrames = countFramesNoGC(stackTraceThread);
-      // (2) Construct arrays to hold raw data
-      compiledMethods = new int[numFrames];
-      instructionOffsets = new int[numFrames];
-      // (3) Fill in arrays
-      recordFramesNoGC(stackTraceThread);
-    } else {
-      // (1) Count the number of frames comprising the stack.
-      int numFrames = countFramesUninterruptible(stackTraceThread);
-      // (2) Construct arrays to hold raw data
-      compiledMethods = new int[numFrames];
-      instructionOffsets = new int[numFrames];
-      // (3) Fill in arrays
-      recordFramesUninterruptible(stackTraceThread);
-    }
+    RVMThread t = RVMThread.getCurrentThread();
+    // (1) Count the number of frames comprising the stack.
+    int numFrames = countFramesUninterruptible(t);
+    // (2) Construct arrays to hold raw data
+    compiledMethods = new int[numFrames];
+    instructionOffsets = new int[numFrames];
+    // (3) Fill in arrays
+    recordFramesUninterruptible(t);
     // Debugging trick: print every nth stack trace created
     if (isVerbose) {
       VM.disableGC();
@@ -90,74 +80,6 @@ public class StackTrace {
       VM.sysWriteln("END Verbosely dumping stack at time of creating StackTrace # ", traceIndex, " ]");
       VM.enableGC();
     }
-  }
-
-  /**
-   * Walk the stack counting the number of stack frames encountered.
-   * The stack being walked isn't our stack so GC must be disabled.
-   * @return number of stack frames encountered
-   */
-  private int countFramesNoGC(RVMThread stackTraceThread) {
-    int stackFrameCount = 0;
-    VM.disableGC(); // so fp & ip don't change under our feet
-    Address fp;
-    Address ip;
-    /* Stack trace for a sleeping thread */
-    fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
-    ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
-    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-      int compiledMethodId = Magic.getCompiledMethodID(fp);
-      if (compiledMethodId != INVISIBLE_METHOD_ID) {
-        CompiledMethod compiledMethod =
-          CompiledMethods.getCompiledMethod(compiledMethodId);
-        if ((compiledMethod.getCompilerType() != CompiledMethod.TRAP) &&
-            compiledMethod.hasBridgeFromNativeAnnotation()) {
-          // skip native frames, stopping at last native frame preceeding the
-          // Java To C transition frame
-          fp = RuntimeEntrypoints.unwindNativeStackFrame(fp);
-        }
-      }
-      stackFrameCount++;
-      ip = Magic.getReturnAddress(fp);
-      fp = Magic.getCallerFramePointer(fp);
-    }
-    VM.enableGC();
-    return stackFrameCount;
-  }
-
-  /**
-   * Walk the stack recording the stack frames encountered.
-   * The stack being walked isn't our stack so GC must be disabled.
-   */
-  private void recordFramesNoGC(RVMThread stackTraceThread) {
-    int stackFrameCount = 0;
-    VM.disableGC(); // so fp & ip don't change under our feet
-    Address fp;
-    Address ip;
-    /* Stack trace for a sleeping thread */
-    fp = stackTraceThread.contextRegisters.getInnermostFramePointer();
-    ip = stackTraceThread.contextRegisters.getInnermostInstructionAddress();
-    while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-      int compiledMethodId = Magic.getCompiledMethodID(fp);
-      compiledMethods[stackFrameCount] = compiledMethodId;
-      if (compiledMethodId != INVISIBLE_METHOD_ID) {
-        CompiledMethod compiledMethod =
-          CompiledMethods.getCompiledMethod(compiledMethodId);
-        if (compiledMethod.getCompilerType() != CompiledMethod.TRAP) {
-          instructionOffsets[stackFrameCount] =
-            compiledMethod.getInstructionOffset(ip).toInt();
-          if (compiledMethod.hasBridgeFromNativeAnnotation()) {
-            // skip native frames, stopping at last native frame preceeding the
-            // Java To C transition frame
-            fp = RuntimeEntrypoints.unwindNativeStackFrame(fp);
-          }
-        }
-      }
-      stackFrameCount++;
-      ip = Magic.getReturnAddress(fp);
-      fp = Magic.getCallerFramePointer(fp);
-    }
-    VM.enableGC();
   }
 
   /**
@@ -171,10 +93,8 @@ public class StackTrace {
   private int countFramesUninterruptible(RVMThread stackTraceThread) {
     int stackFrameCount = 0;
     Address fp;
-    Address ip;
     /* Stack trace for the current thread */
     fp = Magic.getFramePointer();
-    ip = Magic.getReturnAddress(fp);
     fp = Magic.getCallerFramePointer(fp);
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = Magic.getCompiledMethodID(fp);
@@ -189,7 +109,6 @@ public class StackTrace {
         }
       }
       stackFrameCount++;
-      ip = Magic.getReturnAddress(fp);
       fp = Magic.getCallerFramePointer(fp);
     }
     //VM.sysWriteln("stack frame count = ",stackFrameCount);

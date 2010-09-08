@@ -68,59 +68,21 @@ import org.vmmagic.pragma.*;
   };
 
   /**
-   * Triggers a collection.
-   *
-   * @param why the reason why a collection was triggered.  0 to
-   *          <code>TRIGGER_REASONS - 1</code>.
+   * Spawn a thread the execute the supplied collector context.
+   */
+  @Interruptible
+  public abstract void spawnCollectorContext(CollectorContext context);
+
+  /**
+   * @return The default number of collector threads to use.
+   */
+  public abstract int getDefaultThreads();
+
+  /**
+   * Block for the garbage collector.
    */
   @Unpreemptible
-  public abstract void triggerCollection(int why);
-
-  /**
-   * Joins an already requested collection.
-   */
-  @Unpreemptible
-  public abstract void joinCollection();
-
-  /**
-   * Trigger an asynchronous collection, checking for memory
-   * exhaustion first.
-   *
-   * @param why the reason why a collection was triggered.  0 to
-   *          <code>TRIGGER_REASONS - 1</code>.
-   */
-  public abstract void triggerAsyncCollection(int why);
-
-  /**
-   * The maximum number collection attempts across threads.
-   */
-  public abstract int maximumCollectionAttempt();
-
-  /**
-   * Report that the allocation has succeeded.
-   */
-  public abstract void reportAllocationSuccess();
-
-  /**
-   * Report that a physical allocation has failed.
-   */
-  public abstract void reportPhysicalAllocationFailed();
-
-  /**
-   * Does the VM consider this an emergency alloction, where the normal
-   * heap size rules can be ignored.
-   */
-  public abstract boolean isEmergencyAllocation();
-
-  /**
-   * Determine whether a collection cycle has fully completed (this is
-   * used to ensure a GC is not in the process of completing, to
-   * avoid, for example, an async GC being triggered on the switch
-   * from GC to mutator thread before all GC threads have switched.
-   *
-   * @return True if GC is not in progress.
-   */
-  public abstract boolean noThreadsInGC();
+  public abstract void blockForGC();
 
   /**
    * Prepare a mutator for collection.
@@ -130,31 +92,29 @@ import org.vmmagic.pragma.*;
   public abstract void prepareMutator(MutatorContext m);
 
   /**
-   * Prepare a collector for a collection.
-   *
-   * @param c the collector to prepare
-   */
-  public abstract void prepareCollector(CollectorContext c);
-
-  /**
-   * Rendezvous with all other processors, returning the rank
-   * (that is, the order this processor arrived at the barrier).
-   */
-  public abstract int rendezvous(int where);
-
-  /** @return The number of active collector threads */
-  public abstract int activeGCThreads();
-
-  /**
-   * @return The ordinal ID of the running collector thread w.r.t.
-   * the set of active collector threads (zero based)
-   */
-  public abstract int activeGCThreadOrdinal();
-
-  /**
    * Request each mutator flush remembered sets. This method
    * will trigger the flush and then yield until all processors have
    * flushed.
    */
   public abstract void requestMutatorFlush();
+
+  /**
+   * Stop all mutator threads. This is current intended to be run by a single thread.
+   *
+   * Fixpoint until there are no threads that we haven't blocked. Fixpoint is needed to
+   * catch the (unlikely) case that a thread spawns another thread while we are waiting.
+   */
+  @Unpreemptible
+  public abstract void stopAllMutators();
+
+  /**
+   * Resume all mutators blocked for GC.
+   */
+  @Unpreemptible
+  public abstract void resumeAllMutators();
+
+  /**
+   * Fail with an out of memory error.
+   */
+  public abstract void outOfMemory();
 }

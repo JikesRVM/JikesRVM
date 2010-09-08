@@ -188,17 +188,6 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + (toSpace().requiredPages() << 1);
-  }
-
-  /**
    * Return the number of pages available for allocation into the mature
    * space.
    *

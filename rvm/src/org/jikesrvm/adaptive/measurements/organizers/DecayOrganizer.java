@@ -29,7 +29,6 @@ public final class DecayOrganizer extends Organizer {
   public DecayOrganizer(YieldCounterListener listener) {
     this.listener = listener;
     listener.setOrganizer(this);
-    makeDaemon(true);
   }
 
   /**

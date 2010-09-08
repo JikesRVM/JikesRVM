@@ -12,7 +12,6 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
@@ -113,7 +112,6 @@ import org.vmmagic.pragma.*;
       closeAndInsertHead(arity);
 
     head = queue.alloc();
-    Plan.checkForAsyncCollection(); // possible side-effect of alloc()
   }
 
   /**

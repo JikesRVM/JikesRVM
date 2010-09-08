@@ -88,7 +88,6 @@ public class DynamicCallGraphOrganizer extends Organizer {
   public DynamicCallGraphOrganizer(EdgeListener edgeListener) {
     listener = edgeListener;
     edgeListener.setOrganizer(this);
-    makeDaemon(true);
   }
 
   /**

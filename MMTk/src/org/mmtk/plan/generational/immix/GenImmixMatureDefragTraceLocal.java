@@ -75,15 +75,6 @@ public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
     return super.traceObject(object);
   }
 
-  @Inline
-  @Override
-  public ObjectReference precopyObject(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(GenImmix.immixSpace.inImmixDefragCollection());
-    ObjectReference rtn = traceObject(object);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(willNotMoveInCurrentCollection(rtn));
-    return rtn;
-  }
-
   /**
    * Return true if this object is guaranteed not to move during this
    * collection (i.e. this object is defintely not an unforwarded

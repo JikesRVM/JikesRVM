@@ -10,11 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-
 package org.mmtk.harness.scheduler;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,6 +20,7 @@ import java.util.List;
  * Common code for the scheduler tests.  Not actually a Junit test suite,
  * but used by several others.
  */
+@SuppressWarnings("unchecked")
 public class SchedulerTestCases {
 
   /**
@@ -32,9 +31,9 @@ public class SchedulerTestCases {
    * @param a The item
    * @return The result list
    */
-  public List<Object> testOneThreadOneItem(Object a) {
-    List<Object> results = new ArrayList<Object>(1);
-    Scheduler.scheduleMutator(new TestMutator(results,Arrays.asList(a)));
+  public <T> List<T> testOneThreadOneItem(T a) {
+    List<T> results = new ArrayList<T>(1);
+    Scheduler.scheduleMutator(new TestMutator<T>(results,a));
     Scheduler.schedule();
     return results;
   }
@@ -47,9 +46,9 @@ public class SchedulerTestCases {
    * @param a The item
    * @return The result list
    */
-  public List<Object> testOneThreadTwoItems(Object a, Object b) {
-    List<Object> results = new ArrayList<Object>(2);
-    Scheduler.scheduleMutator(new TestMutator(results,Arrays.asList(a,b)));
+  public <T> List<T> testOneThreadTwoItems(T a, T b) {
+    List<T> results = new ArrayList<T>(2);
+    Scheduler.scheduleMutator(new TestMutator<T>(results,a,b));
     Scheduler.schedule();
     return results;
   }
@@ -64,10 +63,10 @@ public class SchedulerTestCases {
    * @param b The item inserted by thread 2
    * @return The result list
    */
-  public List<Object> testTwoThreadsOneItem(Object a, Object b) {
-    List<Object> results = Collections.synchronizedList(new ArrayList<Object>(2));
-    Scheduler.scheduleMutator(new TestMutator(results,Arrays.asList(a)));
-    Scheduler.scheduleMutator(new TestMutator(results,Arrays.asList(b)));
+  public <T> List<T> testTwoThreadsOneItem(T a, T b) {
+    List<T> results = Collections.synchronizedList(new ArrayList<T>(2));
+    Scheduler.scheduleMutator(new TestMutator<T>(results,a));
+    Scheduler.scheduleMutator(new TestMutator<T>(results,b));
     Scheduler.schedule();
     return results;
   }
@@ -80,10 +79,10 @@ public class SchedulerTestCases {
    * @param items The four items.
    * @return The result list
    */
-  public List<Object> testTwoThreadsTwoItems(Object...items) {
-    List<Object> results = Collections.synchronizedList(new ArrayList<Object>(4));
-    Scheduler.scheduleMutator(new TestMutator(results,Arrays.asList(items[0],items[1])));
-    Scheduler.scheduleMutator(new TestMutator(results,Arrays.asList(items[2],items[3])));
+  public <T> List<T> testTwoThreadsTwoItems(T...items) {
+    List<T> results = Collections.synchronizedList(new ArrayList<T>(4));
+    Scheduler.scheduleMutator(new TestMutator<T>(results,items[0],items[1]));
+    Scheduler.scheduleMutator(new TestMutator<T>(results,items[2],items[3]));
     Scheduler.schedule();
     return results;
   }

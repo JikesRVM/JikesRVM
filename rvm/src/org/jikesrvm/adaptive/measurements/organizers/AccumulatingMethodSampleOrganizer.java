@@ -19,6 +19,7 @@ import org.jikesrvm.adaptive.measurements.RuntimeMeasurements;
 import org.jikesrvm.adaptive.measurements.listeners.MethodListener;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.SystemThread;
 import org.vmmagic.pragma.NonMoving;
 
 /**
@@ -34,9 +35,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
 
   private MethodCountData data;
 
-  public AccumulatingMethodSampleOrganizer() {
-    makeDaemon(true);
-  }
+  public AccumulatingMethodSampleOrganizer() {}
 
   /**
    * Initialization: set up data structures and sampling objects.
@@ -76,10 +75,9 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
     if (data != null) data.report();
   }
   @NonMoving
-  class AsyncReporter extends RVMThread {
+  class AsyncReporter extends SystemThread {
     public AsyncReporter() {
       super("Async Profile Reporter");
-      makeDaemon(true);
     }
     public void run() {
       for (;;) {

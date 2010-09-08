@@ -117,29 +117,6 @@ public final class GCTraceTraceLocal extends SSTraceLocal {
   }
 
   /**
-   * Ensure that the referenced object will not move during a collection
-   * by 'precopying' it at the beginning.
-   *
-   * @param object The object to ensure will not move.
-   */
-  @Inline
-  public ObjectReference precopyObject(ObjectReference object) {
-    if (object.isNull()) return object;
-    if (GCTrace.traceInducedGC) {
-      /* We are performing a root scan following an allocation. */
-      TraceGenerator.rootEnumerate(object);
-      return object;
-    } else if (GCTrace.deathScan) {
-      /* We are performing the last scan before program termination. */
-      TraceGenerator.propagateDeathTime(object);
-      return object;
-    } else {
-      return super.precopyObject(object);
-    }
-  }
-
-
-  /**
    * If the referenced object has moved, return the new location.
    *
    * Some copying collectors will need to override this method.

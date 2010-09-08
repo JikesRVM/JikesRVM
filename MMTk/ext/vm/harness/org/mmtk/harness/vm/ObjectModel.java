@@ -19,11 +19,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.Collection;
 
-import org.mmtk.harness.Collector;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.sanity.Sanity;
+import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
@@ -372,7 +372,7 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     int oldBytes = getSize(from);
     int newBytes = getCopiedSize(from);
     int align = getAlignWhenCopied(from);
-    CollectorContext c = Collector.current().getContext();
+    CollectorContext c = Scheduler.currentCollector();
     allocator = c.copyCheckAllocator(from, newBytes, align, allocator);
     Address toRegion = c.allocCopy(from, newBytes, align, getAlignOffsetWhenCopied(from), allocator);
     ObjectReference to = toRegion.toObjectReference();

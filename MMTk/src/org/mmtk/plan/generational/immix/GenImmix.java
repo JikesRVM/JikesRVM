@@ -86,8 +86,9 @@ public class GenImmix extends Gen {
   public final void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
-      if (gcFullHeap)
-        immixSpace.decideWhetherToDefrag(emergencyCollection, true, collectionAttempt, collectionTrigger);
+      if (gcFullHeap) {
+        immixSpace.decideWhetherToDefrag(emergencyCollection, true, collectionAttempt, userTriggeredCollection);
+      }
       return;
     }
 

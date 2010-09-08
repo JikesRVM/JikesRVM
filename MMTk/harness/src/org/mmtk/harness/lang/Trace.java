@@ -50,6 +50,7 @@ public final class Trace {
     /** Sanity checker - verbose output */                      SANITY,
     /** Scanning of objects */                                  SCAN,
     /** Harness language thread scheduler */                    SCHEDULER,
+    /** Harness language thread scheduler - detailed */         SCHED_DETAIL,
     /** Harness language simplifier */                          SIMPLIFIER,
     /** Store operations in the harness language */             STORE,
     /** calls to traceObject during GC */                       TRACEOBJECT,

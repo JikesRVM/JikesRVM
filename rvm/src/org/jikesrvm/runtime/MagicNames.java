@@ -134,7 +134,6 @@ public class MagicNames {
   public static final Atom tibAsObject = Atom.findOrCreateAsciiAtom("tibAsObject");
 
   public static final Atom objectAsThread = Atom.findOrCreateAsciiAtom("objectAsThread");
-  public static final Atom threadAsCollectorThread = Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
   public static final Atom floatAsIntBits = Atom.findOrCreateAsciiAtom("floatAsIntBits");
   public static final Atom intBitsAsFloat = Atom.findOrCreateAsciiAtom("intBitsAsFloat");
   public static final Atom doubleAsLongBits = Atom.findOrCreateAsciiAtom("doubleAsLongBits");

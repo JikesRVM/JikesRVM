@@ -12,19 +12,22 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import org.mmtk.plan.CollectorContext;
+import org.vmmagic.pragma.Uninterruptible;
+
 /**
  * RVMThread must extend this class to associate appropriate context with processor.
  */
+@Uninterruptible
 public abstract class ThreadContext extends Selected.Mutator {
-  /**
-   * The collector context to be used by the given thread.  Only collector
-   * threads have collector contexts.
-   * <p>
-   * NOTE: if we have N processors and we're running with a concurrent
-   * collector, we will have 2*N collector contexts - N for the
-   * stop-the-world collector threads, and N for the concurrent collector
-   * threads.
-   */
-  public Selected.Collector collectorContext;
+  protected CollectorContext collectorContext;
+
+  public final CollectorContext getCollectorContext() {
+    return collectorContext;
+  }
+
+  public final boolean isCollectorThread() {
+    return collectorContext != null;
+  }
 }
 

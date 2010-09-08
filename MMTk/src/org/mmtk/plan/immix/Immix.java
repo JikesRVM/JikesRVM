@@ -90,7 +90,7 @@ public class Immix extends StopTheWorld {
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
-      immixSpace.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, collectionTrigger);
+      immixSpace.decideWhetherToDefrag(emergencyCollection, true, collectionAttempt, userTriggeredCollection);
       return;
     }
 
@@ -139,17 +139,6 @@ public class Immix extends StopTheWorld {
    */
   public int getPagesUsed() {
     return immixSpace.reservedPages() + super.getPagesUsed();
-  }
-
-  /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + immixSpace.requiredPages();
   }
 
   /**

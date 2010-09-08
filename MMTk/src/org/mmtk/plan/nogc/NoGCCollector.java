@@ -13,6 +13,7 @@
 package org.mmtk.plan.nogc;
 
 import org.mmtk.plan.*;
+
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -31,7 +32,7 @@ import org.vmmagic.pragma.*;
  * @see CollectorContext
  */
 @Uninterruptible
-public class NoGCCollector extends CollectorContext {
+public class NoGCCollector extends ParallelCollector {
 
   /************************************************************************
    * Instance fields
@@ -50,12 +51,6 @@ public class NoGCCollector extends CollectorContext {
   @Override
   public final void collect() {
     VM.assertions.fail("GC Triggered in NoGC Plan. Is -X:gc:ignoreSystemGC=true ?");
-  }
-
-  /** Perform some concurrent garbage collection */
-  @Override
-  public final void concurrentCollect() {
-    VM.assertions.fail("Concurrent GC Triggered in NoGC Plan.");
   }
 
   /**
@@ -81,17 +76,6 @@ public class NoGCCollector extends CollectorContext {
     super.collectionPhase(phaseId, primary);
     */
   }
-
-  /**
-   * Perform some concurrent collection work.
-   *
-   * @param phaseId The unique phase identifier
-   */
-  @Override
-  public void concurrentCollectionPhase(short phaseId) {
-    VM.assertions.fail("GC Triggered in NoGC Plan.");
-  }
-
 
   /****************************************************************************
    * Miscellaneous

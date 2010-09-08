@@ -90,7 +90,7 @@ import org.jikesrvm.scheduler.ThreadQueue;
     RVMThread me = RVMThread.getCurrentThread();
     Offset offset=Entrypoints.lockStateField.getOffset();
     boolean acquired=false;
-    for (int i=0;i<SPIN_LIMIT;++i) {
+    for (int i=0; me.isOnQueue() || i < SPIN_LIMIT;++i) {
       int oldState=Magic.prepareInt(this,offset);
       // NOTE: we could be smart here and break out of the spin if we see
       // that the state is CLEAR_QUEUED or LOCKED_QUEUED, or we could even

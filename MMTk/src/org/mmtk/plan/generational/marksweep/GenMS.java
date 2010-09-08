@@ -118,17 +118,6 @@ public class GenMS extends Gen {
   }
 
   /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + msSpace.requiredPages();
-  }
-
-  /**
    * Return the number of pages available for allocation into the mature
    * space.
    *

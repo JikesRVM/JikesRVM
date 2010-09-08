@@ -12,24 +12,14 @@
  */
 package org.mmtk.harness.vm;
 
-import org.mmtk.harness.Collector;
 import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible
 public class Statistics extends org.mmtk.vm.Statistics {
-
-  /**
-   * Returns the number of collections that have occurred.
-   *
-   * @return The number of collections that have occurred.
-   */
-  public int getCollectionCount() {
-    return Collector.getCollectionCount();
-  }
-
   /**
    * Read cycle counter
    */
+  @Override
   public long nanoTime() {
     return System.nanoTime();
   }
@@ -37,20 +27,23 @@ public class Statistics extends org.mmtk.vm.Statistics {
   /**
    * Convert nanoseconds to milliseconds
    */
+  @Override
   public double nanosToMillis(long c) {
-    return ((double)c) / 1e6;
+    return (c) / 1e6;
   }
 
   /**
    * Convert nanoseconds to seconds
    */
+  @Override
   public double nanosToSecs(long c) {
-    return ((double)c) / 1e9;
+    return (c) / 1e9;
   }
 
   /**
    * Convert milliseconds to nanoseconds
    */
+  @Override
   public long millisToNanos(double t) {
     return (long)(t * 1e6);
   }
@@ -58,6 +51,7 @@ public class Statistics extends org.mmtk.vm.Statistics {
   /**
    * Convert seconds to nanoseconds
    */
+  @Override
   public long secsToNanos(double t) {
     return (long)(t * 1e9);
   }
@@ -65,38 +59,28 @@ public class Statistics extends org.mmtk.vm.Statistics {
   /**
    * Read the cycle counter
    */
+  @Override
   public long cycles() {
     return System.nanoTime();
   }
 
   /**
+   * Read (a set of) performance counters
+   */
+  @Override
+  public void perfEventRead(int x,long[] y) {
+    throw new UnsupportedOperationException("Statistics#perfEventRead(): Not Implemented");
+  }
+
+  /**
    * Initialize performance counters
    *
-   * @param metric An integer identifying the metric being read
+   * @param metric An string identifying the metrics being read
    */
-  public void perfCtrInit(int metric) {
-    //Assert.notImplemented();
-  }
-
-  /**
-   * Read the current cycle count from the perfctr libraries
-   *
-   * @return the current cycle count from the perfctr libraries
-   */
-  public long perfCtrReadCycles() {
-    //Assert.notImplemented();
-    return 0;
-  }
-
-  /**
-   * Read the current event count for the metric being measured by the
-   * perfctr libraries
-   *
-   * @return the current event count for the metric being measured by the
-   * perfctr libraries
-   */
-  public long perfCtrReadMetric() {
-    //Assert.notImplemented();
-    return 0;
+  @Override
+  public void perfEventInit(String events) {
+    if (events.equals(""))
+      return;
+    throw new UnsupportedOperationException("Statistics#perfEventInit("+events+"): Not Implemented");
   }
 }

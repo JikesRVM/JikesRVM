@@ -138,7 +138,7 @@ public class SharedDeque extends Deque implements Constants {
       prepareNonBlocking();
     } else {
       /* This should be the normal mode of operation once performance is fixed */
-      prepare(VM.collection.activeGCThreads());
+      prepare(VM.activePlan.collector().parallelWorkerCount());
     }
   }
 

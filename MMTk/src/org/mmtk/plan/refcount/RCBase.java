@@ -76,7 +76,6 @@ public class RCBase extends StopTheWorld {
       Phase.scheduleGlobal     (PREPARE),
       Phase.scheduleCollector  (PREPARE),
       Phase.scheduleComplex    (prepareStacks),
-      Phase.scheduleCollector  (PRECOPY),
       Phase.scheduleCollector  (STACK_ROOTS),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),

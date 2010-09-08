@@ -63,7 +63,6 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.jni.FunctionTable;
-import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.JavaHeader;
@@ -1112,7 +1111,6 @@ final class BaselineMagic {
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsShortArray, Object.class, short[].class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsIntArray, Object.class, int[].class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsThread, Object.class, RVMThread.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.threadAsCollectorThread, RVMThread.class, CollectorThread.class), g);
   }
 
   /**

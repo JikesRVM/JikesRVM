@@ -179,9 +179,6 @@ public final class TypeReference {
       findOrCreate(org.jikesrvm.compilers.baseline.ReferenceMaps.class);
   public static final TypeReference JNIFunctions = findOrCreate(org.jikesrvm.jni.JNIFunctions.class);
 
-  public static final TypeReference CollectorThread =
-      findOrCreate(org.jikesrvm.mm.mminterface.CollectorThread.class);
-
   public static final TypeReference RVMArray = findOrCreate(org.jikesrvm.classloader.RVMArray.class);
   /** Abstract base of reflective method invoker classes */
   static final TypeReference baseReflectionClass = TypeReference.findOrCreate(ReflectionBase.class);

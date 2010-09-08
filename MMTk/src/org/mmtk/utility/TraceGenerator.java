@@ -12,6 +12,7 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.plan.ParallelCollector;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.semispace.gctrace.GCTrace;
 import org.mmtk.plan.TraceLocal;
@@ -21,7 +22,6 @@ import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.TraceRate;
 
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Collection;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -221,7 +221,7 @@ import org.vmmagic.unboxed.*;
   @NoInline
   public static void traceAlloc(boolean isImmortal, ObjectReference ref,
       ObjectReference typeRef, int bytes) {
-    boolean gcAllowed = VM.traceInterface.gcEnabled() && Plan.isInitialized() && !Plan.gcInProgress();
+    boolean gcAllowed = VM.traceInterface.gcEnabled() && Plan.isInitialized() && VM.activePlan.isMutator();
     /* Test if it is time/possible for an exact allocation. */
     Word oid = VM.traceInterface.getOID(ref);
     Word allocType;
@@ -255,9 +255,9 @@ import org.vmmagic.unboxed.*;
       if (MERLIN_ANALYSIS) {
         lastGC = VM.traceInterface.getOID(ref);
         VM.traceInterface.updateTime(lastGC);
-        VM.collection.triggerCollection(Collection.INTERNAL_GC_TRIGGER);
+        // FIXME TODO: VM.collection.triggerCollection(Collection.INTERNAL_GC_TRIGGER);
       } else {
-        VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+        // FIXME TODO: VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
         lastGC = VM.traceInterface.getOID(ref);
       }
     }
@@ -404,7 +404,7 @@ import org.vmmagic.unboxed.*;
   }
 
   private static TraceLocal getTraceLocal() {
-    return VM.activePlan.collector().getCurrentTrace();
+    return ((ParallelCollector)VM.activePlan.collector()).getCurrentTrace();
   }
 
 }

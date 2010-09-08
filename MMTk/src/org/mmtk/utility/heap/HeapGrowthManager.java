@@ -288,6 +288,4 @@ import org.vmmagic.unboxed.*;
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(function[i-1].length == function[i].length);
     }
   }
-
-
 }

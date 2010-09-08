@@ -62,45 +62,6 @@ import org.vmmagic.unboxed.*;
     mc = new MarkCompactCollector(MC.mcSpace);
   }
 
-
-  /****************************************************************************
-   *
-   * Collection-time allocation
-   */
-
-  /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   *
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @return The address of the first byte of the allocated region
-   */
-  @Override
-  @Inline
-  public Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocator == MC.ALLOC_IMMORTAL);
-
-    return immortal.alloc(bytes, align, offset);
-  }
-
-  /**
-   * Perform any post-copy actions.
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   */
-  @Override
-  @Inline
-  public void postCopy(ObjectReference object, ObjectReference typeRef,
-      int bytes, int allocator) {
-    MC.immortalSpace.initializeHeader(object);
-  }
-
   /****************************************************************************
    *
    * Collection

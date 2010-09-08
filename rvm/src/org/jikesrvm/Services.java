@@ -21,8 +21,6 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
-import org.vmmagic.pragma.Unpreemptible;
-import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -437,24 +435,5 @@ public class Services implements SizeConstants {
       return Magic.addressAsByteArray(Magic.objectAsAddress(Magic.getObjectAtOffset(src, Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS))));
     else
       return src[index];
-  }
-
-  @Unpreemptible("Call interruptible string API")
-  public static String stringConcatenator(String... args) {
-    String result="";
-    for (String s:args) {
-      result = stringConcatenate(result, s);
-    }
-    return result;
-  }
-
-  @UnpreemptibleNoWarn("Call interruptible string API")
-  public static String stringConcatenate(String a, String b) {
-    return a.concat(b);
-  }
-
-  @UnpreemptibleNoWarn("Call interruptible string API")
-  public static String stringConcatenate(String a, int b) {
-    return a + b;
   }
 }

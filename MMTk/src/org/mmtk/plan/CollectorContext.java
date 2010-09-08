@@ -12,11 +12,9 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.policy.ImmortalLocal;
-import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.Constants;
+import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
 
@@ -66,35 +64,30 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.vm.ActivePlan
  * @see Plan
  */
-@Uninterruptible public abstract class CollectorContext implements Constants {
+@Uninterruptible
+public abstract class CollectorContext implements Constants {
 
   /****************************************************************************
    * Instance fields
    */
-  /** Unique collector identifier */
+
+  /** Unique identifier. */
   private int id;
 
-  /** Per-collector allocator into the immortal space */
-  protected final BumpPointer immortal = new ImmortalLocal(Plan.immortalSpace);
-
-  /** Used for aborting concurrent phases pre-empted by stop the world collection */
-  protected boolean resetConcurrentWork;
-
-  /** Used for sanity checking */
-  protected final SanityCheckerLocal sanityLocal = new SanityCheckerLocal();
+  /** Used for printing log information in a thread safe manner */
+  protected final Log log = new Log();
 
   /****************************************************************************
    *
    * Initialization
    */
-  protected CollectorContext() {
-  }
 
   /**
    * Notify that the collector context is registered and ready to execute.
    *
    * @param id The id of this collector context.
    */
+  @Interruptible
   public void initCollector(int id) {
     this.id = id;
   }
@@ -113,8 +106,7 @@ import org.vmmagic.unboxed.*;
    * @param allocator The allocator associated with this request.
    * @return The address of the newly allocated region.
    */
-  public Address allocCopy(ObjectReference original, int bytes,
-      int align, int offset, int allocator) {
+  public Address allocCopy(ObjectReference original, int bytes, int align, int offset, int allocator) {
     VM.assertions.fail("Collector has not implemented allocCopy");
     return Address.max();
   }
@@ -127,8 +119,7 @@ import org.vmmagic.unboxed.*;
    * @param bytes The size of the space to be allocated (in bytes).
    * @param allocator The allocator statically assigned to this allocation.
    */
-  public void postCopy(ObjectReference ref, ObjectReference typeRef,
-      int bytes, int allocator) {
+  public void postCopy(ObjectReference ref, ObjectReference typeRef, int bytes, int allocator) {
     VM.assertions.fail("Collector has not implemented postCopy");
   }
 
@@ -146,60 +137,66 @@ import org.vmmagic.unboxed.*;
    * @return The allocator dyncamically assigned to this allocation.
    */
   @Inline
-  public int copyCheckAllocator(ObjectReference from, int bytes,
-      int align, int allocator) {
-      boolean large = Allocator.getMaximumAlignedSize(bytes, align) > Plan.MAX_NON_LOS_COPY_BYTES;
-      return large ? Plan.ALLOC_LOS : allocator;
+  public int copyCheckAllocator(ObjectReference from, int bytes, int align, int allocator) {
+    boolean large = Allocator.getMaximumAlignedSize(bytes, align) > Plan.MAX_NON_LOS_COPY_BYTES;
+    return large ? Plan.ALLOC_LOS : allocator;
   }
 
   /****************************************************************************
    * Collection.
    */
 
-  /** Perform a garbage collection */
-  public abstract void collect();
-
-  /** Perform some concurrent garbage collection */
-  public abstract void concurrentCollect();
+  /**
+   * Entry point for the collector context.
+   */
+  @Unpreemptible
+  public abstract void run();
 
   /**
-   * Perform a (local) collection phase.
+   * The number of parallel workers currently executing with this collector
+   * context. This can be queried from anywhere within a collector context
+   * to determine how best to perform load-balancing.
    *
-   * @param phaseId The unique phase identifier
-   * @param primary Should this thread be used to execute any single-threaded
-   * local operations?
+   * @return The number of parallel workers.
    */
-  public abstract void collectionPhase(short phaseId, boolean primary);
-
-  /**
-   * Perform some concurrent collection work.
-   *
-   * @param phaseId The unique phase identifier
-   */
-  public abstract void concurrentCollectionPhase(short phaseId);
-
-  /** @return The current trace instance. */
-  public abstract TraceLocal getCurrentTrace();
-
-  /**
-   * Abort concurrent work due to pre-empt by stop the world collection.
-   */
-  protected void resetConcurrentWork() {
-    resetConcurrentWork = true;
+  public int parallelWorkerCount() {
+    return 1;
   }
 
   /**
-   * Allow concurrent work to continue.
+   * The ordinal of the current worker. This is in the range of 0 to the result
+   * of parallelWorkerCount() exclusive.
+   *
+   * @return The ordinal of this collector context, starting from 0.
    */
-  protected void clearResetConcurrentWork() {
-    resetConcurrentWork = false;
+  public int parallelWorkerOrdinal() {
+    return 0;
+  }
+
+  /**
+   * Get the executing context to rendezvous with other contexts working
+   * in parallel.
+   *
+   * @return The order this context reached the rendezvous, starting from 0.
+   */
+  public int rendezvous() {
+    return 0;
   }
 
   /****************************************************************************
    * Miscellaneous.
    */
 
-  /** @return the unique identifier for this collector context. */
+  /** @return the <code>Log</code> instance for this collector context. */
+  public final Log getLog() {
+    return log;
+  }
+
+  /**
+   * @return The unique identifier for this collector context.
+   */
   @Inline
-  public int getId() { return id; }
+  public int getId() {
+    return id;
+  }
 }

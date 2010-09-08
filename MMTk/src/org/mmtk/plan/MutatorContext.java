@@ -1250,7 +1250,7 @@ public abstract class MutatorContext implements Constants {
    * Miscellaneous
    */
 
-  /** @return the <code>Log</code> instance for this PlanLocal */
+  /** @return the <code>Log</code> instance for this mutator context. */
   public final Log getLog() {
     return log;
   }

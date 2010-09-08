@@ -38,6 +38,7 @@ public class Factory extends org.mmtk.vm.Factory {
    *
    * @return A concrete VM-specific OptionSet instance
    */
+  @Override
   public OptionSet getOptionSet() {
     return Harness.options;
   }
@@ -49,6 +50,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see ActivePlan
    * @return A concrete VM-specific ActivePlan instance.
    */
+  @Override
   public ActivePlan newActivePlan() {
     return new ActivePlan();
   }
@@ -60,6 +62,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see Assert
    * @return A concrete VM-specific Assert instance.
    */
+  @Override
   public Assert newAssert() {
     return new Assert();
   }
@@ -71,6 +74,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see Barriers
    * @return A concrete VM-specific Barriers instance.
    */
+  @Override
   public Barriers newBarriers() {
     return new Barriers();
   }
@@ -82,6 +86,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see Collection
    * @return A concrete VM-specific Collection instance.
    */
+  @Override
   public Collection newCollection() {
     return new Collection();
 
@@ -94,6 +99,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see Collection
    * @return A concrete VM-specific Collection instance.
    */
+  @Override
   public BuildTimeConfig newBuildTimeConfig() {
     return new BuildTimeConfig();
   }
@@ -106,9 +112,25 @@ public class Factory extends org.mmtk.vm.Factory {
    * @param name The string to be associated with this lock instance
    * @return A concrete VM-specific Lock instance.
    */
+  @Override
   public Lock newLock(String name) {
     return Scheduler.newLock(name);
   }
+
+  /**
+   * Create a new Monitor instance using the appropriate VM-specific
+   * concrete Lock sub-class.
+   *
+   * @see JavaMonitor
+   *
+   * @param name The string to be associated with this monitor instance
+   * @return A concrete VM-specific Monitor instance.
+   */
+  @Override
+  public org.mmtk.vm.Monitor newMonitor(String name) {
+    return Scheduler.newMonitor(name);
+  }
+
 
   /**
    * Create a new Memory instance using the appropriate VM-specific
@@ -117,6 +139,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see Memory
    * @return A concrete VM-specific Memory instance.
    */
+  @Override
   public Memory newMemory() {
     return new Memory();
   }
@@ -128,6 +151,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see ObjectModel
    * @return A concrete VM-specific ObjectModel instance.
    */
+  @Override
   public ObjectModel newObjectModel() {
     return new ObjectModel();
   }
@@ -140,6 +164,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see ReferenceProcessor
    * @return A concrete VM-specific ReferenceProcessor instance.
    */
+  @Override
   public ReferenceProcessor newReferenceProcessor(ReferenceProcessor.Semantics semantics) {
     return ReferenceProcessor.getProcessorFor(semantics);
   }
@@ -151,6 +176,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see FinalizableProcessor
    * @return A concrete VM-specific FinalizableProcessor instance.
    */
+  @Override
   public FinalizableProcessor newFinalizableProcessor() {
     return new FinalizableProcessor();
   }
@@ -162,6 +188,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see Scanning
    * @return A concrete VM-specific Scanning instance.
    */
+  @Override
   public Scanning newScanning() {
     return new Scanning();
   }
@@ -173,6 +200,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see Statistics
    * @return A concrete VM-specific Statistics instance.
    */
+  @Override
   public Statistics newStatistics() {
     return new Statistics();
   }
@@ -184,6 +212,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see Strings
    * @return A concrete VM-specific Strings instance.
    */
+  @Override
   public Strings newStrings() {
     return new Strings();
   }
@@ -196,6 +225,7 @@ public class Factory extends org.mmtk.vm.Factory {
    *
    * @return A concrete VM-specific SynchronizedCounter instance.
    */
+  @Override
   public SynchronizedCounter newSynchronizedCounter() {
     return new SynchronizedCounter();
   }
@@ -207,6 +237,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see TraceInterface
    * @return A concrete VM-specific TraceInterface instance.
    */
+  @Override
   public org.mmtk.vm.TraceInterface newTraceInterface() {
     /* Not supported */
     return null;
@@ -224,6 +255,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see Util
    * @return A concrete VM-specific Util instance.
    */
+  @Override
   public Util newGCspyUtil() {
     Assert.notImplemented();
     return null;
@@ -236,6 +268,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see ServerInterpreter
    * @return A concrete VM-specific ServerInterpreter instance.
    */
+  @Override
   public ServerInterpreter newGCspyServerInterpreter() {
     Assert.notImplemented();
     return null;
@@ -257,6 +290,7 @@ public class Factory extends org.mmtk.vm.Factory {
    * @see ServerSpace
    * @return A concrete VM-specific ServerSpace instance.
    */
+  @Override
   public ServerSpace newGCspyServerSpace(
       ServerInterpreter serverInterpreter,
       String serverName,
@@ -292,6 +326,7 @@ public class Factory extends org.mmtk.vm.Factory {
    *
    * @return A concrete VM-specific IntStream instance.
    */
+  @Override
   public IntStream newGCspyIntStream(
       AbstractDriver driver,
       String name,
@@ -332,6 +367,7 @@ public class Factory extends org.mmtk.vm.Factory {
    *
    * @return A concrete VM-specific ByteStream instance.
    */
+  @Override
   public ByteStream newGCspyByteStream(
       AbstractDriver driver,
       String name,
@@ -372,6 +408,7 @@ public class Factory extends org.mmtk.vm.Factory {
    *
    * @return A concrete VM-specific ShortStream instance.
    */
+  @Override
   public ShortStream newGCspyShortStream(
       AbstractDriver driver,
       String name,

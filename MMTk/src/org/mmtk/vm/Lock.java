@@ -17,7 +17,8 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * Simple, fair locks with deadlock detection.
  */
-@Uninterruptible public abstract class Lock {
+@Uninterruptible
+public abstract class Lock {
 
   /**
    * Set the name of this lock instance
@@ -25,7 +26,6 @@ import org.vmmagic.pragma.Uninterruptible;
    * @param str The name of the lock (for error output).
    */
   public abstract void setName(String str);
-
 
   /**
    * Try to acquire a lock and spin-wait until acquired.
@@ -43,5 +43,4 @@ import org.vmmagic.pragma.Uninterruptible;
    * Release the lock by incrementing serving counter.
    */
   public abstract void release();
-
 }

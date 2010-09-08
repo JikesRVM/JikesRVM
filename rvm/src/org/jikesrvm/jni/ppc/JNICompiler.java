@@ -389,24 +389,16 @@ public abstract class JNICompiler
 
     // CHECK EXCEPTION AND BRANCH TO ATHROW CODE OR RETURN NORMALLY
 
-    asm.emitLAddrOffset(T2,
-                        S0,
-                        Entrypoints.JNIPendingExceptionField.getOffset());   // get pending exception from JNIEnv
-    asm.emitLVAL(T3, 0);                   // get a null value to compare
-    asm.emitSTAddrOffset(T3,
-                         S0,
-                         Entrypoints.JNIPendingExceptionField.getOffset()); // clear the current pending exception
-    asm.emitCMPAddr(T2, T3);
+    asm.emitLIntOffset(T2, S0, Entrypoints.JNIHasPendingExceptionField.getOffset());
+    asm.emitLVAL(T3, 0); // get a zero value to compare
+
+    asm.emitCMP(T2, T3);
     ForwardReference fr3 = asm.emitForwardBC(NE);
     asm.emitBCLR();                             // if no pending exception, proceed to return to caller
     fr3.resolve(asm);
 
-    // An exception is pending, deliver the exception to the caller
-    // as if executing an athrow in the caller
-    // at the location of the call to the native method
-    asm.emitLAddrToc(T3, Entrypoints.athrowMethod.getOffset());
-    asm.emitMTCTR(T3);                         // point LR to the exception delivery code
-    asm.emitMR(T0, T2);                        // copy the saved exception to T0
+    asm.emitLAddrToc(T1, Entrypoints.jniThrowPendingException.getOffset()); // T1 gets address of function
+    asm.emitMTCTR(T1);                         // point LR to the exception delivery code
     asm.emitBCCTR();                           // then branch to the exception delivery code, does not return
 
     MachineCode machineCode = asm.makeMachineCode();

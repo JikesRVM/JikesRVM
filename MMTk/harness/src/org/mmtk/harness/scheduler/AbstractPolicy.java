@@ -15,6 +15,9 @@ package org.mmtk.harness.scheduler;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
+
 /**
  * Abstract superclass of scheduling policies.
  */
@@ -27,13 +30,17 @@ public abstract class AbstractPolicy implements Policy {
     }
   }
 
-  AbstractPolicy(Thread thread) {
+  /** Number of times we have yielded */
+  private int yieldCount = 0;
+
+  /** The thread whose pilicy we control */
+  private final Thread thread;
+
+  AbstractPolicy(Thread thread, String name) {
+    Trace.trace(Item.SCHEDULER, "Creating scheduler policy %s", name);
     this.thread = thread;
     policies.add(this);
   }
-
-  private int yieldCount = 0;
-  private final Thread thread;
 
   /**
    * Accumulate statistics

@@ -15,7 +15,7 @@ package org.mmtk.harness.scheduler;
 public class YieldNever extends AbstractPolicy implements Policy {
 
   public YieldNever(Thread thread) {
-    super(thread);
+    super(thread, "YieldNever");
   }
 
   @Override

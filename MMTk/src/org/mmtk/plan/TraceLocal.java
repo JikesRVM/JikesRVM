@@ -75,6 +75,13 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    */
 
   /**
+   * Should reference values be overwritten as the heap is traced?
+   */
+  protected boolean overwriteReferenceDuringTrace() {
+    return true;
+  }
+
+  /**
    * Trace a reference during GC.  This involves determining which
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
@@ -87,7 +94,9 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   public final void processEdge(ObjectReference source, Address slot) {
     ObjectReference object = VM.activePlan.global().loadObjectReference(slot);
     ObjectReference newObject = traceObject(object, false);
-    VM.activePlan.global().storeObjectReference(slot, newObject);
+    if (overwriteReferenceDuringTrace()) {
+      VM.activePlan.global().storeObjectReference(slot, newObject);
+    }
   }
 
   /**
@@ -120,8 +129,10 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
     if (untraced) object = slot.loadObjectReference();
     else     object = VM.activePlan.global().loadObjectReference(slot);
     ObjectReference newObject = traceObject(object, true);
-    if (untraced) slot.store(newObject);
-    else     VM.activePlan.global().storeObjectReference(slot, newObject);
+    if (overwriteReferenceDuringTrace()) {
+      if (untraced) slot.store(newObject);
+      else     VM.activePlan.global().storeObjectReference(slot, newObject);
+    }
   }
 
   /**
@@ -147,7 +158,9 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
         VM.assertions._assert(false);
       }
     }
-    slot.store(newTarget.toAddress().plus(offset));
+    if (overwriteReferenceDuringTrace()) {
+      slot.store(newTarget.toAddress().plus(offset));
+    }
   }
 
   /**
@@ -272,18 +285,6 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
       VM.assertions._assert(false, "No special case for space in traceObject");
     }
     return ObjectReference.nullReference();
-  }
-
-
-  /**
-   * Ensure that this object will not move for the rest of the GC.
-   *
-   * @param object The object that must not move
-   * @return The new object, guaranteed stable for the rest of the GC.
-   */
-  @Inline
-  public ObjectReference precopyObject(ObjectReference object) {
-    return traceObject(object);
   }
 
   /**
@@ -546,26 +547,6 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
       Log.prependThreadId();
       Log.write("    ");
       Log.writeln(message);
-    }
-  }
-
-  /**
-   * Given a slot (ie the address of an ObjectReference), ensure that the
-   * referent will not move for the rest of the GC. This is achieved by
-   * calling the precopyObject method.
-   *
-   * @param slot The slot to check
-   * @param untraced Is this is an untraced reference?
-   */
-  @Inline
-  public final void processPrecopyEdge(Address slot, boolean untraced) {
-    ObjectReference child;
-    if (untraced) child = slot.loadObjectReference();
-    else          child = VM.activePlan.global().loadObjectReference(slot);
-    if (!child.isNull()) {
-      child = precopyObject(child);
-      if (untraced) slot.store(child);
-      else          VM.activePlan.global().storeObjectReference(slot, child);
     }
   }
 }

@@ -119,6 +119,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * @exception Exception
    */
   @UnpreemptibleNoWarn("No point threading until threading is booted")
+  @Entrypoint
   public static void boot() {
     writingBootImage = false;
     runningVM = true;
@@ -2271,7 +2272,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     handlePossibleRecursiveCallToSysFail(message);
 
     // print a traceback and die
-    if(!RVMThread.getCurrentThread().isGCThread()) {
+    if(!RVMThread.getCurrentThread().isCollectorThread()) {
       RVMThread.traceback(message);
     } else {
       VM.sysWriteln("Died in GC:");
@@ -2496,7 +2497,6 @@ public class VM extends Properties implements Constants, ExitStatus {
     }
     RuntimeEntrypoints.init();
     RVMThread.init();
-    MemoryManager.init();
   }
 
   public static void disableYieldpoints() { RVMThread.getCurrentThread().disableYieldpoints(); }

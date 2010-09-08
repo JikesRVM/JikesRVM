@@ -193,13 +193,6 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * @return the active PlanLocal as a GCTraceLocal
-   */
-  public static GCTraceCollector local() {
-    return ((GCTraceCollector) VM.activePlan.collector());
-  }
-
-  /**
    * @return the active Plan as a GCTrace
    */
   public static GCTrace global() {

@@ -17,11 +17,11 @@ import java.util.Collection;
 
 import org.mmtk.harness.lang.Env;
 
-public class TestMutator implements Schedulable {
+public class TestMutator<T> implements Schedulable {
 
-  private final Collection<Object> resultPool;
+  private final Collection<T> resultPool;
 
-  private final Collection<Object> items;
+  private final T[] items;
 
 
   /**
@@ -30,8 +30,7 @@ public class TestMutator implements Schedulable {
    * @param resultPool
    * @param result
    */
-  TestMutator(Collection<Object> resultPool, Collection<Object> items) {
-    super();
+  TestMutator(Collection<T> resultPool, T... items) {
     this.resultPool = resultPool;
     this.items = items;
   }
@@ -41,7 +40,7 @@ public class TestMutator implements Schedulable {
    */
   @Override
   public void execute(Env env) {
-    for (Object item : items) {
+    for (T item : items) {
       resultPool.add(item);
       Scheduler.yield();
     }

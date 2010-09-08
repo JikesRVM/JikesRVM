@@ -19,6 +19,8 @@ import org.mmtk.harness.scheduler.AbstractPolicy;
 import org.mmtk.harness.scheduler.MMTkThread;
 import org.mmtk.harness.vm.*;
 
+import org.mmtk.plan.CollectorContext;
+import org.mmtk.plan.MutatorContext;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
@@ -96,8 +98,6 @@ public class Harness {
   /** Allocate during collection, to simulate JikesRVM thread iterator objects */
   public static final BooleanOption allocDuringCollection = new AllocDuringCollection();
 
-  private static boolean isInitialized = false;
-
   /**
    * Start up the harness, including creating the global plan and constraints,
    * and starting off the collector threads.
@@ -106,11 +106,6 @@ public class Harness {
    * @param args Command-line arguments
    */
   public static void init(String... args) {
-    if (isInitialized) {
-      return;
-    }
-    isInitialized = true;
-
     /* Always use the harness factory */
     System.setProperty("mmtk.hostjvm", Factory.class.getCanonicalName());
 
@@ -144,30 +139,34 @@ public class Harness {
       @Override
       public void run() {
 
-        /* Get MMTk breathing */
-        ActivePlan.init(plan.getValue());
-        ActivePlan.plan.boot();
-        HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
-        Collector.init(collectors.getValue());
+        try {
+          /* Get MMTk breathing */
+          ActivePlan.init(plan.getValue());
+          ActivePlan.plan.boot();
+          HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
 
-        /* Override some defaults */
-        Options.noFinalizer.setValue(true);
-        Options.variableSizeHeap.setValue(false);
+          /* Override some defaults */
+          Options.noFinalizer.setValue(true);
+          Options.variableSizeHeap.setValue(false);
 
-        /* Process command line options */
-        for(String arg: newArgs) {
-          if (!options.process(arg)) {
-            throw new RuntimeException("Invalid option '" + arg + "'");
+          /* Process command line options */
+          for(String arg: newArgs) {
+            if (!options.process(arg)) {
+              throw new RuntimeException("Invalid option '" + arg + "'");
+            }
           }
+
+          /* Check options */
+          assert Options.noFinalizer.getValue(): "noFinalizer must be true";
+
+          /* Finish starting up MMTk */
+          ActivePlan.plan.postBoot();
+          ActivePlan.plan.fullyBooted();
+          Log.flush();
+        } catch (Throwable e) {
+          e.printStackTrace();
+          Main.exitWithFailure();
         }
-
-        /* Check options */
-        assert Options.noFinalizer.getValue(): "noFinalizer must be true";
-
-        /* Finish starting up MMTk */
-        ActivePlan.plan.postBoot();
-        ActivePlan.plan.fullyBooted();
-        Log.flush();
       }
     };
     m.start();
@@ -221,4 +220,28 @@ public class Harness {
     } catch (InterruptedException e) {
     }
   }
+
+  /**
+   * @return A mutator context for the current Plan
+   */
+  public static MutatorContext createMutatorContext() {
+    try {
+      String prefix = plan.getValue();
+      return (MutatorContext)Class.forName(prefix + "Mutator").newInstance();
+    } catch (Exception ex) {
+      throw new RuntimeException("Could not create Mutator", ex);
+    }
+  }
+  /**
+   * @return A mutator context for the current Plan
+   */
+  public static CollectorContext createCollectorContext() {
+    try {
+      String prefix = plan.getValue();
+      return (CollectorContext)Class.forName(prefix + "Collector").newInstance();
+    } catch (Exception ex) {
+      throw new RuntimeException("Could not create Collector", ex);
+    }
+  }
+
 }

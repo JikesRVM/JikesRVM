@@ -28,7 +28,11 @@ public class DeterministicTests {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    Harness.init("scheduler=DETERMINISTIC","schedulerPolicy=FIXED","yieldInterval=1");
+    Harness.init("scheduler=DETERMINISTIC",
+        "schedulerPolicy=FIXED",
+        "yieldInterval=1",
+        "trace=SCHEDULER"
+        );
   }
 
   @Before
@@ -55,10 +59,6 @@ public class DeterministicTests {
 
   @Test
   public void testTwoThreadsTwoItems() {
-    Object a = new Object();
-    Object b = new Object();
-    Object c = new Object();
-    Object d = new Object();
     assertEquals(Arrays.asList("a","c","b","d"),
         new SchedulerTestCases().testTwoThreadsTwoItems("a","b","c","d"));
   }

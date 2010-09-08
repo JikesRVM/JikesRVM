@@ -12,12 +12,13 @@
  */
 package org.mmtk.harness.scheduler;
 
-import org.mmtk.harness.Collector;
 import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.scheduler.javathreads.JavaThreadModel;
 import org.mmtk.harness.scheduler.rawthreads.RawThreadModel;
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.utility.Log;
+import org.mmtk.vm.Monitor;
 
 /**
  * Facade class for the command-line selectable threading models available
@@ -138,10 +139,10 @@ public class Scheduler {
   }
 
   /**
-   * Create and start a new collector thread
+   * Create and start a new collector thread with the given collector context
    */
-  public static void scheduleCollector() {
-    model.scheduleCollector();
+  public static void scheduleCollector(CollectorContext context) {
+    model.scheduleCollector(context);
   }
 
   /**
@@ -151,8 +152,8 @@ public class Scheduler {
    * @param item The schedulable object
    * @return A java thread for the item
    */
-  public static Thread scheduleCollector(Schedulable item) {
-    return model.scheduleCollector(item);
+  public static Thread scheduleCollectorContext(CollectorContext item) {
+    return model.scheduleCollectorContext(item);
   }
 
   /**
@@ -172,49 +173,8 @@ public class Scheduler {
   /**
    * @return The current collector object (if the current thread is a Collector)
    */
-  public static Collector currentCollector() {
+  public static CollectorContext currentCollector() {
     return model.currentCollector();
-  }
-
-  /* schedule GC */
-
-  /**
-   * Request a GC.  Once requested, mutator threads block at
-   * 'waitForGC' until a collection is performed.
-   * @param why Reason code
-   */
-  public static void triggerGC(int why) {
-    model.triggerGC(why);
-  }
-
-  /**
-   * A collector thread informs the scheduler that it has completed
-   * its GC work by calling this.
-   */
-  public static void exitGC() {
-    model.exitGC();
-  }
-
-  /**
-   * Collector threads call this method to wait for a GC to be triggered.
-   */
-  public static void waitForGCStart() {
-    model.waitForGCStart();
-  }
-
-  /**
-   * @see #triggerGC(int)
-   * @return Why was the current GC triggered ?
-   */
-  public static int getTriggerReason() {
-    return model.getTriggerReason();
-  }
-
-  /**
-   * @return Are there no threads currently in GC?
-   */
-  public static boolean noThreadsInGC() {
-    return model.noThreadsInGC();
   }
 
   /**
@@ -222,15 +182,6 @@ public class Scheduler {
    */
   public static boolean gcTriggered() {
     return model.gcTriggered();
-  }
-
-  /**
-   * Collector thread synchronization barrier
-   * @param where Rendezvous ID
-   * @return The order of arrival at the barrier
-   */
-  public static int rendezvous(int where) {
-    return model.rendezvous(where);
   }
 
   public static int mutatorRendezvous(String name, int expected) {
@@ -266,5 +217,37 @@ public class Scheduler {
    */
   public static Lock newLock(String name) {
     return model.newLock(name);
+  }
+
+  /**
+   * Model-specific MMTk Monitor factory
+   * @return A new monitor of the appropriate class
+   */
+  public static Monitor newMonitor(String name) {
+    return model.newMonitor(name);
+  }
+
+  /**
+   * Stop all mutator threads. This is current intended to be run by a single thread.
+   */
+  public static void stopAllMutators() {
+    model.stopAllMutators();
+  }
+
+  /**
+   * Resume all mutators blocked for GC.
+   */
+  public static void resumeAllMutators() {
+    model.resumeAllMutators();
+  }
+
+  /** @return {@code true} if the current thread is a mutator thread */
+  public static boolean isMutator() {
+    return model.isMutator();
+  }
+
+  /** @return {@code true} if the current thread is a mutator thread */
+  public static boolean isCollector() {
+    return model.isCollector();
   }
 }

@@ -12,7 +12,9 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.utility.alloc.Allocator;
+import org.mmtk.vm.VM;
 
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.objectmodel.JavaHeaderConstants;
@@ -21,7 +23,6 @@ import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
@@ -60,13 +61,13 @@ import org.vmmagic.pragma.*;
     int bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), type);
     int align = org.jikesrvm.objectmodel.ObjectModel.getAlignment(type, from.toObject());
     int offset = org.jikesrvm.objectmodel.ObjectModel.getOffsetForAlignment(type, from);
-    Selected.Collector plan = Selected.Collector.get();
-    allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
-    Address region = MemoryManager.allocateSpace(plan, bytes, align, offset,
+    CollectorContext context = VM.activePlan.collector();
+    allocator = context.copyCheckAllocator(from, bytes, align, allocator);
+    Address region = MemoryManager.allocateSpace(context, bytes, align, offset,
                                                 allocator, from);
     Object toObj = org.jikesrvm.objectmodel.ObjectModel.moveObject(region, from.toObject(), bytes, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
-    plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
+    context.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     return to;
   }
 
@@ -76,13 +77,13 @@ import org.vmmagic.pragma.*;
     int bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), type, elements);
     int align = org.jikesrvm.objectmodel.ObjectModel.getAlignment(type, from.toObject());
     int offset = org.jikesrvm.objectmodel.ObjectModel.getOffsetForAlignment(type, from);
-    Selected.Collector plan = Selected.Collector.get();
-    allocator = plan.copyCheckAllocator(from, bytes, align, allocator);
-    Address region = MemoryManager.allocateSpace(plan, bytes, align, offset,
+    CollectorContext context = VM.activePlan.collector();
+    allocator = context.copyCheckAllocator(from, bytes, align, allocator);
+    Address region = MemoryManager.allocateSpace(context, bytes, align, offset,
                                                 allocator, from);
     Object toObj = org.jikesrvm.objectmodel.ObjectModel.moveObject(region, from.toObject(), bytes, type);
     ObjectReference to = ObjectReference.fromObject(toObj);
-    plan.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
+    context.postCopy(to, ObjectReference.fromObject(tib), bytes, allocator);
     if (type == RVMType.CodeArrayType) {
       // sync all moved code arrays to get icache and dcache in sync
       // immediately.

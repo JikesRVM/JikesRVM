@@ -163,18 +163,6 @@ public class CopyMS extends StopTheWorld {
   }
 
   /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + msSpace.requiredPages() +
-      (nurserySpace.requiredPages() << 1);
-  }
-
-  /**
    * Return the expected reference count. For non-reference counting
    * collectors this becomes a true/false relationship.
    *

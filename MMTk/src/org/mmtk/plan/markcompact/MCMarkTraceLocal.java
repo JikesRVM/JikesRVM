@@ -14,9 +14,7 @@ package org.mmtk.plan.markcompact;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
-import org.mmtk.policy.MarkCompactSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -73,30 +71,6 @@ public final class MCMarkTraceLocal extends TraceLocal {
     if (Space.isInSpace(MC.MARK_COMPACT, object))
       return MC.mcSpace.traceMarkObject(this, object);
     return super.traceObject(object);
-  }
-
-  /**
-   * Ensure that this object will not move for the rest of the GC.
-   *
-   * @param object The object that must not move
-   * @return The new object, guaranteed stable for the rest of the GC.
-   */
-  @Inline
-  public ObjectReference precopyObject(ObjectReference object) {
-    if (Space.isInSpace(MC.MARK_COMPACT, object)) {
-      if (MarkCompactSpace.testAndMark(object)) {
-        // TODO: If precopy returns many different objects, this will cause a leak.
-        // Currently, Jikes RVM does not require many objects to be precopied.
-        ObjectReference newObject = VM.objectModel.copy(object, MC.ALLOC_IMMORTAL);
-        MarkCompactSpace.setForwardingPointer(object, newObject);
-        processNode(newObject);
-        return newObject;
-      }
-      // Somebody else got to it first
-      while (MarkCompactSpace.getForwardingPointer(object).isNull());
-      return MarkCompactSpace.getForwardingPointer(object);
-    }
-    return super.precopyObject(object);
   }
 
   /**

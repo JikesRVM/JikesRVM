@@ -14,8 +14,8 @@ package org.jikesrvm.adaptive.measurements.organizers;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.measurements.listeners.Listener;
-import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.Latch;
+import org.jikesrvm.scheduler.SystemThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.NonMoving;
@@ -27,7 +27,7 @@ import org.vmmagic.pragma.NonMoving;
  * instructions given by the controller.
  */
 @NonMoving
-public abstract class Organizer extends RVMThread {
+public abstract class Organizer extends SystemThread {
 
   /** Constructor */
   public Organizer() {

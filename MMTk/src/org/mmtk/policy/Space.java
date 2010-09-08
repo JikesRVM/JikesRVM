@@ -233,9 +233,6 @@ public abstract class Space implements Constants {
   /** CommittedPages getter @return The number of committed pages */
   public final int committedPages() { return pr.committedPages(); }
 
-  /** RequiredPages getter @return The number of required pages */
-  public final int requiredPages() { return pr.requiredPages(); }
-
   /** AvailablePages getter @return The number of pages available for allocation */
   public final int availablePhysicalPages() { return pr.getAvailablePhysicalPages(); }
 
@@ -392,7 +389,7 @@ public abstract class Space implements Constants {
    * failure.
    */
   public final Address acquire(int pages) {
-    boolean allowPoll = !Plan.gcInProgress() && Plan.isInitialized() && !VM.collection.isEmergencyAllocation();
+    boolean allowPoll = VM.activePlan.isMutator() && Plan.isInitialized();
 
     /* First check page budget and poll if necessary */
     if (!pr.reservePages(pages)) {
@@ -407,19 +404,12 @@ public abstract class Space implements Constants {
     Address rtn = pr.getNewPages(pages);
     if (rtn.isZero()) {
       /* Failed, so force a GC */
-      if (VM.collection.isEmergencyAllocation()) {
-        pr.clearRequest(pages);
-        VM.assertions.fail("Failed emergency allocation");
-      }
-      if (!allowPoll) VM.assertions.fail("Physical allocation failed during special (collection/emergency) allocation!");
-      allocationFailed = true;
-      VM.collection.reportPhysicalAllocationFailed();
+      if (!allowPoll) VM.assertions.fail("Physical allocation failed when polling not allowed!");
       VM.activePlan.global().poll(true, this);
       pr.clearRequest(pages);
       return Address.zero();
     }
 
-    if (allowPoll) VM.collection.reportAllocationSuccess();
     return rtn;
   }
 

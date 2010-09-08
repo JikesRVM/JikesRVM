@@ -12,6 +12,14 @@
  */
 package org.mmtk.harness.scheduler;
 
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
+
+/**
+ * A scheduler policy that
+ * @author rgarner
+ *
+ */
 public class YieldEvery extends AbstractPolicy implements Policy {
 
   private final int frequency;
@@ -23,8 +31,9 @@ public class YieldEvery extends AbstractPolicy implements Policy {
   }
 
   public YieldEvery(Thread thread, int frequency) {
-    super(thread);
+    super(thread, "YieldEvery");
     this.frequency = frequency;
+    Trace.trace(Item.SCHEDULER, "  yield interval %d", frequency);
   }
 
   @Override

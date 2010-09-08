@@ -12,9 +12,6 @@
  */
 package org.mmtk.harness.scheduler.rawthreads;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.vmmagic.pragma.Uninterruptible;
@@ -28,7 +25,7 @@ public class RawLock extends org.mmtk.harness.scheduler.Lock {
   private boolean isHeld = false;
   private final RawThreadModel model;
 
-  private List<RawThread> waitList = new ArrayList<RawThread>();
+  private final ThreadQueue waitList = new ThreadQueue(name);
 
   /** Create a new lock (with given name) */
   public RawLock(RawThreadModel model, String name) {

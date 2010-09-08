@@ -85,14 +85,4 @@ import org.vmmagic.pragma.*;
   public final void dumpStack() {
     RVMThread.dumpStack();
   }
-
-  /**
-   * Checks if the virtual machine is running.  This value changes, so
-   * the call-through to the VM must be a method.  In Jikes RVM, just
-   * returns VM.runningVM.
-   *
-   * @return <code>true</code> if the virtual machine is running
-   */
-  public final boolean runningVM() { return VM.runningVM; }
-
 }

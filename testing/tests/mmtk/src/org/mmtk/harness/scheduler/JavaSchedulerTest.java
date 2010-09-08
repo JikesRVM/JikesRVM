@@ -59,7 +59,7 @@ public class JavaSchedulerTest {
 
   @Test
   public void testTwoThreadsTwoItems() {
-    List<Object> result = new SchedulerTestCases().testTwoThreadsTwoItems("a", "b", "c", "d");
+    List<String> result = new SchedulerTestCases().testTwoThreadsTwoItems("a", "b", "c", "d");
     assertEquals(setOf("a","b","c","d"),setOf(result));
     assertTrue(result.indexOf("a") < result.indexOf("b"));
     assertTrue(result.indexOf("c") < result.indexOf("d"));
@@ -72,5 +72,4 @@ public class JavaSchedulerTest {
   private <T> Set<T> setOf(Collection<T> items) {
     return new HashSet<T>(items);
   }
-
 }

@@ -23,6 +23,8 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.NonMoving;
+import org.vmmagic.pragma.NonMovingAllocation;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.Untraced;
@@ -34,6 +36,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A JNIEnvironment is created for each Java thread.
  */
+@NonMoving
 public final class JNIEnvironment implements SizeConstants {
 
   /**
@@ -112,33 +115,19 @@ public final class JNIEnvironment implements SizeConstants {
    * native frames by knowing their return addresses are outside of our heaps
    */
   @Entrypoint
-  protected Address JNITopJavaFP;
+  private  Address JNITopJavaFP;
 
   /**
    * Currently pending exception (null if none)
    */
-  @Entrypoint
-  @Untraced
-  protected Throwable pendingException;
-
-  /**
-   * We allocate JNIEnvironments in the immortal heap (so we
-   * can hand them directly to C code).  Therefore, we must do some
-   * kind of pooling of JNIEnvironment instances.
-   * This is the free list of unused instances.
-   */
-  protected JNIEnvironment next;
-
-  /**
-   * Pool of available JNIEnvironments.
-   */
-  protected static JNIEnvironment pool;
+  private Throwable pendingException;
+  private int hasPendingException;
 
   /**
    * true if the bottom stack frame is native,
    * such as thread for CreateJVM or AttachCurrentThread
    */
-  protected boolean alwaysHasNativeFrame;
+  private  boolean alwaysHasNativeFrame;
 
   /**
    * references passed to native code
@@ -146,6 +135,7 @@ public final class JNIEnvironment implements SizeConstants {
   @Entrypoint
   @Untraced
   public AddressArray JNIRefs;
+  private AddressArray JNIRefsShadow;
 
   /**
    * Offset of current top ref in JNIRefs array
@@ -169,44 +159,13 @@ public final class JNIEnvironment implements SizeConstants {
   /**
    * Initialize a thread specific JNI environment.
    */
-  protected void initializeState() {
-    JNIRefs = AddressArray.create(JNIREFS_ARRAY_LENGTH + JNIREFS_FUDGE_LENGTH);
+  @NonMovingAllocation
+  public JNIEnvironment() {
+    JNIRefs = JNIRefsShadow = AddressArray.create(JNIREFS_ARRAY_LENGTH + JNIREFS_FUDGE_LENGTH);
     JNIRefsTop = 0;
     JNIRefsSavedFP = 0;
     JNIRefsMax = (JNIREFS_ARRAY_LENGTH - 1) << LOG_BYTES_IN_ADDRESS;
     alwaysHasNativeFrame = false;
-  }
-
-  /*
-   * Allocation and pooling
-   */
-
-  /**
-   * Create a thread specific JNI environment.
-   */
-  public static synchronized JNIEnvironment allocateEnvironment() {
-    JNIEnvironment env;
-    if (pool != null) {
-      env = pool;
-      pool = pool.next;
-    } else {
-      env = new JNIEnvironment();
-    }
-    env.initializeState();
-    return env;
-  }
-
-  /**
-   * Return a thread-specific JNI environment; must be called as part of
-   * terminating a thread that has a JNI environment allocated to it.
-   * @param env the JNIEnvironment to deallocate
-   */
-  @Unpreemptible("Deallocate environment but may contend with environment being allocated")
-  public static synchronized void deallocateEnvironment(JNIEnvironment env) {
-    env.savedTRreg = null; /* make sure that we don't have a reference back to
-                              the thread, once the thread has died. */
-    env.next = pool;
-    pool = env;
   }
 
   /*
@@ -287,15 +246,22 @@ public final class JNIEnvironment implements SizeConstants {
       JNIRefsTop += BYTES_IN_ADDRESS;
       if (JNIRefsTop >= JNIRefsMax) {
         JNIRefsMax *= 2;
-        AddressArray newrefs = AddressArray.create((JNIRefsMax >> LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH);
-        for (int i = 0; i < JNIRefs.length(); i++) {
-          newrefs.set(i, JNIRefs.get(i));
-        }
-        JNIRefs = newrefs;
+        replaceJNIRefs(AddressArray.create((JNIRefsMax >> LOG_BYTES_IN_ADDRESS) + JNIREFS_FUDGE_LENGTH));
       }
       JNIRefs.set(JNIRefsTop >> LOG_BYTES_IN_ADDRESS, Magic.objectAsAddress(ref));
       return JNIRefsTop;
     }
+  }
+
+  /**
+   * Atomically copy and install a new JNIRefArray
+   */
+  @Uninterruptible
+  private void replaceJNIRefs(AddressArray newrefs) {
+    for (int i = 0; i < JNIRefs.length(); i++) {
+      newrefs.set(i, JNIRefs.get(i));
+    }
+    JNIRefs = JNIRefsShadow = newrefs;
   }
 
   /**
@@ -395,12 +361,10 @@ public final class JNIEnvironment implements SizeConstants {
     }
 
     // Throw and clear any pending exceptions
-    Throwable pe = pendingException;
-    if (pe != null) {
-      pendingException = null;
-      RuntimeEntrypoints.athrow(pe);
-      // NB. we will never reach here
+    if (pendingException != null) {
+      throwPendingException();
     }
+
     // Lookup result
     Object result;
     if (offset == 0) {
@@ -487,7 +451,22 @@ public final class JNIEnvironment implements SizeConstants {
     // don't overwrite the first exception except to clear it
     if (pendingException == null || e == null) {
       pendingException = e;
+      hasPendingException = (e != null) ? 1 : 0;
     }
+  }
+
+  /**
+   * Return and clear the (known to be non-null) pending exception.
+   */
+  @Entrypoint
+  @Unpreemptible
+  public static void throwPendingException() {
+    JNIEnvironment me = RVMThread.getCurrentThread().getJNIEnv();
+    if (VM.VerifyAssertions) VM._assert(me.pendingException != null);
+    Throwable pe = me.pendingException;
+    me.pendingException = null;
+    me.hasPendingException = 0;
+    RuntimeEntrypoints.athrow(pe);
   }
 
   /**

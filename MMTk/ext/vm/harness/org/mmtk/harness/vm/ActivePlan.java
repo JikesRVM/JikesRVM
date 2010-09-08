@@ -14,7 +14,7 @@ package org.mmtk.harness.vm;
 
 import java.util.concurrent.BlockingQueue;
 
-import org.mmtk.harness.Collector;
+import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.Mutators;
 import org.mmtk.harness.scheduler.Scheduler;
@@ -31,7 +31,6 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public final class ActivePlan extends org.mmtk.vm.ActivePlan {
-
   /**
    * Initialise static state
    * @param prefix The name of the plan class (prefix for the associated classes)
@@ -65,7 +64,7 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   /** @return The active <code>CollectorContext</code> instance. */
   @Override
-  public CollectorContext collector() { return Collector.current().getContext(); };
+  public CollectorContext collector() { return Scheduler.currentCollector(); };
 
   /** @return The active <code>MutatorContext</code> instance. */
   @Override
@@ -77,7 +76,7 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   /** @return The number of registered <code>CollectorContext</code> instances. */
   @Override
-  public int collectorCount() { return Collector.count(); }
+  public int collectorCount() { return Harness.collectors.getValue(); }
 
   private BlockingQueue<Mutator> mutators = null;
 
@@ -103,4 +102,10 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
     Mutator m = mutators.poll();
     return m == null ? null : m.getContext();
   }
+
+  @Override
+  public boolean isMutator() {
+    return Scheduler.isMutator();
+  }
 }
+

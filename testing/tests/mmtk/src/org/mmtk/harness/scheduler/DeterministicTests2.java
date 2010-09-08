@@ -55,10 +55,6 @@ public class DeterministicTests2 {
 
   @Test
   public void testTwoThreadsTwoItems() {
-    Object a = new Object();
-    Object b = new Object();
-    Object c = new Object();
-    Object d = new Object();
     assertEquals(Arrays.asList("a","b","c","d"),
         new SchedulerTestCases().testTwoThreadsTwoItems("a","b","c","d"));
   }

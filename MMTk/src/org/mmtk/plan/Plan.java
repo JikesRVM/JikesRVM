@@ -30,8 +30,6 @@ import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.statistics.Stats;
 
 import org.mmtk.vm.VM;
-import org.mmtk.vm.Collection;
-
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -73,7 +71,6 @@ public abstract class Plan implements Constants {
 
   /* Space Size Constants. */
   public static final boolean USE_CODE_SPACE = true;
-  public static final float PLOS_FRAC = 0.07f;
   public static final int HEAP_FULL_MINIMUM = (1 << 17) >> LOG_BYTES_IN_PAGE; // 128K
   public static final int HEAP_FULL_PERCENTAGE = 2;
 
@@ -100,14 +97,12 @@ public abstract class Plan implements Constants {
   public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
-  public static final int MAX_COLLECTION_ATTEMPTS = 10;
  // public static final boolean REQUIRES_LOS = VM.activePlan.constraints().requiresLOS();
   public static final int MAX_NON_LOS_DEFAULT_ALLOC_BYTES = VM.activePlan.constraints().maxNonLOSDefaultAllocBytes();
   public static final int MAX_NON_LOS_NONMOVING_ALLOC_BYTES = VM.activePlan.constraints().maxNonLOSNonMovingAllocBytes();
   public static final int MAX_NON_LOS_COPY_BYTES = VM.activePlan.constraints().maxNonLOSCopyBytes();
 
-
-/* Do we support a log bit in the object header?  Some write barriers may use it */
+  /* Do we support a log bit in the object header?  Some write barriers may use it */
   public static final boolean NEEDS_LOG_BIT_IN_HEADER = VM.activePlan.constraints().needsLogBitInHeader();
 
   /****************************************************************************
@@ -148,14 +143,14 @@ public abstract class Plan implements Constants {
   /** Timer that counts total time */
   public static final Timer totalTime = new Timer("time");
 
-  /** Support for time-limited GCs */
-  protected static long timeCap;
-
   /** Support for allocation-site identification */
   protected static int allocationSiteCount = 0;
 
   /** Global sanity checking state **/
   public static final SanityChecker sanityChecker = new SanityChecker();
+
+  /** Default collector context */
+  protected final Class<? extends ParallelCollector> defaultCollectorContext;
 
   /****************************************************************************
    * Constructor.
@@ -177,8 +172,24 @@ public abstract class Plan implements Constants {
     Options.sanityCheck = new SanityCheck();
     Options.debugAddress = new DebugAddress();
     Options.perfEvents = new PerfEvents();
+    Options.threads = new Threads();
     Map.finalizeStaticSpaceMap();
     registerSpecializedMethods();
+
+    // Determine the default collector context.
+    Class<? extends Plan> mmtkPlanClass = this.getClass().asSubclass(Plan.class);
+    while(!mmtkPlanClass.getName().startsWith("org.mmtk.plan")) {
+      mmtkPlanClass = mmtkPlanClass.getSuperclass().asSubclass(Plan.class);
+    }
+    String contextClassName = mmtkPlanClass.getName() + "Collector";
+    Class<? extends ParallelCollector> mmtkCollectorClass = null;
+    try {
+      mmtkCollectorClass = Class.forName(contextClassName).asSubclass(ParallelCollector.class);
+    } catch (Throwable t) {
+      t.printStackTrace();
+      System.exit(-1);
+    }
+    defaultCollectorContext = mmtkCollectorClass;
   }
 
   /****************************************************************************
@@ -217,9 +228,29 @@ public abstract class Plan implements Constants {
    */
   @Interruptible
   public void fullyBooted() {
-    initialized = true;
     if (Options.harnessAll.getValue()) harnessBegin();
+
+    // Make sure that if we have not explicitly set threads, then we use the right default.
+    Options.threads.updateDefaultValue(VM.collection.getDefaultThreads());
+
+    // Create our parallel workers
+    parallelWorkers.initGroup(Options.threads.getValue(), defaultCollectorContext);
+
+    // Create the concurrent worker threads.
+    if (VM.activePlan.constraints().needsConcurrentWorkers()) {
+      concurrentWorkers.initGroup(Options.threads.getValue(), defaultCollectorContext);
+    }
+
+    // Create our control thread.
+    VM.collection.spawnCollectorContext(controlCollectorContext);
+
+    // We are now initialized.
+    initialized = true;
   }
+
+  public static final ParallelCollectorGroup parallelWorkers = new ParallelCollectorGroup("ParallelWorkers");
+  public static final ParallelCollectorGroup concurrentWorkers = new ParallelCollectorGroup("ConcurrentWorkers");
+  public static final ControllerCollectorContext controlCollectorContext = new ControllerCollectorContext(parallelWorkers);
 
   /**
    * The VM is about to exit. Perform any clean up operations.
@@ -290,7 +321,6 @@ public abstract class Plan implements Constants {
     VM.assertions.fail("replacePhase not implemented for this plan");
   }
 
-
   /**
    * Insert a phase.
    *
@@ -322,15 +352,6 @@ public abstract class Plan implements Constants {
    */
   public static boolean isEmergencyCollection() {
     return emergencyCollection;
-  }
-
-  /**
-   * @return True if we have run out of heap space.
-   */
-  public final boolean lastCollectionFailed() {
-    return !(collectionTrigger == Collection.EXTERNAL_GC_TRIGGER ||
-             collectionTrigger == Collection.INTERNAL_PHASE_GC_TRIGGER) &&
-      (getPagesAvail() < getHeapFullThreshold() || getPagesAvail() < requiredAtStart);
   }
 
   /**
@@ -387,41 +408,20 @@ public abstract class Plan implements Constants {
    * GC State
    */
 
-  protected static int requiredAtStart;
-  protected static int collectionTrigger;
+  protected static boolean userTriggeredCollection;
+  protected static boolean internalTriggeredCollection;
+  protected static boolean lastInternalTriggeredCollection;
   protected static boolean emergencyCollection;
-  protected static boolean awaitingAsyncCollection;
   protected static boolean stacksPrepared;
 
   private static boolean initialized = false;
-  private static boolean collectionTriggered;
+
   @Entrypoint
   private static int gcStatus = NOT_IN_GC; // shared variable
 
   /** @return Is the memory management system initialized? */
   public static boolean isInitialized() {
     return initialized;
-  }
-
-  /**
-   * Has collection has triggered?
-   */
-  public static boolean isCollectionTriggered() {
-    return collectionTriggered;
-  }
-
-  /**
-   * Set that a collection has been triggered.
-   */
-  public static void setCollectionTriggered() {
-    collectionTriggered = true;
-  }
-
-  /**
-   * A collection has fully completed.  Clear the triggered flag.
-   */
-  public static void collectionComplete() {
-    collectionTriggered = false;
   }
 
   /**
@@ -564,10 +564,54 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * Set the collection trigger.
+   * The application code has requested a collection.
    */
-  public static void setCollectionTrigger(int trigger) {
-    collectionTrigger = trigger;
+  @Unpreemptible
+  public static void handleUserCollectionRequest() {
+    if (Options.ignoreSystemGC.getValue()) {
+      // Ignore the user GC request.
+      return;
+    }
+    // Mark this as a user triggered collection
+    userTriggeredCollection = true;
+    // Request the collection
+    controlCollectorContext.request();
+    // Wait for the collection to complete
+    VM.collection.blockForGC();
+  }
+
+  /**
+   * MMTK has requested stop-the-world activity (e.g., stw within a concurrent gc).
+   */
+  @Unpreemptible
+  public static void triggerInternalCollectionRequest() {
+    // Mark this as a user triggered collection
+    internalTriggeredCollection = lastInternalTriggeredCollection = true;
+    // Request the collection
+    controlCollectorContext.request();
+  }
+
+  /**
+   * Reset collection state information.
+   */
+  public static void resetCollectionTrigger() {
+    lastInternalTriggeredCollection = internalTriggeredCollection;
+    internalTriggeredCollection = false;
+    userTriggeredCollection = false;
+  }
+
+  /**
+   * @return True if this collection was triggered by application code.
+   */
+  public static boolean isUserTriggeredCollection() {
+    return userTriggeredCollection;
+  }
+
+  /**
+   * @return True if this collection was triggered internally.
+   */
+  public static boolean isInternalTriggeredCollection() {
+    return lastInternalTriggeredCollection;
   }
 
   /****************************************************************************
@@ -659,7 +703,6 @@ public abstract class Plan implements Constants {
     return Conversions.pagesToBytes(VM.activePlan.global().getPagesUsed());
   }
 
-
   /**
    * Return the amount of <i>memory in use</i>, in bytes.  Note that
    * this includes unused memory that is held in reserve for copying,
@@ -736,22 +779,8 @@ public abstract class Plan implements Constants {
    * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
-    return loSpace.reservedPages() +
-           immortalSpace.reservedPages() + metaDataSpace.reservedPages() +
-           nonMovingSpace.reservedPages();
-  }
-
-  /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return loSpace.requiredPages() +
-      metaDataSpace.requiredPages() + immortalSpace.requiredPages() +
-      nonMovingSpace.requiredPages();
+    return loSpace.reservedPages() + immortalSpace.reservedPages() +
+      metaDataSpace.reservedPages() + nonMovingSpace.reservedPages();
   }
 
   /**
@@ -762,27 +791,6 @@ public abstract class Plan implements Constants {
     int threshold = (getTotalPages() * HEAP_FULL_PERCENTAGE) / 100;
     if (threshold < HEAP_FULL_MINIMUM) threshold = HEAP_FULL_MINIMUM;
     return threshold;
-  }
-
-  /**
-   * Return the number of metadata pages reserved for use given the pending
-   * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
-   */
-  public int getMetaDataPagesUsed() {
-    return metaDataSpace.reservedPages();
-  }
-
-  /**
-   * Return the cycle time at which this GC should complete.
-   *
-   * @return The time cap for this GC (i.e. the time by which it
-   * should complete).
-   */
-  public static long getTimeCap() {
-    return timeCap;
   }
 
   /****************************************************************************
@@ -826,17 +834,6 @@ public abstract class Plan implements Constants {
    */
   @LogicallyUninterruptible
   public final boolean poll(boolean spaceFull, Space space) {
-    if (isCollectionTriggered()) {
-      if (space == metaDataSpace) {
-        /* This is not, in general, in a GC safe point. */
-        return false;
-      }
-      /* Someone else initiated a collection, we should join it */
-      logPoll(space, "Joining collection");
-      VM.collection.joinCollection();
-      return true;
-    }
-
     if (collectionRequired(spaceFull)) {
       if (space == metaDataSpace) {
         /* In general we must not trigger a GC on metadata allocation since
@@ -844,46 +841,29 @@ public abstract class Plan implements Constants {
          * an asynchronous GC, which will occur at the next safe point.
          */
         logPoll(space, "Asynchronous collection requested");
-        setAwaitingAsyncCollection();
+        controlCollectorContext.request();
         return false;
       }
       logPoll(space, "Triggering collection");
-      VM.collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      controlCollectorContext.request();
+      VM.collection.blockForGC();
       return true;
     }
 
     if (concurrentCollectionRequired()) {
-      logPoll(space, "Triggering collection");
-      VM.collection.triggerCollection(Collection.INTERNAL_PHASE_GC_TRIGGER);
-      return true;
+      if (space == metaDataSpace) {
+        logPoll(space, "Triggering async concurrent collection");
+        triggerInternalCollectionRequest();
+        return false;
+      } else {
+        logPoll(space, "Triggering concurrent collection");
+        triggerInternalCollectionRequest();
+        VM.collection.blockForGC();
+        return true;
+      }
     }
 
     return false;
-  }
-
-  /**
-   * Check whether an asynchronous collection is pending.<p>
-   *
-   * This is decoupled from the poll() mechanism because the
-   * triggering of asynchronous collections can trigger write
-   * barriers, which can trigger an asynchronous collection.  Thus, if
-   * the triggering were tightly coupled with the request to alloc()
-   * within the write buffer code, then inifinite regress could
-   * result.  There is no race condition in the following code since
-   * there is no harm in triggering the collection more than once,
-   * thus it is unsynchronized.
-   */
-  @Inline
-  public static void checkForAsyncCollection() {
-    if (awaitingAsyncCollection && VM.collection.noThreadsInGC()) {
-      awaitingAsyncCollection = false;
-      VM.collection.triggerAsyncCollection(Collection.RESOURCE_GC_TRIGGER);
-    }
-  }
-
-  /** Request an async GC */
-  protected static void setAwaitingAsyncCollection() {
-    awaitingAsyncCollection = true;
   }
 
   /**
@@ -891,8 +871,8 @@ public abstract class Plan implements Constants {
    * @param space
    * @param message
    */
-  private void logPoll(Space space, String message) {
-    if (Options.verbose.getValue() >= 3) {
+  protected void logPoll(Space space, String message) {
+    if (Options.verbose.getValue() >= 5) {
       Log.write("  [POLL] ");
       Log.write(space.getName());
       Log.write(": ");
@@ -971,9 +951,8 @@ public abstract class Plan implements Constants {
   /**
    * Register specialized methods.
    */
-   @Interruptible
-  protected void registerSpecializedMethods() {
-  }
+  @Interruptible
+  protected void registerSpecializedMethods() {}
 
   /**
    * Get the specialized scan with the given id.

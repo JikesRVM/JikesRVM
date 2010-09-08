@@ -19,8 +19,6 @@ import org.mmtk.harness.lang.runtime.PhantomReferenceValue;
 import org.mmtk.harness.lang.runtime.SoftReferenceValue;
 import org.mmtk.harness.lang.runtime.WeakReferenceValue;
 import org.mmtk.harness.scheduler.Scheduler;
-import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
 
 /**************************************************************************
  *
@@ -33,7 +31,7 @@ public class Intrinsics {
    * @param env Thread-local environment (language-dependent mutator context)
    */
   public static void gc(Env env) {
-    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+//    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
   }
 
   /**

@@ -48,7 +48,6 @@ public final class MethodSampleOrganizer extends Organizer {
    */
   public MethodSampleOrganizer(int filterOptLevel) {
     this.filterOptLevel = filterOptLevel;
-    makeDaemon(true);
   }
 
   /**
