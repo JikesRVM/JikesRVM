@@ -193,28 +193,32 @@ public abstract class Plan implements Constants {
   }
 
   /****************************************************************************
-   * Boot.
+   * The complete boot Sequence is:
+   *
+   *  1. enableAllocation: allow allocation (but not collection).
+   *  2. processOptions  : the VM has parsed/prepared options for MMTk to react to.
+   *  3. enableCollection: the VM can support the spawning of MMTk collector contexts.
+   *  4. fullyBooted     : control is just about to be given to application code.
    */
 
   /**
-   * The boot method is called early in the boot process before any
+   * The enableAllocation method is called early in the boot process to allow
    * allocation.
    */
   @Interruptible
-  public void boot() {
+  public void enableAllocation() {
   }
 
   /**
-   * The postBoot method is called by the runtime immediately after
-   * command-line arguments are available.  Note that allocation must
-   * be supported prior to this point because the runtime
-   * infrastructure may require allocation in order to parse the
-   * command line arguments.  For this reason all plans should operate
-   * gracefully on the default minimum heap size until the point that
-   * boot is called.
+   * The processOptions method is called by the runtime immediately after
+   * command-line arguments are available. Allocation must be supported
+   * prior to this point because the runtime infrastructure may require
+   * allocation in order to parse the command line arguments.  For this
+   * reason all plans should operate gracefully on the default minimum
+   * heap size until the point that processOptions is called.
    */
   @Interruptible
-  public void postBoot() {
+  public void processOptions() {
     VM.statistics.perfEventInit(Options.perfEvents.getValue());
     if (Options.verbose.getValue() > 2) Space.printVMMap();
     if (Options.verbose.getValue() > 3) VM.config.printConfig();
@@ -223,13 +227,11 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * The fullyBooted method is called by the runtime just before normal
-   * execution commences.
+   * The enableCollection method is called by the runtime after it is
+   * safe to spawn collector contexts and allow garbage collection.
    */
   @Interruptible
-  public void fullyBooted() {
-    if (Options.harnessAll.getValue()) harnessBegin();
-
+  public void enableCollection() {
     // Make sure that if we have not explicitly set threads, then we use the right default.
     Options.threads.updateDefaultValue(VM.collection.getDefaultThreads());
 
@@ -244,8 +246,13 @@ public abstract class Plan implements Constants {
     // Create our control thread.
     VM.collection.spawnCollectorContext(controlCollectorContext);
 
-    // We are now initialized.
+    // Allow mutators to trigger collection.
     initialized = true;
+  }
+
+  @Interruptible
+  public void fullyBooted() {
+    if (Options.harnessAll.getValue()) harnessBegin();
   }
 
   public static final ParallelCollectorGroup parallelWorkers = new ParallelCollectorGroup("ParallelWorkers");

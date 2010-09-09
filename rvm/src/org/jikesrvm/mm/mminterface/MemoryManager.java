@@ -109,7 +109,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
     Mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
-    Selected.Plan.get().boot();
+    Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     Monitor.boot();
     booted = true;
@@ -122,7 +122,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void postBoot() {
-    Selected.Plan.get().postBoot();
+    Selected.Plan.get().processOptions();
 
     if (Options.noReferenceTypes.getValue()) {
       RVMType.JavaLangRefReferenceReferenceField.makeTraced();
@@ -132,6 +132,14 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
       // start the GCSpy interpreter server
       MemoryManager.startGCspyServer();
     }
+  }
+
+  /**
+   * Allow collection (assumes threads can be created).
+   */
+  @Interruptible
+  public static void enableCollection() {
+    Selected.Plan.get().enableCollection();
   }
 
   /**

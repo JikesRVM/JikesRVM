@@ -275,6 +275,9 @@ public class VM extends Properties implements Constants, ExitStatus {
     RVMThread.boot();
     DynamicLibrary.boot();
 
+    if (verboseBoot >= 1) VM.sysWriteln("Enabling GC");
+    MemoryManager.enableCollection();
+
     if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
     RVMThread.getCurrentThread().setupBootJavaThread();
 

@@ -142,7 +142,7 @@ public class Harness {
         try {
           /* Get MMTk breathing */
           ActivePlan.init(plan.getValue());
-          ActivePlan.plan.boot();
+          ActivePlan.plan.enableAllocation();
           HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
 
           /* Override some defaults */
@@ -160,7 +160,8 @@ public class Harness {
           assert Options.noFinalizer.getValue(): "noFinalizer must be true";
 
           /* Finish starting up MMTk */
-          ActivePlan.plan.postBoot();
+          ActivePlan.plan.processOptions();
+          ActivePlan.plan.enableCollection();
           ActivePlan.plan.fullyBooted();
           Log.flush();
         } catch (Throwable e) {

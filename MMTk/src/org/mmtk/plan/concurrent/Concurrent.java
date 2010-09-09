@@ -95,12 +95,16 @@ public abstract class Concurrent extends Simple {
    */
 
   /**
-   * The boot method is called early in the boot process before any
-   * allocation.
+   * The processOptions method is called by the runtime immediately after
+   * command-line arguments are available. Allocation must be supported
+   * prior to this point because the runtime infrastructure may require
+   * allocation in order to parse the command line arguments.  For this
+   * reason all plans should operate gracefully on the default minimum
+   * heap size until the point that processOptions is called.
    */
   @Interruptible
-  public void postBoot() {
-    super.postBoot();
+  public void processOptions() {
+    super.processOptions();
 
     /* Set up the concurrent marking phase */
     replacePhase(Phase.scheduleCollector(CLOSURE), Phase.scheduleComplex(concurrentClosure));
