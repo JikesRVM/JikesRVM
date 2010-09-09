@@ -613,6 +613,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param isHot is this a request for hot code space allocation?
    * @return The  array
    */
+  @NoInline
   @Interruptible
   public static CodeArray allocateCode(int numInstrs, boolean isHot) {
     RVMArray type = RVMType.CodeArrayType;
@@ -631,7 +632,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param bytes    The number of bytes to allocate
    * @return The stack
    */
-  @Inline
+  @NoInline
   @Unpreemptible
   public static byte[] newStack(int bytes) {
     if (!VM.runningVM) {
@@ -660,7 +661,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @param size The size of the array
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static WordArray newNonMovingWordArray(int size) {
     if (!VM.runningVM) {
@@ -690,7 +691,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @param size The size of the array
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static double[] newNonMovingDoubleArray(int size) {
     if (!VM.runningVM) {
@@ -720,7 +721,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @param size The size of the array
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static int[] newNonMovingIntArray(int size) {
     if (!VM.runningVM) {
@@ -750,7 +751,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @param size The size of the array
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static short[] newNonMovingShortArray(int size) {
     if (!VM.runningVM) {
@@ -781,7 +782,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param numVirtualMethods the number of virtual method slots in the TIB
    * @return the new TIB
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static TIB newTIB(int numVirtualMethods) {
     int size = TIB.computeSize(numVirtualMethods);
@@ -798,7 +799,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @return the new IMT
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static IMT newIMT() {
     if (!VM.runningVM) {
@@ -814,7 +815,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param size the number of slots in the ITable
    * @return the new ITable
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static ITable newITable(int size) {
     if (!VM.runningVM) {
@@ -830,7 +831,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param size the number of slots in the ITableArray
    * @return the new ITableArray
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static ITableArray newITableArray(int size) {
     if (!VM.runningVM) {
@@ -846,7 +847,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param size The size of the table.
    * @return the newly allocated table
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static Object newRuntimeTable(int size, RVMType type) {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
