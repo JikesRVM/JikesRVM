@@ -44,18 +44,21 @@ public abstract class Allocator implements Constants {
   /** Lock used for out of memory handling */
   private static Lock oomLock = VM.newLock("OOM Lock");
   /** Has an allocation succeeded since the emergency collection? */
-  private static boolean allocationSuccess;
+  private static volatile boolean allocationSuccess;
   /** Maximum number of failed attempts by a single thread */
-  private static int maxCollectionAttempts;
+  private static int collectionAttempts;
 
   /**
-   * @return the highest consecutive failure count for any allocating thread.
+   * @return a consecutive failure count for any allocating thread.
    */
-  public static int getAndClearMaxCollectionAttempts() {
-    int result = maxCollectionAttempts;
-    allocationSuccess = false;
-    maxCollectionAttempts = 1;
-    return result;
+  public static int determineCollectionAttempts() {
+    if (!allocationSuccess) {
+      collectionAttempts++;
+    } else {
+      allocationSuccess = false;
+      collectionAttempts = 1;
+    }
+    return collectionAttempts;
   }
 
   /**
@@ -250,11 +253,7 @@ public abstract class Allocator implements Constants {
   public final Address allocSlowInline(int bytes, int alignment, int offset) {
     Allocator current = this;
     Space space = current.getSpace();
-    int attempts = 0;
     while (true) {
-      // Information about the previous collection.
-      boolean emergencyCollection = Plan.isEmergencyCollection();
-
       // Try to allocate using the slow path
       Address result = current.allocSlowOnce(bytes, alignment, offset);
 
@@ -264,9 +263,12 @@ public abstract class Allocator implements Constants {
         return result;
       }
 
+      // Information about the previous collection.
+      boolean emergencyCollection = Plan.isEmergencyCollection();
+
       if (!result.isZero()) {
         // Report allocation success to assist OutOfMemory handling.
-        if (emergencyCollection) {
+        if (!allocationSuccess) {
           oomLock.acquire();
           allocationSuccess = true;
           oomLock.release();
@@ -274,28 +276,17 @@ public abstract class Allocator implements Constants {
         return result;
       }
 
-      // Allocation failed!
-      if (!Plan.isInternalTriggeredCollection()) attempts++;
-
-      if (attempts > 1) {
-        if (emergencyCollection) {
-          // Check if we are in an OutOfMemory situation
-          oomLock.acquire();
-          boolean failWithOOM = !allocationSuccess;
-          oomLock.release();
-          if (failWithOOM) {
-            // Nobody has successfully allocated since an emergency collection: OutOfMemory
-            VM.collection.outOfMemory();
-            VM.assertions.fail("Not Reached");
-            return Address.zero();
-          }
-        } else {
-          // Do we need to escalate the failure count?
-          oomLock.acquire();
-          if (attempts > maxCollectionAttempts) {
-            maxCollectionAttempts = attempts;
-          }
-          oomLock.release();
+      if (emergencyCollection) {
+        // Check if we are in an OutOfMemory situation
+        oomLock.acquire();
+        boolean failWithOOM = !allocationSuccess;
+        //Log.prependThreadId();Log.write(" allocation failed in emergency, failWithOOM = ");Log.writeln(failWithOOM ? "1" : "0");
+        oomLock.release();
+        if (failWithOOM) {
+          // Nobody has successfully allocated since an emergency collection: OutOfMemory
+          VM.collection.outOfMemory();
+          VM.assertions.fail("Not Reached");
+          return Address.zero();
         }
       }
 

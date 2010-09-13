@@ -191,8 +191,8 @@ public abstract class Simple extends Plan implements Constants {
   @Inline
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
-      collectionAttempt = Allocator.getAndClearMaxCollectionAttempts();
-      emergencyCollection = lastCollectionWasExhaustive() && collectionAttempt > 1;
+      collectionAttempt = Allocator.determineCollectionAttempts();
+      emergencyCollection = !Plan.isInternalTriggeredCollection() && lastCollectionWasExhaustive() && collectionAttempt > 1;
       if (emergencyCollection) {
         if (Options.verbose.getValue() >= 1) Log.write("[Emergency]");
         forceFullHeapCollection();

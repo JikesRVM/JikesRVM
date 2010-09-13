@@ -125,7 +125,7 @@ public class Defrag  implements Constants {
   void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, boolean userTriggered, boolean exhaustedReusableSpace) {
     inDefragCollection =  (collectionAttempt > 1) ||
         emergencyCollection ||
-        collectWholeHeap && (Options.defragStress.getValue() || userTriggered);
+        collectWholeHeap && (Options.defragStress.getValue() || (userTriggered && Options.fullHeapSystemGC.getValue()));
     if (inDefragCollection) {
       debugBytesDefraged = 0;
     }

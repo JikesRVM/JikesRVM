@@ -169,29 +169,26 @@ public class ImmixAllocator extends Allocator implements Constants {
    * zero on failure
    */
   protected final Address allocSlowOnce(int bytes, int align, int offset) {
-    boolean success = false;
-    while (!success) {
-      Address ptr = space.getSpace(hot, copy, lineUseCount);
+    Address ptr = space.getSpace(hot, copy, lineUseCount);
 
-      if (ptr.isZero()) {
-        lineUseCount = 0;
-        return ptr; // failed allocation --- we will need to GC
-      }
-
-      /* we have been given a clean block */
-      success = true;
-      lineUseCount = LINES_IN_BLOCK;
-      if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(Block.isAligned(ptr));
-      zeroBlock(ptr);
-      if (requestForLarge) {
-        largeCursor = ptr;
-        largeLimit = ptr.plus(BYTES_IN_BLOCK);
-      } else {
-        cursor = ptr;
-        limit = ptr.plus(BYTES_IN_BLOCK);
-      }
+    if (ptr.isZero()) {
+      lineUseCount = 0;
+      return ptr; // failed allocation --- we will need to GC
     }
+
+    /* we have been given a clean block */
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isAligned(ptr));
+    lineUseCount = LINES_IN_BLOCK;
+
+    zeroBlock(ptr);
+    if (requestForLarge) {
+      largeCursor = ptr;
+      largeLimit = ptr.plus(BYTES_IN_BLOCK);
+    } else {
+      cursor = ptr;
+      limit = ptr.plus(BYTES_IN_BLOCK);
+    }
+
     return alloc(bytes, align, offset);
   }
 
