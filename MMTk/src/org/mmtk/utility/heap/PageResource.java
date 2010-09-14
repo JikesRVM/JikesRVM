@@ -144,9 +144,9 @@ public abstract class PageResource implements Constants {
   public final boolean reservePages(int pages) {
     lock();
     reserved += adjustForMetaData(pages);
-    //boolean satisfied = reserved <= pageBudget;
+    boolean satisfied = reserved <= pageBudget;
     unlock();
-    return false;//satisfied;
+    return satisfied;
   }
 
   /**
