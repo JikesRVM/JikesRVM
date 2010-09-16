@@ -136,8 +136,7 @@ public class Throwable implements java.io.Serializable {
           }
         }
       } else {
-        VM.sysWriteln("Request to fill in stack trace before VM booted");
-        RVMThread.dumpStack();
+        // no stack trace available until fully booted.
       }
       return this;
     }
