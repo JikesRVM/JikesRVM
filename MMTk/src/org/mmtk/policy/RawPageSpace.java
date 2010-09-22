@@ -28,8 +28,8 @@ import org.vmmagic.unboxed.*;
  * This class provides access to raw memory for managing internal meta
  * data.
  */
-@Uninterruptible public final class RawPageSpace extends Space
-  implements Constants {
+@Uninterruptible
+public final class RawPageSpace extends Space implements Constants {
 
   /**
    * The caller specifies the region of virtual memory to be used for
@@ -37,16 +37,14 @@ import org.vmmagic.unboxed.*;
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public RawPageSpace(String name, int pageBudget, VMRequest vmRequest) {
+  public RawPageSpace(String name, VMRequest vmRequest) {
     super(name, false, false, vmRequest);
     if (vmRequest.isDiscontiguous()) {
-      pr = new FreeListPageResource(pageBudget, this, 0);
+      pr = new FreeListPageResource(this, 0);
     } else {
-      pr = new FreeListPageResource(pageBudget, this, start, extent);
+      pr = new FreeListPageResource(this, start, extent);
     }
   }
 

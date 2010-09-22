@@ -59,12 +59,10 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public LargeObjectSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, pageBudget, vmRequest);
+  public LargeObjectSpace(String name, VMRequest vmRequest) {
+    super(name, vmRequest);
     treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
     markState = 0;
   }

@@ -185,6 +185,17 @@ public class StickyImmix extends Immix {
   }
 
   /**
+   * Return the number of pages reserved for collection.
+   *
+   * @return The number of pages reserved given the pending
+   * allocation, including space reserved for collection.
+   */
+  @Override
+  public int getCollectionReserve() {
+    return super.getCollectionReserve() + immixSpace.defragHeadroomPages();
+  }
+
+  /**
    * Print pre-collection statistics. In this class we prefix the output
    * indicating whether the collection was full heap or not.
    */

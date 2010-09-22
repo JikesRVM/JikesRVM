@@ -388,25 +388,29 @@ public abstract class Space implements Constants {
    * @return The start of the first page if successful, zero on
    * failure.
    */
+  @LogicallyUninterruptible
   public final Address acquire(int pages) {
     boolean allowPoll = VM.activePlan.isMutator() && Plan.isInitialized();
 
-    /* First check page budget and poll if necessary */
-    if (!pr.reservePages(pages)) {
-      /* Need to poll, either fixing budget or requiring GC */
-      if (allowPoll && VM.activePlan.global().poll(false, this)) {
-        pr.clearRequest(pages);
-        return Address.zero(); // GC required, return failure
-      }
+    /* Check page budget */
+    int pagesReserved = pr.reservePages(pages);
+
+    /* Poll, either fixing budget or requiring GC */
+    if (allowPoll && VM.activePlan.global().poll(false, this)) {
+      pr.clearRequest(pagesReserved);
+      VM.collection.blockForGC();
+      return Address.zero(); // GC required, return failure
     }
 
     /* Page budget is ok, try to acquire virtual memory */
-    Address rtn = pr.getNewPages(pages);
+    Address rtn = pr.getNewPages(pagesReserved, pages);
     if (rtn.isZero()) {
       /* Failed, so force a GC */
       if (!allowPoll) VM.assertions.fail("Physical allocation failed when polling not allowed!");
-      VM.activePlan.global().poll(true, this);
-      pr.clearRequest(pages);
+      boolean gcPerformed = VM.activePlan.global().poll(true, this);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(gcPerformed, "GC not performed when forced.");
+      pr.clearRequest(pagesReserved);
+      VM.collection.blockForGC();
       return Address.zero();
     }
 

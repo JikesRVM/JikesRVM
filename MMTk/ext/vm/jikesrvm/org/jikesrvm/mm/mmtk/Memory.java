@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.heap.VMRequest;
@@ -69,7 +68,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public final ImmortalSpace getVMSpace() {
     if (bootSpace == null) {
-      bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY, VMRequest.create(BOOT_SEGMENT_MB));
+      bootSpace = new ImmortalSpace("boot", VMRequest.create(BOOT_SEGMENT_MB));
     }
     return bootSpace;
   }

@@ -48,17 +48,14 @@ public final class MonotonePageResource extends PageResource
    * Contiguous monotone resource. The address range is pre-defined at
    * initialization time and is immutable.
    *
-   * @param pageBudget The budget of pages available to this memory
-   * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    * @param start The start of the address range allocated to this resource
    * @param bytes The size of the address rage allocated to this resource
    * @param metaDataPagesPerRegion The number of pages of meta data
    * that are embedded in each region.
    */
-  public MonotonePageResource(int pageBudget, Space space, Address start,
-      Extent bytes, int metaDataPagesPerRegion) {
-    super(pageBudget, space, start);
+  public MonotonePageResource(Space space, Address start, Extent bytes, int metaDataPagesPerRegion) {
+    super(space, start);
     this.cursor = start;
     this.sentinel = start.plus(bytes);
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
@@ -73,14 +70,12 @@ public final class MonotonePageResource extends PageResource
    *
    * CURRENTLY UNIMPLEMENTED
    *
-   * @param pageBudget The budget of pages available to this memory
-   * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    * @param metaDataPagesPerRegion The number of pages of meta data
    * that are embedded in each region.
    */
-  public MonotonePageResource(int pageBudget, Space space, int metaDataPagesPerRegion) {
-    super(pageBudget, space);
+  public MonotonePageResource(Space space, int metaDataPagesPerRegion) {
+    super(space);
     /* unimplemented */
     this.start = Address.zero();
     this.cursor = Address.zero();
@@ -123,13 +118,13 @@ public final class MonotonePageResource extends PageResource
    * mmpapped and zeroed before returning the address of the start of
    * the region.  If the request cannot be satisfied, return zero.
    *
-   * @param requestPages The number of pages to be allocated.
+   * @param reservedPages The number of pages reserved due to the initial request.
+   * @param requiredPages The number of pages required to be allocated.
    * @return The start of the first page if successful, zero on
    * failure.
    */
   @Inline
-  protected Address allocPages(int requestPages) {
-    int pages = requestPages;
+  protected Address allocPages(int reservedPages, int requiredPages) {
     boolean newChunk = false;
     lock();
     Address rtn = cursor;
@@ -140,20 +135,20 @@ public final class MonotonePageResource extends PageResource
 
     if (metaDataPagesPerRegion != 0) {
       /* adjust allocation for metadata */
-      Address regionStart = getRegionStart(cursor.plus(Conversions.pagesToBytes(pages)));
+      Address regionStart = getRegionStart(cursor.plus(Conversions.pagesToBytes(requiredPages)));
       Offset regionDelta = regionStart.diff(cursor);
       if (regionDelta.sGE(Offset.zero())) {
         /* start new region, so adjust pages and return address accordingly */
-        pages += Conversions.bytesToPages(regionDelta) + metaDataPagesPerRegion;
+        requiredPages += Conversions.bytesToPages(regionDelta) + metaDataPagesPerRegion;
         rtn = regionStart.plus(Conversions.pagesToBytes(metaDataPagesPerRegion));
       }
     }
-    Extent bytes = Conversions.pagesToBytes(pages);
+    Extent bytes = Conversions.pagesToBytes(requiredPages);
     Address tmp = cursor.plus(bytes);
 
     if (!contiguous && tmp.GT(sentinel)) {
       /* we're out of virtual memory within our discontiguous region, so ask for more */
-      int requiredChunks = Space.requiredChunks(pages);
+      int requiredChunks = Space.requiredChunks(requiredPages);
       start = space.growDiscontiguousSpace(requiredChunks);
       cursor = start;
       sentinel = cursor.plus(start.isZero() ? 0 : requiredChunks<<Space.LOG_BYTES_IN_CHUNK);
@@ -169,12 +164,12 @@ public final class MonotonePageResource extends PageResource
     } else {
       Address old = cursor;
       cursor = tmp;
-      commitPages(requestPages, pages);
+      commitPages(reservedPages, requiredPages);
       space.growSpace(old, bytes, newChunk);
       unlock();
-      Mmapper.ensureMapped(old, pages);
+      Mmapper.ensureMapped(old, requiredPages);
       VM.memory.zero(old, bytes);
-      VM.events.tracePageAcquired(space, rtn, pages);
+      VM.events.tracePageAcquired(space, rtn, requiredPages);
       return rtn;
     }
   }
@@ -189,8 +184,8 @@ public final class MonotonePageResource extends PageResource
    * @return The number of required pages, inclusive of any metadata
    */
   public int adjustForMetaData(int pages) {
-    return (metaDataPagesPerRegion * pages) / EmbeddedMetaData.PAGES_IN_REGION;
-   }
+    return pages + ((pages + EmbeddedMetaData.PAGES_IN_REGION - 1) >> EmbeddedMetaData.LOG_PAGES_IN_REGION) * metaDataPagesPerRegion;
+  }
 
   /**
    * Adjust a page request to include metadata requirements, if any.<p>
@@ -208,10 +203,11 @@ public final class MonotonePageResource extends PageResource
    * @return The number of required pages, inclusive of any metadata
    */
   public int adjustForMetaData(int pages, Address begin) {
-    if (getRegionStart(begin).plus(metaDataPagesPerRegion<<LOG_BYTES_IN_PAGE).EQ(begin))
+    if (getRegionStart(begin).plus(metaDataPagesPerRegion<<LOG_BYTES_IN_PAGE).EQ(begin)) {
       pages += metaDataPagesPerRegion;
+    }
     return pages;
-   }
+  }
 
   private static Address getRegionStart(Address addr) {
     return addr.toWord().and(Word.fromIntSignExtend(EmbeddedMetaData.BYTES_IN_REGION - 1).not()).toAddress();

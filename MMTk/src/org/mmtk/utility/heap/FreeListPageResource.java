@@ -14,6 +14,7 @@ package org.mmtk.utility.heap;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
+
 import static org.mmtk.policy.Space.PAGES_IN_CHUNK;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.Conversions;
@@ -44,15 +45,12 @@ public final class FreeListPageResource extends PageResource implements Constant
    * Contiguous free list resource. The address range is pre-defined at
    * initialization time and is immutable.
    *
-   * @param pageBudget The budget of pages available to this memory
-   * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    * @param start The start of the address range allocated to this resource
    * @param bytes The size of the address rage allocated to this resource
    */
-  public FreeListPageResource(int pageBudget, Space space, Address start,
-      Extent bytes) {
-    super(pageBudget, space, start);
+  public FreeListPageResource(Space space, Address start, Extent bytes) {
+    super(space, start);
     int pages = Conversions.bytesToPages(bytes);
     freeList = new GenericFreeList(pages);
     pagesCurrentlyOnFreeList = pages;
@@ -65,17 +63,14 @@ public final class FreeListPageResource extends PageResource implements Constant
    * Contiguous free list resource. The address range is pre-defined at
    * initialization time and is immutable.
    *
-   * @param pageBudget The budget of pages available to this memory
-   * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    * @param start The start of the address range allocated to this resource
    * @param bytes The size of the address rage allocated to this resource
    * @param metaDataPagesPerRegion The number of pages of meta data
    * that are embedded in each region.
    */
-  public FreeListPageResource(int pageBudget, Space space, Address start,
-      Extent bytes, int metaDataPagesPerRegion) {
-    super(pageBudget, space, start);
+  public FreeListPageResource(Space space, Address start, Extent bytes, int metaDataPagesPerRegion) {
+    super(space, start);
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
     int pages = Conversions.bytesToPages(bytes);
     freeList = new GenericFreeList(pages, EmbeddedMetaData.PAGES_IN_REGION);
@@ -90,12 +85,10 @@ public final class FreeListPageResource extends PageResource implements Constant
    * pre-defined at initialization time and is dynamically defined to
    * be some set of pages, according to demand and availability.
    *
-   * @param pageBudget The budget of pages available to this memory
-   * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    */
-  public FreeListPageResource(int pageBudget, Space space, int metaDataPagesPerRegion) {
-    super(pageBudget, space);
+  public FreeListPageResource(Space space, int metaDataPagesPerRegion) {
+    super(space);
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
     this.start = Space.AVAILABLE_START;
     freeList = new GenericFreeList(Map.globalPageMap, Map.getDiscontigFreeListPROrdinal(this));
@@ -139,25 +132,26 @@ public final class FreeListPageResource extends PageResource implements Constant
    * mmpapped and zeroed before returning the address of the start of
    * the region.  If the request cannot be satisfied, return zero.
    *
-   * @param pages The number of pages to be allocated.
+   * @param reservedPages The number of pages reserved due to the initial request.
+   * @param requiredPages The number of pages required to be allocated.
    * @return The start of the first page if successful, zero on
    * failure.
    */
   @Inline
-  protected Address allocPages(int pages) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion == 0 || pages <= PAGES_IN_CHUNK - metaDataPagesPerRegion);
+  protected Address allocPages(int reservedPages, int requiredPages) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion == 0 || requiredPages <= PAGES_IN_CHUNK - metaDataPagesPerRegion);
     lock();
     boolean newChunk = false;
-    int pageOffset = freeList.alloc(pages);
+    int pageOffset = freeList.alloc(requiredPages);
     if (pageOffset == GenericFreeList.FAILURE && !contiguous) {
-      pageOffset = allocateContiguousChunks(pages);
+      pageOffset = allocateContiguousChunks(requiredPages);
       newChunk = true;
     }
     if (pageOffset == -1) {
       unlock();
       return Address.zero();
     } else {
-      pagesCurrentlyOnFreeList -= pages;
+      pagesCurrentlyOnFreeList -= requiredPages;
       if (pageOffset > highWaterMark) {
         if (highWaterMark == 0 || (pageOffset ^ highWaterMark) > EmbeddedMetaData.PAGES_IN_REGION) {
           int regions = 1 + ((pageOffset - highWaterMark) >> EmbeddedMetaData.LOG_PAGES_IN_REGION);
@@ -169,13 +163,14 @@ public final class FreeListPageResource extends PageResource implements Constant
         highWaterMark = pageOffset;
       }
       Address rtn = start.plus(Conversions.pagesToBytes(pageOffset));
-      Extent bytes = Conversions.pagesToBytes(pages);
-      commitPages(pages, pages);
+      Extent bytes = Conversions.pagesToBytes(requiredPages);
+      // The meta-data portion of reserved Pages was committed above.
+      commitPages(reservedPages, requiredPages);
       space.growSpace(rtn, bytes, newChunk);
       unlock();
-      Mmapper.ensureMapped(rtn, pages);
+      Mmapper.ensureMapped(rtn, requiredPages);
       VM.memory.zero(rtn, bytes);
-      VM.events.tracePageAcquired(space, rtn, pages);
+      VM.events.tracePageAcquired(space, rtn, requiredPages);
       return rtn;
     }
   }

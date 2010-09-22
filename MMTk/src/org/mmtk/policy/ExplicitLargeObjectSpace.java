@@ -46,12 +46,10 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public ExplicitLargeObjectSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, pageBudget, vmRequest);
+  public ExplicitLargeObjectSpace(String name, VMRequest vmRequest) {
+    super(name, vmRequest);
     cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true);
   }
 

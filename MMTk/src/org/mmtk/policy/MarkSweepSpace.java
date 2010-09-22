@@ -93,12 +93,10 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public MarkSweepSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, pageBudget, 0, vmRequest);
+  public MarkSweepSpace(String name, VMRequest vmRequest) {
+    super(name, 0, vmRequest);
     if (usingStickyMarkBits) allocState |= HeaderByte.UNLOGGED_BIT;
   }
 

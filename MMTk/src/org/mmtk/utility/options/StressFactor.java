@@ -12,7 +12,6 @@
  */
 package org.mmtk.utility.options;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.Constants;
 
 /**
@@ -26,13 +25,5 @@ public final class StressFactor extends org.vmutil.options.PagesOption {
     super(Options.set, "Stress Factor",
           "Force a collection after this much allocation",
         Integer.MAX_VALUE >>> Constants.LOG_BYTES_IN_PAGE);
-  }
-
-  /**
-   * Ensure that the value is sensible.
-   */
-  public void validate() {
-    failIf(this.value < Plan.DEFAULT_POLL_FREQUENCY,
-        "Stress Factor must be at least equal to plan's poll frequency");
   }
 }

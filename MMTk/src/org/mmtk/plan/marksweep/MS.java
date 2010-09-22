@@ -44,7 +44,7 @@ public class MS extends StopTheWorld {
   /****************************************************************************
    * Class variables
    */
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
   public static final int SCAN_MARK = 0;

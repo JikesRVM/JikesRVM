@@ -70,19 +70,17 @@ import org.vmmagic.pragma.*;
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
    * @param fromSpace The does this instance start life as from-space
    * (or to-space)?
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public CopySpace(String name, int pageBudget, boolean fromSpace, VMRequest vmRequest) {
+  public CopySpace(String name, boolean fromSpace, VMRequest vmRequest) {
     super(name, true, false, vmRequest);
     this.fromSpace = fromSpace;
     if (vmRequest.isDiscontiguous()) {
-      pr = new MonotonePageResource(pageBudget, this, META_DATA_PAGES_PER_REGION);
+      pr = new MonotonePageResource(this, META_DATA_PAGES_PER_REGION);
     } else {
-      pr = new MonotonePageResource(pageBudget, this, start, extent, META_DATA_PAGES_PER_REGION);
+      pr = new MonotonePageResource(this, start, extent, META_DATA_PAGES_PER_REGION);
     }
   }
 

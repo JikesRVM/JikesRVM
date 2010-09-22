@@ -86,15 +86,14 @@ public final class ImmixSpace extends Space implements Constants {
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume before consulting the plan
    * @param vmRequest The virtual memory request
    */
-  public ImmixSpace(String name, int pageBudget, VMRequest vmRequest) {
+  public ImmixSpace(String name, VMRequest vmRequest) {
     super(name, false, false, vmRequest);
     if (vmRequest.isDiscontiguous())
-      pr = new FreeListPageResource(pageBudget, this, Chunk.getRequiredMetaDataPages());
+      pr = new FreeListPageResource(this, Chunk.getRequiredMetaDataPages());
     else
-      pr = new FreeListPageResource(pageBudget, this, start, extent, Chunk.getRequiredMetaDataPages());
+      pr = new FreeListPageResource(this, start, extent, Chunk.getRequiredMetaDataPages());
     defrag = new Defrag((FreeListPageResource) pr);
   }
 
@@ -161,6 +160,15 @@ public final class ImmixSpace extends Space implements Constants {
    */
   public void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, boolean userTriggeredCollection) {
     defrag.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, userTriggeredCollection, exhaustedReusableSpace);
+  }
+
+  /**
+   * Return the amount of headroom required to allow defrag, so this can be included in a collection reserve.
+   *
+   * @return The number of pages.
+   */
+  public int defragHeadroomPages() {
+    return defrag.getDefragHeadroomPages();
   }
 
  /****************************************************************************

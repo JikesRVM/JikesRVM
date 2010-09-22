@@ -34,10 +34,6 @@ import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible
 public class Defrag  implements Constants {
-
-
-  private int defragHeadroomPages = 0;
-  private int defragFreeHeadroomPages = 0;
   private boolean inDefragCollection = false;
   private int debugBytesDefraged = 0;
   private int availableCleanPagesForDefrag;
@@ -45,7 +41,8 @@ public class Defrag  implements Constants {
   private int[][] spillMarkHistograms = new int[MAX_COLLECTORS][SPILL_HISTOGRAM_BUCKETS];
   private int[] spillAvailHistogram = new int[SPILL_HISTOGRAM_BUCKETS];
   public static SizeCounter defragCleanBytesUsed = new SizeCounter("cleanUsed");
-  /* verbose stats (used only on stats runs since they induce overhead when gathred) */
+
+  /* verbose stats (used only on stats runs since they induce overhead when gathered) */
   public static SizeCounter defragBytesNotFreed = new SizeCounter("bytesNotFreed");
   public static SizeCounter defragBytesFreed = new SizeCounter("bytesFreed");
   public static SizeCounter defragCleanBytesAvailable = new SizeCounter("cleanAvail");
@@ -74,13 +71,17 @@ public class Defrag  implements Constants {
   boolean inDefrag() { return inDefragCollection; }
 
   void prepare(ChunkList chunkMap, ImmixSpace space) {
-    if (defragHeadroomPages > 0)
-      pr.unconditionallyReleasePages(defragHeadroomPages);
-
-    availableCleanPagesForDefrag = VM.activePlan.global().getTotalPages() - VM.activePlan.global().getPagesReserved();
+    availableCleanPagesForDefrag = VM.activePlan.global().getTotalPages() - VM.activePlan.global().getPagesReserved() + getDefragHeadroomPages();
     if (availableCleanPagesForDefrag < 0) availableCleanPagesForDefrag = 0;
     defragSpaceExhausted = false;
-    availableCleanPagesForDefrag += defragFreeHeadroomPages;
+
+    /* Free defrag pages (not budgeted, used for experimentation) */
+    if (Options.defragFreeHeadroom.getPages() > 0) {
+      availableCleanPagesForDefrag += Options.defragFreeHeadroom.getPages();
+    } else if (Options.defragFreeHeadroomFraction.getValue() > 0) {
+      availableCleanPagesForDefrag += (int) (pr.reservedPages() * Options.defragFreeHeadroomFraction.getValue());
+    }
+
     if (inDefragCollection) {
       if (Options.verbose.getValue() > 0) {
         Log.write("[Defrag]");
@@ -94,22 +95,6 @@ public class Defrag  implements Constants {
   }
 
   void globalRelease() {
-    if (Options.defragHeadroom.getPages() > 0)
-      defragHeadroomPages = Options.defragHeadroom.getPages();
-    else if (Options.defragHeadroomFraction.getValue() > 0)
-      defragHeadroomPages = (int) (pr.reservedPages() * Options.defragHeadroomFraction.getValue());
-    else
-      defragHeadroomPages = 0;
-    if (Options.defragFreeHeadroom.getPages() > 0)
-      defragFreeHeadroomPages = Options.defragFreeHeadroom.getPages();
-    else if (Options.defragFreeHeadroomFraction.getValue() > 0)
-      defragFreeHeadroomPages = (int) (pr.reservedPages() * Options.defragFreeHeadroomFraction.getValue());
-    else
-      defragFreeHeadroomPages = 0;
-
-    if (defragHeadroomPages > 0)
-      pr.unconditionallyReservePages(defragHeadroomPages);
-
     if (inDefragCollection && Options.verbose.getValue() > 2) {
       Log.write("(Defrag summary: cu: "); defragCleanBytesUsed.printCurrentVolume();
       Log.write(" nf: "); defragBytesNotFreed.printCurrentVolume();
@@ -120,6 +105,15 @@ public class Defrag  implements Constants {
 
     inDefragCollection = false;
     debugCollectionTypeDetermined = false;
+  }
+
+  int getDefragHeadroomPages() {
+    if (Options.defragHeadroom.getPages() > 0) {
+      return Options.defragHeadroom.getPages();
+    } else if (Options.defragHeadroomFraction.getValue() > 0) {
+      return (int) (pr.reservedPages() * Options.defragHeadroomFraction.getValue());
+    }
+    return 0;
   }
 
   void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, boolean userTriggered, boolean exhaustedReusableSpace) {

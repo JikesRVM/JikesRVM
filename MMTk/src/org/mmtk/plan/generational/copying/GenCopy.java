@@ -66,14 +66,14 @@ import org.vmmagic.pragma.*;
    * The low half of the copying mature space.  We allocate into this space
    * when <code>hi</code> is <code>false</code>.
    */
-  static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create());
+  static CopySpace matureSpace0 = new CopySpace("ss0", false, VMRequest.create());
   static final int MS0 = matureSpace0.getDescriptor();
 
   /**
    * The high half of the copying mature space. We allocate into this space
    * when <code>hi</code> is <code>true</code>.
    */
-  static CopySpace matureSpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create());
+  static CopySpace matureSpace1 = new CopySpace("ss1", true, VMRequest.create());
   static final int MS1 = matureSpace1.getDescriptor();
 
 

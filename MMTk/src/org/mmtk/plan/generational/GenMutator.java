@@ -318,8 +318,8 @@ import org.vmmagic.unboxed.*;
       if (global().traceFullHeap()) {
         super.collectionPhase(phaseId, primary);
         modbuf.flushLocal();
-        remset.resetLocal();
-        arrayRemset.resetLocal();
+        remset.flushLocal();
+        arrayRemset.flushLocal();
       } else {
         flushRememberedSets();
       }

@@ -30,7 +30,7 @@ public class NoGC extends Plan {
   /*****************************************************************************
    * Class variables
    */
-  public static final ImmortalSpace noGCSpace = new ImmortalSpace("default", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final ImmortalSpace noGCSpace = new ImmortalSpace("default", VMRequest.create());
   public static final int NOGC = noGCSpace.getDescriptor();
 
 

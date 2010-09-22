@@ -52,7 +52,7 @@ public class Immix extends StopTheWorld {
   /****************************************************************************
    * Class variables
    */
-  public static final ImmixSpace immixSpace = new ImmixSpace("immix", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final ImmixSpace immixSpace = new ImmixSpace("immix", VMRequest.create());
   public static final int IMMIX = immixSpace.getDescriptor();
 
   public static final int SCAN_IMMIX = 0;
@@ -139,6 +139,17 @@ public class Immix extends StopTheWorld {
    */
   public int getPagesUsed() {
     return immixSpace.reservedPages() + super.getPagesUsed();
+  }
+
+  /**
+   * Return the number of pages reserved for collection.
+   *
+   * @return The number of pages reserved given the pending
+   * allocation, including space reserved for collection.
+   */
+  @Override
+  public int getCollectionReserve() {
+    return super.getCollectionReserve() + immixSpace.defragHeadroomPages();
   }
 
   /**

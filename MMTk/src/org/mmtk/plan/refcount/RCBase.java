@@ -101,8 +101,8 @@ public class RCBase extends StopTheWorld {
    *
    * Class fields
    */
-  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, VMRequest.create());
-  public static final ExplicitLargeObjectSpace rcloSpace = new ExplicitLargeObjectSpace("rclos", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", VMRequest.create());
+  public static final ExplicitLargeObjectSpace rcloSpace = new ExplicitLargeObjectSpace("rclos", VMRequest.create());
 
   public static final int REF_COUNT = rcSpace.getDescriptor();
   public static final int REF_COUNT_LOS = rcloSpace.getDescriptor();

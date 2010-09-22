@@ -58,7 +58,7 @@ public class GenImmix extends Gen {
    */
 
   /** The mature space, which for GenImmix uses a mark sweep collection policy. */
-  public static final ImmixSpace immixSpace = new ImmixSpace("immix", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final ImmixSpace immixSpace = new ImmixSpace("immix", VMRequest.create());
 
   public static final int IMMIX = immixSpace.getDescriptor();
 
@@ -152,6 +152,17 @@ public class GenImmix extends Gen {
    */
   public int getMaturePhysicalPagesAvail() {
     return immixSpace.availablePhysicalPages();
+  }
+
+  /**
+   * Return the number of pages reserved for copying.
+   *
+   * @return The number of pages reserved given the pending
+   * allocation, including space reserved for copying.
+   */
+  @Override
+  public int getCollectionReserve() {
+    return super.getCollectionReserve() + immixSpace.defragHeadroomPages();
   }
 
   /*****************************************************************************

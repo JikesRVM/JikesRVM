@@ -280,7 +280,8 @@ public abstract class Allocator implements Constants {
         // Check if we are in an OutOfMemory situation
         oomLock.acquire();
         boolean failWithOOM = !allocationSuccess;
-        //Log.prependThreadId();Log.write(" allocation failed in emergency, failWithOOM = ");Log.writeln(failWithOOM ? "1" : "0");
+        // This seems odd, but we must allow each OOM to run its course (and maybe give us back memory)
+        allocationSuccess = true;
         oomLock.release();
         if (failWithOOM) {
           // Nobody has successfully allocated since an emergency collection: OutOfMemory

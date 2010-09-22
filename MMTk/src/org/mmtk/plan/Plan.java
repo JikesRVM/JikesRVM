@@ -65,10 +65,6 @@ public abstract class Plan implements Constants {
   public static final int GC_PREPARE = 1; // before setup and obtaining root
   public static final int GC_PROPER = 2;
 
-  /* Polling */
-  public static final int DEFAULT_POLL_FREQUENCY = (128 << 10) >> LOG_BYTES_IN_PAGE;
-  public static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-
   /* Space Size Constants. */
   public static final boolean USE_CODE_SPACE = true;
   public static final int HEAP_FULL_MINIMUM = (1 << 17) >> LOG_BYTES_IN_PAGE; // 128K
@@ -113,22 +109,22 @@ public abstract class Plan implements Constants {
   public static final Space vmSpace = VM.memory.getVMSpace();
 
   /** Any immortal objects allocated after booting are allocated here. */
-  public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", VMRequest.create());
 
   /** All meta data that is used by MMTk is allocated (and accounted for) in the meta data space. */
-  public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", VMRequest.create());
 
   /** Large objects are allocated into a special large object space. */
-  public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", VMRequest.create());
 
   /** Space used by the sanity checker (used at runtime only if sanity checking enabled */
-  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", Integer.MAX_VALUE, VMRequest.create());
+  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", VMRequest.create());
 
   /** Space used to allocate objects that cannot be moved. we do not need a large space as the LOS is non-moving. */
-  public static final MarkSweepSpace nonMovingSpace = new MarkSweepSpace("non-moving", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final MarkSweepSpace nonMovingSpace = new MarkSweepSpace("non-moving", VMRequest.create());
 
-  public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : null;
-  public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", DEFAULT_POLL_FREQUENCY, VMRequest.create()) : null;
+  public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", VMRequest.create()) : null;
+  public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", VMRequest.create()) : null;
 
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
@@ -562,6 +558,11 @@ public abstract class Plan implements Constants {
     Log.write(" MB (");
     Log.write(getPagesReserved());
     Log.write(" pgs)");
+    Log.write("      used = ");
+    Log.write(Conversions.pagesToMBytes(getPagesUsed()));
+    Log.write(" MB (");
+    Log.write(getPagesUsed());
+    Log.write(" pgs)");
     Log.write("      total = ");
     Log.write(Conversions.pagesToMBytes(getTotalPages()));
     Log.write(" MB (");
@@ -590,7 +591,6 @@ public abstract class Plan implements Constants {
   /**
    * MMTK has requested stop-the-world activity (e.g., stw within a concurrent gc).
    */
-  @Unpreemptible
   public static void triggerInternalCollectionRequest() {
     // Mark this as a user triggered collection
     internalTriggeredCollection = lastInternalTriggeredCollection = true;
@@ -839,7 +839,6 @@ public abstract class Plan implements Constants {
    * @param space The space that triggered the poll.
    * @return true if a collection is required.
    */
-  @LogicallyUninterruptible
   public final boolean poll(boolean spaceFull, Space space) {
     if (collectionRequired(spaceFull)) {
       if (space == metaDataSpace) {
@@ -853,7 +852,6 @@ public abstract class Plan implements Constants {
       }
       logPoll(space, "Triggering collection");
       controlCollectorContext.request();
-      VM.collection.blockForGC();
       return true;
     }
 
@@ -865,7 +863,6 @@ public abstract class Plan implements Constants {
       } else {
         logPoll(space, "Triggering concurrent collection");
         triggerInternalCollectionRequest();
-        VM.collection.blockForGC();
         return true;
       }
     }

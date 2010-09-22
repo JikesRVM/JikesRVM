@@ -54,7 +54,7 @@ public class GenMS extends Gen {
    */
 
   /** The mature space, which for GenMS uses a mark sweep collection policy. */
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
 
   public static final int MS = msSpace.getDescriptor();
 
