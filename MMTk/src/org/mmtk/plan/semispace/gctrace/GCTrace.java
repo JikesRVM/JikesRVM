@@ -14,6 +14,7 @@ package org.mmtk.plan.semispace.gctrace;
 
 import org.mmtk.plan.semispace.*;
 import org.mmtk.policy.RawPageSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.SortTODSharedDeque;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.TraceGenerator;
@@ -143,8 +144,8 @@ import org.vmmagic.pragma.*;
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
-  public final boolean collectionRequired(boolean spaceFull) {
-    if (super.collectionRequired(spaceFull)) {
+  public final boolean collectionRequired(boolean spaceFull, Space space) {
+    if (super.collectionRequired(spaceFull, space)) {
       traceInducedGC = false;
       return true;
     }

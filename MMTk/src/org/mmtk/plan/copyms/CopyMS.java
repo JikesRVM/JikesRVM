@@ -119,10 +119,10 @@ public class CopyMS extends StopTheWorld {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
-  public final boolean collectionRequired(boolean spaceFull) {
+  public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
 
-    return super.collectionRequired(spaceFull) || nurseryFull;
+    return super.collectionRequired(spaceFull, space) || nurseryFull;
   }
 
   /*****************************************************************************

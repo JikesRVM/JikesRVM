@@ -840,7 +840,7 @@ public abstract class Plan implements Constants {
    * @return true if a collection is required.
    */
   public final boolean poll(boolean spaceFull, Space space) {
-    if (collectionRequired(spaceFull)) {
+    if (collectionRequired(spaceFull, space)) {
       if (space == metaDataSpace) {
         /* In general we must not trigger a GC on metadata allocation since
          * this is not, in general, in a GC safe point.  Instead we initiate
@@ -889,9 +889,10 @@ public abstract class Plan implements Constants {
    * during allocation. Returns true to trigger a collection.
    *
    * @param spaceFull Space request failed, must recover pages within 'space'.
+   * @param space TODO
    * @return True if a collection is requested by the plan.
    */
-  protected boolean collectionRequired(boolean spaceFull) {
+  protected boolean collectionRequired(boolean spaceFull, Space space) {
     boolean stressForceGC = stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
 

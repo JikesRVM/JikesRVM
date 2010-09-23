@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.alloc.Allocator;
@@ -242,7 +241,6 @@ public abstract class Simple extends Plan implements Constants {
 
     if (phaseId == COMPLETE) {
       setGCStatus(NOT_IN_GC);
-      Space.clearAllAllocationFailed();
       return;
     }
 

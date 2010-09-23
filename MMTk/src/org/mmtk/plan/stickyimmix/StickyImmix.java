@@ -14,6 +14,7 @@ package org.mmtk.plan.stickyimmix;
 
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.plan.immix.Immix;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.SharedDeque;
 import org.mmtk.utility.options.Options;
@@ -159,9 +160,10 @@ public class StickyImmix extends Immix {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
-  public final boolean collectionRequired(boolean spaceFull) {
+  public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = immixSpace.getPagesAllocated() > Options.nurserySize.getMaxNursery();
-    return super.collectionRequired(spaceFull) || nurseryFull;
+    if (spaceFull && space != immixSpace) nextGCWholeHeap = true;
+    return super.collectionRequired(spaceFull, space) || nurseryFull;
   }
 
   /**
@@ -173,14 +175,12 @@ public class StickyImmix extends Immix {
     if (userTriggeredCollection && Options.fullHeapSystemGC.getValue()) {
       return true;
     }
+
     if (nextGCWholeHeap || collectionAttempt > 1) {
       // Forces full heap collection
       return true;
     }
-    if (loSpace.allocationFailed()) {
-      // We need space from the nursery
-      return true;
-    }
+
     return false;
   }
 

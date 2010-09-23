@@ -180,6 +180,7 @@ public abstract class Gen extends StopTheWorld {
       }
       return;
     }
+
     if (phaseId == RELEASE) {
       nurserySpace.release();
       modbufPool.clearDeque(1);
@@ -205,17 +206,22 @@ public abstract class Gen extends StopTheWorld {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
-  public final boolean collectionRequired(boolean spaceFull) {
+  public final boolean collectionRequired(boolean spaceFull, Space space) {
     int nurseryPages = nurserySpace.reservedPages();
 
     if (nurseryPages > Options.nurserySize.getMaxNursery()) {
       return true;
     }
 
-    if (virtualMemoryExhausted())
+    if (virtualMemoryExhausted()) {
       return true;
+    }
 
-    return super.collectionRequired(spaceFull);
+    if (spaceFull && space != nurserySpace) {
+      nextGCFullHeap = true;
+    }
+
+    return super.collectionRequired(spaceFull, space);
   }
 
   /**
@@ -230,13 +236,6 @@ public abstract class Gen extends StopTheWorld {
 
     if (nextGCFullHeap || collectionAttempt > 1) {
       // Forces full heap collection
-      return true;
-    }
-
-    if (loSpace.allocationFailed() ||
-        nonMovingSpace.allocationFailed() ||
-        (USE_CODE_SPACE && (largeCodeSpace.allocationFailed() || smallCodeSpace.allocationFailed()))) {
-      // We need space from the nursery
       return true;
     }
 

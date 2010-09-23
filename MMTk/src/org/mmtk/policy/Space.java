@@ -100,8 +100,6 @@ public abstract class Space implements Constants {
   protected final Extent extent;
   protected Address headDiscontiguousRegion;
 
-  private boolean allocationFailed;
-
   /****************************************************************************
    *
    * Initialization
@@ -220,12 +218,6 @@ public abstract class Space implements Constants {
 
   /** Movable getter @return True if objects in this space may move */
   public boolean isMovable() { return movable; }
-
-  /** Allocationfailed getter @return true if an allocation has failed since GC */
-  public final boolean allocationFailed() { return allocationFailed; }
-
-  /** Clear Allocationfailed flag */
-  public final void clearAllocationFailed() { allocationFailed = false; }
 
   /** ReservedPages getter @return The number of reserved pages */
   public final int reservedPages() { return pr.reservedPages(); }
@@ -472,16 +464,6 @@ public abstract class Space implements Constants {
    * @param start The address of the start of the region to be released
    */
   public abstract void release(Address start);
-
-  /**
-   * Clear the allocation failed flag for all spaces.
-   *
-   */
-  public static void clearAllAllocationFailed() {
-    for (int i = 0; i < spaceCount; i++) {
-      spaces[i].clearAllocationFailed();
-    }
-  }
 
   /**
    * Get the total number of pages reserved by all of the spaces
