@@ -82,9 +82,14 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   private static final boolean traceAllocator = false;
 
   /**
-   * Hash the interface been booted yet?
+   * Has the interface been booted yet?
    */
   private static boolean booted = false;
+
+  /**
+   * Has garbage collection been enabled yet?
+   */
+  private static boolean collectionEnabled = false;
 
   /***********************************************************************
    *
@@ -140,6 +145,14 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   @Interruptible
   public static void enableCollection() {
     Selected.Plan.get().enableCollection();
+    collectionEnabled = true;
+  }
+
+  /**
+   * Is collection enabled?
+   */
+  public static boolean collectionEnabled() {
+    return collectionEnabled;
   }
 
   /**
