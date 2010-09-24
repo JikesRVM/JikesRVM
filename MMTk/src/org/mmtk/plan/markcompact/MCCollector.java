@@ -34,7 +34,8 @@ import org.vmmagic.unboxed.*;
  * @see StopTheWorldCollector
  * @see CollectorContext
  */
-@Uninterruptible public class MCCollector extends StopTheWorldCollector {
+@Uninterruptible
+public class MCCollector extends StopTheWorldCollector {
 
   private static final boolean TRACE_MARK = false;
   private static final boolean TRACE_FORWARD = true;
