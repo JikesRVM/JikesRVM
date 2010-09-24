@@ -450,8 +450,10 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
         allocator = Plan.ALLOC_GCSPY;
       }
     }
-    if (isPrefix("Lorg/mmtk/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
+    if (isPrefix("Lorg/jikesrvm/tuningfork", typeBA) || isPrefix("[Lorg/jikesrvm/tuningfork", typeBA) ||
+        isPrefix("Lcom/ibm/tuningfork/", typeBA) || isPrefix("[Lcom/ibm/tuningfork/", typeBA) ||
+        isPrefix("Lorg/mmtk/", typeBA) || isPrefix("[Lorg/mmtk/", typeBA) ||
+        isPrefix("Lorg/jikesrvm/mm/", typeBA) || isPrefix("[Lorg/jikesrvm/mm/", typeBA) ||
         isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {
       allocator = Plan.ALLOC_NON_MOVING;
     }
