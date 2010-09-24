@@ -63,7 +63,7 @@ public final class ScanStatics implements Constants {
 
     // Start and end of statics region to be processed
     final int start = (threadOrdinal == 0) ? refSlotSize : threadOrdinal * chunkSize;
-    final int end = (threadOrdinal+1 == numberOfCollectors) ? numberOfReferences : numberOfCollectors* chunkSize;
+    final int end = (threadOrdinal+1 == numberOfCollectors) ? numberOfReferences : (threadOrdinal+1) * chunkSize;
 
     // Process region
     for (int slot=start; slot < end; slot+=refSlotSize) {
