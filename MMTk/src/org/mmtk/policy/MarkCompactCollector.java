@@ -511,6 +511,7 @@ public final class MarkCompactCollector {
             if (MarkCompactSpace.isMarked(current)) {
               Log.write("Object "); Log.write(current);
               Log.writeln(" is marked during the compact phase");
+              VM.objectModel.dumpObject(current);
             }
             VM.assertions._assert(!MarkCompactSpace.isMarked(current));
           }
