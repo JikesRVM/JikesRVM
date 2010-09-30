@@ -67,8 +67,6 @@ public abstract class Plan implements Constants {
 
   /* Space Size Constants. */
   public static final boolean USE_CODE_SPACE = true;
-  public static final int HEAP_FULL_MINIMUM = (1 << 17) >> LOG_BYTES_IN_PAGE; // 128K
-  public static final int HEAP_FULL_PERCENTAGE = 2;
 
   /* Allocator Constants */
   public static final int ALLOC_DEFAULT = 0;
@@ -90,7 +88,7 @@ public abstract class Plan implements Constants {
 //  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE;
   public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
-  public static final int DEFAULT_MIN_NURSERY = (256 * 1024) >> LOG_BYTES_IN_PAGE;
+  public static final int DEFAULT_MIN_NURSERY = ( 2 << 20) >> LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
  // public static final boolean REQUIRES_LOS = VM.activePlan.constraints().requiresLOS();
@@ -788,16 +786,6 @@ public abstract class Plan implements Constants {
   public int getPagesUsed() {
     return loSpace.reservedPages() + immortalSpace.reservedPages() +
       metaDataSpace.reservedPages() + nonMovingSpace.reservedPages();
-  }
-
-  /**
-   * The minimum number of pages a GC must have available after a collection
-   * for us to consider the collection successful.
-   */
-  public int getHeapFullThreshold() {
-    int threshold = (getTotalPages() * HEAP_FULL_PERCENTAGE) / 100;
-    if (threshold < HEAP_FULL_MINIMUM) threshold = HEAP_FULL_MINIMUM;
-    return threshold;
   }
 
   /****************************************************************************
