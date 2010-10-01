@@ -88,7 +88,7 @@ public abstract class Plan implements Constants {
 //  public static final int LOS_SIZE_THRESHOLD = SegregatedFreeListSpace.MAX_CELL_SIZE;
   public static final int NON_PARTICIPANT = 0;
   public static final boolean GATHER_WRITE_BARRIER_STATS = false;
-  public static final int DEFAULT_MIN_NURSERY = ( 2 << 20) >> LOG_BYTES_IN_PAGE;
+  public static final int DEFAULT_MIN_NURSERY =  (2 << 20) >> LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = (32 << 20) >> LOG_BYTES_IN_PAGE;
   public static final boolean SCAN_BOOT_IMAGE = true;  // scan it for roots rather than trace it
  // public static final boolean REQUIRES_LOS = VM.activePlan.constraints().requiresLOS();
