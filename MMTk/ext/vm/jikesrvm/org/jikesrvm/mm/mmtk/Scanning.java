@@ -92,8 +92,15 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   public void resetThreadCounter() {
     threadCounter.reset();
-    CompiledMethods.snipObsoleteCompiledMethods();
+  }
 
+  /**
+   * Called the first time during a collection that thread's stacks
+   * have been scanned. This can be used (for example) to clean up
+   * obsolete compiled methods that are no longer being executed.
+   */
+  public void notifyInitialThreadScanComplete() {
+    CompiledMethods.snipObsoleteCompiledMethods();
     /* flush out any remset entries generated during the above activities */
     Selected.Mutator.get().flushRememberedSets();
   }

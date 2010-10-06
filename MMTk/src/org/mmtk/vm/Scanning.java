@@ -48,6 +48,13 @@ import org.vmmagic.unboxed.*;
   public abstract void resetThreadCounter();
 
   /**
+   * Called the first time during a collection that thread's stacks
+   * have been scanned. This can be used (for example) to clean up
+   * obsolete compiled methods that are no longer being executed.
+   */
+  public abstract void notifyInitialThreadScanComplete();
+
+  /**
    * Computes static roots.  This method establishes all such roots for
    * collection and places them in the root locations queue.  This method
    * should not have side effects (such as copying or forwarding of

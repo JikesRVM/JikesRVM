@@ -115,6 +115,7 @@ public abstract class Simple extends Plan implements Constants {
       Phase.scheduleCollector  (PREPARE),
       Phase.scheduleComplex    (prepareStacks),
       Phase.scheduleCollector  (STACK_ROOTS),
+      Phase.scheduleGlobal     (STACK_ROOTS),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
       Phase.scheduleGlobal     (CLOSURE),
@@ -218,6 +219,12 @@ public abstract class Simple extends Plan implements Constants {
       }
       immortalSpace.prepare();
       VM.memory.globalPrepareVMSpace();
+      return;
+    }
+
+    if (phaseId == STACK_ROOTS) {
+      VM.scanning.notifyInitialThreadScanComplete();
+      setGCStatus(GC_PROPER);
       return;
     }
 
