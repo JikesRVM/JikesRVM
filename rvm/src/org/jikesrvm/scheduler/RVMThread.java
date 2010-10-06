@@ -4571,6 +4571,9 @@ public final class RVMThread extends ThreadContext {
       offset = Services.sprintf(dest, offset, "-Boot"); // Boot (Primordial)
       // thread
     }
+    if (isSystemThread()) {
+      offset = Services.sprintf(dest, offset, "-system"); // System Thread
+    }
     if (isMainThread()) {
       offset = Services.sprintf(dest, offset, "-main"); // Main Thread
     }
