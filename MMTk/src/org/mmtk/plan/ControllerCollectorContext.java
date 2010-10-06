@@ -93,7 +93,6 @@ public class ControllerCollectorContext extends CollectorContext {
 
       // Trigger GC.
       if (Options.verbose.getValue() >= 5) Log.writeln("[STWController: Triggering worker threads...]");
-      //Log.writeln(BlockAllocator.checkBlockMeta(Address.fromIntZeroExtend(0x686a700c).toObjectReference()) ? "CHECKED" : "UNCHECKED");
       workers.triggerCycle();
 
       // Wait for GC threads to complete.
