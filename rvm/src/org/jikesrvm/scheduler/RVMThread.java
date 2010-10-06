@@ -2855,10 +2855,15 @@ public final class RVMThread extends ThreadContext {
     unblock(suspendBlockAdapter);
   }
 
-  public static void yield() {
+  public static void yieldNoHandshake() {
     sysCall.sysThreadYield();
   }
 
+  @UnpreemptibleNoWarn
+  public static void yieldWithHandshake() {
+    getCurrentThread().checkBlock();
+    sysCall.sysThreadYield();
+  }
   /**
    * Suspend execution of current thread for specified number of seconds (or
    * fraction).
