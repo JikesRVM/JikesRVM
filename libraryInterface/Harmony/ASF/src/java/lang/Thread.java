@@ -972,7 +972,7 @@ public class Thread implements Runnable {
    * 
    */
   public static void yield() {
-    RVMThread.yield();
+    RVMThread.yieldNoHandshake();
   }
 
   /**
