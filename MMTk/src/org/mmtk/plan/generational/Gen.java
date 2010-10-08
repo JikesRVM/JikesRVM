@@ -256,7 +256,7 @@ public abstract class Gen extends StopTheWorld {
    * able to be copied into the mature space.
    */
   private boolean virtualMemoryExhausted() {
-    return ((int) (nurserySpace.reservedPages()*WORST_CASE_COPY_EXPANSION) >= getMaturePhysicalPagesAvail());
+    return ((int)(getCollectionReserve() * WORST_CASE_COPY_EXPANSION)) >= getMaturePhysicalPagesAvail();
   }
 
   /*****************************************************************************
