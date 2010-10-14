@@ -153,7 +153,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(BOOLEAN_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().booleanBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy8Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
+      Memory.aligned8Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
     }
   }
 
@@ -262,7 +262,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(BYTE_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().byteBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy8Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
+      Memory.aligned8Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
     }
   }
 
@@ -372,7 +372,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(CHAR_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().charBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy16Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
+      Memory.aligned16Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
     }
   }
 
@@ -482,7 +482,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(SHORT_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().shortBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy16Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
+      Memory.aligned16Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
     }
   }
 
@@ -593,7 +593,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(INT_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().intBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy32Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
+      Memory.aligned32Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
     }
   }
 
@@ -740,7 +740,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(LONG_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().longBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy64Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
+      Memory.aligned64Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
     }
   }
 
@@ -850,7 +850,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(FLOAT_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().floatBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy32Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
+      Memory.aligned32Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
     }
   }
 
@@ -960,7 +960,7 @@ public class Barriers implements org.mmtk.utility.Constants {
     if (VM.VerifyAssertions) VM._assert(DOUBLE_BULK_COPY_SUPPORTED);
 
     if (!Selected.Mutator.get().doubleBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
-      Memory.arraycopy64Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), bytes);
+      Memory.aligned64Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
     }
   }
 

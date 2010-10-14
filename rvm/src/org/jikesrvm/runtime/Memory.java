@@ -96,7 +96,7 @@ public class Memory {
   public static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) {
     Address srcPtr = Magic.objectAsAddress(src).plus(srcPos);
     Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos);
-    arraycopy8Bit(srcPtr, dstPtr, len);
+    aligned8Copy(dstPtr, srcPtr, len);
   }
 
   /**
@@ -104,11 +104,11 @@ public class Memory {
    *
    * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
    *
-   * @param srcPtr The source start address
    * @param dstPtr The destination start address
+   * @param srcPtr The source start address
    * @param copyBytes The number of bytes to be copied
    */
-  public static void arraycopy8Bit(Address srcPtr, Address dstPtr , int copyBytes) {
+  public static void aligned8Copy(Address dstPtr, Address srcPtr, int copyBytes) {
     if (USE_NATIVE && copyBytes > NATIVE_THRESHOLD) {
       memcopy(dstPtr, srcPtr, copyBytes);
     } else {
@@ -207,18 +207,18 @@ public class Memory {
     Address srcPtr = Magic.objectAsAddress(src).plus(srcPos << LOG_BYTES_IN_SHORT);
     Address dstPtr = Magic.objectAsAddress(dst).plus(dstPos << LOG_BYTES_IN_SHORT);
     int copyBytes = len << LOG_BYTES_IN_SHORT;
-    arraycopy16Bit(srcPtr, dstPtr, copyBytes);
+    aligned16Copy(dstPtr, srcPtr, copyBytes);
   }
   /**
    * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    *
    * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 2 bytes.
    *
-   * @param srcPtr The source start address
    * @param dstPtr The destination start address
+   * @param srcPtr The source start address
    * @param copyBytes The number of bytes to be copied
    */
-  public static void arraycopy16Bit(Address srcPtr, Address dstPtr , int copyBytes) {
+  public static void aligned16Copy(Address dstPtr, Address srcPtr, int copyBytes) {
     if (USE_NATIVE && copyBytes > NATIVE_THRESHOLD) {
       memcopy(dstPtr, srcPtr, copyBytes);
     } else {
@@ -297,34 +297,9 @@ public class Memory {
     Address srcPtr = Magic.objectAsAddress(src).plus(srcIdx << LOG_BYTES_IN_INT);
     Address dstPtr = Magic.objectAsAddress(dst).plus(dstIdx << LOG_BYTES_IN_INT);
     int copyBytes = len << LOG_BYTES_IN_INT;
-    arraycopy32Bit(srcPtr, dstPtr, copyBytes);
+    aligned32Copy(dstPtr, srcPtr, copyBytes);
   }
 
-  /**
-   * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
-   *
-   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
-   *
-   * @param srcPtr The source start address
-   * @param dstPtr The destination start address
-   * @param copyBytes The number of bytes to be copied
-   */
-  public static void arraycopy32Bit(Address srcPtr, Address dstPtr , int copyBytes) {
-    if (USE_NATIVE && copyBytes > NATIVE_THRESHOLD) {
-      memcopy(dstPtr, srcPtr, copyBytes);
-    } else {
-      // The elements of int[] and float[] are always 32 bit aligned
-      // therefore we can do 32 bit load/stores without worrying about alignment.
-      // TODO: optimize to use 64bit copies. Suspected problem in _202_jess with overlapping arrays
-      //aligned32Copy(dstPtr, srcPtr, Offset.fromIntSignExtend(len << LOG_BYTES_IN_INT));
-      Address endPtr = srcPtr.plus(copyBytes);
-      while (srcPtr.LT(endPtr)) {
-        dstPtr.store(srcPtr.loadInt());
-        srcPtr = srcPtr.plus(4);
-        dstPtr = dstPtr.plus(4);
-      }
-    }
-  }
   /**
    * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    *
@@ -340,7 +315,7 @@ public class Memory {
     Offset srcOffset = Offset.fromIntZeroExtend(srcIdx << LOG_BYTES_IN_DOUBLE);
     Offset dstOffset = Offset.fromIntZeroExtend(dstIdx << LOG_BYTES_IN_DOUBLE);
     int copyBytes = len << LOG_BYTES_IN_DOUBLE;
-    arraycopy64Bit(Magic.objectAsAddress(src).plus(srcOffset), Magic.objectAsAddress(dst).plus(dstOffset), copyBytes);
+    aligned64Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), copyBytes);
   }
 
   /**
@@ -348,11 +323,11 @@ public class Memory {
    *
    * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 8 bytes.
    *
-   * @param srcPtr The source start address
    * @param dstPtr The destination start address
+   * @param srcPtr The source start address
    * @param copyBytes The number of bytes to be copied
    */
-  public static void arraycopy64Bit(Address srcPtr, Address dstPtr , int copyBytes) {
+  public static void aligned64Copy(Address dstPtr, Address srcPtr, int copyBytes) {
     if (USE_NATIVE && copyBytes > NATIVE_THRESHOLD) {
       memcopy(dstPtr, srcPtr, copyBytes);
     } else {
@@ -369,18 +344,27 @@ public class Memory {
 
 
   /**
-   * Copy numbytes from src to dst.
+   * Copy copyBytes from src to dst.
    * Assumption either the ranges are non overlapping, or src >= dst + 4.
    * Also, src and dst are 4 byte aligned and numBytes is a multiple of 4.
+   *
    * @param dst the destination addr
    * @param src the source addr
    * @param numBytes the number of bytes top copy
    */
-  public static void aligned32Copy(Address dst, Address src, Offset numBytes) {
-    if (USE_NATIVE && numBytes.sGT(Offset.fromIntSignExtend(NATIVE_THRESHOLD))) {
-      memcopy(dst, src, numBytes.toWord().toExtent());
+  public static void aligned32Copy(Address dst, Address src, int copyBytes) {
+    if (VM.VerifyAssertions) {
+      VM._assert(copyBytes >= 0);
+      VM._assert((copyBytes & (BYTES_IN_INT - 1)) == 0);
+      VM._assert(src.toWord().and(Word.fromIntZeroExtend(BYTES_IN_INT - 1)).isZero());
+      VM._assert(dst.toWord().and(Word.fromIntZeroExtend(BYTES_IN_INT - 1)).isZero());
+      VM._assert(src.plus(copyBytes).LE(dst) || src.GE(dst.plus(BYTES_IN_INT)));
+    }
+    if (USE_NATIVE && copyBytes > NATIVE_THRESHOLD) {
+      memcopy(dst, src, copyBytes);
     } else {
-      if (BYTES_IN_COPY == 8) {
+      Offset numBytes = Offset.fromIntSignExtend(copyBytes);
+      if (BYTES_IN_COPY == 8 && copyBytes != 0) {
         Word wordMask = Word.fromIntZeroExtend(BYTES_IN_COPY-1);
         Word srcAlignment = src.toWord().and(wordMask);
         if (srcAlignment.EQ(dst.toWord().and(wordMask))) {
@@ -405,10 +389,6 @@ public class Memory {
         copy4Bytes(dst.plus(i), src.plus(i));
       }
     }
-  }
-
-  public static void aligned32Copy(Address dst, Address src, int numBytes) {
-    aligned32Copy(dst, src, Offset.fromIntSignExtend(numBytes));
   }
 
   /**
