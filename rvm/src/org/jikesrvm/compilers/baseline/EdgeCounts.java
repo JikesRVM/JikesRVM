@@ -118,7 +118,9 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
       if (data[i] != null) {
         NormalMethod m =
             (NormalMethod) MemberReference.getMemberRef(i).asMethodReference().peekResolvedMethod();
-        new BranchProfiles(m, data[i]).print(f);
+        if (m != null) {
+          new BranchProfiles(m, data[i]).print(f);
+        }
       }
     }
   }
