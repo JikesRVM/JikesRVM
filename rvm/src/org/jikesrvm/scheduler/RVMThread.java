@@ -1407,11 +1407,12 @@ public final class RVMThread extends ThreadContext {
       if (monitorBySlot[threadSlot] == null) {
         monitorBySlot[threadSlot] = new NoYieldpointsMonitor();
       }
-      handshakeLock.lockWithHandshake();
       if (communicationLockBySlot[threadSlot] == null) {
-        communicationLockBySlot[threadSlot] = new Monitor();
+        Monitor m = new Monitor();
+        handshakeLock.lockWithHandshake();
+        communicationLockBySlot[threadSlot] = m;
+        handshakeLock.unlock();
       }
-      handshakeLock.unlock();
       Magic.sync(); /*
                      * make sure that nobody sees the thread in any of the
                      * tables until the thread slot is inited
