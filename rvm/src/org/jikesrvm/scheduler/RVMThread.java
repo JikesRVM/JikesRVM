@@ -3054,8 +3054,16 @@ public final class RVMThread extends ThreadContext {
     Lock l = ObjectModel.getHeavyLock(o, false);
     if (l == null)
       return;
-    if (l.getOwnerId() != getCurrentThread().getLockingId()) {
-      raiseIllegalMonitorStateException("notifying", o);
+    // the reason for locking: when inflating a lock we *first* install it in the status
+    // word and *then* initialize its state.  but fortunately, we do so while holding
+    // the lock's mutex.  thus acquiring the lock's mutex is the only way to ensure that
+    // we see the lock's state after initialization.
+    l.mutex.lock();
+    int owner=l.getOwnerId();
+    l.mutex.unlock();
+    int me=getCurrentThread().getLockingId();
+    if (owner != me) {
+      raiseIllegalMonitorStateException("notifying (expected lock to be held by "+me+"("+getCurrentThread().getLockingId()+") but was held by "+owner+"("+l.getOwnerId()+")) ", o);
     }
     l.mutex.lock();
     RVMThread toAwaken = l.waiting.dequeue();
@@ -3071,15 +3079,18 @@ public final class RVMThread extends ThreadContext {
    * @param o the object synchronized on
    * @see java.lang.Object#notifyAll
    */
-  @UninterruptibleNoWarn("Never blocks except if there was an error")
+  @Interruptible
   public static void notifyAll(Object o) {
     if (STATS)
       notifyAllOperations++;
     Lock l = ObjectModel.getHeavyLock(o, false);
     if (l == null)
       return;
-    if (l.getOwnerId() != getCurrentThread().getLockingId()) {
-      raiseIllegalMonitorStateException("notifyAll", o);
+    l.mutex.lock();
+    int owner=l.getOwnerId();
+    l.mutex.unlock();
+    if (owner != getCurrentThread().getLockingId()) {
+      raiseIllegalMonitorStateException("notifying all (expected lock to be held by "+getCurrentThread().getLockingId()+" but was held by "+l.getOwnerId()+") ", o);
     }
     for (;;) {
       l.mutex.lock();
