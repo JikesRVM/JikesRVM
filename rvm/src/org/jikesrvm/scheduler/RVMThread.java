@@ -4288,10 +4288,13 @@ public final class RVMThread extends ThreadContext {
       } else {
         long startNano = Time.nanoTime();
         long whenWakeup = startNano + ms * 1000L * 1000L + ns;
-        if (!isJoinable) {
-          do {
-            waitAbsoluteNanos(this, whenWakeup);
-          } while (isAlive() && Time.nanoTime() < whenWakeup);
+        while (!isJoinable) {
+          waitAbsoluteNanos(this, whenWakeup);
+          if (Time.nanoTime() >= whenWakeup) {
+            break;
+          }
+          if (traceBlock)
+            VM.sysWriteln("relooping in join on Thread #", threadSlot);
         }
       }
     }
