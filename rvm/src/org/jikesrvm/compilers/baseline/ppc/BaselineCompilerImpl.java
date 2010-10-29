@@ -4970,7 +4970,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     } else if (methodName == MagicNames.readCeiling) {
       asm.emitISYNC();
     } else if (methodName == MagicNames.writeFloor) {
-      asm.emitLWSYNC();
+      asm.emitSYNC();
     } else if (methodName == MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(0, T0);
