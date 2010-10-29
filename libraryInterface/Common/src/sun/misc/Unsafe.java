@@ -17,6 +17,7 @@ import java.lang.reflect.Field;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
@@ -192,5 +193,9 @@ public final class Unsafe {
   public void park(boolean isAbsolute,long time) throws Throwable  {
     RVMThread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
     vmthread.park(isAbsolute, time);
+  }
+
+  public void throwException(Throwable ex) {
+    RuntimeEntrypoints.athrow(ex);
   }
 }
