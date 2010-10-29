@@ -1022,6 +1022,28 @@ public final class Magic {
   }
 
   //---------------------------------------//
+  //            Memory Fences.             //
+  //---------------------------------------//
+
+  /**
+   * Disallow any reads to float above this point.
+   */
+  public static void readCeiling() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
+
+  /**
+   * Disallow any writes to sink below this point.
+   */
+  public static void writeFloor() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
+
+  //---------------------------------------//
   //            Cache Management.          //
   //---------------------------------------//
 

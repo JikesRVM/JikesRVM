@@ -63,6 +63,7 @@ public final class Unsafe {
 
   public void putOrderedInt(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
+    Magic.writeFloor();
     if (NEEDS_INT_PUTFIELD_BARRIER) {
       intFieldWrite(obj, value, off, 0);
     } else {
@@ -72,6 +73,7 @@ public final class Unsafe {
 
   public void putOrderedLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
+    Magic.writeFloor();
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
       longFieldWrite(obj, value, off, 0);
     } else {
@@ -81,6 +83,7 @@ public final class Unsafe {
 
   public void putOrderedObject(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
+    Magic.writeFloor();
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
       objectFieldWrite(obj, value, off, 0);
     } else {
@@ -89,7 +92,7 @@ public final class Unsafe {
    }
 
   public void putIntVolatile(Object obj,long offset,int value) {
-    // may not comply with the intended volatile semantic of the store
+    Magic.writeFloor();
     Offset off = longToOffset(offset);
     if (NEEDS_INT_PUTFIELD_BARRIER) {
       intFieldWrite(obj, value, off, 0);
@@ -109,7 +112,9 @@ public final class Unsafe {
 
   public int getIntVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
-    return Magic.getIntAtOffset(obj,off);
+    int result = Magic.getIntAtOffset(obj,off);
+    Magic.readCeiling();
+    return result;
   }
 
   public int getInt(Object obj,long offset) {
@@ -118,7 +123,7 @@ public final class Unsafe {
   }
 
   public void putLongVolatile(Object obj,long offset,long value) {
-    // may not comply with the intended volatile semantic of the store
+    Magic.writeFloor();
     Offset off = longToOffset(offset);
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
       longFieldWrite(obj, value, off, 0);
@@ -138,7 +143,9 @@ public final class Unsafe {
 
   public long getLongVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
-    return Magic.getLongAtOffset(obj,off);
+    long result = Magic.getLongAtOffset(obj,off);
+    Magic.readCeiling();
+    return result;
   }
 
   public long getLong(Object obj,long offset) {
@@ -147,8 +154,8 @@ public final class Unsafe {
   }
 
   public void putObjectVolatile(Object obj,long offset,Object value) {
-    // may not comply with the intended volatile semantic of the store
     Offset off = longToOffset(offset);
+    Magic.writeFloor();
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
       objectFieldWrite(obj, value, off, 0);
     } else {
@@ -167,7 +174,9 @@ public final class Unsafe {
 
   public Object getObjectVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
-    return Magic.getObjectAtOffset(obj,off);
+    Object result = Magic.getObjectAtOffset(obj,off);
+    Magic.readCeiling();
+    return result;
   }
 
   public int arrayBaseOffset(Class<?> arrayClass) {

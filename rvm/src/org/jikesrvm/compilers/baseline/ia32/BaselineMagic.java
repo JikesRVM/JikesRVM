@@ -1090,6 +1090,8 @@ final class BaselineMagic {
     generators.put(getMethodReference(Magic.class, MagicNames.longBitsAsDouble, long.class, double.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.sync, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.isync, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.readCeiling, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.writeFloor, void.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new EarlyReferenceCheckDecorator(NO_SLOT, g);
     }
