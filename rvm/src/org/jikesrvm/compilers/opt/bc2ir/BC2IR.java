@@ -1626,6 +1626,11 @@ public final class BC2IR
           }
 
           s = GetStatic.create(GETSTATIC, t, offsetOp, fieldOp);
+          if (fieldOp.mayBeVolatile()) {
+              appendInstruction(s);
+              s = Empty.create(READ_CEILING);
+          }
+
           push(t.copyD2U(), fieldType);
         }
         break;
@@ -1648,6 +1653,9 @@ public final class BC2IR
 
           TypeReference fieldType = ref.getFieldContentsType();
           Operand r = pop(fieldType);
+          if (fieldOp.mayBeVolatile()) {
+              appendInstruction(Empty.create(WRITE_FLOOR));
+          }
           s = PutStatic.create(PUTSTATIC, r, offsetOp, fieldOp);
         }
         break;
@@ -1713,6 +1721,11 @@ public final class BC2IR
           }
 
           s = GetField.create(GETFIELD, t, op1, offsetOp, fieldOp, getCurrentGuard());
+          if (fieldOp.mayBeVolatile()) {
+              appendInstruction(s);
+              s = Empty.create(READ_CEILING);
+          }
+
           push(t.copyD2U(), fieldType);
         }
         break;
@@ -1741,6 +1754,9 @@ public final class BC2IR
             break;
           }
 
+          if (fieldOp.mayBeVolatile()) {
+              appendInstruction(Empty.create(WRITE_FLOOR));
+          }
           s = PutField.create(PUTFIELD, val, obj, offsetOp, fieldOp, getCurrentGuard());
         }
         break;
@@ -2846,7 +2862,7 @@ public final class BC2IR
         gc.result = meet;
       }
     }
-    if (VM.BuildForPowerPC && gc.method.isObjectInitializer() && gc.method.getDeclaringClass().declaresFinalInstanceField()) {
+    if (gc.method.isObjectInitializer() && gc.method.getDeclaringClass().declaresFinalInstanceField()) {
       /* JMM Compliance.  Must insert StoreStore barrier before returning from constructor of class with final instance fields */
       appendInstruction(Empty.create(WRITE_FLOOR));
     }
