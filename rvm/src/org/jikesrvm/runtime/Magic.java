@@ -1050,6 +1050,15 @@ public final class Magic {
   /**** NOTE: all per-address operations now live in vmmagic.Address *****/
 
   /**
+   * A strong memory fence, used to enforce StoreLoad in the JMM.
+   */
+  public static void fence() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
+
+  /**
    * Wait for preceeding cache flush/invalidate instructions to
    * complete on all processors.
    */

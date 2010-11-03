@@ -2565,6 +2565,14 @@ EMIT_INSTRUCTION
 EMIT(P(p)); // Pass through to maintain barrier semantics for code motion
 
 #####
+# FENCE
+#####
+stm:	FENCE
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Empty.mutate(P(p), IA32_MFENCE));
+
+#####
 # PAUSE
 #####
 stm:	PAUSE

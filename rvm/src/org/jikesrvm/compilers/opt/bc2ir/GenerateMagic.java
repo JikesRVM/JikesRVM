@@ -28,6 +28,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_AS_LONG_BITS;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_SQRT;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_AS_INT_BITS;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_SQRT;
@@ -795,6 +796,8 @@ public class GenerateMagic implements TIBLayoutConstants  {
       RegisterOperand test = gc.temps.makeTempBoolean();
       bc2ir.appendInstruction(Attempt.create(ATTEMPT_ADDR, test, base, offset, oldVal, newVal, null));
       bc2ir.push(test.copyD2U());
+    } else if (methodName == MagicNames.fence) {
+      bc2ir.appendInstruction(Empty.create(FENCE));
     } else if (methodName == MagicNames.readCeiling) {
       bc2ir.appendInstruction(Empty.create(READ_CEILING));
     } else if (methodName == MagicNames.writeFloor) {

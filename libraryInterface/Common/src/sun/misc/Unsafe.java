@@ -99,6 +99,7 @@ public final class Unsafe {
     } else {
       Magic.setIntAtOffset(obj,off,value);
     }
+    Magic.fence();
   }
 
   public void putInt(Object obj,long offset,int value) {
@@ -130,7 +131,8 @@ public final class Unsafe {
     } else {
       Magic.setLongAtOffset(obj,off,value);
     }
-   }
+    Magic.fence();
+  }
 
   public void putLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
@@ -161,6 +163,7 @@ public final class Unsafe {
     } else {
       Magic.setObjectAtOffset(obj,off,value);
     }
+    Magic.fence();
   }
 
   public void putObject(Object obj,long offset,Object value) {

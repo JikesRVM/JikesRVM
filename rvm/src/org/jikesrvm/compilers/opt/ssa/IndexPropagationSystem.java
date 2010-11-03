@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ssa;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
 import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 
@@ -193,6 +194,8 @@ class IndexPropagationSystem extends DF_System {
         } else if (s.operator == READ_CEILING) {
           processCall(s);
         } else if (s.operator == WRITE_FLOOR) {
+          processCall(s);
+        } else if (s.operator == FENCE) {
           processCall(s);
         }
       }

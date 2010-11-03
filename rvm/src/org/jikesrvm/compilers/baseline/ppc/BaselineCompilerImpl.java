@@ -2583,6 +2583,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       popDouble(F0);
       asm.emitSTFDX(F0, T1, JTOC);
     }
+    // The field may be volatile.
+    asm.emitSYNC();
   }
 
   /**
@@ -2611,6 +2613,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       }
       popDouble(F0);
       asm.emitSTFDtoc(F0, fieldOffset, T0);
+    }
+    if (field.isVolatile()) {
+      asm.emitSYNC();
     }
   }
 
@@ -2789,6 +2794,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTFDX(F0, T1, T2);
     }
+    // The field may be volatile.
+    asm.emitSYNC();
   }
 
   /**
@@ -2865,6 +2872,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       popAddr(T1);       // T1 = object reference
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTFDoffset(F0, T1, fieldOffset);
+    }
+    if (field.isVolatile()) {
+      asm.emitSYNC();
     }
   }
 
@@ -4969,7 +4979,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       // NO-OP
     } else if (methodName == MagicNames.readCeiling) {
       asm.emitISYNC();
-    } else if (methodName == MagicNames.writeFloor) {
+    } else if (methodName == MagicNames.writeFloor ||
+               methodName == MagicNames.fence) {
       asm.emitSYNC();
     } else if (methodName == MagicNames.dcbst) {
       popAddr(T0);    // address

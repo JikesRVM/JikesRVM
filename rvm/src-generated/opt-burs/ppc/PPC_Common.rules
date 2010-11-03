@@ -207,6 +207,14 @@ SET_EXCEPTION_OBJECT(P(p));
 # Cache instructions
 ##################################
 #####
+# FENCE
+#####
+stm:	FENCE
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Empty.mutate(P(p), PPC_SYNC));
+
+#####
 # WRITE_FLOOR
 #####
 stm:	WRITE_FLOOR

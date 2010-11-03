@@ -42,12 +42,16 @@ public class Synchronization {
     if (Barriers.NEEDS_INT_PUTFIELD_BARRIER || Barriers.NEEDS_INT_GETFIELD_BARRIER) {
       return Barriers.intTryCompareAndSwap(base, offset, testValue, newValue);
     } else {
-      int oldValue;
-      do {
-        oldValue = Magic.prepareInt(base, offset);
-        if (oldValue != testValue) return false;
-      } while (!Magic.attemptInt(base, offset, oldValue, newValue));
-      return true;
+      if (VM.BuildForIA32) {
+        return Magic.attemptInt(base, offset, testValue, newValue);
+      } else {
+        int oldValue;
+        do {
+          oldValue = Magic.prepareInt(base, offset);
+          if (oldValue != testValue) return false;
+        } while (!Magic.attemptInt(base, offset, oldValue, newValue));
+        return true;
+      }
     }
   }
 
@@ -64,12 +68,16 @@ public class Synchronization {
     if (Barriers.NEEDS_LONG_PUTFIELD_BARRIER || Barriers.NEEDS_LONG_GETFIELD_BARRIER) {
       return Barriers.longTryCompareAndSwap(base, offset, testValue, newValue);
     } else {
-      long oldValue;
-      do {
-        oldValue = Magic.prepareLong(base, offset);
-        if (oldValue != testValue) return false;
-      } while (!Magic.attemptLong(base, offset, oldValue, newValue));
-      return true;
+      if (VM.BuildForIA32) {
+        return Magic.attemptLong(base, offset, testValue, newValue);
+      } else {
+        long oldValue;
+        do {
+          oldValue = Magic.prepareLong(base, offset);
+          if (oldValue != testValue) return false;
+        } while (!Magic.attemptLong(base, offset, oldValue, newValue));
+        return true;
+      }
     }
   }
 
@@ -86,12 +94,16 @@ public class Synchronization {
     if (Barriers.NEEDS_WORD_PUTFIELD_BARRIER || Barriers.NEEDS_WORD_GETFIELD_BARRIER) {
       return Barriers.wordTryCompareAndSwap(base, offset, testValue, newValue);
     } else {
-      Word oldValue;
-      do {
-        oldValue = Magic.prepareWord(base, offset);
-        if (oldValue != testValue) return false;
-      } while (!Magic.attemptWord(base, offset, oldValue, newValue));
-      return true;
+      if (VM.BuildForIA32) {
+        return Magic.attemptWord(base, offset, testValue, newValue);
+      } else {
+        Word oldValue;
+        do {
+          oldValue = Magic.prepareWord(base, offset);
+          if (oldValue != testValue) return false;
+        } while (!Magic.attemptWord(base, offset, oldValue, newValue));
+        return true;
+      }
     }
   }
 
@@ -108,13 +120,17 @@ public class Synchronization {
     if (Barriers.NEEDS_ADDRESS_PUTFIELD_BARRIER || Barriers.NEEDS_ADDRESS_GETFIELD_BARRIER) {
       return Barriers.addressTryCompareAndSwap(base, offset, testValue, newValue);
     } else {
-      Address oldValue;
-      do {
-        oldValue = Magic.prepareAddress(base, offset);
-        if (oldValue != testValue)
-          return false;
-      } while (!Magic.attemptAddress(base, offset, oldValue, newValue));
-      return true;
+      if (VM.BuildForIA32) {
+        return Magic.attemptAddress(base, offset, testValue, newValue);
+      } else {
+        Address oldValue;
+        do {
+          oldValue = Magic.prepareAddress(base, offset);
+          if (oldValue != testValue)
+            return false;
+        } while (!Magic.attemptAddress(base, offset, oldValue, newValue));
+        return true;
+      }
     }
   }
 
@@ -131,12 +147,16 @@ public class Synchronization {
     if (Barriers.NEEDS_OBJECT_PUTFIELD_BARRIER || Barriers.NEEDS_OBJECT_GETFIELD_BARRIER) {
       return Barriers.objectTryCompareAndSwap(base, offset, testValue, newValue);
     } else {
-      Object oldValue;
-      do {
-        oldValue = Magic.prepareObject(base, offset);
-        if (oldValue != testValue) return false;
-      } while (!Magic.attemptObject(base, offset, oldValue, newValue));
-      return true;
+      if (VM.BuildForIA32) {
+        return Magic.attemptObject(base, offset, testValue, newValue);
+      } else {
+        Object oldValue;
+        do {
+          oldValue = Magic.prepareObject(base, offset);
+          if (oldValue != testValue) return false;
+        } while (!Magic.attemptObject(base, offset, oldValue, newValue));
+        return true;
+      }
     }
   }
 

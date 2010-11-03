@@ -1283,6 +1283,19 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   // instructions (hand coded)       //
   /////////////////////////////////////
 
+  public final void emitMFENCE() {
+  	int miStart = mi;
+    emitLockNextInstruction();
+    emitADD_RegInd_Imm(ESP, 0);
+    /**
+     * The above has the same semantics, but with better performance as a true MFENCE:
+     * setMachineCodes(mi++,(byte) 0x0F);
+     * setMachineCodes(mi++,(byte) 0xAE);
+     * setMachineCodes(mi++,(byte) 0xF0);
+     * if (lister != null) lister.OP(miStart, "MFENCE");
+     */
+  }
+
   /**
    * Generate a bswap on a register. That is,
    * <PRE>

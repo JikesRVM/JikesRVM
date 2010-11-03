@@ -1116,6 +1116,19 @@ final class BaselineMagic {
   }
 
   /**
+   * Generate the MFENCE instruction.
+   */
+  private static final class MFence extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitMFENCE();
+    }
+  }
+  static {
+    generators.put(getMethodReference(Magic.class, MagicNames.fence, void.class), new MFence());
+  }
+
+  /**
    * Perform an operation to release a stack slot
    */
   private static final class FreeStackSlot extends MagicGenerator {

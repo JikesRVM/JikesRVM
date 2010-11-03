@@ -1657,6 +1657,10 @@ public final class BC2IR
               appendInstruction(Empty.create(WRITE_FLOOR));
           }
           s = PutStatic.create(PUTSTATIC, r, offsetOp, fieldOp);
+          if (fieldOp.mayBeVolatile()) {
+            appendInstruction(s);
+            s = Empty.create(FENCE);
+          }
         }
         break;
 
@@ -1758,6 +1762,10 @@ public final class BC2IR
               appendInstruction(Empty.create(WRITE_FLOOR));
           }
           s = PutField.create(PUTFIELD, val, obj, offsetOp, fieldOp, getCurrentGuard());
+          if (fieldOp.mayBeVolatile()) {
+            appendInstruction(s);
+            s = Empty.create(FENCE);
+          }
         }
         break;
 
