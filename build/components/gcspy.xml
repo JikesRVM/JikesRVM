@@ -15,7 +15,7 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
-  <property name="gcspy.version" value="1_01"/>
+  <property name="gcspy.version" value="1_012"/>
   <property name="gcspy.description" value="GCSpy Heap Visualisation Framework"/>
 
   <property name="gcspy.component.dir" location="${components.dir}/gcspy"/>
