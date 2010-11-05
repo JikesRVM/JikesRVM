@@ -617,7 +617,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS)) && BYTE_BULK_COPY_SUPPORTED) {
-        if (NEEDS_BOOLEAN_ASTORE_BARRIER || NEEDS_BOOLEAN_ALOAD_BARRIER) {
+        if (NEEDS_BYTE_ASTORE_BARRIER || NEEDS_BYTE_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx);
           Barriers.byteBulkCopy(src, srcOffset, dst, dstOffset, len);
