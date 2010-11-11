@@ -205,7 +205,6 @@
             <equals arg1="${target.os}" arg2="Solaris"/> 
             <equals arg1="${target.os}" arg2="AIX"/>
             <equals arg1="${target.name}" arg2="ppc64-linux"/>
-            <equals arg1="${target.name}" arg2="x86_64-linux"/>
           </or>
         </not>
         <or>
@@ -225,6 +224,11 @@
 
     <condition property="cp.cppflags" value=" CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE -D_LINUX_SOURCE_COMPAT'" else="">
       <equals arg1="${target.os}" arg2="AIX"/>
+    </condition>
+
+
+    <condition property="cp.libdirs" value="  --libdir=/usr/lib32 --x-libraries=/usr/lib32" else="">
+      <equals arg1="${target.name}" arg2="x86_64-linux"/> 
     </condition>
 
     <!-- horrible hackery to get assembler object mode set properly on AIX.
@@ -258,7 +262,7 @@
       <arg value="--disable-plugin"/>
       <arg value="--disable-gconf-peer"/>
       <arg value="--disable-examples"/>
-      <arg line="${cp.enable.gtk-peer}${cp.enable.portable-native-sync}${cp.disable.alsa}${cp.cppflags}"/>
+      <arg line="${cp.enable.gtk-peer}${cp.enable.portable-native-sync}${cp.disable.alsa}${cp.cppflags}${cp.libdirs}"/>
     </exec>
     <exec executable="${make.exe}" failonerror="true" dir="${classpath.dir}">
       <env key="OBJECT_MODE" value="${cp.objectmode}" />
