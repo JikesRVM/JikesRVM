@@ -138,14 +138,13 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
     new RVMThread.SoftHandshakeVisitor() {
       @Uninterruptible
       public boolean checkAndSignal(RVMThread t) {
-        // PNT: maybe we should return false if it's a GC thread?
-        t.flushRequested=true;
+        t.flushRequested = true;
         return true;
       }
       @Uninterruptible
       public void notifyStuckInNative(RVMThread t) {
         t.flush();
-        t.flushRequested=false;
+        t.flushRequested = false;
       }
       @Uninterruptible
       public boolean includeThread(RVMThread t) {

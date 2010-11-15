@@ -1845,6 +1845,7 @@ public final class RVMThread extends ThreadContext {
       setExecStatus(BLOCKED_IN_NATIVE);
     }
     acknowledgeBlockRequests();
+    handleHandshakeRequest();
     commitSoftRendezvous = softRendezvousCheckAndClear();
     monitor().unlock();
     if (traceBlock)
@@ -3389,6 +3390,7 @@ public final class RVMThread extends ThreadContext {
     // process memory management requests
     if (flushRequested && activeMutatorContext) {
       MemoryManager.flushMutatorContext();
+      flushRequested = false;
     }
     // not really a "soft handshake" request but we handle it here anyway
     if (asyncDebugRequestedForThisThread) {
