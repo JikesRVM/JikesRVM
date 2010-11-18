@@ -38,23 +38,6 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
   /** Counter to track index into thread table for root tracing.  */
   private static final SynchronizedCounter threadCounter = new SynchronizedCounter();
 
-  /** Status flag used to determine if stacks were scanned in this collection increment */
-  private static boolean threadStacksScanned = false;
-
-  /**
-   * Were thread stacks scanned in this collection increment.
-   */
-  public static boolean threadStacksScanned() {
-    return threadStacksScanned;
-  }
-
-  /**
-   * Clear the flag that indicates thread stacks have been scanned.
-   */
-  public static void clearThreadStacksScanned() {
-    threadStacksScanned = false;
-  }
-
   /**
    * Scanning of a object, processing each pointer field encountered.
    *
@@ -187,9 +170,6 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    */
   public void computeThreadRoots(TraceLocal trace) {
     boolean processCodeLocations = MemoryManagerConstants.MOVES_CODE;
-
-    /* Set status flag */
-    threadStacksScanned = true;
 
     /* scan all threads */
     while (true) {
