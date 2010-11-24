@@ -36,7 +36,7 @@
     <property name="junit.web-archive" value="junit${junit.version}.zip"/>
     <mkdir dir="${junit.package.dir}"/>
     <cachedGet key="${junit.web-archive}"
-         src="http://superb-east.dl.sourceforge.net/sourceforge/junit/${junit.web-archive}"
+         src="http://sourceforge.net/projects/junit/files/junit/${junit.version}/${junit.web-archive}/download?use_mirror=autoselect"
          dest="${junit.package.dir}/${junit.web-archive}"/>
     <unzip src="${junit.package.dir}/${junit.web-archive}" dest="${junit.package.dir}"/>
     <writeComponentConstants dir="${junit.dir}"/>
