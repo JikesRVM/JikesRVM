@@ -1924,14 +1924,14 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
     if (lister != null) lister.OP(miStart, "RDTSC");
   }
 
-  /** software prefetch of value in EDI */
+  /** software prefetch */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
-  public final void emitPREFETCHNTA_RegInd(GPR srcReg) {
+  public final void emitPREFETCHNTA_Reg(GPR srcReg) {
     if (VM.VerifyAssertions) VM._assert(srcReg == EDI);
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++,(byte) 0x18);
-    emitRegRegOperands(GPR.getForOpcode(0), GPR.getForOpcode(0));
+    emitRegIndirectRegOperands(srcReg, GPR.getForOpcode(0));
     if (lister != null) lister.R(miStart, "PREFETCHNTA", srcReg);
   }
 

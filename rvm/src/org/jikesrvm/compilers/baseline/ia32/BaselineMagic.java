@@ -1032,7 +1032,7 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(EDI);
-      asm.emitPREFETCHNTA_RegInd(EDI);
+      asm.emitPREFETCHNTA_Reg(EDI);
     }
   }
   static {
