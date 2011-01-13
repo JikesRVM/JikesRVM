@@ -150,6 +150,7 @@
     <runCompareTest tag="RVM_550" class="test.org.jikesrvm.basic.bugs.RVM_550"/>
     <runCompareTest tag="RVM_703" class="test.org.jikesrvm.basic.bugs.RVM_703"/>
     <runCompareTest tag="RVM_708" class="test.org.jikesrvm.basic.bugs.RVM_708"/>
+    <runCompareTest tag="RVM_914" class="test.org.jikesrvm.basic.bugs.RVM_914"/>
     <finishResults/>
   </target>
 

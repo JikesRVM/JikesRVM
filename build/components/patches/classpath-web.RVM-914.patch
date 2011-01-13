@@ -1,0 +1,17 @@
+--- classpath-base/java/io/ObjectInputStream.java	2008-01-30 09:30:44.000000000 +1100
++++ classpath/java/io/ObjectInputStream.java	2011-01-13 17:23:32.000000000 +1100
+@@ -518,12 +518,13 @@
+ 	   if (dump)
+ 	     dumpElementln("ENUM=");
+ 	   ObjectStreamClass osc = (ObjectStreamClass) readObject();
++	   int handle = assignNewHandle(null,shared);
+ 	   String constantName = (String) readObject();
+ 	   if (dump)
+ 	     dumpElementln("CONSTANT NAME = " + constantName);
+ 	   Class clazz = osc.forClass();
+ 	   Enum instance = Enum.valueOf(clazz, constantName);
+-	   assignNewHandle(instance,shared);
++	   rememberHandle(instance,shared,handle);
+ 	   ret_val = instance;
+ 	   break;
+ 	 }
