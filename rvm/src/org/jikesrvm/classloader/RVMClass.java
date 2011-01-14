@@ -299,7 +299,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * @return true if this is a representation of an anonymous class
    */
   public boolean isAnonymousClass() {
-    return (enclosingClass != null) && (enclosingMethod == null);
+    return (enclosingClass != null) && (enclosingMethod != null);
   }
 
   /**
