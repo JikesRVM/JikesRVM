@@ -31,7 +31,7 @@ import org.vmmagic.pragma.*;
 
   private final long[] count;
 
-  protected long totalCount = 0;
+  protected long currentCount = 0;
   private boolean running = false;
 
   /****************************************************************************
@@ -93,7 +93,7 @@ import org.vmmagic.pragma.*;
    * @param value The amount by which the counter should be incremented.
    */
   public void inc(int value) {
-    if (running) totalCount += value;
+    if (running) currentCount += value;
   }
 
   /****************************************************************************
@@ -116,6 +116,8 @@ import org.vmmagic.pragma.*;
   protected void stop() {
     if (!Stats.gatheringStats) return;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(running);
+    count[Stats.phase] = currentCount;
+    currentCount = 0;
     running = false;
   }
 
@@ -128,8 +130,8 @@ import org.vmmagic.pragma.*;
    */
   void phaseChange(int oldPhase) {
     if (running) {
-      count[oldPhase] = totalCount;
-      totalCount = 0;
+      count[oldPhase] = currentCount;
+      currentCount = 0;
     }
   }
 
@@ -152,7 +154,7 @@ import org.vmmagic.pragma.*;
    * Print the current value for this counter (mid-phase)
    */
   public final void printCurrent() {
-    printValue(totalCount);
+    printValue(currentCount);
   }
 
   /**
