@@ -18,7 +18,8 @@ import org.vmmagic.pragma.*;
  *
  * This abstract class describes the interface of a generic counter.
  */
-@Uninterruptible public abstract class Counter {
+@Uninterruptible
+public abstract class Counter {
 
   /****************************************************************************
    *
