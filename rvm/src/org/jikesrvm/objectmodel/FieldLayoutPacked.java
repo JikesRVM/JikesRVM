@@ -62,15 +62,6 @@ public class FieldLayoutPacked extends FieldLayout implements SizeConstants {
     }
 
     /**
-     * Create a layout for an object without a superclass (ie j.l.Object).
-     *
-     * @param alignment
-     */
-    LayoutContext(byte alignment) {
-      this(alignment, null);
-    }
-
-    /**
      * Create a layout for an object, initializing offsets from its
      * superclass.
      *
