@@ -145,6 +145,7 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
    *
    * TODO: Lazily compile specialized methods?
    */
+  @Override
   @Interruptible
   public synchronized CodeArray specializeMethod(RVMType type) {
     /* Work out which pattern this type uses */
@@ -165,6 +166,7 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
   /**
    * @return the method signature of the specialized method's invoke.
    */
+  @Override
   public TypeReference[] getSignature() {
     return signature;
   }
@@ -172,6 +174,7 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
   /**
    * @return the return type of the specialized method's invoke
    */
+  @Override
   public TypeReference getReturnType() {
     return returnType;
   }
