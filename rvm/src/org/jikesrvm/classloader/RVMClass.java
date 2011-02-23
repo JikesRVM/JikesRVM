@@ -124,9 +124,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /** fields distinct for each instance of class */
   private RVMField[] instanceFields;
 
-  /** offsets of reference-containing instance fields */
-  private int[] referenceOffsets;
-
   /** Total size of per-instance data, in bytes  */
   private int instanceSize;
 
@@ -810,16 +807,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   @Uninterruptible
   public void setInstanceSizeInternal(int size) {
     instanceSize = size;
-  }
-
-  /**
-   * Offsets of reference-containing instance fields of this class type.
-   * Offsets are with respect to object pointer -- see RVMField.getOffset().
-   */
-  @Uninterruptible
-  public int[] getReferenceOffsets() {
-    if (VM.VerifyAssertions) VM._assert(isResolved());
-    return referenceOffsets;
   }
 
   /**

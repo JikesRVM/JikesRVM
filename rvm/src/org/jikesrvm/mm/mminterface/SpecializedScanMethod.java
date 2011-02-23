@@ -12,14 +12,16 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
+import static org.jikesrvm.classloader.RVMType.REFARRAY_OFFSET_ARRAY;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.SizeConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.objectmodel.JavaHeaderConstants;
@@ -109,7 +111,9 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
     }
 
     /* Build a bitmap if the object is compact enough and is not a reference array */
-    int[] offsets = type.asClass().getReferenceOffsets();
+    int[] offsets = type.getReferenceOffsets();
+
+    if (VM.VerifyAssertions) VM._assert(offsets != null);
 
     if (offsets.length == 0) {
       return NULL_PATTERN;
@@ -195,13 +199,14 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
   public static void fallback(Object object, TransitiveClosure trace) {
     ObjectReference objectRef = ObjectReference.fromObject(object);
     RVMType type = ObjectModel.getObjectType(objectRef.toObject());
-    if (type.isClassType()) {
-      RVMClass klass = type.asClass();
-      int[] offsets = klass.getReferenceOffsets();
+    int[] offsets = type.getReferenceOffsets();
+    if (offsets != REFARRAY_OFFSET_ARRAY) {
+      if (VM.VerifyAssertions) VM._assert(type.isClassType() || (type.isArrayType() && !type.asArray().getElementType().isReferenceType()));
       for(int i=0; i < offsets.length; i++) {
         trace.processEdge(objectRef, objectRef.toAddress().plus(offsets[i]));
       }
-    } else if (type.isArrayType() && type.asArray().getElementType().isReferenceType()) {
+    } else {
+      if (VM.VerifyAssertions) VM._assert(type.isArrayType() && type.asArray().getElementType().isReferenceType());
       for(int i=0; i < ObjectModel.getArrayLength(objectRef.toObject()); i++) {
         trace.processEdge(objectRef, objectRef.toAddress().plus(i << LOG_BYTES_IN_ADDRESS));
       }
@@ -211,7 +216,7 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
   /** All Scalars */
   public static void scalar(Object object, TransitiveClosure trace) {
     Address base = Magic.objectAsAddress(object);
-    int[] offsets = ObjectModel.getObjectType(object).asClass().getReferenceOffsets();
+    int[] offsets = ObjectModel.getObjectType(object).getReferenceOffsets();
     for (int i = 0; i < offsets.length; i++) {
       trace.processEdge(ObjectReference.fromObject(object), base.plus(offsets[i]));
     }

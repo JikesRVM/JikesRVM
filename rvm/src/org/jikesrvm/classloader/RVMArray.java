@@ -13,6 +13,7 @@
 package org.jikesrvm.classloader;
 
 import static org.jikesrvm.mm.mminterface.Barriers.*;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
@@ -458,6 +459,10 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
 
     // RCGC: Array is acyclic if its references are acyclic
     acyclic = elementType.isAcyclicReference();
+
+    /* Set GC metadata for this type */
+    boolean isRefArray = elementType.isReferenceType();
+    referenceOffsets = isRefArray ? REFARRAY_OFFSET_ARRAY : NOREFS_OFFSET_ARRAY;
 
     state = CLASS_LOADED;
 

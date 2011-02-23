@@ -62,6 +62,17 @@ import org.vmmagic.unboxed.Offset;
 public abstract class RVMType extends AnnotatedElement
     implements ClassLoaderConstants, SizeConstants, Constants {
 
+  /**
+   * A zero-length array, used as GC metadata for primitive
+   * arrays.
+   */
+  protected static final int[] NOREFS_OFFSET_ARRAY = new int[0];
+
+  /**
+   * Alias 'null' for clarity
+   */
+  public static final int[] REFARRAY_OFFSET_ARRAY = null;
+
   /** Next space in the the type array */
   private static int nextId = 1;
 
@@ -823,6 +834,18 @@ public abstract class RVMType extends AnnotatedElement
   private int mmAllocator;
 
   /**
+   * GC metadata for this type.
+   *
+   * In a primitive array this field points to a zero-length array.
+   *
+   * In a reference array this field is null.
+   *
+   * In a class with pointers, it contains the offsets of
+   * reference-containing instance fields
+   */
+  protected int[] referenceOffsets;
+
+  /**
    * Record the allocator information the memory manager holds about this type.
    *
    * @param allocator the allocator to record
@@ -850,5 +873,15 @@ public abstract class RVMType extends AnnotatedElement
    */
   public boolean isNonMoving() {
     return hasNonMovingAnnotation();
+  }
+
+  /**
+   * Offsets of reference-containing instance fields of this class type.
+   * Offsets are with respect to object pointer -- see RVMField.getOffset().
+   */
+  @Uninterruptible
+  public int[] getReferenceOffsets() {
+    if (VM.VerifyAssertions) VM._assert(isResolved());
+    return referenceOffsets;
   }
 }

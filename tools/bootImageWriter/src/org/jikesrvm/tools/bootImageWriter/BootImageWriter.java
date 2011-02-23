@@ -3579,7 +3579,7 @@ public class BootImageWriter extends BootImageWriterMessages
       Integer size = typeSizes.get(type);
       if (size == null) {
         // discount final references that aren't part of the boot image
-        size = type.asClass().getReferenceOffsets().length;
+        size = type.getReferenceOffsets().length;
         typeSizes.put(type, size);
       }
       return size;
