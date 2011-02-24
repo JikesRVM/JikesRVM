@@ -15,6 +15,7 @@ package org.jikesrvm.mm.mminterface;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.HeapLayoutConstants;
@@ -803,18 +804,49 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Allocate a new type information block (TIB).
    *
    * @param numVirtualMethods the number of virtual method slots in the TIB
+   * @param alignCode TODO
    * @return the new TIB
    */
   @NoInline
   @Interruptible
-  public static TIB newTIB(int numVirtualMethods) {
-    int size = TIB.computeSize(numVirtualMethods);
+  public static TIB newTIB(int numVirtualMethods, int alignCode) {
+    int elements = TIB.computeSize(numVirtualMethods);
 
     if (!VM.runningVM) {
-      return TIB.allocate(size);
+      return TIB.allocate(elements, alignCode);
+    }
+    if (alignCode == AlignmentEncoding.ALIGN_CODE_NONE) {
+      return (TIB)newRuntimeTable(elements, RVMType.TIBType);
     }
 
-    return (TIB)newRuntimeTable(size, RVMType.TIBType);
+    RVMType type = RVMType.TIBType;
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
+
+    TIB realTib = type.getTypeInformationBlock();
+    RVMArray fakeType = RVMType.WordArrayType;
+    TIB fakeTib = fakeType.getTypeInformationBlock();
+    int headerSize = ObjectModel.computeArrayHeaderSize(fakeType);
+    int align = ObjectModel.getAlignment(fakeType);
+    int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
+    int width = fakeType.getLogElementSize();
+    int elemBytes = elements << width;
+    if ((elemBytes >>> width) != elements) {
+      /* asked to allocate more than Integer.MAX_VALUE bytes */
+      throwLargeArrayOutOfMemoryError();
+    }
+    int size = elemBytes + headerSize + AlignmentEncoding.padding(alignCode);
+    Selected.Mutator mutator = Selected.Mutator.get();
+    Address region = allocateSpace(mutator, size, align, offset, Plan.ALLOC_IMMORTAL, Plan.DEFAULT_SITE);
+
+    region = AlignmentEncoding.adjustRegion(alignCode, region);
+
+    Object result = ObjectModel.initializeArray(region, fakeTib, elements, size);
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(fakeTib), size, Plan.ALLOC_IMMORTAL);
+
+    /* Now we replace the TIB */
+    ObjectModel.setTIB(result, realTib);
+
+    return (TIB)result;
   }
 
   /**

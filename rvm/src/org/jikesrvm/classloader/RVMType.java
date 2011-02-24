@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -248,8 +249,9 @@ public abstract class RVMType extends AnnotatedElement
     this.classForType = classForType;
     this.dimension = dimension;
 
+
     /* install partial type information block (no method dispatch table) for use in type checking. */
-    TIB tib = MemoryManager.newTIB(0);
+    TIB tib = MemoryManager.newTIB(0, AlignmentEncoding.ALIGN_CODE_NONE);
     tib.setType(this);
     Statics.setSlotContents(getTibOffset(), tib);
   }
@@ -268,8 +270,9 @@ public abstract class RVMType extends AnnotatedElement
     this.classForType = createClassForType(this, typeRef);
     this.dimension = dimension;
 
+
     /* install partial type information block (no method dispatch table) for use in type checking. */
-    TIB tib = MemoryManager.newTIB(0);
+    TIB tib = MemoryManager.newTIB(0, AlignmentEncoding.ALIGN_CODE_NONE);
     tib.setType(this);
     Statics.setSlotContents(getTibOffset(), tib);
   }

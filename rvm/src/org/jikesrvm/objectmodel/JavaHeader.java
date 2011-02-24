@@ -75,7 +75,7 @@ public class JavaHeader implements JavaHeaderConstants {
   protected static final int ARRAY_HEADER_SIZE = SCALAR_HEADER_SIZE + ARRAY_LENGTH_BYTES;
 
   /** offset of object reference from the lowest memory word */
-  protected static final int OBJECT_REF_OFFSET = ARRAY_HEADER_SIZE;  // from start to ref
+  public static final int OBJECT_REF_OFFSET = ARRAY_HEADER_SIZE;  // from start to ref
   protected static final Offset TIB_OFFSET = JAVA_HEADER_OFFSET;
   protected static final Offset STATUS_OFFSET = TIB_OFFSET.plus(STATUS_BYTES);
   protected static final Offset AVAILABLE_BITS_OFFSET =
