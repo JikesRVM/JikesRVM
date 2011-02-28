@@ -62,8 +62,8 @@ public class GenImmix extends Gen {
 
   public static final int IMMIX = immixSpace.getDescriptor();
 
+  /** Specialized scanning method identifier */
   public static final int SCAN_IMMIX = 1;
-  public static final int SCAN_DEFRAG = 2;
 
   /****************************************************************************
    *
@@ -202,7 +202,7 @@ public class GenImmix extends Gen {
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_IMMIX, GenImmixMatureTraceLocal.class);
-    TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, GenImmixMatureDefragTraceLocal.class);
+//    TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, GenImmixMatureDefragTraceLocal.class);
     super.registerSpecializedMethods();
   }
 }

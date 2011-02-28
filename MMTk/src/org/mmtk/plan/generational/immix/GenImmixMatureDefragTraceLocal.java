@@ -37,7 +37,7 @@ public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
    * Constructor
    */
   public GenImmixMatureDefragTraceLocal(Trace global, GenCollector plan) {
-    super(GenImmix.SCAN_DEFRAG, global, plan);
+    super(-1, global, plan);
   }
 
   /**

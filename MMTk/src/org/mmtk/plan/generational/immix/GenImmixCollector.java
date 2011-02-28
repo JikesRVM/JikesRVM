@@ -134,7 +134,7 @@ public class GenImmixCollector extends GenCollector {
    * @param phaseId Collection phase to perform
    * @param primary Is this thread to do the one-off thread-local tasks
    */
-  @NoInline
+  @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     TraceLocal trace = GenImmix.immixSpace.inImmixDefragCollection() ? defragTrace : matureTrace;
 
