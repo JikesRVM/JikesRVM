@@ -145,9 +145,9 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
 
   static {
     if (PACKED) {
-      layout = new FieldLayoutPacked(true, false);
+      layout = new FieldLayoutPacked(true, true);
     } else {
-      layout = new FieldLayoutUnpacked(true, false);
+      layout = new FieldLayoutUnpacked(true, true);
     }
   }
 
