@@ -1968,7 +1968,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
         if (verbose > 1) say(String.format("TIB address = %x, encoded value = %d, requested = %d%n",
             mapEntry.imageAddress.toInt(),
-            AlignmentEncoding.getTibCode(mapEntry.imageAddress),alignCodeValue));
+            AlignmentEncoding.extractTibCode(mapEntry.imageAddress),alignCodeValue));
 
         if (!allocOnly) {
           copyTIBToBootImage(rvmType, jdkObject, mapEntry.imageAddress);

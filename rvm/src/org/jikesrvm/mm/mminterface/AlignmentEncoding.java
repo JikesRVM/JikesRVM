@@ -16,10 +16,12 @@ import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.JavaHeader;
-import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Magic;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Support for encoding a small amount of metadata in the alignment of
@@ -47,7 +49,7 @@ public class AlignmentEncoding {
   public static final int ALIGN_CODE_NONE = -1;
 
   /** Bits of metadata that we encode */
-  private static final int FIELD_WIDTH = 3;
+  static final int FIELD_WIDTH = 3;
 
   /** Maximum distance (in words) that we shift an object */
   private static final int MAX_ALIGN_WORDS = 1 << FIELD_WIDTH;
@@ -117,17 +119,7 @@ public class AlignmentEncoding {
 
 
   private static int getTibCodeForRegion(Address region) {
-    return getTibCode(region.plus(JavaHeader.OBJECT_REF_OFFSET));
-  }
-
-  /**
-   * Extract the encoded value from a TIB pointer
-   * @param tib
-   * @return
-   */
-  @Uninterruptible
-  public static int getTibCode(TIB tib) {
-    return getTibCode(Magic.objectAsAddress(tib));
+    return extractTibCode(region.plus(JavaHeader.OBJECT_REF_OFFSET));
   }
 
   /**
@@ -137,8 +129,21 @@ public class AlignmentEncoding {
    * @return
    */
   @Uninterruptible
-  public static int getTibCode(Address address) {
+  @Inline
+  public static int extractTibCode(Address address) {
     return (address.toInt() & TIB_ALIGN_MASK) >> FIELD_SHIFT;
+  }
+
+  /**
+   * Extract the encoded value from an object's TIB pointer
+   * @param tib
+   * @return
+   */
+  @Uninterruptible
+  @Inline
+  public static int getTibCode(ObjectReference object) {
+    int tibCode = extractTibCode(Magic.objectAsAddress(ObjectModel.getTIB(object)));
+    return tibCode;
   }
 
 }
