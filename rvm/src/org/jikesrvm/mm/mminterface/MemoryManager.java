@@ -247,7 +247,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void gc() {
-    Selected.Plan.get().handleUserCollectionRequest();
+    Selected.Plan.handleUserCollectionRequest();
   }
 
   /****************************************************************************
