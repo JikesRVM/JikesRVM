@@ -836,12 +836,12 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
     }
     int size = elemBytes + headerSize + AlignmentEncoding.padding(alignCode);
     Selected.Mutator mutator = Selected.Mutator.get();
-    Address region = allocateSpace(mutator, size, align, offset, Plan.ALLOC_IMMORTAL, Plan.DEFAULT_SITE);
+    Address region = allocateSpace(mutator, size, align, offset, type.getMMAllocator(), Plan.DEFAULT_SITE);
 
     region = AlignmentEncoding.adjustRegion(alignCode, region);
 
     Object result = ObjectModel.initializeArray(region, fakeTib, elements, size);
-    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(fakeTib), size, Plan.ALLOC_IMMORTAL);
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(fakeTib), size, type.getMMAllocator());
 
     /* Now we replace the TIB */
     ObjectModel.setTIB(result, realTib);

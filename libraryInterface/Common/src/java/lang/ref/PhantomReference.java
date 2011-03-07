@@ -13,10 +13,12 @@
 package java.lang.ref;
 
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.vmmagic.pragma.ReferenceFieldsVary;
 
 /**
  * Implementation of java.lang.ref.PhantomReference for JikesRVM.
  */
+@ReferenceFieldsVary
 public class PhantomReference<T> extends Reference<T> {
 
   public PhantomReference(T referent, ReferenceQueue<T> q) {

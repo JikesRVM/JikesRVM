@@ -13,10 +13,12 @@
 package java.lang.ref;
 
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.vmmagic.pragma.ReferenceFieldsVary;
 
 /**
  * Implementation of java.lang.ref.SoftReference for JikesRVM.
  */
+@ReferenceFieldsVary
 public class SoftReference<T> extends Reference<T> {
 
   public SoftReference(T referent) {

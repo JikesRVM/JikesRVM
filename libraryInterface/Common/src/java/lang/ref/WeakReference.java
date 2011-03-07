@@ -13,12 +13,14 @@
 package java.lang.ref;
 
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.vmmagic.pragma.ReferenceFieldsVary;
 
 /**
  * Implementation of java.lang.ref.WeakReference for JikesRVM.
  *
  * @see java.util.WeakHashMap
  */
+@ReferenceFieldsVary
 public class WeakReference<T> extends Reference<T> {
 
   public WeakReference(T referent) {

@@ -16,11 +16,13 @@ import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.ReferenceFieldsVary;
 import org.vmmagic.unboxed.Address;
 
 /**
  * The JikesRVM implementation of the java.lang.ref.Reference class.
  */
+@ReferenceFieldsVary
 public abstract class Reference<T> {
 
   /**

@@ -61,6 +61,12 @@ public class HandInlignedScanning {
     return AE_PATTERN_0x0;
   }
 
+  public static int fallback() {
+    if (!ENABLED)
+      return AlignmentEncoding.ALIGN_CODE_NONE;
+    return AE_FALLBACK;
+  }
+
   public static int scalar(int[] offsets) {
     if (!ENABLED)
       return AlignmentEncoding.ALIGN_CODE_NONE;

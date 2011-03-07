@@ -22,6 +22,7 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Word;
 
 /**
  * Support for encoding a small amount of metadata in the alignment of
@@ -32,7 +33,7 @@ import org.vmmagic.unboxed.ObjectReference;
  *     +-------+-------+-------+-------+
  *     xxxxxxxxxxxxxxxxxxxxxxxxxxxxfff00
  * </pre>
- * where the natural alignment of the object is prezerved (the low-order bits
+ * where the natural alignment of the object is preserved (the low-order bits
  * are zero), and the next least significant <i>n</i> bits contain the
  * encoded metadata.
  * <p>
@@ -105,6 +106,10 @@ public class AlignmentEncoding {
       VM.sysWriteln(", requested = ",alignCode);
     }
     while (getTibCodeForRegion(region) != alignCode) {
+      if (VM.runningVM) {
+        // Hack to allow alignment, but no alignment filling during boot
+        region.store(Word.fromIntZeroExtend(ObjectModel.ALIGNMENT_VALUE));
+      }
       region = region.plus(ALIGNMENT_INCREMENT);
       if (region.GT(limit)) {
         VM.sysFail("Tib alignment fail");
