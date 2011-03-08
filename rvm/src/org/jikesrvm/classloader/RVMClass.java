@@ -20,7 +20,7 @@ import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
-import org.jikesrvm.mm.mminterface.HandInlignedScanning;
+import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.FieldLayoutContext;
@@ -1293,9 +1293,9 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     if (isInterface()) {
       allocatedTib = MemoryManager.newTIB(0, AlignmentEncoding.ALIGN_CODE_NONE);
     } else if (isAnnotationDeclared(TypeReference.ReferenceFieldsVary)) {
-      allocatedTib = MemoryManager.newTIB(virtualMethods.length, HandInlignedScanning.fallback());
+      allocatedTib = MemoryManager.newTIB(virtualMethods.length, HandInlinedScanning.fallback());
     } else {
-      allocatedTib = MemoryManager.newTIB(virtualMethods.length, HandInlignedScanning.scalar(referenceOffsets));
+      allocatedTib = MemoryManager.newTIB(virtualMethods.length, HandInlinedScanning.scalar(referenceOffsets));
     }
 
     superclassIds = DynamicTypeCheck.buildSuperclassIds(this);

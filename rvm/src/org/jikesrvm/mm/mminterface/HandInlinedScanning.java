@@ -24,7 +24,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * Supply and interpretation of values to be alignment-encoded into
  * the TIB pointer of an object.
  */
-public class HandInlignedScanning {
+public class HandInlinedScanning {
 
   public static final int AE_FALLBACK = (1<<AlignmentEncoding.FIELD_WIDTH)-1;
   public static final int AE_REFARRAY = AE_FALLBACK - 1;
@@ -38,7 +38,7 @@ public class HandInlignedScanning {
 
   private static final int FIELD0_OFFSET =
     JavaHeader.objectStartOffset(RVMType.JavaLangObjectType) +
-  ObjectModel.computeScalarHeaderSize(RVMType.JavaLangObjectType);
+    ObjectModel.computeScalarHeaderSize(RVMType.JavaLangObjectType);
 
   private static final int FIELD1_OFFSET = FIELD0_OFFSET + Constants.BYTES_IN_ADDRESS;
   private static final int FIELD2_OFFSET = FIELD1_OFFSET + Constants.BYTES_IN_ADDRESS;
@@ -49,13 +49,13 @@ public class HandInlignedScanning {
   /** Master switch */
   public static final boolean ENABLED = true;
 
-  public static int refArray() {
+  public static int referenceArray() {
     if (!ENABLED)
       return AlignmentEncoding.ALIGN_CODE_NONE;
     return AE_REFARRAY;
   }
 
-  public static int primArray() {
+  public static int primitiveArray() {
     if (!ENABLED)
       return AlignmentEncoding.ALIGN_CODE_NONE;
     return AE_PATTERN_0x0;
