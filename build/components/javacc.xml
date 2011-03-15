@@ -36,7 +36,7 @@
     <property name="javacc.web-archive" value="javacc-${javacc.version}.zip"/>
     <mkdir dir="${javacc.package.dir}"/>
     <cachedGet key="${javacc.web-archive}"
-         src="https://javacc.dev.java.net/files/documents/17/26777/${javacc.web-archive}"
+         src="http://java.net/projects/javacc/downloads/download/oldversions/${javacc.web-archive}"
          dest="${javacc.package.dir}/${javacc.web-archive}"/>
     <unzip src="${javacc.package.dir}/${javacc.web-archive}" dest="${javacc.package.dir}"/>
     <writeComponentConstants dir="${javacc.dir}"/>
