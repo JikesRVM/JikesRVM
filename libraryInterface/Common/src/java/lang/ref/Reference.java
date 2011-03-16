@@ -12,18 +12,25 @@
  */
 package java.lang.ref;
 
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_GETFIELD_BARRIER;
+
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.ReferenceFieldsVary;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * The JikesRVM implementation of the java.lang.ref.Reference class.
  */
 @ReferenceFieldsVary
 public abstract class Reference<T> {
+
+  private static final Offset REFERENCE_FIELD_OFFSET = RVMType.JavaLangRefReferenceReferenceField.getOffset();
+  private static final int REFERENCE_FIELD_ID = RVMType.JavaLangRefReferenceReferenceField.getId();
 
   /**
    * The underlying object.  This field is a Address so it will not
@@ -81,21 +88,35 @@ public abstract class Reference<T> {
   @Uninterruptible
   @Inline
   Object getInternal() {
-    Address tmp = _referent;
-    if (tmp.isZero()) {
-      return null;
-    } else {
-      Object ref = Magic.addressAsObject(tmp);
-
-      if (Barriers.NEEDS_JAVA_LANG_REFERENCE_READ_BARRIER) {
-        ref = Barriers.javaLangReferenceReadBarrier(ref);
+    if (RVMType.JavaLangRefReferenceReferenceField.madeTraced()) {
+      if (NEEDS_OBJECT_GETFIELD_BARRIER) {
+        return Barriers.objectFieldRead(this, REFERENCE_FIELD_OFFSET, REFERENCE_FIELD_ID);
+      } else {
+        return Magic.getObjectAtOffset(this, REFERENCE_FIELD_OFFSET);
       }
-      return ref;
+    } else {
+      Address tmp = _referent;
+      if (tmp.isZero()) {
+        return null;
+      } else {
+        Object ref = Magic.addressAsObject(tmp);
+
+        if (Barriers.NEEDS_JAVA_LANG_REFERENCE_READ_BARRIER) {
+          ref = Barriers.javaLangReferenceReadBarrier(ref);
+        }
+        return ref;
+      }
     }
   }
 
   public void clear() {
-    _referent = Address.zero();
+    if (RVMType.JavaLangRefReferenceReferenceField.madeTraced()) {
+      if (NEEDS_OBJECT_GETFIELD_BARRIER) {
+        Barriers.objectFieldWrite(this, null, REFERENCE_FIELD_OFFSET, REFERENCE_FIELD_ID);
+      } else {
+        Magic.setObjectAtOffset(this, REFERENCE_FIELD_OFFSET, null);
+      }
+    }
   }
 
   public boolean isEnqueued() {

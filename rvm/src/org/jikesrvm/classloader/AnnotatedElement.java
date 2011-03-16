@@ -356,6 +356,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * Return true if this element has a Untraced annotation.
    * @see org.vmmagic.pragma.Untraced
    */
+  @Uninterruptible
   public final boolean hasUntracedAnnotation() {
     return isAnnotationDeclared(TypeReference.Untraced);
   }
