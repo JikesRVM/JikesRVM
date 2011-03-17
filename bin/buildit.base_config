@@ -54,6 +54,7 @@ global.javahome.ppc64-linux=/opt/ibm-java2-ppc-50
 global.javahome.ia32-linux=/opt/jdk1.6.0
 global.javahome.x86_64-linux=/opt/jdk1.6.0
 global.javahome.ia32-osx=/System/Library/Frameworks/JavaVM.framework/Home
+global.javahome.x86_64-osx=/System/Library/Frameworks/JavaVM.framework/Home
 
 # Architecture mappings
 global.arch.i686=ia32
