@@ -21,16 +21,12 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.ReferenceFieldsVary;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * The JikesRVM implementation of the java.lang.ref.Reference class.
  */
 @ReferenceFieldsVary
 public abstract class Reference<T> {
-
-  private static final Offset REFERENCE_FIELD_OFFSET = RVMType.JavaLangRefReferenceReferenceField.getOffset();
-  private static final int REFERENCE_FIELD_ID = RVMType.JavaLangRefReferenceReferenceField.getId();
 
   /**
    * The underlying object.  This field is a Address so it will not
@@ -90,9 +86,9 @@ public abstract class Reference<T> {
   Object getInternal() {
     if (RVMType.JavaLangRefReferenceReferenceField.madeTraced()) {
       if (NEEDS_OBJECT_GETFIELD_BARRIER) {
-        return Barriers.objectFieldRead(this, REFERENCE_FIELD_OFFSET, REFERENCE_FIELD_ID);
+        return Barriers.objectFieldRead(this, RVMType.JavaLangRefReferenceReferenceField.getOffset(), RVMType.JavaLangRefReferenceReferenceField.getId());
       } else {
-        return Magic.getObjectAtOffset(this, REFERENCE_FIELD_OFFSET);
+        return Magic.getObjectAtOffset(this, RVMType.JavaLangRefReferenceReferenceField.getOffset(), RVMType.JavaLangRefReferenceReferenceField.getId());
       }
     } else {
       Address tmp = _referent;
@@ -112,9 +108,9 @@ public abstract class Reference<T> {
   public void clear() {
     if (RVMType.JavaLangRefReferenceReferenceField.madeTraced()) {
       if (NEEDS_OBJECT_GETFIELD_BARRIER) {
-        Barriers.objectFieldWrite(this, null, REFERENCE_FIELD_OFFSET, REFERENCE_FIELD_ID);
+        Barriers.objectFieldWrite(this, null, RVMType.JavaLangRefReferenceReferenceField.getOffset(), RVMType.JavaLangRefReferenceReferenceField.getId());
       } else {
-        Magic.setObjectAtOffset(this, REFERENCE_FIELD_OFFSET, null);
+        Magic.setObjectAtOffset(this, RVMType.JavaLangRefReferenceReferenceField.getOffset(), null, RVMType.JavaLangRefReferenceReferenceField.getId());
       }
     }
   }
