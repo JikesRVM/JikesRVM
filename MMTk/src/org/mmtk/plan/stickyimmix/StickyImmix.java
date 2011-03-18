@@ -122,7 +122,6 @@ public class StickyImmix extends Immix {
       super.collectionPhase(phaseId);
       collectWholeHeap = requiresFullHeapCollection();
       if (Stats.gatheringStats() && collectWholeHeap) fullHeap.set();
-      super.collectionPhase(phaseId);
       return;
     }
 
