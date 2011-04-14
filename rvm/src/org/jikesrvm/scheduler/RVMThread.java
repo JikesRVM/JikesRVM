@@ -2930,12 +2930,11 @@ public final class RVMThread extends ThreadContext {
       waiting = hasTimeout ? Waiting.TIMED_WAITING : Waiting.WAITING;
       // get lock for object
       Lock l = ObjectModel.getHeavyLock(o, true);
-      // this thread is supposed to own the lock on o
-      if (VM.VerifyAssertions)
-        VM._assert(l.getOwnerId() == getLockingId());
 
       // release the lock
       l.mutex.lock();
+      // this thread is supposed to own the lock on o
+      if (VM.VerifyAssertions) VM._assert(l.getOwnerId() == getLockingId());
       RVMThread toAwaken = l.entering.dequeue();
       waitObject = l.getLockedObject();
       waitCount = l.getRecursionCount();
