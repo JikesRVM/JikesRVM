@@ -595,11 +595,11 @@ if ($ok) {
       $rsync .= "ssh $sshHost -t mkdir -p $hostCompCache;\n";
       $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshHost:$hostCompCache/;\n";
     }
-    $rsync .= "rsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
+    $rsync .= "rsync -azvLe ssh --delete --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
     if ($host ne $target) {
       $rsync .= ";\nssh $sshTarget -t mkdir -p $targetRoot/dist";
       if ($hostConfig ne $targetConfig) {
-        $rsync .= ";\nrsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
+        $rsync .= ";\nrsync -azvLe ssh --delete --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
         if ($compcachedir ne "") {
           $rsync .= ";\nssh $sshTarget -t mkdir -p $targetCompCache;\n";
           $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache;\n";
@@ -623,7 +623,7 @@ if ($cvs_head) {
   $cp_flags .= "-Dclasspath.from-cvs=true ";
 }
 
-$rvm_revision=`svnversion`;
+$rvm_revision=`hg id --debug -i`;
 chomp($rvm_revision);
 
 if ($ok) {
@@ -635,7 +635,7 @@ if ($ok) {
     # Principal "-D" defines for ant
     $defs = "-Dtarget.name=$targetConfig ".
             "-Dconfig.name=$config ".
-            "-Dsvn.revision=$rvm_revision ";
+            "-Dhg.revision=$rvm_revision ";
      
     if ($suffix ne "") {
       $defs .= "-Dconfig.variant=$suffix ";
@@ -811,7 +811,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
           "  export JAVA_HOME=$javaHome{$target} && ".
           "  ant -f test.xml ".
           "-Dhost.name=$targetConfig ".
-          "-Dsvn.revision=$rvm_revision ".
+          "-Dhg.revision=$rvm_revision ".
           "-Dskip.build=true ".
           "-Dexternal.lib.dir=$extlibdir ".
           "-Dresults.dir=$targetRoot/$resultdir ";

@@ -12,8 +12,8 @@
  -->
 <project name="JikesRVM" default="main" basedir=".">
 
-  <property name="rvm.version" value="3.1.1+svn"/>
-  <!-- <property name="svn.revision" value="XXX"/> -->
+  <property name="rvm.version" value="3.1.1+hg"/>
+  <!-- <property name="hg.revision" value="XXX"/> -->
 
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
@@ -870,7 +870,7 @@ Check to make sure all required properties are specified. This includes properti
     </java>
   </target>
 
-  <target name="gen-config-source" depends="check-properties,get-svn-version">
+  <target name="gen-config-source" depends="check-properties,get-hg-version">
 
     <mkdir dir="${generated.config.java}/org/jikesrvm/mm/mminterface"/>
 
@@ -936,7 +936,7 @@ Check to make sure all required properties are specified. This includes properti
     <copy file="${basedir}/rvm/src-generated/vm-configuration/Configuration.template"
           tofile="${generated.config.java}/org/jikesrvm/Configuration.java">
       <filterset>
-        <filter token="_RVM_VERSION_" value="Jikes RVM ${rvm.version} (r${svn.revision})"/>      	
+        <filter token="_RVM_VERSION_" value="Jikes RVM ${rvm.version} (r${hg.revision})"/>      	
         <filter token="_RVM_CONFIGURATION_" value="${config.name}"/>      	
         <filter token="_RVM_ARCH_HELPER_" value="${pp_RVM_ARCH_HELPER}"/>
         <filter token="_RVM_FOR_POWERPC_" value="${pp_RVM_FOR_POWERPC}"/>
@@ -1491,7 +1491,7 @@ Check to make sure all required properties are specified. This includes properti
     <echo file="${build.native}/RunBootImage.h">
       const unsigned heap_default_initial_size = ${config.default-heapsize.initial}*1024*1024;
       const unsigned heap_default_maximum_size = ${config.default-heapsize.maximum}*1024*1024;
-      const char *rvm_version = "Jikes RVM ${rvm.version} (r${svn.revision})";
+      const char *rvm_version = "Jikes RVM ${rvm.version} (r${hg.revision})";
       const char *rvm_configuration = "${config.name}";
       const char *rvm_host_configuration = "${config.file}";
       const char *rvm_target_configuration = "${target.file}";

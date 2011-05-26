@@ -251,7 +251,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="gen-xml-results" depends="init,get-svn-version">
+  <target name="gen-xml-results" depends="init,get-hg-version">
     <mkdir dir="${build.results.dir}"/>
     <mkdir dir="${test.results.dir}"/>
     <tstamp prefix="test-run.end">
@@ -260,7 +260,7 @@
     <echo file="${test.results.file}" append="false"><![CDATA[<results version="1.1">
 <name>${test-run.name}</name>
 <variant>${test-run.variant}</variant>
-<revision>${svn.revision}</revision>
+<revision>${hg.revision}</revision>
 <start-time>${test-run.start.time}</start-time>
 <end-time>${test-run.end.time}</end-time>
 <parameters>
@@ -361,7 +361,7 @@
 
   <target name="archive" depends="gen-xml-report">
     <mkdir dir="${results.archive}"/>
-    <property name="archive.filename" value="${local.hostname}_${test-run.variant}_${test-run.start.time-stamp}_r${svn.revision}_${target.name}_Report.xml"/>
+    <property name="archive.filename" value="${local.hostname}_${test-run.variant}_${test-run.start.time-stamp}_r${hg.revision}_${target.name}_Report.xml"/>
     <gzip src="${test.report.file}" destfile="${results.archive}/${archive.filename}.gz"/>
   </target>
 

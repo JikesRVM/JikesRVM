@@ -128,33 +128,26 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                      Targets for retrieving svn version                  * -->
+  <!-- *                Targets for retrieving mercurial version                  * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="check-svn-present">
-    <available property="svn.present" file=".svn" type="dir"/>
-    <property name="svn.exe" value="svn"/>
+  <target name="check-hg-present">
+    <available property="hg.present" file=".hg" type="dir"/>
+    <property name="hg.exe" value="hg"/>
   </target>
 
-  <target name="extract-svn-version" depends="check-svn-present" if="svn.present">
-    <exec executable="${svn.exe}">
-      <arg value="info"/>
-      <redirector outputproperty="svn.revision">
-        <outputfilterchain>
-          <linecontains>
-            <contains value="Revision: "/>
-          </linecontains>
-          <tokenfilter>
-            <replacestring from="Revision: " to=""/>
-          </tokenfilter>
-        </outputfilterchain>
-      </redirector>
+  <target name="extract-hg-version" depends="check-hg-present" if="hg.present">
+    <exec executable="${hg.exe}">
+      <arg value="id"/>
+      <arg value="--debug"/>
+      <arg value="-i"/>
+      <redirector outputproperty="hg.revision"/>
     </exec>
   </target>
 
-  <target name="get-svn-version" depends="extract-svn-version">
+  <target name="get-hg-version" depends="extract-hg-version">
     <!-- set property if not already set -->
-    <property name="svn.revision" value="Unknown"/>
+    <property name="hg.revision" value="Unknown"/>
   </target>
 </project>
