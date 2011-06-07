@@ -1486,12 +1486,12 @@ Check to make sure all required properties are specified. This includes properti
     </javah>
   </target>
 
-  <target name="gen-runbootimage" depends="check-properties">
+  <target name="gen-runbootimage" depends="check-properties,get-hg-version">
     <mkdir dir="${build.native}"/>
     <echo file="${build.native}/RunBootImage.h">
       const unsigned heap_default_initial_size = ${config.default-heapsize.initial}*1024*1024;
       const unsigned heap_default_maximum_size = ${config.default-heapsize.maximum}*1024*1024;
-      const char *rvm_version = "Jikes RVM ${rvm.version} (r${hg.revision})";
+      const char *rvm_version = "Jikes RVM ${rvm.version} (revision ${hg.revision})";
       const char *rvm_configuration = "${config.name}";
       const char *rvm_host_configuration = "${config.file}";
       const char *rvm_target_configuration = "${target.file}";
