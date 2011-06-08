@@ -15,8 +15,8 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
-  <property name="checkstyle.version" value="4.3"/>
-  <property name="checkstyle.description" value="PMD"/>
+  <property name="checkstyle.version" value="5.3"/>
+  <property name="checkstyle.description" value="Checkstyle"/>
 
   <property name="checkstyle.package.dir" value="${components.dir}/checkstyle/${checkstyle.version}"/>
   <property name="checkstyle.dir" location="${checkstyle.package.dir}/checkstyle-${checkstyle.version}"/>
@@ -33,10 +33,10 @@
   </target>
 
   <target name="fetch" depends="init-checkstyle-properties" if="checkstyle.from-web">
-    <property name="checkstyle.web-archive" value="checkstyle-${checkstyle.version}.tar.gz"/>
+    <property name="checkstyle.web-archive" value="checkstyle-${checkstyle.version}-bin.tar.gz"/>
     <mkdir dir="${checkstyle.package.dir}"/>
     <cachedGet key="${checkstyle.web-archive}"
-         src="http://optusnet.dl.sourceforge.net/sourceforge/checkstyle/${checkstyle.web-archive}"
+         src="http://sourceforge.net/projects/checkstyle/files/checkstyle/${checkstyle.version}/${checkstyle.web-archive}/download?use_mirror=autoselect"
          dest="${checkstyle.package.dir}/${checkstyle.web-archive}"/>
     <untar src="${checkstyle.package.dir}/${checkstyle.web-archive}" compression="gzip" dest="${checkstyle.package.dir}"/>
     <writeComponentConstants dir="${checkstyle.dir}"/>
