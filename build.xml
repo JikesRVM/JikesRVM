@@ -45,6 +45,13 @@
   <property name="options.java" location="common/options/src"/>
   <property name="tuningforklib.java" location="external/tuningforklib/src"/>	
   <property name="vmmagic.java" location="tools/bootImageWriter/vmmagic/src"/>
+	
+  <!-- Location of .dat files for options -->	
+  <property name="options.dir" location="${basedir}/rvm/src-generated/options"/>
+
+  <!-- Directories for IR and BURS (used in gen-opt-ir and gen-opt-ir-uptodate-check targets) -->	
+  <property name="build.ir.dir" location="${basedir}/rvm/src-generated/opt-ir"/>
+  <property name="build.burs.dir" location="${basedir}/rvm/src-generated/opt-burs"/>
 
   <!-- Set the properties for intermediate directory -->
   <property name="build.dir" location="target"/>
@@ -654,8 +661,55 @@ Check to make sure all required properties are specified. This includes properti
     </sequential>
   </macrodef>
 
+  <macrodef name="uptodate-check">
+    <attribute name="fileName"/>
+    <attribute name="property"/>
+    <attribute name="srcDir1"/>
+    <attribute name="srcDir2" default="@{srcDir1}"/>
+  	<attribute name="srcDir3" default="@{srcDir1}"/>
+    <sequential>
+      <if>
+        <conditions>
+          <not>
+            <isset property="force.generation"/>
+          </not>
+        </conditions>
+        <sequential>
+          <uptodate property="@{property}.uptodate" value="true">
+            <srcresources>
+              <fileset dir="@{srcDir1}">
+                <include name="**/*.*"/>
+              </fileset>
+              <fileset dir="@{srcDir2}">
+                <include name="**/*.*"/>
+              </fileset>
+              <fileset dir="@{srcDir3}">
+                <include name="**/*.*"/>
+              </fileset>
+            </srcresources>
+            <mapper type="merge" to="${generated.dir}/@{fileName}"/>
+          </uptodate>
+      	</sequential>
+      </if>
+    </sequential>
+  </macrodef>	
+  	
+  <target name="jburg-uptodate-check" depends="check-properties, prepare-ant-tasks">
+    <uptodate-check filename="JBurg-uptodate" property="jburg" srcdir1="${basedir}/rvm/src-generated/opt-burs/jburg/"/>
+
+    <!-- build.jburg.dir needs to be set if jburg does not need to be built again because gen-opt-ir depends on it. -->
+    <if>
+      <conditions>
+        <isset property="jburg.uptodate"/>
+      </conditions>
+      <sequential>
+        <property name="build.jburg.dir" location="${build.dir}/${host.name}/jburg"/>
+      </sequential>
+    </if>
+  </target>
+  	
   <!-- build tool used to create burs -->
-  <target name="build-jburg" depends="check-properties">
+  <target name="build-jburg" depends="check-properties" unless="jburg.uptodate">
     <property name="build.jburg.dir" location="${build.dir}/${host.name}/jburg"/>
     <mkdir dir="${build.jburg.dir}"/>
     <exec executable="${bison.exe}" failonerror="true">
@@ -672,13 +726,23 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${basedir}/rvm/src-generated/opt-burs/jburg/jburg.c"/>
       <arg value="${build.jburg.dir}/gram.c"/>
     </exec>
+    <touch file="${generated.dir}/JBurg-uptodate"/>
   </target>
+	
+  <target name="gen-opt-ir-uptodate-check" depends="check-properties, prepare-ant-tasks, jburg-uptodate-check">
+    <uptodate-check filename="Opt-IR-uptodate" property="opt-ir-files" srcdir1="${build.ir.dir}" srcdir2="${build.burs.dir}"/>
+  	
+    <!-- gen-opt-ir uses jburg, so gen-opt-ir can only be uptodate if jburg is also uptodate -->
+    <condition property="opt-ir.uptodate">
+      <and>
+        <isset property="opt-ir-files.uptodate"/>
+        <isset property="jburg.uptodate"/>
+      </and>
+    </condition>
+   </target>
 
   <!-- build ir for target architecture -->
-  <target name="gen-opt-ir" depends="build-jburg">
-    <property name="build.ir.dir" location="${basedir}/rvm/src-generated/opt-ir"/>
-    <property name="build.burs.dir" location="${basedir}/rvm/src-generated/opt-burs"/>
-
+  <target name="gen-opt-ir" depends="build-jburg" unless="opt-ir.uptodate">
     <!-- generate operator lists for ppc 32 bit -->
     <concat destfile="${generated.dir}/PPC-32bit_OperatorList.dat">
       <filelist dir="${build.ir.dir}/ppc"
@@ -729,12 +793,15 @@ Check to make sure all required properties are specified. This includes properti
                  addressSize="64"
                  operatorList="${generated.dir}/PPC-64bit_OperatorList.dat"
                  rulesList="${generated.dir}/PPC-64bit_RulesList.dat"/>
+    <touch file="${generated.dir}/Opt-IR-uptodate"/>
+  </target>
+
+  <target name="gen-options-uptodate-check" depends="check-properties, prepare-ant-tasks">
+    <uptodate-check filename="Options-uptodate" property="options" srcdir1="${options.dir}"/>
   </target>
 
   <!-- build options -->
-  <target name="gen-options" depends="check-properties">
-    <property name="options.dir" location="${basedir}/rvm/src-generated/options"/>
-
+  <target name="gen-options" depends="check-properties" unless="options.uptodate">
     <mkdir dir="${generated.java}/org/jikesrvm/compilers/opt"/>
     <mkdir dir="${generated.java}/org/jikesrvm/adaptive/util"/>
     <path id="template.vm.booleanopts.dat">
@@ -803,9 +870,17 @@ Check to make sure all required properties are specified. This includes properti
         <arg value="MYTYPE=AOSExternalOptions"/>
       </args>
     </GenerateFromTemplate>
+    <touch file="${generated.dir}/Options-uptodate"/>
   </target>
 
-  <target name="gen-ia32-assembler" depends="check-properties,compile-vmmagic-stub">
+  <target name="gen-ia32-assembler-uptodate-check" depends="check-properties, prepare-ant-tasks, compile-vmmagic-stub">
+    <property name="ia32-assembler-opt.dir" location="${basedir}/rvm/src-generated/ia32-assembler-opt"/>
+    <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>  	
+
+    <uptodate-check filename="IA32-Assembler-uptodate" property="ia32-assembler" srcdir1="${ia32-assembler-opt.dir}" srcdir2="${build.ia32-assembler.dir}" srcdir3="${build.vmmagic-stub.classes}" />
+  </target>	
+
+  <target name="gen-ia32-assembler" depends="check-properties,compile-vmmagic-stub" unless="ia32-assembler.uptodate">
     <mkdir dir="${generated.ia32.java}/org/jikesrvm/compilers/common/assembler/ia32"/>
     <property name="build.ia32-assembler.dir" location="${basedir}/rvm/src-generated/ia32-assembler"/>
     <exec executable="${bash.exe}" failonerror="true" dir="${build.ia32-assembler.dir}">
@@ -868,6 +943,7 @@ Check to make sure all required properties are specified. This includes properti
       </classpath>
       <jvmarg value="-DgenerateToDir=${generated.ia32.java}/org/jikesrvm/compilers/opt/mir2mc/ia32"/>
     </java>
+    <touch file="${generated.dir}/IA32-Assembler-uptodate"/>  	
   </target>
 
   <target name="gen-config-source" depends="check-properties,get-hg-version">
@@ -992,18 +1068,22 @@ Check to make sure all required properties are specified. This includes properti
     <touch file="${generated.dir}/SourceGenerated"/>
   </target>
 
-  <target name="gen-source-check" depends="check-properties">
-    <condition property="generated-source.present" value="true">
+  <target name="gen-source-check" depends="gen-options-uptodate-check, jburg-uptodate-check, gen-opt-ir-uptodate-check, gen-ia32-assembler-uptodate-check" unless="force.generation">
+   <condition property="generated-source.uptodate" value="true">
       <and>
+        <!-- Sources generated by dependent targets of do-gen-source must be uptodate -->
+        <isset property="options.uptodate"/>
+        <isset property="jburg.uptodate"/>
+        <isset property="opt-ir.uptodate"/>
+        <isset property="ia32-assembler.uptodate"/>
+     	
+        <!-- Still necessary because gen-vmmagic-word needs to be run -->
         <available file="${generated.dir}/SourceGenerated"/>
-        <not>
-          <isset property="force.generation"/>
-        </not>
       </and>
     </condition>
   </target>
 
-  <target name="prepare-source" depends="gen-source-check" unless="generated-source.present"
+  <target name="prepare-source" depends="gen-source-check" unless="generated-source.uptodate"
           description="Generate configuration independent source if required or force.generation is set.">
     <antcall target="do-gen-source"/>
   </target>
@@ -1013,6 +1093,13 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="gen-config-source-check" depends="check-properties">
+    <dependset>
+      <srcfileset dir="${basedir}/rvm/src-generated/vm-configuration">
+        <include name="**/*.*"/>
+      </srcfileset>
+      <targetfilelist dir="${generated.config.dir}" files="SourceGenerated"/>
+    </dependset>
+
     <condition property="generated-config-source.present" value="true">
       <and>
         <available file="${generated.config.dir}/SourceGenerated"/>
