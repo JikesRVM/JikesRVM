@@ -124,7 +124,7 @@ public final class MonotonePageResource extends PageResource
    * failure.
    */
   @Inline
-  protected Address allocPages(int reservedPages, int requiredPages) {
+  protected Address allocPages(int reservedPages, int requiredPages, boolean zeroed) {
     boolean newChunk = false;
     lock();
     Address rtn = cursor;
@@ -168,7 +168,8 @@ public final class MonotonePageResource extends PageResource
       space.growSpace(old, bytes, newChunk);
       unlock();
       Mmapper.ensureMapped(old, requiredPages);
-      VM.memory.zero(old, bytes);
+      if (zeroed)
+        VM.memory.zero(old, bytes);
       VM.events.tracePageAcquired(space, rtn, requiredPages);
       return rtn;
     }

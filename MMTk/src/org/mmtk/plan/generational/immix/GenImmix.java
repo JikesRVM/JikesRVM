@@ -58,7 +58,7 @@ public class GenImmix extends Gen {
    */
 
   /** The mature space, which for GenImmix uses a mark sweep collection policy. */
-  public static final ImmixSpace immixSpace = new ImmixSpace("immix", VMRequest.create());
+  public static final ImmixSpace immixSpace = new ImmixSpace("immix", false, VMRequest.create());
 
   public static final int IMMIX = immixSpace.getDescriptor();
 

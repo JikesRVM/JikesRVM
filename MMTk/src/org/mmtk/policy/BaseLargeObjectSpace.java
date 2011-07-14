@@ -50,10 +50,11 @@ public abstract class BaseLargeObjectSpace extends Space implements Constants {
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
+   * @param zeroed if true, allocations return zeroed memory.
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public BaseLargeObjectSpace(String name, VMRequest vmRequest) {
-    super(name, false, false, vmRequest);
+  public BaseLargeObjectSpace(String name, boolean zeroed, VMRequest vmRequest) {
+    super(name, false, false, zeroed, vmRequest);
     if (vmRequest.isDiscontiguous()) {
       pr = new FreeListPageResource(this, 0);
     } else {

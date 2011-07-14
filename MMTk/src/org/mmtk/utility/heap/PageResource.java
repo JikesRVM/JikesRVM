@@ -153,7 +153,7 @@ public abstract class PageResource implements Constants {
     unlock();
   }
 
-  abstract Address allocPages(int reservedPages, int requiredPages);
+  abstract Address allocPages(int reservedPages, int requiredPages, boolean zeroed);
 
   /**
    * Adjust a page request to include metadata requirements for a request
@@ -177,12 +177,13 @@ public abstract class PageResource implements Constants {
    *
    * @param pagesReserved The number of pages reserved by the initial request
    * @param pages The number of pages requested
+   * @param zeroed If true allocated pages are zeroed.
    * @return The address of the first of <code>pages</code> pages, or
    * zero on failure.
    */
   @Inline
-  public final Address getNewPages(int pagesReserved, int pages) {
-    return allocPages(pagesReserved, pages);
+  public final Address getNewPages(int pagesReserved, int pages, boolean zeroed) {
+    return allocPages(pagesReserved, pages, zeroed);
   }
 
   /**

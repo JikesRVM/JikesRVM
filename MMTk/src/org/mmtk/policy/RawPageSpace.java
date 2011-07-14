@@ -40,7 +40,7 @@ public final class RawPageSpace extends Space implements Constants {
    * @param vmRequest An object describing the virtual memory requested.
    */
   public RawPageSpace(String name, VMRequest vmRequest) {
-    super(name, false, false, vmRequest);
+    super(name, false, false, true, vmRequest);
     if (vmRequest.isDiscontiguous()) {
       pr = new FreeListPageResource(this, 0);
     } else {

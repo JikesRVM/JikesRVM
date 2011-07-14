@@ -89,7 +89,20 @@ public final class ImmixSpace extends Space implements Constants {
    * @param vmRequest The virtual memory request
    */
   public ImmixSpace(String name, VMRequest vmRequest) {
-    super(name, false, false, vmRequest);
+    this(name, true, vmRequest);
+  }
+
+  /**
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param zeroed if true, allocations return zeroed memory
+   * @param vmRequest The virtual memory request
+   */
+  public ImmixSpace(String name, boolean zeroed, VMRequest vmRequest) {
+    super(name, false, false, zeroed, vmRequest);
     if (vmRequest.isDiscontiguous())
       pr = new FreeListPageResource(this, Chunk.getRequiredMetaDataPages());
     else

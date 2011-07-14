@@ -180,7 +180,6 @@ public class ImmixAllocator extends Allocator implements Constants {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isAligned(ptr));
     lineUseCount = LINES_IN_BLOCK;
 
-    zeroBlock(ptr);
     if (requestForLarge) {
       largeCursor = ptr;
       largeLimit = ptr.plus(BYTES_IN_BLOCK);

@@ -70,7 +70,7 @@ import org.vmmagic.pragma.*;
    * @param vmRequest An object describing the virtual memory requested.
    */
   public MarkCompactSpace(String name, VMRequest vmRequest) {
-    super(name, true, false, vmRequest);
+    super(name, true, false, true, vmRequest);
     if (vmRequest.isDiscontiguous()) {
       pr = new FreeListPageResource(this, 0);
     } else {

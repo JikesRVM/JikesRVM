@@ -93,7 +93,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * @param vmRequest An object describing the virtual memory requested.
    */
   public SegregatedFreeListSpace(String name, int additionalMetadata, VMRequest vmRequest) {
-    super(name, false, false, vmRequest);
+    super(name, false, false, true, vmRequest);
     initSizeClasses();
     int totalMetadata = additionalMetadata;
     if (maintainSideBitmap()) {

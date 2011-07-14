@@ -134,11 +134,12 @@ public final class FreeListPageResource extends PageResource implements Constant
    *
    * @param reservedPages The number of pages reserved due to the initial request.
    * @param requiredPages The number of pages required to be allocated.
+   * @param zeroed If true allocated pages are zeroed.
    * @return The start of the first page if successful, zero on
    * failure.
    */
   @Inline
-  protected Address allocPages(int reservedPages, int requiredPages) {
+  protected Address allocPages(int reservedPages, int requiredPages, boolean zeroed) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion == 0 || requiredPages <= PAGES_IN_CHUNK - metaDataPagesPerRegion);
     lock();
     boolean newChunk = false;
@@ -169,7 +170,8 @@ public final class FreeListPageResource extends PageResource implements Constant
       space.growSpace(rtn, bytes, newChunk);
       unlock();
       Mmapper.ensureMapped(rtn, requiredPages);
-      VM.memory.zero(rtn, bytes);
+      if (zeroed)
+        VM.memory.zero(rtn, bytes);
       VM.events.tracePageAcquired(space, rtn, requiredPages);
       return rtn;
     }

@@ -94,6 +94,7 @@ public abstract class Space implements Constants {
   protected final boolean immortal;
   protected final boolean movable;
   protected final boolean contiguous;
+  protected final boolean zeroed;
 
   protected PageResource pr;
   protected final Address start;
@@ -115,13 +116,15 @@ public abstract class Space implements Constants {
    * @param name The name of this space (used when printing error messages etc)
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
+   * @param zeroed if it is true, allocated memory is zeroed.
    * @param vmRequest An object describing the virtual memory requested.
    */
-  protected Space(String name, boolean movable, boolean immortal, VMRequest vmRequest) {
+  protected Space(String name, boolean movable, boolean immortal, boolean zeroed, VMRequest vmRequest) {
     this.name = name;
     this.nameLength = name.length();  // necessary to avoid calling length() in uninterruptible code
     this.movable = movable;
     this.immortal = immortal;
+    this.zeroed = zeroed;
     this.vmRequest = vmRequest;
     this.index = spaceCount++;
     spaces[index] = this;
@@ -395,7 +398,7 @@ public abstract class Space implements Constants {
     }
 
     /* Page budget is ok, try to acquire virtual memory */
-    Address rtn = pr.getNewPages(pagesReserved, pages);
+    Address rtn = pr.getNewPages(pagesReserved, pages, zeroed);
     if (rtn.isZero()) {
       /* Failed, so force a GC */
       if (!allowPoll) VM.assertions.fail("Physical allocation failed when polling not allowed!");
