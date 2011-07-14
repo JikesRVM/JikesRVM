@@ -83,7 +83,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
     sysCall.sysPerfEventInit(n);
     perfEvents = new PerfEvent[n];
     for (int i = 0; i < n; i++) {
-      sysCall.sysPerfEventCreate(i, perfEventNames[i].getBytes());
+      sysCall.sysPerfEventCreate(i, perfEventNames[i].concat("\0").getBytes());
       perfEvents[i] = new PerfEvent(i, perfEventNames[i]);
     }
     sysCall.sysPerfEventEnable();
