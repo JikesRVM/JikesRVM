@@ -31,6 +31,9 @@ $usage = $shortusage."Building:
 Eclipse Project:
   buildit --eclipse build-host
 
+MMTk Harness Eclipse Project:
+  buildit --mmtk-eclipse build-host
+
 Testing:
   buildit <Option(s)> -t test build-host [-c target-host] [<Config(s)>]
     for example:
@@ -83,6 +86,7 @@ Building Options:
  -m, --mmtk-config    MMTk properties (included in suffix)
  -j, --java-home      Specify a JAVA_HOME directory to use
      --eclipse        Build an eclipse project (and bring it back to this machine)
+     --mmtk-eclipse   Build an eclipse project using the MMTk Harness (and bring it back to this machine)
      --build-arg      Specify an additional argument for the ant build
      --bc-arg         Specify arguments for the bootimage compiler
      --checkstyle     Perform source code style checks.
@@ -145,6 +149,7 @@ GetOptions(
   "u|user=s" => \$cmd_user,
   "build-user=s" => \$cmd_hostUser,
   "eclipse" => \$eclipse,
+  "mmtk-eclipse" => \$mmtk_eclipse,
   "target-user=s" => \$cmd_targetUser,
   "classpath-cvs" => \$cvs_head,
   "g|gdb-symbols" => \$gdb_symbols,
@@ -467,6 +472,9 @@ if ($#gcs == -1) {
   if ($eclipse && $compiler eq "") {
     $compiler = "production";
   }
+  if ($mmtk_eclipse && $compiler eq "") {
+    $compiler = "prototype-opt";
+  }
   if ($compiler ne "") {
     @gcs = ( $compiler );
     $compiler = "";
@@ -711,6 +719,8 @@ if ($ok) {
       #
       if ($eclipse) {
         $build .= "  ant eclipse-project $hostdefs";
+      } elsif ($mmtk_eclipse) {
+        $build .= "  ant mmtk-harness-eclipse-project $hostdefs";
       } elsif ($hostConfig eq $targetConfig) {
         $build .= "  ant $hostdefs";
       } else {
@@ -725,11 +735,14 @@ if ($ok) {
     #
     # Cross-builds
     #
-    if ($eclipse) {
+    if ($eclipse || $mmtk_eclipse) {
       if ($host ne $local) {
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/eclipse $localRoot/ ";
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/.project $localRoot/ ";
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/.classpath $localRoot/ ";
+        if ($mmtk_eclipse) {
+          $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/generated $localRoot/ --include=mmtk-harness-parser ";
+        }
       }
     } elsif ($host ne $target) {
       if ($compcachedir ne "" && $target ne $local) {
