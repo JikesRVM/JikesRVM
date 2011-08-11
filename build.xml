@@ -274,7 +274,6 @@
         <ant antfile="build/components/dacapo.xml" target="ensure"/>
       </sequential>
     </if>
-    <ant antfile="build/components/checkstyle.xml" target="ensure"/>
     <ant antfile="build/components/asm.xml" target="ensure"/>
     <if>
       <conditions>
@@ -2060,6 +2059,11 @@ target.jni-suffix=${target.jni-suffix}
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
+  <target name="ensure-checkstyle">
+    <ant antfile="build/components/checkstyle.xml" target="ensure"/>
+    <property file="${components.file}"/>
+  </target> 
+
   <target name="do-checkstyle">
     <if>
       <conditions>
@@ -2071,7 +2075,7 @@ target.jni-suffix=${target.jni-suffix}
     </if>
   </target>
 
-  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib">
+  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,ensure-checkstyle">
     <taskdef resource="checkstyletask.properties" classpath="${checkstyle.dir}/checkstyle-5.3-all.jar"/>
 
     <mkdir dir="${build.dir}/checkstyle"/>
