@@ -166,7 +166,7 @@ public final class RVMThread extends ThreadContext {
   protected static final boolean traceAcct = true;
 
   /** Trace execution */
-  protected static final boolean trace = true;
+  protected static final boolean trace = false;
 
   /** Trace thread termination */
   private static final boolean traceTermination = false;

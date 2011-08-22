@@ -22,18 +22,21 @@ public class JikesRVMSupport {
 
   public static Field createField(RVMField f) {
     VM.sysWriteln("CreateFile is called");
-      return new Field(f);
+    throw new Error("Openjdk: Create Filed");
+    //      return new Field(f);
   }
 
   public static Method createMethod(RVMMethod m) {
     VM.sysWriteln("CreateMethod is called");
-      return new Method(m);
+    throw new Error("Openjdk createmethod");
+    //      return new Method(m);
   }
 
   @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
   public static <T> Constructor<T> createConstructor(RVMMethod m) {
     VM.sysWriteln("CreateConstructor is called");
-      return new Constructor<T>(m);
+    throw new Error("Harmony doesn't provide the CreateConstructor API");
+    //      return new Constructor<T>(m);
   }
 
   public static Object createVMConstructor(RVMMethod m) {
@@ -43,16 +46,20 @@ public class JikesRVMSupport {
 
   public static RVMField getFieldOf(Field f) {
     VM.sysWriteln("getFieldOf is called");
-     return (RVMField)f.getVMMember();
+    //     return (RVMField)f.getVMMember();
+    throw new Error("Harmony doesn't provide the VMConstructor API");
+
   }
 
   public static RVMMethod getMethodOf(Method m) {
     VM.sysWriteln("getMethodOf is called");
-      return (RVMMethod)m.getVMMember();
+    //      return (RVMMethod)m.getVMMember();
+    throw new Error("Harmony doesn't provide the VMConstructor API");
   }
 
   public static RVMMethod getMethodOf(Constructor cons) {
     VM.sysWriteln("getMethodOf Constructor is called");
-      return (RVMMethod)cons.getVMMember();
+    //      return (RVMMethod)cons.getVMMember();
+    throw new Error("Harmony doesn't provide the VMConstructor API");
   }
 }

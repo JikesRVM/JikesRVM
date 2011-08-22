@@ -93,7 +93,8 @@
   <property name="dist.base" location="${dist.dir}/${build.name}"/>
 
   <!-- Set the class library to use -->
-  <property name="classlib.provider" value="GNU Classpath"/>
+  <!-- <property name="classlib.provider" value="GNU Classpath"/> -->
+  <property name="classlib.provider" value="Openjdk"/>
   <condition property="harmony.classlib" value="true">
     <equals arg1="${classlib.provider}" arg2="Harmony"/>
   </condition>
@@ -1191,7 +1192,7 @@ Check to make sure all required properties are specified. This includes properti
 	<equals arg1="${classlib.provider}" arg2="Openjdk"/>
       </conditions>
       <sequential>
-	<property name="classlib.library-interface.cpl.java" location="libraryInterface/Openjdk/EPL/src/"/>
+	<property name="classlib.library-interface.cpl.java" location="libraryInterface/Openjdk/EPL/src"/>
         <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/Openjdk/ASF/src"/>
       </sequential>
     </if>      
@@ -1200,6 +1201,7 @@ Check to make sure all required properties are specified. This includes properti
   <target name="compile" depends="compile-mmtk,compile-options,prepare-source,prepare-config-source,choose-classlib,do-checkstyle">
 
     <echo message="#######Compile ${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"/>
+    <echo message="#########scrdir is ${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"/>
     
     <condition property="exclude-arch" value="IA" else="PPC">
       <equals arg1="${target.arch}" arg2="ppc"/>
@@ -1311,7 +1313,7 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="1.5"
                target="1.5"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
                sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}">
 	  
           <bootclasspath>
