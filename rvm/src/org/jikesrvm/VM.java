@@ -85,6 +85,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     init(classPath, bootCompilerArgs);
   }
 
+  private static native void abc();
   /**
    * Prepare VM classes for use by tools.
    */
@@ -133,7 +134,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     // has placed a pointer to the current RVMThread in a special
     // register.
     if (verboseBoot >= 1) VM.sysWriteln("Setting up current RVMThread");
-    ThreadLocalState.boot();
+    //    ThreadLocalState.boot();
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any interruptible methods are called
@@ -181,6 +182,12 @@ public class VM extends Properties implements Constants, ExitStatus {
     //
     if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
     BaselineCompiler.initOptions();
+
+    //Xi Fix, move JNI boot to the first place
+    org.jikesrvm.jni.JNIEnvironment.boot();
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
+    RVMThread.getCurrentThread().initializeJNIEnv();
+    if (verboseBoot >= 1) VM.sysWriteln("JNI initialized for boot thread");
 
     // Fetch arguments from program command line.
     //
@@ -273,9 +280,20 @@ public class VM extends Properties implements Constants, ExitStatus {
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     //
+
+    VM.sysWriteln("XXXX");
+    DynamicLibrary.boot();
+    System.loadLibrary("jvm");
+    VM.sysWriteln("Load java");
+    System.loadLibrary("java");
+
+    VM.sysWriteln("We try to init java.lang.Thread now");
+
+    runClassInitializer("java.lang.Thread");
+
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     RVMThread.boot();
-    DynamicLibrary.boot();
+    //DynamicLibrary.boot();
 
     if (verboseBoot >= 1) VM.sysWriteln("Enabling GC");
     MemoryManager.enableCollection();
@@ -283,20 +301,28 @@ public class VM extends Properties implements Constants, ExitStatus {
     if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
     RVMThread.getCurrentThread().setupBootJavaThread();
 
+    VM.sysWriteln("Start to init libraries");
+
     // Create JNI Environment for boot thread.
     // After this point the boot thread can invoke native methods.
-    org.jikesrvm.jni.JNIEnvironment.boot();
-    if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
-    RVMThread.getCurrentThread().initializeJNIEnv();
-    if (verboseBoot >= 1) VM.sysWriteln("JNI initialized for boot thread");
+//    org.jikesrvm.jni.JNIEnvironment.boot();
+//    if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
+//    RVMThread.getCurrentThread().initializeJNIEnv();
+//    if (verboseBoot >= 1) VM.sysWriteln("JNI initialized for boot thread");
 
     if (VM.BuildForHarmony) {
       System.loadLibrary("hyluni");
       System.loadLibrary("hythr");
       System.loadLibrary("hyniochar");
     }
+
+    VM.sysWriteln("java.io.File");
+    runClassInitializer("java.io.UnixFileSystem");
+    runClassInitializer("java.io.FileSystem");
+
     runClassInitializer("java.io.File"); // needed for when we initialize the
     // system/application class loader.
+    VM.sysWriteln("java.lang.String");
     runClassInitializer("java.lang.String");
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.security.provider.DefaultPolicy");

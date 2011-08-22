@@ -25,6 +25,7 @@ import org.vmmagic.unboxed.Offset;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 public final class Unsafe {
+
   private static final Unsafe unsafe = new Unsafe();
 
   /** alias to match name that DL's FJ framework appears to expect from class libs */
@@ -37,7 +38,8 @@ public final class Unsafe {
     SecurityManager sm = System.getSecurityManager();
     if (sm != null)
       sm.checkPropertiesAccess();
-    return unsafe;
+    //    return unsafe;
+    return theUnsafe;
   }
 
   private Offset longToOffset(long offset) {

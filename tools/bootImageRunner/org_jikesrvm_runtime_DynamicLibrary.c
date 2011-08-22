@@ -35,3 +35,8 @@ extern "C" JNIEXPORT jint JNICALL Java_org_jikesrvm_runtime_DynamicLibrary_runJN
                                                                                            jobject JNI_OnLoadAddress) {
   return ((JNI_OnLoad)JNI_OnLoadAddress)(&sysJavaVM, NULL);
 }
+
+extern "C" JNIEXPORT void JNICALL Java_org_jikesrvm_runtime_DynamicLibrary_dummy (JNIEnv *env,
+										  jclass clazz){
+  printf("I  mmmmmmmmmmmmmmmm dummy\n");
+}

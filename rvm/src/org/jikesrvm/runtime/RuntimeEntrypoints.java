@@ -78,7 +78,8 @@ import org.vmmagic.unboxed.Offset;
  */
 public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.StackframeLayoutConstants {
 
-  private static final boolean traceAthrow = false;
+  //  private static final boolean traceAthrow = false;
+  private static final boolean traceAthrow = true;
   // Trap codes for communication with C trap handler.
   //
   public static final int TRAP_UNKNOWN = -1;

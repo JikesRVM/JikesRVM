@@ -105,8 +105,8 @@ import org.vmmagic.unboxed.Offset;
 @NativeBridge
 public class JNIFunctions implements SizeConstants {
   // one message for each JNI function called from native
-  public static final boolean traceJNI = Properties.verboseJNI;
-
+  //  public static final boolean traceJNI = Properties.verboseJNI;
+  public static final boolean traceJNI = true;
   // number of JNI function entries
   public static final int FUNCTIONCOUNT = 232; // JNI 1.4
 

@@ -163,10 +163,10 @@ public final class RVMThread extends ThreadContext {
   protected static final boolean traceBind = false;
 
   /** Trace thread start/stop */
-  protected static final boolean traceAcct = false;
+  protected static final boolean traceAcct = true;
 
   /** Trace execution */
-  protected static final boolean trace = false;
+  protected static final boolean trace = true;
 
   /** Trace thread termination */
   private static final boolean traceTermination = false;
@@ -1558,6 +1558,9 @@ public final class RVMThread extends ThreadContext {
       }
 
       initializeJNIEnv();
+
+      if (traceAcct)
+	VM.sysWriteln("Finishing initializeJniEnv() for the thread");
 
       if (VM.BuildForAdaptiveSystem) {
         onStackReplacementEvent = new OnStackReplacementEvent();
@@ -4447,6 +4450,7 @@ public final class RVMThread extends ThreadContext {
     } else if (VM.fullyBooted) {
       exceptionObject.printStackTrace();
     }
+    exceptionObject.printStackTrace();
     getCurrentThread().terminate();
     if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);

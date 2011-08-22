@@ -110,6 +110,8 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In tools/bootImageRunner.
 
+#include <jni.h>
+
 #ifdef RVM_FOR_HARMONY
 #ifdef RVM_FOR_LINUX
 #define LINUX
@@ -1865,6 +1867,7 @@ extern "C" void*
 sysDlopen(char *libname)
 {
     void * libHandler;
+    fprintf(SysErrorFile,"sysDlopen:%s\n",libname);
     do {
         libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
     }
