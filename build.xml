@@ -97,6 +97,11 @@
   <condition property="harmony.classlib" value="true">
     <equals arg1="${classlib.provider}" arg2="Harmony"/>
   </condition>
+
+  <condition property="openjdk.classlib" value="true">
+    <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+  </condition>
+
   <condition property="classpath.classlib" value="true">
     <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
   </condition>
@@ -166,11 +171,12 @@
   </target>
 
   <target name="check-classlibrary-properties">
-    <fail message="Cannot have both Harmony and Classpath class libraries">
+    <fail message="Cannot have both Harmony, Openjdk, and Classpath class libraries">
       <condition>
 	<and>
           <isset property="harmony.classlib"/>
           <isset property="classpath.classlib"/>
+	  <isset property="openjdk.classlib"/>
 	</and>
       </condition>
     </fail>      
@@ -180,6 +186,7 @@
           <or>
             <equals arg1="${classlib.provider}" arg2="Harmony"/>
             <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
+	    <equals arg1="${classlib.provider}" arg2="Openjdk"/>
           </or>
 	</not>
       </condition>
@@ -190,6 +197,7 @@
           <or>
             <isset property="harmony.classlib"/>
             <isset property="classpath.classlib"/>
+	    <isset property="openjdk.classlib"/>
           </or>
 	</not>
       </condition>
@@ -210,6 +218,12 @@
     <property file="${harmony.lib.dir}/constants.properties"/>
     <property name="config.portable-native-sync" value="false"/> <!-- has no meaning for Harmony -->
     <property name="build.extra.rt.jars" value=":${harmony.lib.dir}/yoko-rmi-impl.jar:${harmony.lib.dir}/instrument.jar:${harmony.lib.dir}/beans.jar:${harmony.lib.dir}/xml-apis.jar:${harmony.lib.dir}/mx4j.jar:${harmony.lib.dir}/nio.jar:${harmony.lib.dir}/xalan.jar:${harmony.lib.dir}/resolver.jar:${harmony.lib.dir}/logging.jar:${harmony.lib.dir}/bcprov.jar:${harmony.lib.dir}/security.jar:${harmony.lib.dir}/sql.jar:${harmony.lib.dir}/print.jar:${harmony.lib.dir}/mx4j-remote.jar:${harmony.lib.dir}/concurrent.jar:${harmony.lib.dir}/luni-kernel-stubs.jar:${harmony.lib.dir}/misc.jar:${harmony.lib.dir}/accessibility.jar:${harmony.lib.dir}/crypto.jar:${harmony.lib.dir}/yoko.jar:${harmony.lib.dir}/rmi.jar:${harmony.lib.dir}/security-kernel-stubs.jar:${harmony.lib.dir}/x-net.jar:${harmony.lib.dir}/icu4j-charsets-4_0.jar:${harmony.lib.dir}/imageio.jar:${harmony.lib.dir}/nio_char.jar:${harmony.lib.dir}/lang-management.jar:${harmony.lib.dir}/regex.jar:${harmony.lib.dir}/applet.jar:${harmony.lib.dir}/prefs.jar:${harmony.lib.dir}/annotation.jar:${harmony.lib.dir}/math.jar:${harmony.lib.dir}/luni.jar:${harmony.lib.dir}/archive.jar:${harmony.lib.dir}/awt.jar:${harmony.lib.dir}/nio_char-src.jar:${harmony.lib.dir}/xercesImpl.jar:${harmony.lib.dir}/yoko-rmi-spec.jar:${harmony.lib.dir}/swing.jar:${harmony.lib.dir}/auth.jar:${harmony.lib.dir}/yoko-core.jar:${harmony.lib.dir}/text.jar:${harmony.lib.dir}/jndi.jar:${harmony.lib.dir}/suncompat.jar:${harmony.lib.dir}/sound.jar:${harmony.lib.dir}/icu4j-4_0.jar:${harmony.lib.dir}/bcel-5.2.jar"/>
+  </target>
+
+  <target name="check-openjdk-properties" depends="check-components-properties,check-classlibrary-properties" if="openjdk.classlib">
+    <property name="openjdk.lib.dir" location="/home/yangxi/buildjdk/j2re-image/lib"/>
+    <property name="config.portable-native-sync" value="false"/>
+    <property name="build.extra.rt.jars" value=""/>
   </target>
 
   <target name="check-mmtk-properties"  depends="check-host-name">
@@ -280,7 +294,15 @@
         <ant antfile="build/components/harmony.xml" target="ensure"/>
       </sequential>
     </if>
-    <if>
+     <if>
+       <conditions>
+	 <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+       </conditions>
+       <sequential>
+	 <ant antfile="build/components/openjdk.xml" target="ensure"/>
+       </sequential>
+     </if>
+     <if>
       <conditions>
         <equals arg1="${config.with-profile}" arg2="true"/>
       </conditions>
@@ -337,7 +359,7 @@ Check to make sure all required properties are specified. This includes properti
  * component properties for classpath, gcspy etc.
   -->
   <target name="check-properties"
-          depends="check-host-properties,check-config-properties,check-target-properties,check-classlibrary-properties,check-classpath-properties,check-harmony-properties,check-gcspy-properties,check-mmtk-properties"
+          depends="check-host-properties,check-config-properties,check-target-properties,check-classlibrary-properties,check-classpath-properties,check-harmony-properties,check-openjdk-properties,check-gcspy-properties,check-mmtk-properties"
           description="Check that all required properties are specified.">
 
     <!-- setup properties for start of build. -->
@@ -390,6 +412,10 @@ Check to make sure all required properties are specified. This includes properti
 
     <condition property="classlib.filter" value="-DRVM_FOR_GNU_CLASSPATH=1">
       <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
+    </condition>
+
+    <condition property="classlib.filter" value="-DRVM_FOR_OPENJDK=1">
+      <equals arg1="${classlib.provider}" arg2="Openjdk"/>
     </condition>
 
     <condition property="gctrace.filter" value="-DRVM_WITH_GCTRACE=1" else="">
@@ -1158,10 +1184,23 @@ Check to make sure all required properties are specified. This includes properti
         <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/Harmony/ASF/src"/>
       </sequential>
     </if>
+
+    <!--added by Xi Yang-->
+    <if>
+      <conditions>
+	<equals arg1="${classlib.provider}" arg2="Openjdk"/>
+      </conditions>
+      <sequential>
+	<property name="classlib.library-interface.cpl.java" location="libraryInterface/Openjdk/EPL/src/"/>
+        <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/Openjdk/ASF/src"/>
+      </sequential>
+    </if>      
   </target>
 
   <target name="compile" depends="compile-mmtk,compile-options,prepare-source,prepare-config-source,choose-classlib,do-checkstyle">
 
+    <echo message="#######Compile ${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"/>
+    
     <condition property="exclude-arch" value="IA" else="PPC">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
@@ -1241,6 +1280,42 @@ Check to make sure all required properties are specified. This includes properti
             <pathelement location="${harmony.lib.dir}/regex.jar"/>
             <pathelement location="${harmony.lib.dir}/security-kernel-stubs.jar"/>
             <pathelement location="${harmony.lib.dir}/security.jar"/>
+          </bootclasspath>
+          <classpath>
+            <pathelement location="${build.vmmagic-stub.classes}"/>
+          </classpath>
+          <include name="Dummy.java"/>
+          <include name="OptDummy.java"/>
+          <include name="org/apache/**/*.java"/>
+          <include name="sun/**/*.java"/>
+          <include name="java/**/*.java"/>
+          <include name="${arch-helper-class}"/>
+          <include name="com/ibm/tuningfork/**/*.java"/>
+          <include name="org/jikesrvm/mm/mmtk/**/*.java"/>
+          <include name="org/jikesrvm/tools/oth/OptTestHarness.java"/>
+          <include name="org/jikesrvm/tools/header_gen/GenArch_${target.arch}.java"/>
+          <exclude name="org/jikesrvm/tools/header_gen.GenerateInterfaceDeclarations.java"/>
+        </javac>
+      </sequential>
+    </if>
+
+    <if>
+      <conditions>
+	<equals arg1="${classlib.provider}" arg2="Openjdk"/>
+      </conditions>
+      <sequential>       
+        <javac destdir="${build.classes}"
+               debug="true"
+               fork="true"
+               memoryMaximumSize="500M"
+               debugLevel="lines,source"
+               source="1.5"
+               target="1.5"
+               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}">
+	  
+          <bootclasspath>
+            <pathelement location="${openjdk.lib.dir}/rt.jar"/>
           </bootclasspath>
           <classpath>
             <pathelement location="${build.vmmagic-stub.classes}"/>
@@ -1377,7 +1452,7 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="package" depends="bootstrap-unit-tests,compile-vmmagic,package-classpath,package-harmony"/>
+  <target name="package" depends="bootstrap-unit-tests,compile-vmmagic,package-classpath,package-harmony,package-openjdk"/>
 
   <target name="package-harmony" if="harmony.classlib">
     <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false">
@@ -1392,6 +1467,30 @@ Check to make sure all required properties are specified. This includes properti
       <fileset dir="${build.vmmagic-stub.classes}">
         <include name="org/vmmagic/pragma/**"/>
         <include name="org/vmmagic/*"/>
+      </fileset>
+      <fileset dir="${build.vmmagic.classes}"/>
+      <fileset dir="${build.options.classes}"/>
+    </jar>
+  </target>
+
+  <target name="package-openjdk" if="openjdk.classlib">
+    <echo message="###################package-openjdk"/>
+    <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false">       
+      <include name="java/**"/>
+      <include name="sun/**"/>
+      <!--no gnu now  <include name="gnu/**"/> -->
+      <!-- Xi Yang      <zipfileset src="${classpath.lib.dir}/classpath.jar"/> -->
+      <zipfileset src="${openjdk.lib.dir}/rt.jar"/>
+    </zip>
+    <jar destfile="${build.vm.jar}" update="true" compress="false">
+      <fileset dir="${build.classes}">
+        <exclude name="java/**"/>
+        <exclude name="sun/**"/>
+        <!-- no gnu now <exclude name="gnu/**"/> -->
+      </fileset>
+      <fileset dir="${build.vmmagic-stub.classes}">
+        <include name="org/vmmagic/pragma/**"/>
+	<include name="org/vmmagic/*"/>
       </fileset>
       <fileset dir="${build.vmmagic.classes}"/>
       <fileset dir="${build.options.classes}"/>
@@ -1435,7 +1534,8 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.vm.jar}"/>
         <pathelement location="${build.rt.jar}"/>
       </classpath>
-      <arg value="${classlib.provider}"/>
+<!--      <arg value="${classlib.provider}"/> -->
+     <arg value="openjdk"/>
       <arg path="${generated.asm}:${build.rt.jar}:${build.vm.jar}${build.extra.rt.jars}"/>
       <arg path="${generated.asm}"/>
     </java>
@@ -1523,6 +1623,19 @@ Check to make sure all required properties are specified. This includes properti
       </sequential>
     </if>
 
+    <if>
+      <conditions>
+	<equals arg1="${classlib.provider}" arg2="Openjdk"/>
+      </conditions>
+      <sequential>
+	<concat destfile="${build.base}/Primordials.txt">
+	  <filelist dir="${build.base}" files="ClassesForImage.txt"/>
+          <filelist dir="${primordials.dir}"
+                    files="Openjdk.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
+        </concat>
+      </sequential>
+    </if> 
+
     <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
   </target>
 
@@ -1558,6 +1671,10 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
 
+    <condition property="bootimage.classlib" value="Openjdk">
+      <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+    </condition>
+
     <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
     <echo message="MMTk properties = ${mmtk.properties}"/>
     <java classname="org.jikesrvm.tools.bootImageWriter.BootImageWriter"
@@ -1575,6 +1692,7 @@ Check to make sure all required properties are specified. This includes properti
       <sysproperty key="mmtk.properties" value="${mmtk.properties}"/>
       <sysproperty key="rvm.properties" value="${build.base}/rvm.properties"/>
       <jvmarg value="-Xbootclasspath/a:${rvm.class.path}"/>
+      <arg value="-trace"/>
       <arg value="-log"/>
       <arg path="${build.base}/BootImageWriterOutput.txt"/>
       <arg value="-classpath"/>
@@ -1608,7 +1726,7 @@ Check to make sure all required properties are specified. This includes properti
     <loadfile property="bootimage.warnings" srcFile="${build.base}/BootImageWriterOutput.txt">
       <filterchain>
         <linecontainsregexp>
-          <regexp pattern="^WARNING"/>
+          <regexp pattern="^WARNioING"/>
         </linecontainsregexp>
       </filterchain>
     </loadfile>
@@ -1853,6 +1971,22 @@ Check to make sure all required properties are specified. This includes properti
       </sequential>
     </if>
 
+    <if>
+      <conditions>
+        <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+      </conditions>
+      <sequential>
+        <exec executable="${c++.exe}" failonerror="true">
+          <arg line="${c++.args} ${rvm.common.args} ${gcspy.lib.dir} -lpthread ${perfevent.lib} ${c++.librt} ${rvm.src} ${c++.rdynamic} -g"/>
+          <arg value="-o"/>
+          <arg value="${build.base}/JikesRVM"/>
+          <arg value="-L${build.base}"/>
+          <arg value="-ldl"/>
+          <arg line="-lrvm"/>
+	</exec>
+      </sequential>
+    </if>
+
     <antcall target="build-debug-symbols"/>
   </target>
 
@@ -1878,7 +2012,7 @@ Check to make sure all required properties are specified. This includes properti
   <!-- **************************************************************************** -->
 
   <!-- Setup image directory on host side -->
-  <target name="init-image-dir-on-host" depends="init-image-dir-on-host-classpath,init-image-dir-on-host-harmony"/>
+  <target name="init-image-dir-on-host" depends="init-image-dir-on-host-classpath,init-image-dir-on-host-harmony,init-image-dir-on-host-openjdk"/>
 
   <target name="init-image-dir-on-host-classpath" depends="build-bootimage" if="classpath.classlib">
     <mkdir dir="${dist.base}"/>
@@ -1987,6 +2121,69 @@ target.jni-suffix=${target.jni-suffix}
 ]]></echo>
   </target>
 
+  <target name="init-image-dir-on-host-openjdk" depends="build-bootimage" if="openjdk.classlib">
+    <mkdir dir="${dist.base}"/>
+    <copy todir="${dist.base}">
+      <fileset dir="${build.base}">
+        <include name="RVM.*.image"/>
+        <include name="RVM.map"/>
+        <include name="BootImageWriterOutput.txt"/>
+      </fileset>
+    </copy>
+    <copy file="${basedir}/tools/bootImageRunner/rvm.openjdk" tofile="${dist.base}/rvm">
+    </copy>
+    <copy todir="${dist.base}">
+      <fileset dir="${openjdk.lib.dir}">
+	<include name="*.so"/>
+      </fileset>
+    </copy>
+    <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
+    <copy file="${build.rt.jar}" todir="${dist.base}"/>
+    <copy file="${build.vm.jar}" todir="${dist.base}"/>
+    <mkdir dir="${dist.base}/lib"/>
+    <copy todir="${dist.base}/lib">
+      <fileset dir="${openjdk.lib.dir}">
+        <include name="*.jar"/>
+        <exclude name="*-src.jar"/>
+      </fileset>
+    </copy>
+    <mkdir dir="${dist.base}/include"/>
+    <copy todir="${dist.base}/include">
+      <fileset dir="${build.native}">
+        <include name="*.h"/>
+      </fileset>
+    </copy>
+    <echo file="${dist.base}/constants.properties"><![CDATA[# Build time constants used when building image.
+config.name=${config.name}
+config.runtime.compiler=${config.runtime.compiler}
+config.bootimage.compiler=${config.bootimage.compiler}
+config.mmtk.plan=${config.mmtk.plan}
+config.include.aos=${config.include.aos}
+config.include.perfevent=${config.include.perfevent}
+config.include.gcspy=${config.include.gcspy}
+config.include.gcspy-client=${config.include.gcspy-client}
+config.assertions=${config.assertions}
+config.default-heapsize.initial=${config.default-heapsize.initial}
+config.default-heapsize.maximum=${config.default-heapsize.maximum}
+config.bootimage.compiler.args=${config.bootimage.compiler.args}
+config.stress-gc-interval=${config.stress-gc-interval}
+config.alignment-checking=${config.alignment-checking}
+target.name=${target.name}
+target.arch=${target.arch}
+target.os=${target.os}
+target.address.size=${target.address.size}
+target.bootimage.code.address=${target.bootimage.code.address}
+target.bootimage.data.address=${target.bootimage.data.address}
+target.bootimage.rmap.address=${target.bootimage.rmap.address}
+target.max-mappable.address=${target.max-mappable.address}
+target.arch.sse2=${target.arch.sse2}
+target.dll-ext=${target.dll-ext}
+target.dll-prefix=${target.dll-prefix}
+target.jni-suffix=${target.jni-suffix}
+]]></echo>
+  </target>
+
+
   <!-- Setup runtime directory and copy all the classpath libraries to it -->
   <target name="init-runtime-dir-on-target" depends="build-bootloader">
     <mkdir dir="${dist.base}"/>
@@ -2000,6 +2197,29 @@ target.jni-suffix=${target.jni-suffix}
             <include name="*${target.jni-suffix}"/>
           </fileset>
         </copy>
+        <copy todir="${dist.base}">
+          <fileset dir="${build.base}">
+            <include name="*${target.dll-ext}"/>
+            <include name="*${target.jni-suffix}"/>
+            <include name="JikesRVM"/>
+            <include name="JikesRVM-symbols.o"/>
+          </fileset>
+        </copy>
+        <chmod perm="ugo+rx">
+          <fileset dir="${dist.base}">
+            <include name="*${target.dll-ext}"/>
+            <include name="*${target.jni-suffix}"/>
+            <include name="JikesRVM"/>
+          </fileset>
+        </chmod>
+      </sequential>
+    </if>
+    <if>
+      <conditions>
+        <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+      </conditions>
+      <sequential>
+
         <copy todir="${dist.base}">
           <fileset dir="${build.base}">
             <include name="*${target.dll-ext}"/>
