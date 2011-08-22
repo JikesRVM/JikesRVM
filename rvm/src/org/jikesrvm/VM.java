@@ -283,6 +283,7 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     VM.sysWriteln("XXXX");
     DynamicLibrary.boot();
+    System.loadLibrary("rvm");
     System.loadLibrary("jvm");
     VM.sysWriteln("Load java");
     System.loadLibrary("java");
