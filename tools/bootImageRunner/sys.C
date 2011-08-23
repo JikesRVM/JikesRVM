@@ -3127,7 +3127,9 @@ JVM_ConstantPoolGetUTF8At(JNIEnv *env, jobject unused, jobject jcpool, jint inde
 JNIEXPORT jobject JNICALL
 JVM_DoPrivileged(JNIEnv *env, jclass cls, jobject action, jobject context, jboolean wrapException)
 {
-	printf("JVM_DoPrivileged(JNIEnv *env, jclass cls, jobject action, jobject context, jboolean wrapException)");
+  printf("##Trap to RVM:JVM_DoPrivileged(JNIEnv *env, jclass cls, jobject action, jobject context, jboolean wrapException)");
+  return env->functions->RVM_DoPrivileged(env,cls,action,context,&wrapException);
+
 }
 
 JNIEXPORT jobject JNICALL

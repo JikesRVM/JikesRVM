@@ -266,6 +266,9 @@ public class BuildJNIFunctionTable {
   private static final int GETDIRECTBUFFERADDRESS        =  230;
   private static final int GETDIRECTBUFFERCAPACITY       =  231;
 
+  /* RVM native interface for Openjdk library*/
+  private static final int RVMDOPRIVILEGED = 232;
+
   /**
    * Construct the JNIFuntionTable.
    * This is not very efficient, but is done at bootImageWriting time,
@@ -535,6 +538,8 @@ public class BuildJNIFunctionTable {
     names[NEWDIRECTBYTEBUFFER]           = "NewDirectByteBuffer";           // JDK 1.4, #229
     names[GETDIRECTBUFFERADDRESS]        = "GetDirectBufferAddress";        // JDK 1.4, #230
     names[GETDIRECTBUFFERCAPACITY]       = "GetDirectBufferCapacity";       // JDK 1.4, #231
+    /*native interfaces for openjdk*/
+    names[RVMDOPRIVILEGED] = "RVM_DoPrivileged";
 
     return names;
   }

@@ -19,7 +19,7 @@ package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
 
-import org.apache.harmony.lang.reflect.ReflectPermissionCollection;
+//import org.apache.harmony.lang.reflect.ReflectPermissionCollection;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMMember;
 import org.jikesrvm.classloader.RVMMethod;
@@ -65,9 +65,9 @@ public class AccessibleObject implements AnnotatedElement {
   public static void setAccessible(AccessibleObject[] objects, boolean flag)
 	 throws SecurityException {
 	 SecurityManager sc = System.getSecurityManager();
-	 if (sc != null) {
-		sc.checkPermission(ReflectPermissionCollection.SUPPRESS_ACCESS_CHECKS_PERMISSION);
-	 }
+	 //	 if (sc != null) {
+	   //		sc.checkPermission(ReflectPermissionCollection.SUPPRESS_ACCESS_CHECKS_PERMISSION);
+	 //	 }
 	 for (int i = 0; i < objects.length; i++) {
 		objects[i].setAccessible0(flag);
 	 }
@@ -103,9 +103,9 @@ public class AccessibleObject implements AnnotatedElement {
 	*/
   public void setAccessible(boolean flag) throws SecurityException {
 	 SecurityManager sc = System.getSecurityManager();
-	 if (sc != null) {
-		sc.checkPermission(ReflectPermissionCollection.SUPPRESS_ACCESS_CHECKS_PERMISSION);
-	 }
+	 //	 if (sc != null) {
+	 //		sc.checkPermission(ReflectPermissionCollection.SUPPRESS_ACCESS_CHECKS_PERMISSION);
+	 //	 }
 	 setAccessible0(flag);
   }
 
