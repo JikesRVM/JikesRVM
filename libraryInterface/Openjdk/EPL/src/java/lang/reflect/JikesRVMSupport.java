@@ -35,8 +35,8 @@ public class JikesRVMSupport {
   @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
   public static <T> Constructor<T> createConstructor(RVMMethod m) {
     VM.sysWriteln("CreateConstructor is called");
-    throw new Error("Harmony doesn't provide the CreateConstructor API");
-    //      return new Constructor<T>(m);
+    //    throw new Error("Harmony doesn't provide the CreateConstructor API");
+    return new Constructor<T>(m);
   }
 
   public static Object createVMConstructor(RVMMethod m) {
