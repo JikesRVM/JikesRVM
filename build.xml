@@ -1194,6 +1194,7 @@ Check to make sure all required properties are specified. This includes properti
       <sequential>
 	<property name="classlib.library-interface.cpl.java" location="libraryInterface/Openjdk/EPL/src"/>
         <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/Openjdk/ASF/src"/>
+        <property name="classlib.library-interface.non-cpl2.java" location="libraryInterface/Openjdk/GPL/src"/>
       </sequential>
     </if>      
   </target>
@@ -1313,7 +1314,7 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="1.5"
                target="1.5"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
                sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}">
 	  
           <bootclasspath>

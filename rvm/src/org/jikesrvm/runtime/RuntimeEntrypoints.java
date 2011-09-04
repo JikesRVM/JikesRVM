@@ -697,6 +697,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     Registers exceptionRegisters = myThread.getExceptionRegisters();
     if (false) VM.sysWriteln("we have exception registers = ",Magic.objectAsAddress(exceptionRegisters));
 
+    RVMThread.dumpStack();
+
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) &&
         myThread.getStack().length < (STACK_SIZE_MAX >> LOG_BYTES_IN_ADDRESS) &&
         !myThread.hasNativeStackFrame()) {

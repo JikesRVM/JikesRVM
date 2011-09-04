@@ -105,8 +105,8 @@ public final class System {
    */
   @SuppressWarnings("unused")
   public static void setIn(InputStream newIn) {
-    SecurityManager secMgr = System.getSecurityManager();
-    VMCommonLibrarySupport.setSystemStreamField("in", in);
+        SecurityManager secMgr = System.getSecurityManager();
+	VMCommonLibrarySupport.setSystemStreamField("in", newIn);   
   }
 
   /**

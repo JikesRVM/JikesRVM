@@ -16,6 +16,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
+//import java.security.PrivilegedAction;
 import org.jikesrvm.ArchitectureSpecific.JNIHelpers;
 import org.jikesrvm.VM;
 import org.jikesrvm.Properties;
@@ -6060,9 +6061,11 @@ public class JNIFunctions implements SizeConstants {
    *RVM native interfaces for Openjdk library
    */
 
-  private static int RVM_DoPrivileged(JNIEnvironment env, int refClass, int refObject, Address iswarpException)
+  private static int RVM_DoPrivileged(JNIEnvironment env, int refClass, int refaction, int refcontext, Address iswarpException)
   {
     VM.sysWriteln("############RVM_Doprivileged is called");
+    //    PrivilegedAction action = (PrivilegedAction) env.getJNIRef(refaction);
+    //    Object a = action.run();
     return 0;
   }
 

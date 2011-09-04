@@ -110,14 +110,17 @@ public abstract class TypeDescriptorParsing implements ClassLoaderConstants {
   @Interruptible
   @Pure
   public static boolean isJavaClassName(String s) {
+    VM.sysWriteln("isjavaclassname1");
     boolean identStart = true;  // pretend we just saw a .
     for (int i = 0; i < s.length(); ++i) {
+      VM.sysWriteln("isjavaclassname2");
       char c = s.charAt(i);
       if (identStart) {
         if (!isVMIdentifierStart(c)) {
           return false;         // failure to match identifier start.
         }
         identStart = false;     // on to the next one.
+	VM.sysWriteln("isjavaclassname3");
         continue;
       }
       if (c == '.' || c == '/') {

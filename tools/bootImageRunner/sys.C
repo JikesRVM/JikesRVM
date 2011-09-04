@@ -3127,8 +3127,10 @@ JVM_ConstantPoolGetUTF8At(JNIEnv *env, jobject unused, jobject jcpool, jint inde
 JNIEXPORT jobject JNICALL
 JVM_DoPrivileged(JNIEnv *env, jclass cls, jobject action, jobject context, jboolean wrapException)
 {
+  jobject result;
   printf("##Trap to RVM:JVM_DoPrivileged(JNIEnv *env, jclass cls, jobject action, jobject context, jboolean wrapException)");
-  return env->functions->RVM_DoPrivileged(env,cls,action,context,&wrapException);
+  result = env->functions->RVM_DoPrivileged(env,cls,action,context,&wrapException);
+  printf("##Retrn from JVM_DoPrivileged, result is %p\n",result);
 
 }
 
@@ -3479,7 +3481,8 @@ JVM_Read(jint fd, char *buf, jint nbytes)
 JNIEXPORT jint JNICALL
 JVM_Write(jint fd, char *buf, jint nbytes)
 {
-	printf("JVM_Write(jint fd, char *buf, jint nbytes)");
+  printf("JVM_Write(jint fd, char *buf, jint nbytes)");
+  write(fd,buf,nbytes);
 }
 
 JNIEXPORT jint JNICALL

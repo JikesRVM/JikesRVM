@@ -19,10 +19,13 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.Synchronization;
+import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Address;
 
 import static org.jikesrvm.mm.mminterface.Barriers.*;
+import org.jikesrvm.runtime.SysCall;
 
 public final class Unsafe {
 
@@ -96,6 +99,49 @@ public final class Unsafe {
     }
    }
 
+  public byte getByte(Object obj, int offset) {
+    Offset off = longToOffset((long)offset);
+    return Magic.getByteAtOffset(obj,off);
+  }
+
+  public byte getByte(Object obj, long offset) {
+    Offset off = longToOffset(offset);
+    return Magic.getByteAtOffset(obj,off);
+  }  
+
+  public byte getByte(long address) {
+    return Address.fromLong(address).loadByte();
+  }
+
+  public void putByte(long address, byte x) {
+    Address.fromLong(address).store(x);
+  }
+
+
+  public char getChar(long address) {
+    return Address.fromLong(address).loadChar();
+  }
+  public void putChar(long address, char x) {
+    Address.fromLong(address).store(x);
+  }
+
+  public short getShort(long address) {
+    return Address.fromLong(address).loadShort();
+  }
+  public void putShort(long address, short x) {
+    Address.fromLong(address).store(x);
+  }
+
+  public int getInt(Object obj,long offset) {
+    Offset off = longToOffset(offset);
+    return Magic.getIntAtOffset(obj,off);
+  }
+  public int getIntVolatile(Object obj,long offset) {
+    Offset off = longToOffset(offset);
+    int result = Magic.getIntAtOffset(obj,off);
+    Magic.readCeiling();
+    return result;
+  }
   public void putIntVolatile(Object obj,long offset,int value) {
     Magic.writeFloor();
     Offset off = longToOffset(offset);
@@ -115,18 +161,29 @@ public final class Unsafe {
       Magic.setIntAtOffset(obj,off,value);
     }
   }
-
-  public int getIntVolatile(Object obj,long offset) {
-    Offset off = longToOffset(offset);
-    int result = Magic.getIntAtOffset(obj,off);
-    Magic.readCeiling();
-    return result;
+  public  int getInt(long address) {
+    return Address.fromLong(address).loadInt();
+  }
+  public void putInt(long address, int x) {
+    Address.fromLong(address).store(x);
   }
 
-  public int getInt(Object obj,long offset) {
-    Offset off = longToOffset(offset);
-    return Magic.getIntAtOffset(obj,off);
+
+  public long getLong(long address) {
+    return Address.fromLong(address).loadLong();
   }
+  public void putShort(long address, Long x) {
+    Address.fromLong(address).store(x);
+  }
+
+
+
+  /*report the size of page*/
+  public int pageSize(){
+    return 4096;
+  }
+
+
 
   public void putLongVolatile(Object obj,long offset,long value) {
     Magic.writeFloor();
@@ -148,6 +205,10 @@ public final class Unsafe {
     }
   }
 
+  public void putLong(long address, long x) {
+    Address.fromLong(address).store(x);
+  }
+
   public long getLongVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
     long result = Magic.getLongAtOffset(obj,off);
@@ -159,6 +220,20 @@ public final class Unsafe {
     Offset off = longToOffset(offset);
     return Magic.getLongAtOffset(obj,off);
   }
+
+  /*Allocate native memory*/
+  public long allocateMemory(long bytes) {
+    Address result = SysCall.sysCall.sysMalloc((int)bytes);
+    if (result.isZero()) {
+      throw new OutOfMemoryError("Unable to satisfy malloc of "+bytes);
+    }
+    return result.toLong();
+  }
+
+  public void freeMemory(long address) {
+    SysCall.sysCall.sysFree(Address.fromLong(address));
+  }
+
 
   public void putObjectVolatile(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
@@ -179,6 +254,12 @@ public final class Unsafe {
       Magic.setObjectAtOffset(obj,off,value);
     }
   }
+  
+  public Object getObject(Object obj, long offset) {
+    Offset off = longToOffset(offset);
+    Object result = Magic.getObjectAtOffset(obj,off);
+    return result;
+  }
 
   public Object getObjectVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
@@ -190,6 +271,15 @@ public final class Unsafe {
   public int arrayBaseOffset(Class<?> arrayClass) {
     return 0;
   }
+
+  /**                                                                                                                                                      
+   * Ensure the given class has been initialized. This is often                                                                                            
+   * needed in conjunction with obtaining the static field base of a                                                                                       
+   * class.                                                                                                                                                
+   */
+  public void ensureClassInitialized(Class c){
+  }
+
 
   public int arrayIndexScale(Class<?> arrayClass) {
     RVMType arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
@@ -215,4 +305,17 @@ public final class Unsafe {
   public void throwException(Throwable ex) {
     RuntimeEntrypoints.athrow(ex);
   }
+  
+
+  /*Set the memory*/
+  public void setMemory(long address, long bytes, byte value) {
+    for (long i=0;i<bytes;i++){
+      Address.fromLong(address+i).store(value);
+    }
+  }
+
+  public void copyMemory(long srcAddress, long destAddress, long bytes) {
+    Memory.memcopy(Address.fromLong(destAddress), Address.fromLong(srcAddress), (int)bytes);
+  }
+    
 }
