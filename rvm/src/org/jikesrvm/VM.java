@@ -252,6 +252,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     runClassInitializer("java.lang.CharacterDataUndefined");
     runClassInitializer("java.lang.Throwable");
     runClassInitializer("java.lang.Exception");
+    runClassInitializer("java.lang.ClassNotFoundException");
     runClassInitializer("java.lang.RuntimeException");
     runClassInitializer("java.lang.NullPointerException");
     runClassInitializer("java.lang.Error");
@@ -377,13 +378,15 @@ public class VM extends Properties implements Constants, ExitStatus {
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
     System.setProperty("line.separator", "\n");
     runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
-    //    runClassInitializer("java.util.Locale");
+    //runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.ResourceBundle");
     runClassInitializer("java.util.zip.CRC32");
+    runClassInitializer("java.util.zip.ZipEntry");
+    runClassInitializer("java.util.zip.Inflater");
     if (VM.BuildForHarmony) {
       System.loadLibrary("hyarchive");
     }
-    //    runClassInitializer("java.util.zip.Inflater");
+
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.util.zip.DeflaterHuffman");
       runClassInitializer("java.util.zip.InflaterDynHeader");
@@ -443,6 +446,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     runClassInitializer("java.util.concurrent.atomic.AtomicInteger");
     runClassInitializer("java.io.FileInputStream");
     runClassInitializer("java.io.FileOutputStream");
+    runClassInitializer("java.io.DataInputStream");
 
     runClassInitializer("java.nio.CharBuffer");
     runClassInitializer("java.nio.ByteBuffer");

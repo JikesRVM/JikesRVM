@@ -135,6 +135,8 @@ extern "C" void sysMonitorBroadcast(Word);
 // static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 // static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
 
+static int openjdkVerbose = 0;
+
 #ifdef RVM_FOR_HARMONY
 extern "C" int sysThreadStartup(void *args);
 #else
@@ -3455,33 +3457,45 @@ JVM_GetLastErrorString(char *buf, int len)
 }
 
 JNIEXPORT char * JNICALL
-JVM_NativePath(char *)
+JVM_NativePath(char * path)
 {
-	printf("JVM_NativePath(char *)");
+  //  printf("JVM_NativePath path:%s\n",path);
+  return path;
 }
 
 JNIEXPORT jint JNICALL
 JVM_Open(const char *fname, jint flags, jint mode)
 {
-	printf("JVM_Open(const char *fname, jint flags, jint mode)");
+	printf("JVM_Open(const char *fname, jint flags, jint mode)\n");
+	int result = open(fname,flags,mode);
+	if (result < 0){
+	  result = -1;
+	  if (errno == EEXIST)
+	    result = -100;//JVM_EXIST
+	}
+	return result;	   	
 }
 
 JNIEXPORT jint JNICALL
 JVM_Close(jint fd)
 {
-	printf("JVM_Close(jint fd)");
+	printf("JVM_Close(jint fd)\n");
+	return close(fd);
 }
 
 JNIEXPORT jint JNICALL
 JVM_Read(jint fd, char *buf, jint nbytes)
 {
-	printf("JVM_Read(jint fd, char *buf, jint nbytes)");
+  if (openjdkVerbose)
+    printf("JVM_Read(jint fd, char *buf, jint nbytes)\n");
+  return read(fd,buf,nbytes);
 }
 
 JNIEXPORT jint JNICALL
 JVM_Write(jint fd, char *buf, jint nbytes)
 {
-  printf("JVM_Write(jint fd, char *buf, jint nbytes)");
+  if (openjdkVerbose)
+    printf("JVM_Write(jint fd, char *buf, jint nbytes)");
   write(fd,buf,nbytes);
 }
 
@@ -3494,7 +3508,9 @@ JVM_Available(jint fd, jlong *pbytes)
 JNIEXPORT jlong JNICALL
 JVM_Lseek(jint fd, jlong offset, jint whence)
 {
-	printf("JVM_Lseek(jint fd, jlong offset, jint whence)");
+  if (openjdkVerbose)
+    printf("JVM_Lseek(jint fd, jlong offset, jint whence)\n");
+  return lseek(fd, offset, whence);
 }
 
 JNIEXPORT jint JNICALL
@@ -3638,25 +3654,30 @@ JVM_GetHostName(char* name, int namelen)
 JNIEXPORT void * JNICALL
 JVM_RawMonitorCreate(void)
 {
-	printf("JVM_RawMonitorCreate(void)");
+  //	printf("JVM_RawMonitorCreate(void)\n");
+	return (void *)sysMonitorCreate();	
 }
 
 JNIEXPORT void JNICALL
 JVM_RawMonitorDestroy(void *mon)
 {
-	printf("JVM_RawMonitorDestroy(void *mon)");
+  //	printf("JVM_RawMonitorDestroy(void *mon)\n");
+	sysMonitorDestroy((Word)mon);
 }
 
 JNIEXPORT jint JNICALL
 JVM_RawMonitorEnter(void *mon)
 {
-	printf("JVM_RawMonitorEnter(void *mon)");
+  //	printf("JVM_RawMonitorEnter(void *mon)\n");
+	sysMonitorEnter((Word)mon);
+	return 0;
 }
 
 JNIEXPORT void JNICALL
 JVM_RawMonitorExit(void *mon)
 {
-	printf("JVM_RawMonitorExit(void *mon)");
+  //	printf("JVM_RawMonitorExit(void *mon)\n");
+	sysMonitorExit((Word)mon);
 }
 
 JNIEXPORT jobjectArray JNICALL

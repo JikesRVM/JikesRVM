@@ -807,9 +807,11 @@ public final class TypeReference {
       if (VM.runningVM) {
         Class<?> klass;
         String myName = name.classNameFromDescriptor();
+	VM.sysWriteln("XXXXX resolveInternal::"+myName);
         try {
           klass = classloader.loadClass(myName);
         } catch (ClassNotFoundException cnf) {
+	  VM.sysWriteln("XXXX Class is not found exception::"+myName);
           NoClassDefFoundError ncdfe =
               new NoClassDefFoundError("Could not find the class " + myName + ":\n\t" + cnf.getMessage());
           ncdfe.initCause(cnf); // in dubious taste, but helps us debug Jikes RVM
