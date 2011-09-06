@@ -2434,6 +2434,7 @@ JNIEXPORT jstring JNICALL
 JVM_InternString(JNIEnv *env, jstring str)
 {
 	printf("JVM_InternString(JNIEnv *env, jstring str)");
+
 }
 
 JNIEXPORT jlong JNICALL

@@ -67,10 +67,10 @@ class ZipFile implements ZipConstants {
     public static final int OPEN_DELETE = 0x4;
 
   /*JikesRVM does not need this */
-  //    static {
+  static {
         /* Zip library is loaded from System.initializeSystemClass */
-  //        initIDs();
-  //    }
+    initIDs();
+  }
 
     private static native void initIDs();
 
