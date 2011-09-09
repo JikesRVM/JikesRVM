@@ -256,6 +256,11 @@ public class VM extends Properties implements Constants, ExitStatus {
     runClassInitializer("java.lang.RuntimeException");
     runClassInitializer("java.lang.NullPointerException");
     runClassInitializer("java.lang.Error");
+    //    runClassInitializer("java.util.concurrent.locks.AbstractQueuedSynchronizer");
+    //    runClassInitializer("java.util.concurrent.locks.ReentrantLock");
+    //    runClassInitializer("java.util.concurrent.locks.ReentrantLock$NonfairSync");
+    //    runClassInitializer("java.util.concurrent.locks.ReentrantLock$Sync");
+
 
     runClassInitializer("org.jikesrvm.classloader.TypeReferenceVector");
     runClassInitializer("org.jikesrvm.classloader.MethodVector");
@@ -378,8 +383,8 @@ public class VM extends Properties implements Constants, ExitStatus {
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
     System.setProperty("line.separator", "\n");
     runClassInitializer("java.io.PrintStream"); // Uses System.getProperty
-    //runClassInitializer("java.util.Locale");
-    runClassInitializer("java.util.ResourceBundle");
+    //    runClassInitializer("java.util.Locale");
+    //    runClassInitializer("java.util.ResourceBundle");
     runClassInitializer("java.util.zip.CRC32");
     runClassInitializer("java.util.zip.ZipEntry");
     runClassInitializer("java.util.zip.Inflater");
