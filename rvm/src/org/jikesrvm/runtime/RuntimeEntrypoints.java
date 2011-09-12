@@ -655,7 +655,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   public static void athrow(Throwable exceptionObject) {
     if (traceAthrow) {
       VM.sysWriteln("in athrow.");
-      RVMThread.dumpStack();
+      //      RVMThread.dumpStack();
     }
     RVMThread myThread = RVMThread.getCurrentThread();
     Registers exceptionRegisters = myThread.getExceptionRegisters();

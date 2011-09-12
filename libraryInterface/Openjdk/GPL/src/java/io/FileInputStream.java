@@ -297,12 +297,14 @@ class FileInputStream extends InputStream
      * @spec JSR-51
      */
     public void close() throws IOException {
+      VM.sysWriteln("close is called");
         synchronized (closeLock) {
             if (closed) {
                 return;
             }
             closed = true;
         }
+      VM.sysWriteln("get closelock");
         if (channel != null) {
             /*
              * Decrement the FD use count associated with the channel
@@ -313,6 +315,8 @@ class FileInputStream extends InputStream
            channel.close();
         }
 
+      VM.sysWriteln("After channel");
+
         /*
          * Decrement the FD use count associated with this stream
          */
@@ -322,6 +326,7 @@ class FileInputStream extends InputStream
          * If FileDescriptor is still in use by another stream, the finalizer
          * will not close it.
          */
+      VM.sysWriteln("going to close");
         if ((useCount <= 0) || !isRunningFinalize()) {
             close0();
         }

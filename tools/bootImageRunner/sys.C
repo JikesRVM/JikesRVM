@@ -3455,6 +3455,16 @@ JNIEXPORT jint JNICALL
 JVM_GetLastErrorString(char *buf, int len)
 {
 	printf("JVM_GetLastErrorString(char *buf, int len)");
+	if (errno == 0) {
+	  return 0;
+	} else {
+	  const char *s = strerror(errno);
+	  int n = strlen(s);
+	  if (n >= len) n = len - 1;
+	  strncpy(buf, s, n);
+	  buf[n] = '\0';
+	  return n;
+	}
 }
 
 JNIEXPORT char * JNICALL
@@ -3467,13 +3477,14 @@ JVM_NativePath(char * path)
 JNIEXPORT jint JNICALL
 JVM_Open(const char *fname, jint flags, jint mode)
 {
-	printf("JVM_Open(const char *fname, jint flags, jint mode)\n");
+
 	int result = open(fname,flags,mode);
 	if (result < 0){
 	  result = -1;
 	  if (errno == EEXIST)
 	    result = -100;//JVM_EXIST
 	}
+	printf("JVM_Open(%s,%d,%d):%d\n",fname,flags,mode,result);
 	return result;	   	
 }
 

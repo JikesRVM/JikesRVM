@@ -448,10 +448,14 @@ public class VM extends Properties implements Constants, ExitStatus {
 
 
     //For Openjdk
+    //    runClassInitializer("java/lang/reflect/Modifier");
+    runClassInitializer("sun.reflect.Reflection");
     runClassInitializer("java.util.concurrent.atomic.AtomicInteger");
+    runClassInitializer("java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl");
     runClassInitializer("java.io.FileInputStream");
     runClassInitializer("java.io.FileOutputStream");
     runClassInitializer("java.io.DataInputStream");
+    runClassInitializer("java.io.BufferedInputStream");
 
     runClassInitializer("java.nio.CharBuffer");
     runClassInitializer("java.nio.ByteBuffer");
