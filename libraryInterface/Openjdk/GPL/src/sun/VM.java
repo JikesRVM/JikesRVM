@@ -346,8 +346,17 @@ public class VM {
     //
   private static void getThreadStateValues(int[][] vmThreadStateValues,
 					   String[][] vmThreadStateNames){
-    org.jikesrvm.VM.sysWriteln("XX getThreadStateValues is caleed");
+    org.jikesrvm.VM.sysWriteln("getThreadStateValues is caleed");
+
+    String[] names = {"NEW","RUNNABLE","BLOCKED","WAITING","TIMED_WAITING","TERMINATED"};
+    for (int i=0;i<names.length;i++){
+      vmThreadStateValues[i] = new int[1];
+      vmThreadStateValues[i][0] = i;
+      vmThreadStateNames[i] = new String[1];
+      vmThreadStateNames[i][0] = names[i];
+    }
   }
+
 
   static {
     initialize();
