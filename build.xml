@@ -1250,7 +1250,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="${tasks.classes}"/>
       <arg value="-nocompile"/>
       <arg value="-factory"/>
-      <arg value="org.jikesrvm.tools.apt.SysCallProcessorFactory"/>
+      <arg value="org.jikesrvm.tools.annotation_processing.SysCallProcessorFactory"/>
       <arg value="-classpath"/>
       <arg value="${tasks.classes}:${build.vmmagic-stub.classes}:${build.classes}"/>
       <arg value="-s"/>

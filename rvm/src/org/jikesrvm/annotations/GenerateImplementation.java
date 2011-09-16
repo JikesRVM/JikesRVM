@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.apt.annotations;
+package org.jikesrvm.annotations;
 
 import static java.lang.annotation.ElementType.TYPE;
 import java.lang.annotation.Retention;

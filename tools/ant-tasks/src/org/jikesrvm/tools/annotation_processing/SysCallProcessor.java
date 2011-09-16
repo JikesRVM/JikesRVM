@@ -10,7 +10,7 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.tools.apt;
+package org.jikesrvm.tools.annotation_processing;
 
 import com.sun.mirror.apt.AnnotationProcessor;
 import com.sun.mirror.apt.AnnotationProcessorEnvironment;
@@ -42,9 +42,9 @@ import java.util.Map;
 public class SysCallProcessor implements AnnotationProcessor {
 
   public static final String GEN_IMPL_ANNOTATION =
-    "org.jikesrvm.apt.annotations.GenerateImplementation";
+    "org.jikesrvm.annotations.GenerateImplementation";
   public static final String SYSCALL_TEMPLATE_ANNOTATION =
-    "org.jikesrvm.apt.annotations.SysCallTemplate";
+    "org.jikesrvm.annotations.SysCallTemplate";
 
   private final AnnotationProcessorEnvironment env;
 
