@@ -24,7 +24,7 @@ import org.jikesrvm.VM;
  */
 public class JikesRVMSupport {
   public static Address getDirectBufferAddress(Buffer buffer) {
-    VM.sysWriteln("GetDirectBufferAddress is called");
+    //       VM.sysWriteln("GetDirectBufferAddress is called");
     return Address.fromLong(((DirectByteBuffer)buffer).address());
     //    throw new Error("TODO");
 /*
@@ -37,7 +37,7 @@ public class JikesRVMSupport {
   }
 
   public static ByteBuffer newDirectByteBuffer(Address address, long capacity) {
-    VM.sysWriteln("NewDirectBytebuffer is called");
+    //       VM.sysWriteln("NewDirectBytebuffer is called");
       //    return new ReadWriteDirectByteBuffer(PlatformAddressFactory.on(address.toLong(), BYTES_IN_ADDRESS), (int)capacity, 0);
     //      throw new Error("NewDirectByteBuffer");
     return new DirectByteBuffer(address.toLong(), (int)capacity);

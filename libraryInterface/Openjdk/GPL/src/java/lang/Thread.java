@@ -141,7 +141,7 @@ class Thread implements Runnable {
   //        registerNatives();
   //    }
 
-  private RVMThread vmThread;
+  RVMThread vmThread;
 
     private char        name[];
     private int         priority;

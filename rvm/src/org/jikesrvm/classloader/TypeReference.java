@@ -807,7 +807,7 @@ public final class TypeReference {
       if (VM.runningVM) {
         Class<?> klass;
         String myName = name.classNameFromDescriptor();
-	VM.sysWriteln("XXXXX resolveInternal::"+myName);
+	///VM.sysWriteln("XXXXX resolveInternal::"+myName);
         try {
           klass = classloader.loadClass(myName);
         } catch (ClassNotFoundException cnf) {

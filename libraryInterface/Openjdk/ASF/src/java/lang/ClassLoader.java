@@ -167,13 +167,13 @@ public abstract class ClassLoader {
     public static ClassLoader getSystemClassLoader() {
         SecurityManager sc = System.getSecurityManager();
         if (sc != null) {
-            // we use VMClassRegistry.getClassLoader(...) method instead of
-            // Class.getClassLoader() due to avoid redundant security
-            // checking
-            ClassLoader callerLoader = RVMClass.getClassLoaderFromStackFrame(1);
-	    //            if (callerLoader != null && callerLoader != systemClassLoader) {
-	    //                sc.checkPermission(RuntimePermissionCollection.GET_CLASS_LOADER_PERMISSION);
-	    //            }
+	  // we use VMClassRegistry.getClassLoader(...) method instead of
+	  // Class.getClassLoader() due to avoid redundant security
+	  // checking
+	  ClassLoader callerLoader = RVMClass.getClassLoaderFromStackFrame(1);
+	  //            if (callerLoader != null && callerLoader != systemClassLoader) {
+	  //                sc.checkPermission(RuntimePermissionCollection.GET_CLASS_LOADER_PERMISSION);
+	  //            }
         }
         return BootstrapClassLoader.getBootstrapClassLoader();
     }
@@ -498,6 +498,7 @@ public abstract class ClassLoader {
             } catch (IOException e) {
             }
         }
+	VM.sysWriteln("GetResource:"+resName+"->NULL");
         return null;
     }
 

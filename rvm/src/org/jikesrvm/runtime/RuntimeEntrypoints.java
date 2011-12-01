@@ -654,7 +654,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public static void athrow(Throwable exceptionObject) {
     if (traceAthrow) {
-      VM.sysWriteln("in athrow.");
+      //      VM.sysWriteln("in athrow.");
       //      RVMThread.dumpStack();
     }
     RVMThread myThread = RVMThread.getCurrentThread();

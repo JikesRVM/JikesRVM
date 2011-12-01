@@ -40,6 +40,7 @@ import java.util.regex.PatternSyntaxException;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
+import org.vmmagic.pragma.Uninterruptible;
 
 
 /**
@@ -113,13 +114,13 @@ public final class String
     implements java.io.Serializable, Comparable<String>, CharSequence
 {
     /** The value is used for character storage. */
-    private final char value[];
+    final char value[];
 
     /** The offset is the first index of the storage that is used. */
-    private final int offset;
+    final int offset;
 
     /** The count is the number of characters in the String. */
-    private final int count;
+    final int count;
 
     /** Cache the hash code for the string */
     private int hash; // Default to 0
@@ -658,6 +659,7 @@ public final class String
      * @return  the length of the sequence of characters represented by this
      *          object.
      */
+    @Uninterruptible
     public int length() {
         return count;
     }
@@ -3014,7 +3016,7 @@ public final class String
      */
     //    public native String intern();
     public String intern() {
-      VM.sysWriteln("string intern");
+      //            VM.sysWriteln("string intern");
       return Atom.internString(this);
     }
       

@@ -1210,6 +1210,7 @@ public abstract class ResourceBundle {
             throw new NullPointerException();
         }
 
+	VM.sysWriteln("getBundleImpl:"+baseName+":"+locale.toString()+":"+loader.toString());
         // We create a CacheKey here for use by this call. The base
         // name and loader will never change during the bundle loading
         // process. We have to make sure that the locale is set before
@@ -1218,7 +1219,7 @@ public abstract class ResourceBundle {
         ResourceBundle bundle = null;
 
         // Quick lookup of the cache.
-	VM.sysWriteln("BundleRef");
+
         BundleReference bundleRef = cacheList.get(cacheKey);
 	VM.sysWriteln("BundleRefEnd");
         if (bundleRef != null) {
@@ -1353,6 +1354,9 @@ public abstract class ResourceBundle {
             }
         }
 
+	if (bundle == NONEXISTENT_BUNDLE)
+	  VM.sysWriteln("Bundle is not exist");
+
         if (bundle != NONEXISTENT_BUNDLE) {
             CacheKey constKey = (CacheKey) cacheKey.clone();
 
@@ -1415,6 +1419,8 @@ public abstract class ResourceBundle {
                                                    Control control,
                                                    boolean reload) {
         assert underConstruction.get(cacheKey) == Thread.currentThread();
+
+	VM.sysWriteln("LoadBundle:"+cacheKey.getName());
 
         // Here we actually load the bundle in the order of formats
         // specified by the getFormats() value.
@@ -2400,6 +2406,7 @@ public abstract class ResourceBundle {
                                         ClassLoader loader, boolean reload)
                     throws IllegalAccessException, InstantiationException, IOException {
             String bundleName = toBundleName(baseName, locale);
+	    VM.sysWriteln("New Bundle:"+bundleName);
             ResourceBundle bundle = null;
             if (format.equals("java.class")) {
                 try {
@@ -2415,9 +2422,11 @@ public abstract class ResourceBundle {
                                      + " cannot be cast to ResourceBundle");
                     }
                 } catch (ClassNotFoundException e) {
+		  VM.sysWriteln("Class is not found when loading the bundle class");
                 }
             } else if (format.equals("java.properties")) {
                 final String resourceName = toResourceName(bundleName, "properties");
+		VM.sysWriteln("Read bundle properties file:"+resourceName);
                 final ClassLoader classLoader = loader;
                 final boolean reloadFlag = reload;
                 InputStream stream = null;
@@ -2453,6 +2462,8 @@ public abstract class ResourceBundle {
                         stream.close();
                     }
                 }
+		else
+		  VM.sysWriteln("Cound not read:"+resourceName);
             } else {
                 throw new IllegalArgumentException("unknown format: " + format);
             }

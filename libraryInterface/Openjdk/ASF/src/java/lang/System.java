@@ -406,10 +406,10 @@ public final class System {
     if (secMgr != null) {
       secMgr.checkPropertyAccess(prop);
     }
-    VM.sysWrite("GetProperty:");
-    VM.sysWrite(prop);
-    VM.sysWrite(":");
-    VM.sysWriteln(systemProperties.getProperty(prop, defaultValue));
+    //        VM.sysWrite("GetProperty:");
+    //        VM.sysWrite(prop);
+    //        VM.sysWrite(":");
+    //       VM.sysWriteln(systemProperties.getProperty(prop, defaultValue));
     return systemProperties.getProperty(prop, defaultValue);
   }
 

@@ -45,15 +45,18 @@ public class JikesRVMSupport {
   }
 
   public static void initializeInstrumentation(Instrumentation instrumenter) {
-    throw new Error("TODO");
+    throw new Error("InitializeInstrumentation is not implemented");
+    //    VMClassLoader.setInstrumenter(instrumenter);
   }
 
   public static Class<?>[] getAllLoadedClasses() {
-    throw new Error("TODO");
+    //    VM.sysWriteln("get allloadedclasses is not implemented");
+    throw new Error("GetAllLoadedClasses is not implemented");
   }
 
   public static Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
-    throw new Error("TODO");
+    //    return VMClassLoader.getInitiatedClasses(classLoader);
+    throw new Error("GetInitiatedClasses is not implemented");
   }
 
   public static Class<?> createClass(RVMType type) {
@@ -80,31 +83,21 @@ public class JikesRVMSupport {
 
   @Uninterruptible
   public static char[] getBackingCharArray(String str) {
-      return (char[])Magic.getObjectAtOffset(str, STRING_CHARS_OFFSET);
-      //    return str.getValue();      
-      //   throw new Error("GetBackingCharArray");
-
-      
+    return str.value;
   }
 
   @Uninterruptible
   public static int getStringLength(String str) {
-      return str.length();
-      //throw new Error("GetStringLength");
-
+    return str.count;
   }
 
   @Uninterruptible
   public static int getStringOffset(String str) {
-      return Magic.getIntAtOffset(str, STRING_OFFSET_OFFSET);
-    // TODO - Harmony
-      //      return str.offset;
-      //      throw new Error("GetStringOffset");
-
+    return str.offset;
   }
 
   public static String newStringWithoutCopy(char[] data, int offset, int count) {
-    // TODO - Harmony doesn't have a backdoor for not making a copy
+    //No back door
     return new String(data, offset, count);
   }
 
@@ -114,35 +107,32 @@ public class JikesRVMSupport {
   public static Thread createThread(RVMThread vmdata, String myName) {
       VM.sysWriteln("Creating Java thread");
       return new Thread(vmdata, myName);
-	   //           throw new Error("CreateThread");
   }
 
   public static RVMThread getThread(Thread thread) {
-    throw new Error("TODO");
+    if (thread == null)
+      return null;
+    else
+      return thread.vmThread;    
   }
 
   public static void threadDied(Thread thread) {
-    // TODO - Harmony
+
   }
   public static Throwable getStillBorn(Thread thread) {
     return null;
   }
   public static void setStillBorn(Thread thread, Throwable stillborn) {
-    throw new Error("TODO");
   }
   /***
    * Enum stuff
    */
    @Uninterruptible
   public static int getEnumOrdinal(Enum<?> e) {
-       //   throw new Error("GetEnumOrdinal");
-       //   TODO: make e.ordinal() non-uninterruptible
-	   return e.ordinal();
+     return e.ordinal();
    }
   @Uninterruptible
   public static String getEnumName(Enum<?> e) {
-      //      throw new Error("GetEnumName");
-    // TODO: make Enum.name() non-uninterruptible
-          return e.name();
+    return e.name();
   }
 }

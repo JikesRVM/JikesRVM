@@ -39,7 +39,7 @@ Ljava/net/URLClassLoader;
 Ljava/net/URLClassLoader$1;
 Ljava/net/URLClassLoader$7;
 Ljava/net/URLConnection;
-#Ljava/net/URLStreamHandler
+Ljava/net/URLStreamHandler;
 Lsun/misc/URLClassPath;
 Lsun/misc/URLClassPath$3;
 Lsun/misc/URLClassPath$Loader;
@@ -202,6 +202,7 @@ Ljava/util/zip/ZipEntry;
 Ljava/lang/AbstractStringBuilder;
 #Ljava/lang/ClassLoader$NativeLibrary;
 Ljava/lang/ref/ReferenceQueue;
+Ljava/lang/ref/Reference;
 Ljava/lang/String$CaseInsensitiveComparator;
 Ljava/nio/Buffer;
 #Lsun/net/www/protocal/file/Handler;

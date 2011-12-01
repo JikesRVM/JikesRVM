@@ -222,7 +222,7 @@
   </target>
 
   <target name="check-openjdk-properties" depends="check-components-properties,check-classlibrary-properties" if="openjdk.classlib">
-    <property name="openjdk.lib.dir" location="/home/yangxi/buildjdk/j2re-image/lib"/>
+    <property name="openjdk.lib.dir" location="/home/yangxi/openjdki386lib/lib"/>
     <property name="config.portable-native-sync" value="false"/>
     <property name="build.extra.rt.jars" value=""/>
   </target>
@@ -1484,6 +1484,7 @@ Check to make sure all required properties are specified. This includes properti
       <!--no gnu now  <include name="gnu/**"/> -->
       <!-- Xi Yang      <zipfileset src="${classpath.lib.dir}/classpath.jar"/> -->
       <zipfileset src="${openjdk.lib.dir}/rt.jar"/>
+      <zipfileset src="${openjdk.lib.dir}/jsse.jar"/>
     </zip>
     <jar destfile="${build.vm.jar}" update="true" compress="false">
       <fileset dir="${build.classes}">

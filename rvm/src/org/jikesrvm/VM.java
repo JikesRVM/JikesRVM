@@ -491,7 +491,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       runClassInitializer("java.lang.reflect.Proxy");
       runClassInitializer("java.lang.reflect.Proxy$ProxySignature");
     }
-    //    runClassInitializer("java.util.logging.Logger");
+    runClassInitializer("java.util.logging.Logger");
     if (VM.BuildForHarmony) {
       Entrypoints.luni1.setObjectValueUnchecked(null, null);
       Entrypoints.luni2.setObjectValueUnchecked(null, null);

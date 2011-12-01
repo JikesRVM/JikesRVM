@@ -234,7 +234,7 @@ public class CompiledMethods implements SizeConstants {
     int max = numCompiledMethods();
     for (int i = 0; i < max; i++) {
       CompiledMethod cm = getCompiledMethodUnchecked(i);
-      VM.sysWriteln("Method:"+i);
+      //      VM.sysWriteln("Method:"+i);
       if (cm != null) {
         if (cm.isActiveOnStack()) {
           if (cm.isObsolete()) {

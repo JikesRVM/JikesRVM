@@ -339,6 +339,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
             if (!multiple) return h.getResult();
           }
         } else {
+	  VM.sysWriteln("Load File:"+path + File.separator + name);
           File file = new File(path + File.separator + name);
           if (file.exists()) {
             h.process(file);

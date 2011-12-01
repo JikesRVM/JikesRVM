@@ -132,6 +132,8 @@ extern "C" void sysMonitorBroadcast(Word);
 // #define DEBUG_SYS
 // #define DEBUG_THREAD
 
+//#define DEBUG_OPENJDK
+
 // static int TimerDelay  =  10; // timer tick interval, in milliseconds     (10 <= delay <= 999)
 // static int SelectDelay =   2; // pause time for select(), in milliseconds (0  <= delay <= 999)
 
@@ -2396,7 +2398,6 @@ extern "C"{
 JNIEXPORT jint JNICALL
 JVM_GetInterfaceVersion(void)
 {
-	printf("JVM_GetInterfaceVersion(void)");
 	return JVM_INTERFACE_VERSION;
 }
 
@@ -3454,11 +3455,12 @@ JVM_IsSameClassPackage(JNIEnv *env, jclass class1, jclass class2)
 JNIEXPORT jint JNICALL
 JVM_GetLastErrorString(char *buf, int len)
 {
-	printf("JVM_GetLastErrorString(char *buf, int len)");
+	printf("JVM_GetLastErrorString(char *buf, int len)\n");
 	if (errno == 0) {
 	  return 0;
 	} else {
 	  const char *s = strerror(errno);
+	  printf("LastErrorString is %s\n",s);
 	  int n = strlen(s);
 	  if (n >= len) n = len - 1;
 	  strncpy(buf, s, n);
@@ -3484,14 +3486,18 @@ JVM_Open(const char *fname, jint flags, jint mode)
 	  if (errno == EEXIST)
 	    result = -100;//JVM_EXIST
 	}
+#ifdef DEBUG_OPENJDK	
 	printf("JVM_Open(%s,%d,%d):%d\n",fname,flags,mode,result);
+#endif
 	return result;	   	
 }
 
 JNIEXPORT jint JNICALL
 JVM_Close(jint fd)
 {
+#ifdef DEBUG_OPENJDK
 	printf("JVM_Close(jint fd)\n");
+#endif
 	return close(fd);
 }
 
@@ -3514,7 +3520,31 @@ JVM_Write(jint fd, char *buf, jint nbytes)
 JNIEXPORT jint JNICALL
 JVM_Available(jint fd, jlong *pbytes)
 {
-	printf("JVM_Available(jint fd, jlong *pbytes)");
+	jlong cur, end;
+	int mode;
+	struct stat bufStat;
+
+	if (fstat(fd, &bufStat) >= 0) {
+	  mode = bufStat.st_mode;
+	  if (S_ISCHR(mode) || S_ISFIFO(mode) || S_ISSOCK(mode)) {
+            int n;
+            if (ioctl(fd, FIONREAD, &n) >= 0) {
+	      //	      printf("JVM_Available: fd %d, return %d\n",n);
+	      *pbytes = n;
+	      return 1;
+            }
+	  }
+	}
+	if ((cur = lseek(fd, 0, SEEK_CUR)) == -1) {
+	  return 0;
+	} else if ((end = lseek(fd, 0, SEEK_END)) == -1) {
+	  return 0;
+	} else if (lseek64(fd, cur, SEEK_SET) == -1) {
+	  return 0;
+	}
+	*pbytes = end - cur;
+	//	printf("JVM_Available: fd %d, return %d\n",end - cur);
+	return 1;	
 }
 
 JNIEXPORT jlong JNICALL
@@ -3528,13 +3558,16 @@ JVM_Lseek(jint fd, jlong offset, jint whence)
 JNIEXPORT jint JNICALL
 JVM_SetLength(jint fd, jlong length)
 {
-	printf("JVM_SetLength(jint fd, jlong length)");
+	printf("JVM_SetLength(jint fd, jlong length)\n");
+	return ftruncate(fd, length);
 }
 
 JNIEXPORT jint JNICALL
 JVM_Sync(jint fd)
 {
-	printf("JVM_Sync(jint fd)");
+	printf("JVM_Sync(jint fd)\n");
+	return fsync(fd);
+	
 }
 
 JNIEXPORT jint JNICALL
