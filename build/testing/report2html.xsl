@@ -41,7 +41,7 @@
         <xsl:variable name="total-successes" select="count(build-target/build-configuration/test-configuration/group/test/test-execution/result[text() = 'SUCCESS'])"/>
 
         <h2>Total Success Rate <xsl:value-of select="$total-successes"/>/<xsl:value-of select="$total-tests"/></h2>
-        <p>Subversion Revision: <xsl:value-of select="revision"/></p>
+        <p>Mercurial Revision: <xsl:value-of select="revision"/></p>
         <xsl:if test="($total-tests - $total-successes) != 0">
           <table class="errors">
             <tr>

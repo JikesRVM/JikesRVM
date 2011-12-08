@@ -403,13 +403,13 @@ Check to make sure all required properties are specified. This includes properti
   <target name="compile-vmmagic-stub">
     <mkdir dir="${build.vmmagic-stub.classes}"/>
     <javac srcdir="${vmmagic-stub.java}" destdir="${build.vmmagic-stub.classes}" debug="true" debugLevel="lines,source"
-           source="1.5" target="1.5"/>
+           source="1.5" target="1.5" includeantruntime="false"/>
   </target>
 
   <target name="compile-options" depends="compile-vmmagic-stub">
     <mkdir dir="${build.options.classes}"/>
     <javac srcdir="${options.java}" destdir="${build.options.classes}" debug="true" debugLevel="lines,source"
-           source="1.5" target="1.5">
+           source="1.5" target="1.5" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
       </classpath>
@@ -421,7 +421,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
     <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source" source="1.5"
-           target="1.5">
+           target="1.5" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.options.classes}"/>
@@ -443,7 +443,7 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.mmtk-harness.classes}"/>
     <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" 
         destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" 
-        source="1.6" target="1.6">
+        source="1.6" target="1.6" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.mmtk.classes}"/>
@@ -929,7 +929,7 @@ Check to make sure all required properties are specified. This includes properti
           tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/ia32/Assembler.java"/>
 
     <javac srcdir="${build.ia32-assembler-opt.dir}" destdir="${build.ia32-assembler-opt.dir}" debug="true"
-           debugLevel="lines,source" source="1.5" target="1.5">
+           debugLevel="lines,source" source="1.5" target="1.5" includeantruntime="false">
       <src path="${ia32-assembler-opt.dir}"/>
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
@@ -1176,7 +1176,8 @@ Check to make sure all required properties are specified. This includes properti
                source="1.5"
                target="1.5"
                srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}">
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               includeantruntime="false">
           <bootclasspath>
             <pathelement location="${classpath.lib.dir}/classpath.jar"/>
           </bootclasspath>
@@ -1210,7 +1211,8 @@ Check to make sure all required properties are specified. This includes properti
                source="1.5"
                target="1.5"
                srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}">
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               includeantruntime="false">
           <bootclasspath>
             <pathelement location="${harmony.lib.dir}/luni-kernel-stubs.jar"/>
             <pathelement location="${harmony.lib.dir}/luni.jar"/>
@@ -1262,7 +1264,8 @@ Check to make sure all required properties are specified. This includes properti
            debugLevel="lines,source"
            source="1.5"
            target="1.5"
-           srcdir="${build.base}/syscall/java">
+           srcdir="${build.base}/syscall/java"
+           includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.classes}"/>
@@ -1273,7 +1276,7 @@ Check to make sure all required properties are specified. This includes properti
   <target name="compile-vmmagic" depends="compile">
     <mkdir dir="${build.vmmagic.classes}"/>
     <javac srcdir="${vmmagic.java}" destdir="${build.vmmagic.classes}" debug="true" debugLevel="lines,source"
-           source="1.5" target="1.5">
+           source="1.5" target="1.5" includeantruntime="false">
       <src path="${generated.vmmagic.arch.java}"/>
       <classpath>
         <pathelement location="${build.classes}"/>
@@ -1328,7 +1331,7 @@ Check to make sure all required properties are specified. This includes properti
   
   <target name="prepare-asm" depends="package,check-components-properties">
     <mkdir dir="${build.asm.classes}"/>
-    <javac srcdir="${jikesrvm.dir}/tools/asm-tasks/src" destdir="${build.asm.classes}" debug="true" classpath="${asm.jar}:${build.vm.jar}:${build.rt.jar}"/>
+    <javac srcdir="${jikesrvm.dir}/tools/asm-tasks/src" destdir="${build.asm.classes}" debug="true" classpath="${asm.jar}:${build.vm.jar}:${build.rt.jar}" includeantruntime="false"/>
  </target>
   
   <target name="gen-asm" depends="package,prepare-asm">
@@ -1435,7 +1438,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
     <javac srcdir="${basedir}/tools/bootImageWriter/src" destdir="${build.bootimage-writer.dir}" debug="true"
-           debugLevel="lines,source" source="1.5" target="1.5">
+           debugLevel="lines,source" source="1.5" target="1.5" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vm.jar}"/>
         <pathelement location="${build.rt.jar}"/>
@@ -2091,10 +2094,10 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="tools" includes="**/*.java"/>
     </checkstyle>
 
-    <style in="${build.dir}/checkstyle/report.xml"
+    <xslt in="${build.dir}/checkstyle/report.xml"
            out="${build.dir}/checkstyle/report.html"
            style="${checkstyle.dir}/contrib/checkstyle-simple.xsl"/>
-    <style in="${build.dir}/checkstyle/report.xml"
+    <xslt in="${build.dir}/checkstyle/report.xml"
            out="${build.dir}/checkstyle/report.txt"
            style="build/checkstyle/text-output.xsl"/>
 
@@ -2179,7 +2182,8 @@ target.jni-suffix=${target.jni-suffix}
            debug="true"
            debugLevel="lines,source"
            source="1.5"
-           target="1.5">
+           target="1.5"
+           includeantruntime="false">
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
       </bootclasspath>

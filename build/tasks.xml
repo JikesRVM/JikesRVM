@@ -23,7 +23,7 @@
 
   <target name="prepare-ant-tasks">
     <mkdir dir="${tasks.classes}"/>
-    <javac srcdir="${jikesrvm.dir}/tools/ant-tasks/src" destdir="${tasks.classes}" debug="true" classpath="${ant.jar}"/>
+    <javac srcdir="${jikesrvm.dir}/tools/ant-tasks/src" destdir="${tasks.classes}" debug="true" includeantruntime="true"/>
     <!-- forEach is used in the test harness -->
     <taskdef name="forEach" classname="org.jikesrvm.tools.ant.ForEachTask" classpath="${tasks.classes}"/>
     <!-- selectRegex is used to get results from some benchmark tests -->

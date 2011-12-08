@@ -55,7 +55,7 @@
 
   <target name="compile" depends="init">
     <mkdir dir="${build.classes}"/>
-    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true">
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" includeantruntime="false">
       <classpath>
         <pathelement path="${test.rvm.dir}/jksvm.jar"/>
         <pathelement path="${test.rvm.dir}/rvmrt.jar"/>

@@ -34,7 +34,7 @@
 
   <target name="compile" depends="init">
     <mkdir dir="${build.classes}"/>
-    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true">
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" includeantruntime="false">
       <!-- need extra classpath for vmmagic -->
       <classpath>
         <pathelement path="${test.rvm.dir}/jksvm.jar"/>
