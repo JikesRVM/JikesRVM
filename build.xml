@@ -222,7 +222,9 @@
   </target>
 
   <target name="check-openjdk-properties" depends="check-components-properties,check-classlibrary-properties" if="openjdk.classlib">
-    <property name="openjdk.lib.dir" location="/home/yangxi/openjdki386lib/lib"/>
+    <propertycopy name="openjdk.lib.dir" from="${target.name}.openjdk.lib.dir"/>
+    <echo message="openjdk.lib.dir is ${openjdk.lib.dir}}"/>
+    <test-file name="openjdk.lib.dir" location="${components.file}"/>
     <property name="config.portable-native-sync" value="false"/>
     <property name="build.extra.rt.jars" value=""/>
   </target>
