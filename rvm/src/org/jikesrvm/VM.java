@@ -455,6 +455,13 @@ public class VM extends Properties implements Constants, ExitStatus {
       pleaseSpecifyAClass();
     }
 
+    if (applicationArguments.length > 0 && applicationArguments[0].startsWith("-X")) {
+        VM.sysWrite("vm: \"");
+        VM.sysWrite(applicationArguments[0]);
+        VM.sysWrite("\" is not a recognized Jikes RVM command line argument.\n");
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+
     if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
     RVMClassLoader.getApplicationClassLoader();
     RVMClassLoader.declareApplicationClassLoaderIsReady();
