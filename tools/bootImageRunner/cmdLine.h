@@ -36,8 +36,7 @@ static const int RECOMP_INDEX                  = IRC_INDEX+1;
 static const int BASE_INDEX                    = RECOMP_INDEX+1;
 static const int OPT_INDEX                     = BASE_INDEX+1;
 static const int VMCLASSES_INDEX               = OPT_INDEX+1;
-static const int CPUAFFINITY_INDEX             = VMCLASSES_INDEX+1;
-static const int PROCESSORS_INDEX              = CPUAFFINITY_INDEX+1;
+static const int PROCESSORS_INDEX              = VMCLASSES_INDEX+1;
 
 static const int numNonstandardArgs      = PROCESSORS_INDEX+1;
 
@@ -59,7 +58,6 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:base",
    "-X:opt",
    "-X:vmClasses=",
-   "-X:cpuAffinity=",
    "-X:processors=",
 };
 
@@ -93,7 +91,6 @@ static const char* nonStandardUsage[] = {
    "                             -classpath argument.",
    "    -Xbootclasspath/p:<cp>   (p)repend bootclasspath with specified classpath",
    "    -Xbootclasspath/a:<cp>   (a)ppend specified classpath to bootclasspath",
-   "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",
    "    -X:processors=<number|\"all\">  no. of virtual processors",
    NULL                         /* End of messages */
 };
