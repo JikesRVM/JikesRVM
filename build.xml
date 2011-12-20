@@ -49,6 +49,9 @@
   <!-- Location of .dat files for options -->	
   <property name="options.dir" location="${basedir}/rvm/src-generated/options"/>
 
+  <!-- Location of files for SysCalls. These are subject to annotation processing -->
+  <property name="syscall.dir" location="${main.java}/org/jikesrvm/runtime/"/>
+
   <!-- Directories for IR and BURS (used in gen-opt-ir and gen-opt-ir-uptodate-check targets) -->	
   <property name="build.ir.dir" location="${basedir}/rvm/src-generated/opt-ir"/>
   <property name="build.burs.dir" location="${basedir}/rvm/src-generated/opt-burs"/>
@@ -98,6 +101,11 @@
 
   <!-- Permit parallelisation of the bootimage build -->
   <property name="bootimage.threads" value="1"/>
+
+  <!-- Source versions -->
+  <property name="mmtk.java.version" value="1.5"/>
+  <property name="harness.java.version" value="1.6"/>
+  <property name="rvm.java.version" value="1.5"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -403,13 +411,13 @@ Check to make sure all required properties are specified. This includes properti
   <target name="compile-vmmagic-stub">
     <mkdir dir="${build.vmmagic-stub.classes}"/>
     <javac srcdir="${vmmagic-stub.java}" destdir="${build.vmmagic-stub.classes}" debug="true" debugLevel="lines,source"
-           source="1.5" target="1.5" includeantruntime="false"/>
+           source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false"/>
   </target>
 
   <target name="compile-options" depends="compile-vmmagic-stub">
     <mkdir dir="${build.options.classes}"/>
     <javac srcdir="${options.java}" destdir="${build.options.classes}" debug="true" debugLevel="lines,source"
-           source="1.5" target="1.5" includeantruntime="false">
+           source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
       </classpath>
@@ -420,8 +428,8 @@ Check to make sure all required properties are specified. This includes properti
   <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" description="Compile MMTk toolkit.">
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
-    <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source" source="1.5"
-           target="1.5" includeantruntime="false">
+    <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source"
+           source="${mmtk.java.version}" target="${mmtk.java.version}" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.options.classes}"/>
@@ -443,7 +451,7 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${build.mmtk-harness.classes}"/>
     <javac srcdir="${mmtk-harness.java}:${mmtk-harness-vmmagic.java}:${mmtk-vm-harness.java}:${generated.mmtk-harness-parser.java}" 
         destdir="${build.mmtk-harness.classes}" debug="true" debugLevel="lines,source" 
-        source="1.6" target="1.6" includeantruntime="false">
+        source="${harness.java.version}" target="${harness.java.version}" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.mmtk.classes}"/>
@@ -929,7 +937,7 @@ Check to make sure all required properties are specified. This includes properti
           tofile="${build.ia32-assembler-opt.dir}/org/jikesrvm/compilers/common/assembler/ia32/Assembler.java"/>
 
     <javac srcdir="${build.ia32-assembler-opt.dir}" destdir="${build.ia32-assembler-opt.dir}" debug="true"
-           debugLevel="lines,source" source="1.5" target="1.5" includeantruntime="false">
+           debugLevel="lines,source" source="${rvm.java.version}" target="${rvm.java.version}" includeantruntime="false">
       <src path="${ia32-assembler-opt.dir}"/>
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
@@ -1173,8 +1181,8 @@ Check to make sure all required properties are specified. This includes properti
                fork="true"
                memoryMaximumSize="500M"
                debugLevel="lines,source"
-               source="1.5"
-               target="1.5"
+               source="${rvm.java.version}"
+               target="${rvm.java.version}"
                srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
                sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
                includeantruntime="false">
@@ -1208,8 +1216,8 @@ Check to make sure all required properties are specified. This includes properti
                fork="true"
                memoryMaximumSize="500M"
                debugLevel="lines,source"
-               source="1.5"
-               target="1.5"
+               source="${rvm.java.version}"
+               target="${rvm.java.version}"
                srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
                sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
                includeantruntime="false">
@@ -1245,25 +1253,34 @@ Check to make sure all required properties are specified. This includes properti
     </if>
 
     <mkdir dir="${build.base}/syscall/java"/>
-    <exec executable="apt" failonerror="true">
-      <arg value="-factorypath"/>
-      <arg value="${tasks.classes}"/>
-      <arg value="-nocompile"/>
-      <arg value="-factory"/>
-      <arg value="org.jikesrvm.tools.annotation_processing.SysCallProcessorFactory"/>
-      <arg value="-classpath"/>
-      <arg value="${tasks.classes}:${build.vmmagic-stub.classes}:${build.classes}"/>
-      <arg value="-s"/>
-      <arg value="${build.base}/syscall/java"/>
-      <arg value="${main.java}/org/jikesrvm/runtime/SysCall.java"/>
-    </exec>
 
+    <javac srcDir="${syscall.dir}"
+           source="${rvm.java.version}"
+           target="${rvm.java.version}"
+           failonerror="true">
+      <classpath>
+        <pathelement location="${tasks.classes}"/>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
+        <pathelement location="${build.classes}"/>
+      </classpath>
+      <compilerarg value="-proc:only"/>
+      
+      <!-- Processor needs to be specified explicitly, otherwise lookup will fail -->
+      <compilerarg value="-processor"/>
+      <compilerarg value="org.jikesrvm.tools.annotation_processing.SysCallProcessor"/>
+ 
+      <compilerarg value="-processorpath"/>
+      <compilerarg value="${tasks.classes}"/>
+      <compilerarg value="-s"/>
+      <compilerarg value="${build.base}/syscall/java"/>
+    </javac>
+  	
     <echo message="second compile (from ${generated.java})"/>
     <javac destdir="${build.classes}"
            debug="true"
            debugLevel="lines,source"
-           source="1.5"
-           target="1.5"
+           source="${rvm.java.version}"
+           target="${rvm.java.version}"
            srcdir="${build.base}/syscall/java"
            includeantruntime="false">
       <classpath>
@@ -1276,7 +1293,7 @@ Check to make sure all required properties are specified. This includes properti
   <target name="compile-vmmagic" depends="compile">
     <mkdir dir="${build.vmmagic.classes}"/>
     <javac srcdir="${vmmagic.java}" destdir="${build.vmmagic.classes}" debug="true" debugLevel="lines,source"
-           source="1.5" target="1.5" includeantruntime="false">
+           source="${rvm.java.version}" target="${rvm.java.version}" includeantruntime="false">
       <src path="${generated.vmmagic.arch.java}"/>
       <classpath>
         <pathelement location="${build.classes}"/>
@@ -1438,7 +1455,7 @@ Check to make sure all required properties are specified. This includes properti
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
     <javac srcdir="${basedir}/tools/bootImageWriter/src" destdir="${build.bootimage-writer.dir}" debug="true"
-           debugLevel="lines,source" source="1.5" target="1.5" includeantruntime="false">
+           debugLevel="lines,source" source="${rvm.java.version}" target="${rvm.java.version}" includeantruntime="false">
       <classpath>
         <pathelement location="${build.vm.jar}"/>
         <pathelement location="${build.rt.jar}"/>
@@ -2126,7 +2143,7 @@ target.jni-suffix=${target.jni-suffix}
     </taskdef>
     <mkdir dir="${build.dir}/pmd"/>
     <echo message="Generating PMD report to ${build.dir}/pmd/report.html"/>
-    <pmd shortFilenames="true" targetjdk="1.5" failonerror="false">
+    <pmd shortFilenames="true" targetjdk="${rvm.java.version}" failonerror="false">
       <ruleset>build/pmd/rulesets/rvm.xml</ruleset>
       <formatter type="html" toFile="${build.dir}/pmd/report.html"/>
       <fileset dir="${main.java}">
@@ -2181,8 +2198,8 @@ target.jni-suffix=${target.jni-suffix}
     <javac destdir="${build.dir}/javadoc/classes-ia32"
            debug="true"
            debugLevel="lines,source"
-           source="1.5"
-           target="1.5"
+           source="${rvm.java.version}"
+           target="${rvm.java.version}"
            includeantruntime="false">
       <bootclasspath>
         <pathelement location="${classpath.lib.dir}/classpath.jar"/>
@@ -2216,7 +2233,7 @@ target.jni-suffix=${target.jni-suffix}
         use="true"
         breakiterator="true"
         maxmemory="200M"
-        source="1.5"
+        source="${rvm.java.version}"
         private="true"
         windowtitle="Jikes RVM API">
 
@@ -2265,7 +2282,7 @@ target.jni-suffix=${target.jni-suffix}
         use="true"
         breakiterator="true"
         maxmemory="300M"
-        source="1.5"
+        source="${rvm.java.version}"
         private="true"
         windowtitle="Jikes RVM API">
       <arg value="-docletpath"/>
