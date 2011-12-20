@@ -7,6 +7,10 @@ on October 14, 2001,
 
 * Jikes RVM 3.1.2  (Future)
 
+Additional Notes:
+  Jikes RVM now requires the host JVM to be Java 6 or better. 
+  The system will no longer build using a Java 5 JVM as the host.
+
 NOTE:  Release notes are generated directly from JIRA.
 If you want something mentioned in the release notes, make sure there is
 a JIRA item for it that when it is closed, you make it as fixed for 3.1.1.
