@@ -2146,13 +2146,14 @@ target.jni-suffix=${target.jni-suffix}
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
     <copy file="${build.vm.jar}" todir="${dist.base}"/>
+
     <mkdir dir="${dist.base}/lib"/>
     <copy todir="${dist.base}/lib">
       <fileset dir="${openjdk.lib.dir}">
-        <include name="*.jar"/>
-        <exclude name="*-src.jar"/>
-      </fileset>
+      </fileset>      
     </copy>
+
+    <copy file="${dist.base}/lib/i386/server/libjvm.so" todir="${dist.base}/lib/i386/"/>
     <mkdir dir="${dist.base}/include"/>
     <copy todir="${dist.base}/include">
       <fileset dir="${build.native}">
