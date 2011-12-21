@@ -330,7 +330,7 @@ Check to make sure all required properties are specified. This includes properti
   -->
   <target name="check-properties"
           depends="check-host-properties,check-config-properties,check-target-properties,check-classlibrary-properties,check-classpath-properties,check-harmony-properties,check-gcspy-properties,check-mmtk-properties"
-          description="Check that all require properties are specified.">
+          description="Check that all required properties are specified.">
 
     <!-- setup properties for start of build. -->
     <tstamp prefix="start">
@@ -2073,9 +2073,23 @@ target.jni-suffix=${target.jni-suffix}
     </delete>
   </target>
 
+  <target name="cleanest" depends="real-clean" description="Strongest clean target: Delete components but not the user-defined components-cache.">
+    <delete dir="${components.dir}"/>
+  </target>
+
+  <target name="purge" depends="cleanest" description="Execute all clean targets and delete eclipse projects, the component cache, the directory for external libraries and test results.">
+    <remove-eclipse-project-files/>
+    <!-- Deletes cached components. -->
+    <delete dir="${components.cache.dir}"/>
+    <!-- Delete test results. -->
+    <delete dir="${results.dir}"/>
+    <!-- Delete external libraries used for testing. -->
+    <delete dir="${external.lib.dir}"/>
+  </target>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                                Doc                                       * -->
+  <!-- *                                Checkstyle                                * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
@@ -2126,7 +2140,7 @@ target.jni-suffix=${target.jni-suffix}
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
-  <!-- *                                Doc                                       * -->
+  <!-- *                                PMD                                       * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
@@ -2321,10 +2335,16 @@ target.jni-suffix=${target.jni-suffix}
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="stop"/>
   </target>
 
+  <macrodef name="remove-eclipse-project-files">
+    <sequential>
+      <delete dir="eclipse"/>
+      <delete file=".project"/>
+      <delete file=".classpath"/>
+    </sequential>
+  </macrodef>
+
   <target name="mmtk-harness-eclipse-project" depends="mmtk-harness">
-    <delete dir="eclipse"/>
-    <delete file=".project"/>
-    <delete file=".classpath"/>
+    <remove-eclipse-project-files/>
     <mkdir dir="eclipse"/>
     <copy file="build/eclipse/mmtk-harness-project" tofile=".project"/>
     <copy file="build/eclipse/mmtk-harness-classpath" tofile=".classpath"/>
@@ -2332,9 +2352,7 @@ target.jni-suffix=${target.jni-suffix}
 
   <target name="eclipse-project" depends="prepare-source">
     <property name="eclipse.project.name" value="JikesRVM"/>
-    <delete dir="eclipse"/>
-    <delete file=".project"/>
-    <delete file=".classpath"/>
+    <remove-eclipse-project-files/>
     <mkdir dir="eclipse"/>
     <if>
       <conditions>
