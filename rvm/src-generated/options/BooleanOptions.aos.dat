@@ -20,13 +20,13 @@ ENABLE_RECOMPILATION -1 true
 Should the adaptive system recompile hot methods?
 
 ENABLE_ADVICE_GENERATION -1 false
-Do we need to generate advice file?
+Do we need to generate advice files?
+
+ENABLE_BULK_COMPILE -1 false
+Should the adaptive system be disabled, and methods given in the advice file compiled when BulkCompile.compileAllMethods() is called?
 
 ENABLE_PRECOMPILE -1 false
-Should the adaptive system precompile all methods given in the advice file before the user thread is started?
-
-ENABLE_REPLAY_COMPILE -1 false
-Should the adaptive system use the pseudo-adaptive system that solely relies on the advice file?
+Should bulk compilation be triggered before the user thread is started?
 
 GATHER_PROFILE_DATA -1 false
 Should profile data be gathered and reported at the end of the run?

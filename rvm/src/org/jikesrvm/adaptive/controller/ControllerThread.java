@@ -87,15 +87,17 @@ public final class ControllerThread extends SystemThread {
       // We're running an AOS bootimage with a non-adaptive primary strategy.
       // We already set up any requested profiling infrastructure, so nothing
       // left to do but exit.
+      if (Controller.options.ENABLE_BULK_COMPILE || Controller.options.ENABLE_PRECOMPILE) {
+        Controller.options.DERIVED_MAX_OPT_LEVEL = 2;
+        Controller.recompilationStrategy.init();
+      }
+
       controllerInitDone();
       VM.sysWriteln("AOS: In non-adaptive mode; controller thread exiting.");
       return; // controller thread exits.
     }
 
-    if ((Controller.options.ENABLE_REPLAY_COMPILE) || (Controller.options.ENABLE_PRECOMPILE)) {
-      // if we want to do precompile, we need to initial optimization plans
-      // just allow the advice to be the max opt level 2
-      Controller.options.DERIVED_MAX_OPT_LEVEL = 2;
+    if (Controller.options.ENABLE_PRECOMPILE) {
       if (Controller.options.sampling()) {
         // Create our set of standard optimization plans.
         Controller.recompilationStrategy.init();
@@ -258,7 +260,7 @@ public final class ControllerThread extends SystemThread {
       }
     }
 
-    if ((!Controller.options.ENABLE_REPLAY_COMPILE) && (!Controller.options.ENABLE_PRECOMPILE)) {
+    if ((!Controller.options.ENABLE_PRECOMPILE) && (!Controller.options.ENABLE_BULK_COMPILE)) {
       Controller.osrOrganizer = new OSROrganizerThread();
       Controller.osrOrganizer.start();
     }

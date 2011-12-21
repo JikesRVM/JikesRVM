@@ -21,7 +21,7 @@ import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
 import org.jikesrvm.adaptive.recompilation.InvocationCounts;
-import org.jikesrvm.adaptive.recompilation.PreCompile;
+import org.jikesrvm.adaptive.recompilation.BulkCompile;
 import org.jikesrvm.adaptive.recompilation.instrumentation.AOSInstrumentationPlan;
 import org.jikesrvm.adaptive.util.AOSGenerator;
 import org.jikesrvm.adaptive.util.AOSLogging;
@@ -607,7 +607,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
 
       OptimizingCompiler.init((OptOptions) options);
 
-      PreCompile.init();
+      BulkCompile.init();
       // when we reach here the OPT compiler is enabled.
       compilerEnabled = true;
 
@@ -663,10 +663,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
             cm = optCompileWithFallBack(method, compPlan);
           }
         } else {
-          if ((Controller.options
-              .BACKGROUND_RECOMPILATION &&
-                                        (!Controller.options.ENABLE_REPLAY_COMPILE) &&
-                                        (!Controller.options.ENABLE_PRECOMPILE))) {
+          if ((Controller.options.BACKGROUND_RECOMPILATION && !Controller.options.ENABLE_PRECOMPILE)) {
             // must be an inital compilation: compile with baseline compiler
             // or if recompilation with OSR.
             cm = baselineCompile(method);

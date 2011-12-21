@@ -99,8 +99,7 @@ public class OSRProfiler implements Callbacks.ExitMonitor {
     boolean recmplsucc = false;
     if (Controller.enabled) {
       CompilationPlan cmplplan = null;
-      if ((Controller.options.ENABLE_REPLAY_COMPILE || Controller.options.ENABLE_PRECOMPILE) &&
-          CompilerAdviceAttribute.hasAdvice()) {
+      if (Controller.options.ENABLE_PRECOMPILE && CompilerAdviceAttribute.hasAdvice()) {
         CompilerAdviceAttribute attr = CompilerAdviceAttribute.getCompilerAdviceInfo(state.meth);
         if (VM.VerifyAssertions) {
           VM._assert(attr.getCompiler() == CompiledMethod.OPT);

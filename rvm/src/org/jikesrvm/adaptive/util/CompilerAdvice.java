@@ -36,23 +36,25 @@ public class CompilerAdvice {
    */
   public static void postBoot() {
     CompilerAdviceAttribute.postBoot();
+  }
+  public static void readCompilerAdvice() {
     String compilerAdviceFileName = Controller.options.COMPILER_ADVICE_FILE_INPUT;
     if (compilerAdviceFileName != null) {
-      VM.sysWrite("Compiler advice file name ");
-      VM.sysWriteln(compilerAdviceFileName);
+      if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWrite("Loading compiler advice file: ", compilerAdviceFileName, " "); }
       List<CompilerAdviceAttribute> compilerAdviceInfoList =
           CompilerAdviceInfoReader.readCompilerAdviceFile(compilerAdviceFileName);
+      if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWriteln(); }
       // register these sites so that when a compilation is done,
       // these sites use compiler advice
       CompilerAdviceAttribute.registerCompilerAdvice(compilerAdviceInfoList);
     }
     String dynamicCallFileName = Controller.options.DYNAMIC_CALL_FILE_INPUT;
     if (dynamicCallFileName != null) {
-      VM.sysWrite("Dynamic call file name ");
-      VM.sysWriteln(dynamicCallFileName);
+      if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWrite("Loading dynamic call file: ", dynamicCallFileName, " "); }
       //List dynamicCallInfoList =
       DynamicCallFileInfoReader.readDynamicCallFile(dynamicCallFileName, false);
-      // register these sites so that when a compilation is done,
+      if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1) { VM.sysWriteln(); }
+     // register these sites so that when a compilation is done,
       // these sites use compiler advice
     }
   }

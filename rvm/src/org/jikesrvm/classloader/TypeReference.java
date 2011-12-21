@@ -64,6 +64,7 @@ public final class TypeReference {
   private static final ImmutableEntryHashSetRVM<TypeReference> dictionary =
     new ImmutableEntryHashSetRVM<TypeReference>();
 
+  private static final ImmutableEntryHashSetRVM<ClassLoader> clDict = new ImmutableEntryHashSetRVM<ClassLoader>();
   /**
    * 2^LOG_ROW_SIZE is the number of elements per row
    */
@@ -340,6 +341,10 @@ public final class TypeReference {
     }
     return val;
   }
+  private static void canonicalizeCL(ClassLoader cl) {
+    clDict.add(cl);
+  }
+  public static ImmutableEntryHashSetRVM<ClassLoader> getCLDict() { return clDict; }
 
   /**
    * Constructor
@@ -348,6 +353,7 @@ public final class TypeReference {
    * @param id the numeric identifier
    */
   private TypeReference(ClassLoader cl, Atom tn, int id) {
+    canonicalizeCL(cl);
     classloader = cl;
     name = tn;
     this.id = id;

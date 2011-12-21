@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.classloader;
 
-import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import org.jikesrvm.VM;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
@@ -124,9 +123,10 @@ public abstract class MemberReference {
   }
 
   public static MemberReference parse(StringTokenizer parser, boolean boot) {
+    String clName = null;
     try {
       parser.nextToken(); // discard <
-      String clName = parser.nextToken();
+      clName = parser.nextToken();
       if ((!clName.equals(BootstrapClassLoader.myName)) && (boot)) {
         return null;
       }
@@ -134,23 +134,18 @@ public abstract class MemberReference {
       Atom mn = Atom.findOrCreateUnicodeAtom(parser.nextToken());
       Atom md = Atom.findOrCreateUnicodeAtom(parser.nextToken());
       parser.nextToken(); // discard '>'
-      ClassLoader cl;
+      ClassLoader cl = null;
       if (clName.equals(BootstrapClassLoader.myName)) {
         cl = BootstrapClassLoader.getBootstrapClassLoader();
       } else if (clName.equals(ApplicationClassLoader.myName)) {
         cl = RVMClassLoader.getApplicationClassLoader();
       } else {
-        try {
-          ClassLoader appCl = RVMClassLoader.getApplicationClassLoader();
-          Class<?> cls = appCl.loadClass(clName.substring(0, clName.indexOf('@')));
-          cl = (ClassLoader) cls.newInstance();
-        } catch (Exception ex) {
-          throw new InternalError("Unable to load class with custom class loader: " + ex);
-        }
+        cl = RVMClassLoader.findWorkableClassloader(dc);
       }
       TypeReference tref = TypeReference.findOrCreate(cl, dc);
       return findOrCreate(tref, mn, md);
-    } catch (NoSuchElementException e) {
+    } catch (Exception e) {
+      VM.sysWriteln("Warning: error parsing for class "+clName+": "+e);
       return null;
     }
   }

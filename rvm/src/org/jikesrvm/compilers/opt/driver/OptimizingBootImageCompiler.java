@@ -81,7 +81,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
           }
         }
       }
-      EdgeCounts.boot(masterOptions.PROFILE_EDGE_COUNT_INPUT_FILE);
+      EdgeCounts.loadCountsFromFileIfAvailable(masterOptions.PROFILE_EDGE_COUNT_INPUT_FILE);
       OptimizingCompiler.init(masterOptions);
     } catch (OptimizingCompilerException e) {
       String msg = "BootImageCompiler: Compiler failed during initialization: " + e + "\n";

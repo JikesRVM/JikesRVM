@@ -60,11 +60,18 @@ public class DynamicCallFileInfoReader {
     } else if (Controller.dcg == null) {
       System.out.println("dcg is null ");
       return;
+    } else {
+      Controller.dcg.reset();  // clear any values accumulated to this point
     }
     try {
       fileIn = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
       try {
         for (String s = fileIn.readLine(); s != null; s = fileIn.readLine()) {
+          if (Controller.options.BULK_COMPILATION_VERBOSITY > 1) {
+            VM.sysWriteln(s);
+          } else if (Controller.options.BULK_COMPILATION_VERBOSITY == 1) {
+            VM.sysWrite(".");
+          }
           StringTokenizer parser = new StringTokenizer(s, " \n,");
           readOneCallSiteAttribute(parser, boot);
         }
@@ -80,45 +87,64 @@ public class DynamicCallFileInfoReader {
     } catch (IOException e) {
       VM.sysFail("Error closing input dynamic call graph file" + file);
     }
-
   }
 
   private static void readOneCallSiteAttribute(StringTokenizer parser, boolean boot) {
     String firstToken = parser.nextToken();
     if (firstToken.equals("CallSite")) {
-      MemberReference callerKey = MemberReference.parse(parser, boot);
-      if (callerKey == null) return;
-      MethodReference callerRef = callerKey.asMethodReference();
-      RVMMethod caller, callee;
-      if (callerRef.getType().getClassLoader() == RVMClassLoader.getApplicationClassLoader()) {
-        caller = callerRef.resolve();
-      } else {
-        caller = callerRef.getResolvedMember();
-      }
-      //if (caller == null) continue;
-      @SuppressWarnings("unused") // serves as doco - token skipped
-          int callerSize = Integer.parseInt(parser.nextToken());
-      int bci = Integer.parseInt(parser.nextToken());
-      MemberReference calleeKey = MemberReference.parse(parser, boot);
-      if (calleeKey == null) return;
-      MethodReference calleeRef = calleeKey.asMethodReference();
-      //if (callee == null) continue;
-      if (calleeRef.getType().getClassLoader() == RVMClassLoader.getApplicationClassLoader()) {
-        callee = calleeRef.resolve();
-      } else {
-        callee = calleeRef.getResolvedMember();
-      }
-      @SuppressWarnings("unused") // serves as doco - token skipped
-          int calleeSize = Integer.parseInt(parser.nextToken());
-      parser.nextToken(); // skip "weight:"
-      float weight = Float.parseFloat(parser.nextToken());
-      if ((caller == null) || (callee == null)) {
-        Controller.dcg.incrementUnResolvedEdge(callerRef, bci, calleeRef, weight);
-      } else {
-        Controller.dcg.incrementEdge(caller, bci, callee, weight);
+      try {
+        MemberReference callerKey = MemberReference.parse(parser, boot);
+        if (callerKey == null) return;
+        MethodReference callerRef = callerKey.asMethodReference();
+        RVMMethod caller, callee;
+        caller = getMethod(callerRef);
+
+        @SuppressWarnings("unused") // serves as doco - token skipped
+        int callerSize = Integer.parseInt(parser.nextToken());
+        int bci = Integer.parseInt(parser.nextToken());
+        MemberReference calleeKey = MemberReference.parse(parser, boot);
+        if (calleeKey == null) return;
+        MethodReference calleeRef = calleeKey.asMethodReference();
+        callee = getMethod(calleeRef);
+
+        @SuppressWarnings("unused") // serves as doco - token skipped
+        int calleeSize = Integer.parseInt(parser.nextToken());
+        parser.nextToken(); // skip "weight:"
+        float weight = Float.parseFloat(parser.nextToken());
+        if ((caller == null) || (callee == null)) {
+          Controller.dcg.incrementUnResolvedEdge(callerRef, bci, calleeRef, weight);
+        } else {
+          Controller.dcg.incrementEdge(caller, bci, callee, weight);
+        }
+      } catch (Exception e) {
+        VM.sysWriteln("Caught exception: "+e);
       }
     } else {
       VM.sysFail("Format error in dynamic call graph file");
+    }
+  }
+
+  /**
+   * Establish the RVMMethod for a given MethodReference gracefully.
+   *
+   * @param ref The MethodReference
+   * @return The RVMMethod, or null on failure.
+   */
+  private static RVMMethod getMethod(MethodReference ref) {
+    if (ref.getType().getClassLoader() == RVMClassLoader.getApplicationClassLoader()) {
+      try {
+        return ref.resolve();
+      } catch (NoClassDefFoundError e) {
+        if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1)
+          VM.sysWriteln("Warning: could not define class: " + ref.getType());
+        return null;
+      } catch (NoSuchMethodError e) {
+        if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1)
+          VM.sysWriteln("Warning: could not load method: " + ref);
+        return null;
+      }
+    } else {
+      return ref.getResolvedMember();
     }
   }
 }

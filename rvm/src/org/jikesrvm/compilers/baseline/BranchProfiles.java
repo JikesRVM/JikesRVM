@@ -82,6 +82,7 @@ public final class BranchProfiles implements BytecodeConstants {
     while (bcodes.hasMoreBytecodes()) {
       int bcIndex = bcodes.index();
       int code = bcodes.nextInstruction();
+
       switch (code) {
         case JBC_ifeq:
         case JBC_ifne:
@@ -99,6 +100,10 @@ public final class BranchProfiles implements BytecodeConstants {
         case JBC_if_acmpne:
         case JBC_ifnull:
         case JBC_ifnonnull: {
+          if (countIdx >= cs.length) {
+            VM.sysWriteln("Warning: control flow instance encountered outside scope of available edge count array");
+            break;
+          }
           int yea = cs[countIdx + EdgeCounts.TAKEN];
           int nea = cs[countIdx + EdgeCounts.NOT_TAKEN];
           int offset = bcodes.getBranchOffset();
@@ -109,6 +114,10 @@ public final class BranchProfiles implements BytecodeConstants {
         }
 
         case JBC_tableswitch: {
+          if (countIdx >= cs.length) {
+            VM.sysWriteln("Warning: control flow instance encountered outside scope of available edge count array");
+            break;
+          }
           bcodes.alignSwitch();
           bcodes.getDefaultSwitchOffset();
           int low = bcodes.getLowSwitchValue();
@@ -121,6 +130,10 @@ public final class BranchProfiles implements BytecodeConstants {
         }
 
         case JBC_lookupswitch: {
+          if (countIdx >= cs.length) {
+            VM.sysWriteln("Warning: control flow instance encountered outside scope of available edge count array");
+            break;
+          }
           bcodes.alignSwitch();
           bcodes.getDefaultSwitchOffset();
           int numPairs = bcodes.getSwitchLength();

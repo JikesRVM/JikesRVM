@@ -25,7 +25,6 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeDescriptorParsing;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
-import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -477,10 +476,6 @@ public class VM extends Properties implements Constants, ExitStatus {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.lang.ClassLoader$StaticData");
     }
-
-    // Allow profile information to be read in from a file
-    //
-    EdgeCounts.boot(EdgeCounterFile);
 
     if (VM.BuildForAdaptiveSystem) {
       CompilerAdvice.postBoot();
