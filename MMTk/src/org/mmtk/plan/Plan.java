@@ -124,6 +124,8 @@ public abstract class Plan implements Constants {
   public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", VMRequest.create()) : null;
   public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", VMRequest.create()) : null;
 
+  public static int pretenureThreshold = Integer.MAX_VALUE;
+
   /* Space descriptors */
   public static final int IMMORTAL = immortalSpace.getDescriptor();
   public static final int VM_SPACE = vmSpace.getDescriptor();
@@ -161,6 +163,7 @@ public abstract class Plan implements Constants {
     Options.ignoreSystemGC = new IgnoreSystemGC();
     Options.metaDataLimit = new MetaDataLimit();
     Options.nurserySize = new NurserySize();
+    Options.pretenureThresholdFraction = new PretenureThresholdFraction();
     Options.variableSizeHeap = new VariableSizeHeap();
     Options.eagerMmapSpaces = new EagerMmapSpaces();
     Options.sanityCheck = new SanityCheck();
@@ -218,6 +221,7 @@ public abstract class Plan implements Constants {
     if (Options.verbose.getValue() > 3) VM.config.printConfig();
     if (Options.verbose.getValue() > 0) Stats.startAll();
     if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
+    pretenureThreshold = (int) ((Options.nurserySize.getMaxNursery()<<LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
   }
 
   /**

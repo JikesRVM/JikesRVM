@@ -54,6 +54,7 @@ public final class Options {
   public static NoReferenceTypes noReferenceTypes;
   public static NurserySize nurserySize;
   public static PerfEvents perfEvents;
+  public static PretenureThresholdFraction pretenureThresholdFraction;
   public static PrintPhaseStats printPhaseStats;
   public static ProtectOnRelease protectOnRelease;
   public static SanityCheck sanityCheck;
