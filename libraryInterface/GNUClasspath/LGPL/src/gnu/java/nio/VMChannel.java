@@ -408,7 +408,12 @@ public final class VMChannel
   public int write(ByteBuffer src, int pos, int len) throws IOException {
     int bytes;
     if (len == 1) {
-      bytes = FileSystem.writeByte(nfd.getNativeFD(),src.get(pos));
+      int ok = FileSystem.writeByte(nfd.getNativeFD(),src.get(pos));
+      if(ok == 0){
+        bytes = 1;
+      }else{
+        throw new IOException("Error code " + Integer.toString(ok));
+      }
     } else if (src.hasArray()) {
       bytes = write(src.array(),pos,len);
     } else {
