@@ -51,6 +51,7 @@ public abstract class Gen extends StopTheWorld {
    *
    * Constants
    */
+  public static final float DEFAULT_PRETENURE_THRESHOLD_FRACTION = 0.5f; // if object is bigger than this fraction of nursery, pretenure to LOS
   protected static final float SURVIVAL_ESTIMATE = 0.8f; // est yield
   protected static final float MATURE_FRACTION = 0.5f; // est yield
   private static final float WORST_CASE_COPY_EXPANSION = 1.5f; // worst case for addition of one word overhead due to address based hashing
@@ -207,9 +208,12 @@ public abstract class Gen extends StopTheWorld {
    * @return True if a collection is requested by the plan.
    */
   public final boolean collectionRequired(boolean spaceFull, Space space) {
-    int nurseryPages = nurserySpace.reservedPages();
+    int availableNurseryPages = Options.nurserySize.getMaxNursery() - nurserySpace.reservedPages();
 
-    if (nurseryPages > Options.nurserySize.getMaxNursery()) {
+    /* periodically recalculate nursery pretenure threshold */
+    Plan.pretenureThreshold = (int) ((availableNurseryPages<<LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
+
+    if (availableNurseryPages <= 0) {
       return true;
     }
 
