@@ -1585,7 +1585,14 @@ public final class RVMThread extends ThreadContext {
     this(MemoryManager.newStack((stacksize <= 0) ? STACK_SIZE_NORMAL : (int) stacksize), thread, name, daemon, null, priority);
   }
 
-  void acknowledgeBlockRequests() {
+  /**
+   * Check if the thread has block requests (for example, for suspension and GC).  If
+   * it does, clear the requests and marked the thread as blocked for that request.
+   * If there were any block requests, do a broadcast() on the thread's monitor().
+   * This is an internal method and should only be called from code that implements
+   * thread blocking.  The monitor() lock must be held for this method to work properly.
+   */
+  private void acknowledgeBlockRequests() {
     boolean hadSome = false;
     if (VM.VerifyAssertions)
       VM._assert(blockAdapters != null);
@@ -1602,8 +1609,11 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Checks if the thread is supposed to be blocked. Only call this method when
-   * already holding the monitor(), for two reasons:
+   * Checks if the thread system has acknowledged that the thread is supposed
+   * to be blocked. This will return true if the thread is actually blocking, or
+   * if the thread is running native code but is guaranteed to block before
+   * returning to Java.  Only call this method when already holding the monitor(),
+   * for two reasons:
    * <ol>
    * <li>This method does not acquire the monitor() lock even though it needs
    * to have it acquired given the data structures that it is accessing.
@@ -1823,11 +1833,19 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Enter one of the "native" states (JNI or NATIVE) while acknowledging a GC block request.
-   * this thread will not actually blow, it will continue to do useful work so long as it
-   * does not try to come back to running IN_JAVA.  This is a slow call; you should almost
-   * always call enterNative(), enterJNIFromCallIntoNative(), or enterJNIFromJNIFunctionCall()
-   * instead.
+   * Internal method for transitioning a thread from IN_JAVA or IN_JAVA_TO_BLOCK to
+   * either BLOCKED_IN_NATIVE or BLOCKED_IN_JNI, depending on the value of the jni
+   * parameter.  It is always safe to conservatively call this method when transitioning
+   * to native code, though it is faster to call either enterNative(),
+   * enterJNIFromCallIntoNative(), or enterJNIFromJNIFunctionCall().
+   * <p>
+   * This method takes care of all bookkeeping and notifications required when a
+   * a thread that has been requested to block instead decides to run native code.
+   * Threads enter native code never need to block, since they will not be executing
+   * any Java code.  However, such threads must ensure that any system services (like
+   * GC) that are waiting for this thread to stop are notified that the thread has
+   * instead chosen to exit Java.  As well, any requests to perform a sot handshake
+   * must be serviced and acknowledged.
    */
   private void enterNativeBlockedImpl(boolean jni) {
     if (traceReallyBlock)
