@@ -382,7 +382,7 @@ public abstract class Gen extends StopTheWorld {
    * @return Is current GC only collecting objects allocated since last GC.
    */
   public final boolean isCurrentGCNursery() {
-    return !gcFullHeap;
+    return !(IGNORE_REMSETS || gcFullHeap);
   }
 
   /**
