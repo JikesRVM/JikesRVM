@@ -36,7 +36,7 @@
   </target>
 
   <!-- download harmony from svn -->
-  <target name="get-harmony-from-svn" depends="init-harmony-properties,check-svn-present" if="harmony.from-svn">
+  <target name="get-harmony-from-svn" depends="init-harmony-properties,set-svn-exe" if="harmony.from-svn">
     <exec executable="${svn.exe}">
       <arg value="checkout"/>
       <arg value="${harmony.base.url}"/>

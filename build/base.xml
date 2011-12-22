@@ -150,4 +150,15 @@
     <!-- set property if not already set -->
     <property name="hg.revision" value="Unknown"/>
   </target>
+
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                Targets for subversion                                    * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="set-svn-exe">
+    <property name="svn.exe" value="svn"/>
+  </target>
 </project>
