@@ -223,7 +223,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
     Address sentinel = block.plus(blockSize);
 
     /* pre-zero the block */
-    VM.memory.zero(firstCell, Extent.fromIntZeroExtend(useableBlockSize));
+    VM.memory.zero(false, firstCell, Extent.fromIntZeroExtend(useableBlockSize));
 
     /* construct the free list */
     Address nextCell;
@@ -949,13 +949,13 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
       Address cursor = start;
       while (cursor.LT(end)) {
         Address metadata = EmbeddedMetaData.getMetaDataBase(cursor).plus(META_DATA_OFFSET);
-        VM.memory.zero(metadata, bytes);
+        VM.memory.zero(false, metadata, bytes);
         cursor = cursor.plus(EmbeddedMetaData.BYTES_IN_REGION);
       }
     } else {
       for(Address cursor = headDiscontiguousRegion; !cursor.isZero(); cursor = Map.getNextContiguousRegion(cursor)) {
         Address metadata = EmbeddedMetaData.getMetaDataBase(cursor).plus(META_DATA_OFFSET);
-        VM.memory.zero(metadata, bytes);
+        VM.memory.zero(false, metadata, bytes);
       }
     }
   }

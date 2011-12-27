@@ -92,6 +92,9 @@ public abstract class SysCall {
   public abstract void sysFree(Address location);
 
   @SysCallTemplate
+  public abstract void sysZeroNT(Address dst, Extent cnt);
+
+  @SysCallTemplate
   public abstract void sysZero(Address dst, Extent cnt);
 
   @SysCallTemplate

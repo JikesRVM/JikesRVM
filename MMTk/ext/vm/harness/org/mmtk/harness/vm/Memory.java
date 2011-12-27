@@ -142,21 +142,13 @@ public class Memory extends org.mmtk.vm.Memory {
 
   /**
    * Zero a region of memory.
+   *
+   * @param useNT Use non temporal instructions (if available)
    * @param start Start of address range (inclusive)
    * @param len Length in bytes of range to zero
-   * Returned: nothing
    */
-  public void zero(Address start, Extent len) {
+  public void zero(boolean useNT, Address start, Extent len) {
     SimulatedMemory.zero(start, len);
-  }
-
-  /**
-   * Zero a range of pages of memory.
-   * @param start Start of address range (must be a page address)
-   * @param len Length in bytes of range (must be multiple of page size)
-   */
-  public void zeroPages(Address start, int len) {
-    SimulatedMemory.zeroPages(start, len);
   }
 
   /**

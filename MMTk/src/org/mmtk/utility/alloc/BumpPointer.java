@@ -328,7 +328,7 @@ import org.vmmagic.unboxed.Word;
     cursor = getDataStart(nextRegion);
     updateLimit(getRegionLimit(nextRegion), nextRegion, bytes);
     setDataEnd(nextRegion,Address.zero());
-    VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent());
+    VM.memory.zero(false, cursor, limit.diff(cursor).toWord().toExtent());
     reusePages(Conversions.bytesToPages(limit.diff(region)));
 
     return alloc(bytes, align, offset);

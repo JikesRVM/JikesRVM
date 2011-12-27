@@ -341,7 +341,7 @@ public final class MarkCompactCollector {
     void finish() {
       if (VM.VERIFY_ASSERTIONS) assertCursorInBounds();
       Extent zeroBytes = limit.diff(cursor).toWord().toExtent();
-      VM.memory.zero(cursor, zeroBytes);
+      VM.memory.zero(false, cursor, zeroBytes);
       MarkCompactLocal.setDataEnd(region, cursor);
       MarkCompactLocal.checkRegionMetadata(region);
     }

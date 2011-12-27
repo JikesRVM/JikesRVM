@@ -144,22 +144,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * Zero a region of memory.
+   *
+   * @param useNT Use non temporal instructions (if available)
    * @param start Start of address range (inclusive)
    * @param len Length in bytes of range to zero
-   * Returned: nothing
    */
-  public final void zero(Address start, Extent len) {
-    org.jikesrvm.runtime.Memory.zero(start,len);
-  }
-
-  /**
-   * Zero a range of pages of memory.
-   * @param start Start of address range (must be a page address)
-   * @param len Length in bytes of range (must be multiple of page size)
-   */
-  public final void zeroPages(Address start, int len) {
-      /* AJG: Add assertions to check conditions documented above. */
-    org.jikesrvm.runtime.Memory.zeroPages(start,len);
+  public final void zero(boolean useNT, Address start, Extent len) {
+    org.jikesrvm.runtime.Memory.zero(useNT, start,len);
   }
 
   /**

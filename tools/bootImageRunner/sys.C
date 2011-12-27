@@ -1582,6 +1582,53 @@ sysFree(void *location)
     free(location);
 }
 
+// Zero a range of memory with non-temporal instructions on x86
+extern "C" void
+sysZeroNT(void *dst, Extent cnt)
+{
+#ifdef RVM_FOR_SSE2
+  char *buf = (char *) dst;
+  unsigned int len = cnt;
+
+  __asm__ volatile (
+		    ".align 16 \n\t"
+		    "cmp $0x10, %%esi \n\t"
+		    "jl 0f \n\t"
+		    "pxor %%xmm0, %%xmm0 \n\t"
+		    "16: \n\t"
+		    "test $0xf, %%edi \n\t"
+		    "je 64f \n\t"
+		    "movb $0,(%%edi) \n\t"
+		    "inc %%edi \n\t"
+		    "dec %%esi \n\t"
+		    "jmp 16b \n\t"
+		    "64: \n\t"
+		    "cmp $128, %%esi \n\t"
+		    "jl 0f \n\t"
+		    "movntdq %%xmm0, 0x0(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x10(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x20(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x30(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x40(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x50(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x60(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x70(%%edi) \n\t"
+		  
+		    "add $128, %%edi \n\t"
+		    "sub $128, %%esi \n\t"
+		    "jmp 64b \n\t"
+		    "0: \n\t"
+		    "sfence \n\t"
+		    : "+S"(len),"+D" ( buf ));
+
+  while (__builtin_expect (len--, 0)){
+    *buf++ = 0;
+  }
+#else
+  memset(dst, 0x00, cnt);
+#endif    
+}
+
 // Zero a range of memory bytes.
 //
 extern "C" void

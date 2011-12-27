@@ -440,21 +440,17 @@ public class Memory {
 
   /**
    * Zero a region of memory.
+   *
+   * @param useNT use non-temporal instructions (if available)
    * @param start of address range (inclusive)
    * @param len extent to zero.
    */
-  public static void zero(Address start, Extent len) {
-    SysCall.sysCall.sysZero(start, len);
-  }
-
-  /**
-   * Zero a range of pages of memory.
-   * @param start Starting address       (must be a page address)
-   * @param len   Number of bytes     (must be multiple of page size)
-   */
-  public static void zeroPages(Address start, int len) {
-    if (VM.VerifyAssertions) VM._assert(isPageAligned(start) && isPageMultiple(len));
-    SysCall.sysCall.sysZeroPages(start, len);
+  public static void zero(boolean useNT, Address start, Extent len) {
+    if (useNT) {
+      SysCall.sysCall.sysZeroNT(start, len);
+    } else {
+      SysCall.sysCall.sysZero(start, len);
+    }
   }
 
   ////////////////////////

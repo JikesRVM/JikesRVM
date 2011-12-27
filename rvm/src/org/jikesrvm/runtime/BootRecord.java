@@ -229,6 +229,7 @@ public class BootRecord {
   public Address sysMallocIP;
   public Address sysCallocIP;
   public Address sysFreeIP;
+  public Address sysZeroNTIP;
   public Address sysZeroIP;
   public Address sysZeroPagesIP;
   public Address sysSyncCacheIP;

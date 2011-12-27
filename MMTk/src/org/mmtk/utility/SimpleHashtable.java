@@ -73,7 +73,7 @@ import org.vmmagic.unboxed.*;
    */
   public final void acquireTable() {
     base = space.acquire(Conversions.bytesToPages(size));
-    VM.memory.zero(base, size);
+    VM.memory.zero(false, base, size);
     valid = true;
   }
 

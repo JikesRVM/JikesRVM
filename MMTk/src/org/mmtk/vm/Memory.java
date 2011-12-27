@@ -97,20 +97,15 @@ import org.vmmagic.pragma.*;
    */
   public abstract boolean munprotect(Address start, int size);
 
-  /**
-   * Zero a region of memory.
-   * @param start Start of address range (inclusive)
-   * @param len Length in bytes of range to zero
-   * Returned: nothing
-   */
-  public abstract void zero(Address start, Extent len);
 
   /**
-   * Zero a range of pages of memory.
-   * @param start Start of address range (must be a page address)
-   * @param len Length in bytes of range (must be multiple of page size)
+   * Zero a region of memory.
+   *
+   * @param useNT Use non temporal instructions (if available)
+   * @param start Start of address range (inclusive)
+   * @param len Length in bytes of range to zero
    */
-  public abstract void zeroPages(Address start, int len);
+  public abstract void zero(boolean useNT, Address start, Extent len);
 
   /**
    * Logs the contents of an address and the surrounding memory to the

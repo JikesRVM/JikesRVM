@@ -57,7 +57,7 @@ public class Memory implements Constants {
       assertAligned(bytes);
     }
     if (bytes.GT(Extent.fromIntZeroExtend(SMALL_REGION_THRESHOLD)))
-      VM.memory.zero(start, bytes);
+      VM.memory.zero(false, start, bytes);
     else
       zeroSmall(start, bytes);
   }

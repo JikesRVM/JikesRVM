@@ -248,7 +248,7 @@ public class ImmixAllocator extends Allocator implements Constants {
           Address end = start.plus(bytes);
           VM.assertions._assert(end.LE(limit));
         }
-        VM.memory.zero(cursor, limit.diff(cursor).toWord().toExtent());
+        VM.memory.zero(false, cursor, limit.diff(cursor).toWord().toExtent());
         if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() >= 9) {
           Log.write("Z["); Log.write(cursor); Log.write("->"); Log.write(limit); Log.writeln("]");
         }
@@ -311,7 +311,7 @@ public class ImmixAllocator extends Allocator implements Constants {
   private void zeroBlock(Address block) {
     // FIXME: efficiency check here!
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(block.toWord().and(Word.fromIntSignExtend(BYTES_IN_BLOCK-1)).isZero());
-    VM.memory.zero(block, Extent.fromIntZeroExtend(BYTES_IN_BLOCK));
+    VM.memory.zero(false, block, Extent.fromIntZeroExtend(BYTES_IN_BLOCK));
    }
 
   /** @return the space associated with this squish allocator */

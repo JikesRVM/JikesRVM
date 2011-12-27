@@ -171,7 +171,7 @@ public final class FreeListPageResource extends PageResource implements Constant
       unlock();
       Mmapper.ensureMapped(rtn, requiredPages);
       if (zeroed)
-        VM.memory.zero(rtn, bytes);
+        VM.memory.zero(false, rtn, bytes);
       VM.events.tracePageAcquired(space, rtn, requiredPages);
       return rtn;
     }
@@ -194,7 +194,7 @@ public final class FreeListPageResource extends PageResource implements Constant
 
     int pages = freeList.size(pageOffset);
     if (ZERO_ON_RELEASE)
-      VM.memory.zero(first, Conversions.pagesToBytes(pages));
+      VM.memory.zero(false, first, Conversions.pagesToBytes(pages));
     /* Can't use protect here because of the chunk sizes involved!
     if (protectOnRelease.getValue())
       LazyMmapper.protect(first, pages);
