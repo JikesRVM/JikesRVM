@@ -21,12 +21,12 @@ public final class Options {
   public static OptionSet set;
 
   /* Other options */
-  public static BoundedNursery boundedNursery;
   public static ConcurrentTrigger concurrentTrigger;
   public static CycleFilterThreshold cycleFilterThreshold;
   public static CycleMetaDataLimit cycleMetaDataLimit;
   public static CycleTriggerThreshold cycleTriggerThreshold;
   public static DebugAddress debugAddress;
+  public static NurseryZeroing nurseryZeroing;
   public static DummyEnum dummyEnum;
   public static DefragHeadroom defragHeadroom;
   public static DefragHeadroomFraction defragHeadroomFraction;
@@ -37,7 +37,6 @@ public final class Options {
   public static DefragStress defragStress;
   public static EagerCompleteSweep eagerCompleteSweep;
   public static EagerMmapSpaces eagerMmapSpaces;
-  public static FixedNursery fixedNursery;
   public static FragmentationStats fragmentationStats;
   public static FullHeapSystemGC fullHeapSystemGC;
   public static GCspyPort gcspyPort;

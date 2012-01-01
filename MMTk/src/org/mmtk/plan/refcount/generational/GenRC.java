@@ -114,4 +114,15 @@ public class GenRC extends RCBase {
     }
     return super.willNeverMove(object);
   }
+
+  /**
+   * The processOptions method is called by the runtime immediately after
+   * command-line arguments are available.
+   */
+  @Interruptible
+  @Override
+  public void processOptions() {
+    super.processOptions();
+    nurserySpace.updateZeroingApproach(Options.nurseryZeroing.getUseNT());
+  }
 }

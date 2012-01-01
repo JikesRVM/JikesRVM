@@ -64,6 +64,9 @@ public abstract class PageResource implements Constants {
   // locking
   private final Lock lock;
 
+  // zeroing flags
+  protected boolean zeroNT;
+
   /****************************************************************************
    *
    * Initialization
@@ -151,6 +154,13 @@ public abstract class PageResource implements Constants {
     lock();
     reserved -= reservedPages;
     unlock();
+  }
+
+  /**
+   * Update the zeroing approach for this page resource.
+   */
+  public void updateZeroingApproach(boolean useNT) {
+    this.zeroNT = useNT;
   }
 
   abstract Address allocPages(int reservedPages, int requiredPages, boolean zeroed);

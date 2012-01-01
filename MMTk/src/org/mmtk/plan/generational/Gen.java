@@ -443,4 +443,15 @@ public abstract class Gen extends StopTheWorld {
     TransitiveClosure.registerSpecializedScan(SCAN_NURSERY, GenNurseryTraceLocal.class);
     super.registerSpecializedMethods();
   }
+
+  /**
+   * The processOptions method is called by the runtime immediately after
+   * command-line arguments are available.
+   */
+  @Interruptible
+  @Override
+  public void processOptions() {
+    super.processOptions();
+    nurserySpace.updateZeroingApproach(Options.nurseryZeroing.getUseNT());
+  }
 }

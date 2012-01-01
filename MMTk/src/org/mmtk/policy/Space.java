@@ -364,6 +364,13 @@ public abstract class Space implements Constants {
    */
 
   /**
+   * Update the zeroing approach for this space.
+   */
+  public void updateZeroingApproach(boolean useNT) {
+    pr.updateZeroingApproach(useNT);
+  }
+
+  /**
    * Acquire a number of pages from the page resource, returning
    * either the address of the first page, or zero on failure.<p>
    *

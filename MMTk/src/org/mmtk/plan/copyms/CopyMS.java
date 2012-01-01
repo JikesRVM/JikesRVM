@@ -189,4 +189,15 @@ public class CopyMS extends StopTheWorld {
     TransitiveClosure.registerSpecializedScan(SCAN_COPYMS, CopyMSTraceLocal.class);
     super.registerSpecializedMethods();
   }
+
+  /**
+   * The processOptions method is called by the runtime immediately after
+   * command-line arguments are available.
+   */
+  @Interruptible
+  @Override
+  public void processOptions() {
+    super.processOptions();
+    nurserySpace.updateZeroingApproach(Options.nurseryZeroing.getUseNT());
+  }
 }

@@ -163,6 +163,7 @@ public abstract class Plan implements Constants {
     Options.ignoreSystemGC = new IgnoreSystemGC();
     Options.metaDataLimit = new MetaDataLimit();
     Options.nurserySize = new NurserySize();
+    Options.nurseryZeroing = new NurseryZeroing();
     Options.pretenureThresholdFraction = new PretenureThresholdFraction();
     Options.variableSizeHeap = new VariableSizeHeap();
     Options.eagerMmapSpaces = new EagerMmapSpaces();

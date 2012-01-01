@@ -171,7 +171,7 @@ public final class FreeListPageResource extends PageResource implements Constant
       unlock();
       Mmapper.ensureMapped(rtn, requiredPages);
       if (zeroed)
-        VM.memory.zero(false, rtn, bytes);
+        VM.memory.zero(zeroNT, rtn, bytes);
       VM.events.tracePageAcquired(space, rtn, requiredPages);
       return rtn;
     }

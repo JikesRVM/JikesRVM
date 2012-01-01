@@ -169,7 +169,7 @@ public final class MonotonePageResource extends PageResource
       unlock();
       Mmapper.ensureMapped(old, requiredPages);
       if (zeroed)
-        VM.memory.zero(false, old, bytes);
+        VM.memory.zero(zeroNT, old, bytes);
       VM.events.tracePageAcquired(space, rtn, requiredPages);
       return rtn;
     }
