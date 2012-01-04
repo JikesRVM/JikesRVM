@@ -105,6 +105,7 @@ public class CopyMS extends StopTheWorld {
       trace.release();
       msSpace.release();
       nurserySpace.release();
+      switchNurseryZeroingApproach(nurserySpace);
       super.collectionPhase(phaseId);
       return;
     }
@@ -190,14 +191,10 @@ public class CopyMS extends StopTheWorld {
     super.registerSpecializedMethods();
   }
 
-  /**
-   * The processOptions method is called by the runtime immediately after
-   * command-line arguments are available.
-   */
   @Interruptible
   @Override
-  public void processOptions() {
-    super.processOptions();
-    nurserySpace.updateZeroingApproach(Options.nurseryZeroing.getUseNT());
+  public void fullyBooted() {
+    super.fullyBooted();
+    nurserySpace.setZeroingApproach(Options.nurseryZeroing.getNonTemporal(), Options.nurseryZeroing.getConcurrent());
   }
 }

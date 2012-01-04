@@ -41,6 +41,8 @@ public final class MonotonePageResource extends PageResource
   private Address sentinel;
   private final int metaDataPagesPerRegion;
   private Address currentChunk = Address.zero();
+  private volatile Address zeroingCursor;
+  private Address zeroingSentinel;
 
   /**
    * Constructor
@@ -58,6 +60,8 @@ public final class MonotonePageResource extends PageResource
     super(space, start);
     this.cursor = start;
     this.sentinel = start.plus(bytes);
+    this.zeroingCursor = this.sentinel;
+    this.zeroingSentinel = start;
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
   }
 
@@ -168,8 +172,13 @@ public final class MonotonePageResource extends PageResource
       space.growSpace(old, bytes, newChunk);
       unlock();
       Mmapper.ensureMapped(old, requiredPages);
-      if (zeroed)
-        VM.memory.zero(zeroNT, old, bytes);
+      if (zeroed) {
+        if (!zeroConcurrent) {
+          VM.memory.zero(zeroNT, old, bytes);
+        } else {
+          while (cursor.GT(zeroingCursor));
+        }
+      }
       VM.events.tracePageAcquired(space, rtn, requiredPages);
       return rtn;
     }
@@ -258,6 +267,18 @@ public final class MonotonePageResource extends PageResource
   @Inline
   private void releasePages() {
     Address first = start;
+    if (contiguous) {
+      // TODO: We will perform unnecessary zeroing if the nursery size has decreased.
+      if (zeroConcurrent) {
+        // Wait for current zeroing to finish.
+        while(zeroingCursor.LT(zeroingSentinel)) {}
+      }
+      // Reset zeroing region.
+      if (cursor.GT(zeroingSentinel)) {
+        zeroingSentinel = cursor;
+      }
+      zeroingCursor = start;
+    }
     do {
       Extent bytes = cursor.diff(start).toWord().toExtent();
       releasePages(start, bytes);
@@ -300,5 +321,26 @@ public final class MonotonePageResource extends PageResource
     if (Options.protectOnRelease.getValue())
       Mmapper.protect(first, pages);
     VM.events.tracePageReleased(space, first, pages);
+  }
+
+  private static int CONCURRENT_ZEROING_BLOCKSIZE = 1<<16;
+
+  /**
+   * The entry point for the concurrent zeroing context.
+   */
+  @Override
+  public void concurrentZeroing() {
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(zeroConcurrent);
+    }
+    Address first = start;
+    while (first.LT(zeroingSentinel)) {
+      Address last = first.plus(CONCURRENT_ZEROING_BLOCKSIZE);
+      if (last.GT(zeroingSentinel)) last = zeroingSentinel;
+      VM.memory.zero(zeroNT, first, Extent.fromIntSignExtend(last.diff(first).toInt()));
+      zeroingCursor = last;
+      first = first.plus(CONCURRENT_ZEROING_BLOCKSIZE);
+    }
+    zeroingCursor = sentinel;
   }
 }

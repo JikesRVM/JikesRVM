@@ -79,6 +79,12 @@ import org.vmmagic.pragma.*;
   public abstract int getDefaultThreads();
 
   /**
+   * @return The number of active threads.
+   *
+   */
+  public abstract int getActiveThreads();
+
+  /**
    * Block for the garbage collector.
    */
   @Unpreemptible

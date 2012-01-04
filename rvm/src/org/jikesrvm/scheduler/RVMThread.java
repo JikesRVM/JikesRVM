@@ -4397,6 +4397,20 @@ public final class RVMThread extends ThreadContext {
     return outOfMemoryError;
   }
 
+  /**
+   * Number of active threads in the system.
+   */
+  public static int getNumActiveThreads() {
+    return numActiveThreads;
+  }
+
+  /**
+   * Number of active daemon threads.
+   */
+  public static int getNumActiveDaemons() {
+    return numActiveDaemons;
+  }
+
   @Interruptible
   public void handleUncaughtException(Throwable exceptionObject) {
     uncaughtExceptionCount++;

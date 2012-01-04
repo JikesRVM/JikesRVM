@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan;
 
+import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.alloc.Allocator;
@@ -258,6 +259,23 @@ public abstract class Simple extends Plan implements Constants {
     Log.write("Global phase "); Log.write(Phase.getName(phaseId));
     Log.writeln(" not handled.");
     VM.assertions.fail("Global phase not handled!");
+  }
+
+  /**
+   * Update the nursery zeroing approach based on option settings.
+   *
+   * @param nurserySpace The space to apply the changes to.
+   */
+  protected void switchNurseryZeroingApproach(Space nurserySpace) {
+    if (Options.nurseryZeroing.getConcurrent()) {
+      if (Options.nurseryZeroing.getAdaptive() &&
+          (VM.collection.getActiveThreads() >= VM.collection.getDefaultThreads())) {
+        // Many (non-daemon) threads, so we revert to bulk zeroing.
+        nurserySpace.skipConcurrentZeroing();
+      } else {
+        nurserySpace.triggerConcurrentZeroing();
+      }
+    }
   }
 
   /**

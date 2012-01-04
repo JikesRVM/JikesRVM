@@ -184,6 +184,7 @@ public abstract class Gen extends StopTheWorld {
 
     if (phaseId == RELEASE) {
       nurserySpace.release();
+      switchNurseryZeroingApproach(nurserySpace);
       modbufPool.clearDeque(1);
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
@@ -444,14 +445,10 @@ public abstract class Gen extends StopTheWorld {
     super.registerSpecializedMethods();
   }
 
-  /**
-   * The processOptions method is called by the runtime immediately after
-   * command-line arguments are available.
-   */
   @Interruptible
   @Override
-  public void processOptions() {
-    super.processOptions();
-    nurserySpace.updateZeroingApproach(Options.nurseryZeroing.getUseNT());
+  public void fullyBooted() {
+    super.fullyBooted();
+    nurserySpace.setZeroingApproach(Options.nurseryZeroing.getNonTemporal(), Options.nurseryZeroing.getConcurrent());
   }
 }

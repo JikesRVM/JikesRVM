@@ -55,6 +55,14 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   }
 
   /**
+   * @return The number of active threads.
+   *
+   */
+  public int getActiveThreads() {
+    return RVMThread.getNumActiveThreads() - RVMThread.getNumActiveDaemons();
+  }
+
+  /**
    * Block for the garbage collector.
    */
   @Unpreemptible

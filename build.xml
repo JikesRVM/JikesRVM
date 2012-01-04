@@ -1645,7 +1645,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <property name="rvm.defines" value="-D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE ${filter} "/>
 
-    <condition property="rvm.sse.args" value="" else="-mfpmath=sse">
+    <condition property="rvm.sse.args" value="" else="-DRVM_FOR_SSE2 -mfpmath=sse">
         <equals arg1="${target.arch.sse2}" arg2="none"/>
     </condition>
     <property name="rvm.common.args" value="${rvm.includes} ${rvm.defines} ${rvm.sse.args}"/>

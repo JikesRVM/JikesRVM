@@ -366,8 +366,23 @@ public abstract class Space implements Constants {
   /**
    * Update the zeroing approach for this space.
    */
-  public void updateZeroingApproach(boolean useNT) {
-    pr.updateZeroingApproach(useNT);
+  @Interruptible
+  public void setZeroingApproach(boolean useNT, boolean concurrent) {
+    pr.updateZeroingApproach(useNT, concurrent);
+  }
+
+  /**
+   * Skip concurrent zeroing (fall back to bulk zeroing).
+   */
+  public void skipConcurrentZeroing() {
+    pr.skipConcurrentZeroing();
+  }
+
+  /**
+   * Trigger concurrent zeroing.
+   */
+  public void triggerConcurrentZeroing() {
+    pr.triggerConcurrentZeroing();
   }
 
   /**

@@ -12,14 +12,19 @@
  */
 package org.mmtk.utility.options;
 
+import org.vmmagic.pragma.Uninterruptible;
+
 /**
  * The zeroing approach to use for new object allocations.
  * Affects each plan differently.
  */
+@Uninterruptible
 public final class NurseryZeroing extends org.vmutil.options.EnumOption {
 
   public final int TEMPORAL = 0;
   public final int NON_TEMPORAL = 1;
+  public final int CONCURRENT = 2;
+  public final int ADAPTIVE = 3;
 
   /**
    * Create the option.
@@ -27,14 +32,28 @@ public final class NurseryZeroing extends org.vmutil.options.EnumOption {
   public NurseryZeroing() {
     super(Options.set, "Nursery Zeroing",
           "The default approach used for zero initializing nursery objects",
-          new String[] {"temporal", "nontemporal"},
+          new String[] {"temporal", "nontemporal", "concurrent", "adaptive"},
           "temporal");
   }
 
   /**
    * @return True if a non temporal zeroing approach is to be used.
    */
-  public boolean getUseNT() {
-    return getValue() == NON_TEMPORAL;
+  public boolean getNonTemporal() {
+    return getValue() != TEMPORAL;
+  }
+
+  /**
+   * @return True if a concurrent zeroing approach is to be used.
+   */
+  public boolean getConcurrent() {
+    return getValue() == CONCURRENT || getValue() == ADAPTIVE;
+  }
+
+  /**
+   * @return True if a concurrent zeroing approach is to be used.
+   */
+  public boolean getAdaptive() {
+    return getValue() == ADAPTIVE;
   }
 }

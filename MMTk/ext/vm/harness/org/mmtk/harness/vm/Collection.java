@@ -14,6 +14,7 @@ package org.mmtk.harness.vm;
 
 import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
+import org.mmtk.harness.Mutators;
 import org.mmtk.harness.exception.OutOfMemory;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.plan.CollectorContext;
@@ -71,6 +72,14 @@ public class Collection extends org.mmtk.vm.Collection {
   @Override
   public int getDefaultThreads() {
     return Harness.collectors.getValue();
+  }
+
+  /**
+   * @return The number of active threads.
+   *
+   */
+  public int getActiveThreads() {
+    return Mutators.count();
   }
 
   /**

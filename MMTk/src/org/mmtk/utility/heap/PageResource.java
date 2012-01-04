@@ -64,8 +64,10 @@ public abstract class PageResource implements Constants {
   // locking
   private final Lock lock;
 
-  // zeroing flags
+  // zeroing
   protected boolean zeroNT;
+  protected boolean zeroConcurrent;
+  protected ConcurrentZeroingContext zeroingContext;
 
   /****************************************************************************
    *
@@ -159,8 +161,38 @@ public abstract class PageResource implements Constants {
   /**
    * Update the zeroing approach for this page resource.
    */
-  public void updateZeroingApproach(boolean useNT) {
-    this.zeroNT = useNT;
+  @Interruptible
+  public void updateZeroingApproach(boolean nontemporal, boolean concurrent) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!concurrent || contiguous);
+    this.zeroNT = nontemporal;
+    this.zeroConcurrent = concurrent;
+    if (concurrent) {
+      this.zeroingContext = new ConcurrentZeroingContext(this);
+      VM.collection.spawnCollectorContext(zeroingContext);
+    }
+  }
+
+  /**
+   * Skip concurrent zeroing (fall back to bulk zeroing).
+   */
+  public void skipConcurrentZeroing() {
+    // Clearing this flag has the effect of reverting back to bulk zeroing.
+    zeroConcurrent = false;
+  }
+
+  /**
+   * Trigger concurrent zeroing.
+   */
+  public void triggerConcurrentZeroing() {
+    zeroConcurrent = true;
+    this.zeroingContext.trigger();
+  }
+
+  /**
+   * The entry point for the concurrent zeroing context.
+   */
+  public void concurrentZeroing() {
+    VM.assertions.fail("This PageResource does not implement concurrent zeroing");
   }
 
   abstract Address allocPages(int reservedPages, int requiredPages, boolean zeroed);

@@ -54,6 +54,7 @@ public class GenRC extends RCBase {
     if (phaseId == RELEASE) {
       super.collectionPhase(phaseId);
       nurserySpace.release();
+      switchNurseryZeroingApproach(nurserySpace);
       return;
     }
 
@@ -115,14 +116,10 @@ public class GenRC extends RCBase {
     return super.willNeverMove(object);
   }
 
-  /**
-   * The processOptions method is called by the runtime immediately after
-   * command-line arguments are available.
-   */
   @Interruptible
   @Override
-  public void processOptions() {
-    super.processOptions();
-    nurserySpace.updateZeroingApproach(Options.nurseryZeroing.getUseNT());
+  public void fullyBooted() {
+    super.fullyBooted();
+    nurserySpace.setZeroingApproach(Options.nurseryZeroing.getNonTemporal(), Options.nurseryZeroing.getConcurrent());
   }
 }
