@@ -1257,7 +1257,8 @@ Check to make sure all required properties are specified. This includes properti
     <javac srcDir="${syscall.dir}"
            source="${rvm.java.version}"
            target="${rvm.java.version}"
-           failonerror="true">
+           failonerror="true"
+           includeantruntime="false">
       <classpath>
         <pathelement location="${tasks.classes}"/>
         <pathelement location="${build.vmmagic-stub.classes}"/>

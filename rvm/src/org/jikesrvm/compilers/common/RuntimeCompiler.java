@@ -345,7 +345,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
         VM._assert(compilationInProgress, "Failed to acquire compilationInProgress \"lock\"");
       }
 
-      Callbacks.notifyMethodCompile(method, CompiledMethod.JNI);
+      Callbacks.notifyMethodCompile(method, CompiledMethod.OPT);
       long start = 0;
       CompiledMethod cm = null;
       try {
