@@ -74,6 +74,11 @@ public class BulkCompile implements Callbacks.StartupMonitor {
    * compilation could occur prior to the second iteration.
    */
   public static void compileAllMethods() {
+    if (!(Controller.options.ENABLE_BULK_COMPILE || Controller.options.ENABLE_PRECOMPILE)) {
+      /* should not be here */
+      VM.sysFail("Attempt to perform bulk compilation without setting either -X:aos:enable_bulk_compile=true or -X:aos:enable_precompile=true");
+    }
+
     EdgeCounts.loadCountsFromFileIfAvailable(VM.EdgeCounterFile);
     CompilerAdvice.readCompilerAdvice();
     if (Controller.options.BULK_COMPILATION_VERBOSITY >= 1)
