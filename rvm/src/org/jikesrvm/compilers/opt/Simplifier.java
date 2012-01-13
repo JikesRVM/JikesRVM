@@ -2962,7 +2962,7 @@ public abstract class Simplifier extends IRTools {
   }
 
   private static DefUseEffect long2Addr(Instruction s, OptOptions opts) {
-    if (VM.BuildFor64Addr && opts.SIMPLIFY_REF_OPS) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
@@ -3601,7 +3601,7 @@ public abstract class Simplifier extends IRTools {
     if (op instanceof IntConstantOperand) {
       return Address.fromIntSignExtend(op.asIntConstant().value);
     }
-    if (VM.BuildFor64Addr && op instanceof LongConstantOperand) {
+    if (op instanceof LongConstantOperand) {
       return Address.fromLong(op.asLongConstant().value);
     }
     if (op instanceof ObjectConstantOperand) {
