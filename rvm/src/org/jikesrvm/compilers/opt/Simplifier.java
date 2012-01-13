@@ -2965,10 +2965,17 @@ public abstract class Simplifier extends IRTools {
     if (opts.SIMPLIFY_REF_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
-        // CONSTANT: FOLD
-        long val = op.asLongConstant().value;
-        Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(Address.fromLong(val)));
-        return DefUseEffect.MOVE_FOLDED;
+        if (VM.BuildFor64Addr) {
+          // CONSTANT: FOLD
+          long val = op.asLongConstant().value;
+          Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(Address.fromLong(val)));
+          return DefUseEffect.MOVE_FOLDED;
+        } else {
+          // CONSTANT: FOLD
+          int val = (int) op.asLongConstant().value;
+          Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(Address.fromIntZeroExtend(val)));
+          return DefUseEffect.MOVE_FOLDED;
+        }
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -3602,7 +3609,11 @@ public abstract class Simplifier extends IRTools {
       return Address.fromIntSignExtend(op.asIntConstant().value);
     }
     if (op instanceof LongConstantOperand) {
-      return Address.fromLong(op.asLongConstant().value);
+      if (VM.BuildFor64Addr) {
+          return Address.fromLong(op.asLongConstant().value);
+      } else {
+          return Address.fromIntZeroExtend((int)op.asLongConstant().value);
+      }
     }
     if (op instanceof ObjectConstantOperand) {
       if (VM.VerifyAssertions) VM._assert(!op.isMovableObjectConstant());
