@@ -877,6 +877,7 @@ sysNanoSleep(long long howLongNanos)
 extern "C" int
 sysNumProcessors()
 {
+    static int firstRun = 1;
     int numCpus = -1;  /* -1 means failure. */
 
 #ifdef __GNU_LIBRARY__      // get_nprocs is part of the GNU C library.
@@ -888,7 +889,7 @@ sysNumProcessors()
     numCpus = get_nprocs();
     // It is not clear if get_nprocs can ever return failure; assume it might.
     if (numCpus < 1) {
-       fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
+       if (firstRun) fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
        /* Continue on.  Try to get a better answer by some other method, not
           that it's likely, but this should not be a fatal error. */
     }
@@ -903,7 +904,7 @@ sysNumProcessors()
         len = sizeof(numCpus);
         errno = 0;
         if (sysctl(mib, 2, &numCpus, &len, NULL, 0) < 0) {
-            fprintf(SysTraceFile, "%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
+            if (firstRun) fprintf(SysTraceFile, "%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
                     " errno = %d\n", Me, errno);
             numCpus = -1;       // failed so far...
         };
@@ -919,7 +920,7 @@ sysNumProcessors()
          */
         numCpus = sysconf(_SC_NPROCESSORS_ONLN); // does not set errno
         if (numCpus < 0) {
-            fprintf(SysTraceFile, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
+            if (firstRun) fprintf(SysTraceFile, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
                     " failed\n", Me);
         }
     }
@@ -929,14 +930,14 @@ sysNumProcessors()
     if (numCpus < 0) {
         numCpus = _system_configuration.ncpus;
         if (numCpus < 0) {
-            fprintf(SysTraceFile, "%s: WARNING: _system_configuration.ncpus"
+            if (firstRun) fprintf(SysTraceFile, "%s: WARNING: _system_configuration.ncpus"
                     " has the insane value %d\n" , Me, numCpus);
         }
     }
 #endif
 
     if (numCpus < 0) {
-        fprintf(SysTraceFile, "%s: WARNING: Can not figure out how many CPUs"
+        if (firstRun) fprintf(SysTraceFile, "%s: WARNING: Can not figure out how many CPUs"
                 " are online; assuming 1\n");
         numCpus = 1;            // Default
     }
@@ -944,6 +945,7 @@ sysNumProcessors()
 #ifdef DEBUG_SYS
     fprintf(SysTraceFile, "%s: sysNumProcessors: returning %d\n", Me, numCpus );
 #endif
+    firstRun = 0;
     return numCpus;
 }
 

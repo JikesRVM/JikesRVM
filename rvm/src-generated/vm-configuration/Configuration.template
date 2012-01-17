@@ -116,7 +116,7 @@ public abstract class Configuration {
    * Alignment checking (for IA32 only; for debugging purposes only).
    * To enable, build with -Dconfig.alignment-checking=true.
    * Important: You'll also need to build without SSE (-Dtarget.arch.sse2=none) and
-   * run Jikes with only one processor (-X:processors=1).
+   * run Jikes with only one processor.
    */
   public static final boolean AlignmentChecking = @_RVM_WITH_ALIGNMENT_CHECKING_@;
 }

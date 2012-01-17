@@ -81,7 +81,7 @@ public class CommandLineArgs {
     BOOTCLASSPATH_P_ARG,
     BOOTCLASSPATH_A_ARG,
     BOOTSTRAP_CLASSES_ARG,
-    PROCESSORS_ARG
+    AVAILABLE_PROCESSORS_ARG
   }
 
   /** Represent a single command line prefix */
@@ -181,7 +181,7 @@ public class CommandLineArgs {
                                             new Prefix("-Xbootclasspath/p:", PrefixType.BOOTCLASSPATH_P_ARG),
                                             new Prefix("-Xbootclasspath/a:", PrefixType.BOOTCLASSPATH_A_ARG),
                                             new Prefix("-X:vmClasses=", PrefixType.BOOTSTRAP_CLASSES_ARG),
-                                            new Prefix("-X:processors=", PrefixType.PROCESSORS_ARG),
+                                            new Prefix("-X:availableProcessors=", PrefixType.AVAILABLE_PROCESSORS_ARG),
                                             new Prefix("-X:irc:help$", PrefixType.IRC_HELP_ARG),
                                             new Prefix("-X:irc$", PrefixType.IRC_HELP_ARG),
                                             new Prefix("-X:irc:", PrefixType.IRC_ARG),
@@ -536,21 +536,13 @@ public class CommandLineArgs {
           VM.verboseJNI = true;
           break;
 
-        case PROCESSORS_ARG: // "-X:processors=<n>" or "-X:processors=all"
-          int nProcs;
-          if (arg.equals("all")) {
-            /* Assume sysCall.sysNumProcessors() always returns a sane
-          value.  */
-            nProcs = sysCall.sysNumProcessors();
-          } else {
-            nProcs = primitiveParseInt(arg);
-          }
-          if (nProcs < 1) {
+        case AVAILABLE_PROCESSORS_ARG:
+          RVMThread.availableProcessors = primitiveParseInt(arg);
+          if (RVMThread.availableProcessors < 1) {
             VM.sysWrite("vm: ", p.value, " needs an argument that is at least 1");
             VM.sysWriteln(", but found ", arg);
             VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
-          RVMThread.numProcessors = nProcs;
           break;
 
           // -------------------------------------------------------------------

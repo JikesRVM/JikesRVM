@@ -490,8 +490,15 @@
         <equals arg1="${test.@{tag}.max.opt.level}" arg2=""/>
       </condition>
 
+      <condition property="test.@{tag}.processors-args" value="" else="-X:availableProcessors=${test.@{tag}.processors} -X:gc:threads=${test.@{tag}.processors}">
+        <or>
+          <equals arg1="${test.@{tag}.processors}" arg2=""/> 
+          <equals arg1="${test.@{tag}.processors}" arg2="all"/> 
+        </or>
+      </condition>
+
       <property name="test.@{tag}.rvm.args"
-                value="-X:vm:errorsFatal=true -X:processors=${test.@{tag}.processors} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args} ${test.@{tag}.extra.rvm.args} ${test.@{tag}.maxOptLevel-arg}"/>
+                value="-X:vm:errorsFatal=true ${test.@{tag}.processors-args} -Xms${test.@{tag}.initial.heapsize}M -Xmx${test.@{tag}.max.heapsize}M ${test.@{tag}.extra.args} ${test.rvm.extra.args} ${test.@{tag}.extra.rvm.args} ${test.@{tag}.maxOptLevel-arg}"/>
       <property name="test.@{tag}.tag" value="@{tag}"/>
       <property name="test.@{tag}.class" value="@{class}"/>
       <property name="test.@{tag}.args" value="@{args}"/>

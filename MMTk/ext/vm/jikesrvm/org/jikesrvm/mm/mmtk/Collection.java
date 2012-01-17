@@ -20,8 +20,10 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.CollectorThread;
+import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.FinalizerThread;
+
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
@@ -51,7 +53,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * @return The default number of collector threads to use.
    */
   public int getDefaultThreads() {
-    return RVMThread.numProcessors;
+    return SysCall.sysCall.sysNumProcessors();
   }
 
   /**

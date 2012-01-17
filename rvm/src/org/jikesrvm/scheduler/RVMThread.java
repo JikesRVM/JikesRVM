@@ -969,10 +969,9 @@ public final class RVMThread extends ThreadContext {
   public boolean osr_done = false;
 
   /**
-   * Number of processors that the user wants us to use. Only relevant for
-   * collector threads and the such.
+   * The number of processors to use.
    */
-  public static int numProcessors = 1;
+  public static int availableProcessors = -1;
 
   /**
    * Thread handle. Currently stores pthread_t, which we assume to be no larger

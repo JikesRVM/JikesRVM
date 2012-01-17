@@ -17,6 +17,7 @@ import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.options.Options;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
@@ -47,7 +48,7 @@ import org.vmmagic.pragma.*;
   /** @return The number of registered CollectorContext instances. */
   @Inline
   public int collectorCount() {
-    return RVMThread.numProcessors;
+    return Options.threads.getValue();
   }
 
   /** @return The active CollectorContext instance. */

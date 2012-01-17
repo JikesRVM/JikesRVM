@@ -31,7 +31,7 @@ public final class VMRuntime {
   private VMRuntime() { }
 
   static int availableProcessors() {
-    return RVMThread.numProcessors;
+    return RVMThread.availableProcessors;
   }
 
   static long freeMemory() {
