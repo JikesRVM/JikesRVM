@@ -221,38 +221,53 @@ import org.vmmagic.unboxed.*;
     int liveRatioAbove = function[0].length - 1;
     int gcLoadUnder = 1;
     int gcLoadAbove = function.length - 1;
-    while (true) {
-      if (function[0][liveRatioUnder+1] >= liveRatio) break;
-      liveRatioUnder++;
+    if (liveRatio >= 1.0) {
+      // liveRatio has maxed out
+      liveRatioUnder = liveRatioAbove;
+    } else {
+      while (true) {
+        if (function[0][liveRatioUnder+1] > liveRatio) break;
+        liveRatioUnder++;
+      }
+      while (true) {
+        if (function[0][liveRatioAbove-1] <= liveRatio) break;
+        liveRatioAbove--;
+      }
     }
-    while (true) {
-      if (function[0][liveRatioAbove-1] <= liveRatio) break;
-      liveRatioAbove--;
-    }
-    while (true) {
-      if (function[gcLoadUnder+1][0] >= gcLoad) break;
-      gcLoadUnder++;
-    }
-    while (true) {
-      if (function[gcLoadAbove-1][0] <= gcLoad) break;
-      gcLoadAbove--;
+    if (gcLoad >= 1.0) {
+      // gcRatio has maxed out
+      gcLoadUnder = gcLoadAbove;
+    } else {
+      while (true) {
+        if (function[gcLoadUnder+1][0] > gcLoad) break;
+        gcLoadUnder++;
+      }
+      while (true) {
+        if (function[gcLoadAbove-1][0] <= gcLoad) break;
+        gcLoadAbove--;
+      }
     }
 
     // (3) Compute the heap change ratio
     double factor = function[gcLoadUnder][liveRatioUnder];
-    double liveRatioFraction =
-      (liveRatio - function[0][liveRatioUnder]) /
-      (function[0][liveRatioAbove] - function[0][liveRatioUnder]);
-    double liveRatioDelta =
-      function[gcLoadUnder][liveRatioAbove] - function[gcLoadUnder][liveRatioUnder];
-    factor += (liveRatioFraction * liveRatioDelta);
-    double gcLoadFraction =
-      (gcLoad - function[gcLoadUnder][0]) /
-      (function[gcLoadAbove][0] - function[gcLoadUnder][0]);
-    double gcLoadDelta =
-      function[gcLoadAbove][liveRatioUnder] - function[gcLoadUnder][liveRatioUnder];
-    factor += (gcLoadFraction * gcLoadDelta);
-
+    if (liveRatioUnder != liveRatioAbove) {
+      // interpolate for liveRatio values in between two specified values in function table
+      double liveRatioFraction =
+        (liveRatio - function[0][liveRatioUnder]) /
+        (function[0][liveRatioAbove] - function[0][liveRatioUnder]);
+      double liveRatioDelta =
+        function[gcLoadUnder][liveRatioAbove] - function[gcLoadUnder][liveRatioUnder];
+      factor += (liveRatioFraction * liveRatioDelta);
+    }
+    if (gcLoadUnder != gcLoadAbove) {
+      // interpolate for gcLoad values in between two specified values in function table
+      double gcLoadFraction =
+        (gcLoad - function[gcLoadUnder][0]) /
+        (function[gcLoadAbove][0] - function[gcLoadUnder][0]);
+      double gcLoadDelta =
+        function[gcLoadAbove][liveRatioUnder] - function[gcLoadUnder][liveRatioUnder];
+      factor += (gcLoadFraction * gcLoadDelta);
+    }
     if (Options.verbose.getValue() > 2) {
       Log.write("Heap adjustment factor is ");
       Log.writeln(factor);
