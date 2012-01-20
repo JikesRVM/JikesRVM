@@ -938,7 +938,7 @@ sysNumProcessors()
 
     if (numCpus < 0) {
         if (firstRun) fprintf(SysTraceFile, "%s: WARNING: Can not figure out how many CPUs"
-                " are online; assuming 1\n");
+                              " are online; assuming 1\n", Me);
         numCpus = 1;            // Default
     }
 
@@ -1593,7 +1593,7 @@ sysZeroNT(void *dst, Extent cnt)
   unsigned int len = cnt;
 
   __asm__ volatile (
-		    ".align 16 \n\t"
+		    ".align 4 \n\t"
 		    "cmp $0x10, %%esi \n\t"
 		    "jl 0f \n\t"
 		    "pxor %%xmm0, %%xmm0 \n\t"
@@ -1788,7 +1788,7 @@ sysMMapErrno(char *start , size_t length ,
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
-    fprintf(stderr, "mmap (%x, %u, %d, %d, %d, %ld) failed with %d: ",
+    fprintf(stderr, "mmap (%x, %u, %d, %d, %d, %d) failed with %d: ",
        (Address) start, (unsigned) length, protection, flags, fd, offset, errno);
 #else
     fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",

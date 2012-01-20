@@ -521,7 +521,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
                  isRecoverable? "" : " UNRECOVERABLE",
                  signo, strsignal(signo));
 
-        writeErr("handler stack %p\n", localInstructionAddress);
+        writeErr("handler stack %x\n", localInstructionAddress);
         if (signo == SIGSEGV)
             writeErr("si->si_addr   %p\n", si->si_addr);
 #ifndef __x86_64__
@@ -546,7 +546,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         writeErr("eflags        0x%08x\n", IA32_EFLAGS(context));
         // writeErr("esp_at_signal 0x%08x\n", IA32_UESP(context));
         /* null if fp registers haven't been used yet */
-        writeErr("fpregs        %p\n", IA32_FPREGS(context));
+        writeErr("fpregs        %x\n", IA32_FPREGS(context));
 #ifndef __x86_64__
         writeErr("oldmask       0x%08lx\n", (unsigned long) IA32_OLDMASK(context));
         writeErr("cr2           0x%08lx\n",
@@ -740,7 +740,7 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     Address stackLimit
         = *(Address *)(threadObjectAddress + RVMThread_stackLimit_offset);
     if (sp <= stackLimit - 384) {
-        writeErr("sp (%p)too far below stackLimit (%p)to recover\n", sp, stackLimit);
+        writeErr("sp (%x)too far below stackLimit (%x)to recover\n", sp, stackLimit);
         signal(signo, SIG_DFL);
         raise(signo);
         // We should never get here.
@@ -998,31 +998,31 @@ createVM(void)
     bootRecord = (BootRecord *) bootDataRegion;
 
     if (bootRecord->bootImageDataStart != (Address) bootDataRegion) {
-      fprintf(SysErrorFile, "%s: image load error: built for %p but loaded at %p\n",
+      fprintf(SysErrorFile, "%s: image load error: built for %x but loaded at %p\n",
               Me, bootRecord->bootImageDataStart, bootDataRegion);
       return 1;
     }
 
     if (bootRecord->bootImageCodeStart != (Address) bootCodeRegion) {
-      fprintf(SysErrorFile, "%s: image load error: built for %p but loaded at %p\n",
+      fprintf(SysErrorFile, "%s: image load error: built for %x but loaded at %p\n",
               Me, bootRecord->bootImageCodeStart, bootCodeRegion);
       return 1;
     }
 
     if (bootRecord->bootImageRMapStart != (Address) bootRMapRegion) {
-      fprintf(SysErrorFile, "%s: image load error: built for %p but loaded at %p\n",
+      fprintf(SysErrorFile, "%s: image load error: built for %x but loaded at %p\n",
               Me, bootRecord->bootImageRMapStart, bootRMapRegion);
       return 1;
     }
 
     if ((bootRecord->spRegister % 4) != 0) {
-      fprintf(SysErrorFile, "%s: image format error: sp (%p) is not word aligned\n",
+      fprintf(SysErrorFile, "%s: image format error: sp (%x) is not word aligned\n",
                Me, bootRecord->spRegister);
       return 1;
     }
 
     if ((bootRecord->ipRegister % 4) != 0) {
-      fprintf(SysErrorFile, "%s: image format error: ip (%p) is not word aligned\n",
+      fprintf(SysErrorFile, "%s: image format error: ip (%x) is not word aligned\n",
               Me, bootRecord->ipRegister);
       return 1;
     }
