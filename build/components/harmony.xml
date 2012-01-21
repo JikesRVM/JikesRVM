@@ -19,7 +19,7 @@
   <property name="harmony.svn.revision" value="782693"/>
   <property name="harmony.base.url" value="http://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/classlib"/>
   <property name="harmony.description" value="Apache Harmony class libraries"/>
-  <property name="harmony.patchlevel" value="0"/>
+  <property name="harmony.patchlevel" value="2"/>
   <property name="harmony.component.dir" location="${components.dir}/harmony"/>
   <property name="harmony.package.dir" value="${harmony.component.dir}/${harmony.version}p${harmony.patchlevel}"/>
   <property name="harmony.dir" value="${harmony.package.dir}/harmony"/>
@@ -71,11 +71,15 @@
   <target name="patch-harmony-cvs" depends="fetch" if="harmony.from-svn">
     <patch patchfile="${components.patch.dir}/harmony-svn.RVM-358-01.patch"
            dir="${harmony.dir}" strip="0"/>
+    <patch patchfile="${components.patch.dir}/harmony-svn.RVM-925.patch"
+             dir="${harmony.dir}" strip="0"/>
   </target>
 
   <!-- Patches against local copy -->
   <target name="patch-harmony-local" depends="fetch" if="harmony.from-local">
     <patch patchfile="${components.patch.dir}/harmony-svn.RVM-358-01.patch"
+           dir="${harmony.dir}" strip="0"/>
+  <patch patchfile="${components.patch.dir}/harmony-svn.RVM-925.patch"
            dir="${harmony.dir}" strip="0"/>
   </target>
 

@@ -1,0 +1,103 @@
+Index: modules/luni/src/main/native/luni/shared/bigint.c
+===================================================================
+--- modules/luni/src/main/native/luni/shared/bigint.c	(revision 782693)
++++ modules/luni/src/main/native/luni/shared/bigint.c	(working copy)
+@@ -69,10 +69,10 @@
+ static void
+ LEFT_SHIFT (void *arIn, IDATA lenIn, IDATA shiftval)
+ {
+-  IDATA oldAt, newAt, shiftvalr, i, len = (lenIn + 1) / 2;
++  IDATA newAt, shiftvalr, i, len = (lenIn + 1) / 2;
+   U_64 *ar = (U_64 *) arIn;
+ 
+-  oldAt = 0, newAt = shiftval / 64;
++  newAt = shiftval / 64;
+   shiftval = shiftval % 64;
+   shiftvalr = 64 - shiftval;
+ 
+@@ -620,7 +620,7 @@
+     resultSize;
+   jlongArray resultObject = NULL;
+   U_32 *topStart = NULL, *bottomStart = NULL, *resultStart = NULL;
+-  IDATA topAt, bottomAt, resultAt, i, topZeroAdded = 0, tempNeg;
++  IDATA topAt, bottomAt, i, topZeroAdded = 0, tempNeg;
+   I_32 signedTemp;
+ 
+   BOOLEAN firstNegative = 0;
+@@ -813,7 +813,6 @@
+   topStart = resultStart;
+   topAt = 0;
+ 
+-  resultAt = resultSize;
+   bottomAt = 0;
+   fromPtr = topAt + topSize - 1;
+   fromPtr2 = fromPtr - 1;
+Index: modules/luni/src/main/native/luni/shared/socket.c
+===================================================================
+--- modules/luni/src/main/native/luni/shared/socket.c	(revision 782693)
++++ modules/luni/src/main/native/luni/shared/socket.c	(working copy)
+@@ -914,8 +914,8 @@
+     }
+ 
+   /* turn it into an integer and return it */
+-  valueJNI = value;
+-  return newJavaLangInteger (env, value);
++  valueJNI = (jint) value;
++  return newJavaLangInteger (env, valueJNI);
+ }
+ 
+ /**
+Index: modules/awt/src/main/native/linuxfont/unix/LinuxNativeFont.c
+===================================================================
+--- modules/awt/src/main/native/linuxfont/unix/LinuxNativeFont.c	(revision 782693)
++++ modules/awt/src/main/native/linuxfont/unix/LinuxNativeFont.c	(working copy)
+@@ -968,7 +968,7 @@
+         free(fontList);
+ 
+         throwNPException(env, "Not enough memory to create families list");
+-        return (jlong)(IDATA)NULL;
++        return NULL;
+     }
+ 
+     for (i = 0;i < numFonts;i++){
+Index: modules/luni/src/main/native/luni/shared/OSNetworkSystem.c
+===================================================================
+--- modules/luni/src/main/native/luni/shared/OSNetworkSystem.c  (revision 782693)
++++ modules/luni/src/main/native/luni/shared/OSNetworkSystem.c  (working copy)
+@@ -1945,14 +1945,13 @@
+ {
+   PORT_ACCESS_FROM_ENV(env);
+   hysocket_t socketP;
+-  I_32 result = 0;
+ 
+   socketP = getJavaIoFileDescriptorContentsAsAPointer(env, fileDescriptor);
+   if (hysock_socketIsValid(socketP)) {
+     /* Set the file descriptor before closing so the select polling loop will terminate. */
+     /* Some platforms wait in the socket close. */
+     setJavaIoFileDescriptorContents(env, fileDescriptor, (void *) -1);
+-    result = hysock_close(&socketP);
++    hysock_close(&socketP);
+   }
+ }
+ 
+Index: modules/luni/src/main/native/luni/unix/OSNetworkSystemLinux.c
+===================================================================
+--- modules/luni/src/main/native/luni/unix/OSNetworkSystemLinux.c  (revision 782693)
++++ modules/luni/src/main/native/luni/unix/OSNetworkSystemLinux.c  (working copy)
+685499394 +0100
+@@ -374,7 +374,6 @@
+     int socket = 0;
+     int opt;
+     int length = sizeof(opt);
+-    int socket_type;
+     struct sockaddr_in local_addr;
+     struct sockaddr_in remote_addr;
+     jclass channel_class, socketaddr_class,serverSocket_class,socketImpl_class;
+@@ -392,7 +391,6 @@
+ 	if(SOCK_STREAM !=opt && SOCK_DGRAM !=opt){
+ 		return NULL;
+ 	}
+-	socket_type = opt;
+ 
+ 	length  = sizeof(struct sockaddr);
+ 	if(0 != getsockname(socket,(struct sockaddr *)&local_addr,(unsigned int *)&length)){
