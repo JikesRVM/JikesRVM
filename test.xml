@@ -251,7 +251,7 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="gen-xml-results" depends="init,get-hg-version">
+  <target name="gen-xml-results" depends="test,get-hg-version">
     <mkdir dir="${build.results.dir}"/>
     <mkdir dir="${test.results.dir}"/>
     <tstamp prefix="test-run.end">
