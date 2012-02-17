@@ -144,7 +144,7 @@ public final class DynamicLibrary {
     // Run any JNI_OnLoad functions defined within the library
     if (!jniOnLoad.isZero()) {
       int version = runJNI_OnLoad(jniOnLoad);
-      checkJNIVersion(version);
+      //      checkJNIVersion(version);
     }
   }
 

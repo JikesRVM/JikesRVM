@@ -3184,6 +3184,7 @@ JNIEXPORT jboolean JNICALL
 JVM_SupportsCX8(void)
 {
 	printf("JVM_SupportsCX8(void)");
+	return true;
 }
 
 JNIEXPORT jboolean JNICALL

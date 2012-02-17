@@ -35,6 +35,7 @@ import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
 
 import org.jikesrvm.Callbacks;
 import org.jikesrvm.UnimplementedError;
@@ -697,8 +698,22 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
    * created lazily on first use.  Typically it won't ever get created.                                                                                    
    */
   Map<String, T> enumConstantDirectory() {
-      throw new Error("TODO enumConstatnDirectory");
+    System.out.println("EnumContantDirectory is called");
+    if (enumConstantDirectory == null) {
+      T[] universe = getEnumConstants();
+      if (universe == null)
+	throw new IllegalArgumentException(
+					   getName() + " is not an enum type");
+      Map<String, T> m = new HashMap<String, T>(2 * universe.length);
+      for (T constant : universe)
+	m.put(((Enum)constant).name(), constant);
+      enumConstantDirectory = m;
+    }
+    return enumConstantDirectory;
   }
+  private volatile transient Map<String, T> enumConstantDirectory = null;
+    //      throw new Error("TODO enumConstatnDirectory");
+  
 
   @Pure
   public boolean isEnum() {
