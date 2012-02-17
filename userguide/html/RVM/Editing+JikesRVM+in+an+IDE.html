@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Editing JikesRVM in an IDE</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Editing JikesRVM in an IDE
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Nov 11, 2011 by <font color="#0050B2">rgarner</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>One goal of the JikesRVM project over recent years has been the ability to develop JikesRVM in a development environment such as Eclipse.  This has been possible for the MMTk component since 2005, and as of early 2007 (release 2.9.0) it is possible to work with the majority of the JikesRVM codebase in Eclipse and similar environments.  With Jikes RVM release 2.9.1, setting up your Eclipse environment to work with Jikes RVM became even easier.</p>
+
+<h2 id="EditingJikesRVMinanIDE-EditingJikesRVMinEclipse">Editing JikesRVM in Eclipse</h2>
+
+<p>These instructions assume you are working with Jikes RVM version <strong>2.9.1</strong> or later.</p>
+<ol>
+	<li>Create a JikesRVM source tree either via Mercurial checkout or untar-ing a distribution.
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>$ hg clone <a href="http://jikesrvm.hg.sourceforge.net:8000/hgroot/jikesrvm/jikesrvm" class="external-link" rel="nofollow">http://jikesrvm.hg.sourceforge.net:8000/hgroot/jikesrvm/jikesrvm</a></p>
+</div></div></li>
+	<li>Create the machine-generated files and eclipse metadata:
+	<ul>
+		<li>If you have a <strong>recent version</strong> of Jikes RVM (<strong>3.0 onwards</strong>):
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>$ cd jikesrvm<br />
+$ bin/buildit --eclipse localhost</p>
+</div></div>
+<em>Note that if you will not or cannot build on your local machine</em>, substitute localhost for the name of a host you can build on (buildit will perform the build remotely and then copy the requisite files back).</li>
+		<li>If you are working on an <strong>older version</strong> (<strong>2.9.1 - 2.9.3</strong>), you can follow this procedure:
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>$ cd jikesrvm<br />
+$ ant -Dhost.name=ia32-linux -Dconfig.name=development<br />
+$ ant -Dhost.name=ia32-linux -Dconfig.name=development eclipse-project</p>
+</div></div>
+If you will not or cannot build on your local machine:
+		<ol>
+			<li>copy your tree to build build host somehow</li>
+			<li>perform the above ant tasks</li>
+			<li>copy the following generated files and directories back to the machine you will edit on:
+			<ul>
+				<li>jikesrvm/.project</li>
+				<li>jikesrvm/.classpath</li>
+				<li>jikesrvm/eclipse</li>
+			</ul>
+			</li>
+		</ol>
+		</li>
+	</ul>
+	</li>
+	<li>Import the newly created Eclipse project into your Eclipse workspace.
+	<ol>
+		<li>From Eclipse, select File--&gt;Import</li>
+		<li>Select &quot;Existing Projects Into Workspace&quot;<br />
+<img class="confluence-embedded-image" src="attachments/76400/5373966.jpg" data-image-src="attachments/76400/5373966.jpg"></li>
+		<li>Browse to find the top-level directory.</li>
+		<li>Select the project (in this case JikesRVM ia32-linux development)<br />
+<img class="confluence-embedded-image" src="attachments/76400/121372677.jpg" data-image-src="attachments/76400/121372677.jpg"></li>
+		<li>Hit Finish</li>
+	</ol>
+	</li>
+</ol>
+
+
+<h2 id="EditingJikesRVMinanIDE-EditingJikesRVMinNetBeans">Editing JikesRVM in NetBeans</h2>
+
+<ol>
+	<li>Follow the instructions for Eclipse including building the eclipse project with ant</li>
+	<li>Install the <a href="http://www.netbeans.org/kb/articles/import-eclipse.html" class="external-link" rel="nofollow">Eclipse project importer</a></li>
+	<li>Select File-<span style="text-decoration: line-through;">&gt;Import Project</span>-&gt;Eclipse Project
+	<ol>
+		<li>Choose to import project <a href="http://www.netbeans.org/kb/articles/eclipse-dependencies.html" class="external-link" rel="nofollow">ignoring project dependencies</a></li>
+		<li>Select the  top-level directory you created with the JikesRVM in as the project to import</li>
+		<li>Select a new folder as the destination (workspace) for the import</li>
+		<li>Hit Finish</li>
+	</ol>
+	</li>
+</ol>
+                    </div>
+
+                                        <div class="pageSection group">
+                        <div class="pageSectionHeader">
+                            <h2 id="attachments" class="pageSectionTitle">Attachments:</h2>
+                        </div>
+
+                        <div class="greybox" align="left">
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/76400/5373966.jpg">ImportWizard1.jpg</a> (image/jpeg)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/76400/121372677.jpg">ImportWizard2.jpg</a> (image/jpeg)
+                                <br/>
+                                                    </div>
+                    </div>
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

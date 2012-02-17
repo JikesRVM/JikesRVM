@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Object Model</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Object Model
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Jul 02, 2008 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <h2 id="ObjectModel-ObjectModel">Object Model</h2>
+
+<p>An <em>object model</em> dictates how to represent objects in storage; the best object model will maximize efficiency of frequent language operations while minimizing storage overhead. Jikes RVM's object model is defined by <code>ObjectModel</code>.</p>
+
+<h4 id="ObjectModel-Overview">Overview</h4>
+
+<p>Values in the Java<a href="http://docs.codehaus.org/display/RVM/Trademarks">™</a> programming language are either <em>primitive</em> (<em>e.g.</em> <code>int</code>, <code>double</code>, etc.)  or they are <em>references</em> (that is, pointers) to objects.  Objects are either <em>arrays</em> having elements or <em>scalar objects</em>having fields. Objects are logically composed of two primary sections: an object header (described in more detail below) and the object's instance fields (or array elements).</p>
+
+<p>The following non-functional requirements govern the Jikes RVM object model:</p>
+<ul>
+	<li>instance field and array accesses should be as fast as possible,</li>
+	<li>null-pointer checks should be performed by the hardware if possible,</li>
+	<li>method dispatch and other frequent runtime services should be fast,</li>
+	<li>other (less frequent) Java operations should not be prohibitively slow, and</li>
+	<li>per-object storage overhead (ie object header size) should be as small as possible.</li>
+</ul>
+
+
+<p>Assuming the reference to an object resides in a register, compiled code can access the object's fields at a fixed displacement in a single instruction. To facilitate array access, the reference to an array points to the first (zeroth) element of an array and the remaining elements are laid out in ascending order. The number of elements in an array, its <em>length</em>, resides just before its first element. Thus, compiled code can access array elements via base + scaled index addressing.</p>
+
+<p>The Java programming language requires that an attempt to access an object through a <code>null</code> object reference generates a <code>NullPointerException</code>. In Jikes RVM, references are machine addresses, and <code>null</code> is represented by address <em>0</em>. On Linux, accesses to both very low and very high memory can be trapped by the hardware, thus all null checks can be made implicit. However, the AIX<a href="http://docs.codehaus.org/display/RVM/Trademarks">™</a> operating system permits loads from low memory, but accesses to very high memory (at small <em>negative</em> offsets from a null pointer) normally cause hardware interrupts. Therefore on AIX only a subset of pointer dereferences can be protected by an implicit null check.</p>
+
+<h4 id="ObjectModel-ObjectHeader">Object Header</h4>
+
+<p>Logically, every object header contains the following components:</p>
+<ul>
+	<li><strong>TIB Pointer:</strong> The TIB (Type Information Block) holds information that applies to all objects of a type. The structure of the TIB is defined by <code>TIBLayoutConstants</code>. A TIB includes the virtual method table, a pointer to an object representing the type, and pointers to a few data structures to facilitate efficient interface invocation and dynamic type checking.</li>
+	<li><strong>Hash Code:</strong> Each Java object has an identity hash code. This can be read by <em>Object.hashCode</em> or in the case that this method overridden, by <em>System.identityHashCode</em>. The default hash code is usually the location in memory of the object, however, with some garbage collectors objects can move. So the hash code remains the same, space in the object header may be used to hold the original hash code value.</li>
+	<li><strong>Lock:</strong> Each Java object has an associated lock state. This could be a pointer to a lock object or a direct representation of the lock.</li>
+	<li><strong>Array Length:</strong> Every array object provides a length field that contains the length (number of elements) of the array.</li>
+	<li><strong>Garbage Collection Information:</strong> Each Java object has associated information used by the memory management system. Usually this consists of one or two mark bits, but this could also include some combination of a reference count, forwarding pointer, etc.</li>
+	<li><strong>Misc Fields:</strong> In experimental configurations, the object header can be expanded to add additional fields to every object, typically to support profiling.</li>
+</ul>
+
+
+<p>An implementation of this abstract header is defined by three files: <code>JavaHeader</code>, which supports TIB access, default hash codes, and locking; <code>AllocatorHeader</code>, which supports garbage collection information; and <code>MiscHeader</code>, which supports adding additional fields to all objects.</p>
+
+<h4 id="ObjectModel-FieldLayout">Field Layout</h4>
+
+<p>Fields tend to be recorded in the Java class file in the order they are declared in the Java source file. We lay out fields in the order they are declared with some exceptions to improve alignment and pack the fields in the object.</p>
+
+<p>Double and long fields benefit from being 8 byte aligned. Every RVMClass records the preferred alignment of the object as a whole. We lay out double and long fields first (and object references if these are 8 bytes long) so that we can avoid making holes in the field layout for alignment. We don't do this for smaller fields as all objects need to be a multiple of 4bytes in size.</p>
+
+<p>When we lay out fields we may create holes to improve alignment. For example, an int following a byte, we'll create a 3 byte hole following the byte to keep the int 4 byte aligned. Holes in the field layout can be 1, 2 or 4 bytes in size. As fields are laid out, holes are used to avoid increasing the size of the object. Sub-classes inherit the hole information of their parent, so holes in the parent object can be reused by their children. </p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

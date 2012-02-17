@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Uninterruptible Code</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Uninterruptible Code
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Mar 07, 2007 by <font color="#0050B2">pdonald</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <h2 id="UninterruptibleCode-WhataretheSemanticsofUninterruptibleCode">What are the Semantics of Uninterruptible Code? </h2>
+
+<p>Declaring a method uninterruptible enables a Jikes RVM developer to prevent the Jikes RVM compilers from inserting &quot;hidden&quot; thread switch points in the compiled code for the method.  As a result, the code can be written assuming that it cannot involuntarily &quot;lose control&quot; while executing due to a timer-driven thread switch. In particular, neither yield points nor stack overflow checks will be generated for uninterruptible methods.<br />
+When writing uninterruptible code, the programmer is restricted to a subset of the Java language.  The following are the restrictions on uninterruptible code.</p>
+<ol>
+	<li>Because a stack overflow check represents a potential yield point (if GC is triggered when the stack is grown), stack overflow checks are omitted from the prologues of uninterruptible code.  As a result, all uninterruptible code must be able to execute in the stack space available to them when the first uninterruptible method on the call stack is invoked.  This is typically about 8K for uninterruptible regions called from mutator code.  The collector threads must preallocate enough stack space, since all collector code is uninterruptible. As a result, using recursive methods in the GC subsystem is a bad idea.</li>
+	<li>Since no yield points are inserted in uninterruptible code, there will be no timer-driven thread switches while executing it.  So, if possible, one should avoid &quot;long running&quot; uninterruptible methods outside of the GC subsystem.</li>
+	<li>Certain bytecodes are forbidden in uninterruptible code, because Jikes RVM cannot implement them in a manner that ensures uninterruptibility. The forbidden bytecodes are: <em>aastore</em> ; <em>invokeinterface</em> ; <em>new</em> ; <em>newarray</em> ; <em>anewarray</em> ; <em>athrow</em> ; <em>checkcast</em> and <em>instanceof</em> unless the LHS type is a final class ; <em>monitorenter</em> , <em>monitorexit</em> , <em>multianewarray</em>.</li>
+	<li>Uninterruptible code cannot cause class loading and thus must not contain unresolved <em>getstatic</em>, <em>putstatic</em>, <em>getfield</em>, <em>putfield</em> ,<em>invokevirtual</em>, or <em>invokestatic</em> bytecodes.</li>
+	<li>Uninterruptible code cannot contain calls to interruptible code. As a consequence, it is illegal to override an uninterruptible virtual method with an interruptible method.</li>
+	<li>Uninterruptible methods cannot be synchronized.</li>
+</ol>
+
+
+<p>We have augmented the baseline compiler to print a warning message when one of these restrictions is violated. If uninterruptible code were to raise a runtime exception such as NullPointerException, ArrayIndexOutOfBoundsException, or ClassCastException, then it could be interrupted.  We assume that such conditions are a programming error and do not flag bytecodes that might result in one of these exceptions being raised as a violation of uninterruptibility. Checking for a particular method can be disabled by annotation the method with  <code>org.vmmagic.pragmas.LogicallyUninterruptible</code>.  This should be done with extreme care, but in a few cases is necessary to avoid spurious warning messages.</p>
+
+<p>The following rules determine whether or not a method is uninterruptible.</p>
+<ol>
+	<li>All class initializers are interruptible, since they can only be invoked during class loading.</li>
+	<li>All object constructors are interruptible, since they an only be invoked as part of the implementation of the new bytecode.</li>
+	<li>If a method is annotated with <code>org.vmmagic.pragmas.Interruptible</code> then it is interruptible.</li>
+	<li>If none of the above rules apply and a method is annotated with <code>org.vmmagic.pragmas.Uninterruptible</code>, then it is uninterruptible.</li>
+	<li>If none of the above rules apply and the declaring class is annotated with <code>org.vmmagic.pragmas.Uninterruptible</code> then it is uninterruptible.</li>
+</ol>
+
+
+<p>Whether to annotate a class or a method with <code>org.vmmagic.pragmas.Uninterruptible</code> is a matter of taste and mainly depends on the ratio of interruptible to uninterruptible methods in a class.  If most methods of the class should be uninterruptible, then annotated the class is preferred.</p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

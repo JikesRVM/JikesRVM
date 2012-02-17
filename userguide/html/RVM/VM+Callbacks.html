@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : VM Callbacks</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : VM Callbacks
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Jul 02, 2008 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>Jikes<a href="http://docs.codehaus.org/display/RVM/Trademarks">™</a> RVM provides callbacks for many runtime events of interest to the Jikes RVM programmer, such as classloading, VM boot image creation, and VM exit. The callbacks allow arbitrary code to be executed on any of the supported events.</p>
+
+<p>The callbacks are accessed through the nested interfaces defined in the Callbacks class. There is one interface per event type. To be notified of an event, register an instance of a class that implements the corresponding interface with Callbacks by calling the corresponding add...() method. For example, to be notified when a class is instantiated, first implement the Callbacks.ClassInstantiatedMonitor interface, and then call Callbacks.addClassInstantiatedMonitor() with an instance of your class. When any class is instantiated, the notifyClassInstantiated method in your instance will be invoked.</p>
+
+<p>The appropriate interface names can be obtained by appending &quot;Monitor&quot; to the event names (e.g. the interface to implement for the MethodOverride event is Callbacks.MethodOverrideMonitor). Likewise, the method to register the callback is &quot;add&quot;, followed by the name of the interface (e.g. the register method for the above interface is Callbacks.addMethodOverrideMonitor()).</p>
+
+<p>Since the events for which callbacks are available are internal to the VM, there are limitations on the behavior of the callback code. For example, as soon as the exit callback is invoked, all threads are considered daemon threads (i.e. the VM will not wait for any new threads created in the callbacks to complete before exiting). Thus, if the exit callback creates any threads, it has to join() with them before returning. These limitations may also produce some unexpected behavior. For example, while there is an elementary safeguard on any classloading callback that prevents recursive invocation (i.e. if the callback code itself causes classloading), there is no such safeguard across events, so, if there are callbacks registered for both ClassLoaded and ClassInstantiated events, and the ClassInstantiated callback code causes dynamic class loading, the ClassLoaded callback will be invoked for the new class, but not the ClassInstantiated callback.</p>
+
+<p>Examples of callback use can be seen in the Controller class in the adaptive system and the GCStatistics class.</p>
+
+<h2 id="VMCallbacks-AnExampleModifyingSPECjvm98toReporttheEndofaRun">An Example: Modifying SPECjvm98 to Report the End of a Run</h2>
+
+<p>The SPECjvm<a href="http://docs.codehaus.org/display/RVM/Trademarks">®</a>98 benchmark suite is configured to run one or more benchmarks a particular number of times. For example, the following runs the compress benchmark for 5 iterations:</p>
+
+<p>rvm SpecApplication -m5 -M5 -s100 -a _201_compress</p>
+
+<p>It is sometimes useful to have the VM notified when the application has completed an iteration of the benchmark. This can be performed by using the Callbacks interface. The specifics are specified below:</p>
+<ol>
+	<li>Modify spec/harness/ProgramRunner.java:
+	<ol>
+		<li>add an import statement for the Callbacks class:
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>import com.ibm.jikesrvm.Callbacks;</p>
+</div></div></li>
+		<li>before the call to runOnce add the following:
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>Callbacks.notifyAppRunStart(className, run);</p>
+</div></div></li>
+		<li>after the call to runOnce add the following:
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>Callbacks.notifyAppRunComplete(className, run);</p>
+</div></div></li>
+	</ol>
+	</li>
+	<li>Recompile the modified file:
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>javac -classpath .:$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar spec/harness/ProgramRunner.java</p>
+</div></div>
+or create a stub version of Callbacks.java and place it the appropriate directory structure with your modified file, i.e., com/ibm/jikesrvm/Callbacks.java</li>
+	<li>Run Jikes RVM as you normally would using the SPECjvm98 benchmarks.</li>
+</ol>
+
+
+<p>In the current system the Controller class will gain control when these callbacks are made and print a message into the AOS log file (by default, placed in Jikes RVM's current working directory and called AOSLog.txt).</p>
+
+<h2 id="VMCallbacks-AnotherExampleDirectingaRecompilationofAllMethodsDuringtheApplicationsExecution">Another Example: Directing a Recompilation of All Methods During the Application's Execution</h2>
+
+<p>Another callback of interest allows an application to direct the VM to recompile all executed methods at a certain point of the application's execution by calling the recompileAllDynamicallyLoadedMethods method in the Callbacks class. This functionality can be useful to experiment with the performance effects of when compilation occurs. This VM functionality can be disabled using the DISABLE_RECOMPILE_ALL_METHODS boolean flag to the adaptive system.</p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

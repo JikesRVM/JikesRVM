@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : IR</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : IR
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Dec 21, 2011 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>The optimizing compiler intermediate representation (IR) is held in an object of type <code>IR</code> and includes a list of instructions. Every instruction is classified into one of the pre-defined instruction formats. Each instruction includes an operator and zero or more operands. Instructions are grouped into basic blocks; basic blocks are constrained to having control-flow instructions at their end. Basic blocks fall-through to other basic blocks or contain branch instructions that have a destination basic block label. The graph of basic blocks is held in the <code>cfg</code> (control-flow graph) field of IR.</p><p>This section documents basic information about the intermediate instruction. For a tutorial based introduction to the material it is highly recommended that you read &quot;<a href="http://docs.codehaus.org/display/RVM/Presentations#Presentations-ir">Jikes RVM Optimizing Compiler Intermediate Code Representation</a>&quot;.</p><h2 id="IR-IROperators">IR Operators</h2><p>The IR operators are defined by the class <code>Operators</code>, which in turn is automatically generated from a template by a driver. The input to the driver are two files, both called <code>OperatorList.dat</code>. One input file resides in <code>$RVM_ROOT/rvm/src-generated/opt-ir</code> and defines machine-independent operators. The other resides in <code>$RVM_ROOT/rvm/src-generated/opt-ir/${arch</code>} and defines machine-dependent operators, where <code>${arch</code>} is the specific instruction architecture of interest.</p><p>Each operator in <code>OperatorList.dat</code> is defined by a five-line record, consisting of:</p><ul><li><code>SYMBOL</code>: a static symbol to identify the operator</li><li><code>INSTRUCTION_FORMAT</code>: the instruction format class that accepts this operator.</li><li><code>TRAITS</code>: a set of characteristics of the operator, composed with a bit-wise or (<em>|</em>) operator. See <code>Operator.java</code> for a list of valid traits.</li><li><code>IMPLDEFS</code>: set of registers implicitly defined by this operator; usually applies only to machine-dependent operators</li><li><code>IMPLUSES</code>: set of registers implicitly used by this operator; usually applies only to machine-dependent operators</li></ul><p>For example, the entry in <code>OperatorList.dat</code> that defines the integer addition operator is</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>INT_ADD
+Binary
+none
+&lt;blank line&gt;
+&lt;blank line&gt;</pre>
+</div></div><p>The operator for a conditional branch based on values of two references is defined by</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>REF_IFCOMP
+IntIfCmp
+branch | conditional
+&lt;blank line&gt;
+&lt;blank line&gt;</pre>
+</div></div><p>Additionally, the machine-specific <code>OperatorList.dat</code> file contains another line of information for use by the assembler. See the file for details.</p><h2 id="IR-InstructionFormats">Instruction Formats</h2><p>Every IR instruction fits one of the pre-defined <em>Instruction Formats</em>. The Java package <code>org.jikesrvm.compilers.opt.ir</code> defines roughly 75 architecture-independent instruction formats. For each instruction format, the package includes a class that defines a set of static methods by which optimizing compiler code can access an instruction of that format.</p><p>For example, <code>INT_MOVE</code> instructions conform to the <code>Move</code> instruction format. The following code fragment shows code that uses the <code>Operators</code> interface and the <code>Move</code> instruction format:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>import org.jikesrvm.compilers.opt.ir.*;
+class X {
+  void foo(Instruction s) {
+    if (Move.conforms(s)) {     // if this instruction fits the Move format
+      RegisterOperand r1 = Move.getResult(s);
+      Operand r2 = Move.getVal(s);
+      System.out.println(&quot;Found a move instruction: &quot; + r1 + &quot; := &quot; + r2);
+    } else {
+      System.out.println(s + &quot; is not a MOVE&quot;);
+    }
+  }
+}</pre>
+</div></div><p>This example shows just a subset of the access functions defined for the Move format. Other static access functions can set each operand (in this case, <code>Result</code> and <code>Val</code>), query each operand for nullness, clear operands, create Move instructions, mutate other instructions into Move instructions, and check the index of a particular operand field in the instruction. See the Javadoc<a href="http://docs.codehaus.org/display/RVM/Trademarks">&trade;</a> reference for a complete description of the API.</p><p>Each fixed-length instruction format is defined in the text file <code>$RVM_ROOT/rvm/src-generated/opt-ir/InstructionFormatList.dat</code>. Each record in this file has four lines:</p><ul><li><code>NAME</code>: the name of the instruction format</li><li><code>SIZES</code>: the number of operands defined, defined and used, and used</li><li><code>SIG</code>: a description of each operand, each description given by<ul><li><code>D/DU/U</code>: Is this operand a def, use, or both?</li><li><code>NAME</code>: the unique name to identify the operand</li><li><code>TYPE</code>: the type of the operand (a subclass of <code>Operand)</code></li><li><code>[opt]</code>: is this operand optional?</li></ul></li><li><code>VARSIG</code>: a description of repeating operands, used for variable-length instructions.</li></ul><p>So for example, the record that defines the <code>Move</code> instruction format is</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>Move
+1 0 1
+&quot;D Result RegisterOperand&quot; &quot;U Val Operand&quot;
+&lt;blank line&gt;</pre>
+</div></div><p>This specifies that the <code>Move</code> format has two operands, one def and one use. The def is called <code>Result</code> and must be of type <code>RegisterOperand</code>. The use is called <code>Val</code> and must be of type <code>Operand</code>.</p><p>A few instruction formats have variable number of operands. The format for these records is given at the top of <code>InstructionFormatList.dat</code>. For example, the record for the variable-length <code>Call</code> instruction format is:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>Call
+1 0 3 1 U 4
+&quot;D Result RegisterOperand&quot; \
+&quot;U Address Operand&quot; &quot;U Method MethodOperand&quot; &quot;U Guard Operand opt&quot;
+&quot;Param Operand&quot;</pre>
+</div></div><p>This record defines the <code>Call</code> instruction format. The second line indicates that this format always has at least 4 operands (1 def and 3 uses), plus a variable number of uses of one other type. The trailing 4 on line 2 tells the template generator to generate special constructors for cases of having 1, 2, 3, or 4 of the extra operands. Finally, the record names the <code>Call</code> instruction operands and constrains the types. The final line specifies the name and types of the variable-numbered operands. In this case, a <code>Call</code> instruction has a variable number of (use) operands called <code>Param</code>. Client code can access the ith parameter operand of a <code>Call</code> instruction <code>s</code> by calling <code>Call.getParam(s,i)</code>.</p><p>A number of instruction formats share operands of the same semantic meaning and name. For convenience in accessing like instruction formats, the template generator supports four common operand access types:</p><ul><li><code>ResultCarrier</code>: provides access to an operand of type <code>RegisterOperand</code> named <code>Result</code>.</li><li><code>GuardResultCarrier</code>: provides access to an operand of type <code>RegisterOperand</code> named <code>GuardResult</code>.</li><li><code>LocationCarrier</code>: provides access to an operand of type <code>LocationOperand</code> named <code>Location</code>.</li><li><code>GuardCarrier</code>: provides access to an operand of type <code>Operand</code> named <code>Guard</code>.</li></ul><p>For example, for any instruction <code>s</code> that carries a <code>Result</code> operand (eg. <code>Move</code>, <code>Binary</code>, and <code>Unary</code> formats), client code can call <code>ResultCarrier.conforms(s)</code> and <code>ResultCarrier.getResult(s)</code> to access the <code>Result</code> operand.</p><p>Finally, a note on rationale. Religious object-oriented philosophers will cringe at the InstructionFormats. Instead, all this functionality could be implemented more cleanly with a hierarchy of instruction types exploiting (multiple) inheritance. We rejected the class hierarchy approach due to efficiency concerns of frequent virtual/interface method dispatch and type checks. Recent improvements in our interface invocation sequence and dynamic type checking algorithms may alleviate some of this concern.</p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

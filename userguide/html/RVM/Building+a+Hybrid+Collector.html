@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Building a Hybrid Collector</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Building a Hybrid Collector
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Dec 21, 2011 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>Extend the Tutorial plan to create a &quot;copy-MS&quot; collector, which allocates into a copying nursery and at collection time, copies nursery survivors into a mark-sweep space. This plan does not require a write barrier (it is not strictly generational, as it will collect the whole heap each time the heap is full). Later we will extended it with a write barrier, allowing the nursery to be collected in isolation. Such a collector would be a generational mark-sweep collector, similar to GenMS.</p><h5 id="BuildingaHybridCollector-AddaCopyingNursery">Add a Copying Nursery</h5><ol><li>In <code>TutorialConstraints</code>, make the following changes:<ol><li><p>Override the <code>movesObjects()</code> method to return <code>true</code>, reﬂecting that we are now building a copying collector:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>@Override
+public boolean movesObjects() { return true; }</pre>
+</div></div></li><li>Remove the restriction on default alloc bytes (since default allocation will now go to a bump-pointed space). To do this, remove the override of <code>maxNonLOSDefaultAllocBytes()</code>.</li><li><p>Add a restriction on the maximum size that may be copied into the (default) non-LOS mature space:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>@Override
+public int maxNonLOSCopyBytes() { return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES;}</pre>
+</div></div></li></ol></li><li>In <code>Tutorial</code>, add a nursery space:<ol><li><p>Create a new space, <code>nurserySpace</code>, of type <code>CopySpace</code>. The new space will initially be a <em>from-space</em>, so provide <code>false</code> as the third argument. Initialize the space with a <em>contiguous</em> virtual memory region consuming 0.15 of the heap by passing &quot;<code>0.15</code>&quot; and &quot;<code>true</code>&quot; as arguments to the constructor of <code>VMRequest</code>(more on this later). Create and initialize a new integer constant to hold the descriptor for this new space:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>public static final CopySpace nurserySpace = new CopySpace(&quot;nursery&quot;, DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
+public static final int NURSERY = nurserySpace.getDescriptor();</pre>
+</div></div></li><li>Add the necessary import statements</li><li>Add <code>nurserySpace</code> to the <code>PREPARE</code> and <code>RELEASE</code> phases of <code>collectionPhase()</code>, prior to the existing calls to <code>msTrace</code>. Pass <code>true</code> to <code>nurserySpace.prepare()</code> indicating that the nursery is a <em>from-space</em> during collection.</li><li>Fix accounting so that <code>Tutorial</code> accounts for space consumed by <code>nurserySpace</code>:<ol><li>Add <code>nurserySpace</code> to the equation in <code>getPagesUsed()</code>,</li></ol></li><li>Since initial allocation will be into a copying space, we need to account for copy reserve:<ol><li>Change <code>getPagesRequired()</code>, replacing <code>msSpace.requiredPages()</code> with <code>(nurserySpace.requiredPages() * 2)</code></li><li>Add a method to override <code>getCollectionReserve()</code> which returns <code>nurserySpace.reservedPages() + super.getCollectionReserve()</code>,</li><li>Add a method to override <code>getPagesAvail()</code>, returning <code>super.getPagesAvail()/2</code>,</li></ol></li></ol></li></ol><h5 id="BuildingaHybridCollector-Addnurseryallocation">Add nursery allocation</h5><p>In <code>TutorialMutator</code>, replace the free-list allocator (<code>MarkSweepLocal</code>) with add a nursery allocator. Add an instance of <code>CopyLocal</code>, calling it <code>nursery</code>. The constructor argument should be <code>Tutorial.nurserySpace</code>:</p><ol><li>change <code>alloc()</code> to use <code>nursery.alloc()</code> rather than <code>ms.alloc()</code>.</li><li>remove the call to <code>msSpace.postAlloc()</code> from <code>postAlloc()</code> since there is no special post-allocation work necessary for the new copy space. The call to <code>super.postAlloc()</code> should remain conditional on <code>allocator != Tutorial.ALLOC_DEFAULT</code>.</li><li>change the check within <code>getAllocatorFromSpace()</code> to check against <code>Tutorial.nurserySpace</code> and to return <code>nursery</code>.</li><li>adjust <code>collectionPhase</code><ol><li>replace call to <code>ms.prepare()</code> with <code>nursery.reset()</code></li><li>remove call to <code>ms.release()</code> since there are no actions necessary for the nursery allocator upon release.</li></ol></li></ol><h5 id="BuildingaHybridCollector-Addcopyingtothecollector">Add copying to the collector</h5><p>In <code>TutorialCollector</code> add the capacity for the collector to allocate (copy), since our new hybrid collector will perform copying.</p><ol><li><p>Add local allocators for both large object space and the mature space:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>  private final LargeObjectLocal los = new LargeObjectLocal(Plan.loSpace);
+  private final MarkSweepLocal mature = new MarkSweepLocal(Tutorial.msSpace);</pre>
+</div></div></li></ol><ol><li><p>Add an <code>allocCopy()</code>method that conditionally allocates to the LOS or mature space:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>@Override
+public final Address allocCopy(ObjectReference original, int bytes,
+                               int align, int offset, int allocator) {
+  if (allocator == Plan.ALLOC_LOS)
+    return los.alloc(bytes, align, offset);
+  else
+    return mature.alloc(bytes, align, offset);
+}</pre>
+</div></div></li><li><p>Add a <code>postCopy()</code>method that conditionally calls LOS or mature space post-copy actions:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>@Override
+public final void postCopy(ObjectReference object, ObjectReference typeRef,
+                           int bytes, int allocator) {
+  if (allocator == Plan.ALLOC_LOS)
+    Plan.loSpace.initializeHeader(object, false);
+  else
+    Tutorial.msSpace.postCopy(object, true);
+}</pre>
+</div></div></li></ol><h5 id="BuildingaHybridCollector-MakenecessarychangestoTutorialTraceLocal">Make necessary changes to <code>TutorialTraceLocal</code></h5><ol><li>Add <code>nurserySpace</code> clauses to <code>isLive()</code> and <code>traceObject()</code>:<ol><li><p>Add the following to <code>isLive()</code>:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (Space.isInSpace(Tutorial.NURSERY, object))
+  return Tutorial.nurserySpace.isLive(object);</pre>
+</div></div></li><li><p>Add the following to <code>traceObject()</code>:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (Space.isInSpace(Tutorial.NURSERY, object))
+  return Tutorial.nurserySpace.traceObject(this, object, Tutorial.ALLOC_DEFAULT);</pre>
+</div></div></li></ol></li><li><p>Add a new <code>precopyObject()</code>method, which is necessary for all copying collectors:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>@Override
+public ObjectReference precopyObject(ObjectReference object) {
+  if (object.isNull()) return object;
+  else if (Space.isInSpace(Tutorial.NURSERY, object))
+    return Tutorial.nurserySpace.traceObject(this, object, Tutorial.ALLOC_DEFAULT);
+  else
+    return object;
+}</pre>
+</div></div></li><li><p>Add a new <code>willNotMoveInCurrentCollection()</code>method, which identifies those objects which do not move (necessary for copying collectors):</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>@Override
+public boolean willNotMoveInCurrentCollection(ObjectReference object) {
+  return !Space.isInSpace(Tutorial.NURSERY, object);
+}</pre>
+</div></div></li></ol><p>With these changes, Tutorial should now work. You should be able to again build a BaseBaseTutorial image and test it against any benchmark. Again, if you use <code>-X:gc:verbose=3</code> you can see the movement of data among the spaces at each garbage collection.</p><div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br /><p>This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-04.zip" class="external-link" rel="nofollow">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.1. You can use the archive to verify you've completed the above steps correctly.</p></td></tr></table></div>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

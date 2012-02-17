@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : BURS</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : BURS
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Oct 31, 2011 by <font color="#0050B2">ebrangs</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>The optimizing compiler uses the Bottom-Up Rewrite System (BURS) for instruction selection.  BURS is essentially a tree pattern matching system derived from <a href="http://code.google.com/p/iburg/" class="external-link" rel="nofollow">Iburg</a> by David R. Hanson. (See &quot;Engineering a Simple, Efficient Code-Generator Generator&quot; by Fraser, Hanson, and Proebsting, LOPLAS 1(3), Sept. 1992.) The instruction selection rules for each architecture are specified in an architecture-specific fileslocated in <code>$RVM_ROOT/rvm/src-generated/opt-burs/${arch</code>}, where ${arch} is the specific instruction architecture of interest. The rules are used in generating a parser, which transforms the IR.</p>
+
+<p>Each rule is defined by a four-line record, consisting of:</p>
+<ul>
+	<li><code>PRODUCTION</code>: the tree pattern to be matched.  The format of each pattern is explained below.</li>
+	<li><code>COST</code>: the cost of matching the pattern as opposed to skipping it.  It is a Java<a href="http://docs.codehaus.org/display/RVM/Trademarks">™</a> expression that evaluates to an integer.</li>
+	<li><code>FLAGS</code>: The flags for the operation:
+	<ul>
+		<li>NOFLAGS: this production performs no operation</li>
+		<li>EMIT_INSTRUCTION: this production will emit instructions</li>
+		<li>LEFT_CHILD_FIRST: visit child on left-and side of production first</li>
+		<li>RIGHT_CHILD_FIRST: visit child on right-hand side of production first</li>
+	</ul>
+	</li>
+	<li><code>TEMPLATE</code>: Java code to emit</li>
+</ul>
+
+
+<p>Each production has a <em>non-terminal</em>, which denotes a value, followed by a colon (&quot;:&quot;), followed by a dependence tree that produces that value. For example, the rule resulting in memory add on the INTEL architecture is expressed in the following way:</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>stm:    INT_STORE(INT_ADD_ACC(INT_LOAD(r,riv),riv),OTHER_OPERAND(r, riv))
+ADDRESS_EQUAL(P(p), PLL(p), 17)
+EMIT_INSTRUCTION
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, MO_S(P(p), DW), BinaryAcc.getValue(PL(p))));
+</pre>
+</div></div>
+<p>The production in this rule represents the following tree:</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>         r     riv
+          \    /
+         INT_LOAD  riv
+             \     /
+           INT_ADD_ACC  r  riv
+                    \   |  /
+                   INT_STORE
+</pre>
+</div></div>
+<p>where <code>r</code> is a non-terminal that represents a register or a tree producing a register, <code>riv</code> is a non-terminal that represents a register (or a tree producing one) or an immediate value, and <code>INT_LOAD</code>, <code>INT_ADD_ACC</code> and <code>INT_STORE</code> are operators (<em>terminals</em>). <code>OTHER_OPERAND</code> is just an abstraction to make the tree binary.</p>
+
+<p>There are multiple helper functions that can be used in Java code (both cost expressions and generation templates).  In all code sequences the name <code>p</code> is reserved for the current tree node. Some of the helper methods are shortcuts for accessing properties of tree nodes:</p>
+<ul>
+	<li><code>P(p)</code> is used to access the instruction associated with the current (root) node,</li>
+	<li><code>PL(p)</code> is used to access the instruction associated with the left child of the current (root) node (provided it exists),</li>
+	<li><code>PR(p)</code> is used to access the instruction associated with the right child of the current (root) node (provided it exists),</li>
+	<li>similarly, <code>PLL(p)</code>, <code>PLR(p)</code>, <code>PRL(p)</code> and <code>PRR(p)</code> are used to access the instruction associated with the left child of the left child, right child of the left child, left child of the right child and right child of the right child, respectively, of the current (root) node (provided they exist).</li>
+</ul>
+
+
+<p>What the above rule basically reads is the following:<br />
+If a tree shown above is seen, evaluate the cost expression (which, in this case, calls a helper function to test whether the addresses in the <code>STORE</code> (<code>P(p)</code>) and the <code>LOAD</code> (<code>PLL(p)</code>) instructions are equal.  The function returns 17 if they are, and a special value <code>INFINITE</code> if not), and if the cost is acceptable, emit the <code>STORE</code> instruction (<code>P(p)</code>) mutated in place into a machine-dependent add-accumulate instruction (<code>IA32_ADD</code>) that adds a given value to the contents of a given memory location.</p>
+
+<p>The rules file is used to generate a file called <code>ir.brg</code>, which, in turn, is used to produce a file called <code>BURS_STATE.java</code>.</p>
+
+<p>For more information on helper functions look at <code>BURS_Helpers.java</code>. For more information on the BURS algorithm see <code>BURS.java</code>.</p>
+
+<h2 id="BURS-Futuredirections">Future directions</h2>
+
+<p>Whilst jburg allows us to do good instruction selection there are a number of areas where it is lacking:</p>
+
+<h3 id="BURS-Vectoroperations">Vector operations</h3>
+
+<p>We can't write productions for vector operations unless we match an entire tree of operations. For example, it would be nice to write a rule of the form:</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>(r, r): ADD(r,r), ADD(r,r)
+</pre>
+</div></div>
+<p>if say the architecture supported a vector add operation (ie SIMD). Unfortunately we can't have tuples on the LHS of expressions and the comma represents that matching two coverings is necessary. <a href="BURS.html">Leupers</a> has shown how with a modified BURS system they can achieve this result. Their syntax is:</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>r: ADD(r,r)
+r: ADD(r,r)
+</pre>
+</div></div>
+<p><span class="confluence-anchor-link" id="BURS-leupers"></span></p>
+<ul>
+	<li><a href="http://doi.acm.org/10.1145/343647.343679" class="external-link" rel="nofollow">Rainer Leupers, Code selection for media processors with SIMD instructions, 2000</a></li>
+</ul>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

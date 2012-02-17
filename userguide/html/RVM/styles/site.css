@@ -1,0 +1,5410 @@
+
+/* Confluence master stylesheet */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+body.content-preview {
+    background: #fff;
+    border: none;
+}
+
+body, p, td, table, tr, .bodytext, .stepfield {
+    font-size: 10pt;
+    line-height: 1.3;
+    color: #000;
+    font-weight: normal;
+}
+
+/* defaults for cleaner markup */
+img {
+    border: 0;
+}
+/* temporary until these can be removed and made into icons */
+img.legacyicon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+
+table {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+td, th {
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    vertical-align: top;
+}
+
+#page {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#PageContent {
+    text-align: left;
+    background-color: #fff;
+    padding: 0 0 20px 0;
+    margin: 0;
+}
+
+.group:after {
+    clear: both;
+    content: ".";
+    display: block;
+    font-size: 0;
+    height: 0;
+    visibility: hidden;
+}
+
+.print-only {
+    display: none;
+}
+
+.monospaceInput {
+    font: 12px Monaco, Consolas, "Courier New", monospace;
+}
+
+pre {
+    padding: 0;
+    margin: 10px 0;
+    text-align: left;
+    overflow: auto;
+}
+
+
+/* Page layout groupings */
+.page-section {
+    display: table;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+.page-group {
+    display: table-row;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+.page-item {
+    display: table-cell;
+    margin: 0;
+    min-width: 256px; /* grid minimum */
+    padding: 0 0 0 16px;
+    vertical-align: top;
+}
+.page-item:first-child {
+    padding: 0;
+}
+
+/* two columns, primary being wider */
+.page-section.double .page-item.primary {
+    width: 85%;
+}
+.page-section.double .page-item.secondary {
+    width: 15%;
+}
+
+/* @end Page layout groupings */
+
+/* non-table sidebar groups for admin pages including space admin and browsing tabs */
+.admin-sidebar-group {
+    background: #f0f0f0;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 0 0 10px 0;
+}
+.admin-sidebar-group h2 {
+    border-bottom: 1px solid #ccc;
+    font-size: 13px;
+    margin: 0 0 10px 0;
+}
+.admin-sidebar-group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+/* @end sidebar groups */
+
+.helpheading {
+    font-weight: bold;
+    background-color: #d0d9bd;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    padding: 4px;
+    margin: 0;
+    margin-top: 10px;
+}
+.helpcontent {
+    padding: 4px 4px 20px 4px;
+    background-color: #f5f7f1;
+}
+
+.help-section-div .helpheading {
+    margin: 0;
+}
+.help-section-div {
+    margin-bottom: 2em;
+}
+
+#print-friendly-help-toggle {
+    position: absolute;
+    top: 1em;
+    right: 1em;
+    text-indent: -999em;
+    width: 16px;
+    height: 16px;
+    background-image: url("../../../images/icons/print_16.gif");
+    background-repeat: no-repeat;
+    outline: none;
+}
+
+#commentsHide {
+    color: #666;
+    font-weight: normal;
+}
+
+#showingComments {
+    border: none;
+    font-size: 10pt;
+}
+
+.pageSection {
+    margin: 20px 0 0 0;
+}
+
+.pageSectionTitle {
+    margin-bottom: 5px;
+}
+
+.pageSectionHeader {
+    margin-bottom: 5px;
+    padding: 2px 0;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.pageSectionHeader.summary {
+    border-bottom: none;
+}
+
+.pageSectionBody {
+    margin-top: 4px;
+}
+
+#main-content {
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.child-display {
+    padding: 2px 2px 2px 12px;
+    display: block;
+}
+
+#children-section {
+    margin-top: 16px;
+}
+
+#children-section-title {
+    font-size: 1.35em;
+    padding-right: 7px;
+}
+
+#children-section .section-header {
+    padding-left: 12px;
+    position: relative;
+}
+
+#children-section-title a,
+#children-section-title a:active,
+#children-section-title a:hover {
+    font-weight:normal;
+    text-decoration:none;
+}
+
+#children-section .children-subtitle {
+    color: #666;
+    text-decoration: underline;
+}
+
+#children-section-title a,
+#children-section .children-subtitle {
+    *zoom: 1; /* IE6 and 7 */
+}
+
+.children-show-hide.icon {
+    left: -5px;
+    position: absolute;
+    top: 4px;
+}
+
+#page-children .throbber {
+    margin: 5px auto auto 16px;
+}
+
+.anonymousAlert, .lockAlert {
+    background-color: #f0f0f0;
+    border: 1px dashed red;
+    font-size: 11px;
+    padding: 10px 5px;
+    margin: 4px;
+    line-height: 13px;
+}
+
+.lockAlert {
+    width: 50%;
+}
+
+.navmenu {
+    border: 1px solid #f0f0f0;
+    margin: 0;
+}
+
+.menuheading {
+    font-weight: bold;
+    padding: 5px 4px 5px 10px;
+    color: #222;
+    background-color: #f0f0f0;
+}
+
+.navmenu.collapsible-menu .menuheading {
+    background: #f0f0f0 url(../../../images/icons/grey_arrow_down.gif) no-repeat 98% 50%;
+}
+.navmenu.collapsible-menu .menuheading.closed {
+    background-image: url(../../../images/icons/grey_arrow_right.gif);
+}
+
+.menuitems {
+    padding: 4px 4px 20px 4px;
+}
+
+ul.navmenu {
+    padding-left: 0;
+    margin-top: 0;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+
+ul.navmenu li.menu-section {
+    list-style: none;
+}
+
+.menu-section-list {
+    margin: 0;
+    padding: 5px 0 10px 0;
+}
+
+.menu-section-list li {
+    list-style: none;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.menu-section-list li a:hover {
+    background-color: #f0f0f0;
+}
+
+.menu-section-list li.active a,
+.menu-section-list li.active a:hover {
+    color: #fff;
+    font-weight: bold;
+    background-color: #444; /* set to neutral colour */
+}
+
+.menu-section-list li a {
+    text-decoration: none;
+    color: #666;
+    display: block;
+    padding: 0.2em 10px;
+    cursor: pointer;
+}
+
+.menu-section-list li a img {
+    padding-right: 2px;
+}
+
+.rightpanel {
+    background: #f0f0f0;
+    -moz-border-radius: 3px; /* Firefox */
+    -webkit-border-radius: 3px; /* Safari */
+    border-radius: 3px; /* CSS3 (and Opera) */
+    padding: .9em;
+}
+
+h3.underlined,
+#helpheading,
+.sidebar-heading {
+    padding: 0;
+    margin: 10px 0;
+    text-align: left;
+    color: #333;
+    border-bottom: 1px solid #ccc;
+}
+
+#helpheading,
+#helpcontent h3.underlined,
+.sidebar-heading {
+    font-size: 13px;
+    margin: -.1em;
+    padding: .1em .1em .2em .1em;
+}
+
+#helpcontent h3.helpheading-spacing{
+    margin-top: 20px;
+}
+
+#helpcontent {
+    margin-top: .9em;
+}
+
+#helpcontent p {
+    margin-bottom: 0;
+    margin-top: .9em;
+}
+
+#helpcontent ul {
+    padding-left: 1.3em;
+}
+
+#helpcontent dl {
+    margin-top: 0;
+}
+
+#helpcontent dl dd {
+    margin: 0;
+    color: #333;
+    font-size: 90%;
+    margin-bottom: .2em;
+}
+
+#helpcontent dl dd code,
+#helpcontent dl dd pre {
+    color: #666;
+    margin: 0;
+    padding: 0;
+}
+
+#helpcontent dl dd.text-formatting code {
+    display: inline-block;
+    width: 6em;
+}
+
+#helpcontent dl dt {
+    margin-top: 1em;
+}
+#helpcontent dl dt.first {
+    margin-top: 0;
+}
+
+.helptab-unselected {
+    font-weight: bold;
+    padding: 5px;
+    background-color: #f5f7f1;
+}
+.helptab-selected {
+    font-weight: bold;
+    background-color: #d0d9bd;
+    padding: 5px;
+}
+.helptabs {
+    margin: 0;
+    background-color: #f5f7f1;
+    padding: 5px;
+}
+
+#profileSummary h3 {
+    font-weight: bold;
+    font-size: 10pt;
+    margin: 12px 0 4px;
+    padding: 0;
+}
+#profileSummary ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pageheader {
+    padding: 5px 5px 5px 0;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.pagetitle {
+    font-size: 24px;
+    line-height: normal;
+    font-weight: bold;
+}
+
+.newpagetitle {
+    color: #ccc !important;
+}
+
+.steptitle {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 7px;
+}
+
+.substeptitle {
+    font-size: 12px;
+    font-weight: bold;
+    margin: 2px 4px 4px 4px;
+    padding: 2px 4px 1px 4px;
+}
+
+.has-blog-sidebar #title-text a {
+    word-wrap: break-word;
+    display: inline-block;
+    max-width: 75%;
+}
+
+.stepdesc {
+    font-size: 10pt;
+    line-height: 13pt;
+    font-weight: normal;
+    color: #666;
+    margin-top: 7px;
+    margin-bottom: 7px;
+}
+
+.steplabel {
+    font-weight: bold;
+    margin-right: 4px;
+    color: black;
+    float: left;
+    width: 15%;
+    text-align: right;
+}
+
+.stepfield {
+    background: #f0f0f0;
+    padding: 5px;
+}
+
+.submitButtons{
+    margin-top:5px;
+    text-align:right;
+}
+
+.formtitle {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.sectionbottom {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.topRow {
+    border-top-width: 2px;
+    border-top-style: solid;
+}
+
+/* CONF-20585:
+ * non-dashboard headings will keep their current style
+ * text styling is duplicated in the div because not all divs contain headings
+ */
+.tabletitle {
+    font-size: 10pt;
+    font-weight: bold;
+    padding: 3px 0 2px 0;
+    margin: 8px 4px 2px 0;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+}
+.tabletitle h2,
+.wiki-content .tabletitle h2 {
+    font-size: 10pt;
+    font-weight: bold;
+    padding: 0;
+    margin: 0;
+}
+form[name=inlinecommentform] .tabletitle {
+    border: 0;
+}
+
+.tabletitleops {
+    overflow: hidden; /* suppress full-width behaviour of focus dotted outline in FF */
+    float: right;
+}
+.tabletitleops, .tabletitleops a, .tabletitleops img {
+    vertical-align: middle;
+}
+.tabletitleops img {
+    border: none;
+}
+.tabletitleops a {
+    text-decoration: none;
+}
+
+.fullWidth {
+    width: 100%;
+}
+
+.pagesubheading {
+    color: #666;
+    font-size: 10px;
+    padding: 0 0 5px 0;
+}
+
+hr {
+    height: 1px;
+}
+
+h1 a:link, h1 a:visited, h1 a:active {
+    text-decoration: none;
+}
+
+.logocell {
+    padding: 10px;
+}
+
+input,
+textarea,
+textarea.editor {
+    font-family: Arial, Helvetica, FreeSans, sans-serif;
+    font-size: 10pt;
+    color: #000;
+}
+
+input:-moz-placeholder {
+    color: #666;
+}
+
+textarea,
+textarea.editor {
+    color: #333;
+}
+
+.spacenametitle-printable {
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 25px;
+    margin: 0;
+}
+
+.spacenametitle-printable a,
+.spacenametitle-printable a:visited {
+    text-decoration: none;
+}
+
+.blogDate {
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+}
+
+.blogSurtitle {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 3px;
+    margin: 1px 1px 10px 1px;
+}
+
+.blog-post-listing {
+    margin-bottom: 66px;
+}
+
+.blog-post-listing .logo-heading-block {
+    padding-left: 61px;
+}
+
+.blog-post-listing a.blogHeading{
+    margin: 0.05em 0;
+    padding: 0;
+}
+
+.blog-post-listing .blogHeading{
+    display: inline-block;
+    word-wrap: break-word;
+    margin: 0.1em 0;
+}
+.blog-post-listing .logoBlock{
+    display: inline-block;
+    float: left;
+    margin-left: -61px;
+    vertical-align: top;
+}
+
+.blog-post-listing .page-metadata{
+    margin: 0.1em 0 0.1em 0.1em;
+}
+
+.blog-post-listing .page-metadata.not-personal{
+   font-size: 1em;
+}
+
+.blog-post-listing .wiki-content {
+    clear: both;
+}
+
+a.blogHeading {
+    font-size: 20pt;
+    line-height: normal;
+    font-weight: bold;
+    text-decoration: none;
+    word-wrap: break-word;
+}
+
+.blogHeading a:hover {
+   text-decoration: underline;
+}
+
+.blog-pagination{
+    padding-bottom: 1em;
+}
+
+.endsection {
+    color: #666;
+    clear: both;
+    padding: 1em 0 0.5em;
+    font-size: 1em;
+}
+.endsectionleftnav {
+    text-align: right;
+    color: #666;
+    clear: both;
+    padding-top: 10px;
+}
+
+.endsection img{
+    border: 0;
+    vertical-align: middle;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    line-height: normal;
+    font-weight: bold;
+    padding: 2px 2px 2px 0;
+}
+
+h1 {
+    font-size: 24px;
+    margin: 36px 0 4px 0;
+}
+
+h2 {
+    font-size: 18px;
+    margin: 27px 0 4px 0;
+}
+
+h3 {
+    font-size: 14px;
+    margin: 21px 0 4px 0;
+}
+
+h4 {
+    font-size: 12px;
+    margin: 18px 0 4px 0;
+}
+
+h5 {
+    font-size: 10px;
+    margin: 14px 0 4px 0;
+}
+
+h6 {
+    font-size: 8px;
+    margin: 14px 0 4px 0;
+}
+
+.smallfont {
+    font-size: 10px;
+}
+.descfont {
+    color: #666;
+    font-size: 10px;
+}
+.smallerfont {
+    font-size: 9px;
+}
+.smalltext {
+    color: #666;
+    font-size: 12px;
+}
+.smalltext a {
+    color: #666;
+}
+.greyText
+{
+    color: #666;
+}
+.smalltext-blue {
+    font-size: 8pt;
+    color: #69c;
+}
+.surtitle {
+    margin-left: 1px;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #666;
+}
+
+div.padded {
+    padding: 4px;
+}
+
+div.thickPadded {
+    padding: 10px;
+}
+
+h3.macrolibrariestitle {
+    margin: 0;
+}
+
+div.centered {
+    text-align: center;
+    margin: 10px;
+}
+
+div.centered table {
+    margin: 0 auto;
+    text-align: left;
+}
+
+/* @group table styles */
+.tableview {
+    width: 100%; /* vast majority are 100% */
+}
+.tableview table {
+    margin: 0;
+}
+.tableview tr.alternateRow {
+    background: #f0f0f0;
+}
+.tableview th {
+    text-align: left;
+    font-size: 12px;
+    padding: 5px 15px 2px 0;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+.tableview td {
+    text-align: left;
+    border-color: #eee;
+    border-width: 0 0 1px 0;
+    border-style: solid;
+    margin: 0;
+    padding: 5px 15px 3px 0;
+}
+/* common use case: wide left cell, narrow right-aligned table cell with an icon in it */
+.tableview-action-text {
+    text-align: left;
+    width: 99%;
+}
+.tableview-action-icon {
+    text-align: right;
+    width: 1%;
+}
+
+.grid {
+    margin: 2px 0 5px 0;
+    border-collapse: collapse;
+}
+.grid th  {
+    border: 1px solid #ccc;
+    padding: 2px 4px 2px 4px;
+    background: #f0f0f0;
+    text-align: center;
+}
+.grid td  {
+    border: 1px solid #ccc;
+    padding: 3px 4px 3px 4px;
+}
+.gridHover {
+    background-color: #f9f9f9;
+}
+
+table.condensed {
+    border-collapse: collapse;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+td.infocell {
+    background-color: #f0f0f0;
+}
+/* @end table styles */
+
+/* We can remove this once the below error/success classes have been removed from Confluence and replaced with AUI messages */
+.aui-message .svg-icon {
+    background: none;
+}
+
+.error {
+    background-color: #fcc;
+}
+
+.errorBox {
+    background-color: #fcc;
+    border: 1px solid #c00;
+    padding: 5px;
+    margin: 5px;
+}
+
+.errorMessage, .errorMessage p {
+    color: #c00;
+}
+
+.success {
+    background-color: #dfd;
+}
+
+.successBox {
+    background-color: #dfd;
+    border: 1px solid #090;
+    padding: 5px;
+    margin-top:5px;
+    margin-bottom:5px;
+}
+
+blockquote {
+    font-style: italic;
+    font-size: 10pt;
+    border-left-width: 1px;
+    border-left-style: solid;
+    padding: 0 20px;
+    margin: 10px 20px;
+}
+
+blockquote p {
+    font-size: 10pt;
+}
+
+blockquote em {
+    font-style: normal;
+}
+
+div.small {
+    font-size: 9px;
+}
+
+h1.pagename {
+    margin-top: 0;
+}
+
+/* The text how the "This is a preview" comment should be shown. */
+.previewnote {
+    text-align: center;
+    font-size: 11px;
+    color: red;
+}
+
+/* How the preview content should be shown */
+.previewcontent {
+    background: #e0e0e0;
+}
+
+/* How the system messages should be shown (DisplayMessage.jsp) */
+.messagecontent {
+    background: #e0e0e0;
+}
+
+.templateparameter {
+    font-size: 9px;
+    color: #00008b;
+}
+
+#conflict-diffs{
+    display: table-cell;
+    border-top: 1px solid #bbb;
+    border-bottom:  1px solid #bbb;
+}
+
+#conflict-wrapper {
+    position: relative;
+}
+
+/*
+   CONFDEV-6595 In order to leave space for the diff key box we're adding 255px to the right margin
+   The min-height has been added to ensure that the diff key box does not overlap with the page title.
+*/
+.edit #page-diffs {
+    max-height: 200px;
+    min-height: 100px;
+    overflow: auto;
+    padding: 10px 255px 10px 10px;
+}
+
+#conflict-wrapper .key-diffs {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+}
+
+#page-diffs .diff {
+    margin-top: 0;
+}
+#page-diffs .diff div {
+    word-wrap: break-word;
+}
+
+.key-diffs {
+    border: 1px solid #CCCCCC;
+    float: right;
+    padding: 0.5em;
+}
+.key-diffs .diff {
+    margin: 0;
+    padding: 0;
+}
+
+.diff {
+    font: 12px Monaco, Consolas, "Courier New", monospace;
+    padding: 0 0 0 1.5em;
+    margin-top: 1em;
+}
+.diff td {
+    font-size: 0.9em;
+    padding-bottom: 0.3em;
+}
+.diff-added-lines, .diff-added-words, .diff-added-chars {
+    background: #dfd;
+}
+.diff-deleted-lines, .diff-deleted-words, .diff-deleted-chars {
+    color: #999;
+    background: #fdd;
+    text-decoration: line-through;
+}
+.differror {
+    background: #A52A2A;
+}
+
+div.diff-snip-link img.twixie,
+div.diff-snip-text img.twixie {
+    margin: 0 4px -6px -20px; /* Twixie is 16 pixels wide, sum of left and right margins should be -16px */
+}
+
+div.diff-snip-link,
+div.diff-snip-text {
+    margin: 0.85em 0;
+}
+
+.greybackground {
+    background: #f0f0f0
+}
+
+.greybox {
+    border: 1px solid #ddd;
+    padding: 3px;
+    margin: 1px 1px 10px 1px;
+}
+
+.borderedGreyBox {
+    background-color: #F0F0F0;
+    padding: 0.9em;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    margin-bottom: 17px;
+
+}
+
+.borderedLabelHeading{
+    border-bottom: 1px solid #CCCCCC;
+    color: #333333;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 0.7em;
+}
+
+.greyboxfilled {
+    border: 1px solid #ddd;
+    background: #f0f0f0;
+    padding: 3px;
+    margin: 1px 1px 10px 1px;
+}
+
+.lightGreyBox {
+    background: #fafafa;
+}
+
+.navBackgroundBox {
+    padding: 5px;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+}
+
+.previewBoxTop {
+    background-color: #f0f0f0;
+    border-width: 1px 1px 0px 1px;
+    border-style: solid;
+    padding: 5px;
+    margin: 5px 0px 0px 0px;
+    text-align: center;
+}
+.previewContent {
+    background-color: #fff;
+    border-width: 0px 1px 0px 1px;
+    border-style: solid;
+    padding: 10px;
+    margin: 0px;
+}
+.previewBoxBottom {
+    background-color: #f0f0f0;
+    border-width: 0px 1px 1px 1px;
+    border-style: solid;
+    padding: 5px;
+    margin: 0px 0px 5px 0px;
+    text-align: center;
+}
+
+.functionbox {
+    background-color: #f0f0f0;
+    border: 1px solid;
+    padding: 3px;
+    margin: 1px 1px 10px 1px;
+}
+
+.functionbox-greyborder {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 3px;
+    margin: 1px 1px 10px 1px;
+}
+
+.rowNormal {
+    background-color: #fff;
+ }
+
+.rowAlternate {
+    background-color: #f7f7f7;
+}
+
+/* used in the list attachments table */
+.rowAlternateNoBottomColor {
+    background-color: #f7f7f7;
+}
+
+.rowAlternateNoBottomColor td,
+.rowAlternateNoBottomNoColor td {
+    border-bottom: 0;
+}
+
+.rowHighlight {
+    background-color: #f0f0f0;
+}
+
+td.greenBar,
+td.greenbar,
+td.graybar,
+td.redbar,
+td.darkredbar {
+    font-size: 1em;
+    border: 1px solid #9c9c9c;
+    padding: 0;
+}
+
+td.greenBar,
+td.greenbar {
+    background: #00df00;
+}
+td.graybar {
+    background: #808080;
+}
+td.redbar {
+    background: #df0000;
+}
+td.darkredbar {
+    background: #af0000;
+}
+
+tr.testpassed {
+    font-size: 2px;
+    background: #dfd;
+    padding: 0;
+}
+tr.testfailed {
+    font-size: 2px;
+    background: #fdd;
+    padding: 0;
+}
+
+.toolbar  {
+    margin: 0;
+    border-collapse: collapse;
+}
+
+.toolbar td  {
+    border: 1px solid #ccc;
+    padding: 2px;
+    color: #ccc;
+}
+
+td.noformatting {
+    border-width: 0;
+    border-style: none;
+    text-align: center;
+    padding: 0;
+}
+
+/*
+ * Divs displaying the license information, if necessary.
+ */
+.license {
+    border-top: 1px solid #bbb;
+    text-align: center;
+    font-size: 10pt;
+    background-color: #ffffe0;
+}
+
+.license-eval, .license-none {
+    background-color: #fcc;
+}
+
+.license-eval b, .license-none b {
+    color: #900;
+}
+
+/*
+ * The shadow at the bottom of the page between the main content and the
+ * "powered by" section.
+ */
+.bottomshadow {
+    height: 12px;
+    background-image: url("../../../images/border/border_bottom.gif");
+    background-repeat: repeat-x;
+}
+
+/*
+ * Styling of the operations box
+ */
+.navmenu .operations li, .navmenu .operations ul {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.navmenu .operations ul {
+    margin-bottom: 9px;
+}
+
+.navmenu .label {
+    font-weight: inherit;
+}
+
+/*
+ * Styling of ops as a toolbar
+ */
+.toolbar div {
+    display: none;
+}
+
+.toolbar .label {
+    display: none;
+}
+
+.toolbar .operations {
+    display: block;
+}
+
+.toolbar .operations ul {
+    display: inline;
+    list-style: none;
+    margin-left: 10px;
+    padding-left: 0;
+}
+
+.toolbar .operations li {
+    list-style: none;
+    display: inline;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+/* non tabs */
+.tabnav .nontabs {
+    padding: 0;
+    margin: 5px 0 0 3px;
+    display: block;
+    float: left;
+}
+
+/* alphabet list */
+#squaretab {
+    margin-left: 0;
+    padding-left: 0;
+    white-space: nowrap;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 8pt;
+    line-height: 11pt
+}
+
+#squaretab li {
+    display: inline;
+    list-style-type: none;
+}
+
+#squaretab a {
+    padding: 5px 7px 3px 7px;
+    border-width: 1px;
+    border-style: solid;
+}
+
+#squaretab a:link,
+#squaretab a:visited {
+    color: #fff;
+    text-decoration: none;
+}
+
+#squaretab a:hover {
+    text-decoration: none;
+}
+
+#current {
+    background: #fff;
+    color: #000;
+}
+
+.blogcalendar th,
+.blogcalendar td  {
+    font-size: x-small;
+    font-weight: normal;
+    line-height: 140%;
+    padding: 2px;
+}
+
+table.blogcalendar {
+    border-width: 1px;
+    border-style: solid;
+}
+
+.blogcalendar th.calendarhead,
+a.calendarhead {
+    font-size: x-small;
+    font-weight: bold;
+    padding: 2px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+}
+
+.blogcalendar th.calendarhead,
+.calendarhead,
+.calendarhead:link,
+.calendarhead:visited,
+.calendarhead:active,
+.calendarhead:hover {
+    color: #fff;
+}
+
+.blogcalendar th {
+    font-size: x-small;
+    font-weight: bold;
+    padding: 2px;
+    background-color: #f0f0f0;
+}
+
+.blogcalendar td {
+    font-size: x-small;
+    font-weight: normal;
+}
+
+.sidebar-section #bloglist{
+    margin-top: 5px;
+    display: inline;
+}
+
+
+#bloglist{
+    background-color: #f0f0f0;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    width: 22em;
+    padding-top: 0.1em;
+}
+
+.blogmonthnavigation{
+    border:1px solid #CCCCCC;
+    position:relative;
+    text-decoration:none;
+    display: inline-block;
+    width: 10em;
+    font-size: 0.85em;
+    text-align:center;
+    margin: 0 0.3em 1em 1.1em;
+    padding: 0.2em 0.4em;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+
+div.pagination .blogmonthnavigation{
+    margin: 0 0.5em 0 0;
+    width: 5em;
+    font-size: 1em;
+}
+
+#blog-sidebar .bloglistmultiple{
+    position: absolute;
+}
+
+.blog-sidebar-items {
+    list-style-type: none;
+    padding-left: 16px;
+}
+
+.bloglistitems li .icon-container {
+    display:block;
+    float:none;
+    padding-left:1.75em;
+}
+
+.bloglistmultiple .bloglistheading h2{
+    padding-top: 0;
+}
+
+.bloglistitems{
+    list-style-type: none;
+    padding-left: 1em;
+    padding-right: 1em;
+    margin-top: 0.5em;
+    margin-bottom: 0;
+    padding-bottom: 0.5em;
+}
+
+.bloglistitems li{
+    padding-bottom: 7px;
+    word-wrap: break-word;
+}
+
+.bloglistitems li img{
+    padding-right: 0.5em;
+    vertical-align: middle;
+}
+
+
+.bloglistheading h2{
+    text-align: left;
+    margin: 1em;
+    color: #333333;
+}
+
+.bloglistheading h2 a{
+    text-decoration: none;
+    color: #333333;
+}
+
+.has-personal-sidebar .bloglistheading h2 a,
+.has-personal-sidebar .bloglistheading h2
+{
+    margin-left: -0.1em;
+    margin-right: -0.1em;
+    padding: 0.1em 0.1em 0.2em;
+}
+
+.has-personal-sidebar .bloglistitems
+{
+    margin-left: -0.9em;
+}
+
+.has-personal-sidebar .blogmonthnavigation
+{
+    margin-left: 0;
+    margin-right: 1em;
+
+}
+
+#bloglist .control {
+    position: absolute;
+    top: 8px;
+}
+#bloglist .control.prev {
+    left: 13px;
+}
+
+#bloglist .control.next {
+    right: 13px;
+}
+
+.searchGroup {
+    padding: 0 0 10px 0;
+    background: #f0f0f0;
+}
+
+.searchGroupHeading {
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    padding: 2px 4px 1px 4px;
+}
+
+.searchItem {
+    padding: 1px 4px;
+}
+
+.searchItemSelected {
+    padding: 1px 4px;
+    font-weight: bold;
+    background: #ddd;
+}
+
+/* permissions page styles */
+#gPermissionsTable td,
+#gPermissionsTable th,
+#uPermissionsTable td,
+#uPermissionsTable th,
+#aPermissionsTable td,
+#aPermissionsTable th {
+    padding: 2px;
+}
+
+.permissionHeading {
+    border-bottom: #bbb;
+    border-width: 0 0 1px 0;
+    border-style: solid;
+    font-size: 16px;
+    text-align: left;
+}
+
+.permissionTab,
+.permissionSuperTab,
+.permissionCell {
+    border-width: 0 0 0 1px;
+    border-style: solid;
+}
+
+.permissionTab {
+    font-size: 10px;
+}
+
+.permissionCell {
+    border-left: #bbb;
+    white-space: nowrap;
+}
+
+/* side menu highlighting (e.g. space content screen) */
+.optionPadded {
+    padding: 2px;
+}
+
+.optionSelected, .optionPadded.selected {
+    background-color: #ffc;
+    padding: 2px;
+    border: 1px solid #ddd;
+    margin: -1px;
+}
+
+.optionSelected a, .optionPadded.selected a {
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+}
+
+/* space view controls/filters - eg. view Recently updated/Alphabetcal/Tree. Removed greyLinks but retain vertical spacing */
+.space-view-controls {
+    padding: 10px 3px;
+}
+
+/* styles for extended operations */
+.greyLinks a:link,
+.greyLinks a:visited,
+.greyLinks a:active,
+.greyLinks a:hover {
+    color: #666;
+    text-decoration: underline;
+}
+
+.greyLinks {
+    color: #666;
+    padding: 10px;
+}
+
+.operation-links {
+    color: #666;
+    margin-bottom: 10px;
+}
+.operation-links a:link,
+.operation-links a:visited,
+.operation-links a:active,
+.operation-links a:hover {
+    color: #666;
+    text-decoration: underline;
+}
+
+.separatorLinks a:link,
+.separatorLinks a:visited,
+.separatorLinks a:active {
+    color: white;
+}
+
+.greynavbar {
+    background-color: #f0f0f0;
+    border-top-width: 1px;
+    border-top-style: solid;
+}
+
+.greyFormBox {
+    border: 1px solid #ccc;
+    padding: 5px;
+}
+
+.openPageHighlight {
+    background-color: #ffc;
+    padding: 2px;
+    border: 1px solid #ddd;
+}
+
+.editPageInsertLinks, .editPageInsertLinks a {
+    color: #666;
+    font-weight: bold;
+    font-size: 10px;
+}
+
+ul.square {
+    list-style-type: square;
+}
+
+.inputSection{
+    margin-bottom: 20px;
+}
+
+.tab-navigation .current a {
+    color: #000;
+    background-color: #fff;
+    border-bottom-color: #fff;
+}
+
+.topPadding {
+    margin-top: 20px;
+}
+
+/* new form style */
+.form-block {
+    padding: 6px;
+}
+.form-error-block {
+    background: #fcc;
+    border-top: #f0f0f0 1px solid;
+    border-bottom: #f0f0f0 1px solid;
+    margin-bottom: 6px;
+    padding: 0 12px;
+}
+.form-element-large {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.form-element-small {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.form-header {
+    background: #ffffe0;
+    border-top: #f0f0f0 1px solid;
+    border-bottom: #f0f0f0 1px solid;
+    margin-bottom: 6px;
+    padding: 12px;
+}
+.form-header p, .form-block p, .form-error-block p {
+    line-height: normal;
+    margin: 12px 0;
+}
+.form-example {
+    color: #888;
+    font-size: 11px;
+}
+.form-divider {
+    border-bottom: #ccc 1px solid;
+    margin-bottom: 6px;
+}
+.confluence-button,
+a.confluence-button,
+a.confluence-button:link,
+a.confluence-button:hover,
+a.confluence-button:visited {
+    text-decoration: none;
+    border: 1px solid #aaa;
+    color: #000;
+    padding: 5px 10px;
+    cursor: default;
+    background: #fff url(../../../images/decoration/buttons-bg-white.png) repeat-x 0 100%;
+    -moz-border-radius: 5px; /* Firefox */
+    -webkit-border-radius: 5px; /* Safari */
+    border-radius: 5px;
+}
+
+.confluence-button:active,
+a.confluence-button:active {
+    border-color: #69c;
+    background-color: #eee;
+    background-image: url(../../../images/decoration/buttons-bg.png);
+}
+
+.form-block .error {
+    padding: 6px;
+    margin-bottom: 6px;
+}
+
+form.edit-trust-app fieldset {
+    border: none;
+}
+form.edit-trust-app fieldset div {
+    border: none;
+    border-left: solid 11em #f0f0f0;
+    padding: 0;
+    float: left;
+}
+form.edit-trust-app fieldset label {
+    float: left;
+    width: 10em;
+    padding: 0;
+    margin: 5px 1em 0 -10.5em;
+    text-align: right;
+    clear: left;
+}
+form.edit-trust-app fieldset input,
+form.edit-trust-app fieldset textarea {
+     margin: 5px 0 0 0;
+     float: left;
+}
+form.edit-trust-app fieldset div.buttons {
+     border: none;
+     clear: left;
+     text-align: center;
+     float: none;
+}
+form.edit-trust-app fieldset div.buttons input {
+     float: none;
+}
+
+.status-red {
+    color: #800;
+    font-weight: bold;
+}
+.status-green {
+    color: #080;
+    font-weight: bold;
+}
+
+.person {
+    background-color: white;
+    width: 200px;
+    float: left;
+}
+.person td {
+    white-space: nowrap;
+}
+
+#blogcalendar span.fwdArrow {
+    float: right;
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-repeat: no-repeat;
+    background-image: url(/images/icons/forwd_16.gif);
+}
+#blogcalendar span.fwdArrow span {
+    display: none;
+}
+#blogcalendar span.backArrow {
+    float: left;
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-repeat: no-repeat;
+    background-image: url(/images/icons/back_16.gif);
+}
+#blogcalendar span.backArrow span {
+    display: none;
+}
+.pageInfoTable {
+    padding: 0;
+    margin: 0;
+    border: 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+.pageInfoTable td {
+    padding: 3px;
+}
+.pageInfoTable tr.alternateRow {
+    background: #f0f0f0;
+}
+.pageInfoLayoutTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pageInfoLayoutTable td {
+    padding: 5px 16px 5px 0;
+}
+
+.pageInfoLayoutTable .tableview td {
+    padding-left: 0;
+}
+
+.pageInfoLayoutTable ul {
+    padding-left: 20px;
+    list-style-type: none;
+}
+
+.memoryusagebar {
+    width: 100%;
+}
+.memoryusagebar td {
+    border: none !important;
+    vertical-align: middle !important;
+}
+
+input.alignedCheckbox {
+    margin: 0;
+}
+
+div.spacer {
+    clear: both;
+}
+
+span.left {
+    float: left;
+    text-align: left;
+}
+
+span.right {
+    float: right;
+    text-align: right;
+}
+
+.nobr {
+    white-space: nowrap;
+}
+
+label.normal {
+    font-weight: normal;
+    color: black
+}
+
+div.leftFloatMargined {
+    float: left;
+    margin-right: 2px
+}
+
+#entitySearchResults {
+    border-collapse: collapse;
+    background-color: #fafafa;
+    text-align: left;
+    width: 100%;
+}
+
+#entitySearchResults td {
+    border-top: 1px solid #ccc;
+    padding: 3px;
+    background-color: white;
+    vertical-align: top;
+}
+
+#entitySearchResults th {
+    color: #666;
+    padding: 3px;
+    white-space:nowrap;
+}
+
+#entitySearchResults .firstColumn {
+    width: 2%;
+    text-align: right;
+}
+
+#entitySearchResults .secondColumn {
+    width: 1px;
+    text-align: right;
+}
+
+a.grey {
+    color: #666;
+}
+
+div.topBottomMargin {
+    margin: 10px 0 10px 0
+}
+
+div.bottomMargin {
+    margin-bottom: 10px
+}
+
+.clearBoth {
+    clear: both;
+}
+
+#labelInputSpan {
+    margin-top: 1px;
+}
+
+form#quickSearch {
+    margin: 2px;
+    padding: 0;
+}
+
+form#quickSearch input {
+    font-size: 10pt;
+    vertical-align: middle;
+}
+
+.grey {
+    color: #666;
+}
+
+table.attachments {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.attachments th {
+    white-space: nowrap;
+    width: 1%;
+}
+
+table.attachments td {
+    white-space: nowrap;
+    vertical-align: top;
+    width: 1%;
+}
+
+table.attachments td.comment, table.attachments th.comment, table.attachments td.attachedto, table.attachments th.attachedto {
+    white-space: normal;
+    width: auto;
+}
+
+#exportContentTree {
+    list-style-type: none;
+    margin: 5px 0;
+}
+
+/* hidden: use when we want the content totally unavailable. */
+.hidden,
+li.hidden {
+    display: none !important;
+    visibility: hidden;
+}
+
+#main {
+    text-align: left;
+    background-color: #fff;
+}
+#header {
+    min-height: 1.8em;
+    line-height: 1.8;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    z-index: 6;
+}
+
+/* quick search */
+.quick-search {
+    margin: 0;
+    padding: 0;
+}
+.quick-search fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+.quick-search legend {
+    display: none;
+}
+input.blank-search,
+input.placeholded,
+.quick-search .placeholded {
+    color: #666;
+}
+
+/* quick search in the header */
+#header .quick-search {
+    float: right;
+}
+#header .quick-search-query {
+    width: 13em;
+}
+
+#breadcrumbs {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#breadcrumbs li {
+    white-space: nowrap;
+    display: inline-block;
+    margin: 0 .2em 0 0;
+    padding-left: 15px;
+    background: url(../../../images/decoration/white_breadcrumbs_indicator.png);
+    background-repeat: no-repeat;
+    background-position: 3px center;
+}
+#breadcrumbs li.first {
+    padding-left: 0;
+    background-image: none;
+}
+#breadcrumbs li a {
+    text-decoration: none;
+}
+#breadcrumbs li a:hover {
+    text-decoration: underline;
+}
+#breadcrumbs li span {
+    display: block;
+}
+#ellipsis strong {
+    cursor: pointer;
+    font-weight: normal;
+}
+#breadcrumbs li.hidden-crumb {
+    display: none;
+}
+
+a.twisty-open, a.twisty-closed {
+    background: no-repeat 50% 50%;
+    float: left;
+    margin-right: 0.5em;
+}
+a.twisty-open {
+    background-image: url(../../../images/icons/grey_arrow_down.gif);
+}
+a.twisty-closed {
+    background-image: url(../../../images/icons/grey_arrow_right.gif);
+}
+
+a.print {
+    background: url(../../../images/icons/print_16.gif) no-repeat 50% 50%;
+}
+a.feed {
+    background: url(../../../images/icons/feed-icon-16x16.png) no-repeat 50% 50%;
+}
+a.pdf {
+    background: url(../../../images/icons/attachments/pdf_16.png) no-repeat 50% 50%;
+}
+a.help {
+    background: url(../../../images/icons/help_16.png) no-repeat 50% 50%;
+}
+a.add-user {
+    background: url(../../../images/icons/classic/16/125.png) no-repeat 50% 50%;
+}
+
+a.remove-user {
+    background: url(../../../images/icons/classic/16/123.png) no-repeat 50% 50%;
+}
+
+a.groups {
+    background: url(../../../images/icons/classic/16/127.png) no-repeat 50% 50%;
+}
+
+a.cancel {
+    background: url(../../../images/icons/emoticons/error.png) no-repeat 50% 50%;
+}
+
+a.search-icon {
+    background: url(../../../images/icons/srch_16.gif) no-repeat 50% 50%;
+}
+
+a img {
+    border: none;
+}
+
+a.texticon {
+    min-height: 16px;
+    text-align: left;
+    padding:0 10px 0 20px;
+    background-position: 0 50%;
+    outline:0 none;
+}
+
+
+/* // Links **/
+h1.pagetitle {
+    line-height: 2;
+    margin: 0 0 10px 0;
+    width: 100%;
+}
+
+h1.pagetitle img {
+    margin: 0 .3em 0 0;
+}
+br.clear {
+    clear: both;
+    height: 1px;
+    overflow: hidden;
+}
+#footer, #footer-warning {
+    background: #f0f0f0;
+    text-align: center;
+}
+#footer p.license, #footer p.license a {
+    background: #036;
+    color: #fff;
+    margin: 0;
+}
+#poweredby {
+    color: #666;
+    margin: 0;
+    padding: .5em;
+    list-style: none;
+}
+#poweredby a, #footer-warning {
+    color: #666;
+    text-decoration: none;
+}
+#poweredby li {
+    display: inline;
+}
+#poweredby li.print-only {
+    display: none;
+}
+
+#poweredby a:hover.hover-footer-link{
+    text-decoration: underline;
+}
+
+#footer p.warning {
+    margin: 0 40px 10px 40px;
+    text-align: center;
+}
+
+#menu-bar, #navigation .space-browse-links {
+    float: right;
+}
+#navigation .space-browse-links ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#menu-bar {
+    margin: 0 .5em;
+}
+table {
+    clear: left;
+}
+.space-browse-links a:link,
+.space-browse-links a:active,
+.space-browse-links a:visited {
+    border: 1px solid #69c;
+    color: #000;
+    display: block;
+    font-weight: bold;
+    line-height: 2;
+    margin: 0.35em 0 -1px 0.5em;
+    padding: 0 0.5em 0 24px;
+    position: relative;
+    text-decoration: none;
+}
+.space-browse-links a:hover {
+    background-color: #036;
+    border: 1px solid #036;
+    color: #fff;
+}
+.space-browse-links a img {
+    float: left;
+    left: 4px;
+    margin: -8px 0 0;
+    position: absolute;
+    top: 50%;
+}
+#tree-div {
+    min-height:300px;
+}
+.mailLabel {
+    color: #666;
+    font-weight: bold;
+}
+
+.unparented {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.parented {
+    list-style-image: url(../../../images/icons/link_out_bot.gif);
+}
+
+.mailthread ul {
+    list-style-image: url(../../../images/icons/link_out_bot.gif);
+}
+.selectedMail {
+  background-color: #ffc;
+  padding: 2px;
+  border: 1px solid #ddd;
+}
+
+.excerpt {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.captcha {
+    padding: 10px 0;
+    width: 300px;
+    text-align: left;
+}
+
+.captcha .captcha-image {
+    width: 200px;
+    height: 50px;
+    border: 1px solid #ccc;
+    margin: 0.8em 50px;
+    -moz-border-radius: 3px; /* Firefox */
+    -webkit-border-radius: 3px; /* Safari */
+    border-radius: 5px;
+}
+
+.captcha .captcha-response label,
+.captcha .captcha-response input {
+    margin: 4px 0 0 0;
+}
+
+.captcha .captcha-response input {
+    width: 300px;
+}
+
+form.aui .field-group .captcha label {
+    left: 0;
+    width: 100%;
+    text-align: left;
+}
+
+.captcha label {
+    font-size: 10pt;
+    color: #000;
+    padding: 2px 5px 0 0;
+    display: block;
+}
+
+.captcha .error {
+    background-color: transparent;
+    font-size: 10pt;
+    padding: 2px 0;
+}
+
+#version-info {
+    margin-bottom: 10px;
+    padding:15px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+
+.version-info span.page-history-view{
+    display: block;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    margin-left: 24px;
+}
+
+.version-info span.page-history-view, .version-info span.page-history-view a {
+    color: #666666;
+    font-size: 9pt;
+
+}
+
+.version-info a.version-navigation{
+    border:1px solid #EEEEEE;
+    padding:0.2em 0.4em;
+    position:relative;
+    text-decoration:none;
+    top:1px;
+    display: inline-block;
+    min-width: 75px;
+    text-align:center;
+}
+
+.version-info span.current-version-margin{
+    margin: 15px;
+}
+
+.version-info div.navigation-spacing{
+    margin-left: 24px;
+    padding-top: 2px;
+    font-size: 8pt;
+
+}
+
+.version-info strong.version-info-description{
+    margin-left: 4px;
+}
+
+.has-sidebar #version-info{
+    margin-right: 17em;
+}
+
+.has-blog-sidebar #version-info{
+    margin-right: 24em;
+}
+
+/* Fix menu focus when selecting with mouse in Firefox */
+li:active, a:active {
+  outline: none;
+}
+
+/* Confluence global/space message styles */
+#messageContainer {
+    background: #fff;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#messageContainer li {
+    padding: 5px;
+    display: none;
+}
+
+.message-close-button {
+    height: 16px;
+    width: 16px;
+    border: none;
+    float: right;
+    cursor: pointer;
+}
+
+.page-metadata ul {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.page-metadata ul li {
+    list-style: none;
+    float: left;
+    padding: 0 5px 0 0;
+    margin: 0;
+}
+
+.page-metadata ul a.page-metadata-icon {
+    text-decoration: none;
+}
+
+.page-metadata ul a.page-restrictions span,
+.page-metadata ul a.page-tinyurl span,
+.page-metadata ul a.action-view-attachments span.page-metadata-attachments-text {
+    float: left;
+    height: 16px;
+    width: 16px;
+    text-indent: -9999em;
+}
+
+.page-metadata ul a.page-restrictions span {
+    background: url(../../../images/icons/lock_16_grey.png) no-repeat;
+}
+
+.page-metadata ul a.page-tinyurl span {
+    background: url(../../../images/icons/permalink_light_16.png) no-repeat;
+}
+
+.page-metadata ul a.page-tinyurl:hover span {
+    background: url(../../../images/icons/permalink_dark_16.png) no-repeat;
+}
+
+.page-metadata ul a.action-view-attachments span.page-metadata-attachments-text {
+    background: url(../../../images/icons/contenttypes/attachment_16.png) no-repeat;
+}
+
+.on-label, .yes-label {
+    color: #090;
+    font-weight: 800;
+}
+
+.off-label, .no-label {
+    color: #900;
+    font-weight: 800;
+}
+
+.progress-fill-color {
+    background: #00df00;
+}
+
+.progress-background-color {
+    background: #fff;
+}
+
+.vertical-center-aligning-container {
+    display: table;
+    height: 400px;
+    /* position : relative; */
+    overflow: hidden;
+}
+
+.vertical-center-div-outer {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.vertical-center-div-inner {
+    text-align: center;
+}
+
+.in-progress {
+    background-color: #ccc;
+}
+
+h2.subheading,
+#profile-main h2.subheading {
+    border-bottom: 1px solid #ddd;
+    color: #333;
+    font-weight: normal;
+    font-size: 1.1em;
+    margin: 0;
+}
+
+.subheading {
+    color: #222;
+}
+
+/*Columns*/
+div.section.one {
+    float: left;
+    width: 40%;
+}
+div.section.two {
+    float: left;
+    width: 60%;
+}
+div.section.two .section {
+    margin-left: 10px;
+}
+
+.subheading .rss-icon {
+    background: url(../../../images/icons/feed-icon-16x16.png);
+    float: right;
+    height: 16px;
+    text-decoration: none;
+    width: 16px;
+    line-height: 0;
+}
+
+.subheading .email-notification-icon {
+    background: url(../../../images/icons/actions/watch_16.png);
+    float: right;
+    height: 16px;
+    text-decoration: none;
+    width: 16px;
+    line-height: 0;
+    margin-right: 5px;
+}
+/* End Confluence master stylesheet */
+
+/** Font Colours */
+em.bad,
+strong.bad {
+    font-style: normal;
+    color: #900;
+}
+em.good,
+strong.good {
+    font-style: normal;
+    color: #090;
+}
+em.disabled,
+strong.disabled {
+    font-style: normal;
+    color: #999;
+}
+/* **/
+
+.blogpost .wiki-content {
+    _height: 1%;
+}
+
+#version-comment {
+    padding: 5px;
+    display: none; /* It's up to context-specific styles and JavaScript to ensure this one is ever visible. */
+}
+
+#space-admin-body {
+    padding: 0 10px;
+}
+
+#ajax-error {
+    background-color: #fcc;
+    border: 1px solid #741311;
+}
+
+#ajax-error span.error{
+    display: block;
+    text-align: center;
+    color: #741311;
+    line-height: 2;
+}
+
+#ajax-error span.error a.close{
+    margin-left: 10px;
+    text-decoration: underline;
+}
+
+#footer-warning {
+    display: block;
+    background-color: #ffffce;
+    border-top: 1px solid #f0c000;
+    border-bottom: 1px solid #f0c000;
+    color: #000;
+    padding: 2px 5px;
+}
+
+.welcome-message h1,
+.welcome-message h2,
+.welcome-message h3 {
+    color: #000;
+    font-weight: normal;
+    font-family: Arial, Helvetica, FreeSans, sans-serif;
+    padding: 3px 0 2px 0;
+    border-bottom: 1px solid #bbb;
+}
+
+.welcome-message h1 {
+    line-height: 1;
+    margin: 1px 0 0 0;
+}
+.welcome-message h2,
+form.aui .welcome-message h2 {
+    clear: none;
+    margin: 1px 0 0 0;
+}
+.welcome-message h3,
+form.aui .welcome-message h3 {
+    margin: 9px 0 0 0;
+    clear: none;
+}
+
+/* TODO This fixes AJS-563. Remove once we upgrade to AUI 3.2.2 or higher */
+.aui-tabs ul.tabs-menu li.menu-item strong {
+    cursor: pointer;
+}
+
+/*CONFDEV-2008: Remove Help tips*/
+.description.description-checkbox {
+    margin: -12px 0 10px 275px;
+}
+
+.description.description-textbox {
+    margin: -10px 0 10px 250px;
+}
+
+.permissionTab .inline-help {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
+    float: right;
+}
+
+.watches .page-instructions {
+    color: #808080;
+}
+
+
+/**
+ * These are the styles for all rendered wiki content.
+ * They are applicable in any situation where user content is viewable or editable.
+ *
+ * The rules have been organised by the core content type they pertain to:
+ * - Content scoping/contextual overrides
+ * - General style resets and margins
+ * - Headings
+ * - Preformatted Content
+ * - Links
+ * - Images
+ * - Tables
+ * - Lists
+ *
+ * After the core content type rules, you'll find the following:
+ * - Section layouts (i.e., section / column macros)
+ * - AUI overrides
+ */
+
+/**
+ * Content scoping / contextual overrides
+ */
+
+.wiki-content:after {
+    clear: both;
+    content: ".";
+    display: block;
+    font-size: 0;
+    height: 0;
+    visibility: hidden;
+}
+
+.wiki-content > *:first-child,
+.wiki-content td.confluenceTd > *:first-child,
+.wiki-content th.confluenceTh > *:first-child,
+.wiki-content li > *:first-child {
+    margin-top: 0;
+}
+
+.wiki-content > *:last-child,
+.wiki-content li > *:last-child {
+    margin-bottom: 0;
+}
+
+/**
+ * General content styles and margins
+ */
+
+.wiki-content,
+.wiki-content p,
+.wiki-content table,
+.wiki-content tr,
+.wiki-content td,
+.wiki-content th,
+.wiki-content ol,
+.wiki-content ul,
+.wiki-content li {
+    font-size: 10pt;
+    line-height: 13pt;
+}
+
+.wiki-content p,
+.wiki-content table {
+    padding: 0;
+}
+
+.wiki-content p,
+.wiki-content pre,
+.wiki-content ul,
+.wiki-content ol,
+.wiki-content dl,
+table.confluenceTable {
+    margin-bottom: 10px;
+}
+
+/**
+ * Headings
+ */
+
+.wiki-content h1,
+.wiki-content h2,
+.wiki-content h3,
+.wiki-content h4,
+.wiki-content h5,
+.wiki-content h6 {
+    font-weight: bold;
+    line-height: normal;
+    margin-top: 21px;
+    padding: 0;
+}
+
+.wiki-content h1 { font-size: 18pt; }
+.wiki-content h2 { font-size: 16pt; }
+.wiki-content h3 { font-size: 14pt; }
+.wiki-content h4 { font-size: 12pt; }
+.wiki-content h5 { font-size: 11pt; }
+.wiki-content h6 { font-size: 10pt; }
+
+
+/**
+ * Preformatted content
+ */
+
+.wiki-content pre {
+    overflow: visible; /* stops a scroll bar appearing in the editor, overrides the pre style inside master.css*/
+}
+
+.wiki-content .preformattedContent,
+.wiki-content .codeContent{
+    padding: 12px 10px;
+}
+
+.wiki-content .preformattedContent pre,
+.wiki-content .codeContent pre{
+    margin:0;
+    /** matches renderer-macros.css: .preformatted pre */
+    font-family:"Courier New",Courier,monospace;
+    line-height:1.3;
+}
+
+/**
+ * Links
+ */
+
+.wiki-content a,
+.wiki-content a:link,
+.wiki-content a:visited {
+    text-decoration: underline;
+}
+
+a.not-permitted {
+    text-decoration: underline;
+}
+
+/**
+ * Tables
+ * see /includes/css/tables.css
+ */
+
+.wiki-content table.confluenceTable {
+    border-collapse: collapse;
+}
+
+/**
+ * Images
+ */
+
+.wiki-content .image-left {
+    float: left;
+    margin: 0 10px 10px 0;
+}
+
+.wiki-content .image-center {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.wiki-content .image-right {
+    float: right;
+    margin: 0 0 10px 10px;
+}
+
+.wiki-content .confluence-embedded-image {
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.wiki-content .confluence-content-image-border {
+    border: 1px solid black;
+}
+
+/*
+ * Before Confluence 4.0, emoticons were <img> tags with the CSS class 'emoticon'.
+ * In Confluence 4.0, emoticons are now <span>s with the same 'emoticon' class.
+ * Confluence 4.0 has the ability to render un-migrated wiki markup, meaning it's possible
+ * for both types of emoticons to exist.
+ * This selector is here in order to prevent conflicts with the different emoticons.
+ */
+.wiki-content img.emoticon {
+    background: none;
+    height: auto;
+    width: auto;
+    vertical-align: text-bottom;
+}
+
+/**
+ * Lists
+ */
+
+/* ensure confluence view content, editor content, and comment content share the same top level bullet style */
+.wiki-content ul,
+.wiki-content ol {
+    margin-left: 0;
+    padding-left: 3em;
+    list-style-position: outside;
+}
+
+.wiki-content ul,
+.wiki-content ol,
+.wiki-content dl {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.wiki-content ul {
+    list-style-type: disc; /* make _all_ nested lists use the same bullet */
+}
+
+.wiki-content ol,
+.wiki-content ol ol ol ol,
+.wiki-content ol ol ol ol ol ol ol,
+.wiki-content ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: decimal;
+}
+
+.wiki-content ol ol,
+.wiki-content ol ol ol ol ol,
+.wiki-content ol ol ol ol ol ol ol ol,
+.wiki-content ol ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-alpha;
+}
+
+.wiki-content ol ol ol,
+.wiki-content ol ol ol ol ol ol,
+.wiki-content ol ol ol ol ol ol ol ol ol,
+.wiki-content ol ol ol ol ol ol ol ol ol ol ol ol {
+    list-style-type: lower-roman;
+}
+
+.wiki-content li > ul,
+.wiki-content li > ol {
+    margin-bottom: 0;
+}
+
+/* When there is a pre in a list you don't want any vertical margin applied. */
+.wiki-content li > pre {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.wiki-content li,
+.wiki-content li > p {
+    margin: 0;
+    padding: 0;
+}
+
+/* Lists in tables */
+.wiki-content .confluenceTh > ol,
+.wiki-content .confluenceTd > ol {
+    padding-left: 1.7em;
+}
+
+.wiki-content .confluenceTh > ul,
+.wiki-content .confluenceTd > ul {
+    padding-left: 1em;
+}
+
+/**
+ * Section Layouts
+ * styles for table that replaces {section}
+ */
+
+table.layout {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.layout td.layout-cell {
+    padding: 10px;
+    vertical-align: top;
+}
+
+table.layout, table.layout td.layout-cell {
+    border: 0;
+}
+
+table.bordered-layout {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.bordered-layout td.layout-cell {
+    padding: 10px;
+    vertical-align: top;
+}
+
+table.bordered-layout, table.bordered-layout td.layout-cell {
+    border: 1px solid black;
+}
+
+/**
+ * Legacy editor styles
+ */
+.wiki-content-preview {
+    padding: 5px;
+    border-left: 1px solid;
+    border-right: 1px solid;
+}
+
+/**
+ * AUI Overrides
+ * see /includes/css/aui-overrides.css
+ */
+
+.wiki-content #recent-updates.aui-tabs .tabs-menu .menu-item a {
+    text-decoration: none;
+}
+.wiki-content .header, .wiki-content .footer, .wiki-content .cell {
+    margin: 8px 0;
+    box-sizing: border-box;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    word-wrap: break-word;
+}
+
+.contentLayout > .header > *:first-child, .contentLayout > .footer > *:first-child, .columnLayout > .cell > *:first-child {
+    margin-top: 0;
+}
+
+.wiki-content .columnLayout {
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.wiki-content .cell {
+    display: table-cell;
+    padding: 0 0 0 10px;
+}
+
+.wiki-content .cell:first-child {
+    padding: 0;
+}
+
+.wiki-content .columnLayout .cell {
+    vertical-align: top;
+}
+
+.wiki-content .columnLayout .cell.aside {
+    width: 30%;
+}
+
+.wiki-content .columnLayout .cell.sidebars {
+    width: 20%;
+}
+
+/* CONFDEV-6137 Welcome to the world of browser hacks
+   We're targeting IE8 compatability mode which means IE7
+   hacks. This updates the page-layout to be floated rather
+   than table layout which is not supported in compat mode.
+   These styles are only applied to IE8 compat mode */
+.wiki-content .columnLayout,
+.wiki-content .cell {
+    *display: block;
+    *float: left;
+    *width: 100%;
+}
+
+.wiki-content .columnLayout {
+    *clear: both;
+}
+
+.wiki-content .cell {
+    *margin: 8px 4px;
+}
+
+.twoColumns .cell {
+    *width: 47.5%;
+}
+
+.threeColumns .cell {
+    *width: 31.1%;
+}
+
+.twoColumns .large {
+    *width: 65.5%;
+}
+
+.threeColumns .large {
+    *width: 53.5%;
+}
+
+div.aside + div.large,
+div.large + div.aside,
+div.large + div.sidebars,
+.twoColumns div.cell + div.cell,
+.threeColumns div.cell + div.cell + div.cell {
+   *float: right;
+}
+table.confluenceTable th.confluenceTh,
+table.confluenceTable td.confluenceTd {
+    border-width: 1px;
+    border-style: solid;
+    border-color: #ddd;
+    padding: 5px 7px;
+    vertical-align: top;
+    min-width: 0.6em;
+    text-align: left;
+}
+
+table.confluenceTable th.confluenceTh,
+table.confluenceTable th.confluenceTh > p,
+table.confluenceTable td.confluenceTd.highlight,
+table.confluenceTable td.confluenceTd.highlight > p {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+table.confluenceTable th.confluenceTh.nohighlight,
+table.confluenceTable th.confluenceTh.nohighlight > p {
+    font-weight: normal;
+    color: #000;
+    background-color: transparent;
+    font-weight: normal;
+}
+.panel {
+    color: black;
+    padding: 0;
+    margin: 10px 20px;
+    background: #f0f0f0;
+    border-width: 1px;
+    border-style: solid;
+    overflow: hidden;
+}
+
+.alertPanel {
+    border-color: #c00;
+}
+
+.infoPanel {
+    border-color: #69c;
+}
+
+.alertPanel, .infoPanel {
+    border-style: solid;
+    border-width: 1px;
+    padding: 8px;
+    margin: 10px;
+}
+
+.infopanel-heading {
+    font-weight: bold;
+	padding: 4px 0 2px 0;
+}
+
+/* basic panel (basicpanel.vmd) style */
+.basicPanelContainer {
+    border-width: 1px;
+    border-style: solid;
+    margin-top: 2px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.basicPanelTitle {
+    padding: 5px;
+    margin: 0;
+    background-color: #f0f0f0;
+    color: black;
+    font-weight: bold;
+}
+
+.basicPanelBody {
+    padding: 5px;
+    margin: 0;
+}
+
+.panelHeader {
+    padding: 0 12px;
+    line-height: 2; /* vertical alignment for title */
+    text-align: center;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.codeHeader, .panelHeader, .panelContent {
+    background: #f0f0f0;
+}
+
+.preformattedHeader, .codeContent, .preformattedContent {
+    background: #fff;
+}
+
+.panelContent {
+    color: #000;
+    margin: 0;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: .95em;
+}
+
+.panelContent,
+.panelContent p, .panelContent th,
+.panelContent td, .panelContent li {
+    text-align: left;
+}
+
+.panelContent > p:first-child {
+    margin-top: 0;
+}
+
+.panelContent > p:last-child {
+    margin-bottom: 0;
+}
+
+/*
+    Styles for macros bundled in Renderer.
+*/
+
+.panelMacro {
+    margin: 10px 20px;
+    overflow: hidden; /* fix width next to floated content */
+}
+
+.panelMacro > table {
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    padding: 10px 10px 10px 20px;
+    text-align: left;
+    width: 100%;
+}
+
+.panelMacro > table > tr > td,
+.panelMacro > table > tbody > tr > td {
+    font-size: 1em;
+    padding: 0;
+}
+
+.panelMacro > p:first-child,
+.panelMacro > table > tr > td > *:first-child,
+.panelMacro > table > tbody > tr > td > *:first-child {
+    margin-top: 0;
+}
+
+.panelMacro > p:last-child,
+.panelMacro > table > tr > td > *:last-child,
+.panelMacro > table > tbody > tr > td > *:last-child {
+    margin-bottom: 0;
+}
+
+.wiki-content .panelMacro p {
+    font-size: 1em;
+}
+
+.searchMacro {
+    font-size: 10pt;
+    margin: 10px 0;
+}
+
+.searchMacro .result {
+    margin-top: 3px;
+    padding: 0 5px 5px 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.searchMacro .resultSummary {
+    margin-bottom: 7px;
+}
+
+.rssMacro {
+    font-size: 10pt;
+}
+
+.rssMacro table {
+    margin: 10px 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rssMacro table th,
+.rssMacro table td {
+    border: 1px solid #ccc;
+    padding: 4px;
+}
+
+.rssMacro table th {
+    background: #f0f0f0;
+}
+
+/* Code styles */
+.code {
+    border-width: 1px;
+    border-style: dashed;
+}
+
+.code, .preformatted {
+    background-color: #fff;
+    overflow: auto;
+}
+
+.code pre, .preformatted pre { /* needs 'pre' to override TinyMCE style */
+    font-family:"Courier New", Courier, monospace;
+    line-height: 1.3;
+}
+
+/* The code macro classes are overridden by the fixed width theme so have been
+   made more specific. */
+
+.wiki-content .code-keyword {
+  color: #000091;
+  background-color: inherit;
+}
+
+.wiki-content .code-object {
+  color: #910091;
+  background-color: inherit;
+}
+
+.wiki-content .code-quote {
+  color: #009100;
+  background-color: inherit;
+}
+
+.wiki-content .code-comment {
+  color: #808080;
+  background-color: inherit;
+}
+
+.wiki-content .code-xml .code-keyword {
+  color: inherit;
+  font-weight: bold;
+}
+
+.wiki-content .code-tag {
+  color: #000091;
+  background-color: inherit;
+}
+
+/* Recently Updated Styles */
+.recentlyUpdatedItem {
+	border-bottom: #f0f0f0 1px solid;
+	border-top: #f0f0f0 1px solid;
+	margin: 10px 0 0 0;
+	padding: 0;
+	border-spacing: 0;
+	width: 100%;
+    text-decoration: none;
+    border-collapse: collapse;
+}
+
+.recentlyUpdatedItem td {
+    padding: 10px;
+    border-bottom: #f0f0f0 1px solid;
+    vertical-align: top;
+}
+
+.recentlyUpdatedItem .authorAndDate {
+	background-color: #f0f0f0;
+	width: 25%;
+}
+
+.recentlyUpdatedItem .date {
+    margin-top: 4px;
+    font-size: 90%;
+    color: #666;
+}
+
+.recentlyUpdatedItem .profilePic {
+    float: right;
+    background-color: #f0f0f0;
+    margin: 0 2px;
+}
+
+.recentlyUpdatedItem .twixie {
+    padding: 10px 0 0 4px;
+}
+
+.recentlyUpdatedItem td.icon {
+    padding: 8px 0 0 1px;
+}
+
+.recentlyUpdatedItem .details {
+    padding-left: 7px;
+}
+
+.recentlyUpdatedItem .summary, .recentlyUpdatedItem .thumbnail {
+    margin-top: 3px;
+    color: #666;
+}
+
+.moreRecentlyUpdatedItems {
+    text-align: right;
+    margin-top: 10px;
+    font-size: 10pt;
+}
+
+/*************************************************************
+ * NOTE: Smartsprites used to generate sprites automatically *
+ *************************************************************/
+
+/*
+ * NOTE: Animated gifs will become static when generated into sprites
+ */
+
+span.icon, a.icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    text-align: left;
+    text-indent: -9999em;
+}
+
+/* used in pagelist.vm */
+.tabletitleops .icon {
+    width: 12px;
+    height: 12px;
+}
+
+.icon-wait {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -0px top;
+}
+.icon-browse-space {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -16px top;
+}
+.icon-add-page {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -32px top;
+}
+.icon-add-page-disabled {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -48px top;
+}
+.icon-add-fav {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -64px top;
+}
+.icon-remove-fav {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -80px top;
+}
+.icon-home-page {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -96px top;
+}
+.icon-recently-updated-page {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -112px top;
+}
+.icon-page {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -128px top;
+}
+.icon-comment {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -144px top;
+}
+.icon-space {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -160px top;
+}
+.icon-personal-space {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -176px top;
+}
+.icon-user {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -192px top;
+}
+.icon-group {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -208px top;
+}
+.icon-blog,
+.icon-blogpost {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -224px top;
+}
+.icon-trackback {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -240px top;
+}
+.icon-mail {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -256px top;
+}
+.icon-status {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -272px top;
+}
+.icon-show-more {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -288px top;
+}
+.icon-show-less {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -300px top;
+}
+.icon-file-pdf {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -312px top;
+}
+.icon-file-image {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -328px top;
+}
+.icon-file-html,
+.icon-file-xml {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -344px top;
+}
+.icon-file-java {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -360px top;
+}
+.icon-file-text {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -376px top;
+}
+.icon-file-zip {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -392px top;
+}
+.icon-file-word97-template,
+.icon-file-word97,
+.icon-file-word,
+.icon-file-word-template {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -408px top;
+}
+.icon-file-excel97-template,
+.icon-file-excel97,
+.icon-file-excel-macro,
+.icon-file-excel,
+.icon-file-excel-template {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -424px top;
+}
+.icon-file-powerpoint97-template,
+.icon-file-powerpoint97,
+.icon-file-powerpoint,
+.icon-file-powerpoint-macro,
+.icon-file-powerpoint-slideshow,
+.icon-file-powerpoint-template {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -440px top;
+}
+
+.icon-file-multimedia {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -456px top;
+}
+.icon-file-unknown {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -472px top;
+}
+.icon-people-directory span.icon {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -208px top;
+}
+.icon-rss-feed-small span.icon {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -488px top;
+}
+.icon-create-space {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -504px top;
+}
+.icon-create-user-macro span.icon {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -520px top;
+}
+#children-section.children-hidden a.children-show-hide.icon,
+.icon-section-closed {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -536px top;
+}
+#children-section.children-showing a.children-show-hide.icon,
+.icon-section-opened {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -552px top;
+}
+.icon-remove {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -568px top;
+}
+.icon-edit {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -584px top;
+}
+.icon-tick {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -600px top;
+}
+.icon-cross {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -616px top;
+}
+.icon-opts {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -632px top;
+}
+.icon-create-space-bw span.icon {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -648px top;
+}
+.icon-stop-watching {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -664px top;
+}
+.icon-start-watching {
+  background-image: url('../../../images/sprites/icons.png');
+  background-position: -680px top;
+}
+
+/* Information plugin styles */
+
+.noteMessage, .warningMessage, .infoMessage, .tipMessage {
+    border-style: solid;
+    border-width: 1px;
+    text-align: center;
+    padding: 5px;
+    overflow: hidden; /* fix width next to floated content */
+}
+
+.noteMacro, .warningMacro, .infoMacro, .tipMacro {
+    border: 0;
+    border-collapse: separate; /* because they're hoping tables will provide the padding... */
+}
+
+table.noteMacro    > tr > td,
+table.warningMacro > tr > td,
+table.infoMacro    > tr > td,
+table.tipMacro     > tr > td,
+table.noteMacro    > tbody > tr > td,
+table.warningMacro > tbody > tr > td,
+table.infoMacro    > tbody > tr > td,
+table.tipMacro     > tbody > tr > td {
+    border: 0;
+}
+
+.warningPanel {
+    border-style: solid;
+    border-width: 1px;
+    padding: 8px;
+    margin: 10px;
+}
+
+.informationMacroPadding {
+    padding: 5px 0 0 5px;
+}
+
+/* Colours */
+
+.noteMessage, .noteMacro, .warningPanel {
+    border-color: #f0c000;
+    background-color: #ffffce;
+}
+
+.warningMessage, .warningMacro {
+    border-color: #c00;
+    background-color: #fcc;
+}
+
+.infoMessage, .infoMacro {
+    border-color: #69c;
+    background-color: #d8e4f1;
+}
+
+.tipMessage, .tipMacro {
+    border-color: #090;
+    background-color: #dfd;
+}
+
+.noteMacro, .warningMacro, .infoMacro, .tipMacro {
+    border-width: 2px;
+    border-style: solid;
+}
+/* Layout plugin styles */
+
+.sectionMacro,
+.sectionMacro p,
+.sectionMacro ul,
+.sectionMacro ol {
+    font-size: 10pt;
+}
+
+table.sectionMacro > tbody > tr > td {
+    border: none;
+}
+
+table.sectionMacroWithBorder > tbody > tr > td {
+    border-style: dashed;
+    border-width: 1px;
+    border-color: #ccc;
+}
+
+#tab-navigation {
+    border-bottom: 1px solid;
+    margin: 0 -10px;
+    margin-bottom: 10px;
+    padding: 0 10px;
+}
+
+.tab-navigation {
+    list-style: none;
+    display: block;
+    margin: 0 0 -1px;
+    padding: 0;
+    overflow: hidden;
+}
+.tab-navigation .tab {
+    float: left;
+    display: inline;
+    /* font-weight: bold;   */
+    margin: 0 5px -1px 0;
+}
+.tab-navigation .tab a {
+    padding: .3em .4em;
+    text-decoration: none;
+    display: block;
+    -moz-border-radius-topleft: 3px;
+    -moz-border-radius-topright: 3px;
+    -webkit-border-top-left-radius: 3px;
+    -webkit-border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+.tab-navigation .notab {
+    margin: 1px 1px 0 1px;
+    padding: .3em;
+    float: left;
+}
+
+/* Make the following more specific, so they aren't overriden by themes. */
+ul.tab-navigation .current a {
+    color: #000;
+    background-color: #fff;
+    border-bottom-color: #fff; /* IE */
+}
+ul.tab-navigation .current a:hover {
+    color: #000;
+    background-color: #fff;
+    border-bottom-color: #fff; /* IE */
+}
+
+/*
+ * Drop down menu stylesheet
+ */
+
+/* Menu bar layout */
+.ajs-menu-bar {
+    float: right;
+    line-height: 1.5;
+    position: relative;
+}
+.ajs-menu-bar,
+.ajs-menu-bar .ajs-button,
+.ajs-menu-bar .ajs-button a,
+.ajs-menu-bar .ajs-button span,
+.ajs-menu-bar .ajs-menu-item .ajs-menu-title,
+.ajs-menu-bar .ajs-menu-item .ajs-menu-title span,
+.ajs-menu-bar .ajs-menu-item .ajs-menu-title span span,
+.ajs-menu-bar .ajs-drop-down a,
+.ajs-menu-bar .ajs-drop-down a span,
+.ajs-menu-bar .ajs-drop-down a span span {
+     /* all containers are block-level with no margin or padding by default */
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+.ajs-menu-bar .ajs-button span,
+.ajs-menu-bar .ajs-menu-item .trigger span span {
+    padding-right: 1em; /* gap after menu label, must be wider than indicator image */
+}
+.ajs-menu-bar .ajs-menu-item,
+.ajs-menu-bar .ajs-button {
+    float: left;
+    list-style: none;
+    position: relative;
+}
+.ajs-menu-bar .ajs-menu-item a,
+.ajs-menu-bar .ajs-button a {
+    line-height: 1.5;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.ajs-menu-bar .ajs-button {
+    float: left;
+    line-height: 2;
+    list-style: none;
+    position: static;
+}
+
+/* Drop-down indicator icon and on-hover colour changing */
+.ajs-menu-bar .ajs-menu-item .trigger span {
+    background-image: url(../../../images/decoration/menu_indicator.gif);
+    position: relative;
+}
+
+.ajs-menu-bar .ajs-menu-item.opened .trigger span,
+.ajs-menu-bar .ajs-menu-item.hover .trigger span {
+    background-image: url(../../../images/decoration/white_menu_indicator.gif);
+}
+
+.ajs-menu-bar .ajs-menu-item.opened .trigger span span,
+.ajs-menu-bar .ajs-menu-item .trigger span span {
+    background-image: none;
+}
+.ajs-menu-bar .ajs-button a:hover,
+.ajs-menu-bar .ajs-menu-item.opened .trigger span {
+    color: #fff; /* system colour - not derived from colour scheme */
+}
+
+#navigation .ajs-menu-bar li.ajs-menu-item.hover .ajs-menu-title {
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+
+/* Menu bar icons */
+.ajs-menu-bar .ajs-menu-item .trigger span {
+    background-position: 100% 50%;
+    background-repeat: no-repeat;
+}
+.ajs-menu-bar .ajs-button span,
+.ajs-menu-bar .ajs-menu-item .trigger span span {
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+}
+
+/* Drop-down menu layout */
+.ajs-menu-bar .ajs-menu-item .ajs-drop-down a {
+    background: #fff no-repeat 4px 50%;
+    border: none;
+    display: block;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 0.5em 0 24px;
+    text-decoration: none;
+}
+.ajs-menu-bar .ajs-drop-down {
+    -moz-border-radius-bottomright: 3px;
+    -moz-border-radius-bottomleft: 3px;
+    -webkit-border-bottom-right-radius: 3px;
+    -webkit-border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    background: #fff; /* system colour - not derived from colour scheme */
+    border: solid 1px #c1c1c1;
+    font-weight: normal;
+    min-width: 12em;
+    padding: 0;
+    position: absolute;
+    left: 0;
+    white-space: nowrap;
+    z-index: 1000;
+}
+
+/* CONFDEV-820 - Temporary fix */
+#header-menu-bar .ajs-drop-down {
+    min-width: 15em;
+}
+
+.ajs-menu-bar .ajs-drop-down.above {
+    -moz-border-radius: 0;
+    -moz-border-radius-topleft: 3px;
+    -moz-border-radius-topright: 3px;
+    -webkit-border-radius: 0;
+    -webkit-border-top-left-radius: 3px;
+    -webkit-border-top-right-radius: 3px;
+    border-radius: 0;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    bottom: 2em;
+    margin-top: -2px;
+}
+.ajs-menu-bar .ajs-drop-down ul,
+.ajs-menu-bar ul.ajs-drop-down {
+    border-top: solid 1px #e1e1e1;
+    margin: 0;
+    padding: 5px 0;
+    position: relative;
+    list-style: none;
+}
+.ajs-menu-bar .ajs-drop-down ul.first,
+.ajs-menu-bar ul.ajs-drop-down.first {
+    border-top: none;
+}
+.ajs-menu-bar .ajs-drop-down li {
+    margin: 0;
+    padding: 0;
+}
+.ajs-menu-bar .ajs-menu-item div.ajs-drop-down a {
+    background-position: .5em 50%;
+    background-repeat: no-repeat;
+    border: none;
+    display: block;
+    line-height: 2;
+    margin: 0;
+    padding: 0 1em 0 28px;
+    position: relative;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.ajs-menu-bar .ajs-drop-down a img {
+    float: left;
+    height: 16px;
+    margin: .3em 0 0 -20px;
+    width: 16px;
+}
+
+/* Drop-down menu icons */
+.ajs-menu-bar .ajs-drop-down a.add-comment {
+    background-image: url(../../../images/icons/contenttypes/comment_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.add-attachment {
+    background-image: url(../../../images/icons/contenttypes/attachment_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.add-page {
+    background-image: url(../../../images/icons/contenttypes/page_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.add-page-template {
+    background-image: url(../../../images/icons/contenttypes/page_template_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.add-news {
+    background-image: url(../../../images/icons/contenttypes/blog_post_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.action-view-history {
+    background-image: url(../../../images/icons/actions/page_history_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.action-page-permissions {
+    background-image: url(../../../images/icons/lock_16_grey.png);
+}
+.ajs-menu-bar .ajs-drop-down a.action-view-attachments {
+    background-image: url(../../../images/icons/contenttypes/attachment_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.action-page-favourite {
+    background-image: url(../../../images/icons/emoticons/star_grey.png);
+}
+.ajs-menu-bar .ajs-drop-down a.ie-page-favourite-selected { /* using IE style here to make IE7 not duplicate bg */
+    background-image: url(../../../images/icons/emoticons/star_yellow.png);
+}
+.ajs-menu-bar .ajs-drop-down a.action-page-watching-space {
+    background-image: url(../../../images/icons/watching_space_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.action-manage-watchers {
+    background-image: url(../../../images/icons/actions/manage_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.action-page-watching {
+    background-image: url(../../../images/icons/actions/watch_grey_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.ie-page-watching-selected { /* using IE style here to make IE7 not duplicate bg */
+    background-image: url(../../../images/icons/actions/watch_16.png);
+}
+.ajs-menu-bar .ajs-drop-down a.waiting {
+    background-image: url(../../../images/icons/wait.gif);
+}
+
+.ajs-menu-bar .ajs-menu-item .section-secondary li a,
+.ajs-menu-bar .ajs-menu-item .section-modify li a {
+    padding-left: 8px;
+    font-size: .9em;
+}
+
+.ajs-menu-bar .ajs-menu-item .ajs-drop-down li.hidden {
+    display: none;
+}
+
+/* Customisations for header menu bar */
+#header-menu-bar {
+    margin-top: 0;
+    margin-right: 5px;
+}
+#header .ajs-menu-item a {
+    float: left;
+    line-height: 1.5;
+    margin: 0;
+    text-decoration: underline;
+}
+#header-menu-bar li.ajs-menu-item a {
+    line-height: 2;
+}
+#header-menu-bar li.ajs-menu-item .ajs-drop-down a {
+    line-height: 1.5;
+}
+#header .ajs-menu-bar li.ajs-menu-item,
+#header .ajs-menu-bar li.ajs-button {
+    margin: 0;
+    padding: 0;
+}
+#header .ajs-menu-bar li.ajs-menu-item a {
+    padding-left: 0.5em;
+}
+#header .ajs-menu-item .trigger span {
+    background-image: url(../../../images/decoration/white_menu_indicator.gif); /* header menus always use a white indicator */
+}
+#header .ajs-menu-item .trigger span span {
+    background: none;
+}
+#header .ajs-menu-bar li.ajs-menu-item a.trigger:focus {
+    outline: none;
+}
+#header .ajs-menu-bar li.ajs-menu-item a.trigger {
+    float: left;
+    padding: 0 0.5em;
+    text-decoration: none;
+}
+#header .ajs-menu-bar li.ajs-menu-item.opened .ajs-drop-down li,
+#header .ajs-menu-bar li.ajs-menu-item.opened .ajs-drop-down a {
+    background-color: #fff; /* system colour - not derived from colour scheme */
+    background-image: none;
+}
+.ajs-menu-bar .ajs-menu-item.opened,
+.ajs-menu-bar .ajs-button a {
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+.ajs-menu-bar .ajs-menu-item.opened {
+    -moz-border-radius-bottomleft: 0;
+    -moz-border-radius-bottomright: 0;
+    -webkit-border-bottom-left-radius: 0;
+    -webkit-border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Customisations for header menus */
+#header .ajs-menu-bar .ajs-drop-down {
+    -moz-border-radius-bottomleft: 3px;
+    -moz-border-radius-bottomright: 3px;
+    -webkit-border-bottom-left-radius: 3px;
+    -webkit-border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-top: none;
+    margin-top: 0;
+    margin-left: -1px;
+    top: 2em;
+    z-index: 9;
+}
+#header .ajs-menu-bar .ajs-drop-down a {
+    float: none;
+    padding: 2px 2em;
+    text-decoration: none;
+}
+#header .ajs-menu-bar .ajs-menu-item .ajs-drop-down ul,
+#header .ajs-menu-bar .ajs-menu-item ul.ajs-drop-down {
+    border-top: 1px solid #cce;
+}
+#header .ajs-menu-bar .ajs-drop-down ul.first,
+#header .ajs-menu-bar ul.ajs-drop-down.first {
+    border: none;
+}
+
+/* Customisations for navigation menu bar */
+#navigation .ajs-menu-bar {
+    margin: 10px 0 0 1em;
+}
+#navigation .ajs-menu-bar .ajs-button span,
+#navigation .ajs-menu-bar .ajs-menu-item .ajs-menu-title span span {
+    padding-left: 25px; /* width of icon + gap before menu label */
+}
+/*#navigation .ajs-menu-bar li.ajs-menu-item,
+#navigation .ajs-menu-bar li.ajs-button {
+    margin-top: -10px;
+}
+*/
+#navigation .ajs-menu-bar li.ajs-menu-item .ajs-menu-title,
+#navigation .ajs-menu-bar li.ajs-button a {
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    color: #535353; /* system colour - not derived from colour scheme */
+    font-size: 1.1em;
+    line-height: 20px;
+    padding: .35em .5em;
+}
+#navigation .ajs-menu-bar li.ajs-menu-item .ajs-menu-title {
+    -moz-border-radius-bottomleft: 0;
+    -moz-border-radius-bottomright: 0;
+    -webkit-border-bottom-left-radius: 0;
+    -webkit-border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+#navigation .ajs-menu-bar .ajs-button a.edit span {
+    background-image: url(../../../images/icons/edit_20.png);
+}
+#navigation .ajs-menu-bar .ajs-button a.view span {
+    background-image: url(../../../images/icons/view_20.png);
+}
+#navigation .ajs-menu-bar li.ajs-menu-item a.add span span {
+    background-image: url(../../../images/icons/add_20.png);
+}
+#navigation .ajs-menu-bar li.ajs-menu-item a.action span span {
+    background-image: url(../../../images/icons/tools_20.png);
+}
+.ajs-menu-bar .ajs-menu-item .most-right-menu-item {
+    left: auto;
+    margin: 0;
+    right: 0;
+}
+*+html #header .ajs-menu-item a.ajs-menu-title span span { /* IE7 cannot apply background to the outer span. */
+    background-image: url(../../../images/decoration/white_menu_indicator.gif); /* header menus always use a white indicator */
+    background-repeat: no-repeat;
+    background-position: 100% 50%; /* 50% lines up with middle of lowercase letters in IE */
+}
+.ajs-drop-down {
+    clear: both;
+    z-index: 500;
+    zoom: 1;
+}
+* html .ajs-menu-bar .ajs-drop-down li {
+    border-bottom: solid 1px #fff;
+}
+.ajs-menu-bar .ajs-drop-down li {
+    display: block;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+#navigation .ajs-menu-bar .ajs-drop-down a {
+    display: block;
+    padding: 0.33em 0.67em;
+    cursor: pointer;
+}
+#navigation .ajs-menu-bar div.ajs-drop-down a span {
+    padding: 0 0 0 21px;
+    height: 16px;
+    line-height: 16px;
+}
+.ajs-menu-bar div.ajs-drop-down a span {
+    cursor: pointer;
+    height: 16px;
+    line-height: 16px;
+    zoom: 1;
+}
+#navigation .ajs-menu-bar .section-secondary li a,
+#navigation .ajs-menu-bar .section-modify li a {
+    line-height: 2;
+    padding-left: 0;
+}
+#navigation .ajs-menu-bar .section-secondary li a span,
+#navigation .ajs-menu-bar .section-modify li a span {
+    padding-left: 8px;
+}
+.ajs-menu-bar .ajs-drop-down a img {
+    clear: left;
+    float: none;
+    margin: .3em 0 .3em -20px;
+    vertical-align: middle;
+}
+
+#navigation .ajs-menu-bar .ajs-button a,
+#navigation .ajs-menu-bar .ajs-button a span {
+    display: inline-block; /* makes the edit button have layout, but doesn't give it enormous width*/
+}
+
+* html .ajs-menu-bar .ajs-drop-down a.add-comment {
+    background-image: none;
+}
+* html .ajs-menu-bar .ajs-drop-down a.add-comment span {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/contenttypes/comment_16.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .ajs-menu-bar .ajs-drop-down a.add-attachment,
+* html .ajs-menu-bar .ajs-drop-down a.action-view-attachments,
+* html .page-metadata ul a.action-view-attachments span.page-metadata-attachments-text {
+    background-image: none;
+}
+* html .ajs-menu-bar .ajs-drop-down a.add-attachment span,
+* html .ajs-menu-bar .ajs-drop-down a.action-view-attachments span,
+* html .page-metadata ul a.action-view-attachments span.page-metadata-attachments-text {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/contenttypes/attachment_16.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .page-metadata ul a.action-view-attachments span.page-metadata-attachments-count {
+    display: inline-block;  /* IE6 */
+    text-indent: 9999em;
+}
+* html .page-metadata ul a.page-restrictions span,
+* html .ajs-menu-bar .ajs-drop-down a.action-view-history,
+* html .ajs-menu-bar .ajs-drop-down a.action-page-permissions,
+* html .ajs-menu-bar .ajs-drop-down a.action-page-favourite,
+* html .ajs-menu-bar .ajs-drop-down a.ie-page-favourite-selected,
+* html .ajs-menu-bar .ajs-drop-down a.action-manage-watchers,
+* html .ajs-menu-bar .ajs-drop-down a.action-page-watching-space,
+* html .ajs-menu-bar .ajs-drop-down a.action-page-watching,
+* html .ajs-menu-bar .ajs-drop-down a.ie-page-watching-selected {
+    background-image: none;
+}
+* html .ajs-menu-bar .ajs-drop-down a.action-view-history span {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/actions/page_history_16.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .page-metadata ul a.page-restrictions span,
+* html .ajs-menu-bar .ajs-drop-down a.action-page-permissions span {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/lock_16_grey.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .ajs-menu-bar .ajs-drop-down a.action-page-favourite span {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/emoticons/star_grey.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .ajs-menu-bar .ajs-drop-down a.ie-page-favourite-selected span {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/emoticons/star_yellow.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .ajs-menu-bar .ajs-drop-down a.action-page-watching-space span {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/watching_space_16.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .ajs-menu-bar .ajs-drop-down a.action-manage-watchers span {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/actions/manage_16.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .ajs-menu-bar .ajs-drop-down a.action-page-watching span {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/actions/watch_grey_16.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .ajs-menu-bar .ajs-drop-down a.ie-page-watching-selected span {
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/actions/watch_16.png', sizingMethod='crop')");
+    zoom: 1;
+}
+* html .ajs-menu-bar .ajs-drop-down a.waiting {
+    background-image: none;
+}
+* html .ajs-menu-bar .ajs-drop-down a.waiting span {
+    background-image: url(../../../images/icons/wait.gif);
+    background-repeat: no-repeat;
+    filter: inherit;
+}
+* html #navigation .ajs-menu-bar .ajs-button a.edit span {
+    background-image: none;
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/edit_20.png', sizingMethod='crop')");
+    width: 1%;
+}
+
+* html #navigation .ajs-menu-bar li.ajs-menu-item a.add span span {
+    background-image: none;
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/add_20.png', sizingMethod='crop')");
+    width: 1%;
+}
+
+* html #navigation .ajs-menu-bar li.ajs-menu-item a.action span span {
+    background-image: none;
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/tools_20.png', sizingMethod='crop')");
+    width: 1%;
+}
+
+* html #navigation .ajs-menu-bar .ajs-button a.view span {
+    background-image: none;
+    filter: expression(runtimeStyle.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+        document.getElementById('confluence-context-path').content +
+        "/images/icons/view_20.png', sizingMethod='crop')");
+    width: 1%;
+}
+
+html body { /* HACK: Temporary fix for CONF-15412 */
+    overflow: visible;
+}
+/* IE7 fix for CONFDEV-1056 */
+body.dashboard {
+    *min-width: 1000px;
+}
+img {
+    -ms-interpolation-mode: bicubic;
+}
+
+#breadcrumbs {
+    *height: 1%; /* IE6-IE7 wrapping */
+    overflow: auto;
+    *overflow: visible; /* IE7 and below */
+}
+#breadcrumbs li {
+    white-space: nowrap;
+}
+* html #breadcrumbs li {
+    background-image: url(../../../images/decoration/white_breadcrumbs_indicator.gif); /* IE6 */
+}
+* html .page-metadata {
+    height: 1.2em; /* IE6 */
+}
+#breadcrumbs li {
+    background-position: 3px 12px;
+}
+form {
+    margin: 0;
+    padding: 0;
+}
+.tab-navigation .tab {
+    float: left;
+    display: inline;
+    font-weight: bold;
+    margin: 0 5px 0 0;
+    position: relative;
+}
+.tab-navigation .tab a {
+    display: inline-block; /* anchors were making tabs very wide in Clickr theme in IE */
+}
+a.icon {
+    height: 16px;
+}
+#tree-div {
+    min-height: 300px;
+    height: auto !important;
+    height: 300px;
+}
+h1 #content-title {
+    margin: 0;
+    display: block;
+    width: 90%; /* 93% and upwards breaks at least one of the IEs */
+}
+
+h1 span.title-text {
+    height: 1%;
+}
+
+h1.pagetitle {
+    width: auto;
+}
+
+h1.pagetitle img.logo {
+    *margin-bottom: 0;
+}
+
+* html h1.pagetitle img.custom {
+   /* sets max-height for IE - roughly equivalent to what real browsers do with 2.5em max-height */
+   height: expression( this.scrollHeight > 59 ? "60px" : "auto" );
+}
+
+#tab-navigation,
+.tab-navigation {
+    zoom: 1;
+}
+.has-sidebar #content .code {
+    _clear: both; 
+    _overflow: auto; 
+}
+.menu-section-list li a:visited,
+.menu-section-list li a:hover {
+    color: #666;
+}
+.menu-section-list li.active a:visited {
+    color: #fff;
+}
+
+/* Don't remove or dropdowns may break in IE6. CONF-17932 */
+* html #header-menu-bar .hidden {
+    width: 12em;
+}
+
+* .bloglistitems{
+    list-style-type: none;
+    padding-left: 1em;
+    padding-right: 1em;
+    margin-top: 0.5em;
+    margin-bottom: 0;
+    padding-bottom: 0.5em;
+    margin-left: 0;
+}
+
+* .blogmonthnavigation{
+    border:1px solid #CCCCCC;
+    position:relative;
+    text-decoration:none;
+    display: inline-block;
+    width: 10em;
+    font-size: 0.85em;
+    text-align:center;
+    margin: 0 -0.5em 1em 1em;
+    padding: 0.2em 0.4em;
+}
+
+#page-diffs .diff {
+    *margin-right: 1em;
+}
+
+/*CONFDEV-2008: Remove Help tips*/
+/*This is used because in IE8 the heading text is middle aligned*/
+.permissionTab {
+    text-align: left;
+}
+
+/*This is used because in IE7 the inline help goes to the next line and so this will make the
+ help go next to the header instead.*/
+*+html .permissionTab .inline-help {
+    float: none;
+}
+
+/* Dashboard in divs - IE6, 7. Reduce size by 1% to avoid dropped columns. */
+div.dashboard .dashboard-group {
+    *display: block;
+    *float: left;
+}
+div.dashboard .dashboard-group.left {
+    *width: 34%;
+}
+div.dashboard .dashboard-group.right {
+    *width: 64%;
+}
+
+/* @end Dashboard in divs */
+a.content-type-page span, div.content-type-page, span.content-type-page {
+    background-image: url(../../../images/icons/contenttypes/page_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-blogpost span, div.content-type-blogpost, span.content-type-blogpost {
+    background-image: url(../../../images/icons/contenttypes/blog_post_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-comment span, div.content-type-comment, span.content-type-comment {
+    background-image: url(../../../images/icons/contenttypes/comment_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-space span, div.content-type-space, span.content-type-space,
+a.content-type-spacedesc span, div.content-type-spacedesc, span.content-type-spacedesc {
+    background-image: url(../../../images/icons/contenttypes/space_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-personalspacedesc span, div.content-type-personalspacedesc, span.content-type-personalspacedesc {
+    background-image: url(../../../images/icons/contenttypes/personal_space_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-mail span, div.content-type-mail, span.content-type-mail {
+    background-image: url(../../../images/icons/contenttypes/mail_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment span, div.content-type-attachment, span.content-type-attachment {
+    background-image: url(../../../images/icons/attachments/generic_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-file span, div.content-type-file, span.content-type-file {
+    background-image: url(../../../images/icons/attachments/generic_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-application-pdf span, div.content-type-attachment-application-pdf, span.content-type-attachment-application-pdf {
+    background-image: url(../../../images/icons/attachments/pdf_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-image span, div.content-type-attachment-image, span.content-type-attachment-image {
+    background-image: url(../../../images/icons/attachments/image_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-text-html span, div.content-type-attachment-text-html, span.content-type-attachment-text-html,
+a.content-type-attachment-text-xml span, div.content-type-attachment-text-xml, span.content-type-attachment-text-xml {
+    background-image: url(../../../images/icons/attachments/xml_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-text span, div.content-type-attachment-text, span.content-type-attachment-text {
+    background-image: url(../../../images/icons/attachments/txt_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-application-zip span, div.content-type-attachment-application-zip, span.content-type-attachment-application-zip {
+    background-image: url(../../../images/icons/attachments/zip_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-application-excel span, div.content-type-attachment-application-excel, span.content-type-attachment-application-excel {
+    background-image: url(../../../images/icons/attachments/xls_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-application-powerpoint span, div.content-type-attachment-application-powerpoint, span.content-type-attachment-application-powerpoint {
+    background-image: url(../../../images/icons/attachments/ppt_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-application-word span, div.content-type-attachment-application-word, span.content-type-attachment-application-word {
+    background-image: url(../../../images/icons/attachments/doc_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-java span, div.content-type-attachment-java, span.content-type-attachment-java {
+    background-image: url(../../../images/icons/attachments/java_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-multimedia span, div.content-type-attachment-multimedia, span.content-type-attachment-multimedia {
+    background-image: url(../../../images/icons/attachments/multimedia.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-attachment-file span, div.content-type-attachment-file, span.content-type-attachment-file {
+    background-image: url(../../../images/icons/attachments/generic_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-status span, div.content-type-status, span.content-type-status {
+    background-image: url(../../../images/icons/quotes.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-user span, div.content-type-user, span.content-type-user,
+a.content-type-userinfo span, div.content-type-userinfo, span.content-type-userinfo {
+    background-image: url(../../../images/icons/profilepics/default_16.png);
+    background-repeat: no-repeat;
+}
+
+a.content-type-follow span, div.content-type-follow, span.content-type-follow,
+a.content-type-favourite span, div.content-type-favourite, span.content-type-favourite {
+    background-image: url(../../../images/icons/emoticons/star_yellow.png);
+    background-repeat: no-repeat;
+}
+
+body.login,
+body.login #main,
+body.login #full-height-container {
+    background: #fafafa;
+    display: block;
+}
+
+* html body.login,
+* html body.login #full-height-container {
+    background: #f0f0f0;
+}
+
+#com-atlassian-confluence.login h1 {
+    width: 560px;
+    margin: 0 auto;
+}
+
+#login-container {
+    margin: 0 auto;
+    width: 500px;
+    padding: 20px 30px;
+    background: #fff;
+}
+
+body.login #header, body.login #websudo {
+    display: none;
+}
+
+/* Gets rid of the break above the footer */
+body.login .clear {
+    display: none;
+}
+
+body.login #main {
+    overflow: hidden;
+    padding: 10% 0 12%;
+    margin: 0;
+    border: 0;
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+}
+
+#login-container .errorBox {
+    background: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Hide the "The following error(s) occurred:" text */
+#login-container .errorBox .errorMessage {
+    display: none;
+}
+
+#login-container .errorBox ul {
+    list-style-type: none;
+    color: #c00;
+}
+
+#login-container,
+#login-container form.aui {
+    color: #333;
+}
+
+#login-container,
+#login-container .captcha-image {
+    border: 1px solid #eee;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+}
+
+#login-container div.login-form-container {
+    margin-bottom: 10px;
+    padding: 0 0 5px 20px;
+}
+
+#login-container .login-form-container fieldset {
+    padding-top: 15px;
+}
+
+#login-container .checkbox label {
+    left: 0;
+    margin-right: 0;
+    float: none;
+    display: inline;
+}
+
+/* Overide default label styling */
+#com-atlassian-confluence.login #login-container label {
+    color: #333;
+}
+
+#com-atlassian-confluence.login #login-container .error p {
+    background: #fff;
+    color: #c00;
+}
+
+#login-container .login-form-container .text,
+#login-container .login-form-container .password {
+    width: 95%;
+}
+
+#login-container .message {
+    padding: 0;
+    width: auto;
+}
+
+#login-container p {
+    margin: 0 0 1em;
+    color: #333;
+}
+
+#login-container p.last {
+    margin: 0;
+}
+
+#login-container p.success-message {
+    color: green;
+}
+
+body.signup #main {
+    padding: 5% 0 7%;
+}
+
+#login-container .captcha-image {
+    margin: 10px 0;
+    width: 200px;
+    height: 100px;
+    float: left;
+}
+
+#captcha-error span.errorMessage {
+    font-weight: normal;
+}
+
+#captcha-container .reload {
+    width: 16px;
+    height: 16px;
+    float: left;
+    position: relative;
+    top: 16px;
+    left: 10px;
+}
+
+#captcha-container label#captcha-reponse-label {
+    float: none;
+    left: 0;
+    margin: 0;
+    width: auto;
+}
+
+#captcha-container input {
+    width: 192px;
+}
+
+#coherence-copyright {
+    margin: 0;
+    text-align: center;
+    font-size: 0.8em;
+    padding-bottom: 3px;
+}
+
+#coherence-copyright a {
+    color: #666;
+}
+
+#login-container .userLogoLink {
+    float: left;
+    padding-right: 5px;
+}
+
+#login-container a#login-notyou {
+    padding-left: 5px;
+}
+
+#login-container div.warningPanel {
+    margin: 0 0 10px 0;
+}
+
+
+
+.page-metadata {
+    margin: 0;
+}
+
+.page-metadata p {
+    margin: 0;
+    font-size: 1em;
+}
+
+#footer p {
+    margin: 0;
+    padding: 1em 0;
+}
+
+
+
+/*
+    Colors for Confluence (included for all themes by default).
+*/
+h1, h2, h3, h4, h5, h6,
+.wiki-content h1,
+.wiki-content h2,
+.wiki-content h3,
+.wiki-content h4,
+.wiki-content h5,
+.wiki-content h6,
+.pagetitle,
+.steptitle,
+.substeptitle,
+.formtitle,
+table.confluenceTable td.confluenceTd.highlight,
+table.confluenceTable td.confluenceTd.highlight > p,
+table.confluenceTable th.confluenceTh,
+table.confluenceTable th.confluenceTh > p,
+table.admin th,
+.form-element-large,
+.form-element-small,
+#toolbar #format-dropdown .format-h1 a,
+#toolbar #format-dropdown .format-h2 a,
+#toolbar #format-dropdown .format-h3 a,
+#toolbar #format-dropdown .format-h4 a,
+#toolbar #format-dropdown .format-h5 a,
+#toolbar #format-dropdown .format-h6 a {
+    color: #000000;
+}
+
+#format-dropdown .mce_formatPreview.mce_blockquote a {
+    border-left-color: #6699cc;
+}
+
+.wiki-content h1,
+.wiki-content h2 {
+ 	border-bottom-color: #6699cc;
+}
+
+.wiki-content-preview {
+    border-left-color: #6699cc;
+    border-right-color: #6699cc;
+}
+
+.pageSectionHeader {
+    border-bottom-color: #6699cc;
+}
+
+.panel {
+    border-color: #6699cc;
+}
+
+.panelHeader,
+.menuheading,
+.pageheader,
+.sectionbottom {
+    border-bottom-color: #6699cc;
+}
+
+.topRow {
+    border-top-color: #6699cc;
+}
+
+.tabletitle, .pageSectionHeader {
+	border-bottom-color: #6699cc;
+}
+
+a:link,
+a:visited,
+a:focus,
+a:hover,
+a:active,
+a.blogHeading {
+	color: #326ca6;
+}
+
+.wiki-content a,
+.wiki-content a:link,
+.wiki-content a:visited,
+.wiki-content a:focus,
+.wiki-content a:hover,
+.wiki-content a:active {
+	color: #326ca6;
+}
+
+.createlink,
+a.createlink,
+a.createlink:link,
+a.createlink:visited,
+a.createlink:active,
+a.createlink:hover {
+    text-decoration: underline;
+    color: #6D1806;
+}
+
+.unresolved,
+a.unresolved,
+a.unresolved:link,
+a.unresolved:visited,
+a.unresolved:active,
+a.unresolved:hover {
+    text-decoration: underline;
+    color: #828282;
+}
+
+.not-permitted,
+a.not-permitted,
+a.not-permitted:link,
+a.not-permitted:visited,
+a.not-permitted:hover,
+a.not-permitted:active {
+    color: #cc0000;
+}
+
+.grey,
+a.grey,
+a.grey:link,
+a.grey:visited,
+a.grey:hover,
+a.grey:active {
+    color: #666;
+}
+
+#tinymce.wiki-content a,
+#tinymce.wiki-content a:link,
+#tinymce.wiki-content a:visited,
+#tinymce.wiki-content a:focus,
+#tinymce.wiki-content a:hover,
+#tinymce.wiki-content a:active {
+	color: #326ca6 !important;
+}
+
+#tinymce.wiki-content a.createlink {
+    color: #6D1806  !important; /* !important used to negate styles used in designMode in FF */
+}
+
+#tinymce.wiki-content a.unresolved {
+    color: #828282 !important; /* !important used to negate styles used in designMode in FF */
+}
+
+#tinymce.wiki-content a.not-permitted {
+    color: #cc0000 !important; /* !important used to negate styles used in designMode in FF */
+}
+
+h1 a:link,
+h1 a:visited,
+h1 a:focus,
+h1 a:hover,
+h1 a:active {
+    color: #326ca6;
+    border-bottom-color: #000000;
+}
+
+.spacenametitle-printable,
+.spacenametitle-printable a,
+.spacenametitle-printable a:visited {
+    color: #999999;
+}
+
+.tableview th {
+    color: #000000;
+    border-bottom-color: #6699cc;
+}
+
+blockquote {
+    border-left-color: #6699cc;
+}
+
+.navBackgroundBox {
+    background: #6699cc;
+}
+
+.previewBoxTop,
+.previewContent,
+.previewBoxBottom,
+.functionbox {
+    border-color: #6699cc;
+}
+
+.smalltext-blue {
+    color: #6699cc;
+}
+
+.tabnav,
+.comment .tabnav,
+ul.tabnav {
+    border-bottom-color: #6699cc;
+}
+
+.tabnav .tabs a {
+    border-color: #6699cc;
+    background: #6699cc;
+}
+
+.tabnav .tabs a:link,
+.tabnav .tabs a:visited {
+    color: #ffffff;
+}
+.tabnav .tabs a:hover {
+    color: #ffffff;
+    background: #003366;
+    border-color: #003366;
+}
+
+#squaretab a {
+    border-color: #6699cc;
+}
+
+#squaretab a:link,
+#squaretab a:visited {
+    background-color: #6699cc;
+}
+
+#squaretab a:hover {
+    color: #ffffff;
+    background-color: #003366;
+    border-color: #003366;
+}
+
+table.blogcalendar {
+    border-color: #6699cc;
+}
+
+.blogcalendar th.calendarhead,
+a.calendarhead,
+a.calendarhead:link,
+a.calendarhead:visited,
+a.calendarhead:hover {
+    background-color: #6699cc;
+    color: #ffffff;
+}
+
+.searchGroupHeading {
+    background-color: #6699cc;
+    color: #ffffff;
+}
+
+.permissionTab {
+    background: #6699cc;
+    color: #ffffff;
+}
+
+.permissionSuperTab {
+    background: #003366;
+    color: #ffffff;
+}
+
+/* styles for links in the top bar */
+.topBar {
+    background-color: #003366;
+}
+
+.basicPanelContainer {
+    border-color: #6699cc;
+}
+
+.greynavbar {
+    border-top-color: #6699cc
+}
+
+div.license-personal {
+   background-color: #003366;
+   color: #ffffff;
+}
+
+div.license-personal a {
+   color: #ffffff;
+}
+
+#header {
+    background-color: #003366;
+}
+
+#header a,
+#breadcrumbs {
+    color: #ffffff;
+}
+.breadcrumbs {
+ 	border-color: #6699cc;
+}
+
+#navigation, #tab-navigation {
+    border-bottom-color: #6699cc;
+}
+
+.tab-navigation .tab a {
+    background-color: #6699cc;
+    border: 1px solid #6699cc;
+    color: #ffffff;
+}
+.tab-navigation .tab a:hover {
+    color: #ffffff;
+    background-color: #003366;
+    border-bottom-color: #003366;
+}
+
+.tabletitle, .heading-text-color {
+    color: #000000;
+}
+
+ol.autocompleter li.focused {
+	background: #6699cc;
+	color: #ffffff;
+}
+
+/* End colour styles for Confluence */
+
+.diff-navigation a.version-navigation {
+    background-color: #ddd;
+}
+
+.diff-navigation a.version-navigation:hover {
+    background-color: #bbb;
+}
+
+.diff-navigation a.version-navigation.all:hover {
+    background-color: transparent;
+}
+
+/* @group Admin tasklist colours */
+
+.tasklist .task.complete .signoff { color: #008004; }
+.tasklist .task.incomplete .signoff { color: #cc0000; }
+
+/* @end Admin tasklist colours */
+
+/* @group aui overrides */
+
+/* @aui-override: tab colour, review after https://studio.atlassian.com/browse/AJS-557 is resolved */
+.aui-tabs ul.tabs-menu li.menu-item a {
+	color: #326ca6;
+}
+/* @end */
+
+#com-atlassian-confluence .aui-dd-parent .aui-dropdown .dropdown-item a,
+.ajs-menu-bar li.ajs-menu-item .ajs-drop-down a {
+    color: #535353;
+}
+
+#header .ajs-menu-bar li.ajs-menu-item a.trigger {
+    color: #ffffff;
+}
+
+#header .ajs-menu-bar li.ajs-menu-item .ajs-drop-down a {
+    color: #326ca6;
+}
+
+#com-atlassian-confluence .aui-dd-parent a.perms-dropdown-trigger:hover,
+#com-atlassian-confluence .aui-dd-parent a.perms-dropdown-trigger:focus,
+#com-atlassian-confluence .aui-dd-parent .aui-dropdown .dropdown-item.active a,
+.menu-section-list li.active a,
+.menu-section-list li.active a:hover,
+#navigation .ajs-menu-bar .ajs-button a:hover,
+#navigation .ajs-menu-bar .ajs-menu-item.hover a,
+.ajs-menu-bar .ajs-menu-item li.active a,
+.aui-dd-parent .aui-dropdown li.active,
+.aui-dd-parent .aui-dropdown li.active span,
+.aui-dd-parent .aui-dropdown a:focus span,
+.ajs-menu-bar .ajs-menu-item.opened .ajs-drop-down li.active a,
+#navigation .ajs-menu-bar li.ajs-button a.active,
+#header .ajs-menu-bar li.ajs-menu-item.opened .ajs-drop-down li.active a,
+.ajs-content-hover .popup-follow a:hover {
+    color: #ffffff;
+    background-color: #6699cc;
+}
+
+#header .ajs-menu-bar li.ajs-menu-item.opened,
+#header .ajs-menu-bar li.ajs-menu-item.hover,
+#header .ajs-menu-bar li.ajs-menu-item.opened a.trigger {
+    background-color: #336699;
+    border-color: #336699;
+}
+
+.ajs-menu-bar .ajs-menu-item.opened a.trigger {
+    background-color: #6699cc;
+}
+
+#header .ajs-menu-bar .ajs-drop-down {
+    border-color: #003366;
+}
+#header .ajs-menu-bar .ajs-drop-down li.separator {
+    border-top-color: #003366;
+}
+
+/* @end */
+
+/* @group labels */
+
+         (None) -section-title {
+    color: #666;
+}
+
+.confluence-label {
+    background-color: #D0DFEE;
+}
+
+.confluence-label:link,
+.confluence-label:visited {
+    color: #036;
+}
+
+.confluence-label:hover {
+    border-color: #326ca6;
+}
+
+.tag-cloud,
+.tag-cloud .confluence-label {
+    background: transparent;
+}
+
+.tag-cloud .confluence-label:link,
+.tag-cloud .confluence-label:visited {
+    color: #326ca6;
+}
+
+.tag-cloud .confluence-label:hover {
+    background-color: #D0DFEE;
+    color: #036;
+}
+
+.tag-reference-section > h2 {
+    background: $colorScheme.tabNavigationBackgroundColor;
+    color: $colorScheme.tabNavigationTextColor;
+}
+
+/* @end */
+
+
+
+/* @group Diff colours */
+
+.diff-tag-added {
+    background-color: #93c49f;
+}
+
+.diff-tag-removed {
+    background-color: #df9898;
+}
+
+.diff-html-added {
+    background-color: #ddfade;
+    border-color: #93c49f;
+}
+
+.diff-html-removed {
+    background-color: #ffe7e7;
+    border-color: #df9898;
+}
+
+.diff-html-changed {
+    background-color: #d6f0ff;
+    border-color: #9eb6d4;
+}
+
+.diff-html-added img {
+    border-color: #93c49f;
+}
+
+.diff-html-removed img {
+    border-color: #df9898;
+}
+
+.diff-html-changed img {
+    border-color: #9eb6d4;
+}
+
+.diff-image-overlay,
+.wiki-content .diff-image-overlay {
+    color: #535353;
+}
+
+.diff-image-overlay.diff-removed-image {
+    background-color: #ffe7e7;
+}
+
+.diff-image-overlay.diff-added-image {
+    background-color: #ddfade;
+}
+
+.diff-image-overlay.diff-changed-image {
+    background-color: #d6f0ff;
+}
+
+.diff-macro {
+    border-color: #ddd;
+    background-color: #f0f0f0;
+}
+
+.diff-macro .diff-macro-title {
+    background-color: transparent;
+}
+
+.diff-macro .diff-macro-properties {
+    border-color: #ddd;
+}
+
+.diff-macro .diff-macro-properties,
+.diff-macro .diff-macro-properties th,
+.diff-macro .diff-macro-properties td {
+    background-color: #fafafa;
+    background: rgba(255,255,255,0.5);
+}
+
+.diff-macro .diff-macro-body {
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+.diff-macro.diff-html-added,
+.diff-macro.diff-html-added .diff-macro-body {
+    background-color: #ddfade;
+    border-color: #93c49f;
+}
+
+.diff-macro.diff-html-removed,
+.diff-macro.diff-html-removed .diff-macro-body {
+    background-color: #ffe7e7;
+    border-color: #df9898;
+}
+
+.diff-macro.diff-html-changed,
+.diff-macro.diff-html-changed .diff-macro-body {
+    background-color: #d6f0ff;
+    border-color: #9eb6d4;
+}
+
+.diff-macro.diff-html-added .diff-macro-body,
+.diff-macro.diff-html-removed .diff-macro-body,
+.diff-macro.diff-html-changed .diff-macro-body {
+    background-color: #fff;
+}
+
+/* @end Diff colours */
+
+/*
+    This stylesheet defines styles that only apply to the Default theme. Styles common to all themes should go in
+    master.css
+*/
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: Arial, Helvetica, FreeSans, sans-serif;
+}
+
+#full-height-container {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    background-color: #f7f7f7;    
+}
+
+#full-height-container.active-preview {
+    background-color: #ffffff;
+}
+
+#header {
+    margin: 0;
+    padding: 0 0.75em;
+    min-height: 2em;
+    line-height: 2;
+}
+
+#websudo {
+    margin: 0;
+    padding: 0 10px;
+    min-height: 2em;
+    line-height: 2;
+}
+
+.email{
+    /* offset the negative margin set by the header for emails only */
+    margin: 10px;
+}
+
+#content-title-div img.logo, h1.pagetitle img {
+    max-height: 2.5em; /* scale logo image with font size */
+    margin-bottom: 0.3em;
+    float: left;
+}
+
+h1.pagetitle img.custom {
+    height: auto;
+}
+
+h1 span.title-text {
+    display: table; /* page title wrapping drops straight down */
+}
+
+.editable-title {
+    margin: 0 10px 0 58px;
+}
+
+#main {
+    padding: 1.25em;
+    background-color: #fff;
+}
+
+.theme-default #main {
+    min-height: 85%;
+    margin: 0.75em;
+    -moz-border-radius: .3125em;
+    -webkit-border-radius: .3125em;
+    border-radius: .3125em;
+    border: 1px solid #BBB;
+}
+
+.theme-default #navigation {
+    float: right;
+}
+
+.wiki-content .table-wrap {
+    overflow: auto;
+}
+
+.image-wrap {
+    display:inline-block;
+    overflow-y: hidden;
+    overflow-x: auto;
+    max-width:100%;
+}
+
+.content-preview #main {
+    padding-bottom: 10px;
+}
+
+#content {
+    clear: left;
+}
+#content.space {
+    margin-top: 2.6em;
+}
+
+a:link,
+a:visited {
+    text-decoration: none;
+    outline: none;
+}
+a:focus,
+a:hover,
+a:active {
+    text-decoration: underline;
+}
+
+#navigation {
+    display: inline;
+}
+
+.page-actions {
+    float: right;
+    border: solid 1px #ccc;
+    padding: 5px;
+    margin-left: 10px;
+}
+
+.page-metadata {
+    color: #666;
+    font-size: 0.9em;
+    margin: 10px 0;
+}
+.page-metadata a:link,
+.page-metadata a:active,
+.page-metadata a:hover,
+.page-metadata a:visited {
+    color: #666;
+    font-style: normal;
+    text-decoration: underline;
+}
+
+.section-header {
+    margin-bottom: 5px;
+    padding: 2px 0;    
+}
+
+h2.section-title {
+    font-size: 12pt;
+    font-weight: bold;
+    margin-top: 20px;
+    padding: 0;
+    display: inline;
+}
+
+#sidebar,
+.sidebar {
+    clear: right;
+    float: right;
+    width: 16em;
+    margin-left: 10px;
+}
+
+#space-blog-search-query{
+    width: 21.5em;
+}
+
+#blog-sidebar{
+    width: 22em;
+    margin-top: 2em;
+    margin-bottom: 0.5em;
+}
+
+.has-sidebar #content.space,
+.has-sidebar #content.edit form.markup,
+.has-sidebar .wiki-content,
+.has-sidebar.active-wikimarkup .errorBox{
+    margin-right: 17em;
+}
+
+.has-blog-sidebar #content.space,
+.has-blog-sidebar #content.edit form.markup,
+.has-blog-sidebar .wiki-content
+{
+    margin-right: 24em;
+}
+
+.blog-post-listing .wiki-content,
+.has-blog-sidebar .blogpost-view .wiki-content .wiki-content{
+    margin-right: 0;
+}
+
+.has-sidebar .wiki-content .wiki-content,
+.has-blog-sidebar .wiki-content .wiki-content,
+.has-blog-sidebar .comment-content.wiki-content {
+    margin-right: 0;
+}
+
+.active-richtext #content.create-page,
+.active-preview #content.create-page {
+    margin-right: 0 !important;
+}
+
+.contenteditor .active-preview #main-header {
+    padding: 20px 20px 0;
+}
+
+.sidebar-content {
+    margin: 10px 0 0 1em;
+}
+
+.blogcalendar {
+    width: 16em;
+}
+
+.blogcalendar th a.calendarhead,
+.blogcalendar th.calendarhead {
+    font-size: 1em;
+}
+
+.blogcalendar td,
+.blogcalendar th {
+    font-size: .85em;
+}
+
+/* folder tab link styles */
+.tabnav .tabs a {
+    padding: 5px 5px 4px;
+    margin: 5px 3px 0 0;
+    border-width: 1px;
+    border-style: solid;
+    border-bottom: none;
+    text-decoration: none;
+    display: block;
+    float: left;
+}
+
+.tabnav .tabs a.current {
+    background: white;
+    border-bottom: 1px solid white;
+    color: black;
+}
+
+.tabnav .tabs a.current:link, .tabnav .tabs a.current:visited {
+    color: black;
+}
+
+.tabnav .tabs a.current:hover {
+    background: white;
+    border-bottom: 1px solid white;
+    color: black;
+}
+
+/* list page navigational tabs */
+.tabnav, .comment .tabnav {
+    padding: 0;
+    margin: 0;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    float: left;
+    display: inline;
+    list-style-position: outside;
+    width: 100%;
+    font-weight: bold;
+    font-size: 10pt;
+}
+
+.after-tabnav {
+    clear: both;
+}
+
+.tabnav li.tabs {
+    list-style: none;
+    margin: 0 0 -1px 10px;
+    float: left;
+    display: block;
+}
+
+.dashboard {
+    clear: left;
+}
+
+#footer {
+    background: none;
+    width:100%;
+}
+
+#login-language {
+    text-align: center;
+    font-size: 11px;
+    padding-top: 10px;
+}
+
+#login-language a {
+    color: #666666;
+    text-decoration: none;
+    padding-left: 10px;
+}
+
+#poweredby,
+#poweredby a {
+    font-size: 11px;
+}
+
+.quick-search-submit,
+i.remove-control,
+body.popup-window #footer {
+    display: none;
+}
+
+/* We can't have a separate IE css file because the default theme
+   hard codes the location of the theme stylesheet */
+
+/* IE6: treated as min-height*/
+* html #full-height-container {
+    height: 100%;
+    background-color:#F0F0F0;
+}
+
+* html #main {
+    padding-bottom: 1em;
+    height: 88%; /* fake ie6 min height - not perfect but better than alternatives */
+}
+
+* html #footer {
+    position: relative;
+}
+
+* html .popup-window #full-height-container {
+    background-color:#fff;
+}
+
+
