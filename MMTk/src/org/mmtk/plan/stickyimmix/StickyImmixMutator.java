@@ -116,6 +116,32 @@ public class StickyImmixMutator extends ImmixMutator {
     return false;
   }
 
+ /**
+   * Attempt to atomically exchange the value in the given slot
+   * with the passed replacement value. If a new reference is
+   * created, we must then take appropriate write barrier actions.<p>
+   *
+   * <b>By default do nothing, override if appropriate.</b>
+   *
+   * @param src The object into which the new reference will be stored
+   * @param slot The address into which the new reference will be
+   * stored.
+   * @param old The old reference to be swapped out
+   * @param tgt The target of the new reference
+   * @param metaDataA A value that assists the host VM in creating a store
+   * @param metaDataB A value that assists the host VM in creating a store
+   * @param mode The context in which the store occured
+   * @return True if the swap was successful.
+   */
+  @Inline
+  public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot,
+                                               ObjectReference old, ObjectReference tgt, Word metaDataA,
+                                               Word metaDataB, int mode) {
+    if (HeaderByte.isUnlogged(src))
+      logSource(src);
+    return VM.barriers.objectReferenceTryCompareAndSwap(src,old,tgt,metaDataA,metaDataB,mode);
+  }
+  
   /**
    * Add an object to the modified objects buffer and mark the
    * object has having been logged.  Since duplicate entries do
