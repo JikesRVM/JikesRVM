@@ -45,4 +45,7 @@ public class StickyImmixConstraints extends ImmixConstraints {
   /** @return Size (in bytes) beyond which copied objects must be copied to the LOS */
   @Override
   public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES; }
+  
+  @Override
+  public boolean objectReferenceBulkCopySupported() { return true; }
 }
