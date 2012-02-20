@@ -350,7 +350,6 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
     if (HEADER_MARK_BITS) {
       byte oldValue = VM.objectModel.readAvailableByte(object);
       byte newValue = (byte) ((oldValue & ~MARK_COUNT_MASK) | (alloc && !isAllocAsMarked ? allocState : markState));
-      if (HeaderByte.NEEDS_UNLOGGED_BIT) newValue |= HeaderByte.UNLOGGED_BIT;
       VM.objectModel.writeAvailableByte(object, newValue);
     } else if (HeaderByte.NEEDS_UNLOGGED_BIT)
       HeaderByte.markAsUnlogged(object);
@@ -365,11 +364,13 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    */
   @Inline
   private boolean testAndMark(ObjectReference object) {
-    byte oldValue, markBits;
+    byte oldValue, markBits, newValue;
     oldValue = VM.objectModel.readAvailableByte(object);
     markBits = (byte) (oldValue & MARK_COUNT_MASK);
     if (markBits == markState) return false;
-    VM.objectModel.writeAvailableByte(object, (byte)((oldValue & ~MARK_COUNT_MASK) | markState));
+    newValue = (byte)((oldValue & ~MARK_COUNT_MASK) | markState);
+    if (HeaderByte.NEEDS_UNLOGGED_BIT) newValue |= HeaderByte.UNLOGGED_BIT;
+    VM.objectModel.writeAvailableByte(object, newValue);
     return true;
   }
 
