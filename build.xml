@@ -2681,6 +2681,19 @@ target.jni-suffix=${target.jni-suffix}
 	<property name="classpath.template.name" value="classpath.harmony.template" />
       </sequential>
     </if>
+    <if>
+      <conditions>
+        <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+      </conditions>
+      <sequential>
+        <copy toDir="eclipse" verbose="true">
+          <fileset dir="${openjdk.lib.dir}">
+            <include name="**/*.jar" />
+          </fileset>
+        </copy>
+        <property name="classpath.template.name" value="classpath.openjdk.template" />
+      </sequential>
+    </if>
     <copy todir="eclipse/gen-base">
       <fileset dir="${generated.java}"><include name="**/*.*"/></fileset>
     </copy>
