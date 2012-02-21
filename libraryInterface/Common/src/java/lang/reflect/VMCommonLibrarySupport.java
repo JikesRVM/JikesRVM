@@ -435,6 +435,9 @@ final class VMCommonLibrarySupport {
     try {
       Reflection.invoke(constructor, invoker, obj, args, true);
     } catch (Throwable e) {
+                VM.sysWriteln("[Exception in constructor:");
+                e.printStackTrace();
+                VM.sysWriteln("]");
       throw new InvocationTargetException(e);
     }
     return obj;

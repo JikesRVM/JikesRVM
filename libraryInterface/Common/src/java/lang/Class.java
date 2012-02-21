@@ -705,8 +705,10 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 	throw new IllegalArgumentException(
 					   getName() + " is not an enum type");
       Map<String, T> m = new HashMap<String, T>(2 * universe.length);
-      for (T constant : universe)
+      for (T constant : universe){
+	System.out.println("Putting " + ((Enum)constant).name() + " in the HashMap");
 	m.put(((Enum)constant).name(), constant);
+      }
       enumConstantDirectory = m;
     }
     return enumConstantDirectory;

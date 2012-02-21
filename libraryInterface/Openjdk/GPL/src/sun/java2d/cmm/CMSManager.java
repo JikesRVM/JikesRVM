@@ -54,8 +54,11 @@ public class CMSManager {
 
         cmmImpl = (PCMM)AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
-                String cmmClass = System.getProperty(
-                    "sun.java2d.cmm", "sun.java2d.cmm.kcms.CMM");
+	      String cmmClass = System.getProperty(
+						   "sun.java2d.cmm", "sun.java2d.cmm.kcms.CMM");
+
+	      //                String cmmClass = System.getProperty(
+	      //						     "sun.java2d.cmm", "sun.java2d.cmm.lcms.LCMS");
 
                 ServiceLoader<PCMM> cmmLoader
                     = ServiceLoader.loadInstalled(PCMM.class);
