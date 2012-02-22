@@ -40,7 +40,7 @@ public class StickyMSConstraints extends MSConstraints {
 
   @Override
   public int maxNonLOSDefaultAllocBytes() { return SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES; }
-  
+
   @Override
   public boolean objectReferenceBulkCopySupported() { return true; }
 }

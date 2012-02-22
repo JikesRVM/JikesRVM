@@ -141,7 +141,7 @@ public class StickyImmixMutator extends ImmixMutator {
       logSource(src);
     return VM.barriers.objectReferenceTryCompareAndSwap(src,old,tgt,metaDataA,metaDataB,mode);
   }
-  
+
   /**
    * Add an object to the modified objects buffer and mark the
    * object has having been logged.  Since duplicate entries do

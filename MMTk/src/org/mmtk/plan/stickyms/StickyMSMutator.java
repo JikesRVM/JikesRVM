@@ -116,7 +116,7 @@ public class StickyMSMutator extends MSMutator {
       logSource(src);
     return false;
   }
-  
+
   /**
    * Attempt to atomically exchange the value in the given slot
    * with the passed replacement value. If a new reference is
