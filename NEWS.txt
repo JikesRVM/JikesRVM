@@ -5,16 +5,48 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
-* Jikes RVM 3.1.2  (Future)
+* Jikes RVM 3.1.2  (February 24, 2012)
 
-Additional Notes:
-  Jikes RVM now requires the host JVM to be Java 6 or better. 
-  The system will no longer build using a Java 5 JVM as the host.
+Please note, Jikes RVM now requires the host JVM to be Java 6 or better. 
+The system will no longer build using a Java 5 JVM as the host.
 
-NOTE:  Release notes are generated directly from JIRA.
-If you want something mentioned in the release notes, make sure there is
-a JIRA item for it that when it is closed, you make it as fixed for 3.1.1.
+** Improvement
+    * [RVM-300] - Only download checkstyle when needed
+    * [RVM-903] - Update to latest JSR-166
+    * [RVM-922] - Remove the build warnings concerning includeantruntime that since in Ant 1.8
+    * [RVM-944] - compiler warnings while building bootImageRunner
 
+** Bug
+    * [RVM-364] - ant real-clean doesn't clean up fully
+    * [RVM-675] - Chunk linked list broken on discontiguous space
+    * [RVM-813] - Incomplete dependencies on .dat files when determining whether or not to regenerate sources
+    * [RVM-825] - Replay compilation does not account for custom class loaders
+    * [RVM-870] - Deadlock in RVMThread code
+    * [RVM-897] - Default setting for numprocessors is 1.   Probably should be all.
+    * [RVM-899] - Deadlock when using ExecutorService with Futures
+    * [RVM-900] - aligned32Copy can copy 8 bytes when number of bytes to copy is 0
+    * [RVM-905] - respect volatile store semantics
+    * [RVM-906] - GCspy version out of date in gcspy.xml
+    * [RVM-908] - URL changes of dependencies cause build with Apache Harmony to fail
+    * [RVM-910] - Download URL for JUnit changed
+    * [RVM-911] - Missing rule for int_ifcmp module BURS
+    * [RVM-914] - ObjectInputStream Deserialization does not handle Enum types correctly.
+    * [RVM-915] - isAnonymousClass check in RVMClass is incorrect
+    * [RVM-917] - A url for checkstyle 4.3 does not exist.
+    * [RVM-927] - VMChannel.write will return wrong number of bytes written when writing one byte from a ByteBuffer
+    * [RVM-931] - "malloc returned something that is in RVM address space" on Mac OS X Lion
+    * [RVM-932] - Documentation refers to subversion rather than mercurial
+    * [RVM-934] - Process @SysCallTemplate with Java 6 Annotations API instead of APT
+    * [RVM-936] - Jikes RVM fails to build on Ubuntu 11.10 with undefined references in sys.c
+    * [RVM-938] -  -X:cpuAffinity not found in SystemAppCL
+    * [RVM-943] - MMTk HeapGrowthManager heap growth ratio computation has discontinuities
+    * [RVM-945] - incorrect compiler ID passed to notifyMethodCompile callback
+    * [RVM-948] - start-time and end-time almost same in generated test reports.
+    * [RVM-949] - Sticky MS performance compared to MS
+    * [RVM-951] - Bulk copy optimization & compare and swap incorporation for Sticky MS & Sticky Immix
+
+** Sub-task
+    * [RVM-785] - handleHandshakeRequest should be called from enterNativeBlockedImpl
 
 * Jikes RVM 3.1.1  (July 4, 2010)
 ** New Feature
