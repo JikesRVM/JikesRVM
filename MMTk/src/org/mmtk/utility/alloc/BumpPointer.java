@@ -366,7 +366,7 @@ import org.vmmagic.unboxed.Word;
   /**
    * Set the next region in the linked-list of regions
    * @param region The region
-   * @param the next region in the list
+   * @param nextRegion the next region in the list
    */
   @Inline
   public static void setNextRegion(Address region, Address nextRegion) {
@@ -422,9 +422,7 @@ import org.vmmagic.unboxed.Word;
   }
 
   /**
-   * Return the end address of the given region.
-   * @param region The region.
-   * @return the allocation limit of the region.
+   * Store the limit value at the end of the region.
    */
   public static void setRegionLimit(Address region, Address limit) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());

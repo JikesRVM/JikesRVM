@@ -1162,10 +1162,11 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * must be explicitly invoked.
    *
    * @param src The source array
-   * @param srcIdx The starting source index
    * @param dst The destination array
-   * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
+   * @param srcOffset The starting offset in the source array
+   * @param dstOffset The starting offset in the destination array.
+   * @param bytes the number of bytes to copy
    */
   private static void arraycopyPiecemealNoCheckcast(Object[] src, Object[] dst, int len,
       Offset srcOffset, Offset dstOffset, int bytes) {

@@ -840,10 +840,10 @@ public class Barriers implements org.mmtk.utility.Constants {
    * Barrier for a bulk copy of floats (i.e. in an array copy).
    *
    * @param src The source array
-   * @param srcIdx The starting source index
+   * @param srcOffset The starting source offset
    * @param dst The destination array
-   * @param dstIdx The starting source index
-   * @param len The number of array elements to be copied
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
   public static void floatBulkCopy(float[] src, Offset srcOffset, float[] dst, Offset dstOffset, int bytes) {
@@ -950,10 +950,10 @@ public class Barriers implements org.mmtk.utility.Constants {
    * Barrier for a bulk copy of doubles (i.e. in an array copy).
    *
    * @param src The source array
-   * @param srcIdx The starting source index
+   * @param srcOffset The starting source offset
    * @param dst The destination array
-   * @param dstIdx The starting source index
-   * @param len The number of array elements to be copied
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to be copied
    */
   @Inline
   public static void doubleBulkCopy(double[] src, Offset srcOffset, double[] dst, Offset dstOffset, int bytes) {

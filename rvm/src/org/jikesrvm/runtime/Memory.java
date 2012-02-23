@@ -350,7 +350,7 @@ public class Memory {
    *
    * @param dst the destination addr
    * @param src the source addr
-   * @param numBytes the number of bytes top copy
+   * @param copyBytes the number of bytes top copy
    */
   public static void aligned32Copy(Address dst, Address src, int copyBytes) {
     if (VM.VerifyAssertions) {

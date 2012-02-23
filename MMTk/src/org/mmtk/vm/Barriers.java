@@ -296,7 +296,7 @@ public abstract class Barriers {
    * the old value of the Word field.
    *
    * @param ref The object that has the Word field
-   * @param target The value that the slot will be updated to
+   * @param rawTarget The value that the slot will be updated to
    * @param metaDataA Opaque, VM-specific, meta-data identifying the slot
    * @param metaDataB Opaque, VM-specific, meta-data identifying the slot
    * @param mode The context in which the write is occurring

@@ -41,7 +41,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the boolean field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -71,7 +71,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the byte field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -101,7 +101,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the char field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -131,7 +131,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the short field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -161,7 +161,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the int field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -216,7 +216,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the long field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -271,7 +271,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the float field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -301,7 +301,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the double field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -345,10 +345,11 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * Perform the actual write of the non-heap write barrier.  This is
    * used when the store is not to an object, but to a non-heap location
    * such as statics or the stack.
+   * @param slot The slot to be updated
    * @param target The value that the slot will be updated to
-   * @param unusedA The offset from the ref
+   * @param unusedA Unused
    * @param unusedB Unused
-   * @param ref The object that has the reference field
+
    */
   @Inline
   @Override

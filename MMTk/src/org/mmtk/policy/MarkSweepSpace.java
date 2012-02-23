@@ -359,8 +359,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * Atomically attempt to set the mark bit of an object.  Return true
    * if successful, false if the mark bit was already set.
    *
-   * @param object The object whose mark bit is to be written
-   * @param value The value to which the mark bits will be set
+   * @param object The object whose mark bit is to be set
    */
   @Inline
   private boolean testAndMark(ObjectReference object) {
@@ -378,8 +377,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * Return true if the mark count for an object has the given value.
    *
    * @param object The object whose mark bit is to be tested
-   * @param value The value against which the mark bit will be tested
-   * @return True if the mark bit for the object has the given value.
+   * @return True if the mark bit for the object is set.
    */
   @Inline
   private boolean testMarkState(ObjectReference object) {

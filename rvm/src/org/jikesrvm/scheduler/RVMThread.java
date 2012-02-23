@@ -1463,7 +1463,7 @@ public final class RVMThread extends ThreadContext {
     * @param thread The corresponding java.lang.Thread.
     * @param name The name of the thread
     * @param daemon True if this is a daemon thread.
-    * @param system True if this is a system thread.
+    * @param systemThread True if this is a system thread.
     * @param priority The threads execution priority.
     */
    public RVMThread(byte[] stack, Thread thread, String name, boolean daemon, SystemThread systemThread, int priority) {

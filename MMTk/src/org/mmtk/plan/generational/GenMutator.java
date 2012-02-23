@@ -190,7 +190,6 @@ import org.vmmagic.unboxed.*;
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Inline
   private void fastPath(Address slot, ObjectReference tgt) {
@@ -260,10 +259,10 @@ import org.vmmagic.unboxed.*;
    * will scan that address range at GC time.
    *
    * @param src The source of the values to be copied
-   * @param srcIdx The starting source index
+   * @param srcOffset The starting source offset
    * @param dst The mutated object, i.e. the destination of the copy.
-   * @param srcIdx The starting source index
-   * @param len The number of array elements to be copied
+   * @param dstOffset The starting destination offset
+   * @param bytes The number of bytes to copy
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */

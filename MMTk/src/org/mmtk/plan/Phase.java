@@ -30,9 +30,7 @@ import org.vmmagic.pragma.*;
  * Phases are executed within a stack and all synchronization between
  * parallel GC threads is managed from within this class.
  *
- * @see CollectorContext#collectionPhase
  * @see MutatorContext#collectionPhase
- * @see Plan#collectionPhase
  */
 @Uninterruptible
 public abstract class Phase implements Constants {
@@ -377,7 +375,6 @@ public abstract class Phase implements Constants {
    * Place a phase on the phase stack and begin processing.
    *
    * @param scheduledPhase The phase to execute
-   * @return True if the phase stack is exhausted.
    */
   public static void beginNewPhaseStack(int scheduledPhase) {
     int order = ((ParallelCollector)VM.activePlan.collector()).rendezvous();
@@ -391,8 +388,6 @@ public abstract class Phase implements Constants {
   /**
    * Continue the execution of a phase stack. Used for incremental
    * and concurrent collection.
-   *
-   * @return True if the phase stack is exhausted.
    */
   public static void continuePhaseStack() {
     processPhaseStack(true);

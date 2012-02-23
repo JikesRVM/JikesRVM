@@ -79,7 +79,7 @@ public class AlignmentEncoding {
   /**
    * Number of padding bytes required.
    * @param alignCode Prospective encoded value.
-   * @return
+   * @return the number of padding bytes required
    */
   public static int padding(int alignCode) {
     if (alignCode == ALIGN_CODE_NONE)
@@ -93,7 +93,7 @@ public class AlignmentEncoding {
    *
    * @param alignCode Value to encode
    * @param region The initial region
-   * @return
+   * @return the aligned address
    */
   public static Address adjustRegion(int alignCode, Address region) {
     assertSanity(alignCode);
@@ -130,8 +130,8 @@ public class AlignmentEncoding {
   /**
    * Extract the encoded value from a TIB pointer,
    * represented as a raw address.
-   * @param tib
-   * @return
+   * @param address
+   * @return the encoded value from a TIB pointer
    */
   @Uninterruptible
   @Inline
@@ -141,8 +141,8 @@ public class AlignmentEncoding {
 
   /**
    * Extract the encoded value from an object's TIB pointer
-   * @param tib
-   * @return
+   * @param object
+   * @return the encoded value from a TIB pointer
    */
   @Uninterruptible
   @Inline

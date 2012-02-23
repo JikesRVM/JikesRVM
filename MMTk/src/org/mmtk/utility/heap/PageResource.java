@@ -149,7 +149,7 @@ public abstract class PageResource implements Constants {
   /**
    * Remove a request to the space.
    *
-   * @param pages The number of pages returned due to the request.
+   * @param reservedPages The number of pages returned due to the request.
    */
   @Inline
   public final void clearRequest(int reservedPages) {

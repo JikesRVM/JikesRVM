@@ -263,7 +263,6 @@ public final class MarkCompactCollector {
 
     /**
      * Advance the cursor to the end of the given object.
-     * @return The object reference of the next object.
      */
     @Inline
     void advanceToObjectEnd(ObjectReference current) {
@@ -274,7 +273,7 @@ public final class MarkCompactCollector {
     /**
      * Advance the cursor either to the next region in the list,
      * or to a new region allocated from the global list.
-     * @param m
+     * @param space
      */
     void advanceToNextForwardableRegion(MarkCompactSpace space) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(get().EQ(getLimit()));

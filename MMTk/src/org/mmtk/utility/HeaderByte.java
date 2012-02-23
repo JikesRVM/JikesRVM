@@ -40,11 +40,10 @@ public class HeaderByte {
    * Perform any required initialization of the GC portion of the header.
    * Called for objects created at boot time.
    *
-   * @param ref the object ref to the storage to be initialized
+   * @param object the Address representing the storage to be initialized
    * @param typeRef the type reference for the instance being created
    * @param size the number of bytes allocated by the GC system for
    * this object.
-   * @param status the initial value of the status word
    * @return The new value of the status word
    */
   public static byte setBuildTimeGCByte(Address object, ObjectReference typeRef, int size) {
