@@ -17,7 +17,9 @@ import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.PlanConstraints;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.options.Options;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.scheduler.RVMThread;
 
@@ -46,13 +48,19 @@ import org.vmmagic.pragma.*;
   /** @return The number of registered CollectorContext instances. */
   @Inline
   public int collectorCount() {
-    return RVMThread.numProcessors;
+    return Options.threads.getValue();
   }
 
   /** @return The active CollectorContext instance. */
   @Inline
   public CollectorContext collector() {
-    return Selected.Collector.get();
+    return RVMThread.getCurrentThread().getCollectorContext();
+  }
+
+  /** @return Is the active thread a mutator thread. */
+  @Inline
+  public boolean isMutator() {
+    return !RVMThread.getCurrentThread().isCollectorThread();
   }
 
   /** @return The active MutatorContext instance. */
@@ -63,8 +71,15 @@ import org.vmmagic.pragma.*;
 
   /** @return The log for the active thread */
   public Log log() {
-    return Selected.Mutator.get().getLog();
+    if (VM.runningVM) {
+      return Selected.Mutator.get().getLog();
+    } else {
+      return buildLog;
+    }
   }
+
+  /** Log instance used at build time */
+  private static final Log buildLog = new Log();
 
   /** Reset the mutator iterator */
   public void resetMutatorIterator() {

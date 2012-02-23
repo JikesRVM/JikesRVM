@@ -66,6 +66,10 @@ V DYNAMIC_CALL_FILE_INPUT String null dcfi
 File containing information about the hot call sites
 
 
+V BULK_COMPILATION_VERBOSITY int 0
+Control amount of verbosity for bulk compilation (larger ==> more)
+
+
 V LOGGING_LEVEL int 0
 Control amount of event logging (larger ==> more)
 

@@ -2,75 +2,41 @@
 <html>
     <head>
         <title>RVM : Preliminaries</title>
-	    <link rel="stylesheet" href="styles/site.css" type="text/css" />
-        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
     </head>
 
     <body>
-	    <table class="pagecontent" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff">
-		    <tr>
-			    <td valign="top" class="pagebody">
-				    <div class="pageheader">
-					    <span class="pagetitle">
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
                             RVM : Preliminaries
-                                                    </span>
-				    </div>
-				    <div class="pagesubheading">
-					    This page last changed on Aug 03, 2009 by <font color="#0050B2">rgarner</font>.
-				    </div>
+                        </span>
+                    </h1>
 
-				    <h5><a name="Preliminaries-GettingMMTkandJikesRVMandEclipseworking."></a>Getting MMTk and Jikes RVM and Eclipse working.</h5>
+                    <div class="page-metadata">
+                        <p>This page last changed on Dec 21, 2011 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
 
-<ol>
-	<li><a href="Get The Source.html" title="Get The Source">Download</a> Jikes RVM version 3.0.2 or later (or use the svn head)</li>
-	<li>Ensure you can <a href="Building the RVM.html" title="Building the RVM">Build</a> and <a href="Running the RVM.html" title="Running the RVM">Run</a> the RVM.</li>
-	<li>Ensure you can build and run the <tt>BaseBaseNoGC</tt> configuration (build with: <tt>bin/buildit localhost BaseBaseNoGC</tt>, run with something like:
-<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">dist/BaseBaseNoGC_ia32-linux/rvm HelloWorld
-</pre>
-</div></div>
-<p>Note that this configuration <em>does</em> <em>not</em> perform garbage collection so can only run small benchmarks which do not exhaust available memory.  This configuration will be used as the basis for the tutorial.</p></li>
-	<li>Ensure that your source is <a href="Editing JikesRVM in an IDE.html" title="Editing JikesRVM in an IDE">successfully imported</a> (and editable) within an IDE such as Eclipse.</li>
-	<li>Set up an <a href="The MMTk Test Harness.html" title="The MMTk Test Harness">Eclipse Run configuration</a> for the NoGC plan using the MMTk Test Harness.</li>
-</ol>
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <h5 id="Preliminaries-GettingMMTkandJikesRVMandEclipseworking">Getting MMTk and Jikes RVM and Eclipse working.</h5><ol><li><a href="Get%2BThe%2BSource.html">Download</a> Jikes RVM version 3.0.2 or later (or use hg tip)</li><li>Ensure you can <a href="Building%2Bthe%2BRVM.html">Build</a> and <a href="Running%2Bthe%2BRVM.html">Run</a> the RVM.</li><li><p>Ensure you can build and run the <code>BaseBaseNoGC</code> configuration (build with: <code>bin/buildit localhost BaseBaseNoGC</code>, run with something like:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>dist/BaseBaseNoGC_ia32-linux/rvm HelloWorld</pre>
+</div></div><p>Note that this configuration <em>does</em> <em>not</em> perform garbage collection so can only run small benchmarks which do not exhaust available memory. This configuration will be used as the basis for the tutorial.</p></li><li>Ensure that your source is <a href="Editing%2BJikesRVM%2Bin%2Ban%2BIDE.html">successfully imported</a> (and editable) within an IDE such as Eclipse.</li><li>Set up an <a href="The%2BMMTk%2BTest%2BHarness.html">Eclipse Run configuration</a> for the NoGC plan using the MMTk Test Harness.</li></ol><h5 id="Preliminaries-CreatingTheBaseTutorialCollector">Creating The Base Tutorial Collector</h5><ol><li>Copy the <code>org.mmtk.plan.nogc</code> package to <code>org.mmtk.plan.tutorial</code> (copy and paste the package in Eclipse).</li><li>Rename the constituent classes from <code>NoGC*</code> to <code>Tutorial*</code> (use Refactor-&gt;Rename on each class within the <code>org.mmtk.plan.tutorial</code> package in Eclipse).</li><li>Modify your MMTk Harness Eclipse Run Configuration to use the new Plan, and click 'Run' to run it.</li><li>Create a new configuration file, <code>build/configs/BaseBaseTutorial.properties</code>, with a single line: <code>config.mmtk.plan=org.mmtk.plan.tutorial.Tutorial</code></li><li>Build and run the resulting collector:<ul><li><p>build with something like:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>bin/buildit localhost BaseBaseTutorial</pre>
+</div></div></li><li><p>run with something like:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>dist/BaseBaseTutorial_ia32-linux/rvm HelloWorld</pre>
+</div></div><div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br /><p>This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-0.zip" class="external-link" rel="nofollow">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2. You can use the files within the archive to verify you've completed the above steps correctly.</p></td></tr></table></div></li></ul></li></ol>
+                    </div>
 
-
-<h5><a name="Preliminaries-CreatingTheBaseTutorialCollector"></a>Creating The Base Tutorial Collector</h5>
-
-<ol>
-	<li>Copy the <tt>org.mmtk.plan.nogc</tt> package to <tt>org.mmtk.plan.tutorial</tt> (copy and paste the package in Eclipse).</li>
-	<li>Rename the constituent classes from <tt>NoGC&#42;</tt> to <tt>Tutorial&#42;</tt> (use Refactor-&gt;Rename on each class within the <tt>org.mmtk.plan.tutorial</tt> package in Eclipse).</li>
-	<li>Modify your MMTk Harness Eclipse Run Configuration to use the new Plan, and click 'Run' to run it.</li>
-	<li>Create a new configuration file, <tt>build/configs/BaseBaseTutorial.properties</tt>, with a single line: <tt>config.mmtk.plan=org.mmtk.plan.tutorial.Tutorial</tt></li>
-	<li>Build and run the resulting collector:
-	<ul>
-		<li>build with something like:
-<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">bin/buildit localhost BaseBaseTutorial
-</pre>
-</div></div></li>
-		<li>run with something like:
-<div class="code panel" style="border-width: 1px;"><div class="codeContent panelContent">
-<pre class="code-java">dist/BaseBaseTutorial_ia32-linux/rvm HelloWorld
-</pre>
-</div></div>
-<div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br />This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-0.zip">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2.  You can use the files within the archive to verify you've completed the above steps correctly.</td></tr></table></div></li>
-	</ul>
-	</li>
-</ol>
-
-
-				    
-                    			    </td>
-		    </tr>
-	    </table>
-	    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-			<tr>
-				<td height="12" background="http://docs.codehaus.org/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
-			</tr>
-		    <tr>
-			    <td align="center"><font color="grey">Document generated by Confluence on Jul 04, 2010 19:57</font></td>
-		    </tr>
-	    </table>
-    </body>
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
 </html>

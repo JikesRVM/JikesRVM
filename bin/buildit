@@ -31,6 +31,9 @@ $usage = $shortusage."Building:
 Eclipse Project:
   buildit --eclipse build-host
 
+MMTk Harness Eclipse Project:
+  buildit --mmtk-eclipse build-host
+
 Testing:
   buildit <Option(s)> -t test build-host [-c target-host] [<Config(s)>]
     for example:
@@ -83,6 +86,7 @@ Building Options:
  -m, --mmtk-config    MMTk properties (included in suffix)
  -j, --java-home      Specify a JAVA_HOME directory to use
      --eclipse        Build an eclipse project (and bring it back to this machine)
+     --mmtk-eclipse   Build an eclipse project using the MMTk Harness (and bring it back to this machine)
      --build-arg      Specify an additional argument for the ant build
      --bc-arg         Specify arguments for the bootimage compiler
      --checkstyle     Perform source code style checks.
@@ -145,6 +149,7 @@ GetOptions(
   "u|user=s" => \$cmd_user,
   "build-user=s" => \$cmd_hostUser,
   "eclipse" => \$eclipse,
+  "mmtk-eclipse" => \$mmtk_eclipse,
   "target-user=s" => \$cmd_targetUser,
   "classpath-cvs" => \$cvs_head,
   "g|gdb-symbols" => \$gdb_symbols,
@@ -467,6 +472,9 @@ if ($#gcs == -1) {
   if ($eclipse && $compiler eq "") {
     $compiler = "production";
   }
+  if ($mmtk_eclipse && $compiler eq "") {
+    $compiler = "prototype-opt";
+  }
   if ($compiler ne "") {
     @gcs = ( $compiler );
     $compiler = "";
@@ -595,11 +603,11 @@ if ($ok) {
       $rsync .= "ssh $sshHost -t mkdir -p $hostCompCache;\n";
       $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshHost:$hostCompCache/;\n";
     }
-    $rsync .= "rsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
+    $rsync .= "rsync -azvLe ssh --delete --exclude=\*.class ".$sourcedirs." $sshHost:$hostRoot";
     if ($host ne $target) {
       $rsync .= ";\nssh $sshTarget -t mkdir -p $targetRoot/dist";
       if ($hostConfig ne $targetConfig) {
-        $rsync .= ";\nrsync -azvLe ssh --delete --exclude=.svn --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
+        $rsync .= ";\nrsync -azvLe ssh --delete --exclude=\*.class ".$sourcedirs." $sshTarget:$targetRoot";
         if ($compcachedir ne "") {
           $rsync .= ";\nssh $sshTarget -t mkdir -p $targetCompCache;\n";
           $rsync .= "rsync -azvLe ssh --delete $localCompCache/ $sshTarget:$targetCompCache;\n";
@@ -623,7 +631,7 @@ if ($cvs_head) {
   $cp_flags .= "-Dclasspath.from-cvs=true ";
 }
 
-$rvm_revision=`svnversion`;
+$rvm_revision=`hg id --debug -i`;
 chomp($rvm_revision);
 
 if ($ok) {
@@ -635,7 +643,7 @@ if ($ok) {
     # Principal "-D" defines for ant
     $defs = "-Dtarget.name=$targetConfig ".
             "-Dconfig.name=$config ".
-            "-Dsvn.revision=$rvm_revision ";
+            "-Dhg.revision=$rvm_revision ";
      
     if ($suffix ne "") {
       $defs .= "-Dconfig.variant=$suffix ";
@@ -711,6 +719,8 @@ if ($ok) {
       #
       if ($eclipse) {
         $build .= "  ant eclipse-project $hostdefs";
+      } elsif ($mmtk_eclipse) {
+        $build .= "  ant mmtk-harness-eclipse-project $hostdefs";
       } elsif ($hostConfig eq $targetConfig) {
         $build .= "  ant $hostdefs";
       } else {
@@ -725,11 +735,14 @@ if ($ok) {
     #
     # Cross-builds
     #
-    if ($eclipse) {
+    if ($eclipse || $mmtk_eclipse) {
       if ($host ne $local) {
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/eclipse $localRoot/ ";
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/.project $localRoot/ ";
         $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/.classpath $localRoot/ ";
+        if ($mmtk_eclipse) {
+          $build .= "&& rsync -azvLe ssh --delete $sshHost:$hostRoot/generated $localRoot/ --include=mmtk-harness-parser ";
+        }
       }
     } elsif ($host ne $target) {
       if ($compcachedir ne "" && $target ne $local) {
@@ -811,7 +824,7 @@ if ($ok && ($test_set ne "" || $test_list ne "")) {
           "  export JAVA_HOME=$javaHome{$target} && ".
           "  ant -f test.xml ".
           "-Dhost.name=$targetConfig ".
-          "-Dsvn.revision=$rvm_revision ".
+          "-Dhg.revision=$rvm_revision ".
           "-Dskip.build=true ".
           "-Dexternal.lib.dir=$extlibdir ".
           "-Dresults.dir=$targetRoot/$resultdir ";

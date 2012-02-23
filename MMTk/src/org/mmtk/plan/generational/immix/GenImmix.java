@@ -58,12 +58,12 @@ public class GenImmix extends Gen {
    */
 
   /** The mature space, which for GenImmix uses a mark sweep collection policy. */
-  public static final ImmixSpace immixSpace = new ImmixSpace("immix", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final ImmixSpace immixSpace = new ImmixSpace("immix", false, VMRequest.create());
 
   public static final int IMMIX = immixSpace.getDescriptor();
 
+  /** Specialized scanning method identifier */
   public static final int SCAN_IMMIX = 1;
-  public static final int SCAN_DEFRAG = 2;
 
   /****************************************************************************
    *
@@ -86,8 +86,9 @@ public class GenImmix extends Gen {
   public final void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
-      if (gcFullHeap)
-        immixSpace.decideWhetherToDefrag(emergencyCollection, true, collectionAttempt, collectionTrigger);
+      if (gcFullHeap) {
+        immixSpace.decideWhetherToDefrag(emergencyCollection, true, collectionAttempt, userTriggeredCollection);
+      }
       return;
     }
 
@@ -153,6 +154,17 @@ public class GenImmix extends Gen {
     return immixSpace.availablePhysicalPages();
   }
 
+  /**
+   * Return the number of pages reserved for copying.
+   *
+   * @return The number of pages reserved given the pending
+   * allocation, including space reserved for copying.
+   */
+  @Override
+  public int getCollectionReserve() {
+    return super.getCollectionReserve() + immixSpace.defragHeadroomPages();
+  }
+
   /*****************************************************************************
    *
    * Miscellaneous
@@ -190,7 +202,7 @@ public class GenImmix extends Gen {
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_IMMIX, GenImmixMatureTraceLocal.class);
-    TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, GenImmixMatureDefragTraceLocal.class);
+//    TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, GenImmixMatureDefragTraceLocal.class);
     super.registerSpecializedMethods();
   }
 }

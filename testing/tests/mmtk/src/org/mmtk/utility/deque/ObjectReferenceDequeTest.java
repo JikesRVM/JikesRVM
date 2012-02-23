@@ -19,6 +19,7 @@ import org.mmtk.harness.Harness;
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.scheduler.Schedulable;
 import org.mmtk.harness.scheduler.Scheduler;
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
@@ -67,8 +68,8 @@ public class ObjectReferenceDequeTest {
    * Run a test, ie a list of threads, all run in GC context.
    * @param items
    */
-  private void runTest(final Schedulable... items) {
-    for (Schedulable item : items) {
+  private void runTest(final CollectorContext... items) {
+    for (CollectorContext item : items) {
       Scheduler.scheduleCollector(item);
     }
     Scheduler.scheduleGcThreads();
@@ -76,9 +77,9 @@ public class ObjectReferenceDequeTest {
 
   @Test
   public void testPushPop() {
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
@@ -92,9 +93,9 @@ public class ObjectReferenceDequeTest {
 
   @Test
   public void testInsertPop() {
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
@@ -108,9 +109,9 @@ public class ObjectReferenceDequeTest {
 
   @Test
   public void testPushPop2() {
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
@@ -126,9 +127,9 @@ public class ObjectReferenceDequeTest {
 
   @Test
   public void testInsertPop2() {
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
@@ -144,9 +145,9 @@ public class ObjectReferenceDequeTest {
 
   @Test
   public void testPushFlushPop() {
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
@@ -161,9 +162,9 @@ public class ObjectReferenceDequeTest {
 
   @Test
   public void testPushFlushPop2() {
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
@@ -180,9 +181,9 @@ public class ObjectReferenceDequeTest {
 
   @Test
   public void test2Heads() {
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque1 = new ObjectReferenceDeque("deque1",shared);
         ObjectReferenceDeque deque2 = new ObjectReferenceDeque("deque2",shared);
@@ -208,9 +209,9 @@ public class ObjectReferenceDequeTest {
   public void testnHeads() {
     final int NDEQUES = 4;
     final int ENTRIES = 1500; // Page and a half
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque[] deques = new ObjectReferenceDeque[NDEQUES];
 
@@ -235,9 +236,9 @@ public class ObjectReferenceDequeTest {
 
   @Test
   public void testPopFlush() {
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
@@ -259,9 +260,9 @@ public class ObjectReferenceDequeTest {
 
   @Test
   public void testPopFlush2() {
-    runTest(new Schedulable() {
+    runTest(new CollectorContext() {
       @Override
-      public void execute(Env env) {
+      public void run() {
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque1 = new ObjectReferenceDeque("deque1",shared);
         ObjectReferenceDeque deque2= new ObjectReferenceDeque("deque2",shared);
@@ -298,7 +299,7 @@ public class ObjectReferenceDequeTest {
    * 0,1,...,n-1 will insert all the numbers 0..(n*ins)-1 into
    * the deque, then pop entries until the Deque is entry.
    */
-  abstract class AddRemoveThread implements Schedulable {
+  abstract class AddRemoveThread extends CollectorContext {
 
     private final int n;
     private final int ordinal;
@@ -315,7 +316,7 @@ public class ObjectReferenceDequeTest {
     }
 
     @Override
-    public void execute(Env env) {
+    public void run() {
       for (int i=0; i < ins; i++) {
         add(o(1+i*n+ordinal));
       }

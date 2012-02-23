@@ -402,8 +402,8 @@ public class Entrypoints {
       getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIRefsSavedFP", int.class);
   public static final RVMField JNITopJavaFPField =
       getField(org.jikesrvm.jni.JNIEnvironment.class, "JNITopJavaFP", org.vmmagic.unboxed.Address.class);
-  public static final RVMField JNIPendingExceptionField =
-      getField(org.jikesrvm.jni.JNIEnvironment.class, "pendingException", java.lang.Throwable.class);
+  public static final RVMField JNIHasPendingExceptionField =
+      getField(org.jikesrvm.jni.JNIEnvironment.class, "hasPendingException", int.class);
   public static final RVMField JNIExternalFunctionsField =
       getField(org.jikesrvm.jni.JNIEnvironment.class, "externalJNIFunctions", org.vmmagic.unboxed.Address.class);
   public static final RVMField JNIEnvSavedJTOCField =
@@ -418,6 +418,10 @@ public class Entrypoints {
       VM.BuildForIA32 ? getMethod(org.jikesrvm.jni.JNIEnvironment.class,
                                   "exitFromJNI",
                                   "(I)Ljava/lang/Object;") : null;
+      public static final RVMMethod jniThrowPendingException =
+        VM.BuildForPowerPC ? getMethod(org.jikesrvm.jni.JNIEnvironment.class,
+                                    "throwPendingException",
+                                    "()V") : null;
 
   public static final RVMField the_boot_recordField =
       getField(org.jikesrvm.runtime.BootRecord.class, "the_boot_record", org.jikesrvm.runtime.BootRecord.class);

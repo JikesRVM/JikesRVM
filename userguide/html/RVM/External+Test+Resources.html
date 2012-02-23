@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : External Test Resources</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : External Test Resources
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Feb 24, 2007 by <font color="#0050B2">pdonald</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>The tests included in the source tree are designed to test the correctness and performance of the Jikes RVM. This document gives a step by step instructions for setting up the external dependencies for these tests.</p>
+
+<p>The first step is selecting the base directory where all the external code is to be located. The property <code>external.lib.dir</code> needs to be set to this location. i.e.</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; echo &quot;external.lib.dir=/home/peter/Research/External&quot; &gt;&gt; .ant.properties<br />
+&gt; mkdir -p /home/peter/Research/External</p>
+</div></div>
+
+<p>Then you need to follow the instructions below for the desired benchmarks. The instructions assume that the environment variable <code>BENCHMARK_ROOT</code> is set to the same location as the <code>external.lib.dir</code> property.</p>
+
+<h2 id="ExternalTestResources-OpenSourceBenchmarks">Open Source Benchmarks</h2>
+
+<p>In the future other benchmarks such as <a href="http://bigintbench.sourceforge.net/" class="external-link" rel="nofollow">BigInteger</a>, <a href="http://www.sable.mcgill.ca/ashes/" class="external-link" rel="nofollow">Ashes</a> or <a href="http://www.volano.com/benchmarks.html" class="external-link" rel="nofollow">Volano</a> may be included.</p>
+
+<h3 id="ExternalTestResources-Dacapo">Dacapo</h3>
+
+<p><a href="http://dacapobench.org/" class="external-link" rel="nofollow">Dacapo</a> describes itself as &quot;This benchmark suite is intended as a tool for Java benchmarking by the programming language, memory management and computer architecture communities. It consists of a set of open source, real world applications with non-trivial memory loads. The suite is the culmination of over five years work at eight institutions, as part of the DaCapo research project, which was funded by a National Science Foundation ITR Grant, CCR-0085792.&quot;</p>
+
+<p>Note: There is a page that tracks how JikesRVM is doing in Dacapo <a href="http://cs.anu.edu.au/people/Robin.Garner/dacapo/regression/" class="external-link" rel="nofollow">http://cs.anu.edu.au/people/Robin.Garner/dacapo/regression/</a></p>
+
+<p>The release needs to be downloaded and placed in the $BENCHMARK_ROOT/dacapo/ directory. i.e.</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/dacapo/<br />
+&gt; cd $BENCHMARK_ROOT/dacapo/<br />
+&gt; wget <a href="http://optusnet.dl.sourceforge.net/sourceforge/dacapobench/dacapo-2006-10.jar" class="external-link" rel="nofollow">http://optusnet.dl.sourceforge.net/sourceforge/dacapobench/dacapo-2006-10.jar</a></p>
+</div></div>
+
+<h3 id="ExternalTestResources-jBYTEmark">jBYTEmark</h3>
+
+<p>jBYTEmark was a benchmark developed by <a href="http://www.byte.com/art/9805/sec5/art4.htm" class="external-link" rel="nofollow">Byte.com</a> a long time ago.</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/jBYTEmark-0.9<br />
+&gt; cd $BENCHMARK_ROOT/jBYTEmark-0.9<br />
+&gt; wget <a class="external-link" href="http://img.byte.com/byte/bmark/jbyte.zip" rel="nofollow">http://img.byte.com/byte/bmark/jbyte.zip</a><br />
+&gt; unzip -jo jbyte.zip 'app/class/*'<br />
+&gt; unzip -jo jbyte.zip 'app/src/jBYTEmark.java'<br />
+&gt; ... Edit jBYTEmark.java to delete &quot;while (true) {}&quot; at the end of main. ...<br />
+&gt; javac jBYTEmark.java<br />
+&gt; jar cf jBYTEmark-0.9.jar *.class<br />
+&gt; rm -f *.class jBYTEmark.java</p>
+</div></div>
+
+<h3 id="ExternalTestResources-CaffeineMark">CaffeineMark</h3>
+
+<p><a href="http://www.benchmarkhq.ru/cm30/info.html" class="external-link" rel="nofollow">CaffeineMark</a> describes itself as &quot;The CaffeineMark is a series of tests that measure the speed of Java programs running in various hardware and software configurations. CaffeineMark scores roughly correlate with the number of Java instructions executed per second, and do not depend significantly on the the amount of memory in the system or on the speed of a computers disk drives or internet connection.&quot;</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/CaffeineMark-3.0 <br />
+&gt; cd $BENCHMARK_ROOT/CaffeineMark-3.0 <br />
+&gt; wget <a class="external-link" href="http://www.benchmarkhq.ru/cm30/cmkit.zip" rel="nofollow">http://www.benchmarkhq.ru/cm30/cmkit.zip</a><br />
+&gt; unzip cmkit.zip</p>
+</div></div>
+
+<h3 id="ExternalTestResources-xerces">xerces</h3>
+
+<p>Process some large documents using xerces XML parser.</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; cd $BENCHMARK_ROOT<br />
+&gt; wget <a href="http://archive.apache.org/dist/xml/xerces-j/Xerces-J-bin.2.8.1.tar.gz" class="external-link" rel="nofollow">http://archive.apache.org/dist/xml/xerces-j/Xerces-J-bin.2.8.1.tar.gz</a><br />
+&gt; tar xzf Xerces-J-bin.2.8.1.tar.gz<br />
+&gt; mkdir -p $BENCHMARK_ROOT/xmlFiles<br />
+&gt; cd $BENCHMARK_ROOT/xmlFiles<br />
+&gt; wget <a href="http://www.ibiblio.org/pub/sun-info/standards/xml/eg/shakespeare.1.10.xml.zip" class="external-link" rel="nofollow">http://www.ibiblio.org/pub/sun-info/standards/xml/eg/shakespeare.1.10.xml.zip</a><br />
+&gt; unzip shakespeare.1.10.xml.zip</p>
+</div></div>
+
+<h3 id="ExternalTestResources-Soot">Soot</h3>
+
+<p><a href="http://www.sable.mcgill.ca/soot/" class="external-link" rel="nofollow">Soot</a> describes itself as &quot;Soot is a Java bytecode analysis and transformation framework. It provides a Java API for building intermediate representations (IRs), analyses and transformations; also it supports class file annotation.&quot;</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/soot-2.2.3<br />
+&gt; cd $BENCHMARK_ROOT/soot-2.2.3<br />
+&gt; wget <a href="http://www.sable.mcgill.ca/software/sootclasses-2.2.3.jar" class="external-link" rel="nofollow">http://www.sable.mcgill.ca/software/sootclasses-2.2.3.jar</a><br />
+&gt; wget <a href="http://www.sable.mcgill.ca/software/jasminclasses-2.2.3.jar" class="external-link" rel="nofollow">http://www.sable.mcgill.ca/software/jasminclasses-2.2.3.jar</a></p>
+</div></div>
+
+<h3 id="ExternalTestResources-JavaGrandeForumSequentialBenchmarks">Java Grande Forum Sequential Benchmarks</h3>
+
+<p><a href="http://www.epcc.ed.ac.uk/javagrande/sequential.html" class="external-link" rel="nofollow">Java Grande Forum Sequential Benchmarks</a> is a benchmark suite designed for single processor execution.</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/JavaGrandeForum<br />
+&gt; cd $BENCHMARK_ROOT/JavaGrandeForum<br />
+&gt; wget <a href="http://www2.epcc.ed.ac.uk/javagrande/seq/jgf_v2.tar.gz" class="external-link" rel="nofollow">http://www2.epcc.ed.ac.uk/javagrande/seq/jgf_v2.tar.gz</a><br />
+&gt; tar xzf jgf_v2.tar.gz</p>
+</div></div>
+
+<h3 id="ExternalTestResources-JavaGrandeForumMulti-threadedBenchmarks">Java Grande Forum Multi-threaded Benchmarks</h3>
+
+<p><a href="http://www.epcc.ed.ac.uk/javagrande/threads.html" class="external-link" rel="nofollow">Java Grande Forum Multi-threaded Benchmarks</a> is a benchmark suite designed for parallel execution on shared memory multiprocessors.</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/JavaGrandeForum<br />
+&gt; cd $BENCHMARK_ROOT/JavaGrandeForum<br />
+&gt; wget <a href="http://www2.epcc.ed.ac.uk/javagrande/threads/jgf_threadv1.0.tar.gz" class="external-link" rel="nofollow">http://www2.epcc.ed.ac.uk/javagrande/threads/jgf_threadv1.0.tar.gz</a><br />
+&gt; tar xzf jgf_threadv1.0.tar.gz</p>
+</div></div>
+
+<h3 id="ExternalTestResources-JLexBenchmark">JLex Benchmark</h3>
+
+<p><a href="http://www.cs.princeton.edu/~appel/modern/java/JLex/" class="external-link" rel="nofollow">JLex</a> is a lexical analyzer generator, written for Java, in Java.</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/JLex-1.2.6/classes/JLex<br />
+&gt; cd $BENCHMARK_ROOT/JLex-1.2.6/classes/JLex<br />
+&gt; wget <a href="http://www.cs.princeton.edu/~appel/modern/java/JLex/Archive/1.2.6/Main.java" class="external-link" rel="nofollow">http://www.cs.princeton.edu/~appel/modern/java/JLex/Archive/1.2.6/Main.java</a><br />
+&gt; mkdir -p $BENCHMARK_ROOT/QBJC<br />
+&gt; cd $BENCHMARK_ROOT/QBJC<br />
+&gt; wget <a href="http://www.ocf.berkeley.edu/~horie/qbjlex.txt" class="external-link" rel="nofollow">http://www.ocf.berkeley.edu/~horie/qbjlex.txt</a><br />
+&gt; mv qbjlex.txt qb1.lex</p>
+</div></div>
+
+<h2 id="ExternalTestResources-ProprietaryBenchmarks">Proprietary Benchmarks</h2>
+
+<h3 id="ExternalTestResources-SPECjbb2005">SPECjbb2005</h3>
+
+<p><a href="http://www.spec.org/jbb2005/" class="external-link" rel="nofollow">SPECjbb2005</a> describes itself as &quot;SPECjbb2005 (Java Server Benchmark) is SPEC's benchmark for evaluating the performance of server side Java. Like its predecessor, SPECjbb2000, SPECjbb2005 evaluates the performance of server side Java by emulating a three-tier client/server system (with emphasis on the middle tier). The benchmark exercises the implementations of the JVM (Java Virtual Machine), JIT (Just-In-Time) compiler, garbage collection, threads and some aspects of the operating system. It also measures the performance of CPUs, caches, memory hierarchy and the scalability of shared memory processors (SMPs). SPECjbb2005 provides a new enhanced workload, implemented in a more object-oriented manner to reflect how real-world applications are designed and introduces new features such as XML processing and BigDecimal computations to make the benchmark a more realistic reflection of today's applications.&quot; SPECjbb2005 requires a license to download and use.</p>
+
+<p>SPECjbb2005 can be run on command line via;</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>$RVM_ROOT/rvm -X:processors=1 -Xms400m -Xmx600m -classpath jbb.jar:check.jar spec.jbb.JBBmain -propfile SPECjbb.props</p>
+</div></div>
+
+<p>SPECjbb2005 may also be run as part regression tests.</p>
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/SPECjbb2005<br />
+&gt; cd $BENCHMARK_ROOT/SPECjbb2005<br />
+&gt; ...Extract package here???...</p>
+</div></div>
+
+<h3 id="ExternalTestResources-SPECjbb2000">SPECjbb2000</h3>
+
+<p><a href="http://www.spec.org/jbb2000/" class="external-link" rel="nofollow">SPECjbb2000</a> describes itself as &quot;SPECjbb2000 (Java Business Benchmark) is SPEC's first benchmark for evaluating the performance of server-side Java. Joining the client-side SPECjvm98, SPECjbb2000 continues the SPEC tradition of giving Java users the most objective and representative benchmark for measuring a system's ability to run Java applications.&quot; SPECjbb2000 requires a license to download and use. Benchmarks should no longer be performed using SPECjbb2000 as the benchmarks have very <a href="http://sourceforge.net/mailarchive/forum.php?thread_id=8789099&amp;forum_id=43937" class="external-link" rel="nofollow">different characteristics</a>.</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/SPECjbb2000<br />
+&gt; cd $BENCHMARK_ROOT/SPECjbb2000<br />
+&gt; ...Extract package here???...</p>
+</div></div>
+
+<h3 id="ExternalTestResources-SPECJVM98Benchmarks">SPEC JVM98 Benchmarks</h3>
+
+<p><a href="http://www.spec.org/jvm98/" class="external-link" rel="nofollow">JVM98</a> features: &quot;Measures performance of Java Virtual Machines. Applicable to networked and standalone Java client computers, either with disk (e.g., PC, workstation) or without disk (e.g., network computer) executing programs in an ordinary Java platform environment.  Requires Java Virtual Machine compatible with JDK 1.1 API, or later.&quot; SPEC JVM98 Benchmarks require a license to download and use.</p>
+
+<div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>&gt; mkdir -p $BENCHMARK_ROOT/SPECjvm98<br />
+&gt; cd $BENCHMARK_ROOT/SPECjvm98<br />
+&gt; ...Extract package here???...</p>
+</div></div>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

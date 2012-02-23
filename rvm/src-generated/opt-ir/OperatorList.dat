@@ -469,6 +469,13 @@ none
 
 
 
+# memory fence
+FENCE
+Empty
+memAsLoad | memAsStore | release
+
+
+
 # Memory barrier.  No load instructions may rise above this instruction.
 READ_CEILING
 Empty

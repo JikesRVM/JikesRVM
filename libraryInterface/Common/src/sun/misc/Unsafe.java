@@ -17,6 +17,7 @@ import java.lang.reflect.Field;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
@@ -25,6 +26,7 @@ import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 public final class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
+  private static final Unsafe theUnsafe = unsafe; // alias to match name that DL's FJ framework appears to expect from class libs.
 
   private Unsafe() {}
 
@@ -61,6 +63,7 @@ public final class Unsafe {
 
   public void putOrderedInt(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
+    Magic.writeFloor();
     if (NEEDS_INT_PUTFIELD_BARRIER) {
       intFieldWrite(obj, value, off, 0);
     } else {
@@ -70,6 +73,7 @@ public final class Unsafe {
 
   public void putOrderedLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
+    Magic.writeFloor();
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
       longFieldWrite(obj, value, off, 0);
     } else {
@@ -79,6 +83,7 @@ public final class Unsafe {
 
   public void putOrderedObject(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
+    Magic.writeFloor();
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
       objectFieldWrite(obj, value, off, 0);
     } else {
@@ -87,7 +92,17 @@ public final class Unsafe {
    }
 
   public void putIntVolatile(Object obj,long offset,int value) {
-    // may not comply with the intended volatile semantic of the store
+    Magic.writeFloor();
+    Offset off = longToOffset(offset);
+    if (NEEDS_INT_PUTFIELD_BARRIER) {
+      intFieldWrite(obj, value, off, 0);
+    } else {
+      Magic.setIntAtOffset(obj,off,value);
+    }
+    Magic.fence();
+  }
+
+  public void putInt(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
     if (NEEDS_INT_PUTFIELD_BARRIER) {
       intFieldWrite(obj, value, off, 0);
@@ -98,18 +113,26 @@ public final class Unsafe {
 
   public int getIntVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
+    int result = Magic.getIntAtOffset(obj,off);
+    Magic.readCeiling();
+    return result;
+  }
+
+  public int getInt(Object obj,long offset) {
+    Offset off = longToOffset(offset);
     return Magic.getIntAtOffset(obj,off);
   }
 
   public void putLongVolatile(Object obj,long offset,long value) {
-    // may not comply with the intended volatile semantic of the store
+    Magic.writeFloor();
     Offset off = longToOffset(offset);
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
       longFieldWrite(obj, value, off, 0);
     } else {
       Magic.setLongAtOffset(obj,off,value);
     }
-   }
+    Magic.fence();
+  }
 
   public void putLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
@@ -122,7 +145,9 @@ public final class Unsafe {
 
   public long getLongVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
-    return Magic.getLongAtOffset(obj,off);
+    long result = Magic.getLongAtOffset(obj,off);
+    Magic.readCeiling();
+    return result;
   }
 
   public long getLong(Object obj,long offset) {
@@ -131,13 +156,14 @@ public final class Unsafe {
   }
 
   public void putObjectVolatile(Object obj,long offset,Object value) {
-    // may not comply with the intended volatile semantic of the store
     Offset off = longToOffset(offset);
+    Magic.writeFloor();
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
       objectFieldWrite(obj, value, off, 0);
     } else {
       Magic.setObjectAtOffset(obj,off,value);
     }
+    Magic.fence();
   }
 
   public void putObject(Object obj,long offset,Object value) {
@@ -151,7 +177,9 @@ public final class Unsafe {
 
   public Object getObjectVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
-    return Magic.getObjectAtOffset(obj,off);
+    Object result = Magic.getObjectAtOffset(obj,off);
+    Magic.readCeiling();
+    return result;
   }
 
   public int arrayBaseOffset(Class<?> arrayClass) {
@@ -177,5 +205,9 @@ public final class Unsafe {
   public void park(boolean isAbsolute,long time) throws Throwable  {
     RVMThread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
     vmthread.park(isAbsolute, time);
+  }
+
+  public void throwException(Throwable ex) {
+    RuntimeEntrypoints.athrow(ex);
   }
 }

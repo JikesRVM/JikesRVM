@@ -49,7 +49,7 @@ import org.vmmagic.unboxed.ObjectReference;
    */
 
   /** The mark compact space itself */
-  public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc", DEFAULT_POLL_FREQUENCY, VMRequest.create(0.6f));
+  public static final MarkCompactSpace mcSpace = new MarkCompactSpace("mc", VMRequest.create(0.6f));
 
   /** The space descriptor */
   public static final int MARK_COMPACT = mcSpace.getDescriptor();
@@ -182,18 +182,6 @@ import org.vmmagic.unboxed.ObjectReference;
   @Override
   public int getPagesUsed() {
     return (mcSpace.reservedPages() + super.getPagesUsed());
-  }
-
-  /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  @Override
-  public int getPagesRequired() {
-    return super.getPagesRequired() + mcSpace.requiredPages();
   }
 
   /**

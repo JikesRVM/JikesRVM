@@ -1,9 +1,57 @@
 Index: modules/archive/src/main/native/archive/unix/exports.txt
 ===================================================================
---- modules/archive/src/main/native/archive/unix/exports.txt	(revision 653525)
+--- modules/archive/src/main/native/archive/unix/exports.txt	(revision 782693)
 +++ modules/archive/src/main/native/archive/unix/exports.txt	(working copy)
 @@ -33,3 +33,4 @@
  Java_java_util_zip_ZipFile_openZipImpl
  JNI_OnLoad
  JNI_OnUnload
 +zipCachePool_new
+Index: modules/jmx/make/depends.properties
+===================================================================
+--- modules/jmx/make/depends.properties	(revision 782693)
++++ modules/jmx/make/depends.properties	(working copy)
+@@ -1,10 +1,10 @@
+ depends.jars=${depends.dir}/jars
+-sf.base=http://internap.dl.sourceforge.net/sourceforge
++sf.base=http://sourceforge.net/projects
+ 
+ mx4j.version=3.0.2
+ mx4j.dir=${depends.jars}/mx4j_${mx4j.version}
+ mx4j.zip=${mx4j.dir}/mx4j.zip
+-mx4j.url=${sf.base}/mx4j/mx4j-${mx4j.version}.zip
++mx4j.url=${sf.base}/mx4j/files/MX4J%20Binary/${mx4j.version}/mx4j-${mx4j.version}.zip/download
+ mx4j.md5=443bd83ee36414de4b8fc5722b038b02
+ mx4j.jar=${mx4j.dir}/mx4j.jar
+ mx4j.remote.jar=${mx4j.dir}/mx4j-remote.jar
+Index: make/depends.properties
+===================================================================
+--- make/depends.properties	(revision 782693)
++++ make/depends.properties	(working copy)
+@@ -16,7 +16,7 @@
+ depends.dir=depends
+ depends.jars=${depends.dir}/jars
+ maven2.base=http://repo1.maven.org/maven2
+-sf.base=http://internap.dl.sourceforge.net/sourceforge
++sf.base=http://sourceforge.net/projects
+ 
+ xalan.dir=${depends.jars}/xalan-j_2.7.0
+ xalan.orig.jar=${xalan.dir}/xalan.orig.jar
+@@ -26,7 +26,7 @@
+ 
+ xerces.dir=${depends.jars}/xerces_2.9.1
+ xerces.zip=${xerces.dir}/xerces.zip
+-xerces.url=http://www.apache.org/dist/xml/xerces-j/Xerces-J-bin.2.9.1.zip
++xerces.url=http://archive.apache.org/dist/xerces/j/Xerces-J-bin.2.9.1.zip
+ xerces.md5=a0e07ede1c3bd5231fe15eae24032b2e
+ 
+ junit.dir=${depends.jars}/junit_4.4
+@@ -92,7 +92,7 @@
+ dejavu-fonts.dir=${depends.dir}/dejavu-fonts
+ dejavu-fonts.fonts.dir=${depends.dir}/dejavu-fonts/dejavu-ttf-2.18
+ dejavu-fonts.zip=${dejavu-fonts.dir}/dejavu-ttf-2.18-1.zip
+-dejavu-fonts.url=${sf.base}/dejavu/dejavu-ttf-2.18-1.zip
++dejavu-fonts.url=${sf.base}/dejavu/files/dejavu/2.18/dejavu-ttf-2.18-1.zip/download
+ dejavu-fonts.md5=72e0a87ec1f9c5c26c66eabcf1e2018e
+ 
+ derby.dir=${depends.jars}/derby-10.3.1.4

@@ -35,12 +35,12 @@
 
   <target name="compile" depends="init">
     <mkdir dir="${build.classes}"/>
-    <javac srcdir="${classpath.dir}/gnu/test" destdir="${build.classes}" debug="true" />
-    <javac srcdir="${classpath.dir}/testsuite/java.io/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
-    <javac srcdir="${classpath.dir}/testsuite/java.lang/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
-    <javac srcdir="${classpath.dir}/testsuite/java.net/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
-    <javac srcdir="${classpath.dir}/testsuite/java.text/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
-    <javac srcdir="${classpath.dir}/testsuite/java.util/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" />
+    <javac srcdir="${classpath.dir}/gnu/test" destdir="${build.classes}" debug="true" includeantruntime="false"/>
+    <javac srcdir="${classpath.dir}/testsuite/java.io/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" includeantruntime="false"/>
+    <javac srcdir="${classpath.dir}/testsuite/java.lang/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" includeantruntime="false"/>
+    <javac srcdir="${classpath.dir}/testsuite/java.net/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" includeantruntime="false"/>
+    <javac srcdir="${classpath.dir}/testsuite/java.text/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" includeantruntime="false"/>
+    <javac srcdir="${classpath.dir}/testsuite/java.util/" classpath="${test.class.path}" destdir="${build.classes}" debug="true" includeantruntime="false"/>
   </target>
 
   <!-- **************************************************************************** -->

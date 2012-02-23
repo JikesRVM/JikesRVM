@@ -54,8 +54,8 @@ public class CopyMS extends StopTheWorld {
   /****************************************************************************
    * Class variables
    */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final CopySpace nurserySpace = new CopySpace("nursery", false, VMRequest.create(0.15f, true));
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   public static final int MARK_SWEEP = msSpace.getDescriptor();
@@ -105,6 +105,7 @@ public class CopyMS extends StopTheWorld {
       trace.release();
       msSpace.release();
       nurserySpace.release();
+      switchNurseryZeroingApproach(nurserySpace);
       super.collectionPhase(phaseId);
       return;
     }
@@ -119,10 +120,10 @@ public class CopyMS extends StopTheWorld {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
-  public final boolean collectionRequired(boolean spaceFull) {
+  public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
 
-    return super.collectionRequired(spaceFull) || nurseryFull;
+    return super.collectionRequired(spaceFull, space) || nurseryFull;
   }
 
   /*****************************************************************************
@@ -163,18 +164,6 @@ public class CopyMS extends StopTheWorld {
   }
 
   /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + msSpace.requiredPages() +
-      (nurserySpace.requiredPages() << 1);
-  }
-
-  /**
    * Return the expected reference count. For non-reference counting
    * collectors this becomes a true/false relationship.
    *
@@ -200,5 +189,12 @@ public class CopyMS extends StopTheWorld {
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_COPYMS, CopyMSTraceLocal.class);
     super.registerSpecializedMethods();
+  }
+
+  @Interruptible
+  @Override
+  public void fullyBooted() {
+    super.fullyBooted();
+    nurserySpace.setZeroingApproach(Options.nurseryZeroing.getNonTemporal(), Options.nurseryZeroing.getConcurrent());
   }
 }

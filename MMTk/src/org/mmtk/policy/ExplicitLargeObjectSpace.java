@@ -46,15 +46,25 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public ExplicitLargeObjectSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, pageBudget, vmRequest);
-    cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true);
+  public ExplicitLargeObjectSpace(String name, VMRequest vmRequest) {
+    this(name, true, vmRequest);
   }
 
+  /**
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param zeroed if true, allocations return zeroed memory.
+   * @param vmRequest An object describing the virtual memory requested.
+   */
+  public ExplicitLargeObjectSpace(String name, boolean zeroed, VMRequest vmRequest) {
+    super(name, zeroed, vmRequest);
+    cells = new DoublyLinkedList(LOG_BYTES_IN_PAGE, true);
+  }
 
   /****************************************************************************
    *

@@ -50,12 +50,10 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public ExplicitFreeListSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, pageBudget, 0, vmRequest);
+  public ExplicitFreeListSpace(String name, VMRequest vmRequest) {
+    super(name, 0, vmRequest);
   }
 
   /**

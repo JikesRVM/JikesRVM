@@ -87,7 +87,6 @@ import org.vmmagic.pragma.*;
  --Phase Plan.prepare
  --Phase Collector.prepare
      SSGCspyCollector.gcspyGatherData, event=0
- --Phase Collector.precopy
  --Phase Collector.bootimage-root
  --Phase Collector.root
  --Phase Plan.root

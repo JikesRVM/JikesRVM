@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Method Compilation</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Method Compilation
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Jul 02, 2008 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>The fundamental unit for optimization in Jikes RVM is a single method.  The optimization of a method consists of a series of  compiler phases performed on the method. These phases transform the <a href="IR.html">IR</a> (intermediate representation) from bytecodes through HIR (high-level intermediate representation), LIR (low-level intermediate representation), and MIR (machine intermediate representation) and finally into machine code.  Various optimizing transformations are performed at each level of IR.</p>
+
+<p>An object of the class <code>CompilationPlan</code> contains all the information necessary to generate machine code for a method. An instance of this class includes, among other fields, the <code>RVMMethod</code> to be compiled and the array of <code>OptimizationPlanElements</code> which define the compilation steps. The <code>execute</code> method of an <code>CompilationPlan</code> invokes the optimizing compiler to generate machine code for the method, executing the compiler phases as listed in the plan's <code>OptimizationPlanElements</code>.</p>
+
+<p>The <code>OptimizationPlanner</code> class defines the standard phases used in a compilation. This class contains a static field, called <code>masterPlan</code>, which contains all possible <code>OptimizationPlanElements</code>. The structure of the master plan is a tree. Any element may either be an atomic element (a leaf of the tree), or an aggregate element (an internal node of the tree). The master plan has the following general structure:</p>
+<ul>
+	<li>elements which convert bytecodes to HIR</li>
+	<li>elements which perform optimization transformations on the HIR
+	<ul>
+		<li>elements which perform optimization transformations using SSA form</li>
+	</ul>
+	</li>
+	<li>elements which convert HIR to LIR</li>
+	<li>elements which perform optimization transformations on the LIR
+	<ul>
+		<li>elements which perform optimization transformations using SSA form</li>
+	</ul>
+	</li>
+	<li>elements which convert LIR to MIR</li>
+	<li>elements which perform optimization transformations on MIR</li>
+	<li>elements which convert MIR to machine code</li>
+</ul>
+
+
+<p>A client (compiler driver) constructs a specific optimization plan by including all the <code>OptimizationPlanElements</code> contained in the master plan which are appropriate for this compilation instance. Whether or not an element should be part of a compilation plan is determined  by its <code>shouldPerform</code> method. For each atomic element, the values in the <code>OptOptions</code> object are generally used to determine whether the element should be included in the compilation plan. Each aggregate element must be included when any of its component elements must be included.</p>
+
+<p>Each element must have a <code>perform</code> method defined which takes the IR as a parameter. It is expected, but not required, that the <code>perform</code> method will modify the IR.  The perform method of an aggregate element will invoke the perform methods of its elements.</p>
+
+<p>Each atomic element is an object of the final class <code>OptimizationPlanAtomicElement</code>. The main work of this class is performed by its <em>phase</em>, an object of type <code>CompilerPhase</code>. The <code>CompilerPhase</code> class is not final; each phase overrides this class, in particular it overrides the <code>perform</code> method, which is invoked by its  enclosing element's <code>perform</code> method. All the state associated with  the element is contained in the <code>CompilerPhase</code>; no state is in the element.</p>
+
+<p>Every optimization plan consists of a selection of elements from the master plan; thus two optimization plans associated with different methods  will share the same component element objects.  Clearly, it is undesirable to share state  associated with a particular compilation phase between two different method compilations. In order to prevent this, the <code>perform</code> method of an atomic element creates a new instance of its phase immediately  before calling the phase's <code>perform</code> method.  In the case where the phase contains no state the <code>newExecution</code> method of <code>CompilerPhase</code> can be overridden to return the phase itself rather than a clone of the phase</p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

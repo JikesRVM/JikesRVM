@@ -15,6 +15,7 @@ package org.jikesrvm.mm.mminterface;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
 import org.jikesrvm.HeapLayoutConstants;
@@ -24,7 +25,6 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.mm.mmtk.Collection;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
@@ -39,6 +39,7 @@ import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
@@ -82,9 +83,14 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   private static final boolean traceAllocator = false;
 
   /**
-   * Hash the interface been booted yet?
+   * Has the interface been booted yet?
    */
   private static boolean booted = false;
+
+  /**
+   * Has garbage collection been enabled yet?
+   */
+  private static boolean collectionEnabled = false;
 
   /***********************************************************************
    *
@@ -95,21 +101,6 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Suppress default constructor to enforce noninstantiability.
    */
   private MemoryManager() {} // This constructor will never be invoked.
-
-  /**
-   * Initialization that occurs at <i>build</i> time.  The value of
-   * statics as at the completion of this routine will be reflected in
-   * the boot image.  Any objects referenced by those statics will be
-   * transitively included in the boot image.
-   *
-   * This is the entry point for all build-time activity in the collector.
-   */
-  @Interruptible
-  public static void init() {
-    if (VM.VerifyAssertions) VM._assert(!Selected.Constraints.get().needsObjectReferenceNonHeapReadBarrier());
-    CollectorThread.init();
-    org.jikesrvm.mm.mmtk.Collection.init();
-  }
 
   /**
    * Initialization that occurs at <i>boot</i> time (runtime
@@ -124,7 +115,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
     Mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
-    Selected.Plan.get().boot();
+    Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     Monitor.boot();
     booted = true;
@@ -137,7 +128,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void postBoot() {
-    Selected.Plan.get().postBoot();
+    Selected.Plan.get().processOptions();
 
     if (Options.noReferenceTypes.getValue()) {
       RVMType.JavaLangRefReferenceReferenceField.makeTraced();
@@ -147,6 +138,22 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
       // start the GCSpy interpreter server
       MemoryManager.startGCspyServer();
     }
+  }
+
+  /**
+   * Allow collection (assumes threads can be created).
+   */
+  @Interruptible
+  public static void enableCollection() {
+    Selected.Plan.get().enableCollection();
+    collectionEnabled = true;
+  }
+
+  /**
+   * Is collection enabled?
+   */
+  public static boolean collectionEnabled() {
+    return collectionEnabled;
   }
 
   /**
@@ -203,15 +210,6 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Statistics
    */
 
-  /**
-   * Returns the number of collections that have occured.
-   *
-   * @return The number of collections that have occured.
-   */
-  public static int getCollectionCount() {
-    return CollectorThread.collectionCount;
-  }
-
   /***********************************************************************
    *
    * Application interface to memory manager
@@ -249,9 +247,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    */
   @Interruptible
   public static void gc() {
-    if (!org.mmtk.utility.options.Options.ignoreSystemGC.getValue()) {
-      Collection.triggerCollectionStatic(Collection.EXTERNAL_GC_TRIGGER);
-    }
+    Selected.Plan.handleUserCollectionRequest();
   }
 
   /****************************************************************************
@@ -455,8 +451,10 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
         allocator = Plan.ALLOC_GCSPY;
       }
     }
-    if (isPrefix("Lorg/mmtk/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/mm/", typeBA) ||
+    if (isPrefix("Lorg/jikesrvm/tuningfork", typeBA) || isPrefix("[Lorg/jikesrvm/tuningfork", typeBA) ||
+        isPrefix("Lcom/ibm/tuningfork/", typeBA) || isPrefix("[Lcom/ibm/tuningfork/", typeBA) ||
+        isPrefix("Lorg/mmtk/", typeBA) || isPrefix("[Lorg/mmtk/", typeBA) ||
+        isPrefix("Lorg/jikesrvm/mm/", typeBA) || isPrefix("[Lorg/jikesrvm/mm/", typeBA) ||
         isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {
       allocator = Plan.ALLOC_NON_MOVING;
     }
@@ -588,7 +586,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   /**
    * Allocate space for GC-time copying of an object
    *
-   * @param collector The collector instance to be used for this allocation
+   * @param context The collector context to be used for this allocation
    * @param bytes The size of the allocation in bytes
    * @param align The alignment requested; must be a power of 2.
    * @param offset The offset at which the alignment is desired.
@@ -596,14 +594,14 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   @Inline
-  public static Address allocateSpace(Selected.Collector collector, int bytes, int align, int offset, int allocator,
+  public static Address allocateSpace(CollectorContext context, int bytes, int align, int offset, int allocator,
                                       ObjectReference from) {
     /* MMTk requests must be in multiples of MIN_ALIGNMENT */
     bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
 
     /* Now make the request */
     Address region;
-    region = collector.allocCopy(from, bytes, align, offset, allocator);
+    region = context.allocCopy(from, bytes, align, offset, allocator);
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
@@ -639,6 +637,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param isHot is this a request for hot code space allocation?
    * @return The  array
    */
+  @NoInline
   @Interruptible
   public static CodeArray allocateCode(int numInstrs, boolean isHot) {
     RVMArray type = RVMType.CodeArrayType;
@@ -657,7 +656,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param bytes    The number of bytes to allocate
    * @return The stack
    */
-  @Inline
+  @NoInline
   @Unpreemptible
   public static byte[] newStack(int bytes) {
     if (!VM.runningVM) {
@@ -686,7 +685,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @param size The size of the array
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static WordArray newNonMovingWordArray(int size) {
     if (!VM.runningVM) {
@@ -716,7 +715,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @param size The size of the array
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static double[] newNonMovingDoubleArray(int size) {
     if (!VM.runningVM) {
@@ -746,7 +745,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @param size The size of the array
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static int[] newNonMovingIntArray(int size) {
     if (!VM.runningVM) {
@@ -776,7 +775,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @param size The size of the array
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static short[] newNonMovingShortArray(int size) {
     if (!VM.runningVM) {
@@ -805,18 +804,49 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Allocate a new type information block (TIB).
    *
    * @param numVirtualMethods the number of virtual method slots in the TIB
+   * @param alignCode TODO
    * @return the new TIB
    */
-  @Inline
+  @NoInline
   @Interruptible
-  public static TIB newTIB(int numVirtualMethods) {
-    int size = TIB.computeSize(numVirtualMethods);
+  public static TIB newTIB(int numVirtualMethods, int alignCode) {
+    int elements = TIB.computeSize(numVirtualMethods);
 
     if (!VM.runningVM) {
-      return TIB.allocate(size);
+      return TIB.allocate(elements, alignCode);
+    }
+    if (alignCode == AlignmentEncoding.ALIGN_CODE_NONE) {
+      return (TIB)newRuntimeTable(elements, RVMType.TIBType);
     }
 
-    return (TIB)newRuntimeTable(size, RVMType.TIBType);
+    RVMType type = RVMType.TIBType;
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
+
+    TIB realTib = type.getTypeInformationBlock();
+    RVMArray fakeType = RVMType.WordArrayType;
+    TIB fakeTib = fakeType.getTypeInformationBlock();
+    int headerSize = ObjectModel.computeArrayHeaderSize(fakeType);
+    int align = ObjectModel.getAlignment(fakeType);
+    int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
+    int width = fakeType.getLogElementSize();
+    int elemBytes = elements << width;
+    if ((elemBytes >>> width) != elements) {
+      /* asked to allocate more than Integer.MAX_VALUE bytes */
+      throwLargeArrayOutOfMemoryError();
+    }
+    int size = elemBytes + headerSize + AlignmentEncoding.padding(alignCode);
+    Selected.Mutator mutator = Selected.Mutator.get();
+    Address region = allocateSpace(mutator, size, align, offset, type.getMMAllocator(), Plan.DEFAULT_SITE);
+
+    region = AlignmentEncoding.adjustRegion(alignCode, region);
+
+    Object result = ObjectModel.initializeArray(region, fakeTib, elements, size);
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(fakeTib), size, type.getMMAllocator());
+
+    /* Now we replace the TIB */
+    ObjectModel.setTIB(result, realTib);
+
+    return (TIB)result;
   }
 
   /**
@@ -824,7 +854,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    *
    * @return the new IMT
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static IMT newIMT() {
     if (!VM.runningVM) {
@@ -840,7 +870,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param size the number of slots in the ITable
    * @return the new ITable
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static ITable newITable(int size) {
     if (!VM.runningVM) {
@@ -856,7 +886,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param size the number of slots in the ITableArray
    * @return the new ITableArray
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static ITableArray newITableArray(int size) {
     if (!VM.runningVM) {
@@ -872,7 +902,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param size The size of the table.
    * @return the newly allocated table
    */
-  @Inline
+  @NoInline
   @Interruptible
   public static Object newRuntimeTable(int size, RVMType type) {
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);

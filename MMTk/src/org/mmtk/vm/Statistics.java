@@ -19,13 +19,6 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 public abstract class Statistics {
   /**
-   * Returns the number of collections that have occurred.
-   *
-   * @return The number of collections that have occurred.
-   */
-  public abstract int getCollectionCount();
-
-  /**
    * Read cycle counter
    */
   public abstract long nanoTime();

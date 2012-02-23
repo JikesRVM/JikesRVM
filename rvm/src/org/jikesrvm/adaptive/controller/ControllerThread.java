@@ -30,8 +30,8 @@ import org.jikesrvm.adaptive.recompilation.InvocationCounts;
 import org.jikesrvm.adaptive.util.AOSGenerator;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.adaptive.util.AOSOptions;
-import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.SoftLatch;
+import org.jikesrvm.scheduler.SystemThread;
 import org.vmmagic.pragma.NonMoving;
 
 /**
@@ -45,7 +45,7 @@ import org.vmmagic.pragma.NonMoving;
  *     d) all of the above.
  */
 @NonMoving
-public final class ControllerThread extends RVMThread {
+public final class ControllerThread extends SystemThread {
 
   /**
    * constructor
@@ -54,7 +54,6 @@ public final class ControllerThread extends RVMThread {
   ControllerThread(SoftLatch sentinel) {
     super("ControllerThread");
     this.sentinel = sentinel;
-    makeDaemon(true);
   }
 
   private final SoftLatch sentinel;
@@ -88,15 +87,17 @@ public final class ControllerThread extends RVMThread {
       // We're running an AOS bootimage with a non-adaptive primary strategy.
       // We already set up any requested profiling infrastructure, so nothing
       // left to do but exit.
+      if (Controller.options.ENABLE_BULK_COMPILE || Controller.options.ENABLE_PRECOMPILE) {
+        Controller.options.DERIVED_MAX_OPT_LEVEL = 2;
+        Controller.recompilationStrategy.init();
+      }
+
       controllerInitDone();
       VM.sysWriteln("AOS: In non-adaptive mode; controller thread exiting.");
       return; // controller thread exits.
     }
 
-    if ((Controller.options.ENABLE_REPLAY_COMPILE) || (Controller.options.ENABLE_PRECOMPILE)) {
-      // if we want to do precompile, we need to initial optimization plans
-      // just allow the advice to be the max opt level 2
-      Controller.options.DERIVED_MAX_OPT_LEVEL = 2;
+    if (Controller.options.ENABLE_PRECOMPILE) {
       if (Controller.options.sampling()) {
         // Create our set of standard optimization plans.
         Controller.recompilationStrategy.init();
@@ -259,7 +260,7 @@ public final class ControllerThread extends RVMThread {
       }
     }
 
-    if ((!Controller.options.ENABLE_REPLAY_COMPILE) && (!Controller.options.ENABLE_PRECOMPILE)) {
+    if ((!Controller.options.ENABLE_PRECOMPILE) && (!Controller.options.ENABLE_BULK_COMPILE)) {
       Controller.osrOrganizer = new OSROrganizerThread();
       Controller.osrOrganizer.start();
     }

@@ -89,12 +89,11 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume before consulting the plan
    * @param additionalMetadata The number of meta data bytes per region for the subclass.
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public SegregatedFreeListSpace(String name, int pageBudget, int additionalMetadata, VMRequest vmRequest) {
-    super(name, false, false, vmRequest);
+  public SegregatedFreeListSpace(String name, int additionalMetadata, VMRequest vmRequest) {
+    super(name, false, false, true, vmRequest);
     initSizeClasses();
     int totalMetadata = additionalMetadata;
     if (maintainSideBitmap()) {
@@ -103,9 +102,9 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
       totalMetadata += META_DATA_PAGES_PER_REGION_NO_BITMAP;
     }
     if (vmRequest.isDiscontiguous()) {
-      pr = new FreeListPageResource(pageBudget, this, totalMetadata);
+      pr = new FreeListPageResource(this, totalMetadata);
     } else {
-      pr = new FreeListPageResource(pageBudget, this, start, extent, totalMetadata);
+      pr = new FreeListPageResource(this, start, extent, totalMetadata);
     }
   }
 
@@ -224,7 +223,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
     Address sentinel = block.plus(blockSize);
 
     /* pre-zero the block */
-    VM.memory.zero(firstCell, Extent.fromIntZeroExtend(useableBlockSize));
+    VM.memory.zero(false, firstCell, Extent.fromIntZeroExtend(useableBlockSize));
 
     /* construct the free list */
     Address nextCell;
@@ -950,13 +949,13 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
       Address cursor = start;
       while (cursor.LT(end)) {
         Address metadata = EmbeddedMetaData.getMetaDataBase(cursor).plus(META_DATA_OFFSET);
-        VM.memory.zero(metadata, bytes);
+        VM.memory.zero(false, metadata, bytes);
         cursor = cursor.plus(EmbeddedMetaData.BYTES_IN_REGION);
       }
     } else {
       for(Address cursor = headDiscontiguousRegion; !cursor.isZero(); cursor = Map.getNextContiguousRegion(cursor)) {
         Address metadata = EmbeddedMetaData.getMetaDataBase(cursor).plus(META_DATA_OFFSET);
-        VM.memory.zero(metadata, bytes);
+        VM.memory.zero(false, metadata, bytes);
       }
     }
   }

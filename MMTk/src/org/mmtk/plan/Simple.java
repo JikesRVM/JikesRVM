@@ -15,6 +15,7 @@ package org.mmtk.plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.options.*;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.vm.VM;
@@ -48,7 +49,6 @@ public abstract class Simple extends Plan implements Constants {
   public static final short SET_COLLECTION_KIND = Phase.createSimple("set-collection-kind", null);
   public static final short INITIATE            = Phase.createSimple("initiate", null);
   public static final short PREPARE             = Phase.createSimple("prepare");
-  public static final short PRECOPY             = Phase.createSimple("precopy");
   public static final short PREPARE_STACKS      = Phase.createSimple("prepare-stacks", null);
   public static final short STACK_ROOTS         = Phase.createSimple("stacks");
   public static final short ROOTS               = Phase.createSimple("root");
@@ -82,7 +82,6 @@ public abstract class Simple extends Plan implements Constants {
 
   /** Ensure stacks are ready to be scanned */
   protected static final short prepareStacks = Phase.createComplex("prepare-stacks", null,
-      Phase.scheduleCollector  (PREPARE_STACKS),
       Phase.scheduleMutator    (PREPARE_STACKS),
       Phase.scheduleGlobal     (PREPARE_STACKS));
 
@@ -116,8 +115,8 @@ public abstract class Simple extends Plan implements Constants {
       Phase.scheduleGlobal     (PREPARE),
       Phase.scheduleCollector  (PREPARE),
       Phase.scheduleComplex    (prepareStacks),
-      Phase.scheduleCollector  (PRECOPY),
       Phase.scheduleCollector  (STACK_ROOTS),
+      Phase.scheduleGlobal     (STACK_ROOTS),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
       Phase.scheduleGlobal     (CLOSURE),
@@ -193,12 +192,8 @@ public abstract class Simple extends Plan implements Constants {
   @Inline
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
-      requiredAtStart = getPagesRequired();
-      collectionAttempt = VM.collection.maximumCollectionAttempt();
-      emergencyCollection = lastCollectionWasExhaustive() && collectionAttempt > 1;
-      if (collectionAttempt > MAX_COLLECTION_ATTEMPTS) {
-        VM.assertions.fail("Too many collection attempts. Suspect plan is not setting FullHeap flag");
-      }
+      collectionAttempt = Allocator.determineCollectionAttempts();
+      emergencyCollection = !Plan.isInternalTriggeredCollection() && lastCollectionWasExhaustive() && collectionAttempt > 1;
       if (emergencyCollection) {
         if (Options.verbose.getValue() >= 1) Log.write("[Emergency]");
         forceFullHeapCollection();
@@ -228,6 +223,12 @@ public abstract class Simple extends Plan implements Constants {
       return;
     }
 
+    if (phaseId == STACK_ROOTS) {
+      VM.scanning.notifyInitialThreadScanComplete();
+      setGCStatus(GC_PROPER);
+      return;
+    }
+
     if (phaseId == ROOTS) {
       VM.scanning.resetThreadCounter();
       setGCStatus(GC_PROPER);
@@ -248,8 +249,6 @@ public abstract class Simple extends Plan implements Constants {
 
     if (phaseId == COMPLETE) {
       setGCStatus(NOT_IN_GC);
-      Space.clearAllAllocationFailed();
-      awaitingAsyncCollection = false;
       return;
     }
 
@@ -260,6 +259,23 @@ public abstract class Simple extends Plan implements Constants {
     Log.write("Global phase "); Log.write(Phase.getName(phaseId));
     Log.writeln(" not handled.");
     VM.assertions.fail("Global phase not handled!");
+  }
+
+  /**
+   * Update the nursery zeroing approach based on option settings.
+   *
+   * @param nurserySpace The space to apply the changes to.
+   */
+  protected void switchNurseryZeroingApproach(Space nurserySpace) {
+    if (Options.nurseryZeroing.getConcurrent()) {
+      if (Options.nurseryZeroing.getAdaptive() &&
+          (VM.collection.getActiveThreads() >= VM.collection.getDefaultThreads())) {
+        // Many (non-daemon) threads, so we revert to bulk zeroing.
+        nurserySpace.skipConcurrentZeroing();
+      } else {
+        nurserySpace.triggerConcurrentZeroing();
+      }
+    }
   }
 
   /**

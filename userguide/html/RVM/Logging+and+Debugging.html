@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Logging and Debugging</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Logging and Debugging
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Jul 07, 2008 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>Complex non-deterministic systems such as the Jikes RVM adaptive system present challenges for system understanding and debugging. Virtually all of the profiling data collected by the runtime measurements component results from non-deterministic timer-based sampling at taken yieldpoints. The exact timing of these interrupts, and thus, the profile data that drives recompilation decisions, differs somewhat each time an application executes.  Furthermore, many of the optimizations in the optimizing compiler rely on online profiles of conditional branch probabilities, i.e., the probabilities at the point in an execution when the recompilation occurs. Thus, because recompilations can occur at different times during each execution, a method compiled at the same optimization level could be compiled slightly differently on different runs.</p>
+
+<p>The primary mechanism we use to manage this complexity is a record-replay facility for the adaptive system, where online profile data is gathered during one run and used in a subsequent run.  More specifically, as methods are dynamically compiled, the system can record this information into a log file. At the end of the run, the system can optionally dump the branch probabilities of all instrumented conditional branches, the profile-derived call graph, and the profile-directed inlining decisions. This log of methods and the files of profile data can then be provided as inputs to a driver program (org.jikesrvm.tools.opt.OptTestHarness) that can replay the series of compilation actions, and then optionally execute the program.  Usually a fairly rapid binary search of methods being compiled and/or the supporting profile data suffices to narrow the cause of a crash to a small set of actions taken by the optimizing compiler.  Although this does not enable a perfectly accurate replay of a previous run, in practice, we have found that it suffices to reproduce almost all crashes caused by bugs in the optimizing compiler.</p>
+
+<p>In addition to this record-replay mechanism, which mainly helps debugging the optimizing compiler, the adaptive system can generate a log file that contains detailed information about the actions of its organizer and controller threads.  A sample is shown below:</p>
+<div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>30:..7047728888 Compiled read with baseline compiler in 0.20 ms
+90:..7136817287 Controller notified that read(14402) has 4.0 samples
+92:..7139813016  Doing nothing cost (leaving at baseline) to read is 40.0
+92:..7139830219  Compiling read cost at O0=40.42, future time=49.81
+92:..7139842466  Compiling read cost at O1=65.99, future time=72.58
+92:..7139854029  Compiling read cost at O2=207.44, future time=213.49
+110:..7166901172 Controller notified that read(14402) has 9.0 samples
+111:..7168378722  Doing nothing cost (leaving at baseline) to read=90.0
+111:..7168396493  Compiling read cost at O0=40.42, future time=61.54
+111:..7168409562  Compiling read cost at O1=65.99, future time=80.81
+111:..7168421097  Compiling read cost at O2=207.44, future time=221.06
+111:..7168435937 Scheduling level 0 recompilation of read (priority=28.46)
+112:..7169879779 Recompiling (at level 0) read
+114:..7173293360  Recompiled (at level 0) read
+150:..7227058078 Controller notified that read(14612) has 5.11 samples
+151:..7228691160  Doing nothing cost (leaving at O0) to read=51.12
+151:..7228705466  Compiling read cost at O1=66.26, future time=102.14
+151:..7228717124  Compiling read cost at O2=208.29, future time=241.24
+
+&lt;....many similar entries....&gt;
+
+998:..8599006259 Controller notified that read(14612) has 19.11 samples
+999:..8599561634  Doing nothing cost (leaving at O0) to read=191.13
+999:..8599576368  Compiling read cost at O1=54.38, future time=188.52
+999:..8599587767  Compiling read cost at O2=170.97, future time=294.14
+999:..8599603986 Scheduling level 1 recompilation of read (priority=2.61)
+1000:..8601308856 Recompiling (at level 1) read
+1002:..8604580406  Recompiled (at level 1) read
+1018:..8628022176 Controller notified that read(15312) has 18.41 samples
+1019:..8629548221  Doing nothing cost (leaving at O1) to read=184.14
+1019:..8629563130  Compiling read cost at O2=170.97, future time=340.06
+</pre>
+</div></div>
+<p>This sample shows an abbreviated subset of the log entries associated with the method read of the class spec.benchmarks._213_javac.ScannerInputStream, one of the hotter methods of the SPECjvm98 benchmark _213_javac. The first pair of numbers are the controller clock (number of timer interrupts since execution began) and the value of the hardware cycle counter (Time.cycles()) for the log entry. These log entries show the cost-benefit values computed by the controller for various possible optimization actions and the progression of the method from baseline compilation through two recompilations (level 0 and then at level 1). For example, at  time 92, we see four entries that give the estimated total future time (the sum of the compilation cost and the total future execution time in a method) for performing no recompilation and for each optimization level. Because the total future time for not recompiling (40) is less than the other alternatives (49.81, 72.58, and 213.49), the method is not scheduled for recompilation.  However, at  time 110, the method has been sampled more often.  Thus, the total future time estimate is updated, resulting in two recompilation actions (level 0 and level 1) that are more attractive than taking no recompilation action. Because level 0 gives the least future time, this decision is chosen by placing a recompilation event in the recompilation priority queue. The priority for the event is the expected improvement of performing this recompilation, i.e., the difference between the future time for the new level and the future time for current execution (90 - 61.54 = 28.46).</p>
+
+<p>At clock time 150 a similar pattern occurs when considering whether to recompile this method at level 1 or 2; initially recompiling at higher levels is not chosen (clock time 151) until sufficient samples of the method have occurred (clock time 999).</p>
+
+<p>The figure also illustrates how samples of a method at lower optimization level are incorporated into the total samples for a method that has been recompiled.  The samples at the lower level are scaled by the relative speed of the two levels as defined by the CompilerDNA, and used as the initial number of samples for the higher level. For example, at clock time 100, the baseline compiled version of the method has 9 samples. When the method is recompiled at level 0, these methods are scaled down by 4.26, which is the expected speedup defined by the CompilerDNA for going from baseline to level 0, resulting in a value of 2.11. At clock time 160, the level 0 version of method has 5.11 samples, i.e, 3 additional samples of the method have occurred.</p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

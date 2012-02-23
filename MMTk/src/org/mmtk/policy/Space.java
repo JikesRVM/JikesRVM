@@ -94,13 +94,12 @@ public abstract class Space implements Constants {
   protected final boolean immortal;
   protected final boolean movable;
   protected final boolean contiguous;
+  protected final boolean zeroed;
 
   protected PageResource pr;
   protected final Address start;
   protected final Extent extent;
   protected Address headDiscontiguousRegion;
-
-  private boolean allocationFailed;
 
   /****************************************************************************
    *
@@ -117,13 +116,15 @@ public abstract class Space implements Constants {
    * @param name The name of this space (used when printing error messages etc)
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
+   * @param zeroed if it is true, allocated memory is zeroed.
    * @param vmRequest An object describing the virtual memory requested.
    */
-  protected Space(String name, boolean movable, boolean immortal, VMRequest vmRequest) {
+  protected Space(String name, boolean movable, boolean immortal, boolean zeroed, VMRequest vmRequest) {
     this.name = name;
     this.nameLength = name.length();  // necessary to avoid calling length() in uninterruptible code
     this.movable = movable;
     this.immortal = immortal;
+    this.zeroed = zeroed;
     this.vmRequest = vmRequest;
     this.index = spaceCount++;
     spaces[index] = this;
@@ -221,20 +222,11 @@ public abstract class Space implements Constants {
   /** Movable getter @return True if objects in this space may move */
   public boolean isMovable() { return movable; }
 
-  /** Allocationfailed getter @return true if an allocation has failed since GC */
-  public final boolean allocationFailed() { return allocationFailed; }
-
-  /** Clear Allocationfailed flag */
-  public final void clearAllocationFailed() { allocationFailed = false; }
-
   /** ReservedPages getter @return The number of reserved pages */
   public final int reservedPages() { return pr.reservedPages(); }
 
   /** CommittedPages getter @return The number of committed pages */
   public final int committedPages() { return pr.committedPages(); }
-
-  /** RequiredPages getter @return The number of required pages */
-  public final int requiredPages() { return pr.requiredPages(); }
 
   /** AvailablePages getter @return The number of pages available for allocation */
   public final int availablePhysicalPages() { return pr.getAvailablePhysicalPages(); }
@@ -372,6 +364,28 @@ public abstract class Space implements Constants {
    */
 
   /**
+   * Update the zeroing approach for this space.
+   */
+  @Interruptible
+  public void setZeroingApproach(boolean useNT, boolean concurrent) {
+    pr.updateZeroingApproach(useNT, concurrent);
+  }
+
+  /**
+   * Skip concurrent zeroing (fall back to bulk zeroing).
+   */
+  public void skipConcurrentZeroing() {
+    pr.skipConcurrentZeroing();
+  }
+
+  /**
+   * Trigger concurrent zeroing.
+   */
+  public void triggerConcurrentZeroing() {
+    pr.triggerConcurrentZeroing();
+  }
+
+  /**
    * Acquire a number of pages from the page resource, returning
    * either the address of the first page, or zero on failure.<p>
    *
@@ -391,35 +405,32 @@ public abstract class Space implements Constants {
    * @return The start of the first page if successful, zero on
    * failure.
    */
+  @LogicallyUninterruptible
   public final Address acquire(int pages) {
-    boolean allowPoll = !Plan.gcInProgress() && Plan.isInitialized() && !VM.collection.isEmergencyAllocation();
+    boolean allowPoll = VM.activePlan.isMutator() && Plan.isInitialized();
 
-    /* First check page budget and poll if necessary */
-    if (!pr.reservePages(pages)) {
-      /* Need to poll, either fixing budget or requiring GC */
-      if (allowPoll && VM.activePlan.global().poll(false, this)) {
-        pr.clearRequest(pages);
-        return Address.zero(); // GC required, return failure
-      }
+    /* Check page budget */
+    int pagesReserved = pr.reservePages(pages);
+
+    /* Poll, either fixing budget or requiring GC */
+    if (allowPoll && VM.activePlan.global().poll(false, this)) {
+      pr.clearRequest(pagesReserved);
+      VM.collection.blockForGC();
+      return Address.zero(); // GC required, return failure
     }
 
     /* Page budget is ok, try to acquire virtual memory */
-    Address rtn = pr.getNewPages(pages);
+    Address rtn = pr.getNewPages(pagesReserved, pages, zeroed);
     if (rtn.isZero()) {
       /* Failed, so force a GC */
-      if (VM.collection.isEmergencyAllocation()) {
-        pr.clearRequest(pages);
-        VM.assertions.fail("Failed emergency allocation");
-      }
-      if (!allowPoll) VM.assertions.fail("Physical allocation failed during special (collection/emergency) allocation!");
-      allocationFailed = true;
-      VM.collection.reportPhysicalAllocationFailed();
-      VM.activePlan.global().poll(true, this);
-      pr.clearRequest(pages);
+      if (!allowPoll) VM.assertions.fail("Physical allocation failed when polling not allowed!");
+      boolean gcPerformed = VM.activePlan.global().poll(true, this);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(gcPerformed, "GC not performed when forced.");
+      pr.clearRequest(pagesReserved);
+      VM.collection.blockForGC();
       return Address.zero();
     }
 
-    if (allowPoll) VM.collection.reportAllocationSuccess();
     return rtn;
   }
 
@@ -478,16 +489,6 @@ public abstract class Space implements Constants {
    * @param start The address of the start of the region to be released
    */
   public abstract void release(Address start);
-
-  /**
-   * Clear the allocation failed flag for all spaces.
-   *
-   */
-  public static void clearAllAllocationFailed() {
-    for (int i = 0; i < spaceCount; i++) {
-      spaces[i].clearAllocationFailed();
-    }
-  }
 
   /**
    * Get the total number of pages reserved by all of the spaces

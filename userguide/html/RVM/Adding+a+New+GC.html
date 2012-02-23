@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Adding a New GC</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Adding a New GC
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Dec 21, 2011 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <h1 id="AddingaNewGC-Overview">Overview</h1><p>This document describes how to add a new garbage collector to Jikes RVM.  We don't address how to design a new GC algorithm, just how to add a &quot;new&quot; GC to the system and then build it.  We do this by cloning an existing GC.  We leave it to you to design your own GC!</p><h1 id="AddingaNewGC-Prerequisites">Prerequisites</h1><p>Ensure that you have got a clean copy of the <a href="Get%2BThe%2BSource.html">source</a> (either a recent release or the hg tip) and can correctly and successfully build one of the base garbage collectors.  There's little point in trying to build your own until you can reliably build an existing one.  I suggest you start with MarkSweep, and that you use the <a href="Using%2Bbuildit.html">buildit</a> script:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>$ bin/buildit &lt;targetmachine&gt; BaseBase MarkSweep</pre>
+</div></div><p> Then test your GC:</p><div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>$ bin/buildit &lt;targetmachine&gt; -t gctest BaseBase MarkSweep</p>
+</div></div><p> You should have seen some output like this:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>test:
+     [echo] Test Result for [BaseBaseMarkSweep|gctest] InlineAllocation (default) : SUCCESS
+     [echo] Test Result for [BaseBaseMarkSweep|gctest] ReferenceTest (default) : SUCCESS
+     [echo] Test Result for [BaseBaseMarkSweep|gctest] ReferenceStress (default) : SUCCESS
+     [echo] Test Result for [BaseBaseMarkSweep|gctest] FixedLive (default) : SUCCESS
+     [echo] Test Result for [BaseBaseMarkSweep|gctest] LargeAlloc (default) : SUCCESS
+     [echo] Test Result for [BaseBaseMarkSweep|gctest] Exhaust (default) : SUCCESS  
+
+</pre>
+</div></div><p>If this is not working, you should probably go and (re) read the <a href="Care%2Band%2BFeeding.html">section in the user guide</a> on how to build and run the VM.</p><h1 id="AddingaNewGC-CloningtheMarkSweepGC">Cloning the MarkSweep GC</h1><p> The best way to do this is in eclipse or a similar tool (see <a href="Editing%2BJikesRVM%2Bin%2Ban%2BIDE.html">here</a> for how to work with eclipse):</p><ol><li>Clone the <em>org.mmtk.plan.marksweep</em> as <em>org.mmtk.plan.</em><strong><em>mygc</em></strong><ul><li>You can do this with <strong>Eclipse</strong>:<ol><li>Navigagte to <em>org.mmtk.plan.marksweep</em> (within <em>MMTk/src</em>)</li><li>Right click over <em>org.mmtk.plan.marksweep</em> and select &quot;Copy&quot;</li><li>Right click again, and select &quot;Paste&quot;, and name the target <em>org.mmtk.plan.</em><strong><em>mygc</em></strong> (or whatever you like)</li><li>This will have cloned the marksweep GC in a new package called <em>org.mmtk.plan.mygc</em></li></ol></li><li>or <strong>by hand</strong>:<ol><li>Copy the directory <em>MMTk/org/mmtk/plan/marksweep</em> to <em>MMTk/org/mmtk/plan/</em><strong><em>mygc</em></strong></li><li>Edit each file within <em>MMTk/org/mmtk/plan/</em><strong><em>mygc</em></strong> and change its package declaration to <em>org.mmtk.plan.</em><strong><em>mygc</em></strong></li></ol></li><li>We can leave the GC called &quot;MS&quot; for now (the file names will all be <em>MMTk/org/mmtk/plan/</em><strong><em>mygc</em></strong><em>/MS*.java)</em></li></ul></li><li>Clone the BaseBaseMarkSweep.properties file as <em>BaseBase</em><strong><em>MyGC</em></strong><em>.properties</em>:<ol><li>Go to <em>build/configs</em>, and right click over <em>BaseBaseMarkSweep.properties</em>, and select &quot;Copy&quot;</li><li>Right click and select &quot;Paste&quot;, and paste as <em>BaseBaseMyGC.properties</em></li><li>Edit BaseBaseMyGC.properties, changing the text: &quot;<em>config.mmtk.plan=org.mmtk.plan.</em><em>marksweep</em><em>.MS</em>&quot; to &quot;<em>config.mmtk.plan=org.mmtk.plan.</em><strong><em>mygc</em></strong><em>.MS</em>&quot;</li></ol></li><li>Now test your new GC:</li></ol><div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>$ bin/buildit &lt;targetmachine&gt; -t gctest BaseBase <strong>MyGC</strong></p>
+</div></div><p>You should have got similar output to your test of MarkSweep above.</p><p>That's it.  You're done. <img class="emoticon emoticon-smile" src="s/en_GB/3126/15/_/images/icons/emoticons/smile.png" data-emoticon-name="smile" alt="(smile)"/></p><h1 id="AddingaNewGC-MakingitPrettier"><strong>Making it Prettier</strong></h1><p>You may have noticed that when you cloned the package <em>org.mmtk.plan.marksweep</em>, all the classes retained their old names (although in your new namespace; <em>org.mmtk.plan.</em><strong><em>mygc</em></strong>).  You can trivially change the class names in an IDE like eclipse.  You can do the same with your favorite text editor, but you'll need to be sure that you change the references carefully.  To change the class names in eclipse, just follow the procedure below for each class in <em>org.mmtk.plan.</em><strong><em>mygc</em></strong>:</p><ol><li>Navigate to the class you want changed (eg  <em>org.mmtk.plan.</em><strong><em>mygc</em></strong><em>.MS)</em></li><li>Right click on the class (MS) and select <em>&quot;Refactor-&gt;Rename...&quot;</em> and then type in your new name, (eg <em>MyGC</em>)</li><li><em>Do the same for each of the other classes:</em>#* <em>MS -&gt; MyGC</em>#* <em>MSCollector -&gt; MyGCCollector</em><ul><li><em>MSConstraints -&gt; MyGCConstraints</em></li><li><em>MSMutator -&gt; MyGCMutator</em></li><li><em>MSTraceLocal -&gt; MyGCTraceLocal</em></li></ul></li><li>Edit your configuration/s to ensure they refer to the renamed classes (since your IDE is unlikely to have done this automatically for you)<ul><li>Go to <em>build/configs</em>, and edit each file <em>*MyGC.properties</em> to refer to your renamed classes</li></ul></li></ol><h1 id="AddingaNewGC-BeyondBaseBaseMyGC">Beyond BaseBaseMyGC</h1><p>You probably want to build with configurations other than just BaseBase.  If so, clone configurations from MarkSweep, just as you did above (for example, clone <em>FastAdaptiveMarkSweep</em> as <em>FastAdaptive</em><strong><em>MyGC</em></strong>).</p><h1 id="AddingaNewGC-WhatNext">What Next?</h1><p>Once you have this working, you have successfully created and tested your own GC without writing a line of code!! You are ready to start the slightly more tricky process of writing your own garbage collector code.</p><p>If you are writing a new GC, you should definitely be aware of the MMTk <a href="The%2BMMTk%2BTest%2BHarness.html">test harness</a>, which allows you to test and debug MMTk in a very well contained pure Java environment, without the rest of Jikes RVM.  This allows you to write unit tests and corner cases, and moreover, allows you to edit and debug MMTk entirely from within your IDE</p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

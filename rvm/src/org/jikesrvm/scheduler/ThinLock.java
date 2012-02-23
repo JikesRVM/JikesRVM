@@ -165,7 +165,7 @@ public final class ThinLock implements ThinLockConstants {
           return;
         }
       } else {
-        RVMThread.yield();
+        RVMThread.yieldNoHandshake();
       }
     }
   }
@@ -243,7 +243,7 @@ public final class ThinLock implements ThinLockConstants {
           return result;
         }
       }
-      RVMThread.yield();
+      RVMThread.yieldNoHandshake();
     }
   }
 

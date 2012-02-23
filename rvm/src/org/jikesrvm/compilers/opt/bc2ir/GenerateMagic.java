@@ -28,6 +28,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_AS_LONG_BITS;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_SQRT;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_AS_INT_BITS;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_SQRT;
@@ -49,6 +50,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_ADDR;
 import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_LONG;
+import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_AND;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
@@ -66,6 +68,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_STORE;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecificOpt.GenerateMachineSpecificMagic;
@@ -80,6 +83,7 @@ import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BooleanCmp;
 import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.GuardedUnary;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Load;
@@ -564,10 +568,6 @@ public class GenerateMagic implements TIBLayoutConstants  {
         bc2ir.push(op0.copyD2U(), returnType);
       }
       bc2ir.appendInstruction(call);
-    } else if (methodName == MagicNames.threadAsCollectorThread) {
-      RegisterOperand reg = gc.temps.makeTemp(TypeReference.CollectorThread);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
-      bc2ir.push(reg.copyD2U());
     } else if (methodName == MagicNames.objectAsType) {
       RegisterOperand reg = gc.temps.makeTemp(TypeReference.Type);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
@@ -796,6 +796,12 @@ public class GenerateMagic implements TIBLayoutConstants  {
       RegisterOperand test = gc.temps.makeTempBoolean();
       bc2ir.appendInstruction(Attempt.create(ATTEMPT_ADDR, test, base, offset, oldVal, newVal, null));
       bc2ir.push(test.copyD2U());
+    } else if (methodName == MagicNames.fence) {
+      bc2ir.appendInstruction(Empty.create(FENCE));
+    } else if (methodName == MagicNames.readCeiling) {
+      bc2ir.appendInstruction(Empty.create(READ_CEILING));
+    } else if (methodName == MagicNames.writeFloor) {
+      bc2ir.appendInstruction(Empty.create(WRITE_FLOOR));
     } else if (generatePolymorphicMagic(bc2ir, gc, meth, methodName)) {
       return true;
     } else if (methodName == MagicNames.getTimeBase) {

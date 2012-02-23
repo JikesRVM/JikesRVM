@@ -877,6 +877,7 @@ sysNanoSleep(long long howLongNanos)
 extern "C" int
 sysNumProcessors()
 {
+    static int firstRun = 1;
     int numCpus = -1;  /* -1 means failure. */
 
 #ifdef __GNU_LIBRARY__      // get_nprocs is part of the GNU C library.
@@ -888,7 +889,7 @@ sysNumProcessors()
     numCpus = get_nprocs();
     // It is not clear if get_nprocs can ever return failure; assume it might.
     if (numCpus < 1) {
-       fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
+       if (firstRun) fprintf(SysTraceFile, "%s: WARNING: get_nprocs() returned %d (errno=%d)\n", Me, numCpus, errno);
        /* Continue on.  Try to get a better answer by some other method, not
           that it's likely, but this should not be a fatal error. */
     }
@@ -903,7 +904,7 @@ sysNumProcessors()
         len = sizeof(numCpus);
         errno = 0;
         if (sysctl(mib, 2, &numCpus, &len, NULL, 0) < 0) {
-            fprintf(SysTraceFile, "%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
+            if (firstRun) fprintf(SysTraceFile, "%s: WARNING: sysctl(CTL_HW,HW_NCPU) failed;"
                     " errno = %d\n", Me, errno);
             numCpus = -1;       // failed so far...
         };
@@ -919,7 +920,7 @@ sysNumProcessors()
          */
         numCpus = sysconf(_SC_NPROCESSORS_ONLN); // does not set errno
         if (numCpus < 0) {
-            fprintf(SysTraceFile, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
+            if (firstRun) fprintf(SysTraceFile, "%s: WARNING: sysconf(_SC_NPROCESSORS_ONLN)"
                     " failed\n", Me);
         }
     }
@@ -929,21 +930,22 @@ sysNumProcessors()
     if (numCpus < 0) {
         numCpus = _system_configuration.ncpus;
         if (numCpus < 0) {
-            fprintf(SysTraceFile, "%s: WARNING: _system_configuration.ncpus"
+            if (firstRun) fprintf(SysTraceFile, "%s: WARNING: _system_configuration.ncpus"
                     " has the insane value %d\n" , Me, numCpus);
         }
     }
 #endif
 
     if (numCpus < 0) {
-        fprintf(SysTraceFile, "%s: WARNING: Can not figure out how many CPUs"
-                " are online; assuming 1\n");
+        if (firstRun) fprintf(SysTraceFile, "%s: WARNING: Can not figure out how many CPUs"
+                              " are online; assuming 1\n", Me);
         numCpus = 1;            // Default
     }
 
 #ifdef DEBUG_SYS
     fprintf(SysTraceFile, "%s: sysNumProcessors: returning %d\n", Me, numCpus );
 #endif
+    firstRun = 0;
     return numCpus;
 }
 
@@ -1582,6 +1584,53 @@ sysFree(void *location)
     free(location);
 }
 
+// Zero a range of memory with non-temporal instructions on x86
+extern "C" void
+sysZeroNT(void *dst, Extent cnt)
+{
+#ifdef RVM_FOR_SSE2
+  char *buf = (char *) dst;
+  unsigned int len = cnt;
+
+  __asm__ volatile (
+		    ".align 4 \n\t"
+		    "cmp $0x10, %%esi \n\t"
+		    "jl 0f \n\t"
+		    "pxor %%xmm0, %%xmm0 \n\t"
+		    "16: \n\t"
+		    "test $0xf, %%edi \n\t"
+		    "je 64f \n\t"
+		    "movb $0,(%%edi) \n\t"
+		    "inc %%edi \n\t"
+		    "dec %%esi \n\t"
+		    "jmp 16b \n\t"
+		    "64: \n\t"
+		    "cmp $128, %%esi \n\t"
+		    "jl 0f \n\t"
+		    "movntdq %%xmm0, 0x0(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x10(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x20(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x30(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x40(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x50(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x60(%%edi) \n\t"
+		    "movntdq %%xmm0, 0x70(%%edi) \n\t"
+		  
+		    "add $128, %%edi \n\t"
+		    "sub $128, %%esi \n\t"
+		    "jmp 64b \n\t"
+		    "0: \n\t"
+		    "sfence \n\t"
+		    : "+S"(len),"+D" ( buf ));
+
+  while (__builtin_expect (len--, 0)){
+    *buf++ = 0;
+  }
+#else
+  memset(dst, 0x00, cnt);
+#endif    
+}
+
 // Zero a range of memory bytes.
 //
 extern "C" void
@@ -1739,7 +1788,7 @@ sysMMapErrno(char *start , size_t length ,
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)offset);
   if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
-    fprintf(stderr, "mmap (%x, %u, %d, %d, %d, %ld) failed with %d: ",
+    fprintf(stderr, "mmap (%x, %u, %d, %d, %d, %d) failed with %d: ",
        (Address) start, (unsigned) length, protection, flags, fd, offset, errno);
 #else
     fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",

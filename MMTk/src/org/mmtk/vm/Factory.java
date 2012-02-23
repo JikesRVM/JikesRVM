@@ -93,6 +93,16 @@ public abstract class Factory {
   public abstract Lock newLock(String name);
 
   /**
+   * Create a new Monitor instance using the appropriate VM-specific
+   * concrete Lock sub-class.
+   *
+   * @see Monitor
+   * @param name The string to be associated with this monitor instance
+   * @return A concrete VM-specific Monitor instance.
+   */
+  public abstract Monitor newMonitor(String name);
+
+  /**
    * Create a new Memory instance using the appropriate VM-specific
    * concrete Memory sub-class.
    *

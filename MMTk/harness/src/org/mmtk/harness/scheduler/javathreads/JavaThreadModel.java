@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.mmtk.harness.Collector;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
@@ -24,8 +23,9 @@ import org.mmtk.harness.scheduler.MMTkThread;
 import org.mmtk.harness.scheduler.Schedulable;
 import org.mmtk.harness.scheduler.ThreadModel;
 import static org.mmtk.harness.scheduler.ThreadModel.State.*;
+
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.utility.Log;
-import org.mmtk.vm.VM;
 
 public final class JavaThreadModel extends ThreadModel {
   static {
@@ -59,22 +59,23 @@ public final class JavaThreadModel extends ThreadModel {
    * Create a new collector thread
    */
   @Override
-  public void scheduleCollector() {
+  protected void scheduleCollector(CollectorContext context) {
     Trace.trace(Item.SCHEDULER, "Scheduling new collector");
-    CollectorThread t = new CollectorThread();
+    CollectorThread t = new CollectorThread(this,context);
     collectorThreads.add(t);
+    context.initCollector(collectorThreads.size());
     t.start();
   }
 
   /**
-   * Create a new collector thread with a specific Schedulable
+   * Create a new no-daemon collector thread
    *
    * Used for scheduling unit tests in collector context
    */
   @Override
-  public Thread scheduleCollector(Schedulable code) {
+  public Thread scheduleCollectorContext(CollectorContext code) {
     Trace.trace(Item.SCHEDULER, "Scheduling new collector");
-    CollectorContextThread t = new CollectorContextThread(this,code);
+    CollectorThread t = new CollectorThread(this,code,false);
     collectorThreads.add(t);
     t.start();
     return t;
@@ -126,12 +127,12 @@ public final class JavaThreadModel extends ThreadModel {
         incActiveMutators();
         return;
       }
-      mutatorsWaitingForGC++;
+      mutatorsBlocked++;
       incActiveMutators();
     }
-    waitForGC(false);
+    waitForGC(false,false);
     synchronized (count) {
-      mutatorsWaitingForGC--;
+      mutatorsBlocked--;
     }
   }
 
@@ -156,16 +157,16 @@ public final class JavaThreadModel extends ThreadModel {
   void leaveMutatorPool(MutatorThread m) {
     Trace.trace(Item.SCHEDULER, "%d Leaving mutator pool", Thread.currentThread().getId());
     synchronized (count) {
-      boolean lastToGC = (mutatorsWaitingForGC == (activeMutators - 1));
-      if (!lastToGC) {
+      boolean lastToGC = (mutatorsBlocked == (activeMutators - 1));
+      if (activeMutators == 1 || !lastToGC) {
         decActiveMutators();
         return;
       }
-      mutatorsWaitingForGC++;
+      mutatorsBlocked++;
     }
-    waitForGC(true);
+    waitForGC(true,false);
     synchronized (count) {
-        mutatorsWaitingForGC--;
+        mutatorsBlocked--;
         decActiveMutators();
     }
     mutatorThreads.remove(m);
@@ -176,15 +177,28 @@ public final class JavaThreadModel extends ThreadModel {
 
   /**
    * Wait for a GC to complete
+   * @param last True if this thread is the last to join
    */
-  private void waitForGC(boolean last) {
-    Trace.trace(Item.SCHEDULER, "%d waitForGC in", Thread.currentThread().getId());
+  private void waitForGC(boolean last, boolean blockAnyway) {
+    Trace.trace(Item.SCHEDULER, "%d waitForGC in, state=%s, mutatorsBlocked=%d",
+        Thread.currentThread().getId(),getState(),mutatorsBlocked);
     synchronized (trigger) {
-      if (last) {
-        setState(GC);
+      /* Catch mutators who are waiting for a GC that hasn't necessarily started yet */
+      while (blockAnyway && isState(MUTATOR)) {
+        Trace.trace(Item.SCHEDULER, "%d current state is MUTATOR", Thread.currentThread().getId());
+        try {
+          trigger.wait();
+        } catch (InterruptedException ie) {}
+      }
+
+      /* Change state from BLOCKING to BLOCKED when the last thread arrives */
+      if (last && isState(BLOCKING)) {
+        setState(BLOCKED);
         trigger.notifyAll();
       }
-      while (inGC > 0) {
+
+      /* Wait to be resumed */
+      while (isState(BLOCKED) || isState(BLOCKING)) {
         try {
           trigger.wait();
         } catch (InterruptedException ie) {}
@@ -193,16 +207,19 @@ public final class JavaThreadModel extends ThreadModel {
     Trace.trace(Item.SCHEDULER, "%d waitForGC out", Thread.currentThread().getId());
   }
 
+  /**
+   * Mutator thread calls this if it wants to block until the next GC is complete
+   */
   @Override
   public void waitForGC() {
     boolean allWaiting;
     synchronized (count) {
-      mutatorsWaitingForGC++;
+      mutatorsBlocked++;
       allWaiting = allWaitingForGC();
     }
-    waitForGC(allWaiting);
+    waitForGC(allWaiting,true);
     synchronized (count) {
-        mutatorsWaitingForGC--;
+      mutatorsBlocked--;
     }
   }
 
@@ -211,45 +228,42 @@ public final class JavaThreadModel extends ThreadModel {
    * @return true if all mutators are waiting for GC
    */
   private boolean allWaitingForGC() {
-    return (activeMutators > 0) && (mutatorsWaitingForGC == activeMutators);
+    return (activeMutators > 0) && (mutatorsBlocked == activeMutators);
   }
 
   /**
    * Trigger a collection for the given reason
    */
   @Override
-  public void triggerGC(int why) {
+  public void stopAllMutators() {
+    Trace.trace(Item.SCHEDULER, "stopAllMutators");
     synchronized (trigger) {
-      triggerReason = why;
-      inGC = collectorThreads.size();
-      setState(BEGIN_GC);
+      setState(BLOCKING);
+      trigger.notifyAll();
+    }
+    waitForGCStart();
+    Trace.trace(Item.SCHEDULER, "stopAllMutators - done");
+  }
+
+  /**
+   * Resume all the blocked mutator threads
+   */
+  @Override
+  public void resumeAllMutators() {
+    synchronized (trigger) {
+      setState(MUTATOR);
       trigger.notifyAll();
     }
   }
 
-  /**
-   * A GC thread has completed its GC work.
-   */
-  @Override
-  public void exitGC() {
-    synchronized (trigger) {
-      inGC--;
-      if (inGC == 0) {
-        setState(MUTATOR);
-        trigger.notifyAll();
-      }
-    }
-  }
-
-  @Override
-  public void waitForGCStart() {
+  protected void waitForGCStart() {
     synchronized(trigger) {
-      while(inGC == 0 || !isState(GC)) {
+      while(!isState(BLOCKED)) {
         try {
           trigger.wait();
         } catch (InterruptedException ie) {}
       }
-      Trace.trace(Item.SCHEDULER, "GC has started");
+      Trace.trace(Item.SCHEDULER, "GC has started - returning to caller");
     }
   }
 
@@ -257,40 +271,32 @@ public final class JavaThreadModel extends ThreadModel {
   private static final Object count = new Object();
 
   /** The number of mutators waiting for a collection to proceed. */
-  protected int mutatorsWaitingForGC;
-
-  /** The number of collectors executing GC */
-  protected int inGC;
+  protected int mutatorsBlocked;
 
   /** The number of mutators currently executing in the system. */
   protected int activeMutators;
 
   /** Thread access to current collector */
-  private static final ThreadLocal<Collector> collectorThreadLocal = new ThreadLocal<Collector>();
-
-  @Override
-  public int rendezvous(int where) {
-    return Rendezvous.rendezvous(Integer.toString(where),VM.activePlan.collectorCount());
-  }
+  private static final ThreadLocal<CollectorContext> collectorThreadLocal = new ThreadLocal<CollectorContext>();
 
   @Override
   public int mutatorRendezvous(String where, int expected) {
     synchronized (count) {
-      mutatorsWaitingForGC++;
+      mutatorsBlocked++;
     }
     int ordinal = Rendezvous.rendezvous(where,expected);
     synchronized (count) {
-      mutatorsWaitingForGC--;
+      mutatorsBlocked--;
     }
     return ordinal;
   }
 
   @Override
-  public Collector currentCollector() {
+  public CollectorContext currentCollector() {
     return collectorThreadLocal.get();
   }
 
-  static void setCurrentCollector(Collector c) {
+  void setCurrentCollector(CollectorContext c) {
     collectorThreadLocal.set(c);
   }
 
@@ -332,8 +338,7 @@ public final class JavaThreadModel extends ThreadModel {
   public void scheduleGcThreads() {
     synchronized (trigger) {
       startRunning();
-      inGC = collectorThreads.size();
-      setState(GC);
+      setState(BLOCKED);
       trigger.notifyAll();
       while (!isState(MUTATOR)) {
         try {
@@ -346,12 +351,23 @@ public final class JavaThreadModel extends ThreadModel {
   }
 
   @Override
-  public boolean noThreadsInGC() {
-    return inGC == 0;
+  public boolean gcTriggered() {
+    return !isState(MUTATOR);
   }
 
   @Override
-  public boolean gcTriggered() {
-    return inGC > 0;
+  public boolean isMutator() {
+    return Thread.currentThread() instanceof MutatorThread;
   }
+
+  @Override
+  public boolean isCollector() {
+    return Thread.currentThread() instanceof CollectorThread;
+  }
+
+  @Override
+  protected JavaMonitor newMonitor(String name) {
+    return new JavaMonitor();
+  }
+
 }

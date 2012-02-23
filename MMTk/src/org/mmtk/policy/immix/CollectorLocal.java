@@ -71,7 +71,7 @@ public final class CollectorLocal implements Constants {
    * Prepare for a collection. If paranoid, perform a sanity check.
    */
   public void prepare(boolean majorGC) {
-    int ordinal = VM.collection.activeGCThreadOrdinal();
+    int ordinal = VM.activePlan.collector().parallelWorkerOrdinal();
     if (majorGC) {
       if (immixSpace.inImmixDefragCollection()) {
         short threshold = Defrag.defragSpillThreshold;
@@ -82,7 +82,7 @@ public final class CollectorLocal implements Constants {
 
   private void resetLineMarksAndDefragStateTable(int ordinal, final short threshold) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(immixSpace.inImmixDefragCollection());
-    int stride = VM.collection.activeGCThreads();
+    int stride = VM.activePlan.collector().parallelWorkerCount();
     Address chunk = chunkMap.firstChunk(ordinal, stride);
     while (!chunk.isZero()) {
       Chunk.resetLineMarksAndDefragStateTable(chunk, threshold);
@@ -100,8 +100,8 @@ public final class CollectorLocal implements Constants {
   }
 
   private void sweepAllBlocks(boolean majorGC) {
-    int stride = VM.collection.activeGCThreads();
-    int ordinal = VM.collection.activeGCThreadOrdinal();
+    int stride = VM.activePlan.collector().parallelWorkerCount();
+    int ordinal = VM.activePlan.collector().parallelWorkerOrdinal();
     int[] markSpillHisto = defrag.getAndZeroSpillMarkHistogram(ordinal);
     Address chunk = chunkMap.firstChunk(ordinal, stride);
     final byte markValue = immixSpace.lineMarkState;

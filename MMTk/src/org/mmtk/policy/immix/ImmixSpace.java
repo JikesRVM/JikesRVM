@@ -86,15 +86,27 @@ public final class ImmixSpace extends Space implements Constants {
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume before consulting the plan
    * @param vmRequest The virtual memory request
    */
-  public ImmixSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, false, false, vmRequest);
+  public ImmixSpace(String name, VMRequest vmRequest) {
+    this(name, true, vmRequest);
+  }
+
+  /**
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param zeroed if true, allocations return zeroed memory
+   * @param vmRequest The virtual memory request
+   */
+  public ImmixSpace(String name, boolean zeroed, VMRequest vmRequest) {
+    super(name, false, false, zeroed, vmRequest);
     if (vmRequest.isDiscontiguous())
-      pr = new FreeListPageResource(pageBudget, this, Chunk.getRequiredMetaDataPages());
+      pr = new FreeListPageResource(this, Chunk.getRequiredMetaDataPages());
     else
-      pr = new FreeListPageResource(pageBudget, this, start, extent, Chunk.getRequiredMetaDataPages());
+      pr = new FreeListPageResource(this, start, extent, Chunk.getRequiredMetaDataPages());
     defrag = new Defrag((FreeListPageResource) pr);
   }
 
@@ -157,10 +169,19 @@ public final class ImmixSpace extends Space implements Constants {
    * @param emergencyCollection Is this collection an emergency (last did not yield enough)?
    * @param collectWholeHeap Is this a whole heap collection?
    * @param collectionAttempt Which attempt is this to collect?
-   * @param collectionTrigger What is triggering the collection?
+   * @param userTriggeredCollection Was this collection requested by the user?
    */
-  public void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, int collectionTrigger) {
-    defrag.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, collectionTrigger, exhaustedReusableSpace);
+  public void decideWhetherToDefrag(boolean emergencyCollection, boolean collectWholeHeap, int collectionAttempt, boolean userTriggeredCollection) {
+    defrag.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, userTriggeredCollection, exhaustedReusableSpace);
+  }
+
+  /**
+   * Return the amount of headroom required to allow defrag, so this can be included in a collection reserve.
+   *
+   * @return The number of pages.
+   */
+  public int defragHeadroomPages() {
+    return defrag.getDefragHeadroomPages();
   }
 
  /****************************************************************************

@@ -25,7 +25,8 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements basic statistics functionality
  */
-@Uninterruptible public class Stats {
+@Uninterruptible
+public class Stats {
 
   /****************************************************************************
    *

@@ -15,6 +15,7 @@ package org.jikesrvm.adaptive;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.SystemThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.NonMoving;
 
@@ -26,11 +27,10 @@ import org.vmmagic.pragma.NonMoving;
  * scans the threads array and collect requests.
  */
 @NonMoving
-public final class OSROrganizerThread extends RVMThread {
+public final class OSROrganizerThread extends SystemThread {
   /** Constructor */
   public OSROrganizerThread() {
     super("OSR_Organizer");
-    makeDaemon(true);
   }
 
   public boolean osr_flag = false;
@@ -38,13 +38,13 @@ public final class OSROrganizerThread extends RVMThread {
   @Override
   public void run() {
     while (true) {
-      monitor().lockNoHandshake();
+      rvmThread.monitor().lockNoHandshake();
       if (!this.osr_flag) {
-        monitor().waitWithHandshake();
+        rvmThread.monitor().waitWithHandshake();
       }
       this.osr_flag=false; /* if we get another activation after here
                               then we should rescan the threads array */
-      monitor().unlock();
+      rvmThread.monitor().unlock();
 
       processOsrRequest();
     }
@@ -55,10 +55,10 @@ public final class OSROrganizerThread extends RVMThread {
    */
   @Uninterruptible
   public void activate() {
-    monitor().lockNoHandshake();
+    rvmThread.monitor().lockNoHandshake();
     osr_flag=true;
-    monitor().broadcast();
-    monitor().unlock();
+    rvmThread.monitor().broadcast();
+    rvmThread.monitor().unlock();
   }
 
   // proces osr request

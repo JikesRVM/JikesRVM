@@ -14,6 +14,7 @@ package org.mmtk.plan.semispace.gctrace;
 
 import org.mmtk.plan.semispace.*;
 import org.mmtk.policy.RawPageSpace;
+import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.SortTODSharedDeque;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.TraceGenerator;
@@ -84,7 +85,7 @@ import org.vmmagic.pragma.*;
    */
 
   /* Spaces */
-  public static final RawPageSpace traceSpace = new RawPageSpace("trace", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final RawPageSpace traceSpace = new RawPageSpace("trace", VMRequest.create());
   public static final int TRACE = traceSpace.getDescriptor();
 
   /* GC state */
@@ -110,11 +111,16 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * The postBoot method is called by the runtime immediately after
-   * command-line arguments are available.
+   * The processOptions method is called by the runtime immediately after
+   * command-line arguments are available. Allocation must be supported
+   * prior to this point because the runtime infrastructure may require
+   * allocation in order to parse the command line arguments.  For this
+   * reason all plans should operate gracefully on the default minimum
+   * heap size until the point that processOptions is called.
    */
   @Interruptible
-  public void postBoot() {
+  public void processOptions() {
+    super.processOptions();
     Options.noFinalizer.setValue(true);
   }
 
@@ -138,8 +144,8 @@ import org.vmmagic.pragma.*;
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
-  public final boolean collectionRequired(boolean spaceFull) {
-    if (super.collectionRequired(spaceFull)) {
+  public final boolean collectionRequired(boolean spaceFull, Space space) {
+    if (super.collectionRequired(spaceFull, space)) {
       traceInducedGC = false;
       return true;
     }
@@ -190,13 +196,6 @@ import org.vmmagic.pragma.*;
    */
   public boolean isLastGCFull() {
     return !lastGCWasTracing;
-  }
-
-  /**
-   * @return the active PlanLocal as a GCTraceLocal
-   */
-  public static GCTraceCollector local() {
-    return ((GCTraceCollector) VM.activePlan.collector());
   }
 
   /**

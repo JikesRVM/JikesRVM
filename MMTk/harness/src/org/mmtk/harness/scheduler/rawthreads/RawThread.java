@@ -22,7 +22,7 @@ import org.mmtk.harness.scheduler.MMTkThread;
  */
 class RawThread extends MMTkThread {
   /**
-   *
+   * Link back to the thread model, so we can talk to the scheduler etc.
    */
   protected final RawThreadModel model;
 
@@ -32,8 +32,11 @@ class RawThread extends MMTkThread {
   /** The ordinal (for a rendezvous) */
   private int ordinal = 0;
 
-  /** Is this thread current ? Used to filter spurious wade-ups */
+  /** Is this thread current ? Used to filter spurious wake-ups */
   private boolean isCurrent = false;
+
+  /** The queue this thread is blocked on (or null if it's running) */
+  private ThreadQueue queue;
 
   public RawThread(RawThreadModel model) {
     this.model = model;
@@ -49,37 +52,67 @@ class RawThread extends MMTkThread {
     this.exiting = true;
   }
 
+  /**
+   * Make this thread active
+   */
   synchronized void resumeThread() {
     assert !exiting;
-    Trace.trace(Item.SCHEDULER, "%d: resumeThread", getId());
+    Trace.trace(Item.SCHED_DETAIL, "%d: resumeThread", getId());
     isCurrent = true;
+    setQueue(null);
     model.setCurrent(this);
     notify();
   }
 
-  synchronized void yieldThread() {
+  /**
+   * Put this thread to sleep, wake the scheduler, and then wait until the scheduler
+   * selects us to run again.
+   */
+  synchronized void yieldThread(ThreadQueue queue) {
     isCurrent = false;
-    Trace.trace(Item.SCHEDULER, "%d: yieldThread", getId());
+    setQueue(queue);
+    queue.add(this);
+    Trace.trace(Item.SCHED_DETAIL, "%d: yieldThread", getId());
     model.wakeScheduler();
     waitTillCurrent();
-    Trace.trace(Item.SCHEDULER, "%d: resuming", getId());
+    Trace.trace(Item.SCHED_DETAIL, "%d: resuming", getId());
   }
 
+  /**
+   * Set the arrival order at a barrier
+   * @param ordinal
+   */
   void setOrdinal(int ordinal) {
     this.ordinal = ordinal;
   }
 
+  /**
+   * @return The order of arrival at the most recent barrier
+   */
   int getOrdinal() {
     return ordinal;
   }
 
+  /**
+   * Wait until this thread becomes the current thread
+   */
   protected synchronized void waitTillCurrent() {
-    Trace.trace(Item.SCHEDULER, "%d: waiting for thread wakeup", getId());
+    Trace.trace(Item.SCHED_DETAIL, "%d: waiting for thread wakeup", getId());
     while (!isCurrent) {
       try {
         this.wait();
       } catch (InterruptedException e) {
       }
     }
+  }
+
+  private void setQueue(ThreadQueue queue) {
+    this.queue = queue;
+  }
+
+
+  @Override
+  public String toString() {
+    return (isCurrent ? "current " : "queue " + queue.getName()) + (exiting ? "exiting " : "");
   }
 }

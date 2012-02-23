@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : The MMTk Test Harness</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : The MMTk Test Harness
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Dec 21, 2011 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <h1 id="TheMMTkTestHarness-Overview">Overview</h1><p>The MMTk harness is a debugging tool. It allows you to run MMTk with a simple client - a simple Java-like scripting language - which can explicitly allocate objects, create and delete references, etc. This allows MMTk to be run and debugged stand-alone, without the entire VM, greatly simplifying initial debugging and reducing the edit-debug turnaround time. This is all accessible through the command line or an IDE such as eclipse.</p><h1 id="TheMMTkTestHarness-Runningthetestharness">Running the test harness</h1><p>The harness can be run standalone or via Eclipse (or other IDE).</p><h2 id="TheMMTkTestHarness-Standalone">Standalone</h2><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>ant mmtk-harness
+java -jar target/mmtk/mmtk-harness.jar &lt;script-file&gt; [options...]</pre>
+</div></div><p>There is a collection of sample scripts in the MMTk/harness/test-scripts directory.  There is a simple wrapper script that runs all the available scripts against all the collectors,</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>bin/test-mmtk [options...]</pre>
+</div></div><p> This script prints a PASS/FAIL line as it goes, and puts detailed output in results/mmtk.</p><h2 id="TheMMTkTestHarness-InEclipse">In Eclipse</h2><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>ant mmtk-harness-eclipse-project</pre>
+</div></div><p>Or in versions before 3.1.1</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>ant mmtk-harness &amp;&amp; ant mmtk-harness-eclipse-project</pre>
+</div></div><p>Refresh the project (or import it into eclipse), and then run 'Project &gt; Clean'.</p><p>Define a new run configuration with main class org.mmtk.harness.Main.</p><p>Click Run (actually the down-arrow next to the the green button), choose 'Run Configurations...' <br class="atl-forced-newline" /> <img class="confluence-embedded-image" src="attachments/91750431/128024604.png" data-image-src="attachments/91750431/128024604.png" title="Screenshot-Run_Configurations.png"><br />  </p><p>Select &quot;Java Application&quot; from the left-hand panel, and click the &quot;new&quot; icon (top left).</p><p>Fill out the Main tab as below <br class="atl-forced-newline" /> <img class="confluence-embedded-image" src="attachments/91750431/128024605.png" data-image-src="attachments/91750431/128024605.png" title="Screenshot-Run_Configurations-1.png"></p><p> </p><p>Fill out the Arguments tab as below <br class="atl-forced-newline" /> <img class="confluence-embedded-image" src="attachments/91750431/128024606.png" data-image-src="attachments/91750431/128024606.png" title="Screenshot-Run_Configurations-2.png"><br /> The harness makes extensive use of the java 'assert' keyword, so you should run the harness with '-ea' in the VM options.</p><p>Click 'Apply' and then 'Run' to test the configuration.  Eclipse will prompt for a value for the 'script' variable - enter the name of one of the available test scripts, such as 'Lists', and click OK.  The scripts provided with MMTk are in the directory MMTk/harness/test-scripts.</p><p>You can configure eclipse to display vmmagic values (Address/ObjectReference/etc) using their toString method through the Eclipse -&gt; Preferences... -&gt; Java -&gt; Debug -&gt; Detail Formatters menu. The simplest option is to check the box to use toString 'As the label for all variables'.</p><h2 id="TheMMTkTestHarness-Testharnessoptions">Test harness options</h2><p>Options are passed to the test harness as 'keyword=value' pairs.  The standard MMTk options that are available through JikesRVM are accepted (leave off the &quot;-X:gc:&quot;), as well as the following harness-specific options:</p><div class="table-wrap"><table class="confluenceTable"><tbody><tr><th class="confluenceTh"><p>Option</p></th><th class="confluenceTh"><p>Meaning</p></th></tr><tr><td class="confluenceTd"><p>plan</p></td><td class="confluenceTd"><p>The MMTk plan class.  Defaults to org.mmtk.plan.marksweep.MS</p></td></tr><tr><td class="confluenceTd"><p>collectors</p></td><td class="confluenceTd"><p>The number of concurrent collector threads (default: 1)</p></td></tr><tr><td class="confluenceTd"><p>initHeap</p></td><td class="confluenceTd"><p>Initial heap size.  It is also a good idea to use 'variableSizeHeap=false', since the heap growth manager uses elapsed time to make its decisions, and time is seriously dilated by the MMTk Harness.</p></td></tr><tr><td class="confluenceTd"><p>maxHeap</p></td><td class="confluenceTd"><p>Maximum heap size (default: 64 pages)</p></td></tr><tr><td class="confluenceTd"><p>trace</p></td><td class="confluenceTd"><p>Debugging messages from the MMTk Harness.  Useful trace options include</p><ul><li>ALLOC - trace object allocation</li><li>AVBYTE - Mutations of the 'available byte' in each object header</li><li>COLLECT - Detailed information during GC</li><li>HASH - Hash code operations</li><li>MEMORY - page-level memory operations (map, unmap, zero)</li><li>OBJECT - trace object mutation events </li><li>REFERENCES - Reference type processing</li><li>REMSET - Remembered set processing</li><li>SANITY - Gives detailed information during Harness sanity checking</li><li>TRACEOBJECT - Traces every call to traceObject during GC (requires MMTk support) <br class="atl-forced-newline" /> See the class org.mmtk.harness.lang.Trace for more details and trace options - most of the remaining options are only of interest to maintainers of the Harness itself.</li></ul></td></tr><tr><td class="confluenceTd"><p>watchAddress</p></td><td class="confluenceTd"><p>Set a watchpoint on a given address or comma-separated list of addresses.  The harness will display every load and store to that address.</p></td></tr><tr><td class="confluenceTd"><p>watchObject</p></td><td class="confluenceTd"><p>Watch modifications to a given object or comma-separated list of objects, identified by object ID (sequence number).</p></td></tr><tr><td class="confluenceTd"><p>gcEvery</p></td><td class="confluenceTd"><p>Force frequent GCs.  Options are</p><ul><li>ALLOC - GC after every object allocation </li><li>SAFEPOINT - GC at every GC safepoint</li></ul></td></tr><tr><td class="confluenceTd"><p>scheduler</p></td><td class="confluenceTd"><p>Optionally use the deterministic scheduler.  Options are</p><ul><li>JAVA (default) - Threads in the script are Java threads, scheduled by the host JVM</li><li>DETERMINISTIC - Threads are scheduled deterministically, with yield points at every memory access.</li></ul></td></tr><tr><td class="confluenceTd"><p>schedulerPolicy</p></td><td class="confluenceTd"><p>Select from several scheduling policies,</p><ul><li>FIXED - Threads yield every 'nth' yield point</li><li>RANDOM - Threads yield according to a pseudo-random policy</li><li>NEVER - Threads only yield at mandatory yieldpoints</li></ul></td></tr><tr><td class="confluenceTd"><p>yieldInterval</p></td><td class="confluenceTd"><p>For the FIXED scheduling policy, the yield frequency.</p></td></tr><tr><td class="confluenceTd"><p>randomPolicyLength <br class="atl-forced-newline" /> randomPolicySeed <br class="atl-forced-newline" /> randomPolicyMin <br class="atl-forced-newline" /> randomPolicyMax</p></td><td class="confluenceTd"><p>Parameters for the RANDOM scheduler policy.  Whenever a thread is created, the scheduler fixes a yield pattern of 'length' integers between 'min' and 'max'.  These numbers are used as yield intervals in a circular manner.</p></td></tr><tr><td class="confluenceTd"><p>policyStats</p></td><td class="confluenceTd"><p>Dump statistics for the deterministic scheduler's yield policy.</p></td></tr><tr><td class="confluenceTd"><p>bits=32|64</p></td><td class="confluenceTd"><p>Select between 32 and 64-bit memory models.</p></td></tr><tr><td class="confluenceTd"><p>dumpPcode</p></td><td class="confluenceTd"><p>Dump the pseudo-code generated by the harness interpreter</p></td></tr><tr><td class="confluenceTd"><p>timeout</p></td><td class="confluenceTd"><p>Abort collection if a GC takes longer than this value (seconds).  Defaults to 30.</p></td></tr></tbody></table></div><p> </p><h1 id="TheMMTkTestHarness-Scripts">Scripts</h1><p>The MMTk/harness/test-scripts directory contains several test scripts.</p><div class="table-wrap"><table class="confluenceTable"><tbody><tr><th class="confluenceTh"><p>Script</p></th><th class="confluenceTh"><p>Purpose</p></th><th class="confluenceTh"><p>Description</p></th></tr><tr><td class="confluenceTd"><p>Alignment</p></td><td class="confluenceTd"><p>Test allocator alignment behaviour</p></td><td class="confluenceTd"><p>Tests alignment by creating a list of objects aligned to a mixture of 4-byte and 8-byte boundaries.</p></td></tr><tr><td class="confluenceTd"><p>CyclicGarbage</p></td><td class="confluenceTd"><p>Test cycle detector in Reference Counting collectors</p></td><td class="confluenceTd"><p>Creates large amounts of cyclic garbage in the form of circular linked lists.</p></td></tr><tr><td class="confluenceTd"><p>FixedLive</p></td><td class="confluenceTd"><p>General collection test</p></td><td class="confluenceTd"><p>Harness version of the FixedLive GC micro-benchmark.  Creates a binary tree, then allocates short-lived objects to force garbage collections.</p></td></tr><tr><td class="confluenceTd"><p>HashCode</p></td><td class="confluenceTd"><p>Hash code test.</p></td><td class="confluenceTd"><p>Creates objects and verifies that their hashcode is unchanged after a GC.</p></td></tr><tr><td class="confluenceTd"><p>LargeObject</p></td><td class="confluenceTd"><p>Large object allocator test</p></td><td class="confluenceTd"><p>Creates objects with sizes ranging from 2 to 32 pages (8k to 128k bytes).</p></td></tr><tr><td class="confluenceTd"><p>Lists</p></td><td class="confluenceTd"><p>Generational collector stress test</p></td><td class="confluenceTd"><p>Creates a set of lists of varying lengths, and then allocates to force collections.  Ensures that there are Mature-&gt;Nursery, Nursery-&gt;Mature and Stack-&gt;Nursery and Stack-&gt;Mature pointers at every GC.  Remsets get a serious workout.</p></td></tr><tr><td class="confluenceTd"><p>OutOfMemory</p></td><td class="confluenceTd"><p>Tests out-of-memory handling.</p></td><td class="confluenceTd"><p>Allocates a linked list that grows until the heap fills up.</p></td></tr><tr><td class="confluenceTd"><p>Quicksort</p></td><td class="confluenceTd"><p>General collection test</p></td><td class="confluenceTd"><p>Implements a list-based quicksort. </p></td></tr><tr><td class="confluenceTd"><p>ReferenceTypes</p></td><td class="confluenceTd"><p>Reference type test</p></td><td class="confluenceTd"><p>Creates Weak references, forces collections and ensures that they are correctly handled.</p></td></tr><tr><td class="confluenceTd"><p>Spawn</p></td><td class="confluenceTd"><p>Concurrency test</p></td><td class="confluenceTd"><p>Creates lots of threads which allocate objects.</p></td></tr><tr><td class="confluenceTd"><p>SpreadAlloc</p></td><td class="confluenceTd"><p>Free-list allocator test</p></td><td class="confluenceTd"><p>Creates large numbers of objects with random size distributions, keeping a fraction of the objects alive.</p></td></tr><tr><td class="confluenceTd"><p>SpreadAlloc16</p></td><td class="confluenceTd"><p>Concurrent free-list allocator test</p></td><td class="confluenceTd"><p>A multithreaded version of SpreadAlloc.</p></td></tr></tbody></table></div><h1 id="TheMMTkTestHarness-Scriptinglanguage">Scripting language</h1><h2 id="TheMMTkTestHarness-Basics">Basics</h2><p>The language has three types: integer, object and user-defined. The object type behaves essentially like a double array of pointers and integers (odd, I know, but the scripting language is basically concerned with filling up the heap with objects of a certain size and reachability).  User-defined types are like Java objects without methods, 'C' structs, Pascal record types etc.</p><p>Objects and user-defined types are allocated with the 'alloc' statement: alloc(p,n,align) allocates an object with 'p' pointers, 'n' integers and the given alignment; alloc(type) allocates an object of the given type.  Variables are declared 'c' style, and are optionally initialized at declaration.</p><p> User-defined types are declared as follows:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>type list {
+  int value;
+  list next;
+}</pre>
+</div></div><p>and fields are accessed using java-style &quot;dot&quot; notation, eg</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>  list l = alloc(list);
+  l.value = 0;
+  l.next = null;</pre>
+</div></div><p>At this stage, fields can only be dereferenced to one level, eg 'l.next.next' is not valid syntax - you need to introduce a temporary variable to achieve this.</p><p>Object fields are referenced using syntax like &quot;tmp.int[5]&quot; or &quot;tmp.object[i*3]&quot;,<br /> ie like a struct of arrays of the appropriate types.</p><h2 id="TheMMTkTestHarness-Syntax">Syntax</h2><p> </p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>script ::= (method|type)...
+
+method ::= ident &quot;(&quot; { type ident { &quot;,&quot; type ident}...  &quot;)&quot;
+           ( &quot;{&quot; statement... &quot;}&quot;
+           | &quot;intrinsic&quot; &quot;class&quot; name &quot;method&quot; name &quot;signature&quot; &quot;(&quot; java-class {, java class} &quot;)&quot;
+
+type ::= &quot;type&quot; ident &quot;{&quot; field... &quot;}&quot;
+field ::= type ident &quot;;&quot;
+
+statement ::=
+	  &quot;if&quot; &quot;(&quot; expr &quot;)&quot; block { &quot;elif&quot; &quot;(&quot; expr &quot;)&quot; block } [ &quot;else&quot; block ]
+	| &quot;while &quot;(&quot; expr &quot;)&quot; block
+	| [ [ type ] ident &quot;=&quot; ] &quot;alloc&quot; &quot;(&quot; expr &quot;,&quot; expr [ &quot;,&quot; expr ] &quot;)&quot; &quot;;&quot;
+	| [ ident &quot;=&quot; ] &quot;hash&quot; &quot;(&quot; expr &quot;)&quot; &quot;;&quot;
+        | &quot;gc&quot; &quot;(&quot; &quot;)&quot;
+        | &quot;spawn&quot; &quot;(&quot; ident [ &quot;,&quot; expr ]... &quot;)&quot; &quot;;&quot;
+	| type ident [ &quot;=&quot; expr ] &quot;;&quot;
+	| lvalue &quot;=&quot; expr &quot;;&quot;
+
+lvalue ::= ident &quot;=&quot; expr &quot;;&quot;
+	| ident &quot;.&quot; type &quot;[&quot; expr &quot;]&quot;
+
+type ::= &quot;int&quot; | &quot;object&quot; | ident
+
+expr ::= expr binop expr
+		| unop expr
+		| &quot;(&quot; expr &quot;)&quot;
+		| ident
+		| ident &quot;.&quot; type &quot;[&quot; expr &quot;]&quot;
+		| ident &quot;.&quot; ident
+		| int-const
+		| intrinsic
+
+intrinsic ::= &quot;alloc&quot; ( &quot;(&quot; expr &quot;,&quot; expr [&quot;,&quot; expr] &quot;)
+                      | type
+                      )
+            | &quot;(&quot; expr &quot;)&quot;
+            | &quot;gc &quot; &quot;(&quot; &quot;)&quot;
+
+binop ::= &quot;+&quot; | &quot;-&quot; | &quot;*&quot; | &quot;/&quot; | &quot;%&quot; | &quot;&amp;&amp;&quot; | &quot;||&quot; | &quot;==&quot; | &quot;!=&quot;
+
+unop ::= &quot;!&quot; | &quot;-&quot;</pre>
+</div></div><h1 id="TheMMTkTestHarness-MMTkUnitTests">MMTk Unit Tests</h1><p>There is a small set of unit tests available for MMTk, using the harness as scaffolding.  These tests can be run in the standard test infrastructure using the 'mmtk-unit-tests' test set, or the shell script 'bin/unit-test-mmtk'.  Possibly more usefully, they can be run from Eclipse.</p><p>To run the unit tests in Eclipse, build the mmtk harness project (see above), and add the directory testing/tests/mmtk/src to your build path (navigate to the directory in the package explorer pane in eclipse, right-click&gt;build-path&gt;Use as Source Folder).  Either open one of the test classes, or highlight it in the package explorer and press the 'run' button.</p>
+                    </div>
+
+                                        <div class="pageSection group">
+                        <div class="pageSectionHeader">
+                            <h2 id="attachments" class="pageSectionTitle">Attachments:</h2>
+                        </div>
+
+                        <div class="greybox" align="left">
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779393.png">Screenshot-Run Configurations .png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779395.png">Screenshot-Run Configurations -1.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779394.png">Screenshot-Run Configurations -1.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779397.png">Screenshot-Run Configurations -2.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/126779396.png">Screenshot-Run Configurations -2.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/128024604.png">Screenshot-Run_Configurations.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/128024605.png">Screenshot-Run_Configurations-1.png</a> (image/png)
+                                <br/>
+                                                            <img src="images/icons/bullet_blue.gif" height="8" width="8" alt=""/>
+                                <a href="attachments/91750431/128024606.png">Screenshot-Run_Configurations-2.png</a> (image/png)
+                                <br/>
+                                                    </div>
+                    </div>
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

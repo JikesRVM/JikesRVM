@@ -30,7 +30,7 @@ public class GenRC extends RCBase {
   public static final int ALLOC_RC      = RCBase.ALLOCATORS + 1;
 
   /** The nursery space is where all new objects are allocated by default */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, VMRequest.create(0.15f, true));
+  public static final CopySpace nurserySpace = new CopySpace("nursery", false, VMRequest.create(0.15f, true));
 
   public static final int NURSERY = nurserySpace.getDescriptor();
 
@@ -54,6 +54,7 @@ public class GenRC extends RCBase {
     if (phaseId == RELEASE) {
       super.collectionPhase(phaseId);
       nurserySpace.release();
+      switchNurseryZeroingApproach(nurserySpace);
       return;
     }
 
@@ -67,9 +68,9 @@ public class GenRC extends RCBase {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
-  public final boolean collectionRequired(boolean spaceFull) {
+  public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
-    return super.collectionRequired(spaceFull) || nurseryFull;
+    return super.collectionRequired(spaceFull, space) || nurseryFull;
   }
 
   /*****************************************************************************
@@ -99,17 +100,6 @@ public class GenRC extends RCBase {
   }
 
   /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + (nurserySpace.requiredPages() << 1);
-  }
-
-  /**
    * @see org.mmtk.plan.Plan#willNeverMove
    *
    * @param object Object in question
@@ -124,5 +114,12 @@ public class GenRC extends RCBase {
       return true;
     }
     return super.willNeverMove(object);
+  }
+
+  @Interruptible
+  @Override
+  public void fullyBooted() {
+    super.fullyBooted();
+    nurserySpace.setZeroingApproach(Options.nurseryZeroing.getNonTemporal(), Options.nurseryZeroing.getConcurrent());
   }
 }

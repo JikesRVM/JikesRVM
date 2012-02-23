@@ -243,7 +243,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
         // FIXME: We should probably speculatively allocate a new table instead.
         // note, we can copy without the lock after installing the new table (unint during copy).
         lock.release();
-        RVMThread.yield(); // (1) Allow another thread to grow the table
+        RVMThread.yieldWithHandshake(); // (1) Allow another thread to grow the table
         lock.acquire();
       } else {
         growingTable = true;  // Prevent other threads from growing table while lock is released

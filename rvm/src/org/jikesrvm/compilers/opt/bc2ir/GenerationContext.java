@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
@@ -617,13 +618,18 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   ///////////
   public BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex, boolean backwards) {
     float prob;
-    if (branchProfiles != null) {
-      BranchProfile bp = branchProfiles.getEntry(bcIndex);
+    BranchProfile bp;
+    if (branchProfiles != null && ((bp = branchProfiles.getEntry(bcIndex)) != null)) {
       prob = ((ConditionalBranchProfile) bp).getTakenProbability();
-    } else if (backwards) {
-      prob = 0.9f;
     } else {
-      prob = 0.5f;
+      if (branchProfiles != null) {
+        VM.sysWrite("Warning: conditional branch profile entry not found");
+      }
+      if (backwards) {
+        prob = 0.9f;
+      } else {
+        prob = 0.5f;
+      }
     }
     // experimental option: flip the probablity to see how bad things would be if
     // we were completely wrong.

@@ -986,6 +986,13 @@ AF_CF_OF_PF_SF_ZF
 
 
 ####################
+IA32_MFENCE
+MIR_Empty
+none
+
+
+
+####################
 IA32_PAUSE
 MIR_Empty
 none

@@ -134,7 +134,6 @@ public class MagicNames {
   public static final Atom tibAsObject = Atom.findOrCreateAsciiAtom("tibAsObject");
 
   public static final Atom objectAsThread = Atom.findOrCreateAsciiAtom("objectAsThread");
-  public static final Atom threadAsCollectorThread = Atom.findOrCreateAsciiAtom("threadAsCollectorThread");
   public static final Atom floatAsIntBits = Atom.findOrCreateAsciiAtom("floatAsIntBits");
   public static final Atom intBitsAsFloat = Atom.findOrCreateAsciiAtom("intBitsAsFloat");
   public static final Atom doubleAsLongBits = Atom.findOrCreateAsciiAtom("doubleAsLongBits");
@@ -143,6 +142,9 @@ public class MagicNames {
   public static final Atom getObjectType = Atom.findOrCreateAsciiAtom("getObjectType");
   public static final Atom getArrayLength = Atom.findOrCreateAsciiAtom("getArrayLength");
 
+  public static final Atom fence = Atom.findOrCreateAsciiAtom("fence");
+  public static final Atom readCeiling = Atom.findOrCreateAsciiAtom("readCeiling");
+  public static final Atom writeFloor = Atom.findOrCreateAsciiAtom("writeFloor");
   public static final Atom sync = Atom.findOrCreateAsciiAtom("sync");
   public static final Atom isync = Atom.findOrCreateAsciiAtom("isync");
   public static final Atom prefetch = Atom.findOrCreateAsciiAtom("prefetch");

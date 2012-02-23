@@ -14,7 +14,7 @@
 
   <import file="base.xml"/>
 
-  <property name="specjvm.version" value="1_00"/>
+  <property name="specjvm.version" value="1_01"/>
   <property name="specjvm.description" value="SPEC jvm 2008 Benchmark Suite"/>
 
   <property name="specjvm.dir" location="${components.dir}/SPECjvm2008/${specjvm.version}"/>

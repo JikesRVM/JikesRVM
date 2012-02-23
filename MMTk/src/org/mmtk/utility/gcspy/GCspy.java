@@ -50,15 +50,6 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * The boot method is called by the runtime immediately after
-   * command-line arguments are available.  Note that allocation must
-   * be supported prior to this point because the runtime
-   * infrastructure may require allocation in order to parse the
-   * command line arguments.
-   */
-  public static void postBoot() { }
-
-  /**
    * Get the number of the port that GCspy communicates on
    *
    * @return the GCspy port number

@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Jikes RVM&#39;s compilers</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Jikes RVM&#39;s compilers
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Jul 07, 2008 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>Jikes RVM invokes a compiler for one of three reasons. First, when the executing code reaches an unresolved reference, causing a new<br />
+class to be loaded, the class loader invokes a compiler to compile the class initializer (if one exists). Second, the system compiles each method the first time it is invoked. In these first two scenarios, the initiating application thread stalls until compilation completes.</p>
+
+<p>In the third scenario, the adaptive optimization system can invoke a compiler when profiling data suggests that <em>recompiling</em> a method with additional optimizations may be beneficial. The system supports both background and foreground recompilation. With background recompilation (the default),  a dedicated thread asynchronously performs all recompilations.  With foreground configuration, the system invalidates a compiled method, thus, forcing recompilation at the desired optimization level at the next invocation (stalling the invoking thread until compilation completes).</p>
+
+<p>The system includes two compilers with different tradeoffs between compilation overhead and code quality.</p>
+<ol>
+	<li>The goal of the <em>baseline</em> compiler is to generate code quickly. Thus, it translates bytecodes directly into native code by simulating Java's operand stack.  It does not build an intermediate representation nor perform register allocation, resulting in native code that executes only somewhat faster than bytecode interpretation.  However, it does achieve its goal of producing this code quickly, which significantly reduces the initial overhead associated with dynamic compilation.</li>
+	<li>The <em>optimizing</em> compiler translates bytecodes into an intermediate representation, upon which it performs a variety of optimizations.  All optimization levels include linear scan register allocation and BURS-based instruction selection. The compiler's optimizations are grouped into several levels:
+	<ul>
+		<li> <strong>Level 0</strong> consists of a set of flow-sensitive optimizations performed on-the-fly during the translation from bytecodes to the intermediate representation and some additional optimizations that are either highly effective or have negligible compilation costs. The compiler performs the following optimizations during IR generation: constant, type, non-null, and copy propagation, constant folding and arithmetic simplification, branch optimizations, field analysis, unreachable code elimination, inlining of trivial methods (A trivial method is one whose body is estimated to take less code space than 2 times the size of a calling sequence and that can be inlined without an explicit guard.), elimination of redundant nullchecks, checkcasts, and array store checks.  As these optimizations reduce the size of the generated IR, performing them tends to reduce overall compilation time. Level 0 includes a number of cheap local (The scope of a local optimization is one extended basic block.} optimizations such as local redundancy elimination (common subexpression elimination, loads, and exception checks), copy propagation, constant propagation and folding. Level 0 also includes simple control flow optimizations such as static basic block splitting, peephole branch optimization, and tail recursion elimination. Finally, Level 0 performs simple code reordering, scalar replacement of aggregates and short arrays, and one pass of intraprocedural flow-in-sens-i-tive copy propagation, constant propagation, and dead assignment elimination.</li>
+		<li><strong>Level 1</strong> resembles Level 0, but significantly increases the aggressiveness of inlining heuristics. The compiler performs both unguarded inlining of final and static methods and (speculative) guarded inlining of non-final virtual and interface methods. Speculative inlining is driven both by class hierarchy analysis and online profile data gathered by the adaptive system. In addition, the compiler exploits ``preexistence'' to safely perform unguarded inlining of some invocations of non-final virtual methods <em>without</em> requiring stack frame rewriting on invalidation.  It also runs multiple passes of some of the Level 0 optimizations and uses a more sophisticated code reordering algorithm due to Pettis and Hansen.</li>
+		<li><strong>Level 2</strong> augments level 1 with loop optimizations such as normalization and unrolling; scalar SSA-based flow-sensitive optimizations based on dataflow, global value numbering, global common subexpression elimination, redundant and conditional branch elimination; and heap array SSA-based optimizations, such as load/store elimination, and global code placement.  <strong>NOTE: many of the O2 optimizations are disabled by default by defining them as O3 optimizations because they are believed to be somewhat buggy.</strong> </li>
+	</ul>
+	</li>
+</ol>
+
+
+<p>The adaptive system uses information about average compilation rate and relative speed of compiled code produced by each compiler/optimization level to make it's decisions. These characteristics of the compilers are the key inputs to enable selective optimization to be effective. It allows one to employ a quick executing compiler for infrequently executed methods and an optimizing compiler for the most critical methods. See org.jikesrvm.adaptive.recompilation.CompilerDNA for the current values of these input parameters to the adaptive systems cost/benefit model.</p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

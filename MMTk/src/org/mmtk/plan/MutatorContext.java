@@ -162,19 +162,19 @@ public abstract class MutatorContext implements Constants {
   public int checkAllocator(int bytes, int align, int allocator) {
     int maxBytes = Allocator.getMaximumAlignedSize(bytes, align);
     if (allocator == Plan.ALLOC_DEFAULT) {
-      return (maxBytes > Plan.MAX_NON_LOS_DEFAULT_ALLOC_BYTES) ? Plan.ALLOC_LOS : allocator;
+      return (maxBytes > Plan.MAX_NON_LOS_DEFAULT_ALLOC_BYTES || (maxBytes > Plan.MAX_NON_LOS_COPY_BYTES && maxBytes > Plan.pretenureThreshold)) ? Plan.ALLOC_LOS : Plan.ALLOC_DEFAULT;
     }
 
     if (Plan.USE_CODE_SPACE && allocator == Plan.ALLOC_CODE) {
-      return (maxBytes > Plan.MAX_NON_LOS_NONMOVING_ALLOC_BYTES) ? Plan.ALLOC_LARGE_CODE : allocator;
+      return (maxBytes > Plan.MAX_NON_LOS_NONMOVING_ALLOC_BYTES || (maxBytes > Plan.MAX_NON_LOS_COPY_BYTES && maxBytes > Plan.pretenureThreshold)) ? Plan.ALLOC_LARGE_CODE : allocator;
     }
 
     if (allocator == Plan.ALLOC_NON_REFERENCE) {
-      return (maxBytes > Plan.MAX_NON_LOS_DEFAULT_ALLOC_BYTES) ? Plan.ALLOC_LOS : Plan.ALLOC_DEFAULT;
+      return (maxBytes > Plan.MAX_NON_LOS_DEFAULT_ALLOC_BYTES || (maxBytes > Plan.MAX_NON_LOS_COPY_BYTES && maxBytes > Plan.pretenureThreshold)) ? Plan.ALLOC_LOS : Plan.ALLOC_DEFAULT;
     }
 
     if (allocator == Plan.ALLOC_NON_MOVING) {
-      return (maxBytes > Plan.MAX_NON_LOS_NONMOVING_ALLOC_BYTES) ? Plan.ALLOC_LOS : allocator;
+      return (maxBytes > Plan.MAX_NON_LOS_NONMOVING_ALLOC_BYTES || (maxBytes > Plan.MAX_NON_LOS_COPY_BYTES && maxBytes > Plan.pretenureThreshold)) ? Plan.ALLOC_LOS : allocator;
     }
 
     return allocator;
@@ -1250,7 +1250,7 @@ public abstract class MutatorContext implements Constants {
    * Miscellaneous
    */
 
-  /** @return the <code>Log</code> instance for this PlanLocal */
+  /** @return the <code>Log</code> instance for this mutator context. */
   public final Log getLog() {
     return log;
   }

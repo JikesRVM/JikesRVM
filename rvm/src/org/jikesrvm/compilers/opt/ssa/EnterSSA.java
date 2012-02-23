@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.ssa;
 
 import static org.jikesrvm.compilers.opt.driver.OptConstants.SSA_SYNTH_BCI;
+import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN_opcode;
@@ -461,7 +462,7 @@ public class EnterSSA extends CompilerPhase {
       BasicBlock b = bbe.next();
       for (InstructionEnumeration e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
         Instruction s = e.next();
-        boolean isSynch = (s.operator() == READ_CEILING) || (s.operator() == WRITE_FLOOR);
+        boolean isSynch = (s.operator() == READ_CEILING) || (s.operator() == WRITE_FLOOR) || (s.operator() == FENCE);
         if (isSynch ||
             Call.conforms(s) ||
             MonitorOp.conforms(s) ||

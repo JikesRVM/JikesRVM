@@ -88,7 +88,6 @@ public class DynamicCallGraphOrganizer extends Organizer {
   public DynamicCallGraphOrganizer(EdgeListener edgeListener) {
     listener = edgeListener;
     edgeListener.setOrganizer(this);
-    makeDaemon(true);
   }
 
   /**
@@ -101,7 +100,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
     } else {
       numberOfBufferTriples = Controller.options.DCG_SAMPLE_SIZE;
     }
-    numberOfBufferTriples *= RVMThread.numProcessors;
+    numberOfBufferTriples *= RVMThread.availableProcessors;
     bufferSize = numberOfBufferTriples * 3;
     buffer = new int[bufferSize];
 

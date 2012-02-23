@@ -20,6 +20,8 @@ import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
+import org.jikesrvm.mm.mminterface.HandInlinedScanning;
+import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.FieldLayoutContext;
 import org.jikesrvm.objectmodel.IMT;
@@ -123,9 +125,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
   /** fields distinct for each instance of class */
   private RVMField[] instanceFields;
-
-  /** offsets of reference-containing instance fields */
-  private int[] referenceOffsets;
 
   /** Total size of per-instance data, in bytes  */
   private int instanceSize;
@@ -299,7 +298,11 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * @return true if this is a representation of an anonymous class
    */
   public boolean isAnonymousClass() {
-    return (enclosingClass != null) && (enclosingMethod == null);
+    if (enclosingClass == null || enclosingClass.peekType() == null) return false;
+    for(TypeReference t: enclosingClass.peekType().asClass().getDeclaredClasses()) {
+      if (t == typeRef) return false;
+    }
+    return true;
   }
 
   /**
@@ -809,16 +812,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Offsets of reference-containing instance fields of this class type.
-   * Offsets are with respect to object pointer -- see RVMField.getOffset().
-   */
-  @Uninterruptible
-  public int[] getReferenceOffsets() {
-    if (VM.VerifyAssertions) VM._assert(isResolved());
-    return referenceOffsets;
-  }
-
-  /**
    * @return number of fields that are non-final
    */
   public int getNumberOfNonFinalReferences() {
@@ -1298,9 +1291,11 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     // allocate "type information block"
     TIB allocatedTib;
     if (isInterface()) {
-      allocatedTib = MemoryManager.newTIB(0);
+      allocatedTib = MemoryManager.newTIB(0, AlignmentEncoding.ALIGN_CODE_NONE);
+    } else if (isAnnotationDeclared(TypeReference.ReferenceFieldsVary)) {
+      allocatedTib = MemoryManager.newTIB(virtualMethods.length, HandInlinedScanning.fallback());
     } else {
-      allocatedTib = MemoryManager.newTIB(virtualMethods.length);
+      allocatedTib = MemoryManager.newTIB(virtualMethods.length, HandInlinedScanning.scalar(referenceOffsets));
     }
 
     superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
@@ -1481,7 +1476,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * Make the passed field a traced field by garbage collection. Also affects all
    * subclasses.
    */
-  public synchronized void makeFieldTraced(RVMField field) {
+  public void makeFieldTraced(RVMField field) {
     int[] oldOffsets = referenceOffsets;
     int fieldOffset = field.getOffset().toInt();
     referenceOffsets = MemoryManager.newNonMovingIntArray(oldOffsets.length + 1);
@@ -1489,7 +1484,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     for(i=0; i < oldOffsets.length && oldOffsets[i] < fieldOffset; i++) {
       referenceOffsets[i] = oldOffsets[i];
     }
-    if (VM.VerifyAssertions) VM._assert(oldOffsets[i] != fieldOffset, "Field is already traced!");
     referenceOffsets[i++] = fieldOffset;
     while(i < referenceOffsets.length) {
       referenceOffsets[i] = oldOffsets[i-1];

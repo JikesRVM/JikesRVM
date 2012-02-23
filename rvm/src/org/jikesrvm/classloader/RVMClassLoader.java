@@ -428,4 +428,37 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
     int myTypeIndex = input.readUnsignedShort();
     return TypeReference.getTypeRef(constantPool[myTypeIndex]);
   }
+
+
+  /**
+   * An unpleasant hack to deal with the problem of replaying work
+   * when using dynamic classloaders (whose identity will vary from
+   * run to run).  When we can't find the classloader that was specified,
+   * see if there are any other (non-matching) classloaders that
+   * have the relevant class loaded.
+   *
+   * @param clazz The class we're after
+   * @return A usable classloader or null
+   */
+  public static ClassLoader findWorkableClassloader(Atom clazz) {
+    for (ClassLoader clx: TypeReference.getCLDict()) {
+      TypeReference tRef = TypeReference.findOrCreate(clx, clazz);
+      RVMClass cls = (RVMClass) tRef.peekType();
+
+      if (cls != null)
+        return clx;
+      else {
+        try {
+          cls = tRef.resolve().asClass();
+          cls.resolve();
+          cls.instantiate();
+          cls.initialize();
+          return clx;
+        } catch (NoClassDefFoundError cnf) {
+          /* silently catch this exception and try another class loader */
+        }
+      }
+    }
+    return null;
+  }
 }

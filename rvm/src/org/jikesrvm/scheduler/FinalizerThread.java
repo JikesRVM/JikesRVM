@@ -30,19 +30,20 @@ import org.vmmagic.pragma.NonMoving;
  * This thread comes out of wait state via notify from the garbage collector
  */
 @NonMoving
-public class FinalizerThread extends RVMThread {
+public class FinalizerThread extends SystemThread {
 
   private static final int verbose = 0; // currently goes up to 2
 
   private final Object[] none = new Object[0];
   private static boolean shouldRun;
   private static Monitor schedLock;
+
   public static void boot() {
     schedLock=new Monitor();
-    FinalizerThread ft=new FinalizerThread();
-    ft.makeDaemon(true);
+    FinalizerThread ft = new FinalizerThread();
     ft.start();
   }
+
   @Uninterruptible
   public static void schedule() {
     schedLock.lockNoHandshake();

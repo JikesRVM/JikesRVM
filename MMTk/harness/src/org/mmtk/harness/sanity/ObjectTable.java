@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.mmtk.harness.Collector;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.vm.ObjectModel;
@@ -36,6 +35,15 @@ import org.vmmagic.unboxed.ObjectReference;
 public final class ObjectTable {
 
   private static final String NEWLINE = System.getProperty("line.separator");
+
+  private static int currentEpoch = 0;
+
+  /**
+   * TODO - increment this at an appropriate point
+   */
+  public static void newEpoch() {
+    currentEpoch++;
+  }
 
   /**
    * An object recording the copying of an object
@@ -61,15 +69,11 @@ public final class ObjectTable {
    * An entry in the table, representing an object in the heap.
    */
   static final class Entry {
-    /** Reserved for future features */
-    @SuppressWarnings("unused")
     Address start;
-    /** Reserved for future features */
-    @SuppressWarnings("unused")
     int size;
     ObjectReference reference;
     private volatile ObjectReference copiedFrom;
-    private final int birthEpoch = Collector.getCollectionCount();
+    private final int birthEpoch = currentEpoch;
     private int deathEpoch = -1;
     private final int id;
     private final int site;
@@ -88,7 +92,7 @@ public final class ObjectTable {
       if (history == null) {
         history = new ArrayList<ObjectCopy>();
       }
-      history.add(new ObjectCopy(Collector.getCollectionCount(), reference, dest));
+      history.add(new ObjectCopy(currentEpoch, reference, dest));
     }
 
     synchronized void copy(ObjectReference src, ObjectReference dest) {
@@ -102,7 +106,7 @@ public final class ObjectTable {
     }
 
     public void kill() {
-      deathEpoch = Collector.getCollectionCount();
+      deathEpoch = currentEpoch;
     }
 
     public boolean isLive() {
@@ -111,7 +115,7 @@ public final class ObjectTable {
 
     public void assertLive() {
       if (!isLive()) {
-        throw new AssertionError("Object, "+toString()+" (now "+Collector.getCollectionCount()+")");
+        throw new AssertionError("Object, "+toString()+" (now "+currentEpoch+")");
 
       }
     }
@@ -229,7 +233,7 @@ public final class ObjectTable {
     }
 
     if (!entry.isLive()) {
-      throw new AssertionError("Attempted to copy a dead object, "+src+", which died in collection "+entry.deathEpoch+" (now "+Collector.getCollectionCount()+")");
+      throw new AssertionError("Attempted to copy a dead object, "+src+", which died in collection "+entry.deathEpoch+" (now "+currentEpoch+")");
     }
 
     // entry.copy will detect data races and abort the second and subsequent

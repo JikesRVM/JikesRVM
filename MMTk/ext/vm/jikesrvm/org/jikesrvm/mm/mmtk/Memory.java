@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.heap.VMRequest;
@@ -69,7 +68,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public final ImmortalSpace getVMSpace() {
     if (bootSpace == null) {
-      bootSpace = new ImmortalSpace("boot", Plan.DEFAULT_POLL_FREQUENCY, VMRequest.create(BOOT_SEGMENT_MB));
+      bootSpace = new ImmortalSpace("boot", VMRequest.create(BOOT_SEGMENT_MB));
     }
     return bootSpace;
   }
@@ -145,22 +144,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * Zero a region of memory.
+   *
+   * @param useNT Use non temporal instructions (if available)
    * @param start Start of address range (inclusive)
    * @param len Length in bytes of range to zero
-   * Returned: nothing
    */
-  public final void zero(Address start, Extent len) {
-    org.jikesrvm.runtime.Memory.zero(start,len);
-  }
-
-  /**
-   * Zero a range of pages of memory.
-   * @param start Start of address range (must be a page address)
-   * @param len Length in bytes of range (must be multiple of page size)
-   */
-  public final void zeroPages(Address start, int len) {
-      /* AJG: Add assertions to check conditions documented above. */
-    org.jikesrvm.runtime.Memory.zeroPages(start,len);
+  public final void zero(boolean useNT, Address start, Extent len) {
+    org.jikesrvm.runtime.Memory.zero(useNT, start,len);
   }
 
   /**

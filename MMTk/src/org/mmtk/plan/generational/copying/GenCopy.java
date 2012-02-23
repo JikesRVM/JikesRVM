@@ -66,14 +66,14 @@ import org.vmmagic.pragma.*;
    * The low half of the copying mature space.  We allocate into this space
    * when <code>hi</code> is <code>false</code>.
    */
-  static CopySpace matureSpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create());
+  static CopySpace matureSpace0 = new CopySpace("ss0", false, VMRequest.create());
   static final int MS0 = matureSpace0.getDescriptor();
 
   /**
    * The high half of the copying mature space. We allocate into this space
    * when <code>hi</code> is <code>true</code>.
    */
-  static CopySpace matureSpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create());
+  static CopySpace matureSpace1 = new CopySpace("ss1", true, VMRequest.create());
   static final int MS1 = matureSpace1.getDescriptor();
 
 
@@ -185,17 +185,6 @@ import org.vmmagic.pragma.*;
     // we must account for the number of pages required for copying,
     // which equals the number of semi-space pages reserved
     return toSpace().reservedPages() + super.getCollectionReserve();
-  }
-
-  /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + (toSpace().requiredPages() << 1);
   }
 
   /**

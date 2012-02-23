@@ -16,7 +16,6 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.Intrinsic;
@@ -846,17 +845,6 @@ public final class Magic {
   }
 
   /**
-   * Downcast.
-   * Note:     for use by gc to avoid checkcast during GC
-   * @param t Thread object reference
-   * @return CollectorThread object reference
-   */
-  public static CollectorThread threadAsCollectorThread(RVMThread t) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return null;
-  }
-
-  /**
    * Recast.
    * Note:     for use by gc to avoid checkcast during GC
    * @param byte_array an address
@@ -1034,10 +1022,41 @@ public final class Magic {
   }
 
   //---------------------------------------//
+  //            Memory Fences.             //
+  //---------------------------------------//
+
+  /**
+   * Disallow any reads to float above this point.
+   */
+  public static void readCeiling() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
+
+  /**
+   * Disallow any writes to sink below this point.
+   */
+  public static void writeFloor() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
+
+  //---------------------------------------//
   //            Cache Management.          //
   //---------------------------------------//
 
   /**** NOTE: all per-address operations now live in vmmagic.Address *****/
+
+  /**
+   * A strong memory fence, used to enforce StoreLoad in the JMM.
+   */
+  public static void fence() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
 
   /**
    * Wait for preceeding cache flush/invalidate instructions to

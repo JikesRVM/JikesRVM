@@ -127,7 +127,7 @@ public class ForwardingWord {
   /**
    * Has an object been forwarded or being forwarded?
    *
-   * @param object The object to be checked
+   * @param header The object header to be checked
    * @return True if the object has been forwarded
    */
   @Inline
@@ -138,7 +138,7 @@ public class ForwardingWord {
   /**
    * Has an object been forwarded or being forwarded?
    *
-   * @param object The object to be checked
+   * @param header The object header to be checked
    * @return True if the object has been forwarded
    */
   @Inline

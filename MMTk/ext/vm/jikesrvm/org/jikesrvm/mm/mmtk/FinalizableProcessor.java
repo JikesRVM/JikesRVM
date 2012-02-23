@@ -199,6 +199,9 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
       lastReadyIndex = (lastReadyIndex + 1) % readyForFinalize.length;
     }
     nurseryIndex = maxIndex = toIndex;
+
+    /* Possible schedule finalizers to run */
+    Collection.scheduleFinalizerThread();
   }
 
   /**

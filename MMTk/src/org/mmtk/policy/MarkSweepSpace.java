@@ -75,6 +75,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   private boolean inMSCollection;
   private static final boolean usingStickyMarkBits = VM.activePlan.constraints().needsLogBitInHeader(); /* are sticky mark bits in use? */
   private boolean isAgeSegregated = false; /* is this space a nursery space? */
+  private boolean isAllocAsMarked = false;
 
   /****************************************************************************
    *
@@ -92,12 +93,10 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public MarkSweepSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, pageBudget, 0, vmRequest);
+  public MarkSweepSpace(String name, VMRequest vmRequest) {
+    super(name, 0, vmRequest);
     if (usingStickyMarkBits) allocState |= HeaderByte.UNLOGGED_BIT;
   }
 
@@ -350,8 +349,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   public void initializeHeader(ObjectReference object, boolean alloc) {
     if (HEADER_MARK_BITS) {
       byte oldValue = VM.objectModel.readAvailableByte(object);
-      byte newValue = (byte) ((oldValue & ~MARK_COUNT_MASK) | (alloc ? allocState : markState));
-      if (HeaderByte.NEEDS_UNLOGGED_BIT) newValue |= HeaderByte.UNLOGGED_BIT;
+      byte newValue = (byte) ((oldValue & ~MARK_COUNT_MASK) | (alloc && !isAllocAsMarked ? allocState : markState));
       VM.objectModel.writeAvailableByte(object, newValue);
     } else if (HeaderByte.NEEDS_UNLOGGED_BIT)
       HeaderByte.markAsUnlogged(object);
@@ -361,16 +359,17 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * Atomically attempt to set the mark bit of an object.  Return true
    * if successful, false if the mark bit was already set.
    *
-   * @param object The object whose mark bit is to be written
-   * @param value The value to which the mark bits will be set
+   * @param object The object whose mark bit is to be set
    */
   @Inline
   private boolean testAndMark(ObjectReference object) {
-    byte oldValue, markBits;
+    byte oldValue, markBits, newValue;
     oldValue = VM.objectModel.readAvailableByte(object);
     markBits = (byte) (oldValue & MARK_COUNT_MASK);
     if (markBits == markState) return false;
-    VM.objectModel.writeAvailableByte(object, (byte)((oldValue & ~MARK_COUNT_MASK) | markState));
+    newValue = (byte)((oldValue & ~MARK_COUNT_MASK) | markState);
+    if (HeaderByte.NEEDS_UNLOGGED_BIT) newValue |= HeaderByte.UNLOGGED_BIT;
+    VM.objectModel.writeAvailableByte(object, newValue);
     return true;
   }
 
@@ -378,12 +377,15 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * Return true if the mark count for an object has the given value.
    *
    * @param object The object whose mark bit is to be tested
-   * @param value The value against which the mark bit will be tested
-   * @return True if the mark bit for the object has the given value.
+   * @return True if the mark bit for the object is set.
    */
   @Inline
   private boolean testMarkState(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((markState & ~MARK_COUNT_MASK) == 0);
     return (VM.objectModel.readAvailableByte(object) & MARK_COUNT_MASK) == markState;
+  }
+
+  public void makeAllocAsMarked() {
+    isAllocAsMarked = true;
   }
 }

@@ -12,7 +12,6 @@
  */
 package org.mmtk.utility.heap;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.ProtectOnRelease;
@@ -57,16 +56,18 @@ public abstract class PageResource implements Constants {
   // page budgeting
   protected int reserved;
   protected int committed;
-  protected int required;
-  private final int pageBudget;
 
   protected final boolean contiguous;
   protected final Space space;
   protected Address start; // only for contiguous
 
   // locking
-  private final Lock gcLock; // used during GC
-  private final Lock mutatorLock; // used by mutators
+  private final Lock lock;
+
+  // zeroing
+  protected boolean zeroNT;
+  protected boolean zeroConcurrent;
+  protected ConcurrentZeroingContext zeroingContext;
 
   /****************************************************************************
    *
@@ -80,38 +81,30 @@ public abstract class PageResource implements Constants {
   /**
    * Constructor
    *
-   * @param pageBudget The budget of pages available to this memory
-   * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    */
-  private PageResource(int pageBudget, Space space, boolean contiguous) {
-    this.pageBudget = pageBudget;
+  private PageResource(Space space, boolean contiguous) {
     this.contiguous = contiguous;
     this.space = space;
-    gcLock = VM.newLock(space.getName() + ".gcLock");
-    mutatorLock = VM.newLock(space.getName() + ".mutatorLock");
+    lock = VM.newLock(space.getName() + ".lock");
   }
 
   /**
    * Constructor for discontiguous spaces
    *
-   * @param pageBudget The budget of pages available to this memory
-   * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    */
-  PageResource(int pageBudget, Space space) {
-    this(pageBudget, space, false);
+  PageResource(Space space) {
+    this(space, false);
   }
 
   /**
    * Constructor for contiguous spaces
    *
-   * @param pageBudget The budget of pages available to this memory
-   * manager before it must poll the collector.
    * @param space The space to which this resource is attached
    */
-  PageResource(int pageBudget, Space space, Address start) {
-    this(pageBudget, space, true);
+  PageResource(Space space, Address start) {
+    this(space, true);
     this.start = start;
   }
 
@@ -142,68 +135,67 @@ public abstract class PageResource implements Constants {
    * page budget then the caller must poll in case a GC is necessary.
    *
    * @param pages The number of pages requested
-   * @return True if the page budget could satisfy the request.
+   * @return The actual number of pages reserved (including metadata, etc.)
    */
   @Inline
-  public final boolean reservePages(int pages) {
+  public final int reservePages(int pages) {
     lock();
-    required += adjustForMetaData(pages);
-    reserved = committed + required;
-    boolean satisfied = reserved <= pageBudget;
+    pages = adjustForMetaData(pages);
+    reserved += pages;
     unlock();
-    return satisfied;
+    return pages;
   }
 
   /**
    * Remove a request to the space.
    *
-   * @param pages The number of pages in the request.
+   * @param reservedPages The number of pages returned due to the request.
    */
   @Inline
-  public final void clearRequest(int pages) {
+  public final void clearRequest(int reservedPages) {
     lock();
-    required -= adjustForMetaData(pages);
+    reserved -= reservedPages;
     unlock();
   }
 
   /**
-   * Reserve pages unconditionally.<p>
-   *
-   * An example of where this is useful is in cases where it is
-   * desirable to put some space aside as head-room.  By
-   * unconditionally reserving the pages, the pages are counted
-   * against the collectors budget.  When the space is actually
-   * needed, the pages can be unconditionally released, freeing
-   * the pages for other purposes.
-   *
-   * @param pages The number of pages to be unconditionally
-   * reserved.
+   * Update the zeroing approach for this page resource.
    */
-  public final void unconditionallyReservePages(int pages) {
-    lock();
-    committed += pages;
-    reserved += pages;
-    unlock();
+  @Interruptible
+  public void updateZeroingApproach(boolean nontemporal, boolean concurrent) {
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!concurrent || contiguous);
+    this.zeroNT = nontemporal;
+    this.zeroConcurrent = concurrent;
+    if (concurrent) {
+      this.zeroingContext = new ConcurrentZeroingContext(this);
+      VM.collection.spawnCollectorContext(zeroingContext);
+    }
   }
 
   /**
-   * Release pages unconditionally.<p>
-   *
-   * This call allows pages to be unconditionally removed from
-   * the collectors page budget.
-   *
-   * @see #unconditionallyReservePages
-   * @param pages The number of pages to be unconditionally
-   * released.
+   * Skip concurrent zeroing (fall back to bulk zeroing).
    */
-  public final void unconditionallyReleasePages(int pages) {
-    lock();
-    committed -= pages;
-    reserved -= pages;
-    unlock();
+  public void skipConcurrentZeroing() {
+    // Clearing this flag has the effect of reverting back to bulk zeroing.
+    zeroConcurrent = false;
   }
 
-  abstract Address allocPages(int pages);
+  /**
+   * Trigger concurrent zeroing.
+   */
+  public void triggerConcurrentZeroing() {
+    zeroConcurrent = true;
+    this.zeroingContext.trigger();
+  }
+
+  /**
+   * The entry point for the concurrent zeroing context.
+   */
+  public void concurrentZeroing() {
+    VM.assertions.fail("This PageResource does not implement concurrent zeroing");
+  }
+
+  abstract Address allocPages(int reservedPages, int requiredPages, boolean zeroed);
 
   /**
    * Adjust a page request to include metadata requirements for a request
@@ -225,36 +217,38 @@ public abstract class PageResource implements Constants {
    * virtual memory.  If successful then commit the pending page
    * request and return the address of the first page.
    *
+   * @param pagesReserved The number of pages reserved by the initial request
    * @param pages The number of pages requested
+   * @param zeroed If true allocated pages are zeroed.
    * @return The address of the first of <code>pages</code> pages, or
    * zero on failure.
    */
   @Inline
-  public final Address getNewPages(int pages) {
-    return allocPages(pages);
+  public final Address getNewPages(int pagesReserved, int pages, boolean zeroed) {
+    return allocPages(pagesReserved, pages, zeroed);
   }
 
   /**
    * Commit pages to the page budget.  This is called after
    * successfully determining that the request can be satisfied by
    * both the page budget and virtual memory.  This simply accounts
-   * for the descrepency between <code>committed</code> and
+   * for the discrepancy between <code>committed</code> and
    * <code>reserved</code> while the request was pending.
    *
    * This *MUST* be called by each PageResource during the
    * allocPages, and the caller must hold the lock.
    *
-   * @param requestedPages The number of pages from this request
-   * @param totalPages The number of pages
+   * @param reservedPages The number of pages initially reserved due to this request
+   * @param actualPages The number of pages actually allocated.
    */
-  protected void commitPages(int requestedPages, int totalPages) {
-    int predictedPages = adjustForMetaData(requestedPages);
-    int delta = totalPages - predictedPages;
-    required -= predictedPages;
+  protected void commitPages(int reservedPages, int actualPages) {
+    int delta = actualPages - reservedPages;
     reserved += delta;
-    committed += totalPages;
-    if (!Plan.gcInProgress())
-      addToCommitted(totalPages); // only count mutator pages
+    committed += actualPages;
+    if (VM.activePlan.isMutator()) {
+      // only count mutator pages
+      addToCommitted(actualPages);
+    }
   }
 
   /**
@@ -270,13 +264,6 @@ public abstract class PageResource implements Constants {
    * @return The number of committed pages.
    */
   public final int committedPages() { return committed; }
-
-  /**
-   * Return the number of required pages
-   *
-   * @return The number of required pages.
-   */
-  public final int requiredPages() { return required; }
 
   /**
    * Return the cumulative number of committed pages
@@ -297,24 +284,16 @@ public abstract class PageResource implements Constants {
   }
 
   /**
-   * Acquire the appropriate lock depending on whether the context is
-   * GC or mutator.
+   * Acquire the lock.
    */
   protected final void lock() {
-    if (Plan.gcInProgress())
-      gcLock.acquire();
-    else
-      mutatorLock.acquire();
+    lock.acquire();
   }
 
   /**
-   * Release the appropriate lock depending on whether the context is
-   * GC or mutator.
+   * Release the lock.
    */
   protected final void unlock() {
-    if (Plan.gcInProgress())
-      gcLock.release();
-    else
-      mutatorLock.release();
+    lock.release();
   }
 }

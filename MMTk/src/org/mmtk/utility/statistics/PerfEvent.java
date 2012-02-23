@@ -42,9 +42,6 @@ public final class PerfEvent extends LongCounter {
   private static final int TIME_ENABLED = 1;
   private static final int TIME_RUNNING = 2;
 
-  /** Three 64 bit values is 24 bytes */
-  private static final int BYTES_TO_READ = 24;
-
   /** True if any data was scaled */
   public static boolean dataWasScaled = false;
 

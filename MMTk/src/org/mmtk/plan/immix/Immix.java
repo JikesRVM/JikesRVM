@@ -52,7 +52,7 @@ public class Immix extends StopTheWorld {
   /****************************************************************************
    * Class variables
    */
-  public static final ImmixSpace immixSpace = new ImmixSpace("immix", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final ImmixSpace immixSpace = new ImmixSpace("immix", VMRequest.create());
   public static final int IMMIX = immixSpace.getDescriptor();
 
   public static final int SCAN_IMMIX = 0;
@@ -90,7 +90,7 @@ public class Immix extends StopTheWorld {
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
-      immixSpace.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, collectionTrigger);
+      immixSpace.decideWhetherToDefrag(emergencyCollection, collectWholeHeap, collectionAttempt, userTriggeredCollection);
       return;
     }
 
@@ -142,14 +142,14 @@ public class Immix extends StopTheWorld {
   }
 
   /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
+   * Return the number of pages reserved for collection.
    *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
+   * @return The number of pages reserved given the pending
+   * allocation, including space reserved for collection.
    */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + immixSpace.requiredPages();
+  @Override
+  public int getCollectionReserve() {
+    return super.getCollectionReserve() + immixSpace.defragHeadroomPages();
   }
 
   /**

@@ -13,9 +13,11 @@
 package org.jikesrvm.classloader;
 
 import static org.jikesrvm.mm.mminterface.Barriers.*;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
+import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
@@ -459,6 +461,10 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     // RCGC: Array is acyclic if its references are acyclic
     acyclic = elementType.isAcyclicReference();
 
+    /* Set GC metadata for this type */
+    boolean isRefArray = elementType.isReferenceType();
+    referenceOffsets = isRefArray ? REFARRAY_OFFSET_ARRAY : NOREFS_OFFSET_ARRAY;
+
     state = CLASS_LOADED;
 
     if (VM.verboseClassLoading) VM.sysWrite("[Loaded " + this.getDescriptor() + "]\n");
@@ -482,7 +488,9 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     // virtual method fields and substituting an appropriate type field.
     //
     TIB javaLangObjectTIB = RVMType.JavaLangObjectType.getTypeInformationBlock();
-    TIB allocatedTib = MemoryManager.newTIB(javaLangObjectTIB.numVirtualMethods());
+
+    int alignCode = elementType.isReferenceType() ? HandInlinedScanning.referenceArray() : HandInlinedScanning.primitiveArray();
+    TIB allocatedTib = MemoryManager.newTIB(javaLangObjectTIB.numVirtualMethods(), alignCode);
     superclassIds = DynamicTypeCheck.buildSuperclassIds(this);
     doesImplement = DynamicTypeCheck.buildDoesImplement(this);
     publishResolved(allocatedTib, superclassIds, doesImplement);
@@ -617,7 +625,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
         (dstIdx + len) >= 0 &&
         (dstIdx + len) <= dst.length) {
       if ((src != dst || srcIdx >= (dstIdx + BYTES_IN_ADDRESS)) && BYTE_BULK_COPY_SUPPORTED) {
-        if (NEEDS_BOOLEAN_ASTORE_BARRIER || NEEDS_BOOLEAN_ALOAD_BARRIER) {
+        if (NEEDS_BYTE_ASTORE_BARRIER || NEEDS_BYTE_ALOAD_BARRIER) {
           Offset srcOffset = Offset.fromIntZeroExtend(srcIdx);
           Offset dstOffset = Offset.fromIntZeroExtend(dstIdx);
           Barriers.byteBulkCopy(src, srcOffset, dst, dstOffset, len);
@@ -1154,10 +1162,11 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
    * must be explicitly invoked.
    *
    * @param src The source array
-   * @param srcIdx The starting source index
    * @param dst The destination array
-   * @param dstIdx The starting destination index
    * @param len The number of array elements to be copied
+   * @param srcOffset The starting offset in the source array
+   * @param dstOffset The starting offset in the destination array.
+   * @param bytes the number of bytes to copy
    */
   private static void arraycopyPiecemealNoCheckcast(Object[] src, Object[] dst, int len,
       Offset srcOffset, Offset dstOffset, int bytes) {

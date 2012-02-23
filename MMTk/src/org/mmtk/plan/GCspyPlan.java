@@ -24,8 +24,7 @@ public interface GCspyPlan {
    * Any GCspy objects allocated after booting are allocated
    * in a separate immortal space.
    */
-  ImmortalSpace gcspySpace =
-      new ImmortalSpace("gcspy", Plan.DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  ImmortalSpace gcspySpace = new ImmortalSpace("gcspy", VMRequest.create());
 
   /** The descriptor for the GCspy allocation space */
   int GCSPY = gcspySpace.getDescriptor();

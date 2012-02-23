@@ -58,20 +58,25 @@ public class Main {
     } catch (CheckerException e) {
       System.err.println(e.getMessage());
       System.err.println("Exiting due to type-checker exceptions");
-      return;
+      exitWithFailure();
     }
 
-    TimeoutThread timeout = new TimeoutThread(Harness.timeout.getValue());
+    try {
+      TimeoutThread timeout = new TimeoutThread(Harness.timeout.getValue());
 
-    /* Schedule a thread to run the script */
-    Scheduler.scheduleMutator(Compiler.compile(methods));
+      /* Schedule a thread to run the script */
+      Scheduler.scheduleMutator(Compiler.compile(methods));
 
-    /* Start the thread scheduler */
-    Scheduler.schedule();
+      /* Start the thread scheduler */
+      Scheduler.schedule();
 
-    timeout.cancel();
+      timeout.cancel();
 
-    Harness.mmtkShutdown();
+      Harness.mmtkShutdown();
+    } catch (Throwable e) {
+      e.printStackTrace();
+      exitWithFailure();
+    }
 
     exitWithSuccess();
   }

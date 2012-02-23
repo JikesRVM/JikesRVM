@@ -2962,13 +2962,20 @@ public abstract class Simplifier extends IRTools {
   }
 
   private static DefUseEffect long2Addr(Instruction s, OptOptions opts) {
-    if (VM.BuildFor64Addr && opts.SIMPLIFY_REF_OPS) {
+    if (opts.SIMPLIFY_REF_OPS) {
       Operand op = Unary.getVal(s);
       if (op.isLongConstant()) {
-        // CONSTANT: FOLD
-        long val = op.asLongConstant().value;
-        Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(Address.fromLong(val)));
-        return DefUseEffect.MOVE_FOLDED;
+        if (VM.BuildFor64Addr) {
+          // CONSTANT: FOLD
+          long val = op.asLongConstant().value;
+          Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(Address.fromLong(val)));
+          return DefUseEffect.MOVE_FOLDED;
+        } else {
+          // CONSTANT: FOLD
+          int val = (int) op.asLongConstant().value;
+          Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(Address.fromIntZeroExtend(val)));
+          return DefUseEffect.MOVE_FOLDED;
+        }
       }
     }
     return DefUseEffect.UNCHANGED;
@@ -3601,8 +3608,12 @@ public abstract class Simplifier extends IRTools {
     if (op instanceof IntConstantOperand) {
       return Address.fromIntSignExtend(op.asIntConstant().value);
     }
-    if (VM.BuildFor64Addr && op instanceof LongConstantOperand) {
-      return Address.fromLong(op.asLongConstant().value);
+    if (op instanceof LongConstantOperand) {
+      if (VM.BuildFor64Addr) {
+          return Address.fromLong(op.asLongConstant().value);
+      } else {
+          return Address.fromIntZeroExtend((int)op.asLongConstant().value);
+      }
     }
     if (op instanceof ObjectConstantOperand) {
       if (VM.VerifyAssertions) VM._assert(!op.isMovableObjectConstant());

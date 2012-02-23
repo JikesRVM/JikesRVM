@@ -17,22 +17,10 @@ import org.mmtk.utility.statistics.PerfEvent;
 import org.jikesrvm.runtime.Time;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
-import org.jikesrvm.mm.mminterface.MemoryManager;
-
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
 public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
-  /**
-   * Returns the number of collections that have occurred.
-   *
-   * @return The number of collections that have occurred.
-   */
-  @Uninterruptible
-  public int getCollectionCount() {
-    return MemoryManager.getCollectionCount();
-  }
-
   /**
    * Read nanoTime (high resolution, monotonically increasing clock).
    * Has same semantics as java.lang.System.nanoTime().
@@ -95,7 +83,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
     sysCall.sysPerfEventInit(n);
     perfEvents = new PerfEvent[n];
     for (int i = 0; i < n; i++) {
-      sysCall.sysPerfEventCreate(i, perfEventNames[i].getBytes());
+      sysCall.sysPerfEventCreate(i, perfEventNames[i].concat("\0").getBytes());
       perfEvents[i] = new PerfEvent(i, perfEventNames[i]);
     }
     sysCall.sysPerfEventEnable();

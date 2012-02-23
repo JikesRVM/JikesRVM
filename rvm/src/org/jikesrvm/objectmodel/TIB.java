@@ -50,6 +50,10 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
     return codeWords;
   }
 
+  /** Alignment encoded data for this TIB - only used at build time */
+  private int alignData;
+
+
   /**
    * Calculate the size of a TIB
    */
@@ -111,13 +115,17 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
    * Create a new TIB of the specified size.
    *
    * @param size The size of the TIB
+   * @param alignData Alignment-encoded data for this TIB,
+   *      AlignmentEncoding.ALIGN_CODE_NONE for no alignment encoding.
    * @return The created TIB instance.
    */
   @NoInline
   @Interruptible
-  public static TIB allocate(int size) {
+  public static TIB allocate(int size, int alignData) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
-    return new TIB(size);
+    TIB tib = new TIB(size);
+    tib.setAlignData(alignData);
+    return tib;
   }
 
   /**
@@ -377,5 +385,13 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
       VM._assert(slot < length());
     }
     return slot >= TIB_FIRST_VIRTUAL_METHOD_INDEX;
+  }
+
+  public void setAlignData(int alignData) {
+    this.alignData = alignData;
+  }
+
+  public int getAlignData() {
+    return alignData;
   }
 }

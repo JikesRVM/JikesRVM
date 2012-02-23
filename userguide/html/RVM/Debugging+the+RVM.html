@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Debugging the RVM</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Debugging the RVM
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Dec 21, 2011 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>There are different tools for debugging Jikes RVM:</p><h2 id="DebuggingtheRVM-GDB">GDB</h2><p>There is a limited amount of C code used to start Jikes RVM. The rvm script will start Jikes RVM using GDB (the GNU debugger) if the first argument is <code>-gdb</code>. Break points can be set in the C code, variables, registers can be expected in the C code.</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>rvm -gdb &lt;RVM args&gt; &lt;name of Java application&gt; &lt;application args&gt;</pre>
+</div></div><p>The dynamically created Java code doesn't provide GDB with the necessary symbol information for debugging. As some of the Java code is created in the boot image, it is possible to find the location of some Java methods and to break upon them. To determine the location use the RVM.map file. A script to enable use of the RVM.map as debugger information inside GDB is provided <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=1160674&amp;group_id=128805&amp;atid=723235" class="external-link" rel="nofollow">here</a>.</p><p>Details of how to manually walk the stack in GDB can be found <a href="GDB%2BStack%2BWalking.html">here</a></p><h2 id="DebuggingtheRVM-OtherTools">Other Tools</h2><p>Other tools, such as valgrind, are occasionally useful in debugging or understanding the behaviour of JikesRVM.  The rvm script facilitates using these tools with the '-wrap' argument.</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>rvm -wrap &quot;&lt;wrapper-script-and-args&gt;&quot; &lt;rest of command line&gt;</pre>
+</div></div><p>For example, cachegrind can be invoked by</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>rvm -wrap &quot;/path/to/valgrind --tool=cachegrind&quot; &lt;java-command-line&gt;</pre>
+</div></div><p>The command and arguments immediately after the -wrap argument will be inserted into the script on the command line that invokes the boot image runner.  One useful variant is</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>rvm -wrap echo &lt;rest of command line&gt;</pre>
+</div></div><h2 id="DebuggingtheRVM-DebuggerThread">Debugger Thread</h2><p>Jikes has an interactive debugger that you can invoke by sending SIGQUIT to Jikes while it's running:</p><p>pkill -SIGQUIT JikesRVM</p><p>In previous versions of Jikes, that stopped all threads and provided an interactive prompt, but currently it just dumps the state of the VM and continues immediately (that's a known issue: <a class="external-link" href="http://jira.codehaus.org/browse/RVM-570" rel="nofollow">http://jira.codehaus.org/browse/RVM-570</a>).</p><h2 id="DebuggingtheRVM- JavaPlatformDebuggerArchitectureJPDA"> <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jpda/index.html" class="external-link" rel="nofollow">Java Platform Debugger Architecture (JPDA)</a></h2><p>In general the JPDA provides 3 mechanisms for debugging Java applications:</p><ul><li>The <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jpda/jdi/index.html" class="external-link" rel="nofollow">Java Debug Interface</a> is an API for debugging Java code from Java.</li><li>The <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jvmti/jvmti.html" class="external-link" rel="nofollow">JVM Tools Interface</a> is an API for writing native/C code for debugging a JVM, it is similar to the Java Native Interface (JNI).</li><li>The <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jpda/jdwp-spec.html" class="external-link" rel="nofollow">Java Debug Wire Protocol</a> is a network protocol for debugging Java code running on JVMs.</li></ul><p>Currently JDWP code is being implemented in Jikes RVM based on the GNU Classpath implementation.</p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

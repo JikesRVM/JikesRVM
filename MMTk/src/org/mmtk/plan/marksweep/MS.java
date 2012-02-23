@@ -44,7 +44,7 @@ public class MS extends StopTheWorld {
   /****************************************************************************
    * Class variables
    */
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
   public static final int SCAN_MARK = 0;
@@ -106,19 +106,6 @@ public class MS extends StopTheWorld {
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
   }
-
-  /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  @Override
-  public int getPagesRequired() {
-    return super.getPagesRequired() + msSpace.requiredPages();
-  }
-
 
   /*****************************************************************************
    * Miscellaneous

@@ -63,7 +63,6 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.ia32.RegisterConstants.GPR;
 import org.jikesrvm.jni.FunctionTable;
-import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.JavaHeader;
@@ -1033,7 +1032,7 @@ final class BaselineMagic {
     @Override
     void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
       asm.emitPOP_Reg(EDI);
-      asm.emitPREFETCHNTA_RegInd(EDI);
+      asm.emitPREFETCHNTA_Reg(EDI);
     }
   }
   static {
@@ -1091,6 +1090,8 @@ final class BaselineMagic {
     generators.put(getMethodReference(Magic.class, MagicNames.longBitsAsDouble, long.class, double.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.sync, void.class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.isync, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.readCeiling, void.class), g);
+    generators.put(getMethodReference(Magic.class, MagicNames.writeFloor, void.class), g);
     if (VALIDATE_OBJECT_REFERENCES) {
       g = new EarlyReferenceCheckDecorator(NO_SLOT, g);
     }
@@ -1112,7 +1113,19 @@ final class BaselineMagic {
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsShortArray, Object.class, short[].class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsIntArray, Object.class, int[].class), g);
     generators.put(getMethodReference(Magic.class, MagicNames.objectAsThread, Object.class, RVMThread.class), g);
-    generators.put(getMethodReference(Magic.class, MagicNames.threadAsCollectorThread, RVMThread.class, CollectorThread.class), g);
+  }
+
+  /**
+   * Generate the MFENCE instruction.
+   */
+  private static final class MFence extends MagicGenerator {
+    @Override
+    void generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
+      asm.emitMFENCE();
+    }
+  }
+  static {
+    generators.put(getMethodReference(Magic.class, MagicNames.fence, void.class), new MFence());
   }
 
   /**

@@ -14,6 +14,7 @@ package org.mmtk.plan;
 
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
+import org.mmtk.utility.sanitychecker.SanityCheckerLocal;
 
 import org.mmtk.vm.VM;
 
@@ -31,11 +32,14 @@ import org.vmmagic.pragma.*;
  * @see CollectorContext
  */
 @Uninterruptible
-public abstract class SimpleCollector extends CollectorContext {
+public abstract class SimpleCollector extends ParallelCollector {
 
   /****************************************************************************
    * Instance fields
    */
+
+  /** Used for sanity checking. */
+  protected final SanityCheckerLocal sanityLocal = new SanityCheckerLocal();
 
   /****************************************************************************
    *
@@ -51,22 +55,8 @@ public abstract class SimpleCollector extends CollectorContext {
    */
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
-    if (phaseId == Simple.PREPARE_STACKS) {
-      if (!Plan.stacksPrepared()) {
-        VM.collection.prepareCollector(this);
-      }
-      return;
-    }
-
     if (phaseId == Simple.PREPARE) {
       // Nothing to do
-      return;
-    }
-
-    if (phaseId == Simple.PRECOPY) {
-      if (VM.activePlan.constraints().movesObjects()) {
-        VM.scanning.preCopyGCInstances(getCurrentTrace());
-      }
       return;
     }
 

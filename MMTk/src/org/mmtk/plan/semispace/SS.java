@@ -50,11 +50,11 @@ public class SS extends StopTheWorld {
   public static boolean hi = false; // True if allocing to "higher" semispace
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace0 = new CopySpace("ss0", DEFAULT_POLL_FREQUENCY, false, VMRequest.create());
+  public static final CopySpace copySpace0 = new CopySpace("ss0", false, VMRequest.create());
   public static final int SS0 = copySpace0.getDescriptor();
 
   /** One of the two semi spaces that alternate roles at each collection */
-  public static final CopySpace copySpace1 = new CopySpace("ss1", DEFAULT_POLL_FREQUENCY, true, VMRequest.create());
+  public static final CopySpace copySpace1 = new CopySpace("ss1", true, VMRequest.create());
   public static final int SS1 = copySpace1.getDescriptor();
 
   public final Trace ssTrace;
@@ -169,17 +169,6 @@ public class SS extends StopTheWorld {
    */
   public final int getPagesAvail() {
     return(super.getPagesAvail()) >> 1;
-  }
-
-  /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + (toSpace().requiredPages() << 1);
   }
 
   /**

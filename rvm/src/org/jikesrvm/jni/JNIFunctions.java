@@ -181,6 +181,10 @@ public class JNIFunctions implements SizeConstants {
     String classString = null;
     try {
       classString = JNIHelpers.createStringFromC(classNameAddress);
+      classString = classString.replace('/', '.');
+      if (classString.startsWith("L") && classString.endsWith(";")) {
+        classString = classString.substring(1, classString.length() - 1);
+      }
       if (traceJNI) VM.sysWriteln(classString);
       ClassLoader cl = RVMClass.getClassLoaderFromStackFrame(1);
       Class<?> matchedClass = Class.forName(classString.replace('/', '.'), true, cl);

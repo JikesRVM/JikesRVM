@@ -155,6 +155,15 @@ public final class RVMField extends RVMMember {
   }
 
   /**
+   * Does the field hold a made-traced reference?
+   */
+  @Uninterruptible
+  public boolean madeTraced() {
+    return madeTraced;
+  }
+
+
+  /**
    * Does the field hold a reference?
    */
   public boolean isReferenceType() {

@@ -76,7 +76,6 @@ public class RCBase extends StopTheWorld {
       Phase.scheduleGlobal     (PREPARE),
       Phase.scheduleCollector  (PREPARE),
       Phase.scheduleComplex    (prepareStacks),
-      Phase.scheduleCollector  (PRECOPY),
       Phase.scheduleCollector  (STACK_ROOTS),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
@@ -102,8 +101,8 @@ public class RCBase extends StopTheWorld {
    *
    * Class fields
    */
-  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", DEFAULT_POLL_FREQUENCY, VMRequest.create());
-  public static final ExplicitLargeObjectSpace rcloSpace = new ExplicitLargeObjectSpace("rclos", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", VMRequest.create());
+  public static final ExplicitLargeObjectSpace rcloSpace = new ExplicitLargeObjectSpace("rclos", VMRequest.create());
 
   public static final int REF_COUNT = rcSpace.getDescriptor();
   public static final int REF_COUNT_LOS = rcloSpace.getDescriptor();
@@ -138,12 +137,16 @@ public class RCBase extends StopTheWorld {
   }
 
   /**
-   * The boot method is called early in the boot process before any
-   * allocation.
+   * The processOptions method is called by the runtime immediately after
+   * command-line arguments are available. Allocation must be supported
+   * prior to this point because the runtime infrastructure may require
+   * allocation in order to parse the command line arguments.  For this
+   * reason all plans should operate gracefully on the default minimum
+   * heap size until the point that processOptions is called.
    */
   @Interruptible
-  public void postBoot() {
-    super.postBoot();
+  public void processOptions() {
+    super.processOptions();
 
     if (!Options.noReferenceTypes.getValue()) {
       VM.assertions.fail("Reference Types are not supported by RC");

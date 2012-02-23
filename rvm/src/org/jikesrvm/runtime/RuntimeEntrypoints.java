@@ -1169,6 +1169,6 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   @Inline
   @Uninterruptible
   private static boolean canForceGC() {
-    return VM.ForceFrequentGC && RVMThread.safeToForceGCs();
+    return VM.ForceFrequentGC && RVMThread.safeToForceGCs() && MemoryManager.collectionEnabled();
   }
 }

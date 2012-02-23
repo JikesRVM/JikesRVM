@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Building a Mark-sweep Collector</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Building a Mark-sweep Collector
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Dec 21, 2011 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>We will now modify the <code>Tutorial</code> collector to perform allocation and collection according to a mark-sweep policy. First we will change the allocation from bump-allocation to free-list allocation (but still no collector whatsoever), and then we will add a mark-sweep collection policy, yielding a complete mark-sweep collector.</p><h5 id="BuildingaMark-sweepCollector-Free-listAllocation">Free-list Allocation</h5><p>This step will change your simple collector from using a bump pointer to a free list (but still without any garbage collection).</p><ol><li>Update the constraints for this collector to reflect the constraints of a mark-sweep system, by updating <code>TutorialConstraints</code>as follows:<ul><li><code>gcHeaderBits()</code> should return <code>MarkSweepSpace.LOCAL_GC_BITS_REQUIRED</code>.</li><li><code>gcHeaderWords()</code> should return <code>MarkSweepSpace.GC_HEADER_WORDS_REQUIRED</code>.</li><li>The <code>maxNonLOSDefaultAllocBytes()</code> method should be added, overriding one provided by the base class, and should return <code>SegregatedFreeListSpace.MAX_FREELIST_OBJECT_BYTES</code> (because this reflects the largest object size that can be allocated with the free list allocator).</li></ul></li><li>In <code>Tutorial</code>, replace the <code>ImmortalSpace</code> with a <code>MarkSweepSpace</code>:<ul><li>rename the variable <code>noGCSpace</code> to <code>msSpace</code> (right-click, Refactor→Rename...)</li><li>rename the variable <code>NOGC</code> to <code>MARK_SWEEP</code> (right-click, Refactor→Rename...)</li><li>change the string that identifies the space from &quot;default&quot; to &quot;mark-sweep&quot;</li><li>change the type and static initialization of <code>msSpace</code> appropriately (<code>MarkSweepSpace msSpace = new MarkSweepSpace(&quot;ms&quot;, DEFAULT_POLL_FREQUENCY, VMRequest.create())</code>).</li><li>add an import for <code>MarkSweepSpace</code> and remove the redundant import for <code>ImmortalSpace</code>.</li></ul></li><li>In <code>TutorialMutator</code>, replace the <code>ImmortalLocal</code> (a bump pointer) with a<br /> <code>MarkSweepLocal</code>(a free-list allocator)<ul><li>change the type of <code>nogc</code> and change the static initializer appropriately.</li><li>change the appropriate import statement from <code>ImmortalLocal</code> to <code>MarkSweepLocal</code>.</li><li>rename the variable <code>nogc</code> to <code>ms</code> (right-click, Refactor→Rename...)</li></ul></li><li><p>Fix <code>postAlloc()</code>to initialize the mark-sweep header:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (allocator == Tutorial.ALLOC_DEFAULT) {
+  Tutorial.msSpace.postAlloc(ref);
+} else {
+  super.postAlloc(ref, typeRef, bytes, allocator);
+}</pre>
+</div></div></li></ol><p>With these changes, Tutorial should now work, just as it did before, only exercising a free list (mark-sweep) allocator rather than a bump pointer (immortal) allocator. Create a <code>BaseBaseTutorial</code> build, and test your system to ensure it performs just as it did before. You may notice that its memory is exhausted slightly earlier because the free list allocator is slightly less efficient in space utilization than the bump pointer allocator.</p><div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br /><p>This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-1.zip" class="external-link" rel="nofollow">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2. You can use the files in the archive to verify you've completed the above steps correctly.</p></td></tr></table></div><h5 id="BuildingaMark-sweepCollector-Mark-sweepCollection">Mark-sweep Collection.</h5><p>The next change required is to perform mark-and-sweep collection whenever the heap is exhausted. The poll() method of a plan is called at appropriate intervals by other MMTk components to ask the plan whether a collection is required.</p><ol><li><p>Change <code>TutorialConstraints</code>so that it inherits constraints from a collecting plan:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>  public class TutorialConstraints extends StopTheWorldConstraints</pre>
+</div></div></li><li>The plan needs to know how to perform a garbage collection. Collections are performed in phases, coordinated by data structures deﬁned in <code>StopTheWorld</code>, and have global and thread-local components. First ensure the global components are behaving correctly. These are defined in <code>Tutorial</code> (which is implicitly <em>global</em>).<ul><li>Make <code>Tutorial</code> extend <code>StopTheWorld</code> (for stop-the-world garbage collection) rather than <code>Plan</code> (the superclass of <code>StopTheWorld</code>: <code>public class Tutorial extends StopTheWorld</code></li><li>Rename the <code>trace</code> variable to <code>msTrace</code> (right-click, Refactor→Rename...)</li><li>Add code to ensure that Tutorial performs the correct global collection phases in <code>collectionPhase()</code>:<ul><li>First remove the assertion that the code is never called (<code>if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);</code>).</li><li><p>Add the <em>prepare</em> phase, preparing both the global tracer (<code>msTrace</code>) and the space (<code>msSpace</code>), after first performing the preparation phases associated with the superclasses. Using the commented template in <code>Tutorial.collectionPhase()</code>, set the following within the clause for <code>phaseId == PREPARE</code>:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (phaseId == PREPARE) {
+  super.collectionPhase(phaseId);
+  msTrace.prepare();
+  msSpace.prepare(true);
+  return;
+}</pre>
+</div></div></li><li><p>Add the <em>closure</em> phase, again preparing the global tracer (<code>msTrace</code>):</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (phaseId == CLOSURE) {
+  msTrace.prepare();
+  return;
+}</pre>
+</div></div></li><li><p>Add the <em>release</em> phase, releasing the global tracer (<code>msTrace</code>) and the space (<code>msSpace</code>) before performing the release phases associated with the superclass:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (phaseId == RELEASE) {
+  msTrace.release();
+  msSpace.release();
+  super.collectionPhase(phaseId);
+  return;
+}</pre>
+</div></div></li><li><p>Finally ensure that for all other cases, the phases are delegated to the superclass, uncommenting the following after all of the above conditionals:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>super.collectionPhase(phaseId);</pre>
+</div></div></li></ul></li><li><p>Add a new accounting method that determines how much space a collection needs to yield to the mutator. The method, <code>getPagesRequired</code>, overrides the one provided in the <code>StopTheWorld</code>superclass:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>@Override
+public int getPagesRequired() {
+  return super.getPagesRequired() + msSpace.requiredPages();
+}</pre>
+</div></div></li><li><p>Add a new method that determines whether an object will move during collection:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>@Override
+public boolean willNeverMove(ObjectReference object) {
+  if (Space.isInSpace(MARK_SWEEP, object))
+    return true;
+  return super.willNeverMove(object);
+}</pre>
+</div></div></li></ul></li><li>Next ensure that Tutorial correctly performs <em>local</em> collection phases. These are defined in <code>TutorialCollector</code>.<ul><li>Make <code>TutorialCollector</code> extend <code>StopTheWorldCollector</code>:<ul><li>Extend the class (<code>public class TutorialCollector extends StopTheWorldCollector</code>).</li><li>Import <code>StopTheWorldCollector</code>.</li><li>Remove some methods now implemented by <code>StopTheWorldCollector</code>: <code>collect()</code>, <code>concurrentCollect()</code>, and <code>concurrentCollectionPhase()</code>.</li></ul></li><li>Add code to ensure that <code>TutorialCollector</code> performs the correct global collection phases in <code>collectionPhase()</code>:<ul><li>First remove the assertion that the code is never called (<code>if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);</code>).</li><li><p>Add the <em>prepare</em> phase, preparing the local tracer (<code>trace</code>) after first performing the preparation phases associated with the superclasses. Using the commented template in <code>Tutorial.collectionPhase()</code>, set the following within the clause for <code>phaseId == PREPARE</code>:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (phaseId == Tutorial.PREPARE) {
+  super.collectionPhase(phaseId, primary);
+  trace.prepare();
+  return;
+}</pre>
+</div></div></li><li><p>Add the <em>closure</em> phase, again preparing the local tracer (<code>trace</code>):</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (phaseId == Tutorial.CLOSURE) {
+  trace.completeTrace();
+  return;
+}</pre>
+</div></div></li><li><p>Add the <em>release</em> phase, releasing the local tracer (<code>trace</code>) before performing the release phases associated with the superclass:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (phaseId == Tutorial.RELEASE) {
+  trace.release();
+  super.collectionPhase(phaseId, primary);
+  return;
+}</pre>
+</div></div></li><li><p>Finally ensure that for all other cases, the phases are delegated to the superclass, uncommenting the following after all of the above conditionals:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>super.collectionPhase(phaseId, primary);</pre>
+</div></div></li></ul></li></ul></li><li>Finally ensure that Tutorial correctly performs local mutator-related collection activities:<ul><li>Make <code>TutorialMutator</code> extend <code>StopTheWorldMutator</code>:<ul><li>Extend the class: <code>public class TutorialMutator extends StopTheWorldMutator</code>.</li><li>Import <code>StopTheWorldMutator</code>.</li></ul></li><li>Update the mutator-side collection phases:<ul><li><p>Add the <em>prepare</em> phase to <code>collectionPhase()</code> which prepares mutator-side data structures(namely the per-thread free lists) for the <em>start</em>of a collection:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (phaseId == MS.PREPARE) {
+  super.collectionPhase(phaseId, primary);
+  ms.prepare();
+  return;
+}</pre>
+</div></div></li><li><p>Add the <em>release</em> phase to <code>collectionPhase()</code> which re-initializes mutator-side data structures (namely the per-thread free lists) after the <em>end</em>of a collection:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>if (phaseId == MS.RELEASE) {
+  ms.release();
+  super.collectionPhase(phaseId, primary);
+  return;
+}</pre>
+</div></div></li><li><p>Finally, delegate all other phases to the superclass:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>super.collectionPhase(phaseId, primary);</pre>
+</div></div></li></ul></li></ul></li></ol><p>With these changes, Tutorial should now work with both mark-sweep allocation <em>and</em> collection. Create a <code>BaseBaseTutorial</code> build, and test your system to ensure it performs just as it did before. You can observe the effect of garbage collection as the program runs by adding <code>-X:gc:verbose=1</code> to your command line as the first argument after <code>rvm</code>. If you run a very simple program (such as <code>HelloWorld</code>), you might not observe any garbage collection. In that case, try running a larger program such as a DaCapo benchmark. You may also observe that the output from <code>-X:gc:verbose=1</code> indicates that the heap is growing. Dynamic heap resizing is normal default behavior for a JVM. You can override this by providing minimum (<code>-Xms</code>) and maximum (<code>-Xmx</code>) heap sizes (these are standard arguments respected by all JVMs. The heap size should be specified in bytes as an integer and a unit (<code>K</code>, <code>M</code>, <code>G</code>), for example: <code>-Xms20M -Xmx20M</code>.</p><div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br /><p>This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-2.zip" class="external-link" rel="nofollow">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2. You can use the patch to verify you've completed the above steps correctly.</p></td></tr></table></div><h5 id="BuildingaMark-sweepCollector-OptimizedMark-sweepCollection">Optimized Mark-sweep Collection.</h5><p>MMTk has a unique capacity to allow specialization of the performance-critical scanning loop. This is particularly valuable in collectors which have more than one mode of collection (such as in a generational collector), so each of the collection paths is explicitly specialized at build time, removing conditionals from the hot portion of the tracing loop at the core of the collector. Enabling this involves just two small steps:</p><ol><li>Indicate the number of specialized scanning loops and give each a symbolic name, which at this stage is just one since we have a very simple collector:<ul><li><p>Override the <code>numSpecializedScans()</code> getter method in <code>TutorialConstraints</code>:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>@Override
+public int numSpecializedScans() { return 1; }</pre>
+</div></div></li><li><p>Define a constant to represent our (only) specialized scan in <code>Tutorial</code>(we will call this scan &quot;mark&quot;):</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>public static final int SCAN_MARK = 0;</pre>
+</div></div></li></ul></li><li>Register the specialized method:<ul><li><p>Add the following line to <code>registerSpecializedMethods()</code> method in <code>Tutorial</code>.:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>TransitiveClosure.registerSpecializedScan(SCAN_MARK, TutorialTraceLocal.class);</pre>
+</div></div></li><li><p>Add <code>Tutorial.SCAN_MARK</code> as the first argument to the superclass constructor for <code>TutorialTraceLocal</code>:</p><div class="preformatted panel" style="border-width: 1px;"><div class="preformattedContent panelContent">
+<pre>public TutorialTraceLocal(Trace trace) {
+  super(Tutorial.SCAN_MARK, trace);
+}</pre>
+</div></div></li></ul></li></ol><div class='panelMacro'><table class='infoMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/information.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>Checkpoint</b><br /><p>This <a href="http://cs.anu.edu.au/people/Steve.Blackburn/misc/mmtk-tutorial/tutorial-3.zip" class="external-link" rel="nofollow">zip file</a> captures all of the above steps with respect to Jikes RVM 3.0.2. You can use the archive to verify you've completed the above steps correctly.</p></td></tr></table></div>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

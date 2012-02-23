@@ -29,7 +29,7 @@
   <!-- The junit jar file, supplied by the junit component -->
   <property name="junit.version" value="4.2"/>
   <property name="junit.jar" 
-    location="${jikesrvm.dir}/components/junit/${junit.version}/junit${junit.version}/junit-${junit.version}.jar"/>
+    location="${components.dir}/junit/${junit.version}/junit${junit.version}/junit-${junit.version}.jar"/>
 
   <!-- The MMTk unit test source -->
   <property name="mmtk.junit.src" location="${basedir}/src"/>
@@ -65,7 +65,7 @@
   <target name="compile" depends="init,ensure-junit,ensure-mmtk-harness">
     <mkdir dir="${mmtk.junit.tests}"/>
     <javac srcdir="${mmtk.junit.src}" destdir="${mmtk.junit.tests}" debug="true" debugLevel="lines,source" source="1.5"
-        target="1.5">
+        target="1.5" includeantruntime="false">
       <classpath>
         <pathelement location="${junit.jar}"/>
         <pathelement location="${build.mmtk-harness.jar}"/>

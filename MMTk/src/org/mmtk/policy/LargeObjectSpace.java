@@ -59,12 +59,23 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param pageBudget The number of pages this space may consume
-   * before consulting the plan
    * @param vmRequest An object describing the virtual memory requested.
    */
-  public LargeObjectSpace(String name, int pageBudget, VMRequest vmRequest) {
-    super(name, pageBudget, vmRequest);
+  public LargeObjectSpace(String name, VMRequest vmRequest) {
+    this(name, true, vmRequest);
+  }
+
+  /**
+   * The caller specifies the region of virtual memory to be used for
+   * this space.  If this region conflicts with an existing space,
+   * then the constructor will fail.
+   *
+   * @param name The name of this space (used when printing error messages etc)
+   * @param zeroed if true, allocations return zeroed memory.
+   * @param vmRequest An object describing the virtual memory requested.
+   */
+  public LargeObjectSpace(String name, boolean zeroed, VMRequest vmRequest) {
+    super(name, zeroed, vmRequest);
     treadmill = new Treadmill(LOG_BYTES_IN_PAGE, true);
     markState = 0;
   }

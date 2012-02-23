@@ -82,22 +82,6 @@ public class SSTraceLocal extends TraceLocal {
   }
 
   /**
-   * Ensure that this object will not move for the rest of the GC.
-   *
-   * @param object The object that must not move
-   * @return The new object, guaranteed stable for the rest of the GC.
-   */
-  @Inline
-  public ObjectReference precopyObject(ObjectReference object) {
-    if (object.isNull()) return object;
-    if (Space.isInSpace(SS.SS0, object))
-      return SS.copySpace0.traceObject(this, object, SS.ALLOC_SS);
-    if (Space.isInSpace(SS.SS1, object))
-      return SS.copySpace1.traceObject(this, object, SS.ALLOC_SS);
-    return object;
-  }
-
-  /**
    * Will this object move from this point on, during the current trace ?
    *
    * @param object The object to query.

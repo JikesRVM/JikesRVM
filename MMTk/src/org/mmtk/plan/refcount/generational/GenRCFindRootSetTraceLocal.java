@@ -106,18 +106,4 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return !(Space.isInSpace(GenRC.NURSERY, object));
   }
-
-  /**
-   * Ensure that this object will not move for the rest of the GC.
-   *
-   * @param object The object that must not move
-   * @return The new object, guaranteed stable for the rest of the GC.
-   */
-  public ObjectReference precopyObject(ObjectReference object) {
-    if (Space.isInSpace(GenRC.NURSERY, object)) {
-      return GenRC.nurserySpace.traceObject(this, object, GenRC.ALLOC_RC);
-    }
-    return object;
-  }
-
 }

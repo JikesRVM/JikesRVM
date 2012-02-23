@@ -54,7 +54,7 @@ public class GenMS extends Gen {
    */
 
   /** The mature space, which for GenMS uses a mark sweep collection policy. */
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", DEFAULT_POLL_FREQUENCY, VMRequest.create());
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
 
   public static final int MS = msSpace.getDescriptor();
 
@@ -115,17 +115,6 @@ public class GenMS extends Gen {
   @Override
   public int getPagesUsed() {
     return msSpace.reservedPages() + super.getPagesUsed();
-  }
-
-  /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  public int getPagesRequired() {
-    return super.getPagesRequired() + msSpace.requiredPages();
   }
 
   /**

@@ -37,7 +37,7 @@ public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
    * Constructor
    */
   public GenImmixMatureDefragTraceLocal(Trace global, GenCollector plan) {
-    super(GenImmix.SCAN_DEFRAG, global, plan);
+    super(-1, global, plan);
   }
 
   /**
@@ -73,15 +73,6 @@ public final class GenImmixMatureDefragTraceLocal extends GenMatureTraceLocal{
     if (Space.isInSpace(GenImmix.IMMIX, object))
       return GenImmix.immixSpace.traceObject(this, object, GenImmix.ALLOC_MATURE_MAJORGC);
     return super.traceObject(object);
-  }
-
-  @Inline
-  @Override
-  public ObjectReference precopyObject(ObjectReference object) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(GenImmix.immixSpace.inImmixDefragCollection());
-    ObjectReference rtn = traceObject(object);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(willNotMoveInCurrentCollection(rtn));
-    return rtn;
   }
 
   /**

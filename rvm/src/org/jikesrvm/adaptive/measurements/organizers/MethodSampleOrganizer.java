@@ -48,7 +48,6 @@ public final class MethodSampleOrganizer extends Organizer {
    */
   public MethodSampleOrganizer(int filterOptLevel) {
     this.filterOptLevel = filterOptLevel;
-    makeDaemon(true);
   }
 
   /**
@@ -56,7 +55,7 @@ public final class MethodSampleOrganizer extends Organizer {
    */
   @Override
   public void initialize() {
-    int numSamples = Controller.options.METHOD_SAMPLE_SIZE * RVMThread.numProcessors;
+    int numSamples = Controller.options.METHOD_SAMPLE_SIZE * RVMThread.availableProcessors;
     if (Controller.options.mlCBS()) {
       numSamples *= VM.CBSMethodSamplesPerTick;
     }

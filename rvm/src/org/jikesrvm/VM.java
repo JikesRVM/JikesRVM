@@ -25,7 +25,6 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeDescriptorParsing;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
-import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -119,6 +118,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    * @exception Exception
    */
   @UnpreemptibleNoWarn("No point threading until threading is booted")
+  @Entrypoint
   public static void boot() {
     writingBootImage = false;
     runningVM = true;
@@ -158,6 +158,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     //
     sysCall.sysSetupHardwareTrapHandler();
     RVMThread.getCurrentThread().pthread_id = sysCall.sysGetThreadId();
+    RVMThread.availableProcessors = SysCall.sysCall.sysNumProcessors();
 
     // Set up buffer locks used by Thread for logging and status dumping.
     //    This can happen at any point before we start running
@@ -273,6 +274,9 @@ public class VM extends Properties implements Constants, ExitStatus {
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     RVMThread.boot();
     DynamicLibrary.boot();
+
+    if (verboseBoot >= 1) VM.sysWriteln("Enabling GC");
+    MemoryManager.enableCollection();
 
     if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
     RVMThread.getCurrentThread().setupBootJavaThread();
@@ -451,6 +455,13 @@ public class VM extends Properties implements Constants, ExitStatus {
       pleaseSpecifyAClass();
     }
 
+    if (applicationArguments.length > 0 && applicationArguments[0].startsWith("-X")) {
+        VM.sysWrite("vm: \"");
+        VM.sysWrite(applicationArguments[0]);
+        VM.sysWrite("\" is not a recognized Jikes RVM command line argument.\n");
+        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+
     if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
     RVMClassLoader.getApplicationClassLoader();
     RVMClassLoader.declareApplicationClassLoaderIsReady();
@@ -466,10 +477,6 @@ public class VM extends Properties implements Constants, ExitStatus {
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("java.lang.ClassLoader$StaticData");
     }
-
-    // Allow profile information to be read in from a file
-    //
-    EdgeCounts.boot(EdgeCounterFile);
 
     if (VM.BuildForAdaptiveSystem) {
       CompilerAdvice.postBoot();
@@ -2271,7 +2278,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     handlePossibleRecursiveCallToSysFail(message);
 
     // print a traceback and die
-    if(!RVMThread.getCurrentThread().isGCThread()) {
+    if(!RVMThread.getCurrentThread().isCollectorThread()) {
       RVMThread.traceback(message);
     } else {
       VM.sysWriteln("Died in GC:");
@@ -2496,7 +2503,6 @@ public class VM extends Properties implements Constants, ExitStatus {
     }
     RuntimeEntrypoints.init();
     RVMThread.init();
-    MemoryManager.init();
   }
 
   public static void disableYieldpoints() { RVMThread.getCurrentThread().disableYieldpoints(); }

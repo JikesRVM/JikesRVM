@@ -22,7 +22,8 @@ import org.vmmagic.pragma.*;
  * This class implements a simple boolean counter (counting number of
  * phases where some boolean event is true).
  */
-@Uninterruptible public class BooleanCounter extends Counter {
+@Uninterruptible
+public class BooleanCounter extends Counter {
 
   /****************************************************************************
    *
@@ -73,8 +74,6 @@ import org.vmmagic.pragma.*;
   public BooleanCounter(String name, boolean start, boolean mergephases) {
     super(name, start, mergephases);
     state = new boolean[Stats.MAX_PHASES];
-    for (int i = 0; i < Stats.MAX_PHASES; i++)
-      state[i] = false;
   }
 
   /****************************************************************************

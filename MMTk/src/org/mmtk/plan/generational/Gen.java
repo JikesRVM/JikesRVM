@@ -24,7 +24,6 @@ import org.mmtk.utility.options.Options;
 import org.mmtk.utility.sanitychecker.SanityChecker;
 import org.mmtk.utility.statistics.*;
 
-import org.mmtk.vm.Collection;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -52,6 +51,7 @@ public abstract class Gen extends StopTheWorld {
    *
    * Constants
    */
+  public static final float DEFAULT_PRETENURE_THRESHOLD_FRACTION = 0.5f; // if object is bigger than this fraction of nursery, pretenure to LOS
   protected static final float SURVIVAL_ESTIMATE = 0.8f; // est yield
   protected static final float MATURE_FRACTION = 0.5f; // est yield
   private static final float WORST_CASE_COPY_EXPANSION = 1.5f; // worst case for addition of one word overhead due to address based hashing
@@ -91,7 +91,7 @@ public abstract class Gen extends StopTheWorld {
 
   /** The nursery space is where all new objects are allocated by default */
   private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.create() : VMRequest.create(NURSERY_VM_FRACTION, true);
-  public static final CopySpace nurserySpace = new CopySpace("nursery", DEFAULT_POLL_FREQUENCY, false, vmRequest);
+  public static final CopySpace nurserySpace = new CopySpace("nursery", false, vmRequest);
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   private static final Address NURSERY_START = nurserySpace.getStart();
@@ -181,8 +181,10 @@ public abstract class Gen extends StopTheWorld {
       }
       return;
     }
+
     if (phaseId == RELEASE) {
       nurserySpace.release();
+      switchNurseryZeroingApproach(nurserySpace);
       modbufPool.clearDeque(1);
       remsetPool.clearDeque(1);
       arrayRemsetPool.clearDeque(2);
@@ -206,17 +208,25 @@ public abstract class Gen extends StopTheWorld {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
-  public final boolean collectionRequired(boolean spaceFull) {
-    int nurseryPages = nurserySpace.reservedPages();
+  public final boolean collectionRequired(boolean spaceFull, Space space) {
+    int availableNurseryPages = Options.nurserySize.getMaxNursery() - nurserySpace.reservedPages();
 
-    if (nurseryPages > Options.nurserySize.getMaxNursery()) {
+    /* periodically recalculate nursery pretenure threshold */
+    Plan.pretenureThreshold = (int) ((availableNurseryPages<<LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
+
+    if (availableNurseryPages <= 0) {
       return true;
     }
 
-    if (virtualMemoryExhausted())
+    if (virtualMemoryExhausted()) {
       return true;
+    }
 
-    return super.collectionRequired(spaceFull);
+    if (spaceFull && space != nurserySpace) {
+      nextGCFullHeap = true;
+    }
+
+    return super.collectionRequired(spaceFull, space);
   }
 
   /**
@@ -225,7 +235,7 @@ public abstract class Gen extends StopTheWorld {
    * @return True is this GC should be a full heap collection.
    */
   protected boolean requiresFullHeapCollection() {
-    if (collectionTrigger == Collection.EXTERNAL_GC_TRIGGER && Options.fullHeapSystemGC.getValue()) {
+    if (userTriggeredCollection && Options.fullHeapSystemGC.getValue()) {
       return true;
     }
 
@@ -234,31 +244,9 @@ public abstract class Gen extends StopTheWorld {
       return true;
     }
 
-    if (loSpace.allocationFailed() ||
-        nonMovingSpace.allocationFailed() ||
-        (USE_CODE_SPACE && (largeCodeSpace.allocationFailed() || smallCodeSpace.allocationFailed()))) {
-      // We need space from the nursery
+    if (virtualMemoryExhausted()) {
       return true;
     }
-
-    if (virtualMemoryExhausted())
-      return true;
-
-    int smallNurseryPages = nurserySpace.committedPages();
-    int smallNurseryYield = (int)((smallNurseryPages << 1) * SURVIVAL_ESTIMATE);
-
-    if (smallNurseryYield < getPagesRequired()) {
-      // Our total yield is insufficent.
-      return true;
-    }
-
-    if (nurserySpace.allocationFailed()) {
-      if (smallNurseryYield < (nurserySpace.requiredPages() << 1)) {
-        // We have run out of VM pages in the nursery
-        return true;
-      }
-    }
-
 
     return false;
   }
@@ -273,7 +261,7 @@ public abstract class Gen extends StopTheWorld {
    * able to be copied into the mature space.
    */
   private boolean virtualMemoryExhausted() {
-    return ((int) (nurserySpace.reservedPages()*WORST_CASE_COPY_EXPANSION) >= getMaturePhysicalPagesAvail());
+    return ((int)(getCollectionReserve() * WORST_CASE_COPY_EXPANSION)) >= getMaturePhysicalPagesAvail();
   }
 
   /*****************************************************************************
@@ -330,19 +318,6 @@ public abstract class Gen extends StopTheWorld {
    * space.
    */
   public abstract int getMaturePhysicalPagesAvail();
-
-  /**
-   * Calculate the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   *
-   * @return the number of pages a collection is required to free to satisfy
-   * outstanding allocation requests.
-   */
-  @Override
-  public int getPagesRequired() {
-    /* We don't currently pretenure, so mature space must be zero */
-    return super.getPagesRequired() + (nurserySpace.requiredPages() << 1);
-  }
 
   /*****************************************************************************
    *
@@ -408,7 +383,7 @@ public abstract class Gen extends StopTheWorld {
    * @return Is current GC only collecting objects allocated since last GC.
    */
   public final boolean isCurrentGCNursery() {
-    return !gcFullHeap;
+    return !(IGNORE_REMSETS || gcFullHeap);
   }
 
   /**
@@ -468,5 +443,12 @@ public abstract class Gen extends StopTheWorld {
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_NURSERY, GenNurseryTraceLocal.class);
     super.registerSpecializedMethods();
+  }
+
+  @Interruptible
+  @Override
+  public void fullyBooted() {
+    super.fullyBooted();
+    nurserySpace.setZeroingApproach(Options.nurseryZeroing.getNonTemporal(), Options.nurseryZeroing.getConcurrent());
   }
 }

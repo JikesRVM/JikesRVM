@@ -263,7 +263,6 @@ public final class MarkCompactCollector {
 
     /**
      * Advance the cursor to the end of the given object.
-     * @return The object reference of the next object.
      */
     @Inline
     void advanceToObjectEnd(ObjectReference current) {
@@ -274,7 +273,7 @@ public final class MarkCompactCollector {
     /**
      * Advance the cursor either to the next region in the list,
      * or to a new region allocated from the global list.
-     * @param m
+     * @param space
      */
     void advanceToNextForwardableRegion(MarkCompactSpace space) {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(get().EQ(getLimit()));
@@ -341,7 +340,7 @@ public final class MarkCompactCollector {
     void finish() {
       if (VM.VERIFY_ASSERTIONS) assertCursorInBounds();
       Extent zeroBytes = limit.diff(cursor).toWord().toExtent();
-      VM.memory.zero(cursor, zeroBytes);
+      VM.memory.zero(false, cursor, zeroBytes);
       MarkCompactLocal.setDataEnd(region, cursor);
       MarkCompactLocal.checkRegionMetadata(region);
     }
@@ -511,6 +510,7 @@ public final class MarkCompactCollector {
             if (MarkCompactSpace.isMarked(current)) {
               Log.write("Object "); Log.write(current);
               Log.writeln(" is marked during the compact phase");
+              VM.objectModel.dumpObject(current);
             }
             VM.assertions._assert(!MarkCompactSpace.isMarked(current));
           }

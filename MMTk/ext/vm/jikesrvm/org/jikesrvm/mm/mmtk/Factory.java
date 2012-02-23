@@ -138,6 +138,24 @@ public final class Factory extends org.mmtk.vm.Factory {
   }
 
   /**
+   * Create a new Monitor instance using the appropriate VM-specific
+   * concrete Lock sub-class.
+   *
+   * @see Monitor
+   *
+   * @param name The string to be associated with this monitor instance
+   * @return A concrete VM-specific Monitor instance.
+   */
+  public org.mmtk.vm.Monitor newMonitor(String name) {
+    try {
+      return new Monitor(name);
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new Monitor!");
+      return null; // never get here
+    }
+  }
+
+  /**
    * Create a new Memory instance using the appropriate VM-specific
    * concrete Memory sub-class.
    *

@@ -23,5 +23,5 @@ import java.lang.annotation.ElementType;
  * specifically require these semantics.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 public @interface NonMovingAllocation { }

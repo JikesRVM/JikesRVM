@@ -30,23 +30,17 @@ public class Selected {
   }
 
   @Uninterruptible
+  public static final class Collector extends @_PLAN_@Collector
+  {
+  }
+
+  @Uninterruptible
   public static final class Constraints extends @_PLAN_@Constraints
   {
     private static final Constraints constraints = new Constraints();
 
     @Inline
     public static Constraints get() { return constraints; }
-  }
-
-  @Uninterruptible
-  public static class Collector extends @_PLAN_@Collector
-  {
-    private final RVMThread thread;
-    public Collector(RVMThread parent) { thread = parent; }
-    @Inline
-    public final RVMThread getThread() { return thread; }
-    @Inline
-    public static Collector get() { return RVMThread.getCurrentThread().collectorContext; }
   }
 
   @Uninterruptible

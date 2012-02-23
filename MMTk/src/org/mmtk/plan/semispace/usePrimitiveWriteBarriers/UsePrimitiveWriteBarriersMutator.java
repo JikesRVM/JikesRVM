@@ -21,7 +21,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class extends the {@link SSMutator} class as part of the
  * {@link UsePrimitiveWriteBarriers} collector. It overrides various methods in
- * {@link Mutator} to implement primitive write barriers.
+ * {@link SSMutator} to implement primitive write barriers.
  */
 @Uninterruptible
 public class UsePrimitiveWriteBarriersMutator extends SSMutator {

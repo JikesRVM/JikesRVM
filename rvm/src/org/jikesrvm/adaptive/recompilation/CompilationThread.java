@@ -15,7 +15,7 @@ package org.jikesrvm.adaptive.recompilation;
 import org.jikesrvm.adaptive.OnStackReplacementPlan;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
-import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.SystemThread;
 import org.vmmagic.pragma.NonMoving;
 
 /**
@@ -28,14 +28,13 @@ import org.vmmagic.pragma.NonMoving;
  *  made by the controllerThread.
  */
 @NonMoving
-public final class CompilationThread extends RVMThread {
+public final class CompilationThread extends SystemThread {
 
   /**
    * constructor
    */
   public CompilationThread() {
     super("CompilationThread");
-    makeDaemon(true);
   }
 
   /**
@@ -43,6 +42,7 @@ public final class CompilationThread extends RVMThread {
    * remove controller plans from the compilation queue and perform
    * them.
    */
+  @Override
   public void run() {
     // Make a blocking call to deleteMin to get a plan and then execute it.
     // Repeat...

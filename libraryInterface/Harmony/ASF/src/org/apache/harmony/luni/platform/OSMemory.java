@@ -182,7 +182,7 @@ final class OSMemory implements IMemorySystem {
 	 */
 	public void memset(long address, byte value, long length) {
 		if (value == 0) {
-			Memory.zero(Address.fromLong(address), Word.fromLong(length).toExtent());
+			Memory.zero(false, Address.fromLong(address), Word.fromLong(length).toExtent());
 		} else {
 			final Address start = Address.fromLong(address);
 			final Address end = start.plus(Word.fromLong(length).toExtent());

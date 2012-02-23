@@ -12,11 +12,17 @@
  */
 package org.mmtk.harness.scheduler;
 
-import org.mmtk.harness.Collector;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.utility.Log;
+import org.mmtk.vm.Monitor;
 
 /**
  * Abstract implementation of a threading model.
@@ -32,17 +38,18 @@ public abstract class ThreadModel {
   public enum State {
     /** Mutator threads are running */
     MUTATOR,
+
     /** GC requested, GC will start once all mutators have yielded */
-    BEGIN_GC,
+    BLOCKING,
+
     /** GC in progress */
-    GC,
+    BLOCKED,
+
     /** Waiting on all GC threads to hibernate */
-    END_GC }
+    RESUMING,
+  }
 
   private static volatile State state = State.MUTATOR;
-
-  /** The trigger for this GC */
-  protected int triggerReason;
 
   protected void initCollectors() { }
 
@@ -50,9 +57,9 @@ public abstract class ThreadModel {
 
   protected abstract void scheduleMutator(Schedulable method);
 
-  protected abstract void scheduleCollector();
+  protected abstract void scheduleCollector(CollectorContext context);
 
-  protected abstract Thread scheduleCollector(Schedulable item);
+  protected abstract Thread scheduleCollectorContext(CollectorContext item);
 
   protected abstract Log currentLog();
 
@@ -60,39 +67,52 @@ public abstract class ThreadModel {
 
   /* schedule GC */
 
-  protected abstract void triggerGC(int why);
-
-  protected abstract void exitGC();
-
-  protected abstract void waitForGCStart();
-
-  protected abstract boolean noThreadsInGC();
-
   protected abstract boolean gcTriggered();
-
-  protected abstract int rendezvous(int where);
 
   protected abstract int mutatorRendezvous(String where, int expected);
 
-  protected abstract Collector currentCollector();
+  protected abstract CollectorContext currentCollector();
 
   protected abstract void waitForGC();
-
-  protected int getTriggerReason() {
-    return triggerReason;
-  }
 
   protected abstract void schedule();
 
   protected abstract void scheduleGcThreads();
 
   /**
+   * Resume all mutator threads after a stop-the-world phase has completed.
+   */
+  protected abstract void resumeAllMutators();
+
+
+  /**
+   * Stop all mutator threads. This is current intended to be run by a single thread.
+   */
+  protected abstract void stopAllMutators();
+
+  /**
    * An MMTk lock
    */
   protected abstract Lock newLock(String name);
 
+  /**
+   * An MMTk monitor
+   */
+  protected abstract Monitor newMonitor(String name);
+
+  private static final Map<State,Set<State>> validTransitions = new EnumMap<State,Set<State>>(State.class);
+
+  static {
+    validTransitions.put(State.MUTATOR,EnumSet.of(State.BLOCKING));
+    validTransitions.put(State.BLOCKING,EnumSet.of(State.BLOCKED));
+    validTransitions.put(State.BLOCKED,EnumSet.of(State.MUTATOR));
+    validTransitions.put(State.RESUMING,EnumSet.noneOf(State.class));
+  }
+
   protected void setState(State state) {
     Trace.trace(Item.SCHEDULER,"State changing from %s to %s",ThreadModel.state,state);
+    assert validTransitions.get(ThreadModel.state).contains(state) :
+      "Illegal state transition, from "+ThreadModel.state+" to "+state;
     ThreadModel.state = state;
   }
 
@@ -119,4 +139,8 @@ public abstract class ThreadModel {
   protected void stopRunning() {
     setRunning(false);
   }
+
+  public abstract boolean isMutator();
+
+  public abstract boolean isCollector();
 }

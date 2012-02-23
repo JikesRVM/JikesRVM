@@ -16,15 +16,28 @@
     "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
 
-  <!-- Checks that a package.html file exists for each package.     -->
-  <!-- See http://checkstyle.sf.net/config_javadoc.html#PackageHtml -->
-  <!--<module name="PackageHtml"/>-->
+  <!-- Checks that a package-info.java file exists for each package.     -->
+  <!-- See http://checkstyle.sf.net/config_javadoc.html#JavadocPackage -->
+  <!--<module name="JavadocPackage"/>-->
 
   <!-- Checks whether files end with a new line.                        -->
   <!-- See http://checkstyle.sf.net/config_misc.html#NewlineAtEndOfFile -->
   <module name="NewlineAtEndOfFile"/>
 
   <module name="SuppressionCommentFilter"/>
+  
+  <!-- Checks for Headers                                -->
+  <!-- See http://checkstyle.sf.net/config_header.html   -->
+  <module name="Header">
+    <property name="headerFile" value="${basedir}/build/checkstyle/License-Header.txt"/>
+  </module>
+
+  <module name="FileTabCharacter"/>
+
+  <module name="RegexpSingleline">
+    <property name="format" value="\s+$"/>
+    <property name="message" value="Line has trailing spaces."/>
+  </module>
 
   <module name="TreeWalker">
     <module name="FileContentsHolder"/>
@@ -51,12 +64,6 @@
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
     -->
-
-    <!-- Checks for Headers                                -->
-    <!-- See http://checkstyle.sf.net/config_header.html   -->
-    <module name="Header">
-      <property name="headerFile" value="${basedir}/build/checkstyle/License-Header.txt"/>
-    </module>
 
     <!-- Checks for imports                              -->
     <!-- See http://checkstyle.sf.net/config_imports.html -->
@@ -91,7 +98,6 @@
     </module>
     <module name="ParenPad"/>
     <module name="TypecastParenPad"/>
-    <module name="TabCharacter"/>
     <!--<module name="WhitespaceAfter"/>-->
 <!--
     <module name="WhitespaceAround">
@@ -138,10 +144,6 @@
     <!-- Miscellaneous other checks.                   -->
     <!-- See http://checkstyle.sf.net/config_misc.html -->
     <module name="ArrayTypeStyle"/>
-    <module name="GenericIllegalRegexp">
-      <property name="format" value="\s+$"/>
-      <property name="message" value="Line has trailing spaces."/>
-    </module>
     <!--<module name="TodoComment"/>-->
     <module name="UpperEll"/>
 

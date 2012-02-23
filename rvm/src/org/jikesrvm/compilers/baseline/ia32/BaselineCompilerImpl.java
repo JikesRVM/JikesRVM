@@ -2741,6 +2741,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         }
       }
     }
+    // The field may be volatile
+    asm.emitMFENCE();
   }
 
   /**
@@ -2773,6 +2775,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
           }
         }
       }
+    }
+    if (field.isVolatile()) {
+      asm.emitMFENCE();
     }
   }
 
@@ -3007,6 +3012,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         asm.emitMOV_RegIdx_Reg_Quad(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0+T0] <- T1
       }
     }
+    // The field may be volatile.
+    asm.emitMFENCE();
   }
 
   /**
@@ -3100,6 +3107,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
         asm.emitPOP_Reg(S0);           // S0 is the object reference
         asm.emitMOV_RegDisp_Reg_Quad(S0, fieldOffset, T1); // [S0+fieldOffset] <- T1
       }
+    }
+    if (field.isVolatile()) {
+      asm.emitMFENCE();
     }
   }
 

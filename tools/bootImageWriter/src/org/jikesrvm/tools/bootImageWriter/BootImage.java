@@ -18,6 +18,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel.MapMode;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
@@ -241,12 +242,14 @@ public class BootImage extends BootImageWriterMessages
    * @param numElements number of elements
    * @param needsIdentityHash needs an identity hash value
    * @param identityHashValue the value for the identity hash
+   * @param alignment special alignment value
+   * @param alignCode Alignment-encoded value (AlignmentEncoding.ALIGN_CODE_NONE for none)
    * @return address of object within bootimage
    */
-  public Address allocateArray(RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue) {
+  public Address allocateArray(RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue, int alignCode) {
     numObjects++;
     BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
-    return ObjectModel.allocateArray(this, array, numElements, needsIdentityHash, identityHashValue);
+    return ObjectModel.allocateArray(this, array, numElements, needsIdentityHash, identityHashValue, alignCode);
   }
 
   /**
@@ -257,12 +260,13 @@ public class BootImage extends BootImageWriterMessages
    * @param needsIdentityHash needs an identity hash value
    * @param identityHashValue the value for the identity hash
    * @param alignment special alignment value
+   * @param alignCode Alignment-encoded value (AlignmentEncoding.ALIGN_CODE_NONE for none)
    * @return address of object within bootimage
    */
-  public Address allocateArray(RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue, int alignment) {
+  public Address allocateArray(RVMArray array, int numElements, boolean needsIdentityHash, int identityHashValue, int align, int alignCode) {
     numObjects++;
     BootImageWriter.logAllocation(array, array.getInstanceSize(numElements));
-    return ObjectModel.allocateArray(this, array, numElements, needsIdentityHash, identityHashValue, alignment);
+    return ObjectModel.allocateArray(this, array, numElements, needsIdentityHash, identityHashValue, align, alignCode);
   }
 
   /**

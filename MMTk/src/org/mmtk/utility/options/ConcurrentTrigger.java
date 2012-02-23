@@ -22,7 +22,7 @@ public class ConcurrentTrigger extends org.vmutil.options.IntOption {
   public ConcurrentTrigger() {
     super(Options.set, "Concurrent Trigger",
           "Concurrent trigger percentage",
-          50);
+          30);
   }
 
   /**

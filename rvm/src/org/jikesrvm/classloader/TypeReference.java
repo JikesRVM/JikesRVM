@@ -64,6 +64,7 @@ public final class TypeReference {
   private static final ImmutableEntryHashSetRVM<TypeReference> dictionary =
     new ImmutableEntryHashSetRVM<TypeReference>();
 
+  private static final ImmutableEntryHashSetRVM<ClassLoader> clDict = new ImmutableEntryHashSetRVM<ClassLoader>();
   /**
    * 2^LOG_ROW_SIZE is the number of elements per row
    */
@@ -173,14 +174,12 @@ public final class TypeReference {
   public static final TypeReference NonMovingAllocation = findOrCreate(org.vmmagic.pragma.NonMovingAllocation.class);
   public static final TypeReference BaselineNoRegisters = findOrCreate(org.vmmagic.pragma.BaselineNoRegisters.class);
   public static final TypeReference BaselineSaveLSRegisters = findOrCreate(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
+  public static final TypeReference ReferenceFieldsVary = findOrCreate(org.vmmagic.pragma.ReferenceFieldsVary.class);
 
 
   public static final TypeReference ReferenceMaps =
       findOrCreate(org.jikesrvm.compilers.baseline.ReferenceMaps.class);
   public static final TypeReference JNIFunctions = findOrCreate(org.jikesrvm.jni.JNIFunctions.class);
-
-  public static final TypeReference CollectorThread =
-      findOrCreate(org.jikesrvm.mm.mminterface.CollectorThread.class);
 
   public static final TypeReference RVMArray = findOrCreate(org.jikesrvm.classloader.RVMArray.class);
   /** Abstract base of reflective method invoker classes */
@@ -342,6 +341,10 @@ public final class TypeReference {
     }
     return val;
   }
+  private static void canonicalizeCL(ClassLoader cl) {
+    clDict.add(cl);
+  }
+  public static ImmutableEntryHashSetRVM<ClassLoader> getCLDict() { return clDict; }
 
   /**
    * Constructor
@@ -350,6 +353,7 @@ public final class TypeReference {
    * @param id the numeric identifier
    */
   private TypeReference(ClassLoader cl, Atom tn, int id) {
+    canonicalizeCL(cl);
     classloader = cl;
     name = tn;
     this.id = id;

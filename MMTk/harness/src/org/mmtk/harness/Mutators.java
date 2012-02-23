@@ -58,4 +58,11 @@ public final class Mutators {
     }
     return result;
   }
+
+  /**
+   * @return the number of valid mutators.
+   */
+  public static int count() {
+    return getAll().size();
+  }
 }

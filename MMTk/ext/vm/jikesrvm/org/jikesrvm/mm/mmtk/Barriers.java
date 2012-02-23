@@ -41,7 +41,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the boolean field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -71,7 +71,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the byte field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -101,7 +101,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the char field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -131,7 +131,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the short field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -161,7 +161,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the int field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -184,12 +184,16 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    */
   @Override
   public boolean intTryCompareAndSwap(ObjectReference objref, int expected, int newValue, Word offset, Word unused, int mode) {
-    int oldValue;
-    do {
-      oldValue = Magic.prepareInt(objref, offset.toOffset());
-      if (oldValue != expected) return false;
-    } while (!Magic.attemptInt(objref, offset.toOffset(), oldValue, newValue));
-    return true;
+    if (org.jikesrvm.VM.BuildForIA32) {
+      return Magic.attemptInt(objref.toObject(), offset.toOffset(), expected, newValue);
+    } else {
+      int oldValue;
+      do {
+        oldValue = Magic.prepareInt(objref, offset.toOffset());
+        if (oldValue != expected) return false;
+      } while (!Magic.attemptInt(objref, offset.toOffset(), oldValue, newValue));
+      return true;
+    }
   }
 
   /**
@@ -212,7 +216,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the long field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -235,12 +239,16 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    */
   @Override
   public boolean longTryCompareAndSwap(ObjectReference objref, long expected, long newValue, Word offset, Word unused, int mode) {
-    long oldValue;
-    do {
-      oldValue = Magic.prepareLong(objref, offset.toOffset());
-      if (oldValue != expected) return false;
-    } while (!Magic.attemptLong(objref, offset.toOffset(), oldValue, newValue));
-    return true;
+    if (org.jikesrvm.VM.BuildForIA32) {
+      return Magic.attemptLong(objref.toObject(), offset.toOffset(), expected, newValue);
+    } else {
+      long oldValue;
+      do {
+        oldValue = Magic.prepareLong(objref, offset.toOffset());
+        if (oldValue != expected) return false;
+      } while (!Magic.attemptLong(objref, offset.toOffset(), oldValue, newValue));
+      return true;
+    }
   }
 
   /**
@@ -263,7 +271,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the float field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -293,7 +301,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    *
    * @param objref The object that has the double field
    * @param offset The offset from the ref
-   * @param unused Unused
+   * @param location Unused
    * @param mode The context in which the write is occurring
    * @return the read value
    */
@@ -337,10 +345,11 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    * Perform the actual write of the non-heap write barrier.  This is
    * used when the store is not to an object, but to a non-heap location
    * such as statics or the stack.
+   * @param slot The slot to be updated
    * @param target The value that the slot will be updated to
-   * @param unusedA The offset from the ref
+   * @param unusedA Unused
    * @param unusedB Unused
-   * @param ref The object that has the reference field
+
    */
   @Inline
   @Override
@@ -385,12 +394,16 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
   @Inline
   @Override
   public final boolean objectReferenceTryCompareAndSwap(ObjectReference objref, ObjectReference old, ObjectReference target, Word offset, Word unused, int mode) {
-    Object oldValue;
-    do {
-      oldValue = Magic.prepareObject(objref, offset.toOffset());
-      if (oldValue != old) return false;
-    } while (!Magic.attemptObject(objref, offset.toOffset(), oldValue, target));
-    return true;
+    if (org.jikesrvm.VM.BuildForIA32) {
+      return Magic.attemptObject(objref.toObject(), offset.toOffset(), old.toObject(), target.toObject());
+    } else {
+      Object oldValue;
+      do {
+        oldValue = Magic.prepareObject(objref, offset.toOffset());
+        if (oldValue != old) return false;
+      } while (!Magic.attemptObject(objref, offset.toOffset(), oldValue, target));
+      return true;
+    }
   }
 
   /**
@@ -444,13 +457,16 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    */
   @Inline
   @Override
-  public final boolean wordTryCompareAndSwap(ObjectReference ref, Word old, Word target,
-      Word offset, Word unused, int mode) {
-    do {
-      Word currentValue = Magic.prepareWord(ref, offset.toOffset());
-      if (currentValue != old) return false;
-    } while (!Magic.attemptWord(ref, offset.toOffset(), old, target));
-    return true;
+  public final boolean wordTryCompareAndSwap(ObjectReference ref, Word old, Word target, Word offset, Word unused, int mode) {
+    if (org.jikesrvm.VM.BuildForIA32) {
+      return Magic.attemptWord(ref.toObject(), offset.toOffset(), old, target);
+    } else {
+      do {
+        Word currentValue = Magic.prepareWord(ref, offset.toOffset());
+        if (currentValue != old) return false;
+      } while (!Magic.attemptWord(ref, offset.toOffset(), old, target));
+      return true;
+    }
   }
 
   /**
@@ -514,12 +530,16 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
    */
   @Override
   public boolean addressTryCompareAndSwap(ObjectReference objref, Address expected, Address newValue, Word offset, Word unused, int mode) {
-    Address oldValue;
-    do {
-      oldValue = Magic.prepareAddress(objref, offset.toOffset());
-      if (oldValue != expected) return false;
-    } while (!Magic.attemptAddress(objref, offset.toOffset(), oldValue, newValue));
-    return true;
+    if (org.jikesrvm.VM.BuildForIA32) {
+      return Magic.attemptAddress(objref.toObject(), offset.toOffset(), expected, newValue);
+    } else {
+      Address oldValue;
+      do {
+        oldValue = Magic.prepareAddress(objref, offset.toOffset());
+        if (oldValue != expected) return false;
+      } while (!Magic.attemptAddress(objref, offset.toOffset(), oldValue, newValue));
+      return true;
+    }
   }
 
   /**

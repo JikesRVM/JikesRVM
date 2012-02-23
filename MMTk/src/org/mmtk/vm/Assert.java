@@ -46,15 +46,6 @@ import org.vmmagic.pragma.Uninterruptible;
    */
   public abstract void dumpStack();
 
-  /**
-   * Checks if the virtual machine is running.  This value changes, so
-   * the call-through to the VM must be a method.  In Jikes RVM, just
-   * returns VM.runningVM.
-   *
-   * @return <code>true</code> if the virtual machine is running
-   */
-  public abstract boolean runningVM();
-
   /*
    * NOTE: The following methods must be implemented by subclasses of this
    * class, but are internal to the VM<->MM interface glue, so are never

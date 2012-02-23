@@ -123,7 +123,7 @@ public class Throwable implements java.io.Serializable {
      */
     public Throwable fillInStackTrace() {
       if (VM.fullyBooted) {
-        if (RVMThread.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+        if (RVMThread.getCurrentThread().isCollectorThread()) {
           VM.sysWriteln("Exception in GC thread");
           RVMThread.dumpVirtualMachine();
         } else {
@@ -136,8 +136,7 @@ public class Throwable implements java.io.Serializable {
           }
         }
       } else {
-        VM.sysWriteln("Request to fill in stack trace before VM booted");
-        RVMThread.dumpStack();
+        // no stack trace available until fully booted.
       }
       return this;
     }
@@ -178,7 +177,7 @@ public class Throwable implements java.io.Serializable {
     private StackTraceElement[] getStackTraceImpl() {
 	if (vmStackTrace == null) {
 	    return zeroLengthStackTrace;
-	} else if (RVMThread.getCurrentThread().getThreadForStackTrace().isGCThread()) {
+	} else if (RVMThread.getCurrentThread().isCollectorThread()) {
 	    VM.sysWriteln("Throwable.getStackTrace called from GC thread: dumping stack using scheduler");
 	    RVMThread.dumpStack();
 	    return zeroLengthStackTrace;

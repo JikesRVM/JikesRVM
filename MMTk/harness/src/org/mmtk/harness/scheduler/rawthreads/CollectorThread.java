@@ -12,43 +12,42 @@
  */
 package org.mmtk.harness.scheduler.rawthreads;
 
-import org.mmtk.harness.Collector;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.plan.CollectorContext;
 
 /**
  * The super-class of collector threads
  */
 class CollectorThread extends RawThread {
-  protected Collector c;
+  protected CollectorContext context;
 
   /**
    * Create a collector thread, running the 'run'method of collector c
    *
    * @param model
-   * @param c
+   * @param context
    * @param daemon
    */
-  protected CollectorThread(RawThreadModel model, boolean daemon) {
+  protected CollectorThread(RawThreadModel model, CollectorContext context, boolean daemon) {
     super(model);
+    this.context = context;
     setName("Collector-"+model.collectors.size());
-    model.collectors.add(this);
     setDaemon(daemon);
     Trace.trace(Item.SCHEDULER, "%d: collector thread %d \"%s\" created (%d total)",
         Thread.currentThread().getId(), getId(), getName(),model.collectors.size());
   }
 
   /** Create a collector thread, with a new collector */
-  public CollectorThread(RawThreadModel model) {
-    this(model,true);
+  public CollectorThread(RawThreadModel model, CollectorContext context) {
+    this(model,context,true);
   }
 
   @Override
   public void run() {
-    c = new Collector();
     // Initial 'yield'
     waitTillCurrent();
-    c.run();
-    assert false : "Collector threads should never exit";
+    context.run();
+    model.removeCollector(this);
   }
 }

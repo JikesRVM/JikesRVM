@@ -31,7 +31,6 @@ import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.vm.Collection;
-import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -56,18 +55,6 @@ public abstract class Mutator {
    */
   public static void setGcEveryWB() {
     gcEveryWB = true;
-  }
-
-  /**
-   * @return A mutator context for the current Plan
-   */
-  public static MutatorContext createMutatorContext() {
-    try {
-      String prefix = Harness.plan.getValue();
-      return (MutatorContext)Class.forName(prefix + "Mutator").newInstance();
-    } catch (Exception ex) {
-      throw new RuntimeException("Could not create Mutator", ex);
-    }
   }
 
   /**
@@ -148,7 +135,7 @@ public abstract class Mutator {
    * Constructor
    */
   public Mutator() {
-    this.context = createMutatorContext();
+    this.context = Harness.createMutatorContext();
     register(this.context);
   }
 
@@ -234,7 +221,8 @@ public abstract class Mutator {
    * Request a heap dump (also invokes a garbage collection)
    */
   public void heapDump() {
-    Collector.requestHeapDump();
+    // Collector.requestHeapDump();
+    // TODO
     gc();
   }
 
@@ -242,7 +230,7 @@ public abstract class Mutator {
    * Request a garbage collection.
    */
   public void gc() {
-    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+//    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
   }
 
   /**

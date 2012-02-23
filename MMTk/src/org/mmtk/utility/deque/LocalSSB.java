@@ -12,7 +12,6 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.plan.Plan;
 import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
@@ -181,7 +180,6 @@ import org.vmmagic.unboxed.*;
     }
     tail = queue.alloc().plus(bufferSentinel(arity));
     tailBufferEnd = tail;
-    Plan.checkForAsyncCollection(); // possible side-effect of alloc()
   }
 
   /**

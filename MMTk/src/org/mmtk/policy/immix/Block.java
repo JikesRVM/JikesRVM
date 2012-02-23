@@ -126,7 +126,7 @@ public class Block implements Constants {
       else if (lastMark == markState)
         conservativeSpillCount++;
       else if (SANITY_CHECK_LINE_MARKS && lastMark != markState) {
-        VM.memory.zero(block.plus(offset<<(LOG_BYTES_IN_LINE-Line.LOG_BYTES_IN_LINE_STATUS)),Extent.fromIntZeroExtend(BYTES_IN_LINE));
+        VM.memory.zero(false, block.plus(offset<<(LOG_BYTES_IN_LINE-Line.LOG_BYTES_IN_LINE_STATUS)),Extent.fromIntZeroExtend(BYTES_IN_LINE));
       }
 
       lastMark = mark;

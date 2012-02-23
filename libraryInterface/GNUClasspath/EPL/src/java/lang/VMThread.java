@@ -107,7 +107,7 @@ final class VMThread {
    * Yield control
    */
   static void yield() {
-    RVMThread.yield();
+    RVMThread.yieldNoHandshake();
   }
   /**
    * Put the current thread to sleep

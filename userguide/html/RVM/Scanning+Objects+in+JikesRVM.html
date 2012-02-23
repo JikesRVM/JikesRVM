@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>RVM : Scanning Objects in JikesRVM</title>
+        <link rel="stylesheet" href="styles/site.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+
+    <body>
+        <div id="page">
+            <div id="main">
+                <div id="main-header" class="pageSectionHeader">
+                    <h1 id="title-heading" class="pagetitle">
+                                                <span id="title-text">
+                            RVM : Scanning Objects in JikesRVM
+                        </span>
+                    </h1>
+
+                    <div class="page-metadata">
+                        <p>This page last changed on Dec 21, 2011 by <font color="#0050B2">dgrove</font>.</p>
+                    </div>
+                </div>
+
+                <div id="content" class="view">
+                    <div id="main-content" class="wiki-content group">
+                    <p>One of the services that MMTk expects a virtual machine to perform on its behalf is the scanning of objects, i.e. identifying and processing the pointer fields of the live objects it encounters during collection. In principle the implementation of this interface is simple, but there are two moderately complex optimizations layered on top of this.</p><p>From MMTk's point of view, each time an object requires scanning it passes it to the VM, along with a TransitiveClosure object. The VM is expected to identify the pointers and invoke the processEdge method on each of the pointer fields in the object.  The rationale for the current object scanning scheme is presented <a href="http://portal.acm.org/citation.cfm?id=1993484" class="external-link" rel="nofollow">in this paper</a>.</p><h2 id="ScanningObjectsinJikesRVM-JikesRVMtoMMTkInterface">JikesRVM to MMTk Interface</h2><p>MMTk requires its host virtual machine to provide an implementation of the class org.mmtk.vm.Scanning as its interface to scanning objects.  JikesRVM's implementation of this class is found under the source tree MMTk/ext/vm/jikesrvm, in the class org.jikesrvm.mm.mmtk.Scanning.  The methods we are interested in are <em>scanObject(TransitiveClosure, ObjectReference)</em> and <em>specializedScanObject(int, TransitiveClosure, ObjectReference).</em></p><p>In MMTk, each plan defines one or more TransitiveClosure operations.  Simple full-heap collectors like MarkSweep only define one TransitiveClosure, but complex plans like GenImmix or the RefCount plans define several.  MMTk allows the plan to request specialized scanning on a closure-by-closure basis, closures that are specialized call <em>specializedScanObject</em> while unspecialized ones call scanObject.  Specialization is covered in more detail below.</p><p>In the absence of hand-inlined scanning, or if specialization is globally disabled, scanning reverts to the fallback method in org.jikesrvm.mm.mminterface.SpecializedScanMethod.  This method can be regarded as the basic underlying mechanism, and is worth understanding in detail.</p><p>RVMType type = ObjectModel.getObjectType(objectRef.toObject());<br />     int[] offsets = type.getReferenceOffsets();</p><p>This code fetches the array of offsets that JikesRVM uses to identify the pointer fields in the object.  This array is constructed by the classloader when a class is resolved.</p><pre>if (offsets != REFARRAY_OFFSET_ARRAY) {<br />  for(int i=0; i &lt; offsets.length; i++) {<br />    trace.processEdge(objectRef, objectRef.toAddress().plus(offsets[i]));<br />  }</pre><p>One distinguished value (actually null) is used to identify arrays of reference objects, and this block of code scans scalar objects by tracing each of the fields at the offsets given by the offset array.</p><pre> } else {<br />   for(int i=0; i &lt; ObjectModel.getArrayLength(objectRef.toObject()); i++) {<br />    trace.processEdge(objectRef, objectRef.toAddress().plus(i &lt;&lt; LOG_BYTES_IN_ADDRESS));<br />  }<br /> }</pre><p>The other case is reference arrays, for which we fetch the array length and scan each of the elements.</p><p>The internals of trace.processEdge vary by collector and by collection type (e.g. nursery/full-heap in a generational collector), and the details need not concern us here.</p><h2 id="ScanningObjectsinJikesRVM-HandInlining">Hand Inlining</h2><p>Hand inlining was introduced in February 2011, and uses a cute technique to encode 3 bits of metadata into the TIB pointer in an object's header.  The 7 most frequent object patterns are encoded into these bits, and then special-case code is written for each of them.</p><p>Hand inlining produces an average-case speedup slightly better than specialization, but performs poorly on some benchmarks.  This is why we use it in combination with specialization.</p><h2 id="ScanningObjectsinJikesRVM-SpecializedScanning">Specialized Scanning</h2><p>Specialized Scanning was introduced in September 2007.  It speeds up GC by removing the process of fetching and interpreting the offset array that describes each object, by jumping directly to a hard-coded method for scanning objects with a particular pattern.</p><p>The departure point from &quot;standard&quot; java into the specialized scanning method is SpecializedScanMethod.invoke(...), which looks like this</p><pre>  @SpecializedMethodInvoke<br />  @NoInline<br />  public static void invoke(int id, Object object, TransitiveClosure trace) {<br />    /* By default we call a non-specialized fallback */<br />    fallback(object, trace);<br />  } </pre><p>The `SpecializedMethodInvoke' annotation signals to the compiler that it should dispatch to one of the specialized method slots in the TIB.</p><p>Creation of specialized methods is handled by the class org.jikesrvm.classloader.SpecializedMethodManager.</p>
+                    </div>
+
+                    
+                 
+                </div>             </div> 
+            <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
+                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+            </div>
+        </div>     </body>
+</html>

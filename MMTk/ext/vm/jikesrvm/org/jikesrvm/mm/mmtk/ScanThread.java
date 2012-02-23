@@ -23,7 +23,6 @@ import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.mm.mminterface.GCMapIteratorGroup;
 import org.jikesrvm.mm.mminterface.MemoryManager;
-import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
@@ -31,6 +30,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
@@ -83,6 +83,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    *
    * Class variables
    */
+
   /** quietly validates each ref reported by map iterators */
   static final boolean VALIDATE_REFS = VM.VerifyAssertions;
 
@@ -91,19 +92,23 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * MULTIPLE GC THREADS WILL PRODUCE SCRAMBLED OUTPUT so only
    * use these when running with PROCESSORS=1
    */
-  static final int DEFAULT_VERBOSITY = 0 /*0*/;
-  static final int FAILURE_VERBOSITY = 4;
+  private static final int DEFAULT_VERBOSITY = 0 /*0*/;
+  private static final int FAILURE_VERBOSITY = 4;
 
   /***********************************************************************
    *
    * Instance variables
    */
   private final GCMapIteratorGroup iteratorGroup = new GCMapIteratorGroup();
+  @Untraced
   private GCMapIterator iterator;
+  @Untraced
   private TraceLocal trace;
   private boolean processCodeLocations;
+  @Untraced
   private RVMThread thread;
   private Address ip, fp, prevFp, initialIPLoc, topFrame;
+  @Untraced
   private CompiledMethod compiledMethod;
   private int compiledMethodType;
   private boolean failed;
@@ -179,20 +184,8 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
       initialIPLoc = thread.getContextRegisters().getIPLocation(); // FIXME
     }
 
-    /* Registers */
-    reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersField.getOffset()));
-    reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.threadContextRegistersSaveField.getOffset()));
-    reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.threadExceptionRegistersField.getOffset()));
-
-    /* Scan the JNI Env field */
-    if (thread.getJNIEnv() != null) {
-      reportDelayedRootEdge(trace,Magic.objectAsAddress(thread).plus(Entrypoints.jniEnvField.getOffset()));
-      reportDelayedRootEdge(trace,Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIRefsField.getOffset()));
-      reportDelayedRootEdge(trace,Magic.objectAsAddress(thread.getJNIEnv()).plus(Entrypoints.JNIPendingExceptionField.getOffset()));
-    }
-
     /* Grab the ScanThread instance associated with this thread */
-    ScanThread scanner = Magic.threadAsCollectorThread(RVMThread.getCurrentThread()).getThreadScanner();
+    ScanThread scanner = RVMThread.getCurrentThread().getCollectorThread().getThreadScanner();
 
     /* scan the stack */
     scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame);

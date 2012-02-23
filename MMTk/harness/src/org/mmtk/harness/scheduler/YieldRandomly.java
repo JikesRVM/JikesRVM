@@ -14,6 +14,9 @@ package org.mmtk.harness.scheduler;
 
 import java.util.Random;
 
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
+
 public final class YieldRandomly extends AbstractPolicy implements Policy {
 
   private int index = 0;
@@ -29,15 +32,18 @@ public final class YieldRandomly extends AbstractPolicy implements Policy {
   }
 
   public YieldRandomly(Thread thread, int seed, int length, int min, int max) {
-    super(thread);
+    super(thread, "YieldRandomly");
     this.schedule = new int[length];
 
-    if (rng == null) {
-      rng = new Random(seed);
+    synchronized(YieldRandomly.class) {
+      if (rng == null) {
+        rng = new Random(seed);
+      }
     }
     for (int i=0; i < length; i++) {
       schedule[i] = rng.nextInt(max-min+1)+min;
     }
+    Trace.trace(Item.SCHEDULER, "  yield pattern %s", formatPolicy());
   }
 
   @Override

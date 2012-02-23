@@ -33,7 +33,7 @@ import org.vmmagic.pragma.UninterruptibleNoWarn;
  */
 @Uninterruptible
 @NonMoving
-public class TimerThread extends RVMThread {
+public class TimerThread extends SystemThread {
   private static final int verbose = 0;
   public TimerThread() {
     super("TimerThread");
@@ -42,8 +42,8 @@ public class TimerThread extends RVMThread {
   // TODO: consider allowing GC to be sampled to enable profile-directed optimization of MMTk.
   @Override
   public void run() {
-    disableYieldpoints();
-    if (verbose>=1) trace("TimerThread","run routine entered");
+    VM.disableYieldpoints();
+    if (verbose>=1) VM.sysWriteln("TimerThread run routine entered");
     try {
       for (;;) {
         sysCall.sysNanoSleep(1000L*1000L*(long)VM.interruptQuantum);
@@ -75,6 +75,5 @@ public class TimerThread extends RVMThread {
     e.printStackTrace();
     VM._assert(VM.NOT_REACHED);
   }
-  public boolean ignoreHandshakesAndGC() { return true; }
 }
 

@@ -12,8 +12,8 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.apt.annotations.GenerateImplementation;
-import org.jikesrvm.apt.annotations.SysCallTemplate;
+import org.jikesrvm.annotations.GenerateImplementation;
+import org.jikesrvm.annotations.SysCallTemplate;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -90,6 +90,9 @@ public abstract class SysCall {
 
   @SysCallTemplate
   public abstract void sysFree(Address location);
+
+  @SysCallTemplate
+  public abstract void sysZeroNT(Address dst, Extent cnt);
 
   @SysCallTemplate
   public abstract void sysZero(Address dst, Extent cnt);

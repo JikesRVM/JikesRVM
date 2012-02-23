@@ -36,8 +36,7 @@ static const int RECOMP_INDEX                  = IRC_INDEX+1;
 static const int BASE_INDEX                    = RECOMP_INDEX+1;
 static const int OPT_INDEX                     = BASE_INDEX+1;
 static const int VMCLASSES_INDEX               = OPT_INDEX+1;
-static const int CPUAFFINITY_INDEX             = VMCLASSES_INDEX+1;
-static const int PROCESSORS_INDEX              = CPUAFFINITY_INDEX+1;
+static const int PROCESSORS_INDEX              = VMCLASSES_INDEX+1;
 
 static const int numNonstandardArgs      = PROCESSORS_INDEX+1;
 
@@ -59,42 +58,41 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:base",
    "-X:opt",
    "-X:vmClasses=",
-   "-X:cpuAffinity=",
-   "-X:processors=",
+   "-X:availableProcessors=",
 };
 
 // a NULL-terminated list.
 static const char* nonStandardUsage[] = {
-   "    -X                       Print usage on nonstandard options",
-   "    -X:verbose               Print out additional lowlevel information",
-   "    -X:verboseBoot=<number>  Print out messages while booting VM",
-   "    -Xms<number><unit>       Initial size of heap",
-   "    -Xmx<number><unit>       Maximum size of heap",
-   "    -X:sysLogfile=<filename> Write standard error message to <filename>",
-   "    -X:ic=<filename>         Read boot image code from <filename>",
-   "    -X:id=<filename>         Read boot image data from <filename>",
-   "    -X:ir=<filename>         Read boot image ref map from <filename>",
-   "    -X:vm:<option>           Pass <option> to virtual machine",
-   "          :help              Print usage choices for -X:vm",
-   "    -X:gc:<option>           Pass <option> on to GC subsystem",
-   "          :help              Print usage choices for -X:gc",
-   "    -X:aos:<option>          Pass <option> on to adaptive optimization system",
-   "          :help              Print usage choices for -X:aos",
-   "    -X:irc:<option>          Pass <option> on to the initial runtime compiler",
-   "          :help              Print usage choices for -X:irc",
-   "    -X:recomp:<option>       Pass <option> on to the recompilation compiler(s)",
-   "          :help              Print usage choices for -X:recomp",
-   "    -X:base:<option>         Pass <option> on to the baseline compiler",
-   "          :help              print usage choices for -X:base",
-   "    -X:opt:<option>          Pass <option> on to the optimizing compiler",
-   "          :help              Print usage choices for -X:opt",
-   "    -X:vmClasses=<path>      Load the org.jikesrvm.* and java.* classes",
+   "  -X                         Print usage on nonstandard options",
+   "  -X:verbose                 Print out additional lowlevel information",
+   "  -X:verboseBoot=<number>    Print out messages while booting VM",
+   "  -Xms<number><unit>         Initial size of heap",
+   "  -Xmx<number><unit>         Maximum size of heap",
+   "  -X:sysLogfile=<filename>   Write standard error message to <filename>",
+   "  -X:ic=<filename>           Read boot image code from <filename>",
+   "  -X:id=<filename>           Read boot image data from <filename>",
+   "  -X:ir=<filename>           Read boot image ref map from <filename>",
+   "  -X:vm:<option>             Pass <option> to virtual machine",
+   "        :help                Print usage choices for -X:vm",
+   "  -X:gc:<option>             Pass <option> on to GC subsystem",
+   "        :help                Print usage choices for -X:gc",
+   "  -X:aos:<option>            Pass <option> on to adaptive optimization system",
+   "        :help                Print usage choices for -X:aos",
+   "  -X:irc:<option>            Pass <option> on to the initial runtime compiler",
+   "        :help                Print usage choices for -X:irc",
+   "  -X:recomp:<option>         Pass <option> on to the recompilation compiler(s)",
+   "        :help                Print usage choices for -X:recomp",
+   "  -X:base:<option>           Pass <option> on to the baseline compiler",
+   "        :help                print usage choices for -X:base",
+   "  -X:opt:<option>            Pass <option> on to the optimizing compiler",
+   "        :help                Print usage choices for -X:opt",
+   "  -X:vmClasses=<path>        Load the org.jikesrvm.* and java.* classes",
    "                             from <path>, a list like one would give to the",
    "                             -classpath argument.",
-   "    -Xbootclasspath/p:<cp>   (p)repend bootclasspath with specified classpath",
-   "    -Xbootclasspath/a:<cp>   (a)ppend specified classpath to bootclasspath",
-   "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",
-   "    -X:processors=<number|\"all\">  no. of virtual processors",
+   "  -Xbootclasspath/p:<cp>     (p)repend bootclasspath with specified classpath",
+   "  -Xbootclasspath/a:<cp>     (a)ppend specified classpath to bootclasspath",
+   "  -X:availableProcessors=<n> desired level of application parallelism (set",
+   "                             -X:gc:threads to control gc parallelism)",
    NULL                         /* End of messages */
 };
 
