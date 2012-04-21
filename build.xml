@@ -103,9 +103,9 @@
   <property name="bootimage.threads" value="1"/>
 
   <!-- Source versions -->
-  <property name="mmtk.java.version" value="1.5"/>
+  <property name="mmtk.java.version" value="1.6"/>
   <property name="harness.java.version" value="1.6"/>
-  <property name="rvm.java.version" value="1.5"/>
+  <property name="rvm.java.version" value="1.6"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
