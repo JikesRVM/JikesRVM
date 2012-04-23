@@ -34,14 +34,17 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  */
 public class LocalConstantProp extends CompilerPhase {
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.LOCAL_CONSTANT_PROP;
   }
 
+  @Override
   public final String getName() {
     return "Local ConstantProp";
   }
 
+  @Override
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
@@ -54,6 +57,7 @@ public class LocalConstantProp extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -63,6 +67,7 @@ public class LocalConstantProp extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public void perform(IR ir) {
     // info is a mapping from Register to ConstantOperand.
     HashMap<Register, ConstantOperand> info = new HashMap<Register, ConstantOperand>();

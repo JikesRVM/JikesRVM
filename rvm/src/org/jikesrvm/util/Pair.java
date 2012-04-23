@@ -22,10 +22,12 @@ public class Pair<X, Y> {
     second = s;
   }
 
+  @Override
   public int hashCode() {
     return (first.hashCode() | second.hashCode());
   }
 
+  @Override
   public boolean equals(Object o) {
     if (o instanceof Pair<?, ?>) {
       Pair<?, ?> p = (Pair<?, ?>) o;

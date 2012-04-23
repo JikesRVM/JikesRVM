@@ -75,6 +75,7 @@ public final class MethodSampleOrganizer extends Organizer {
   /**
    * Method that is called when the sampling threshold is reached
    */
+  @Override
   void thresholdReached() {
     AOSLogging.logger.organizerThresholdReached();
 

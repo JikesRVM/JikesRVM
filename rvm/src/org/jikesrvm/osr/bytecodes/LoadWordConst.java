@@ -25,20 +25,24 @@ public class LoadWordConst extends PseudoBytecode {
     this.wbits = bits;
   }
 
+  @Override
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_LoadWordConst);
     word2bytes(codes, 2, wbits);
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     return +1;
   }
 
+  @Override
   public String toString() {
     return "LoadWord 0x" + Long.toHexString(wbits.toLong());
   }

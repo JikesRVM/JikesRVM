@@ -59,6 +59,7 @@ public final class LoadFixedFieldOp extends UnaryOp {
     return frame.get(operand).getObjectValue();
   }
 
+  @Override
   public String toString() {
     return String.format("%s <- %s.%s", Register.nameOf(getResult()),
         Register.nameOf(operand),fieldName);

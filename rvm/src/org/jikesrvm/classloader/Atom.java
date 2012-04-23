@@ -223,6 +223,7 @@ public final class Atom {
    * Return printable representation of "this" atom.
    * Does not correctly handle UTF8 translation.
    */
+  @Override
   @Pure
   public String toString() {
     return StringUtilities.asciiBytesToString(val);
@@ -877,6 +878,7 @@ public final class Atom {
    * Return the hashCode of an atom, this equals the unicode string encoding of
    * the atom
    */
+  @Override
   public int hashCode() {
     try {
       if (unicodeStringOrJTOCoffset != null) {
@@ -894,6 +896,7 @@ public final class Atom {
    * This method is used to maintain atoms in internal hash tables and shouldn't
    * be used externally.
    */
+  @Override
   @Pure
   public boolean equals(Object other) {
     // quick test as atoms are generally canonical

@@ -32,6 +32,7 @@ public final class NullValue extends ObjectValue {
   /**
    * Get this value as a boolean.
    */
+  @Override
   public boolean getBoolValue() {
     return false;
   }

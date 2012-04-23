@@ -59,6 +59,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
   /**
    * Should SegregatedFreeListSpace manage a side bitmap to keep track of live objects?
    */
+  @Override
   @Inline
   protected boolean maintainSideBitmap() {
     return true;
@@ -67,6 +68,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
   /**
    * Do we need to preserve free lists as we move blocks around.
    */
+  @Override
   @Inline
   protected boolean preserveFreeList() {
     return false;
@@ -89,6 +91,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    * @return The address of the first pre-zeroed cell in the free list
    * for this block, or zero if there are no available cells.
    */
+  @Override
   protected Address advanceToBlock(Address block, int sizeClass) {
     return makeFreeList(block, sizeClass);
   }
@@ -100,6 +103,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    * @param block The new block
    * @param sizeClass The block's sizeclass.
    */
+  @Override
   protected void notifyNewBlock(Address block, int sizeClass) {
     clearLiveBits(block, sizeClass);
   }
@@ -133,6 +137,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    *
    * @param start The address of the start of the page or pages
    */
+  @Override
   @Inline
   public void release(Address start) {
     ((FreeListPageResource) pr).releasePages(start);
@@ -156,6 +161,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     return object;
@@ -166,6 +172,7 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
+  @Override
   @Inline
   public boolean isLive(ObjectReference object) {
     return liveBitSet(object);

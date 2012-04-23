@@ -28,18 +28,22 @@ public final class ExpandCallingConvention extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return options.PRINT_CALLING_CONVENTIONS && !before;
   }
 
+  @Override
   public String getName() {
     return "Expand Calling Convention";
   }
 
+  @Override
   public void perform(org.jikesrvm.compilers.opt.ir.IR ir) {
     CallingConvention.expandCallingConventions(ir);
   }

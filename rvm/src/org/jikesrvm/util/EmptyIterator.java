@@ -18,11 +18,14 @@ import java.util.Iterator;
  * A generic iterator containing no items
  */
 public final class EmptyIterator<T> implements Iterator<T> {
+  @Override
   public boolean hasNext() {
     return false;
   }
+  @Override
   public T next() {
     return null;
   }
+  @Override
   public void remove() {}
 }

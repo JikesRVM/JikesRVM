@@ -82,6 +82,7 @@ import org.vmmagic.pragma.*;
    * @param start the starting address of the tile
    * @param end the end address
    */
+  @Override
   public void setTilename(int i, Address start, Address end) {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverSetTileNameRange(driver, i, start, end);
@@ -93,6 +94,7 @@ import org.vmmagic.pragma.*;
    * @param format the name of the tile, a format string
    * @param value The value for the format string
    */
+  @Override
   public void setTilename(int i, Address format, long value) {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverSetTileName(driver, i, format, value);
@@ -104,6 +106,7 @@ import org.vmmagic.pragma.*;
    * @param format The name, including format tags
    * @param value The value for the format string
    */
+  @Override
   public void setTilename(int i, String format, long value) {
     if (VM.BuildWithGCSpy) {
       Address tileName = GCspy.util.getBytes(format);
@@ -116,6 +119,7 @@ import org.vmmagic.pragma.*;
    * Tell the C driver to resize
    * @param size the new driver size
    */
+  @Override
   public void resize(int size) {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverResize(driver, size);
@@ -124,6 +128,7 @@ import org.vmmagic.pragma.*;
   /**
    * Start a transmission
    */
+  @Override
   public void startCommunication() {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverStartComm(driver);
@@ -134,6 +139,7 @@ import org.vmmagic.pragma.*;
    * @param streamId the stream's ID
    * @return the address of the C gcspy_gc_stream_t
    */
+  @Override
   public Address addStream(int streamId) {
     if (VM.BuildWithGCSpy)
       return sysCall.gcspyDriverAddStream(driver, streamId);
@@ -146,6 +152,7 @@ import org.vmmagic.pragma.*;
    * @param streamId The stream's ID
    * @param len The number of items in the stream
    */
+  @Override
   public void stream(int streamId, int len) {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverStream(driver, streamId, len);
@@ -155,6 +162,7 @@ import org.vmmagic.pragma.*;
    * Send a byte
    * @param value The byte
    */
+  @Override
   public void streamByteValue(byte value) {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverStreamByteValue(driver, value);
@@ -164,6 +172,7 @@ import org.vmmagic.pragma.*;
    * Send a short
    * @param value The short
    */
+  @Override
   public void streamShortValue(short value) {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverStreamShortValue(driver, value);
@@ -173,6 +182,7 @@ import org.vmmagic.pragma.*;
    * Send an int
    * @param value The int
    */
+  @Override
   public void streamIntValue(int value) {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverStreamIntValue(driver, value);
@@ -181,6 +191,7 @@ import org.vmmagic.pragma.*;
   /**
    * End of this stream
    */
+  @Override
   public void streamEnd() {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverEndOutput(driver);
@@ -191,6 +202,7 @@ import org.vmmagic.pragma.*;
    * @param streamId The stream's ID
    * @param len The number of items to be sent
    */
+  @Override
   public void summary(int streamId, int len) {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverSummary(driver, streamId, len);
@@ -200,6 +212,7 @@ import org.vmmagic.pragma.*;
    * Send a summary value
    * @param val The value
    */
+  @Override
   public void summaryValue(int val) {
     sysCall.gcspyDriverSummaryValue(driver, val);
   }
@@ -207,6 +220,7 @@ import org.vmmagic.pragma.*;
   /**
    * End the summary
    */
+  @Override
   public void summaryEnd() {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverEndOutput(driver);
@@ -217,6 +231,7 @@ import org.vmmagic.pragma.*;
    * @param space The GCspy driver for this space
    * @param tileNum The number of tiles
    */
+  @Override
   public void sendControls(AbstractDriver space, int tileNum) {
     // start the stream
     if (VM.BuildWithGCSpy) {
@@ -239,6 +254,7 @@ import org.vmmagic.pragma.*;
    * Send info for this space
    * @param info A pointer to the information (held as C string)
    */
+  @Override
   public void spaceInfo(Address info) {
     if (VM.BuildWithGCSpy)
       sysCall.gcspyDriverSpaceInfo(driver, info);

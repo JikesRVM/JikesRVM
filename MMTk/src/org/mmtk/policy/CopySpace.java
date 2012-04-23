@@ -129,6 +129,7 @@ import org.vmmagic.pragma.*;
    *
    * @param start The address of the start of the page or pages
    */
+  @Override
   @Inline
   public void release(Address start) {
     if (VM.VERIFY_ASSERTIONS)
@@ -154,6 +155,7 @@ import org.vmmagic.pragma.*;
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     VM.assertions.fail("CopySpace.traceLocal called without allocator");
@@ -215,6 +217,7 @@ import org.vmmagic.pragma.*;
    * @param object The object in question
    * @return True if this object is live in this GC (has it been forwarded?)
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     return ForwardingWord.isForwarded(object);
   }
@@ -226,6 +229,7 @@ import org.vmmagic.pragma.*;
    * @param object The object reference.
    * @return True if the object is reachable.
    */
+  @Override
   public boolean isReachable(ObjectReference object) {
     return !fromSpace || ForwardingWord.isForwarded(object);
   }

@@ -28,6 +28,7 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 public class AdjustBCIndexes extends CompilerPhase {
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return true;
   }
@@ -38,12 +39,15 @@ public class AdjustBCIndexes extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final String getName() { return "AdjustBytecodeIndexes"; }
 
+  @Override
   public final void perform(IR ir) {
     if (!ir.method.isForOsrSpecialization()) return;
     int offset = ir.method.getOsrPrologueLength();

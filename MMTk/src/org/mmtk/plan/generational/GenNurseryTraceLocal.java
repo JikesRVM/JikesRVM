@@ -58,6 +58,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    * @param object The object.
    * @return True if the object is live.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Gen.inNursery(object)) {
@@ -78,6 +79,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (Gen.inNursery(object)) {
@@ -89,6 +91,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
   /**
    * Process any remembered set entries.
    */
+  @Override
   @Inline
   protected void processRememberedSets() {
     logMessage(5, "processing modbuf");
@@ -123,6 +126,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    * @param object The object to query.
    * @return True if the object is guaranteed not to move.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (object.isNull()) return false;
     return !Gen.inNursery(object);

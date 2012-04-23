@@ -105,6 +105,7 @@ public class SS extends StopTheWorld {
    *
    * @param phaseId Collection phase
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (phaseId == SS.PREPARE) {
@@ -142,6 +143,7 @@ public class SS extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
+  @Override
   public final int getCollectionReserve() {
     // we must account for the number of pages required for copying,
     // which equals the number of semi-space pages reserved
@@ -156,6 +158,7 @@ public class SS extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return super.getPagesUsed() + toSpace().reservedPages();
   }
@@ -167,6 +170,7 @@ public class SS extends StopTheWorld {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the semi-space</i>.
    */
+  @Override
   public final int getPagesAvail() {
     return(super.getPagesAvail()) >> 1;
   }
@@ -187,6 +191,7 @@ public class SS extends StopTheWorld {
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_SS, SSTraceLocal.class);

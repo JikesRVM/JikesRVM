@@ -264,6 +264,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
    */
   static void setAccessible(final AccessibleObject obj) {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        @Override
         public Object run() {
             obj.setAccessible(true);
             return null;
@@ -307,6 +308,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     }
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public TypeVariable<Class<T>>[] getTypeParameters() {
     if (!type.isClassType()) {
@@ -608,18 +610,22 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   // --- AnnotatedElement interface ---
 
+  @Override
   public Annotation[] getDeclaredAnnotations() {
     return type.getDeclaredAnnotations();
   }
 
+  @Override
   public Annotation[] getAnnotations() {
     return type.getAnnotations();
   }
 
+  @Override
   public <U extends Annotation> U getAnnotation(Class<U> annotationClass) {
     return type.getAnnotation(annotationClass);
   }
 
+  @Override
   public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
     return type.isAnnotationPresent(annotationClass);
   }

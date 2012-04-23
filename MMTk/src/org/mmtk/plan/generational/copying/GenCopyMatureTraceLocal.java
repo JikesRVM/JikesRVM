@@ -52,6 +52,7 @@ public final class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
    * interior pointer.
    * @return The possibly moved reference.
    */
+  @Override
   public ObjectReference traceObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(global().traceFullHeap());
     if (object.isNull()) return object;
@@ -69,6 +70,7 @@ public final class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(GenCopy.MS0, object))
@@ -93,6 +95,7 @@ public final class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
    * @return True if this object is guaranteed not to move during this
    *         collection.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (Space.isInSpace(GenCopy.toSpaceDesc(), object)) {
       return true;

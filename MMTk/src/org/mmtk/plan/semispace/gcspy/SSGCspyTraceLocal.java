@@ -48,6 +48,7 @@ public final class SSGCspyTraceLocal extends SSTraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
@@ -62,6 +63,7 @@ public final class SSGCspyTraceLocal extends SSTraceLocal {
    * @param object The object to query.
    * @return True if the object will not move.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (Space.isInSpace(SSGCspy.GCSPY, object))
       return true;

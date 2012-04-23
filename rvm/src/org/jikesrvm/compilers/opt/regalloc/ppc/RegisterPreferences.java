@@ -45,6 +45,7 @@ public abstract class RegisterPreferences extends GenericRegisterPreferences imp
   /**
    * Set up register preferences based on instructions in an IR.
    */
+  @Override
   public void initialize(IR ir) {
     for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();

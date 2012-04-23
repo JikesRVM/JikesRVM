@@ -106,14 +106,17 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.ADAPTIVE_INSTRUMENTATION_SAMPLING;
   }
 
+  @Override
   public String getName() { return "InstrumentationSamplingFramework"; }
 
   /**
@@ -121,6 +124,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public void perform(IR ir) {
 
     DEBUG = ir.options.DEBUG_INSTRU_SAMPLING;

@@ -159,6 +159,7 @@ public class StickyImmix extends Immix {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
+  @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = immixSpace.getPagesAllocated() > Options.nurserySize.getMaxNursery();
     if (spaceFull && space != immixSpace) nextGCWholeHeap = true;
@@ -208,6 +209,7 @@ public class StickyImmix extends Immix {
   /**
    * @return Is current GC only collecting objects allocated since last GC.
    */
+  @Override
   public final boolean isCurrentGCNursery() {
     return !collectWholeHeap;
   }
@@ -222,6 +224,7 @@ public class StickyImmix extends Immix {
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_NURSERY, StickyImmixNurseryTraceLocal.class);

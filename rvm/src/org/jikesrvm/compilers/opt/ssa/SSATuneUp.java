@@ -47,6 +47,7 @@ public final class SSATuneUp extends OptimizationPlanCompositeElement {
         new OptimizationPlanAtomicElement(new FoldingDriver())});
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA;
   }
@@ -62,14 +63,17 @@ public final class SSATuneUp extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA && options.SSA_EXPRESSION_FOLDING;
     }
 
+    @Override
     public final String getName() {
       return "SSA Expression Folding";
     }
@@ -77,6 +81,7 @@ public final class SSATuneUp extends OptimizationPlanCompositeElement {
     /**
      * Execute expression folding.
      */
+    @Override
     public final void perform(IR ir) {
       DefUse.computeDU(ir);
       ExpressionFolding.perform(ir);
@@ -109,14 +114,17 @@ public final class SSATuneUp extends OptimizationPlanCompositeElement {
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
+    @Override
     public Constructor<CompilerPhase> getClassConstructor() {
       return constructor;
     }
 
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA;
     }
 
+    @Override
     public final String getName() {
       return "SSA Tune UpPreparation";
     }
@@ -125,6 +133,7 @@ public final class SSATuneUp extends OptimizationPlanCompositeElement {
      * register in the IR the SSA properties we need for simple scalar
      * optimizations
      */
+    @Override
     public final void perform(IR ir) {
       ir.desiredSSAOptions = new SSAOptions();
       ir.desiredSSAOptions.setScalarsOnly(true);

@@ -46,6 +46,7 @@ public final class GenMSMatureTraceLocal extends GenMatureTraceLocal{
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
@@ -62,6 +63,7 @@ public final class GenMSMatureTraceLocal extends GenMatureTraceLocal{
    * @param object The object.
    * @return True if the object is live.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(GenMS.MS, object)) {
@@ -79,6 +81,7 @@ public final class GenMSMatureTraceLocal extends GenMatureTraceLocal{
    * @return True if this object is guaranteed not to move during this
    *         collection.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (Space.isInSpace(GenMS.MS, object)) {
       return true;

@@ -70,6 +70,7 @@ public final class ConcurrentPhase extends Phase
   /**
    * Display a description of this phase, for debugging purposes.
    */
+  @Override
   protected void logPhase() {
     Log.write("ConcurrentPhase(");
     Log.write(name);

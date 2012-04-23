@@ -27,6 +27,7 @@ class SortableField implements Comparable<SortableField> {
     offset = f.getOffset();
   }
 
+  @Override
   public int compareTo(SortableField y) {
     if (offset.sGT(y.offset)) return 1;
     if (offset.sLT(y.offset)) return -1;

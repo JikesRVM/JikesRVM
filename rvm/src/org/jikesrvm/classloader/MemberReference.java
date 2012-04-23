@@ -313,10 +313,12 @@ public abstract class MemberReference {
     return true;
   }
 
+  @Override
   public final int hashCode() {
     return type.hashCode() + name.hashCode() + descriptor.hashCode();
   }
 
+  @Override
   public final boolean equals(Object other) {
     if (other instanceof MemberReference) {
       MemberReference that = (MemberReference) other;
@@ -326,6 +328,7 @@ public abstract class MemberReference {
     }
   }
 
+  @Override
   public final String toString() {
     return "< " + type.getClassLoader() + ", " + type.getName() + ", " + name + ", " + descriptor + " >";
   }

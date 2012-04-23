@@ -34,6 +34,7 @@ public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
   @Entrypoint
   private int count = 0;
 
+  @Override
   public int reset() {
     //    int offset = Interface.synchronizedCounterOffset;
     int oldValue = count;
@@ -48,11 +49,13 @@ public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
 
   // Returns the value before the add
   //
+  @Override
   public int increment() {
     if (VM.VerifyAssertions) VM._assert(!offset.isMax());
     return Synchronization.fetchAndAdd(this, offset, 1);
   }
 
+  @Override
   public int peek() {
     return count;
   }

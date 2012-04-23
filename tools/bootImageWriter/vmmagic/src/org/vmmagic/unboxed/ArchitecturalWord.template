@@ -40,15 +40,18 @@ abstract class ArchitecturalWord {
     @64MASK@this.value = value;
   }
 
+  @Override
   @Interruptible
   public String toString() {
     return ""+value;
   }
 
+  @Override
   public int hashCode() {
     return (int)value;
   }
 
+  @Override
   public boolean equals(Object that) {
     if (that instanceof ArchitecturalWord) {
       return value == ((ArchitecturalWord)that).value;

@@ -22,6 +22,7 @@ public class FilteredDFSenumerateByFinish extends DFSenumerateByFinish {
     this.filter = filter;
   }
 
+  @Override
   protected GraphNodeEnumeration getConnected(GraphNode n) {
     return filter.outNodes(n);
   }

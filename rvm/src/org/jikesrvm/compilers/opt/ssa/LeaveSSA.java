@@ -84,6 +84,7 @@ public class LeaveSSA extends CompilerPhase {
    * Should we perform this phase?
    * @param options controlling compiler options
    */
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.SSA;
   }
@@ -97,6 +98,7 @@ public class LeaveSSA extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -105,6 +107,7 @@ public class LeaveSSA extends CompilerPhase {
    * Return a string name for this phase.
    * @return "Leave SSA"
    */
+  @Override
   public final String getName() {
     return "Leave SSA";
   }
@@ -113,6 +116,7 @@ public class LeaveSSA extends CompilerPhase {
    * perform the main out-of-ssa transformation
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
     this.ir = ir;
     translateFromSSA(ir);

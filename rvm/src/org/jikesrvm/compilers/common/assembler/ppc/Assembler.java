@@ -182,6 +182,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
     forwardRefs = ForwardReference.resolveMatching(this, forwardRefs, label);
   }
 
+  @Override
   public final void patchUnconditionalBranch(int sourceMachinecodeIndex) {
     int delta = mIP - sourceMachinecodeIndex;
     int instr = mc.getInstruction(sourceMachinecodeIndex);
@@ -190,6 +191,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
     mc.putInstruction(sourceMachinecodeIndex, instr);
   }
 
+  @Override
   public final void patchConditionalBranch(int sourceMachinecodeIndex) {
     int delta = mIP - sourceMachinecodeIndex;
     int instr = mc.getInstruction(sourceMachinecodeIndex);
@@ -204,6 +206,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
     }
   }
 
+  @Override
   public final void patchShortBranch(int sourceMachinecodeIndex) {
     int delta = mIP - sourceMachinecodeIndex;
     int instr = mc.getInstruction(sourceMachinecodeIndex);
@@ -231,6 +234,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   * The third instruction should be patched with accurate relative address.
   * It is computed by (mIP - sourceIndex + 1)*4;
   */
+  @Override
   public final void patchLoadReturnAddress(int sourceIndex) {
     int offset = (mIP - sourceIndex + 1) * 4;
     int mi = ADDI(T1, offset, T1);
@@ -247,6 +251,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
 
   /************ OSR Support */
 
+  @Override
   public final void patchSwitchCase(int sourceMachinecodeIndex) {
     int delta = (mIP - sourceMachinecodeIndex) << 2;
     // correction is number of bytes of source off switch base

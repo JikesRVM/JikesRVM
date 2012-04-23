@@ -27,6 +27,7 @@ public final class RandomPolicyMax extends org.vmutil.options.IntOption {
         Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.random.max", "20")));
   }
 
+  @Override
   protected void validate() {
   }
 }

@@ -33,6 +33,7 @@ abstract class Priority implements InstructionEnumeration {
    *
    * @return true if there are more instructions, false otherwise
    */
+  @Override
   public abstract boolean hasMoreElements();
 
   /**
@@ -40,6 +41,7 @@ abstract class Priority implements InstructionEnumeration {
    *
    * @return the next instruction in sequence
    */
+  @Override
   public final Instruction nextElement() {
     return next();
   }
@@ -49,6 +51,7 @@ abstract class Priority implements InstructionEnumeration {
    *
    * @return the next instruction in sequence
    */
+  @Override
   public abstract Instruction next();
 }
 

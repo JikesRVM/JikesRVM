@@ -28,6 +28,7 @@ public final class DominatorTreePhase extends CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     // only perform if the dominators were successfully computed and
     // one of the following options are set.
@@ -38,6 +39,7 @@ public final class DominatorTreePhase extends CompilerPhase {
    * Returns "Dominator Tree"
    * @return "Dominator Tree"
    */
+  @Override
   public String getName() {
     return "Dominator Tree";
   }
@@ -48,6 +50,7 @@ public final class DominatorTreePhase extends CompilerPhase {
    * @param before query control
    * @return true or false.
    */
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -57,6 +60,7 @@ public final class DominatorTreePhase extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public void perform(IR ir) {
     // make sure the dominator computation completed successfully
     if (!ir.HIRInfo.dominatorsAreComputed) {

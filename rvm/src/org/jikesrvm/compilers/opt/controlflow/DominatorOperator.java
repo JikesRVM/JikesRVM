@@ -34,6 +34,7 @@ class DominatorOperator extends DF_Operator {
    *       of the equation.
    * @return true if the value of the lhs changes. false otherwise
    */
+  @Override
   public boolean evaluate(DF_LatticeCell[] operands) {
     DominatorCell lhs = (DominatorCell) operands[0];
     IR ir = lhs.ir;
@@ -57,6 +58,7 @@ class DominatorOperator extends DF_Operator {
    * Return a String representation of the operator
    * @return "MEET"
    */
+  @Override
   public String toString() {
     return "MEET";
   }

@@ -22,6 +22,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
   /**
    * @return The name of the current MMTk plan
    */
+  @Override
   public String getPlanName() {
     return Harness.plan.getValue();
   }
@@ -31,6 +32,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
    * @param name The name of the property
    * @return The value of the property
    */
+  @Override
   public String getStringProperty(String name) {
     return System.getProperty(name);
   }
@@ -41,6 +43,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
    * @param dflt Default value
    * @return The value of the property
    */
+  @Override
   public String getStringProperty(String name, String dflt) {
     return System.getProperty(name, dflt);
   }
@@ -50,6 +53,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
    * @param name The name of the property
    * @return The value of the property
    */
+  @Override
   public int getIntProperty(String name) {
     return Integer.parseInt(System.getProperty(name));
   }
@@ -60,6 +64,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
    * @param dflt Default value
    * @return The value of the property
    */
+  @Override
   public int getIntProperty(String name, int dflt) {
     String value = System.getProperty(name);
     return value == null ? dflt : Integer.parseInt(value);
@@ -70,6 +75,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
    * @param name The name of the property
    * @return The value of the property
    */
+  @Override
   public boolean getBooleanProperty(String name) {
     return Boolean.parseBoolean(System.getProperty(name));
   }
@@ -80,6 +86,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
    * @param dflt Default value
    * @return The value of the property
    */
+  @Override
   public boolean getBooleanProperty(String name, boolean dflt) {
     String value = System.getProperty(name);
     return value == null ? dflt : Boolean.parseBoolean(value);

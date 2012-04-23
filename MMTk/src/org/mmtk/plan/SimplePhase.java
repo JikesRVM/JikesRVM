@@ -52,6 +52,7 @@ public final class SimplePhase extends Phase
   /**
    * Display a phase for debugging purposes.
    */
+  @Override
   protected void logPhase() {
     Log.write("SimplePhase(");
     Log.write(name);

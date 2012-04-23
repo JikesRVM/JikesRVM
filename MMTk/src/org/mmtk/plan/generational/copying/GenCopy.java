@@ -95,6 +95,7 @@ import org.vmmagic.pragma.*;
   /**
    * @return Does the mature space do copying ?
    */
+  @Override
   protected boolean copyMature() {
     return true;
   }
@@ -134,6 +135,7 @@ import org.vmmagic.pragma.*;
    *
    * @param phaseId Collection phase to process
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (traceFullHeap()) {
@@ -171,6 +173,7 @@ import org.vmmagic.pragma.*;
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   @Inline
   public int getPagesUsed() {
     return toSpace().reservedPages() + super.getPagesUsed();
@@ -181,6 +184,7 @@ import org.vmmagic.pragma.*;
    *
    * @return the number of pages reserved for copying.
    */
+  @Override
   public final int getCollectionReserve() {
     // we must account for the number of pages required for copying,
     // which equals the number of semi-space pages reserved
@@ -194,6 +198,7 @@ import org.vmmagic.pragma.*;
    * @return The number of pages available for allocation into the mature
    * space.
    */
+  @Override
   public int getMaturePhysicalPagesAvail() {
     return toSpace().availablePhysicalPages() >> 1;
   }
@@ -205,6 +210,7 @@ import org.vmmagic.pragma.*;
   /**
    * @return The mature space we are currently allocating into
    */
+  @Override
   @Inline
   public Space activeMatureSpace() {
     return toSpace();
@@ -213,6 +219,7 @@ import org.vmmagic.pragma.*;
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_MATURE, GenCopyMatureTraceLocal.class);

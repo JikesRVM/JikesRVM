@@ -40,6 +40,7 @@ import org.vmmagic.pragma.*;
    * @param port The number of the port on which to communicate
    * @param verbose Whether the server is to run verbosely
    */
+  @Override
   @Interruptible
   public void init(String name, int port, boolean verbose) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
@@ -68,6 +69,7 @@ import org.vmmagic.pragma.*;
    * @param num the event number
    * @param name the event name
    */
+  @Override
   public void addEvent(int num, String name) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
@@ -84,6 +86,7 @@ import org.vmmagic.pragma.*;
    * Set the general info for the ServerInterpreter.
    * @param info the information
    */
+  @Override
   public void setGeneralInfo(String info) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
@@ -100,6 +103,7 @@ import org.vmmagic.pragma.*;
    * Start the server, running its main loop in a pthread.
    * @param wait Whether to wait for the client to connect
    */
+  @Override
   public void startServer(boolean wait) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG) { Log.write("Starting GCSpy server, wait="); Log.writeln(wait); }
@@ -114,6 +118,7 @@ import org.vmmagic.pragma.*;
    * @param event The current event
    * @return true if we are connected
    */
+  @Override
   public boolean isConnected(int event) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG)
@@ -132,6 +137,7 @@ import org.vmmagic.pragma.*;
    * Start compensation timer so that time spent gathering data is
    * not confused with the time spent in the application and the VM.
    */
+  @Override
   public void startCompensationTimer() {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
@@ -146,6 +152,7 @@ import org.vmmagic.pragma.*;
    * Stop compensation timer so that time spent gathering data is
    * not confused with the time spent in the application and the VM.r
    */
+  @Override
   public void stopCompensationTimer() {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (VM.VERIFY_ASSERTIONS)
@@ -161,6 +168,7 @@ import org.vmmagic.pragma.*;
    * This is a point at which the server can pause, play one, etc.
    * @param event The current event
    */
+  @Override
   public void serverSafepoint(int event) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (DEBUG)
@@ -176,6 +184,7 @@ import org.vmmagic.pragma.*;
    * Discover the smallest header size for objects.
    * @return the size in bytes
    */
+  @Override
   public int computeHeaderSize() {
     return JAVA_HEADER_BYTES+OTHER_HEADER_BYTES;
   }

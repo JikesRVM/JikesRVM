@@ -27,6 +27,7 @@ public final class YieldInterval extends org.vmutil.options.IntOption {
         Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.fixed.interval", "10")));
   }
 
+  @Override
   protected void validate() {
   }
 }

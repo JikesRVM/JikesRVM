@@ -62,6 +62,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Reset the local buffer (throwing away any local entries).
    */
+  @Override
   public void resetLocal() {
     super.resetLocal();
     head = Deque.HEAD_INITIAL_VALUE;

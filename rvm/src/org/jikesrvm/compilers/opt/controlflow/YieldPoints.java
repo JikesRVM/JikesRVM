@@ -40,6 +40,7 @@ public class YieldPoints extends CompilerPhase {
    * Return the name of this phase
    * @return "Yield Point Insertion"
    */
+  @Override
   public final String getName() {
     return "Yield Point Insertion";
   }
@@ -47,6 +48,7 @@ public class YieldPoints extends CompilerPhase {
   /**
    * This phase contains no per-compilation instance fields.
    */
+  @Override
   public final CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -56,6 +58,7 @@ public class YieldPoints extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
     if (!ir.method.isInterruptible()) {
       return;   // don't insert yieldpoints in Uninterruptible code.

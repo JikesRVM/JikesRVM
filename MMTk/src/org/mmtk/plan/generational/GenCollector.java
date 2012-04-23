@@ -81,6 +81,7 @@ import org.vmmagic.pragma.*;
    * @param phaseId The collection phase to perform
    * @param primary Use this thread for single-threaded local activities.
    */
+  @Override
   @NoInline
   public void collectionPhase(short phaseId, boolean primary) {
 
@@ -136,6 +137,7 @@ import org.vmmagic.pragma.*;
     return (Gen) VM.activePlan.global();
   }
 
+  @Override
   public final TraceLocal getCurrentTrace() {
     if (global().traceFullHeap()) return getFullHeapTrace();
     return nurseryTrace;

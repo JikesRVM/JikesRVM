@@ -311,6 +311,7 @@ public class LiveSet {
    * String-i-fy the current list
    * @return the string-i-fied version
    */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("");
     if (first == null) {

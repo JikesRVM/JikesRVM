@@ -26,6 +26,7 @@ public final class NullConstantOperand extends ConstantOperand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new NullConstantOperand();
   }
@@ -35,6 +36,7 @@ public final class NullConstantOperand extends ConstantOperand {
    *
    * @return TypeReference.NULL_TYPE
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.NULL_TYPE;
   }
@@ -44,6 +46,7 @@ public final class NullConstantOperand extends ConstantOperand {
    *
    * @return <code>true</code>
    */
+  @Override
   public boolean isRef() {
     return true;
   }
@@ -53,6 +56,7 @@ public final class NullConstantOperand extends ConstantOperand {
    *
    * @return <code>true</code>
    */
+  @Override
   public boolean isDefinitelyNull() {
     return true;
   }
@@ -65,6 +69,7 @@ public final class NullConstantOperand extends ConstantOperand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return op instanceof NullConstantOperand;
   }
@@ -74,6 +79,7 @@ public final class NullConstantOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "<null>";
   }

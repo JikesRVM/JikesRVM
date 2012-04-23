@@ -68,6 +68,7 @@ public final class LongConstantOperand extends ConstantOperand {
    *
    * @return TypeReference.Long
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.Long;
   }
@@ -77,6 +78,7 @@ public final class LongConstantOperand extends ConstantOperand {
    *
    * @return <code>true</code>
    */
+  @Override
   public boolean isLong() {
     return true;
   }
@@ -100,6 +102,7 @@ public final class LongConstantOperand extends ConstantOperand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new LongConstantOperand(value, offset);
   }
@@ -112,6 +115,7 @@ public final class LongConstantOperand extends ConstantOperand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof LongConstantOperand) && (value == ((LongConstantOperand) op).value);
   }
@@ -121,6 +125,7 @@ public final class LongConstantOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return Long.toString(value) + "L";
   }

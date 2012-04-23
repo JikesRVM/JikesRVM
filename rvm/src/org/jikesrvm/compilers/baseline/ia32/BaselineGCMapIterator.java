@@ -118,6 +118,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    *          processing instance specific information i.e JSR return address
    *          values
    */
+  @Override
   public void setupIterator(CompiledMethod compiledMethod, Offset instructionOffset, Address fp) {
     currentCompiledMethod = (BaselineCompiledMethod) compiledMethod;
     currentMethod = (NormalMethod) currentCompiledMethod.getMethod();
@@ -198,6 +199,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    * Reset iteration to initial state. This allows a map to be scanned multiple
    * times.
    */
+  @Override
   public void reset() {
     mapIndex = 0;
     finishedWithRegularMap = false;
@@ -243,6 +245,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    * Get location of next reference. A zero return indicates that no more
    * references exist.
    */
+  @Override
   public Address getNextReferenceAddress() {
     if (!finishedWithRegularMap) {
       if (counterArrayBase) {
@@ -386,6 +389,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    * Gets the location of the next return address after the current position. A
    * zero return indicates that no more references exist
    */
+  @Override
   public Address getNextReturnAddressAddress() {
     if (mapId >= 0) {
       if (VM.TraceStkMaps || TRACE_ALL) {
@@ -409,6 +413,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    * ... they may be in temporary storage ie storage only used during garbage
    * collection
    */
+  @Override
   public void cleanupPointers() {
     maps.cleanupPointers();
     maps = null;
@@ -419,6 +424,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     bridgeParameterTypes = null;
   }
 
+  @Override
   public int getType() {
     return CompiledMethod.BASELINE;
   }

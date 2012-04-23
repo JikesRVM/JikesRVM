@@ -79,6 +79,7 @@ import org.vmmagic.pragma.*;
    * <li>all large objects allocated by the mutator
    * </ul>
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     if (DEBUG) { Log.write("--Phase Collector."); Log.writeln(Phase.getName(phaseId)); }

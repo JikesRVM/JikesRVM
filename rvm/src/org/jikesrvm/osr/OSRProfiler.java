@@ -34,6 +34,7 @@ public class OSRProfiler implements Callbacks.ExitMonitor {
   private static int invalidations = 0;
   private static boolean registered = false;
 
+  @Override
   public void notifyExit(int value) {
     VM.sysWriteln("OSR invalidations " + invalidations);
   }

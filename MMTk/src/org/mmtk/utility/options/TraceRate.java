@@ -33,6 +33,7 @@ public final class TraceRate extends org.vmutil.options.IntOption
    *
    * @return the trace rate.
    */
+  @Override
   @Uninterruptible
   public int getValue() {
     return (this.value < BYTES_IN_ADDRESS) ? 1 : (this.value >> LOG_BYTES_IN_ADDRESS);
@@ -41,6 +42,7 @@ public final class TraceRate extends org.vmutil.options.IntOption
   /**
    * Trace rate must be positive.
    */
+  @Override
   protected void validate() {
     failIf(value <= 0, "Can not have a negative trace rate");
   }

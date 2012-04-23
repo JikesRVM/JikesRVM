@@ -63,6 +63,7 @@ public class DFSenumerateByFinish extends Stack<GraphNode> implements GraphNodeE
    *
    * @return true if there nodes left to enumerate.
    */
+  @Override
   public boolean hasMoreElements() {
     return (!empty() || (theNextElement != null && info[theNextElement.getIndex()] == null));
   }
@@ -74,6 +75,7 @@ public class DFSenumerateByFinish extends Stack<GraphNode> implements GraphNodeE
    *
    *  @return the next graph node in finishing time order.
    */
+  @Override
   public GraphNode next() {
     if (empty()) {
       GraphNode v = theNextElement;
@@ -111,6 +113,7 @@ public class DFSenumerateByFinish extends Stack<GraphNode> implements GraphNodeE
    *
    * @return the next node in finishing time order
    */
+  @Override
   public GraphNode nextElement() {
     return next();
   }

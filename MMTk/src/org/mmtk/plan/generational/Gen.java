@@ -142,6 +142,7 @@ public abstract class Gen extends StopTheWorld {
   /**
    * Force the next collection to be full heap.
    */
+  @Override
   public void forceFullHeapCollection() {
     nextGCFullHeap = true;
   }
@@ -151,6 +152,7 @@ public abstract class Gen extends StopTheWorld {
    *
    * @param phaseId Collection phase to execute.
    */
+  @Override
   @NoInline
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
@@ -208,6 +210,7 @@ public abstract class Gen extends StopTheWorld {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
+  @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     int availableNurseryPages = Options.nurserySize.getMaxNursery() - nurserySpace.reservedPages();
 
@@ -360,6 +363,7 @@ public abstract class Gen extends StopTheWorld {
    * Print pre-collection statistics. In this class we prefix the output
    * indicating whether the collection was full heap or not.
    */
+  @Override
   public void printPreStats() {
     if ((Options.verbose.getValue() >= 1) && (gcFullHeap))
       Log.write("[Full heap]");
@@ -382,6 +386,7 @@ public abstract class Gen extends StopTheWorld {
   /**
    * @return Is current GC only collecting objects allocated since last GC.
    */
+  @Override
   public final boolean isCurrentGCNursery() {
     return !(IGNORE_REMSETS || gcFullHeap);
   }
@@ -389,6 +394,7 @@ public abstract class Gen extends StopTheWorld {
   /**
    * @return Is last GC a full collection?
    */
+  @Override
   public final boolean lastCollectionFullHeap() {
     return gcFullHeap;
   }
@@ -414,6 +420,7 @@ public abstract class Gen extends StopTheWorld {
    * @param sanityRootRC The number of root references to the object.
    * @return The expected (root excluded) reference count.
    */
+  @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
 
@@ -439,6 +446,7 @@ public abstract class Gen extends StopTheWorld {
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_NURSERY, GenNurseryTraceLocal.class);

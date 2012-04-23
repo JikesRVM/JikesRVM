@@ -45,6 +45,7 @@ public final class MIRBranchOptimizations extends BranchOptimizationDriver {
    * @param bb the containing basic block
    * @return true if an optimization was applied, false otherwise
    */
+  @Override
   protected boolean optimizeBranchInstruction(IR ir, Instruction s, BasicBlock bb) {
     if (MIR_Branch.conforms(s)) {
       return processGoto(ir, s, bb);

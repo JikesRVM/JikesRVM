@@ -128,6 +128,7 @@ abstract class AssemblerBase extends Assembler
    * hot code code space? The default answer for opt compiled code is yes
    * (otherwise why are we opt compiling it?).
    */
+  @Override
   protected boolean isHotCode() { return true; }
 
   /**

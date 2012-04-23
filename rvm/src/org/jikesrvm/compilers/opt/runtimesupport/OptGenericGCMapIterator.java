@@ -94,6 +94,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
    * @param instructionOffset The place in the method where we currently are
    * @param framePtr          The current frame pointer
    */
+  @Override
   public final void setupIterator(CompiledMethod cm, Offset instructionOffset, Address framePtr) {
     if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
@@ -181,6 +182,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
    * Returns the next address that contains a reference
    * @return the value of the next reference
    */
+  @Override
   public final Address getNextReferenceAddress() {
     if (DEBUG) { VM.sysWrite("  next => "); }
 
@@ -287,6 +289,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
    *  code moves.)
    * @return the next code pointer or 0 if no more exist
    */
+  @Override
   public final Address getNextReturnAddressAddress() {
     // Since the Opt compiler inlines JSRs, this method will always return 0
     //  signaling the end of the list of such pointers.
@@ -300,6 +303,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
    * scan of this frame is complete
    * clean up any pointers to allow GC to reclaim dead objects
    */
+  @Override
   public final void cleanupPointers() {
     // primitive types aren't worth reinitializing because setUpIterator
     //   will take care of this.
@@ -311,6 +315,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
    * lets GC ask what type of iterator without using instanceof which can
    * cause an allocation
    */
+  @Override
   public final int getType() {
     return CompiledMethod.OPT;
   }
@@ -318,6 +323,7 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
   /**
    * Externally visible method called to reset internal state
    */
+  @Override
   public final void reset() {
     currentRegister = FIRST_GCMAP_REG;
     spillLoc = Address.zero();

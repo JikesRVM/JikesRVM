@@ -102,6 +102,7 @@ public abstract class Concurrent extends Simple {
    * reason all plans should operate gracefully on the default minimum
    * heap size until the point that processOptions is called.
    */
+  @Override
   @Interruptible
   public void processOptions() {
     super.processOptions();
@@ -127,6 +128,7 @@ public abstract class Concurrent extends Simple {
    *
    * @param phaseId Collection phase to execute.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_BARRIER_ACTIVE) {
@@ -164,6 +166,7 @@ public abstract class Concurrent extends Simple {
   /**
    * @return Whether last GC is a full GC.
    */
+  @Override
   public boolean lastCollectionFullHeap() {
     // TODO: Why this?
     return !inConcurrentCollection;

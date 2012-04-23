@@ -35,6 +35,7 @@ public abstract class PhysicalRegisterTools extends GenericPhysicalRegisterTools
   /**
    * Return the governing IR.
    */
+  @Override
   public abstract IR getIR();
 
   /**

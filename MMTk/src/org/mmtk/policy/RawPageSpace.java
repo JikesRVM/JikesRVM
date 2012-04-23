@@ -57,6 +57,7 @@ public final class RawPageSpace extends Space implements Constants {
    * @param first The first page in the group of pages that were
    * allocated together.
    */
+  @Override
   @Inline
   public void release(Address first) {
     ((FreeListPageResource) pr).releasePages(first);
@@ -71,12 +72,14 @@ public final class RawPageSpace extends Space implements Constants {
    * @param object The object to be traced.
    * @return <code>zero</code>: calling this is an error.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }
 
+  @Override
   public boolean isLive(ObjectReference object) {
     return true;
   }

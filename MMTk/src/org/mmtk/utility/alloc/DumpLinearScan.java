@@ -28,6 +28,7 @@ public final class DumpLinearScan extends LinearScan {
    *
    * @param object The object to scan
    */
+  @Override
   @Inline
   public void scan(ObjectReference object) {
     Log.write("[");

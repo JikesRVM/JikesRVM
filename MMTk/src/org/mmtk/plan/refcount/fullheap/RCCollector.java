@@ -40,6 +40,7 @@ public class RCCollector extends RCBaseCollector {
   /**
    * Get the modified processor to use.
    */
+  @Override
   protected final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
   }
@@ -47,6 +48,7 @@ public class RCCollector extends RCBaseCollector {
   /**
    * Get the root trace to use.
    */
+  @Override
   protected final TraceLocal getRootTrace() {
     return rootTrace;
   }

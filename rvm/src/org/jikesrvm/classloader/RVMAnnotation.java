@@ -397,10 +397,12 @@ public final class RVMAnnotation {
   /*
    * Hash map support
    */
+  @Override
   public int hashCode() {
     return type.hashCode();
   }
 
+  @Override
   public boolean equals(Object o) {
     if (o instanceof RVMAnnotation) {
       RVMAnnotation that = (RVMAnnotation)o;
@@ -426,6 +428,7 @@ public final class RVMAnnotation {
    * Return a string representation of the annotation of the form
    * "@type(name1=val1, ...nameN=valN)"
    */
+  @Override
   public String toString() {
     RVMClass annotationInterface = type.resolve().asClass();
     RVMMethod[] annotationMethods = annotationInterface.getDeclaredMethods();
@@ -575,6 +578,7 @@ public final class RVMAnnotation {
     }
 
     /** Entry point to factory */
+    @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
       if (method.getName().equals("annotationType")) {
         return type.resolve().getClassForType();
@@ -673,6 +677,7 @@ public final class RVMAnnotation {
     /**
      * Are two members equivalent?
      */
+    @Override
     public boolean equals(Object o) {
       if (o instanceof AnnotationMember) {
         AnnotationMember that = (AnnotationMember)o;
@@ -685,6 +690,7 @@ public final class RVMAnnotation {
     /**
      * Compute hashCode from meth
      */
+    @Override
     public int hashCode() {
       return meth.hashCode();
     }
@@ -692,6 +698,7 @@ public final class RVMAnnotation {
     /**
      * Ordering for sorted annotation members
      */
+    @Override
     public int compareTo(AnnotationMember am) {
       if (am.meth != this.meth) {
         return am.getName().toString().compareTo(this.getName().toString());

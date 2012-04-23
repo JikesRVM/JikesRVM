@@ -53,6 +53,7 @@ public final class SwitchBranchProfile extends BranchProfile {
     }
   }
 
+  @Override
   public String toString() {
     String res = bci + "\tswitch     < " + (int) counts[0];
     for (int i = 1; i < counts.length; i++) {

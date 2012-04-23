@@ -86,6 +86,7 @@ public class Immix extends StopTheWorld {
    *
    * @param phaseId Collection phase to execute.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
@@ -137,6 +138,7 @@ public class Immix extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return immixSpace.reservedPages() + super.getPagesUsed();
   }
@@ -170,6 +172,7 @@ public class Immix extends StopTheWorld {
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_IMMIX, ImmixTraceLocal.class);

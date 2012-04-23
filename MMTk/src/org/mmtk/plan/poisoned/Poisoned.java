@@ -32,6 +32,7 @@ public class Poisoned extends MS {
    * @param reference the reference value that is to be stored
    * @return The raw value to be
    */
+  @Override
   public Word bootTimeWriteBarrier(Word reference) {
     return reference.or(Word.one());
   }
@@ -62,6 +63,7 @@ public class Poisoned extends MS {
    * @param slot The location of the reference
    * @param value The value to store
    */
+  @Override
   @Inline
   public void storeObjectReference(Address slot, ObjectReference value) {
     slot.store(poison(value));
@@ -73,6 +75,7 @@ public class Poisoned extends MS {
    * @param slot The location of the reference
    * @return the object reference loaded from slot
    */
+  @Override
   @Inline
   public ObjectReference loadObjectReference(Address slot) {
     return depoison(slot.loadWord());

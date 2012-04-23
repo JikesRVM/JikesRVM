@@ -37,6 +37,7 @@ public final class StringConstantOperand extends ObjectConstantOperand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new StringConstantOperand((String) value, offset);
   }
@@ -46,6 +47,7 @@ public final class StringConstantOperand extends ObjectConstantOperand {
    *
    * @return TypeReference.JavaLangString
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.JavaLangString;
   }
@@ -55,6 +57,7 @@ public final class StringConstantOperand extends ObjectConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "string \"" + value + "\"";
   }

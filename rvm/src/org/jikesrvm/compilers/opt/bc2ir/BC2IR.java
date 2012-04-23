@@ -6095,6 +6095,7 @@ public final class BC2IR
         this.node = node;
       }
 
+      @Override
       public boolean hasMoreElements() {
         return (node != null);
       }
@@ -6120,6 +6121,7 @@ public final class BC2IR
         return retVal;
       }
 
+      @Override
       public BasicBlockLE nextElement() {
         return next();
       }
@@ -6367,6 +6369,7 @@ public final class BC2IR
     /**
      * Returns a string representation of this BBLE.
      */
+    @Override
     public String toString() {
       if (isGenerated()) {
         return "(" + low + "," + high + "," + max + ")";
@@ -6465,6 +6468,7 @@ public final class BC2IR
       epilogueBBLE = bble;
     }
 
+    @Override
     public String toString() {
       return "(Inline method " + gc.method + ")";
     }
@@ -6495,10 +6499,13 @@ public final class BC2IR
    * @see BC2IR#DUMMY
    */
   private static final class DummyStackSlot extends Operand {
+    @Override
     public Operand copy() { return this; }
 
+    @Override
     public boolean similar(Operand op) { return (op instanceof DummyStackSlot); }
 
+    @Override
     public String toString() { return "<DUMMY>"; }
   }
 
@@ -6511,12 +6518,15 @@ public final class BC2IR
 
     ReturnAddressOperand(int ri) { retIndex = ri; }
 
+    @Override
     public Operand copy() { return this; }
 
+    @Override
     public boolean similar(Operand op) {
       return (op instanceof ReturnAddressOperand) && (retIndex == ((ReturnAddressOperand) op).retIndex);
     }
 
+    @Override
     public String toString() {
       return "<return address " + retIndex + ">";
     }

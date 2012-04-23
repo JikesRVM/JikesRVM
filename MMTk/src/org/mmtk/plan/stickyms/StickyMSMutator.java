@@ -80,6 +80,7 @@ public class StickyMSMutator extends MSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Override
   @Inline
   public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
@@ -109,6 +110,7 @@ public class StickyMSMutator extends MSMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
+  @Override
   @Inline
   public final boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset, int bytes) {
@@ -134,6 +136,7 @@ public class StickyMSMutator extends MSMutator {
    * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
+  @Override
   @Inline
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot,
                                                ObjectReference old, ObjectReference tgt, Word metaDataA,
@@ -163,6 +166,7 @@ public class StickyMSMutator extends MSMutator {
   /**
    * Flush per-mutator remembered sets into the global remset pool.
    */
+  @Override
   public final void flushRememberedSets() {
     modBuffer.flushLocal();
     assertRemsetFlushed();
@@ -193,6 +197,7 @@ public class StickyMSMutator extends MSMutator {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == StickyMS.PREPARE) {

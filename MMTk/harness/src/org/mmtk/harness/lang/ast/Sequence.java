@@ -42,6 +42,7 @@ public class Sequence extends AbstractAST implements Statement,Iterable<Statemen
     }
   }
 
+  @Override
   public Iterator<Statement> iterator() {
     return stmts.iterator();
   }

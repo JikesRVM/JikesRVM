@@ -56,15 +56,18 @@ public final class JNICompiledMethod extends CompiledMethod {
     super(id, m);
   }
 
+  @Override
   @Uninterruptible
   public int getCompilerType() {
     return JNI;
   }
 
+  @Override
   public String getCompilerName() {
     return "JNI compiler";
   }
 
+  @Override
   @Uninterruptible
   public ExceptionDeliverer getExceptionDeliverer() {
     // this method should never get called on PPC
@@ -72,21 +75,25 @@ public final class JNICompiledMethod extends CompiledMethod {
     return deliverer;
   }
 
+  @Override
   @Uninterruptible
   public void getDynamicLink(DynamicLink dynamicLink, Offset instructionOffset) {
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
+  @Override
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
     return false;
   }
 
+  @Override
   @Unpreemptible
   public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     return -1;
   }
 
+  @Override
   public void printStackTrace(Offset instructionOffset, org.jikesrvm.PrintLN out) {
     if (method != null) {
       // print name of native method
@@ -100,6 +107,7 @@ public final class JNICompiledMethod extends CompiledMethod {
     }
   }
 
+  @Override
   public void set(StackBrowser browser, Offset instr) {
     browser.setBytecodeIndex(-1);
     browser.setCompiledMethod(this);

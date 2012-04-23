@@ -22,14 +22,17 @@ import org.jikesrvm.compilers.opt.ir.LIRInfo;
  */
 public final class ConvertHIRtoLIR extends CompilerPhase {
 
+  @Override
   public String getName() {
     return "HIR Operator Expansion";
   }
 
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public void perform(IR ir) {
     if (IR.SANITY_CHECK) {
       ir.verify("before conversion to LIR", true);

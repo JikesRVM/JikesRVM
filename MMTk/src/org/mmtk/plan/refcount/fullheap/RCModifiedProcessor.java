@@ -34,6 +34,7 @@ public final class RCModifiedProcessor extends TransitiveClosure {
    * @param source The source of the reference.
    * @param slot The location containing the object reference.
    */
+  @Override
   @Inline
   public void processEdge(ObjectReference source, Address slot) {
     ObjectReference object = slot.loadObjectReference();

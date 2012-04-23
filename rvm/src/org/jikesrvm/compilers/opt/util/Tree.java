@@ -107,6 +107,7 @@ public class Tree {
    * Prints the tree
    * @return the tree as a string
    */
+  @Override
   public final String toString() {
     StringBuffer sb = new StringBuffer();
 

@@ -39,6 +39,7 @@ public final class ITableArray implements RuntimeTable<ITable> {
   /**
    * Return the backing array (for boot image writing)
    */
+  @Override
   public ITable[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     return backingData;
@@ -61,6 +62,7 @@ public final class ITableArray implements RuntimeTable<ITable> {
    * @param index The index of the entry to get
    * @return The value of that entry
    */
+  @Override
   @Intrinsic
   @Uninterruptible
   public ITable get(int index) {
@@ -74,6 +76,7 @@ public final class ITableArray implements RuntimeTable<ITable> {
    * @param index The index of the entry to set
    * @param value The value to set the entry to.
    */
+  @Override
   @Intrinsic
   @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   public void set(int index, ITable value) {
@@ -84,6 +87,7 @@ public final class ITableArray implements RuntimeTable<ITable> {
   /**
    * Return the length of the TIB
    */
+  @Override
   @Intrinsic
   @Uninterruptible
   public int length() {

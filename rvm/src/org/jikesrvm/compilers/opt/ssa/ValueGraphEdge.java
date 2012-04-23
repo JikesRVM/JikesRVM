@@ -26,6 +26,7 @@ final class ValueGraphEdge extends SpaceEffGraphEdge {
     super(src, target);
   }
 
+  @Override
   public String toString() {
     ValueGraphVertex src = (ValueGraphVertex) fromNode();
     ValueGraphVertex dest = (ValueGraphVertex) toNode();

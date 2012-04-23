@@ -34,42 +34,49 @@ import org.vmmagic.pragma.*;
   private static SynchronizedCounter mutatorCounter = new SynchronizedCounter();
 
   /** @return The active Plan instance. */
+  @Override
   @Inline
   public Plan global() {
     return Selected.Plan.get();
   }
 
   /** @return The active PlanConstraints instance. */
+  @Override
   @Inline
   public PlanConstraints constraints() {
     return Selected.Constraints.get();
   }
 
   /** @return The number of registered CollectorContext instances. */
+  @Override
   @Inline
   public int collectorCount() {
     return Options.threads.getValue();
   }
 
   /** @return The active CollectorContext instance. */
+  @Override
   @Inline
   public CollectorContext collector() {
     return RVMThread.getCurrentThread().getCollectorContext();
   }
 
   /** @return Is the active thread a mutator thread. */
+  @Override
   @Inline
   public boolean isMutator() {
     return !RVMThread.getCurrentThread().isCollectorThread();
   }
 
   /** @return The active MutatorContext instance. */
+  @Override
   @Inline
   public MutatorContext mutator() {
     return Selected.Mutator.get();
   }
 
   /** @return The log for the active thread */
+  @Override
   public Log log() {
     if (VM.runningVM) {
       return Selected.Mutator.get().getLog();
@@ -82,6 +89,7 @@ import org.vmmagic.pragma.*;
   private static final Log buildLog = new Log();
 
   /** Reset the mutator iterator */
+  @Override
   public void resetMutatorIterator() {
     mutatorCounter.reset();
   }
@@ -94,6 +102,7 @@ import org.vmmagic.pragma.*;
    *  synchronized iteration of all mutators, or
    *  <code>null</code> when all mutators have been done.
    */
+  @Override
   public MutatorContext getNextMutator() {
     for (;;) {
       int idx = mutatorCounter.increment();

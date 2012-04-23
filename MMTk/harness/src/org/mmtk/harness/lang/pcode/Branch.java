@@ -53,6 +53,7 @@ public final class Branch extends UnaryOp {
     this.target = target;
   }
 
+  @Override
   public int getBranchTarget() {
     return target;
   }

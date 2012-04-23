@@ -150,6 +150,7 @@ public class GenImmix extends Gen {
    * @return The number of pages available for allocation into the mature
    * space.
    */
+  @Override
   public int getMaturePhysicalPagesAvail() {
     return immixSpace.availablePhysicalPages();
   }
@@ -176,6 +177,7 @@ public class GenImmix extends Gen {
    *
    * @return The active mature space
    */
+  @Override
   @Inline
   protected final Space activeMatureSpace() {
     return immixSpace;
@@ -199,6 +201,7 @@ public class GenImmix extends Gen {
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_IMMIX, GenImmixMatureTraceLocal.class);

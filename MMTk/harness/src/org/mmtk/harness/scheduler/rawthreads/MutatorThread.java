@@ -56,6 +56,7 @@ class MutatorThread extends RawThread {
     Trace.trace(Item.SCHEDULER, "Setting uncaught exception handler for thread %s",
         Thread.currentThread().getName());
     Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+      @Override
       public void uncaughtException(Thread t, Throwable e) {
         env.uncaughtException(t, e);
         end();

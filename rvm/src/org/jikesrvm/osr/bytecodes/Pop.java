@@ -17,20 +17,24 @@ package org.jikesrvm.osr.bytecodes;
  *  pop
  */
 public class Pop extends PseudoBytecode {
+  @Override
   public byte[] getBytes() {
     byte[] codes = new byte[1];
     codes[0] = 87;
     return codes;
   }
 
+  @Override
   public int getSize() {
     return 1;
   }
 
+  @Override
   public int stackChanges() {
     return -1;
   }
 
+  @Override
   public String toString() {
     return "Pop";
   }

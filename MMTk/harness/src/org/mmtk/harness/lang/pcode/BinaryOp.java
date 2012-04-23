@@ -32,6 +32,7 @@ public abstract class BinaryOp extends PseudoOp {
     this.op2 = op2.getIndex();
   }
 
+  @Override
   public String toString() {
     return String.format("%s(%s,%s)", super.toString(), Register.nameOf(op1), Register.nameOf(op2));
   }

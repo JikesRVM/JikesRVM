@@ -267,6 +267,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
    * @param o The option.
    * @param forXml Is this part of xml output?
    */
+  @Override
   protected void logValue(Option o, boolean forXml) {
     switch (o.getType()) {
     case Option.BOOLEAN_OPTION:
@@ -301,6 +302,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
   /**
    * Log a string.
    */
+  @Override
   protected void logString(String s) {
     VM.sysWrite(s);
   }
@@ -308,6 +310,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
   /**
    * Print a new line.
    */
+  @Override
   protected void logNewLine() {
     VM.sysWriteln();
   }
@@ -319,6 +322,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
    * @param name The option name.
    * @return The VM specific key.
    */
+  @Override
   protected String computeKey(String name) {
     int space = name.indexOf(' ');
     if (space < 0) return name.toLowerCase();
@@ -344,6 +348,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
    * @param o The responsible option.
    * @param message The message associated with the warning.
    */
+  @Override
   protected void warn(Option o, String message) {
     VM.sysWriteln("WARNING: Option '" + o.getKey() + "' : " + message);
   }
@@ -355,6 +360,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
    * @param o The responsible option.
    * @param message The error message associated with the failure.
    */
+  @Override
   protected void fail(Option o, String message) {
     VM.sysFail("ERROR: Option '" + o.getKey() + "' : " + message);
   }
@@ -365,6 +371,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
    * @param bytes The number of bytes.
    * @return The corresponding number of pages.
    */
+  @Override
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
     return bytes.plus(Constants.BYTES_IN_PAGE-1).toWord().rshl(Constants.LOG_BYTES_IN_PAGE).toInt();
@@ -375,6 +382,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
    * @param pages the number of pages.
    * @return The corresponding number of bytes.
    */
+  @Override
   @Uninterruptible
   protected Extent pagesToBytes(int pages) {
     return Word.fromIntZeroExtend(pages).lsh(Constants.LOG_BYTES_IN_PAGE).toExtent();

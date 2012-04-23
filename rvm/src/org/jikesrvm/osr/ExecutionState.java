@@ -478,6 +478,7 @@ public class ExecutionState implements OSRConstants, BytecodeConstants {
     return codes;
   }
 
+  @Override
   public String toString() {
     StringBuffer buf = new StringBuffer("Execution state " + this.bcIndex + "@" + this.meth + " " + this.thread);
     for (int i = 0, n = varElms.size(); i < n; i++) {

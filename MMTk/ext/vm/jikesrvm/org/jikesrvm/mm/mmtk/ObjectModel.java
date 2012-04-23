@@ -32,6 +32,7 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public final class ObjectModel extends org.mmtk.vm.ObjectModel implements org.mmtk.utility.Constants,
                                                                                            org.jikesrvm.Constants {
 
+  @Override
   protected Offset getArrayBaseOffset() { return JavaHeaderConstants.ARRAY_BASE_OFFSET; }
 
   /**
@@ -45,6 +46,7 @@ import org.vmmagic.pragma.*;
    * @param from the address of the object to be copied
    * @return the address of the new object
    */
+  @Override
   @Inline
   public ObjectReference copy(ObjectReference from, int allocator) {
     TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(from);
@@ -121,6 +123,7 @@ import org.vmmagic.pragma.*;
    * @param region The start (or an address less than) the region that was reserved for this object.
    * @return Address The address past the end of the copied object
    */
+  @Override
   @Inline
   public Address copyTo(ObjectReference from, ObjectReference to, Address region) {
     TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(from);
@@ -159,6 +162,7 @@ import org.vmmagic.pragma.*;
    * @param to The region to be copied to.
    * @return The resulting reference.
    */
+  @Override
   public ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
     return ObjectReference.fromObject(org.jikesrvm.objectmodel.ObjectModel.getReferenceWhenCopiedTo(from.toObject(), to));
   }
@@ -168,6 +172,7 @@ import org.vmmagic.pragma.*;
    *
    * @param object The objecty.
    */
+  @Override
   public Address getObjectEndAddress(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.getObjectEndAddress(object.toObject());
   }
@@ -178,6 +183,7 @@ import org.vmmagic.pragma.*;
    * @param object The object whose size is to be queried
    * @return The size required to copy <code>obj</code>
    */
+  @Override
   public int getSizeWhenCopied(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(object.toObject());
   }
@@ -188,6 +194,7 @@ import org.vmmagic.pragma.*;
    * @param object The object whose size is to be queried
    * @return The alignment required for a copy of <code>obj</code>
    */
+  @Override
   public int getAlignWhenCopied(ObjectReference object) {
     TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(object);
     RVMType type = tib.getType();
@@ -204,6 +211,7 @@ import org.vmmagic.pragma.*;
    * @param object The object whose size is to be queried
    * @return The alignment offset required for a copy of <code>obj</code>
    */
+  @Override
   public int getAlignOffsetWhenCopied(ObjectReference object) {
     TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(object);
     RVMType type = tib.getType();
@@ -220,6 +228,7 @@ import org.vmmagic.pragma.*;
    * @param object The object whose size is to be queried
    * @return The size of <code>obj</code>
    */
+  @Override
   public int getCurrentSize(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.bytesUsed(object.toObject());
   }
@@ -227,6 +236,7 @@ import org.vmmagic.pragma.*;
   /**
    * Return the next object in the heap under contiguous allocation
    */
+  @Override
   public ObjectReference getNextObject(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.getNextObject(object);
   }
@@ -234,6 +244,7 @@ import org.vmmagic.pragma.*;
   /**
    * Return an object reference from knowledge of the low order word
    */
+  @Override
   public ObjectReference getObjectFromStartAddress(Address start) {
     return org.jikesrvm.objectmodel.ObjectModel.getObjectFromStartAddress(start);
   }
@@ -244,11 +255,13 @@ import org.vmmagic.pragma.*;
    * @param ref address of the object
    * @return byte array with the type descriptor
    */
+  @Override
   public byte [] getTypeDescriptor(ObjectReference ref) {
     Atom descriptor = Magic.getObjectType(ref).getDescriptor();
     return descriptor.toByteArray();
   }
 
+  @Override
   @Inline
   public int getArrayLength(ObjectReference object) {
     return Magic.getArrayLength(object.toObject());
@@ -259,6 +272,7 @@ import org.vmmagic.pragma.*;
    *
    * @param object address of the object
    */
+  @Override
   public boolean isArray(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.getObjectType(object.toObject()).isArrayType();
   }
@@ -268,6 +282,7 @@ import org.vmmagic.pragma.*;
    *
    * @param object address of the object
    */
+  @Override
   public boolean isPrimitiveArray(ObjectReference object) {
     Object obj = object.toObject();
     return (obj instanceof long[]   ||
@@ -314,6 +329,7 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if the bits were set,
    * <code>false</code> otherwise
    */
+  @Override
   public boolean attemptAvailableBits(ObjectReference object,
                                              Word oldVal, Word newVal) {
     return org.jikesrvm.objectmodel.ObjectModel.attemptAvailableBits(object.toObject(), oldVal,
@@ -327,6 +343,7 @@ import org.vmmagic.pragma.*;
    * @param object the address of the object
    * @return the value of the bits
    */
+  @Override
   public Word prepareAvailableBits(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.prepareAvailableBits(object.toObject());
   }
@@ -337,6 +354,7 @@ import org.vmmagic.pragma.*;
    * @param object the address of the object
    * @param val the new value of the byte
    */
+  @Override
   public void writeAvailableByte(ObjectReference object, byte val) {
     org.jikesrvm.objectmodel.ObjectModel.writeAvailableByte(object.toObject(), val);
   }
@@ -347,6 +365,7 @@ import org.vmmagic.pragma.*;
    * @param object the address of the object
    * @return the value of the byte
    */
+  @Override
   public byte readAvailableByte(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.readAvailableByte(object.toObject());
   }
@@ -357,6 +376,7 @@ import org.vmmagic.pragma.*;
    * @param object the address of the object
    * @param val the new value of the bits
    */
+  @Override
   public void writeAvailableBitsWord(ObjectReference object, Word val) {
     org.jikesrvm.objectmodel.ObjectModel.writeAvailableBitsWord(object.toObject(), val);
   }
@@ -367,6 +387,7 @@ import org.vmmagic.pragma.*;
    * @param object the address of the object
    * @return the value of the bits
    */
+  @Override
   public Word readAvailableBitsWord(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.readAvailableBitsWord(object.toObject());
   }
@@ -380,6 +401,7 @@ import org.vmmagic.pragma.*;
    * @return the offset, relative the object reference address
    */
   /* AJG: Should this be a variable rather than method? */
+  @Override
   public Offset GC_HEADER_OFFSET() {
     return org.jikesrvm.objectmodel.ObjectModel.GC_HEADER_OFFSET;
   }
@@ -390,6 +412,7 @@ import org.vmmagic.pragma.*;
    * @param object the reference address of the object
    * @return the lowest address of the object
    */
+  @Override
   @Inline
   public Address objectStartRef(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.objectStartRef(object);
@@ -402,6 +425,7 @@ import org.vmmagic.pragma.*;
    * @param object the reference address of the object
    * @return an address inside the object
    */
+  @Override
   public Address refToAddress(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.getPointerInMemoryRegion(object);
   }
@@ -413,6 +437,7 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */
+  @Override
   @Inline
   public boolean isAcyclic(ObjectReference typeRef) {
     TIB tib = Magic.addressAsTIB(typeRef.toAddress());
@@ -425,6 +450,7 @@ import org.vmmagic.pragma.*;
    *
    * @param object The object whose information is to be dumped
    */
+  @Override
   public void dumpObject(ObjectReference object) {
     DebugUtil.dumpRef(object);
   }

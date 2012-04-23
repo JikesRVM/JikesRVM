@@ -44,6 +44,7 @@ public final class RCDecBuffer extends ObjectReferenceBuffer implements Constant
    *
    * @param object The object to process.
    */
+  @Override
   @Inline
   protected void process(ObjectReference object) {
     if (RCBase.isRCObject(object)) {

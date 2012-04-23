@@ -145,6 +145,7 @@ public class CompilerAdviceAttribute {
    *
    * @return The state of this instance expressed as a string
    */
+  @Override
   public String toString() {
     return ("Compiler advice: " +
             className +
@@ -211,6 +212,7 @@ public class CompilerAdviceAttribute {
     return hasAdvice;
   }
 
+  @Override
   public boolean equals(Object obj) {
     if (super.equals(obj)) {
       return true;
@@ -225,6 +227,7 @@ public class CompilerAdviceAttribute {
     return false;
   }
 
+  @Override
   public int hashCode() {
     return className.hashCode() ^ methodName.hashCode() ^ methodSig.hashCode();
   }

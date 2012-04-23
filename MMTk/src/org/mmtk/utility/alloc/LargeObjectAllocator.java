@@ -58,6 +58,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    *
    * @return The Space.
    */
+  @Override
   protected final BaseLargeObjectSpace getSpace() {
     return this.space;
   }
@@ -93,6 +94,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * @return The address of the start of the newly allocated region at
    * least <code>bytes</code> bytes in size.
    */
+  @Override
   protected final Address allocSlowOnce(int bytes, int align, int offset) {
     int header = space.getHeaderSize();
     int maxbytes = getMaximumAlignedSize(bytes + header, align);

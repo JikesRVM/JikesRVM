@@ -170,22 +170,27 @@ class SimpleEscape extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.ESCAPE_SIMPLE_IPA;
   }
 
+  @Override
   public final String getName() {
     return "Simple Escape Analysis";
   }
 
+  @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
+  @Override
   public void perform(IR ir) {
     SimpleEscape analyzer = new SimpleEscape();
     analyzer.simpleEscapeAnalysis(ir);

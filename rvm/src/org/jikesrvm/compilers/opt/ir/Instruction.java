@@ -269,6 +269,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return string representation of this instruction.
    */
+  @Override
   public String toString() {
     StringBuilder result = new StringBuilder("    ");
     if (isPEI()) {
@@ -1598,10 +1599,13 @@ public final class Instruction implements Constants, Operators, OptConstants {
       this.nextElem = null;
     }
 
+    @Override
     public final boolean hasMoreElements() { return nextElem != null; }
 
+    @Override
     public final Operand nextElement() { return next(); }
 
+    @Override
     public final Operand next() {
       Operand temp = nextElem;
       if (temp == null) fail();
@@ -1639,6 +1643,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
       advance();
     }
 
+    @Override
     protected void advance() {
       if (deferredMOReg != null) {
         nextElem = deferredMOReg;
@@ -1686,6 +1691,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
       advance();
     }
 
+    @Override
     protected void advance() {
       Operand temp;
       do {
@@ -1711,6 +1717,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
       advance();
     }
 
+    @Override
     protected void advance() {
       Operand temp;
       do {
@@ -1736,6 +1743,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
       advance();
     }
 
+    @Override
     protected void advance() {
       Operand temp;
       do {

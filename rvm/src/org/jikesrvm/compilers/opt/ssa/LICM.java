@@ -72,6 +72,7 @@ public class LICM extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -80,6 +81,7 @@ public class LICM extends CompilerPhase {
    * Execute loop invariant code motion on the given IR.
    * @param ir
    */
+  @Override
   public void perform(IR ir) {
     this.ir = ir;
 
@@ -136,6 +138,7 @@ public class LICM extends CompilerPhase {
   /**
    * Returns the name of the phase
    */
+  @Override
   public String getName() {
     return "LICM";
   }
@@ -144,6 +147,7 @@ public class LICM extends CompilerPhase {
    * Should this phase be executed?
    * @param options
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA_GCP;
   }

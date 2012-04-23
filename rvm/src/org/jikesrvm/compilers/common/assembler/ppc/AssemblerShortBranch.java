@@ -32,6 +32,7 @@ class AssemblerShortBranch extends ForwardReference.ShortBranch {
     spTopOffset = sp;
   }
 
+  @Override
   public void resolve(AbstractAssembler asm) {
     super.resolve(asm);
     if (((Assembler) asm).compiler != null) {

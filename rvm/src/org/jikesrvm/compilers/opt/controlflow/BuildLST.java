@@ -24,11 +24,13 @@ import org.jikesrvm.compilers.opt.ir.IR;
  * @see LSTGraph
  */
 public class BuildLST extends CompilerPhase {
+  @Override
   public String getName() { return "Build LST"; }
 
   /**
    * This phase contains no per-compilation instance fields.
    */
+  @Override
   public final CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -40,6 +42,7 @@ public class BuildLST extends CompilerPhase {
    *
    * @param ir the IR on which to apply the phase
    */
+  @Override
   public void perform(IR ir) {
     ir.cfg.compactNodeNumbering();
     LTDominators.approximate(ir, true);

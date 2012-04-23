@@ -44,6 +44,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
    * @param state information needed to make the inlining decision
    * @return an InlineDecision with the result
    */
+  @Override
   public InlineDecision shouldInline(final CompilationState state) {
     final OptOptions opts = state.getOptions();
     final boolean verbose = opts.PRINT_DETAILED_INLINE_REPORT;
@@ -212,6 +213,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       final boolean goosc = guardOverrideOnStaticCallee; // real closures anyone?
       final boolean ps = purelyStatic;                   // real closures anyone?
       targets.visitTargets(new WeightedCallTargets.Visitor() {
+        @Override
         public void visit(RVMMethod callee, double weight) {
           if (hasBody(callee)) {
             if (verbose) {

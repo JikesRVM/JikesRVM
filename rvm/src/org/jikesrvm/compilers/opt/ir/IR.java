@@ -521,10 +521,13 @@ public final class IR {
       }
     }
 
+    @Override
     public boolean hasMoreElements() { return !stack.empty(); }
 
+    @Override
     public BasicBlock nextElement() { return stack.pop(); }
 
+    @Override
     public BasicBlock next() {return stack.pop(); }
   }
 

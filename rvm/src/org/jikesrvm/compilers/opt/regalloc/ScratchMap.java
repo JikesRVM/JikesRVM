@@ -189,6 +189,7 @@ public final class ScratchMap {
   /**
    * Return a String representation.
    */
+  @Override
   public String toString() {
     String result = "";
     for (ArrayList<Interval> v : map.values()) {
@@ -251,6 +252,7 @@ public final class ScratchMap {
      * Return a string representation, assuming the 'scratch' field of
      * Instruction identifies an instruction.
      */
+    @Override
     public String toString() {
       return "SI: " + symbolic + " " + scratch + " [" + begin.scratch + "," + end.scratch + "]";
     }
@@ -270,6 +272,7 @@ public final class ScratchMap {
      * Return a string representation, assuming the 'scratch' field of
      * Instruction identifies an instruction.
      */
+    @Override
     public String toString() {
       return "PI: " + scratch + " [" + begin.scratch + "," + end.scratch + "]";
     }

@@ -1084,6 +1084,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    *
    * @param sourceIndex the machine code offset of the load return addres to patch.
    */
+  @Override
   public final void patchLoadReturnAddress(int sourceIndex) {
     /* We have the following pattern:
      * | PUSH EIP | [SP] += | IMM32 |
@@ -1135,6 +1136,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param sourceIndex the machine code offset of the unconditional
    *          branch to patch.
    */
+  @Override
   public final void patchUnconditionalBranch (int sourceIndex) {
     if (VM.AlignmentChecking || isHotCode()) {
       // force 4byte alignment here
@@ -1155,6 +1157,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * @param sourceIndex the machine code offset of the conditional
    *          branch to patch.
    */
+  @Override
   public final void patchConditionalBranch (int sourceIndex) {
     if (VM.AlignmentChecking || isHotCode()) {
       // force 4byte alignment here

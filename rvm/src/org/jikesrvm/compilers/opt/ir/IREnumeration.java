@@ -53,10 +53,13 @@ public abstract class IREnumeration {
       private Instruction current = start;
       private final Instruction last = end;
 
+      @Override
       public boolean hasMoreElements() { return current != null; }
 
+      @Override
       public Instruction nextElement() { return next(); }
 
+      @Override
       public Instruction next() {
         Instruction res = current;
         if (current == last) {
@@ -92,10 +95,13 @@ public abstract class IREnumeration {
       private Instruction current = start;
       private final Instruction last = end;
 
+      @Override
       public boolean hasMoreElements() { return current != null; }
 
+      @Override
       public Instruction nextElement() { return next(); }
 
+      @Override
       public Instruction next() {
         Instruction res = current;
         if (current == last) {
@@ -122,10 +128,13 @@ public abstract class IREnumeration {
     return new InstructionEnumeration() {
       private Instruction current = ir.firstInstructionInCodeOrder();
 
+      @Override
       public boolean hasMoreElements() { return current != null; }
 
+      @Override
       public Instruction nextElement() { return next(); }
 
+      @Override
       public Instruction next() {
         try {
           Instruction res = current;
@@ -149,10 +158,13 @@ public abstract class IREnumeration {
     return new InstructionEnumeration() {
       private Instruction current = ir.lastInstructionInCodeOrder();
 
+      @Override
       public boolean hasMoreElements() { return current != null; }
 
+      @Override
       public Instruction nextElement() { return next(); }
 
+      @Override
       public Instruction next() {
         try {
           Instruction res = current;
@@ -176,10 +188,13 @@ public abstract class IREnumeration {
     return new BasicBlockEnumeration() {
       private BasicBlock current = ir.firstBasicBlockInCodeOrder();
 
+      @Override
       public boolean hasMoreElements() { return current != null; }
 
+      @Override
       public BasicBlock nextElement() { return next(); }
 
+      @Override
       public BasicBlock next() {
         try {
           BasicBlock res = current;
@@ -203,10 +218,13 @@ public abstract class IREnumeration {
     return new BasicBlockEnumeration() {
       private BasicBlock current = ir.lastBasicBlockInCodeOrder();
 
+      @Override
       public boolean hasMoreElements() { return current != null; }
 
+      @Override
       public BasicBlock nextElement() { return next(); }
 
+      @Override
       public BasicBlock next() {
         try {
           BasicBlock res = current;
@@ -270,6 +288,7 @@ public abstract class IREnumeration {
      *
      * @return true or false
      */
+    @Override
     public boolean hasMoreElements() {
       return (((implicitInstructions != null) && implicitInstructions.hasNext()) ||
               explicitInstructions.hasMoreElements());
@@ -280,6 +299,7 @@ public abstract class IREnumeration {
      *
      * @return the next instruction
      */
+    @Override
     public Instruction next() {
       if (labelInstruction != null) {
         Instruction temp = labelInstruction;
@@ -297,6 +317,7 @@ public abstract class IREnumeration {
      *
      * @return the next instruction
      */
+    @Override
     public Instruction nextElement() {
       return next();
     }
@@ -358,6 +379,7 @@ public abstract class IREnumeration {
     /**
      * Are there any more elements in the enumeration
      */
+    @Override
     public boolean hasMoreElements() {
       return ((instructionOperands.hasMoreElements()) ||
               ((heapOperands != null) && (curHeapOperand < heapOperands.length)) ||
@@ -367,6 +389,7 @@ public abstract class IREnumeration {
     /**
      * Next element in the enumeration
      */
+    @Override
     public Operand next() {
       if (instructionOperands.hasMoreElements()) {
         return instructionOperands.next();
@@ -389,6 +412,7 @@ public abstract class IREnumeration {
     /**
      * Next element in the enumeration
      */
+    @Override
     public Operand nextElement() {
       return next();
     }
@@ -450,6 +474,7 @@ public abstract class IREnumeration {
     /**
      * Are there any more elements in the enumeration
      */
+    @Override
     public boolean hasMoreElements() {
       return ((instructionOperands.hasMoreElements()) ||
               ((heapOperands != null) && (curHeapOperand < heapOperands.length)) ||
@@ -459,6 +484,7 @@ public abstract class IREnumeration {
     /**
      * Next element in the enumeration
      */
+    @Override
     public Operand next() {
       if (instructionOperands.hasMoreElements()) {
         return instructionOperands.next();
@@ -481,6 +507,7 @@ public abstract class IREnumeration {
     /**
      * Next element in the enumeration
      */
+    @Override
     public Operand nextElement() {
       return next();
     }

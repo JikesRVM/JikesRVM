@@ -49,6 +49,7 @@ public final class GcEvery extends org.vmutil.options.EnumOption {
   /**
    * Only accept non-negative values.
    */
+  @Override
   protected void validate() {
   }
 }

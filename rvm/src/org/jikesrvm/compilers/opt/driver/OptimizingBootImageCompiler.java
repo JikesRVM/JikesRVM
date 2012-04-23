@@ -60,6 +60,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
+  @Override
   protected void initCompiler(String[] args) {
     try {
       BaselineCompiler.initOptions();
@@ -100,6 +101,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
+  @Override
   protected CompiledMethod compileMethod(NormalMethod method, TypeReference[] params) {
     if (method.hasNoOptCompileAnnotation()) {
       return baselineCompile(method);

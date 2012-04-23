@@ -31,23 +31,28 @@ public final class HashMapRVM<K, V> extends AbstractHashMapRVM<K, V> {
       next = n;
     }
 
+    @Override
     AbstractBucket<K, V> getNext() {
       return next;
     }
 
+    @Override
     AbstractBucket<K, V> setNext(AbstractBucket<K, V> n) {
       next = n;
       return this;
     }
 
+    @Override
     K getKey() {
       return key;
     }
 
+    @Override
     V getValue() {
       return value;
     }
 
+    @Override
     void setValue(V v) {
       value = v;
     }

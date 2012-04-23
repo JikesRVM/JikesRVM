@@ -41,10 +41,12 @@ public class LowerInstrumentation extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     AOSOptions opts = Controller.options;
     return opts
@@ -57,6 +59,7 @@ public class LowerInstrumentation extends CompilerPhase {
                                                                                                         .INSERT_YIELDPOINT_COUNTERS;
   }
 
+  @Override
   public final String getName() { return "LowerInstrumentation"; }
 
   /**
@@ -65,6 +68,7 @@ public class LowerInstrumentation extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
     // Convert all instrumentation instructions into actual counter code
     lowerInstrumentation(ir);

@@ -38,6 +38,7 @@ public final class Queue<T> implements Iterable<T> {
     return elements.isEmpty();
   }
 
+  @Override
   public Iterator<T> iterator() {
     return elements.iterator();
   }

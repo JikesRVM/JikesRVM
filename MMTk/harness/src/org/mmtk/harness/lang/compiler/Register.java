@@ -70,6 +70,7 @@ public final class Register {
     return "c"+(-index-1);
   }
 
+  @Override
   public String toString() {
     return nameOf(index);
   }

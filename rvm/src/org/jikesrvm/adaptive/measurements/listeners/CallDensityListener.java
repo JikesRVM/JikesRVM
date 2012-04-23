@@ -35,6 +35,7 @@ public final class CallDensityListener extends NullListener {
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *             EPILOGUE?
    */
+  @Override
   public void update(int whereFrom) {
     numSamples++;
     if (whereFrom == RVMThread.BACKEDGE) numBackedgeSamples++;
@@ -44,11 +45,13 @@ public final class CallDensityListener extends NullListener {
     return 1 - (numBackedgeSamples / numSamples);
   }
 
+  @Override
   public void reset() {
     numSamples = 0;
     numBackedgeSamples = 0;
   }
 
+  @Override
   public void report() {
     VM.sysWriteln("The call density of the program is ", callDensity());
   }

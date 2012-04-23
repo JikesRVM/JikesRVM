@@ -77,14 +77,17 @@ public final class ExpandFPRStackConvention extends CompilerPhase implements Ope
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return options.PRINT_CALLING_CONVENTIONS && !before;
   }
 
+  @Override
   public String getName() {
     return "Expand Calling Convention";
   }
@@ -92,6 +95,7 @@ public final class ExpandFPRStackConvention extends CompilerPhase implements Ope
   /**
    * Insert the needed dummy defs and uses.
    */
+  @Override
   public void perform(IR ir) {
     if (ArchConstants.SSE2_FULL) {
       return;

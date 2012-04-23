@@ -97,6 +97,7 @@ public class ApplicationClassLoader extends URLClassLoader {
    */
   public static final String myName = "SystemAppCL";
 
+  @Override
   public String toString() {
     return myName +
            (createdAtBootImageWritingTime ? "-createdAtBootImageWritingTime" : "") +
@@ -104,6 +105,7 @@ public class ApplicationClassLoader extends URLClassLoader {
            (DBG ? "@" + VM.addressAsHexString(Magic.objectAsAddress(this)) : "");
   }
 
+  @Override
   protected String findLibrary(String libName) {
     return null;
   }

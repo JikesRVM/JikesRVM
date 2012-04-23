@@ -48,6 +48,7 @@ class RecompileOptChoice extends RecompilationChoice {
    * @param meth The method being considered for recompilation.
    * @return The expected cost of exeuting this recompilation choice
    */
+  @Override
   double getCost(NormalMethod meth) {
     return CompilerDNA.estimateCompileTime(getCompiler(), meth);
   }
@@ -61,6 +62,7 @@ class RecompileOptChoice extends RecompilationChoice {
    *        the method if left running with the previous compiler.
    * @return The expected future execution time if this choice were selected
    */
+  @Override
   double getFutureExecutionTime(int prevCompiler, double futureTimeForMethod) {
     double rtFactor = CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
     return futureTimeForMethod / rtFactor;
@@ -78,6 +80,7 @@ class RecompileOptChoice extends RecompilationChoice {
    * @param expectedCompilationTime The expected time for recompiling
    * @return The controller plan implementing this recompilation choice
    */
+  @Override
   ControllerPlan makeControllerPlan(CompiledMethod cmpMethod, int prevCompiler, double prevTimeForMethod,
                                        double bestActionTime, double expectedCompilationTime) {
     double speedup = CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
@@ -95,6 +98,7 @@ class RecompileOptChoice extends RecompilationChoice {
   /**
    * How should this choice be displayed?
    */
+  @Override
   public String toString() {
     return "O" + getOptLevel();
   }

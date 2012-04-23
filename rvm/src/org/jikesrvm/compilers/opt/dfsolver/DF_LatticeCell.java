@@ -43,6 +43,7 @@ public interface DF_LatticeCell extends GraphNode {
    * Return a string representation of the cell
    * @return a string representation of the cell
    */
+  @Override
   String toString();
 
   /**

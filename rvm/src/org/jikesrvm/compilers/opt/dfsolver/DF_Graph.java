@@ -38,6 +38,7 @@ class DF_Graph implements Graph {
   /**
    * @return number of nodes in the graph
    */
+  @Override
   public int numberOfNodes() {
     return count;
   }
@@ -46,24 +47,29 @@ class DF_Graph implements Graph {
    * Implementation for Graph Interface.  TODO: why is this in the
    * Graph interface?
    */
+  @Override
   public void compactNodeNumbering() {}
 
   /**
    * Enumerate the nodes in the graph.
    * @return an enumeration of the nodes in the graph
    */
+  @Override
   public GraphNodeEnumeration enumerateNodes() {
     return new GraphNodeEnumeration() {
       private int i = 0;
 
+      @Override
       public boolean hasMoreElements() {
         return i < count;
       }
 
+      @Override
       public GraphNode next() {
         return nodes.get(i++);
       }
 
+      @Override
       public GraphNode nextElement() {
         return next();
       }
@@ -74,6 +80,7 @@ class DF_Graph implements Graph {
    * Add a node to the graph.
    * @param x the node to add
    */
+  @Override
   public void addGraphNode(GraphNode x) {
     x.setIndex(count);
     nodes.add(x);
@@ -83,6 +90,7 @@ class DF_Graph implements Graph {
   /**
    * Unsupported.  Why is this here?
    */
+  @Override
   public void addGraphEdge(GraphNode x, GraphNode y) {
     throw new OptimizingCompilerException("DF_Graph edges implicit");
   }

@@ -62,6 +62,7 @@ public abstract class MachineSpecificIA extends MachineSpecific implements ArchC
    * @param object the number of the register holding the object reference
    * @param tibOffset the offset of the tib from the object header
    */
+  @Override
   @Interruptible
   public final void baselineEmitLoadTIB(ArchitectureSpecific.Assembler asm, int dest, int object, Offset tibOffset) {
     if (VM.BuildFor32Addr) {
@@ -80,6 +81,7 @@ public abstract class MachineSpecificIA extends MachineSpecific implements ArchC
    * @param ip The instruction pointer for the "startoff" method
    * @param sp The base of the stack
    */
+  @Override
   @Uninterruptible
   public final void initializeStack(ArchitectureSpecific.Registers contextRegisters, Address ip, Address sp) {
     Address fp;

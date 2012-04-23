@@ -78,6 +78,7 @@ public class Collection extends org.mmtk.vm.Collection {
    * @return The number of active threads.
    *
    */
+  @Override
   public int getActiveThreads() {
     return Mutators.count();
   }

@@ -56,6 +56,7 @@ public abstract class MIROptimizationPlanner extends OptimizationPlanner {
     composeComponents(p, "Convert LIR to MIR", new Object[]{
         // Optional printing of final LIR
         new IRPrinter("Final LIR") {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.PRINT_FINAL_LIR;
           }
@@ -68,6 +69,7 @@ public abstract class MIROptimizationPlanner extends OptimizationPlanner {
         new ConvertLIRtoMIR(),
         // Optional printing of initial MIR
         new IRPrinter("Initial MIR") {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.PRINT_MIR;
           }
@@ -123,6 +125,7 @@ public abstract class MIROptimizationPlanner extends OptimizationPlanner {
   private static void MIR2MC(ArrayList<OptimizationPlanElement> p) {
     // MANDATORY: Final assembly
     addComponent(p, new IRPrinter("Final MIR") {
+      @Override
       public boolean shouldPerform(OptOptions options) {
         return options.PRINT_FINAL_MIR;
       }

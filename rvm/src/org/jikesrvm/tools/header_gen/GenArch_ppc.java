@@ -26,6 +26,7 @@ import org.vmmagic.unboxed.Offset;
  * Posix version: AIX PPC, Linux PPC, Linux IA32
  */
 final class GenArch_ppc extends GenArch {
+  @Override
   public void emitArchVirtualMachineDeclarations() {
     Offset offset;
     offset = ArchEntrypoints.registersLRField.getOffset();
@@ -74,6 +75,7 @@ final class GenArch_ppc extends GenArch {
       StackframeLayoutConstants.STACKFRAME_ALIGNMENT + " ;\n");
   }
 
+  @Override
   public void emitArchAssemblerDeclarations() {
     if (VM.BuildForOsx) {
       pln("#define FP r" + BaselineConstants.FP);

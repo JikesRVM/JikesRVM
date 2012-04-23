@@ -49,18 +49,22 @@ public final class ReorderingPhase extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.REORDER_CODE;
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return DEBUG;
   }
 
+  @Override
   public String getName() {
     return "Code Reordering";
   }
@@ -74,6 +78,7 @@ public final class ReorderingPhase extends CompilerPhase {
    * by reversing the branch condition, however.  That is saved for
    * BranchOptimizations.
    */
+  @Override
   public void perform(IR ir) {
     ir.cfg.entry().clearInfrequent();
     if (ir.options.REORDER_CODE_PH) {
@@ -340,6 +345,7 @@ public final class ReorderingPhase extends CompilerPhase {
       head = h;
     }
 
+    @Override
     public String toString() {
       return "[" + head + "," + placedWeight + "," + inWeight + "] " + outWeights.size();
     }
@@ -356,10 +362,12 @@ public final class ReorderingPhase extends CompilerPhase {
       weight = w;
     }
 
+    @Override
     public String toString() {
       return weight + ": " + source.toString() + " -> " + target.toString();
     }
 
+    @Override
     public int compareTo(Edge that) {
       if (weight < that.weight) {
         return 1;

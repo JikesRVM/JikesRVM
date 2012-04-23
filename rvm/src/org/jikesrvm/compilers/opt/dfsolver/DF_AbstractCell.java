@@ -56,6 +56,7 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
    * @return an enumeration of the equations in which this
    * lattice cell is used
    */
+  @Override
   public Iterator<DF_Equation> getUses() {
     return uses.iterator();
   }
@@ -66,6 +67,7 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
    * @return an enumeration of the equations in which this
    * lattice cell is defined
    */
+  @Override
   public Iterator<DF_Equation> getDefs() {
     return defs.iterator();
   }
@@ -74,6 +76,7 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
    * Return a string representation of the cell
    * @return a string representation of the cell
    */
+  @Override
   public abstract String toString();
 
   /**
@@ -81,6 +84,7 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
    *
    * @param eq the equation
    */
+  @Override
   public void addUse(DF_Equation eq) {
     uses.add(eq);
   }
@@ -90,30 +94,39 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
    *
    * @param eq the equation
    */
+  @Override
   public void addDef(DF_Equation eq) {
     defs.add(eq);
   }
 
+  @Override
   public GraphNodeEnumeration inNodes() {
     return new GraphNodeEnumeration() {
       private final Iterator<DF_Equation> i = defs.iterator();
 
+      @Override
       public boolean hasMoreElements() { return i.hasNext(); }
 
+      @Override
       public GraphNode next() { return i.next(); }
 
+      @Override
       public GraphNode nextElement() { return next(); }
     };
   }
 
+  @Override
   public GraphNodeEnumeration outNodes() {
     return new GraphNodeEnumeration() {
       private final Iterator<DF_Equation> i = uses.iterator();
 
+      @Override
       public boolean hasMoreElements() { return i.hasNext(); }
 
+      @Override
       public GraphNode next() { return i.next(); }
 
+      @Override
       public GraphNode nextElement() { return next(); }
     };
   }
@@ -126,6 +139,7 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
   /**
    * Implementation of GraphNode interface.
    */
+  @Override
   public void setIndex(int i) {
     index = i;
   }
@@ -133,16 +147,19 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
   /**
    * Implementation of GraphNode interface.
    */
+  @Override
   public int getIndex() {
     return index;
   }
 
   private int scratch;
 
+  @Override
   public int getScratch() {
     return scratch;
   }
 
+  @Override
   public int setScratch(int o) {
     return (scratch = o);
   }

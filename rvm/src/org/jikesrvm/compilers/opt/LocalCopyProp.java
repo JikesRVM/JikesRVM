@@ -37,14 +37,17 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  */
 public class LocalCopyProp extends CompilerPhase {
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.LOCAL_COPY_PROP;
   }
 
+  @Override
   public final String getName() {
     return "Local CopyProp";
   }
 
+  @Override
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
@@ -57,6 +60,7 @@ public class LocalCopyProp extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -66,6 +70,7 @@ public class LocalCopyProp extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public void perform(IR ir) {
     HashMap<Register, Operand> info = new HashMap<Register, Operand>();
     for (BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {

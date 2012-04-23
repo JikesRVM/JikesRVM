@@ -41,6 +41,7 @@ class DefaultPriority extends Priority {
   /**
    * Resets the enumeration to the first instruction in sequence
    */
+  @Override
   public final void reset() {
     i = bb.firstInstruction();
     instr = bb.forwardRealInstrEnumerator();
@@ -51,6 +52,7 @@ class DefaultPriority extends Priority {
    *
    * @return true if there are more instructions, false otherwise
    */
+  @Override
   public final boolean hasMoreElements() {
     return i != null || instr.hasMoreElements();
   }
@@ -60,6 +62,7 @@ class DefaultPriority extends Priority {
    *
    * @return the next instruction in sequence
    */
+  @Override
   public final Instruction next() {
     if (i != null) {
       Instruction r = i;

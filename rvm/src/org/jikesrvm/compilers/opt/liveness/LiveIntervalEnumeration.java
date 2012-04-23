@@ -33,10 +33,12 @@ public class LiveIntervalEnumeration implements Enumeration<LiveIntervalElement>
     this.currentElement = first;
   }
 
+  @Override
   public boolean hasMoreElements() {
     return currentElement != null;
   }
 
+  @Override
   public LiveIntervalElement nextElement() {
     LiveIntervalElement result = currentElement;
     currentElement = currentElement.getNext();

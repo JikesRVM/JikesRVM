@@ -112,6 +112,7 @@ public abstract class ForwardReference {
       super(source, btarget);
     }
 
+    @Override
     public void resolve(AbstractAssembler asm) {
       asm.patchUnconditionalBranch(sourceMachinecodeIndex);
     }
@@ -123,6 +124,7 @@ public abstract class ForwardReference {
       super(source, btarget);
     }
 
+    @Override
     public void resolve(AbstractAssembler asm) {
       asm.patchConditionalBranch(sourceMachinecodeIndex);
     }
@@ -139,6 +141,7 @@ public abstract class ForwardReference {
       super(source, btarget);
     }
 
+    @Override
     public void resolve(AbstractAssembler asm) {
       asm.patchShortBranch(sourceMachinecodeIndex);
     }
@@ -150,6 +153,7 @@ public abstract class ForwardReference {
       super(source, btarget);
     }
 
+    @Override
     public void resolve(AbstractAssembler asm) {
       asm.patchSwitchCase(sourceMachinecodeIndex);
     }
@@ -165,6 +169,7 @@ public abstract class ForwardReference {
       super(source, btarget);
     }
 
+    @Override
     public void resolve(AbstractAssembler asm) {
       asm.patchLoadReturnAddress(sourceMachinecodeIndex);
     }

@@ -37,6 +37,7 @@ import org.vmmagic.pragma.*;
    * GCspy driver registered with this scanner.
    * @param obj The object to scan.
    */
+  @Override
   public void scan(ObjectReference obj) { driver.scan(obj);  }
 }
 

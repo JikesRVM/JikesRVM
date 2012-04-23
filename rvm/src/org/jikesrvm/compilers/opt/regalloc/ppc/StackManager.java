@@ -17,49 +17,13 @@ import java.util.Iterator;
 import org.jikesrvm.VM;
 import static org.jikesrvm.Constants.NOT_REACHED;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.ir.MIR_Binary;
-import org.jikesrvm.compilers.opt.ir.MIR_Load;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.MIR_Store;
-import org.jikesrvm.compilers.opt.ir.MIR_StoreUpdate;
 import org.jikesrvm.compilers.opt.ir.MIR_Trap;
 import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_ADDI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BCTRL_SYS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BLR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_BL_SYS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_CMPI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_FMR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_FMR_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LAddr;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LAddr_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LDI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LDIS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFD;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LFS_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LInt;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LInt_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LMW;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LWZ;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_LWZ_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MFSPR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MOVE;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MOVE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_MTSPR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_ORI;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STAddr;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STAddrU;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STFD;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STFS;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STMW;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_STW;
-import static org.jikesrvm.compilers.opt.ir.Operators.PPC_TAddr;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
@@ -110,6 +74,7 @@ public abstract class StackManager extends GenericStackManager {
    * Return the size of the fixed portion of the stack.
    * @return size in bytes of the fixed portion of the stackframe
    */
+  @Override
   public final int getFrameFixedSize() {
     return frameSize;
   }
@@ -121,6 +86,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param type the type to spill
    * @return the spill location
    */
+  @Override
   public final int allocateNewSpillLocation(int type) {
     int spillSize = PhysicalRegisterSet.getSpillSize(type);
 
@@ -140,6 +106,7 @@ public abstract class StackManager extends GenericStackManager {
    * Clean up some junk that's left in the IR after register allocation,
    * and add epilogue code.
    */
+  @Override
   public void cleanUpAndInsertEpilogue() {
     Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     for (; inst != null; inst = inst.nextInstructionInCodeOrder()) {
@@ -191,6 +158,7 @@ public abstract class StackManager extends GenericStackManager {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
+  @Override
   public final void insertSpillBefore(Instruction s, Register r, byte type, int location) {
 
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -230,6 +198,7 @@ public abstract class StackManager extends GenericStackManager {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
+  @Override
   public final void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
 
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -474,6 +443,7 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Schedule prologue for 'normal' case (see above)
    */
+  @Override
   public final void insertNormalPrologue() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
@@ -639,6 +609,7 @@ public abstract class StackManager extends GenericStackManager {
    * <li> updates the <code>frameRequired</code> field of this object
    * </ul>
    */
+  @Override
   public void computeNonVolatileArea() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
@@ -746,6 +717,7 @@ public abstract class StackManager extends GenericStackManager {
    *
    * <p>Invalidate any scratch register assignments that are illegal in s.
    */
+  @Override
   public void restoreScratchRegistersBefore(Instruction s) {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
       ScratchRegister scratch = i.next();
@@ -827,6 +799,7 @@ public abstract class StackManager extends GenericStackManager {
    * Initializes the "tmp" regs for this object
    * @param ir the governing ir
    */
+  @Override
   public final void initForArch(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     phys.getJTOC().reserveRegister();
@@ -844,6 +817,7 @@ public abstract class StackManager extends GenericStackManager {
    * Given symbolic register r in instruction s, do we need to ensure that
    * r is in a scratch register is s (as opposed to a memory operand)
    */
+  @Override
   public boolean needScratch(Register r, Instruction s) {
     if (s.operator == YIELDPOINT_OSR) return false;
 
@@ -859,6 +833,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param s the instruction to mutate.
    * @param symb the symbolic register operand to replace
    */
+  @Override
   public void replaceOperandWithSpillLocation(Instruction s, RegisterOperand symb) {
     // PowerPC does not support memory operands.
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);

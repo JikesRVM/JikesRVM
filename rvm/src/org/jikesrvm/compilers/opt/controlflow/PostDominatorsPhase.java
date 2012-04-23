@@ -43,6 +43,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return true;
   }
@@ -51,6 +52,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
    * Return a string representation of this phase
    * @return "Post-Dominators"
    */
+  @Override
   public String getName() {
     return "Post-Dominators";
   }
@@ -61,6 +63,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
    * @param before query control
    * @return true or false
    */
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -68,6 +71,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
   /**
    * Main driver for the post-dominator calculation.
    */
+  @Override
   public void perform(IR ir) {
     try {
       // reset flags in case an exception is thrown inside "perform"

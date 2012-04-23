@@ -52,6 +52,7 @@ final class TreeBottomUpEnumerator implements Enumeration<TreeNode> {
    * any elements left?
    * @return whether there are any elements left
    */
+  @Override
   public boolean hasMoreElements() {
     return iterator.hasNext();
   }
@@ -60,6 +61,7 @@ final class TreeBottomUpEnumerator implements Enumeration<TreeNode> {
    * returns the next element in the list iterator
    * @return the next element in the list iterator or null
    */
+  @Override
   public TreeNode nextElement() {
     return iterator.next();
   }

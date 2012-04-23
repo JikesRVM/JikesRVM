@@ -93,10 +93,12 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
   static final boolean DEBUG = false;
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA_LOAD_ELIMINATION;
   }
 
+  @Override
   public String getName() {
     return "Array SSA Load Elimination, round " + round;
   }
@@ -107,6 +109,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
   private final int round;
 
   static final class LoadEliminator extends CompilerPhase {
+    @Override
     public String getName() {
       return "Load Eliminator";
     }
@@ -117,6 +120,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
@@ -126,6 +130,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
      * Preconditions: Array SSA form and Global Value Numbers computed
      * @param ir the governing IR
      */
+    @Override
     public void perform(IR ir) {
 
       if (ir.desiredSSAOptions.getAbort()) return;
@@ -409,6 +414,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
       this.v2 = v2;
     }
 
+    @Override
     public boolean equals(Object o) {
       if (o instanceof UseRecord) {
         UseRecord u = (UseRecord) o;
@@ -417,6 +423,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
       return false;
     }
 
+    @Override
     public int hashCode() {
       return type.hashCode() + v1 + v2;
     }
@@ -675,20 +682,24 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
+    @Override
     public Constructor<CompilerPhase> getClassConstructor() {
       return constructor;
     }
 
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA_LOAD_ELIMINATION;
     }
 
+    @Override
     public final String getName() {
       return "Load Elimination Preparation";
     }
 
     private final int round;
 
+    @Override
     public final void perform(IR ir) {
       // register in the IR the SSA properties we need for load
       // elimination
@@ -707,10 +718,12 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    */
   public static class GVNPreparation extends CompilerPhase {
 
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA_LOAD_ELIMINATION;
     }
 
+    @Override
     public final String getName() {
       return "GVN Preparation";
     }
@@ -735,10 +748,12 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
+    @Override
     public Constructor<CompilerPhase> getClassConstructor() {
       return constructor;
     }
 
+    @Override
     public final void perform(IR ir) {
       // register in the IR the SSA properties we need for load
       // elimination

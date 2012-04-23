@@ -58,6 +58,7 @@ public final class SanityRootTraceLocal extends TraceLocal {
    * Process delayed roots. This does not make sense for SanityRootTraceLocal.
    * are empty.
    */
+  @Override
   @Inline
   public void processRoots() {
     VM.assertions.fail("SanityRootTraceLocal.processRoots called.");
@@ -66,6 +67,7 @@ public final class SanityRootTraceLocal extends TraceLocal {
   /**
    * Finishing processing all GC work. This does not make sense for SanityRootTraceLocal.
    */
+  @Override
   @Inline
   public void completeTrace() {
     VM.assertions.fail("SanityRootTraceLocal.completeTrace called.");
@@ -79,6 +81,7 @@ public final class SanityRootTraceLocal extends TraceLocal {
    * @param root Is this object a root?
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object, boolean root) {
     if (!root) VM.assertions.fail("SanityRootTraceLocal.traceObject called for non-root object.");
@@ -94,6 +97,7 @@ public final class SanityRootTraceLocal extends TraceLocal {
    * @param object The object to query.
    * @return True if the object will not move.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     // We never move objects!
     return true;

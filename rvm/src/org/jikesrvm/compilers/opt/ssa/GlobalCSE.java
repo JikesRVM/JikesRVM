@@ -75,6 +75,7 @@ public final class GlobalCSE extends CompilerPhase {
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA_GCSE;
   }
@@ -88,6 +89,7 @@ public final class GlobalCSE extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -95,6 +97,7 @@ public final class GlobalCSE extends CompilerPhase {
   /**
    * Returns the name of the phase
    */
+  @Override
   public String getName() {
     return "Global CSE";
   }
@@ -102,6 +105,7 @@ public final class GlobalCSE extends CompilerPhase {
   /**
    * Perform the GlobalCSE compiler phase
    */
+  @Override
   public void perform(IR ir) {
     // conditions to leave early
     if (ir.hasReachableExceptionHandlers() || GCP.tooBig(ir)) {

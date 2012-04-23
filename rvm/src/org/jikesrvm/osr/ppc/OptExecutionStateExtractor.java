@@ -42,6 +42,7 @@ import org.vmmagic.unboxed.WordArray;
 public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     implements ArchConstants, OSRConstants, PhysicalRegisterConstants {
 
+  @Override
   public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
     /* perform machine and compiler dependent operations here

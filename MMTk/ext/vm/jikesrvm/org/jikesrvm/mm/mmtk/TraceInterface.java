@@ -78,6 +78,7 @@ import org.vmmagic.unboxed.Word;
    *
    * @return True if the RVM is ready for GC, false otherwise.
    */
+  @Override
   public boolean gcEnabled() {
     return RVMThread.gcEnabled();
   }
@@ -119,6 +120,7 @@ import org.vmmagic.unboxed.Word;
    * the update will be stored
    * @return The easy to understand offset of the slot
    */
+  @Override
   public Offset adjustSlotOffset(boolean isScalar,
                                               ObjectReference src,
                                               Address slot) {
@@ -140,6 +142,7 @@ import org.vmmagic.unboxed.Word;
    * @param typeRef The type reference (tib) of the object just allocated
    * @return The frame pointer address for the method that allocated the object
    */
+  @Override
   @NoInline
   @Interruptible // This can't be uninterruptible --- it is an IO routine
   public Address skipOwnFramesAndDump(ObjectReference typeRef) {
@@ -228,61 +231,73 @@ import org.vmmagic.unboxed.Word;
    * Wrapper methods
    */
 
+  @Override
   @Inline
   public void updateDeathTime(ObjectReference obj) {
     MiscHeader.updateDeathTime(obj.toObject());
   }
 
+  @Override
   @Inline
   public void setDeathTime(ObjectReference ref, Word time_) {
     MiscHeader.setDeathTime(ref.toObject(), time_);
   }
 
+  @Override
   @Inline
   public void setLink(ObjectReference ref, ObjectReference link) {
     MiscHeader.setLink(ref.toObject(), link);
   }
 
+  @Override
   @Inline
   public void updateTime(Word time_) {
     MiscHeader.updateTime(time_);
   }
 
+  @Override
   @Inline
   public Word getOID(ObjectReference ref) {
     return MiscHeader.getOID(ref.toObject());
   }
 
+  @Override
   @Inline
   public Word getDeathTime(ObjectReference ref) {
     return MiscHeader.getDeathTime(ref.toObject());
   }
 
+  @Override
   @Inline
   public ObjectReference getLink(ObjectReference ref) {
     return MiscHeader.getLink(ref.toObject());
   }
 
+  @Override
   @Inline
   public Address getBootImageLink() {
     return MiscHeader.getBootImageLink();
   }
 
+  @Override
   @Inline
   public Word getOID() {
     return MiscHeader.getOID();
   }
 
+  @Override
   @Inline
   public void setOID(Word oid) {
     MiscHeader.setOID(oid);
   }
 
+  @Override
   @Inline
   public int getHeaderSize() {
     return MiscHeader.getHeaderSize();
   }
 
+  @Override
   @Inline
   public int getHeaderEndOffset() {
     return ObjectModel.getHeaderEndOffset();

@@ -64,6 +64,7 @@ import org.vmmagic.pragma.*;
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == GCTrace.CLOSURE) {
       inducedTrace.completeTrace();
@@ -102,6 +103,7 @@ import org.vmmagic.pragma.*;
   }
 
   /** @return The current trace instance */
+  @Override
   public TraceLocal getCurrentTrace() {
     return inducedTrace;
   }

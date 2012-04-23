@@ -47,14 +47,17 @@ public final class FieldAnalysis extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.FIELD_ANALYSIS;
   }
 
+  @Override
   public String getName() {
     return "Field Analysis";
   }
@@ -113,6 +116,7 @@ public final class FieldAnalysis extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public void perform(IR ir) {
     // walk over each instructions.  For each putfield or putstatic,
     // record the concrete type assigned to a field; or, record

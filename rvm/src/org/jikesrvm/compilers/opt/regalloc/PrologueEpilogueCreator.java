@@ -26,15 +26,18 @@ public final class PrologueEpilogueCreator extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public String getName() { return "Insert Prologue/Epilogue"; }
 
   /**
    *  Insert the prologue and epilogue
    */
+  @Override
   public void perform(IR ir) {
     ir.stackManager.insertPrologueAndEpilogue();
   }

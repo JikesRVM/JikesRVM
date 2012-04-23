@@ -720,14 +720,17 @@ public final class RVMThread extends ThreadContext {
   @Uninterruptible
   @NonMoving
   public static class SuspendBlockAdapter extends BlockAdapter {
+    @Override
     boolean isBlocked(RVMThread t) {
       return t.isSuspended;
     }
 
+    @Override
     void setBlocked(RVMThread t, boolean value) {
       t.isSuspended = value;
     }
 
+    @Override
     int requestBlock(RVMThread t) {
       if (t.isSuspended || t.shouldSuspend) {
         return t.shouldSuspendToken;
@@ -738,14 +741,17 @@ public final class RVMThread extends ThreadContext {
       }
     }
 
+    @Override
     boolean hasBlockRequest(RVMThread t) {
       return t.shouldSuspend;
     }
 
+    @Override
     boolean hasBlockRequest(RVMThread t, int token) {
       return t.shouldSuspend && t.shouldSuspendToken == token;
     }
 
+    @Override
     void clearBlockRequest(RVMThread t) {
       t.shouldSuspend = false;
     }
@@ -756,14 +762,17 @@ public final class RVMThread extends ThreadContext {
   @Uninterruptible
   @NonMoving
   public static class HandshakeBlockAdapter extends BlockAdapter {
+    @Override
     boolean isBlocked(RVMThread t) {
       return t.isBlockedForHandshake;
     }
 
+    @Override
     void setBlocked(RVMThread t, boolean value) {
       t.isBlockedForHandshake = value;
     }
 
+    @Override
     int requestBlock(RVMThread t) {
       if (!t.isBlockedForHandshake) {
         t.shouldBlockForHandshake = true;
@@ -771,14 +780,17 @@ public final class RVMThread extends ThreadContext {
       return 0;
     }
 
+    @Override
     boolean hasBlockRequest(RVMThread t) {
       return t.shouldBlockForHandshake;
     }
 
+    @Override
     boolean hasBlockRequest(RVMThread t, int token) {
       return t.shouldBlockForHandshake;
     }
 
+    @Override
     void clearBlockRequest(RVMThread t) {
       t.shouldBlockForHandshake = false;
     }
@@ -789,14 +801,17 @@ public final class RVMThread extends ThreadContext {
   @Uninterruptible
   @NonMoving
   public static class GCBlockAdapter extends BlockAdapter {
+    @Override
     boolean isBlocked(RVMThread t) {
       return t.isBlockedForGC;
     }
 
+    @Override
     void setBlocked(RVMThread t, boolean value) {
       t.isBlockedForGC = value;
     }
 
+    @Override
     int requestBlock(RVMThread t) {
       if (!t.isBlockedForGC) {
         t.shouldBlockForGC = true;
@@ -804,14 +819,17 @@ public final class RVMThread extends ThreadContext {
       return 0;
     }
 
+    @Override
     boolean hasBlockRequest(RVMThread t) {
       return t.shouldBlockForGC;
     }
 
+    @Override
     boolean hasBlockRequest(RVMThread t, int token) {
       return t.shouldBlockForGC;
     }
 
+    @Override
     void clearBlockRequest(RVMThread t) {
       t.shouldBlockForGC = false;
     }
@@ -2723,6 +2741,7 @@ public final class RVMThread extends ThreadContext {
   private void callSystemExit(final int exitStatus) {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
       // @Override // Java 1.5 - can't override interface method
+      @Override
       public Object run() {
         System.exit(exitStatus);
         return null;
@@ -3510,6 +3529,7 @@ public final class RVMThread extends ThreadContext {
   @Uninterruptible
   @NonMoving
   static class AllButGCHardHandshakeVisitor extends HardHandshakeVisitor {
+    @Override
     public boolean includeThread(RVMThread t) {
       return !t.isCollectorThread();
     }

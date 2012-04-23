@@ -86,6 +86,7 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
   /*
    * callback when application is about to start.
    */
+  @Override
   public void notifyStartup() {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("Compiler got notified of app ready to begin");

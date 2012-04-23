@@ -110,18 +110,22 @@ public final class ExpandRuntimeServices extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return true;
   }
 
+  @Override
   public String getName() {
     return "Expand Runtime Services";
   }
 
+  @Override
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
@@ -135,6 +139,7 @@ public final class ExpandRuntimeServices extends CompilerPhase {
    *
    * @param ir  The HIR to expand
    */
+  @Override
   public void perform(IR ir) {
     ir.gc.resync(); // resync generation context -- yuck...
 

@@ -86,6 +86,7 @@ public class SSCollector extends StopTheWorldCollector {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
+  @Override
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
@@ -108,6 +109,7 @@ public class SSCollector extends StopTheWorldCollector {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Override
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -127,6 +129,7 @@ public class SSCollector extends StopTheWorldCollector {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == SS.PREPARE) {
@@ -182,6 +185,7 @@ public class SSCollector extends StopTheWorldCollector {
   }
 
   /** @return the current trace object. */
+  @Override
   public TraceLocal getCurrentTrace() {
     return trace;
   }

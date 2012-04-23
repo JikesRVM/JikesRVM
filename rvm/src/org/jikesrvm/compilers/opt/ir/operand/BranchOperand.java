@@ -44,6 +44,7 @@ public final class BranchOperand extends Operand {
    *
    * @return a copy of this operand
    */
+  @Override
   public Operand copy() {
     return new BranchOperand(target);
   }
@@ -56,6 +57,7 @@ public final class BranchOperand extends Operand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof BranchOperand) && (target == ((BranchOperand) op).target);
   }
@@ -65,6 +67,7 @@ public final class BranchOperand extends Operand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "LABEL" + Label.getBlock(target).block.getNumber();
   }

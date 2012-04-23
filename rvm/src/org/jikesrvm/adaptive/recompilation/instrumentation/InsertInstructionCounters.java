@@ -44,14 +44,17 @@ public class InsertInstructionCounters extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return Controller.options.INSERT_INSTRUCTION_COUNTERS;
   }
 
+  @Override
   public final String getName() { return "InsertInstructionCounters"; }
 
   /**
@@ -60,6 +63,7 @@ public class InsertInstructionCounters extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
 
     // Don't insert counters in uninterruptible methods,

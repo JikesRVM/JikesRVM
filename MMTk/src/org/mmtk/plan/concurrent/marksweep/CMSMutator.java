@@ -117,6 +117,7 @@ public class CMSMutator extends ConcurrentMutator {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == CMS.msSpace) return ms;
     return super.getAllocatorFromSpace(space);
@@ -133,6 +134,7 @@ public class CMSMutator extends ConcurrentMutator {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == CMS.PREPARE) {
@@ -170,6 +172,7 @@ public class CMSMutator extends ConcurrentMutator {
    *
    * @param ref The reference to check.
    */
+  @Override
   protected void checkAndEnqueueReference(ObjectReference ref) {
     if (ref.isNull()) return;
     if (barrierActive) {

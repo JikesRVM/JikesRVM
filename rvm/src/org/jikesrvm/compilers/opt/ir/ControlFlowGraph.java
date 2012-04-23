@@ -372,8 +372,10 @@ public final class ControlFlowGraph extends SpaceEffGraph {
       _end = cfg.exit();
     }
 
+    @Override
     public boolean hasMoreElements() { return _node != null; }
 
+    @Override
     @SuppressWarnings("unchecked")
     // We cast to whatever the concrete type of the graph is
     public T nextElement() {

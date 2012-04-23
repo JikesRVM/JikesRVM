@@ -38,6 +38,7 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -46,6 +47,7 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
    * Return the name of this phase
    * @return "Live Range Splitting"
    */
+  @Override
   public final String getName() {
     return "MIR Range Splitting";
   }
@@ -67,6 +69,7 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
 
     java.util.HashMap<Register, Register> newMap = new java.util.HashMap<Register, Register>(5);

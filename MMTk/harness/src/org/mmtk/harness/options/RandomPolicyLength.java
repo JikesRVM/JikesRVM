@@ -27,6 +27,7 @@ public final class RandomPolicyLength extends org.vmutil.options.IntOption {
         Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.random.length", "10")));
   }
 
+  @Override
   protected void validate() {
   }
 }

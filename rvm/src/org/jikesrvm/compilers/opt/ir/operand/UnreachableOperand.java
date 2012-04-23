@@ -26,6 +26,7 @@ public final class UnreachableOperand extends ConstantOperand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new UnreachableOperand();
   }
@@ -38,6 +39,7 @@ public final class UnreachableOperand extends ConstantOperand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return op instanceof UnreachableOperand;
   }
@@ -47,6 +49,7 @@ public final class UnreachableOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "<unreachable>";
   }

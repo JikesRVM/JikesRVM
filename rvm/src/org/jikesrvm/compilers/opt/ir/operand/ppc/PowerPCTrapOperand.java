@@ -60,10 +60,12 @@ public final class PowerPCTrapOperand extends Operand {
     return new PowerPCTrapOperand(ALWAYS);
   }
 
+  @Override
   public Operand copy() {
     return new PowerPCTrapOperand(value);
   }
 
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof PowerPCTrapOperand) && (((PowerPCTrapOperand) op).value == value);
   }
@@ -198,6 +200,7 @@ public final class PowerPCTrapOperand extends Operand {
   /**
    * Returns the string representation of this operand.
    */
+  @Override
   public String toString() {
     String result = "ppc trap ";
     switch (value) {

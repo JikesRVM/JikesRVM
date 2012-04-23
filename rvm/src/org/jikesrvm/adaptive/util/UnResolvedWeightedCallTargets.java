@@ -88,10 +88,12 @@ public abstract class UnResolvedWeightedCallTargets {
       weight = (float) w;
     }
 
+    @Override
     public void visitTargets(Visitor func) {
       func.visit(target, weight);
     }
 
+    @Override
     public UnResolvedWeightedCallTargets augmentCount(MethodReference t, double v) {
       if (target.equals(t)) {
         weight += v;
@@ -104,12 +106,15 @@ public abstract class UnResolvedWeightedCallTargets {
       }
     }
 
+    @Override
     public void decay(double rate) {
       weight /= rate;
     }
 
+    @Override
     public double totalWeight() { return weight; }
 
+    @Override
     public UnResolvedWeightedCallTargets filter(MethodReference goal) {
       return (goal.equals(target)) ? this : null;
     }
@@ -122,6 +127,7 @@ public abstract class UnResolvedWeightedCallTargets {
     MethodReference[] methods = new MethodReference[5];
     float[] weights = new float[5];
 
+    @Override
     public synchronized void visitTargets(Visitor func) {
       // Typically expect elements to be "almost" sorted due to previous sorting operations.
       // When this is true, expected time for insertion sort is O(n).
@@ -147,6 +153,7 @@ public abstract class UnResolvedWeightedCallTargets {
       }
     }
 
+    @Override
     public synchronized UnResolvedWeightedCallTargets augmentCount(MethodReference t, double v) {
       int empty = -1;
       for (int i = 0; i < methods.length; i++) {
@@ -177,12 +184,14 @@ public abstract class UnResolvedWeightedCallTargets {
       return this;
     }
 
+    @Override
     public synchronized void decay(double rate) {
       for (int i = 0; i < weights.length; i++) {
         weights[i] /= rate;
       }
     }
 
+    @Override
     public synchronized double totalWeight() {
       double sum = 0;
       for (float weight : weights) {
@@ -191,6 +200,7 @@ public abstract class UnResolvedWeightedCallTargets {
       return sum;
     }
 
+    @Override
     public synchronized UnResolvedWeightedCallTargets filter(MethodReference goal) {
       for (int i = 0; i < methods.length; i++) {
         if (goal.equals(methods[i])) {

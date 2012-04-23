@@ -28,6 +28,7 @@ public class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
    *
    * @return The value of the counter, prior to reset.
    */
+  @Override
   public synchronized int reset() {
     int old = value;
     value = 0;
@@ -39,6 +40,7 @@ public class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
    *
    * @return the value before the add
    */
+  @Override
   public synchronized int increment() {
     return value++;
   }
@@ -48,6 +50,7 @@ public class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
    *
    * @return The current value of the counter.
    */
+  @Override
   public int peek() {
     return value;
   }

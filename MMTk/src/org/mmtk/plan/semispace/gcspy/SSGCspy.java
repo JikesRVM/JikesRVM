@@ -178,6 +178,7 @@ import org.vmmagic.pragma.*;
    * @param wait Whether to wait
    * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
+  @Override
   @Interruptible
   public final void startGCspyServer(int port, boolean wait) {
     GCspy.server.init("SemiSpaceServerInterpreter", port, true/*verbose*/);
@@ -253,6 +254,7 @@ import org.vmmagic.pragma.*;
    *
    * @param phaseId Collection phase
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (DEBUG) { Log.write("--Phase Plan."); Log.writeln(Phase.getName(phaseId)); }
@@ -319,6 +321,7 @@ import org.vmmagic.pragma.*;
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public final int getPagesUsed() {
     return super.getPagesUsed() + gcspySpace.reservedPages();
   }
@@ -344,6 +347,7 @@ import org.vmmagic.pragma.*;
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     super.registerSpecializedMethods();

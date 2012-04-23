@@ -40,6 +40,7 @@ public final class BasicBlockOperand extends Operand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new BasicBlockOperand(block);
   }
@@ -52,6 +53,7 @@ public final class BasicBlockOperand extends Operand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof BasicBlockOperand) && (block == ((BasicBlockOperand) op).block);
   }
@@ -61,6 +63,7 @@ public final class BasicBlockOperand extends Operand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return block.toString();
   }

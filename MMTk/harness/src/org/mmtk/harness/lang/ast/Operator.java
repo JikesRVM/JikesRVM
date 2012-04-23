@@ -153,6 +153,7 @@ public enum Operator {
     return unaryOperators.contains(this);
   }
 
+  @Override
   public String toString() {
     return image;
   }

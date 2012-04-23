@@ -67,16 +67,20 @@ public final class TailRecursionElimination extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= 1;
   }
 
+  @Override
   public String getName() { return "Tail Recursion Elimination"; }
 
+  @Override
   public CompilerPhase newExecution(IR ir) { return this; }
 
   /**
@@ -84,6 +88,7 @@ public final class TailRecursionElimination extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public void perform(IR ir) {
     BasicBlock target = null;
     Instruction prologue = null;

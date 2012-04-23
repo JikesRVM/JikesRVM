@@ -18,14 +18,17 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 
 public class EmptyIterator implements Iterator<Object> {
 
+  @Override
   public boolean hasNext() {
     return false;
   }
 
+  @Override
   public Object next() {
     throw new java.util.NoSuchElementException();
   }
 
+  @Override
   public void remove() {
     throw new OptimizingCompilerException("EmptyIterator.remove called");
   }

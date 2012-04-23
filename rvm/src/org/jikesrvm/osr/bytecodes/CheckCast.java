@@ -24,20 +24,24 @@ public class CheckCast extends PseudoBytecode {
     this.tid = typeId;
   }
 
+  @Override
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_CheckCast);
     int2bytes(codes, 2, tid);
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     return 0;
   }
 
+  @Override
   public String toString() {
     return "CheckCast " + this.tid;
   }

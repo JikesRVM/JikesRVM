@@ -30,6 +30,7 @@ public final class Monitor extends org.mmtk.vm.Monitor {
   /**
    * Block until the lock is acquired.
    */
+  @Override
   public void lock() {
     theLock.lockNoHandshake();
   }
@@ -37,6 +38,7 @@ public final class Monitor extends org.mmtk.vm.Monitor {
   /**
    * Release the lock.
    */
+  @Override
   public void unlock() {
     theLock.unlock();
   }
@@ -44,6 +46,7 @@ public final class Monitor extends org.mmtk.vm.Monitor {
   /**
    * Wait for a broadcast.
    */
+  @Override
   public void await() {
     theLock.waitNoHandshake();
   }
@@ -51,6 +54,7 @@ public final class Monitor extends org.mmtk.vm.Monitor {
   /**
    * Send a broadcast.
    */
+  @Override
   public void broadcast() {
     theLock.broadcast();
   }

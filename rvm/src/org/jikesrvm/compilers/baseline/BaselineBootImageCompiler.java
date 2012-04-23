@@ -30,6 +30,7 @@ public final class BaselineBootImageCompiler extends BootImageCompiler {
    * Initialize boot image compiler.
    * @param args command line arguments to the bootimage compiler
    */
+  @Override
   protected void initCompiler(String[] args) {
     BaselineCompiler.initOptions();
     // Process arguments specified by the user.
@@ -46,6 +47,7 @@ public final class BaselineBootImageCompiler extends BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
+  @Override
   protected CompiledMethod compileMethod(NormalMethod method, TypeReference[] params) {
     CompiledMethod cm;
     Callbacks.notifyMethodCompile(method, CompiledMethod.BASELINE);

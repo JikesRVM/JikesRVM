@@ -73,6 +73,7 @@ public final class LocalVariableTable {
     /**
      * String represenation of this local variable.
      */
+    @Override
     public String toString() {
       return (startPC + " " +
              length + " " +
@@ -118,6 +119,7 @@ public final class LocalVariableTable {
   /**
    * String representation of the local variable table.
    */
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("Local Variable Table: \n");

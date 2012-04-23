@@ -132,10 +132,12 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
     return new Enumeration<TypeOperand>() {
       private int idx = 0;
 
+      @Override
       public boolean hasMoreElements() {
         return idx != exceptionTypes.length;
       }
 
+      @Override
       public TypeOperand nextElement() {
         try {
           return exceptionTypes[idx++];
@@ -187,6 +189,7 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
    *
    * @return a string representation of the block
    */
+  @Override
   public String toString() {
     String exmsg = " (catches ";
     for (int i = 0; i < exceptionTypes.length - 1; i++) {

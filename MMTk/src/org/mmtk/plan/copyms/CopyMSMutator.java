@@ -75,6 +75,7 @@ public class CopyMSMutator extends StopTheWorldMutator {
    * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == CopyMS.ALLOC_DEFAULT)
@@ -95,6 +96,7 @@ public class CopyMSMutator extends StopTheWorldMutator {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Override
   @SuppressWarnings({"UnnecessaryReturnStatement"})
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
@@ -116,6 +118,7 @@ public class CopyMSMutator extends StopTheWorldMutator {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == CopyMS.nurserySpace) return nursery;
     if (space == CopyMS.msSpace) return mature;
@@ -133,6 +136,7 @@ public class CopyMSMutator extends StopTheWorldMutator {
    * @param phaseId The collection phase to perform
    * @param primary Use this thread for single-threaded local activities.
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == CopyMS.PREPARE) {

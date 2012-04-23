@@ -48,6 +48,7 @@ public final class AbstractMethod extends RVMMethod {
   /**
    * Generate the code for this method
    */
+  @Override
   protected CompiledMethod genCode() {
     Entrypoints.unexpectedAbstractMethodCallMethod.compile();
     return Entrypoints.unexpectedAbstractMethodCallMethod.getCurrentCompiledMethod();

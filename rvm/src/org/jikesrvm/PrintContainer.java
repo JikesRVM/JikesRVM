@@ -39,14 +39,17 @@ public final class PrintContainer {
       this.out = out;
     }
 
+    @Override
     public void flush() {
       out.flush();
     }
 
+    @Override
     public void println() {
       out.println();
     }
 
+    @Override
     public void print(String s) {
       if (s == null) {
         s = "(*null String pointer*)";
@@ -54,6 +57,7 @@ public final class PrintContainer {
       out.print(s);
     }
 
+    @Override
     public void print(char c) {
       out.print(c);
     }
@@ -67,18 +71,22 @@ public final class PrintContainer {
       this.out = out;
     }
 
+    @Override
     public boolean isSystemErr() {
       return this.out == System.err;
     }
 
+    @Override
     public void flush() {
       out.flush();
     }
 
+    @Override
     public void println() {
       out.println();
     }
 
+    @Override
     public void print(String s) {
       if (s == null) {
         s = "(*null String pointer*)";
@@ -86,6 +94,7 @@ public final class PrintContainer {
       out.print(s);
     }
 
+    @Override
     public void print(char c) {
       out.print(c);
     }
@@ -108,17 +117,21 @@ public final class PrintContainer {
      * pass an instance of this to something expecting a {@link PrintLN} . */
     WithSysWrite() {}
 
+    @Override
     public boolean isSysWrite() {
       return true;
     }
 
+    @Override
     public void flush() {
     }
 
+    @Override
     public void println() {
       VM.sysWriteln();
     }
 
+    @Override
     public void print(String s) {
       if (s == null) {
         s = "(*null String pointer*)";
@@ -127,27 +140,33 @@ public final class PrintContainer {
       VM.sysWrite(s);
     }
 
+    @Override
     public void println(String s) {
       print(s);
       println();
     }
 
+    @Override
     public void print(int i) {
       VM.sysWrite(i);
     }
 
+    @Override
     public void printHex(int i) {
       VM.sysWriteHex(i);
     }
 
+    @Override
     public void print(char c) {
       VM.sysWrite(c);
     }
 
+    @Override
     public void print(RVMMember m) {
       VM.sysWrite(m);
     }
 
+    @Override
     public void print(Atom a) {
       VM.sysWrite(a);
     }

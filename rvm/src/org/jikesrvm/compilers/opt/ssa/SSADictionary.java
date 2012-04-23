@@ -1486,6 +1486,7 @@ public final class SSADictionary {
      * @param key the object to compare with
      * @return true or false as appropriate
      */
+    @Override
     public boolean equals(Object key) {
       if (!(key instanceof HeapKey)) {
         return false;
@@ -1501,6 +1502,7 @@ public final class SSADictionary {
      *
      * @return the hash code
      */
+    @Override
     public int hashCode() {
       return type.hashCode() + 8192 * number;
     }
@@ -1549,6 +1551,7 @@ public final class SSADictionary {
      *
      * @return true or false
      */
+    @Override
     public boolean hasMoreElements() {
       return (implicitInstructions.hasNext() || explicitInstructions.hasMoreElements());
     }
@@ -1558,6 +1561,7 @@ public final class SSADictionary {
      *
      * @return the next instruction
      */
+    @Override
     public Instruction nextElement() {
       if (labelInstruction != null) {
         Instruction temp = labelInstruction;

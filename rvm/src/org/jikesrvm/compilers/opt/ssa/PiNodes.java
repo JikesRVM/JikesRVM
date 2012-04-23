@@ -69,6 +69,7 @@ public final class PiNodes extends CompilerPhase {
    * that can benefit from PI nodes.
    * @param options controlling compiler options
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA_GLOBAL_BOUNDS_CHECK || typeChecks;
   }
@@ -83,6 +84,7 @@ public final class PiNodes extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -91,6 +93,7 @@ public final class PiNodes extends CompilerPhase {
    * A String representation of this phase
    * @return a string representation
    */
+  @Override
   public String getName() {
     return "Pi Nodes " + insertion;
   }
@@ -100,6 +103,7 @@ public final class PiNodes extends CompilerPhase {
    * @param options controlling compiler options
    * @param before control for the query
    */
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -130,6 +134,7 @@ public final class PiNodes extends CompilerPhase {
    * Perform the transformation.
    * @param ir the IR to optimize
    */
+  @Override
   public void perform(IR ir) {
     if (insertion) {
       if (!typeChecks) {

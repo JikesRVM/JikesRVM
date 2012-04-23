@@ -60,6 +60,7 @@ import org.jikesrvm.compilers.opt.ir.Move;
  */
 public final class RedundantBranchElimination extends OptimizationPlanCompositeElement {
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA_REDUNDANT_BRANCH_ELIMINATION;
   }
@@ -81,6 +82,7 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
 
   private static final class EnsureSSA extends CompilerPhase {
 
+    @Override
     public String getName() {
       return "Ensure SSA";
     }
@@ -89,11 +91,13 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
       return true;
     }
 
+    @Override
     public void perform(IR ir) {
       ir.desiredSSAOptions = new SSAOptions();
       new EnterSSA().perform(ir);
     }
 
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
@@ -102,8 +106,10 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
   private static final class RBE extends CompilerPhase {
     private static final boolean DEBUG = false;
 
+    @Override
     public String getName() { return "RBE Transform"; }
 
+    @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
       return false && DEBUG;
     }
@@ -114,6 +120,7 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
@@ -124,6 +131,7 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
      *
      * @param ir   The IR on which to apply the phase
      */
+    @Override
     public void perform(IR ir) {
       // (1) Remove redundant conditional branches and locally fix the PHIs
       GlobalValueNumberState gvns = ir.HIRInfo.valueNumbers;

@@ -75,6 +75,7 @@ public class StickyImmixCollector extends ImmixCollector {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     boolean collectWholeHeap = global().collectWholeHeap;

@@ -28,6 +28,7 @@ public final class BTSweeper extends ExplicitFreeListSpace.Sweeper {
 
   private final BTDecMarked sdm = new BTDecMarked();
 
+  @Override
   public boolean sweepCell(ObjectReference object) {
     if (!RCHeader.isMarked(object)) {
       VM.scanning.scanObject(sdm, object);

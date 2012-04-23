@@ -127,6 +127,7 @@ public final class MonotonePageResource extends PageResource
    * @return The start of the first page if successful, zero on
    * failure.
    */
+  @Override
   @Inline
   protected Address allocPages(int reservedPages, int requiredPages, boolean zeroed) {
     boolean newChunk = false;
@@ -193,6 +194,7 @@ public final class MonotonePageResource extends PageResource
    * @param pages The size of the pending allocation in pages
    * @return The number of required pages, inclusive of any metadata
    */
+  @Override
   public int adjustForMetaData(int pages) {
     return pages + ((pages + EmbeddedMetaData.PAGES_IN_REGION - 1) >> EmbeddedMetaData.LOG_PAGES_IN_REGION) * metaDataPagesPerRegion;
   }

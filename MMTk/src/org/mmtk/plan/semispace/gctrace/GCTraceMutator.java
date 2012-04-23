@@ -51,6 +51,7 @@ import org.vmmagic.pragma.*;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Override
   @Inline
   public final void postAlloc(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -88,6 +89,7 @@ import org.vmmagic.pragma.*;
    * being modified
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Override
   @Inline
   public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
@@ -114,6 +116,7 @@ import org.vmmagic.pragma.*;
    * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
+  @Override
   @Inline
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot,
       ObjectReference old, ObjectReference tgt, Word metaDataA,
@@ -143,6 +146,7 @@ import org.vmmagic.pragma.*;
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
+  @Override
   public boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset, int bytes) {
     /* These names seem backwards, but are defined to be compatable with the
@@ -169,6 +173,7 @@ import org.vmmagic.pragma.*;
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (!GCTrace.traceInducedGC ||
         (phaseId != StopTheWorld.PREPARE) &&

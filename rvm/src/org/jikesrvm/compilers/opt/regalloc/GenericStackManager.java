@@ -1454,6 +1454,7 @@ public abstract class GenericStackManager extends IRTools {
       this.currentContents = currentContents;
     }
 
+    @Override
     public String toString() {
       String dirtyString = dirty ? "D" : "C";
       return "SCRATCH<" + scratch + "," + currentContents + "," + dirtyString + ">";

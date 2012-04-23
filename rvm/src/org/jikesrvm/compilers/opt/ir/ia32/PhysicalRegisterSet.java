@@ -57,6 +57,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Return the total number of physical registers.
    */
+  @Override
   public final int getNumberOfPhysicalRegisters() {
     return getSize();
   }
@@ -204,6 +205,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * @return the processor register
    */
+  @Override
   public Register getTR() {
     return getGPR(THREAD_REGISTER);
   }
@@ -211,6 +213,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * @return the frame pointer register
    */
+  @Override
   public Register getFP() {
     throw new OptimizingCompilerException("Framepointer is not a register on IA32");
   }
@@ -351,6 +354,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * @return the nth physical GPR
    */
+  @Override
   public Register getGPR(int n) {
     return reg[FIRST_INT + n];
   }
@@ -367,6 +371,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * @return the first GPR register used to hold a return value
    */
+  @Override
   public Register getFirstReturnGPR() {
     if (VM.VerifyAssertions) VM._assert(NUM_RETURN_GPRS > 0);
     return getEAX();
@@ -414,6 +419,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * @return the nth physical FPR
    */
+  @Override
   public Register getFPR(int n) {
     return reg[FIRST_DOUBLE + n];
   }
@@ -430,6 +436,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * @return the nth physical register in the pool.
    */
+  @Override
   public Register get(int n) {
     return reg[n];
   }
@@ -521,6 +528,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate all the physical registers in this set.
    */
+  @Override
   public Enumeration<Register> enumerateAll() {
     return new RangeEnumeration(0, getSize() - 1);
   }
@@ -528,6 +536,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate all the GPRs in this set.
    */
+  @Override
   public Enumeration<Register> enumerateGPRs() {
     return new RangeEnumeration(FIRST_INT, FIRST_DOUBLE - 1);
   }
@@ -542,6 +551,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate all the volatile GPRs in this set.
    */
+  @Override
   public PhysicalRegisterEnumeration enumerateVolatileGPRs() {
     Register[] r = new Register[NUM_VOLATILE_GPRS];
     for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
@@ -553,6 +563,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate all the nonvolatile GPRs in this set.
    */
+  @Override
   public PhysicalRegisterEnumeration enumerateNonvolatileGPRs() {
     Register[] r = new Register[NUM_NONVOLATILE_GPRS];
     for (int i = 0; i < NUM_NONVOLATILE_GPRS; i++) {
@@ -564,6 +575,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate the nonvolatile GPRS backwards
    */
+  @Override
   public Enumeration<Register> enumerateNonvolatileGPRsBackwards() {
     return new ReverseEnumerator<Register>(enumerateNonvolatileGPRs());
   }
@@ -571,6 +583,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate all the volatile FPRs in this set.
    */
+  @Override
   public PhysicalRegisterEnumeration enumerateVolatileFPRs() {
     Register[] r = new Register[NUM_VOLATILE_FPRS];
     for (int i = 0; i < NUM_VOLATILE_FPRS; i++) {
@@ -582,6 +595,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate all the nonvolatile FPRs in this set.
    */
+  @Override
   public PhysicalRegisterEnumeration enumerateNonvolatileFPRs() {
     Register[] r = new Register[NUM_NONVOLATILE_FPRS];
     for (int i = 0; i < NUM_NONVOLATILE_FPRS; i++) {
@@ -610,6 +624,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   /**
    * Enumerate all the volatile physical registers
    */
+  @Override
   public Enumeration<Register> enumerateVolatiles() {
     Enumeration<Register> e1 = enumerateVolatileGPRs();
     Enumeration<Register> e2 = enumerateVolatileFPRs();
@@ -668,10 +683,12 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
       this.index = 0;
     }
 
+    @Override
     public Register nextElement() {
       return r[index++];
     }
 
+    @Override
     public boolean hasMoreElements() {
       return (index < r.length);
     }
@@ -697,11 +714,13 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
       this.index = start;
     }
 
+    @Override
     public Register nextElement() {
       if (index == exclude) index++;
       return reg[index++];
     }
 
+    @Override
     public boolean hasMoreElements() {
       if (index == exclude) index++;
       return (index <= end);

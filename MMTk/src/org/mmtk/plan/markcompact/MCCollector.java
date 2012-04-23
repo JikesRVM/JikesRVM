@@ -18,7 +18,6 @@ import org.mmtk.policy.MarkCompactCollector;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
 
 /**
  * This class implements <i>per-collector thread</i> behavior

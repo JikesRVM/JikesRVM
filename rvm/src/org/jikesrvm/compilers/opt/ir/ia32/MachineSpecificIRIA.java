@@ -210,6 +210,7 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
    *
    *  Side effect: update the fpStackHeight in MIRInfo
    */
+  @Override
   public void rewriteFPStack(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     for (BasicBlockEnumeration b = ir.getBasicBlocks(); b.hasMoreElements();) {

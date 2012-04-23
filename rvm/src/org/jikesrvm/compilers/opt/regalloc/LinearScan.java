@@ -92,14 +92,17 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   /**
    * Register allocation is required
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return true;
   }
 
+  @Override
   public String getName() {
     return "Linear Scan Composite Phase";
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -214,18 +217,22 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
+    @Override
     public String getName() {
       return "Register Restrictions";
     }
 
+    @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
@@ -233,6 +240,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      *  @param ir the IR
      */
+    @Override
     public void perform(IR ir) {
 
       //  The registerManager has already been initialized
@@ -266,6 +274,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
+    @Override
     public Constructor<CompilerPhase> getClassConstructor() {
       return constructor;
     }
@@ -273,14 +282,17 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * Register allocation is required
      */
+    @Override
     public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
+    @Override
     public String getName() {
       return "Linear Scan";
     }
 
+    @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
@@ -290,6 +302,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      *  See TOPLAS 21(5), Sept 1999, p 895-913
      *  @param ir the IR
      */
+    @Override
     public void perform(IR ir) {
 
       this.ir = ir;
@@ -432,6 +445,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * Redefine equals
      */
+    @Override
     public boolean equals(Object o) {
       if (!(o instanceof BasicInterval)) return false;
 
@@ -467,6 +481,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * Return a String representation
      */
+    @Override
     public String toString() {
       String s = "[ " + begin + ", " + end + " ] ";
       return s;
@@ -492,6 +507,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * Redefine equals
      */
+    @Override
     public boolean equals(Object o) {
       if (super.equals(o)) {
         MappedBasicInterval i = (MappedBasicInterval) o;
@@ -501,6 +517,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       }
     }
 
+    @Override
     public String toString() {
       return "<" + container.getRegister() + ">:" + super.toString();
     }
@@ -883,6 +900,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * Make a String representation
      */
+    @Override
     public String toString() {
       String str = "[" + getRegister() + "]:";
       for (Iterator<BasicInterval> i = iterator(); i.hasNext();) {
@@ -1709,6 +1727,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * Get a constructor object for this compiler phase
      * @return compiler phase constructor
      */
+    @Override
     public Constructor<CompilerPhase> getClassConstructor() {
       return constructor;
     }
@@ -1716,16 +1735,19 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * should we perform this phase? yes.
      */
+    @Override
     public boolean shouldPerform(OptOptions options) { return true; }
 
     /**
      * a name for this phase.
      */
+    @Override
     public String getName() { return "Interval Analysis"; }
 
     /**
      * should we print the ir?
      */
+    @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
@@ -1740,6 +1762,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      *
      * @param ir the ir
      */
+    @Override
     public void perform(IR ir) {
       this.ir = ir;
 
@@ -2108,6 +2131,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       this.size = size;
     }
 
+    @Override
     public String toString() {
       return super.toString() + "<Offset:" + frameOffset + "," + size + ">";
     }
@@ -2115,6 +2139,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * Redefine hash code for reproducibility.
      */
+    @Override
     public int hashCode() {
       BasicInterval first = first();
       BasicInterval last = last();
@@ -2131,6 +2156,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     static final long serialVersionUID = -7086728932911844728L;
 
     private static class StartComparator implements Comparator<BasicInterval> {
+      @Override
       public int compare(BasicInterval b1, BasicInterval b2) {
         int result = b1.getBegin() - b2.getBegin();
         if (result == 0) {
@@ -2156,6 +2182,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     static final long serialVersionUID = -975667667343524421L;
 
     private static class StartComparator implements Comparator<BasicInterval> {
+      @Override
       public int compare(BasicInterval b1, BasicInterval b2) {
         int result = b1.getBegin() - b2.getBegin();
         if (result == 0) {
@@ -2190,6 +2217,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     static final long serialVersionUID = -3121737650157210290L;
 
     private static class EndComparator implements Comparator<BasicInterval> {
+      @Override
       public int compare(BasicInterval b1, BasicInterval b2) {
         int result = b1.getEnd() - b2.getEnd();
         if (result == 0) {
@@ -2227,6 +2255,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      * Return a String representation
      */
+    @Override
     public String toString() {
       String result = "";
       for (BasicInterval b : this) {
@@ -2242,6 +2271,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    */
   static final class UpdateGCMaps1 extends CompilerPhase {
 
+    @Override
     public boolean shouldPerform(OptOptions options) {
       return true;
     }
@@ -2252,14 +2282,17 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public String getName() {
       return "Update GCMaps 1";
     }
 
+    @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
@@ -2269,6 +2302,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      *  replace the symbolic reg with the real reg or spill it was allocated
      *  @param ir the IR
      */
+    @Override
     public void perform(IR ir) {
 
       for (GCIRMapElement GCelement : ir.MIRInfo.gcIRMap) {
@@ -2310,18 +2344,22 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
+    @Override
     public String getName() {
       return "Update GCMaps 2";
     }
 
+    @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
@@ -2329,6 +2367,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      *  @param ir the IR
      */
+    @Override
     public void perform(IR ir) {
       PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
       ScratchMap scratchMap = ir.stackManager.getScratchMap();
@@ -2419,18 +2458,22 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public boolean shouldPerform(OptOptions options) {
       return true;
     }
 
+    @Override
     public String getName() {
       return "Spill Code";
     }
 
+    @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
@@ -2438,6 +2481,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      *  @param ir the IR
      */
+    @Override
     public void perform(IR ir) {
       replaceSymbolicRegisters(ir);
 
@@ -2484,6 +2528,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    */
   public static final class UpdateOSRMaps extends CompilerPhase {
 
+    @Override
     public boolean shouldPerform(OptOptions options) {
       return true;
     }
@@ -2494,14 +2539,17 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public String getName() {
       return "Update OSRMaps";
     }
 
+    @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
       return false;
     }
@@ -2519,6 +2567,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * CodeSpill replaces any allocated symbolic register by
      * physical registers.
      */
+    @Override
     public void perform(IR ir) throws OptimizingCompilerException {
       // list of OsrVariableMapElement
       //LinkedList<VariableMapElement> mapList = ir.MIRInfo.osrVarMap.list;

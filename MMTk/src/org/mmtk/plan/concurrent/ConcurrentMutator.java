@@ -52,6 +52,7 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == Concurrent.SET_BARRIER_ACTIVE) {

@@ -567,6 +567,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * Statistics and debugging
    */
 
+  @Override
   public int countWaitingReferences() {
     return maxIndex;
   }

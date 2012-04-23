@@ -148,10 +148,12 @@ public abstract class PhysicalDefUse {
       curMask = maskHIGH;
     }
 
+    @Override
     public boolean hasMoreElements() {
       return code != 0;
     }
 
+    @Override
     public Register nextElement() {
       while (true) {
         int curBit = code & curMask;

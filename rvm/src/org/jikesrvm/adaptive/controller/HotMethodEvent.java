@@ -81,6 +81,7 @@ public abstract class HotMethodEvent {
     this(_cm, (double) _numSamples);
   }
 
+  @Override
   public String toString() {
     return getMethod() + " = " + getNumSamples();
   }

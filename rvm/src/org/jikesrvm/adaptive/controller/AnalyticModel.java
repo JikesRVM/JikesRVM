@@ -60,6 +60,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    *  set up the optimization plans, so this must be run after the
    *  command line options are available.
    */
+  @Override
   void init() {
     // Do the common initialization first
     super.init();
@@ -83,6 +84,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    * @param hme       the HotMethodRecompilationEvent
    * @return the controller plan to be used or NULL, if no
    *                   compilation is to be performed.  */
+  @Override
   ControllerPlan considerHotMethod(CompiledMethod cmpMethod, HotMethodEvent hme) {
     // Compiler used for the previous compilation
     int prevCompiler = getPreviousCompiler(cmpMethod);
@@ -242,6 +244,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    * at the same opt level, assuming there would be some "boost" after
    * performing inlining.
    */
+  @Override
   void considerHotCallEdge(CompiledMethod cmpMethod, AINewHotEdgeEvent event) {
 
     // Compiler used for the previous compilation

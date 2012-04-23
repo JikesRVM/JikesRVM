@@ -17,18 +17,22 @@ package org.jikesrvm.osr.bytecodes;
  *  LocalInitEnd
  */
 public class ParamInitEnd extends PseudoBytecode {
+  @Override
   public byte[] getBytes() {
     return initBytes(2, PSEUDO_ParamInitEnd);
   }
 
+  @Override
   public int getSize() {
     return 2;
   }
 
+  @Override
   public int stackChanges() {
     return 0;
   }
 
+  @Override
   public String toString() {
     return "ParamInitEnd";
   }

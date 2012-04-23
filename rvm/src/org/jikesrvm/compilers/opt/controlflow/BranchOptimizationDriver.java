@@ -63,14 +63,17 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
   }
 
   /** Interface */
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= level;
   }
 
+  @Override
   public final String getName() {
     return "Branch Optimizations";
   }
 
+  @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -78,6 +81,7 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
   /**
    * This phase contains no per-compilation instance fields.
    */
+  @Override
   public final CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -87,6 +91,7 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public final void perform(IR ir) {
     perform(ir, true);
   }

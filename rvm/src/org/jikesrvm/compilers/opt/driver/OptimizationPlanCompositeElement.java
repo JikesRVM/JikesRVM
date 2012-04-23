@@ -75,6 +75,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
    * This method is called to initialize the optimization plan support
    *  measuring compilation.
    */
+  @Override
   public void initializeForMeasureCompilation() {
     // initialize each composite object
     for (OptimizationPlanElement myElement : myElements) {
@@ -103,6 +104,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
    * @param options The Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     for (OptimizationPlanElement myElement : myElements) {
       if (myElement.shouldPerform(options)) {
@@ -131,6 +133,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
    *
    * @param ir The IR object to work with.
    */
+  @Override
   public final void perform(IR ir) {
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
@@ -154,6 +157,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
   /**
    * @return a String which is the name of the phase.
    */
+  @Override
   public String getName() {
     return myName;
   }
@@ -166,6 +170,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
    * @param timeCol Column number of time portion of report.
    * @param totalTime Total opt compilation time in seconds.
    */
+  @Override
   public final void reportStats(int indent, int timeCol, double totalTime) {
     double myTime = elapsedTime();
     if (myTime < 0.000001) {
@@ -206,6 +211,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
    * Report the elapsed time spent in the PlanElement
    * @return time spend in the plan (in seconds)
    */
+  @Override
   public double elapsedTime() {
     double total = 0.0;
     for (OptimizationPlanElement myElement : myElements) {

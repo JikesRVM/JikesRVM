@@ -24,6 +24,7 @@ public final class BootThread extends SystemThread {
     super(new byte[ArchConstants.STACK_SIZE_BOOT], "Jikes_RBoot_Thread");
   }
 
+  @Override
   public void run() {
     // Not reached.
   }

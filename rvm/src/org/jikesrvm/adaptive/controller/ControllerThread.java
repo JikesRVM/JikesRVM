@@ -69,6 +69,7 @@ public final class ControllerThread extends SystemThread {
    * This method is the entry point to the controller, it is called when
    * the controllerThread is created.
    */
+  @Override
   public void run() {
     // save this object so others can access it, if needed
     Controller.controllerThread = this;

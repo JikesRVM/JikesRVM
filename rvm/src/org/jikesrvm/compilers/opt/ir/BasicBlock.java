@@ -202,6 +202,7 @@ public class BasicBlock extends SortedGraphNode {
    * Returns the string representation of this basic block.
    * @return a String that is the name of the block.
    */
+  @Override
   public String toString() {
     int number = getNumber();
     if (isExit()) return "EXIT" + number;
@@ -212,6 +213,7 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * Print a detailed dump of the block to the sysWrite stream
    */
+  @Override
   public final void printExtended() {
     VM.sysWrite("Basic block " + toString() + "\n");
 
@@ -1717,6 +1719,7 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @return an enumeration of the in nodes
    */
+  @Override
   public final BasicBlockEnumeration getInNodes() {
     return new InEdgeEnum(this);
   }
@@ -1752,6 +1755,7 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @return an enumeration of the out nodes
    */
+  @Override
   public final OutEdgeEnum getOutNodes() {
     return new OutEdgeEnum(this);
   }
@@ -1918,10 +1922,13 @@ public class BasicBlock extends SortedGraphNode {
   abstract static class BBEnum implements BasicBlockEnumeration {
     protected BasicBlock current;
 
+    @Override
     public final boolean hasMoreElements() { return current != null; }
 
+    @Override
     public final BasicBlock nextElement() { return next(); }
 
+    @Override
     public final BasicBlock next() {
       if (current == null) fail();
       BasicBlock value = current;
@@ -1960,10 +1967,13 @@ public class BasicBlock extends SortedGraphNode {
 
     public int totalCount() { return numBlocks; }
 
+    @Override
     public boolean hasMoreElements() { return current < numBlocks; }
 
+    @Override
     public BasicBlock nextElement() { return next(); }
 
+    @Override
     public BasicBlock next() {
       if (current >= numBlocks) fail();
       return blocks[current++];
@@ -1981,10 +1991,13 @@ public class BasicBlock extends SortedGraphNode {
 
     public InEdgeEnum(SpaceEffGraphNode n) { _edge = n.firstInEdge(); }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
+    @Override
     public BasicBlock nextElement() { return next(); }
 
+    @Override
     public BasicBlock next() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.getNextIn();
@@ -1998,10 +2011,13 @@ public class BasicBlock extends SortedGraphNode {
 
     public OutEdgeEnum(SpaceEffGraphNode n) { _edge = n.firstOutEdge(); }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
+    @Override
     public BasicBlock nextElement() { return next(); }
 
+    @Override
     public BasicBlock next() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.getNextOut();
@@ -2018,6 +2034,7 @@ public class BasicBlock extends SortedGraphNode {
       current = advance();
     }
 
+    @Override
     protected BasicBlock advance() {
       while (_edge != null) {
         BasicBlock cand = (BasicBlock) _edge.toNode();
@@ -2048,6 +2065,7 @@ public class BasicBlock extends SortedGraphNode {
       current = advance();
     }
 
+    @Override
     protected BasicBlock advance() {
       while (_edge != null) {
         BasicBlock cand = (BasicBlock) _edge.toNode();

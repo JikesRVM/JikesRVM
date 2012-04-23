@@ -40,6 +40,7 @@ public final class YieldpointCounterData extends StringEventCounterData implemen
   /**
    *  Called at end when data should dump its contents.
    */
+  @Override
   public void report() {
     // Turn off future instrumentation so that the data structures do
     // not change while we are iterating over them

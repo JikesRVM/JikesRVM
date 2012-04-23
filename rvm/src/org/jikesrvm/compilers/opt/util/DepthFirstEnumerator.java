@@ -26,6 +26,7 @@ public final class DepthFirstEnumerator implements Enumeration<GraphNode> {
     mark = markNumber;
   }
 
+  @Override
   public boolean hasMoreElements() {
     if (stack == null) {
       return false;
@@ -39,6 +40,7 @@ public final class DepthFirstEnumerator implements Enumeration<GraphNode> {
     return false;
   }
 
+  @Override
   public GraphNode nextElement() {
     return next();
   }

@@ -41,6 +41,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * @param pos Position in the list (0..size()-1)
    * @param entry Element to insert
    */
+  @Override
   public void add(int pos, T entry) {
     if (VM.VerifyAssertions) VM._assert(false);
   }
@@ -51,6 +52,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * @param entry The entry to add.
    * @return true (as per java collections framework standard)
    */
+  @Override
   public boolean add(final T entry) {
     final Element<T> element = new Element<T>(entry);
     element.next = null;
@@ -98,6 +100,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * <p>
    * UNIMPLEMENTED
    */
+  @Override
   public boolean addAll(Collection<? extends T> arg0) {
     if (VM.VerifyAssertions) VM._assert(false);
     return false;
@@ -108,6 +111,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * <p>
    * UNIMPLEMENTED
    */
+  @Override
   public boolean addAll(int arg0, Collection<? extends T> arg1) {
     if (VM.VerifyAssertions) VM._assert(false);
     return false;
@@ -116,6 +120,7 @@ public final class LinkedListRVM<T> implements List<T> {
   /**
    * Discard all entries in the list
    */
+  @Override
   public void clear() {
     head = tail = null;
     count = 0;
@@ -127,6 +132,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * @param arg0 Object to check
    * @return true if the list contains arg0, false otherwise
    */
+  @Override
   public boolean contains(Object arg0) {
     return indexOf(arg0) != -1;
   }
@@ -137,6 +143,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * @param arg0 Objects to check
    * @return true if the list contains all objects in arg0, false otherwise
    */
+  @Override
   public boolean containsAll(Collection<?> arg0) {
     for (Object o : arg0) {
       if (!contains(o)) {
@@ -152,6 +159,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * UNIMPLEMENTED
    * @param index
    */
+  @Override
   public T get(int index) {
     /* Special-case getting the head of the list for speed */
     if (index == 0 && head != null) {
@@ -176,6 +184,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * @param arg0 Member to test for.
    * @return Zero-based index of the element, or -1 if not found.
    */
+  @Override
   public int indexOf(Object arg0) {
     int i = 0;
     for (T t : this) {
@@ -187,25 +196,30 @@ public final class LinkedListRVM<T> implements List<T> {
     return -1;
   }
 
+  @Override
   public boolean isEmpty() {
     return count == 0;
   }
 
+  @Override
   public Iterator<T> iterator() {
     return new LinkedListIteratorRVM<T>(this);
   }
 
   /** UNIMPLEMENTED */
+  @Override
   public int lastIndexOf(Object arg0) {
     if (VM.VerifyAssertions) VM._assert(false);
     return 0;
   }
 
+  @Override
   public ListIterator<T> listIterator() {
     return new LinkedListIteratorRVM<T>(this);
   }
 
   /** UNIMPLEMENTED */
+  @Override
   public ListIterator<T> listIterator(int arg0) {
     if (VM.VerifyAssertions) VM._assert(false);
     return null;
@@ -217,6 +231,7 @@ public final class LinkedListRVM<T> implements List<T> {
    * @param index n
    * @return The nth element
    */
+  @Override
   public T remove(int index) {
     /* bounds check */
     if (index < 0 || index >= size()) {
@@ -234,6 +249,7 @@ public final class LinkedListRVM<T> implements List<T> {
   /**
    * Remove the given element from the list
    */
+  @Override
   public boolean remove(Object arg0) {
     Element<T> cursor = head;
     while (cursor != null && !(arg0 == null ? cursor.entry == null : cursor.entry.equals(arg0))) {
@@ -266,40 +282,47 @@ public final class LinkedListRVM<T> implements List<T> {
   }
 
   /** UNIMPLEMENTED */
+  @Override
   public boolean removeAll(Collection<?> arg0) {
     if (VM.VerifyAssertions) VM._assert(false);
     return false;
   }
 
   /** UNIMPLEMENTED */
+  @Override
   public boolean retainAll(Collection<?> arg0) {
     if (VM.VerifyAssertions) VM._assert(false);
     return false;
   }
 
   /** UNIMPLEMENTED */
+  @Override
   public T set(int arg0, T arg1) {
     if (VM.VerifyAssertions) VM._assert(false);
     return null;
   }
 
+  @Override
   public int size() {
     return count;
   }
 
   /** UNIMPLEMENTED */
+  @Override
   public List<T> subList(int arg0, int arg1) {
     if (VM.VerifyAssertions) VM._assert(false);
     return null;
   }
 
   /** UNIMPLEMENTED */
+  @Override
   public Object[] toArray() {
     if (VM.VerifyAssertions) VM._assert(false);
     return null;
   }
 
   /** UNIMPLEMENTED */
+  @Override
   public <U> U[] toArray(U[] arg0) {
     if (VM.VerifyAssertions) VM._assert(false);
     return null;

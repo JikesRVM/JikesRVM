@@ -27,6 +27,7 @@ public class LoopAnalysis extends CompilerPhase {
    * Return a string name for this phase.
    * @return "Loop Analysis"
    */
+  @Override
   public final String getName() {
     return "Loop Analysis";
   }
@@ -34,6 +35,7 @@ public class LoopAnalysis extends CompilerPhase {
   /**
    * Should the optimisation be performed
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= 3;
   }
@@ -42,6 +44,7 @@ public class LoopAnalysis extends CompilerPhase {
    * The main entry point
    * @param ir the IR to process
    */
+  @Override
   public final void perform(IR ir) {
     if (!ir.hasReachableExceptionHandlers()) {
       // Build LST tree and dominator info

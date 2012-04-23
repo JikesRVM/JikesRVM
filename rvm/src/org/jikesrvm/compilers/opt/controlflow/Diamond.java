@@ -157,6 +157,7 @@ final class Diamond {
   /**
    * Return a string representation.
    */
+  @Override
   public String toString() {
     return "[" + top + "," + taken + "," + notTaken + "," + bottom + "]";
   }

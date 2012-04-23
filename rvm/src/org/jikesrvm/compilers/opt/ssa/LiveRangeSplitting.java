@@ -62,6 +62,7 @@ import org.jikesrvm.util.BitVector;
  */
 public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.SSA_LIVE_RANGE_SPLITTING;
   }
@@ -93,14 +94,17 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA_LIVE_RANGE_SPLITTING;
     }
 
+    @Override
     public final String getName() {
       return "Live Range Splitting";
     }
@@ -108,6 +112,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
     /**
      * The main entrypoint for this pass.
      */
+    @Override
     public final void perform(IR ir) {
       // 1. Compute an up-to-date loop structure tree.
       DominatorsPhase dom = new DominatorsPhase(true);
@@ -361,16 +366,19 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
       static int nextHash = 0;
       int myHash = ++nextHash;
 
+      @Override
       public int hashCode() {
         return myHash;
       }
 
+      @Override
       public boolean equals(Object o) {
         if (!(o instanceof BasicBlockPair)) return false;
         BasicBlockPair p = (BasicBlockPair) o;
         return (src.equals(p.src) && dest.equals(p.dest));
       }
 
+      @Override
       public String toString() {
         return "<" + src + "," + dest + ">";
       }
@@ -388,14 +396,17 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA_LIVE_RANGE_SPLITTING;
     }
 
+    @Override
     public final String getName() {
       return "Rename Preparation";
     }
@@ -404,6 +415,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
      * register in the IR the SSA properties we need for simple scalar
      * renaming
      */
+    @Override
     public final void perform(IR ir) {
       ir.desiredSSAOptions = new SSAOptions();
       ir.desiredSSAOptions.setScalarsOnly(true);

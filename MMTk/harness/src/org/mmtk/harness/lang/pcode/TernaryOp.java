@@ -35,6 +35,7 @@ public abstract class TernaryOp extends PseudoOp {
     this.op3 = op3.getIndex();
   }
 
+  @Override
   public String toString() {
     return String.format("%s(%s,%s,%s)", super.toString(),
         Register.nameOf(op1), Register.nameOf(op2), Register.nameOf(op3));

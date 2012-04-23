@@ -119,6 +119,7 @@ public final class MemoryOperand extends Operand {
   /**
    * Returns a copy of the current operand.
    */
+  @Override
   public Operand copy() {
     RegisterOperand newBase = (base != null) ? (RegisterOperand) base.copy() : null;
     RegisterOperand newIndex = (index != null) ? (RegisterOperand) index.copy() : null;
@@ -132,6 +133,7 @@ public final class MemoryOperand extends Operand {
    *
    * @param op other operand
    */
+  @Override
   public boolean similar(Operand op) {
     if (op instanceof MemoryOperand) {
       MemoryOperand mop = (MemoryOperand) op;
@@ -156,6 +158,7 @@ public final class MemoryOperand extends Operand {
   /**
    * Return a string rep of the operand (ie the effective address)
    */
+  @Override
   public String toString() {
     String addr = (base == null) ? "<0" : "<[" + base + "]";
     if (index != null) {

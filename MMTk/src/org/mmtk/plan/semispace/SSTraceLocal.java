@@ -50,6 +50,7 @@ public class SSTraceLocal extends TraceLocal {
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(SS.SS0, object))
@@ -71,6 +72,7 @@ public class SSTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
@@ -87,6 +89,7 @@ public class SSTraceLocal extends TraceLocal {
    * @param object The object to query.
    * @return True if the object will not move.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     return (SS.hi && !Space.isInSpace(SS.SS0, object)) ||
            (!SS.hi && !Space.isInSpace(SS.SS1, object));

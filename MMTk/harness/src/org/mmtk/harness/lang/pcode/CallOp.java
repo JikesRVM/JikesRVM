@@ -27,6 +27,7 @@ public abstract class CallOp extends EnnaryOp {
     super(source,"call", params);
   }
 
+  @Override
   public boolean affectsControlFlow() {
     return true;
   }

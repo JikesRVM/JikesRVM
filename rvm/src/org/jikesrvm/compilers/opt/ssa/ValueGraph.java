@@ -176,6 +176,7 @@ final class ValueGraph {
    *
    * @return a String representation of the value graph.
    */
+  @Override
   public String toString() {
     // print the nodes
     StringBuilder s = new StringBuilder("VALUE GRAPH: \n");

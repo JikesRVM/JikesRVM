@@ -129,6 +129,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
    * Process contents of buffer:
    *    add call graph edges and increment their weights.
    */
+  @Override
   void thresholdReached() {
     if (DEBUG) VM.sysWriteln("DCG_Organizer.thresholdReached()");
 

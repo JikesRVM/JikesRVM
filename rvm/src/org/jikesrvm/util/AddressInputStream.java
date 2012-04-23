@@ -39,18 +39,22 @@ public final class AddressInputStream extends InputStream {
   }
 
   /** @return number of bytes that can be read */
+  @Override
   public int available() {
     return length.minus(offset).toInt();
   }
   /** Mark location */
+  @Override
   public void mark(int readLimit) {
     markOffset = offset;
   }
   /** Is mark/reset supported */
+  @Override
   public boolean markSupported() {
     return true;
   }
   /** Read a byte */
+  @Override
   public int read() throws IOException {
     if (offset.sGE(length)) {
       throw new IOException("Read beyond end of memory region");
@@ -60,10 +64,12 @@ public final class AddressInputStream extends InputStream {
     return result;
   }
   /** Reset to mark */
+  @Override
   public void reset() {
     offset = markOffset;
   }
   /** Skip bytes */
+  @Override
   public long skip(long n) {
     offset = offset.plus((int)n);
     return (long)((int)n);

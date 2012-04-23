@@ -62,6 +62,7 @@ public class ObjectConstantOperand extends ConstantOperand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new ObjectConstantOperand(value, offset);
   }
@@ -71,6 +72,7 @@ public class ObjectConstantOperand extends ConstantOperand {
    *
    * @return type reference for type of object
    */
+  @Override
   public TypeReference getType() {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.getTypeForClass(value.getClass()).getTypeRef();
@@ -94,6 +96,7 @@ public class ObjectConstantOperand extends ConstantOperand {
    *
    * @return <code>true</code>
    */
+  @Override
   public final boolean isRef() {
     return true;
   }
@@ -103,6 +106,7 @@ public class ObjectConstantOperand extends ConstantOperand {
    *
    * @return movable
    */
+  @Override
   public boolean isMovableObjectConstant() {
     return movable;
   }
@@ -116,6 +120,7 @@ public class ObjectConstantOperand extends ConstantOperand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof ObjectConstantOperand) && value.equals(((ObjectConstantOperand) op).value);
   }
@@ -125,6 +130,7 @@ public class ObjectConstantOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "object \"" + value + "\"";
   }

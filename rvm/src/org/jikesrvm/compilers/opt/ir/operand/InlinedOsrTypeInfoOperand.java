@@ -57,6 +57,7 @@ public final class InlinedOsrTypeInfoOperand extends Operand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new InlinedOsrTypeInfoOperand(methodids, bcindexes, localTypeCodes, stackTypeCodes);
   }
@@ -69,6 +70,7 @@ public final class InlinedOsrTypeInfoOperand extends Operand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     boolean result = true;
 
@@ -92,6 +94,7 @@ public final class InlinedOsrTypeInfoOperand extends Operand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     StringBuffer buf = new StringBuffer("(");
 

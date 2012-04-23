@@ -34,19 +34,23 @@ public final class LinkedListIteratorRVM<T> implements ListIterator<T> {
     this.l = l;
   }
 
+  @Override
   public void add(T arg0) {
     l.insertAfter(cursor, arg0);
     cursor = cursor.next;
   }
 
+  @Override
   public boolean hasNext() {
     return cursor != l.tail;
   }
 
+  @Override
   public boolean hasPrevious() {
     return cursor != l.head;
   }
 
+  @Override
   public T next() {
     if (cursor == null) {
       cursor = l.head;
@@ -60,6 +64,7 @@ public final class LinkedListIteratorRVM<T> implements ListIterator<T> {
     return cursor.entry;
   }
 
+  @Override
   public void remove() {
     if (canRemove) {
       l.removeInternal(cursor);
@@ -73,21 +78,25 @@ public final class LinkedListIteratorRVM<T> implements ListIterator<T> {
   /*                      Methods below unimplemented                       */
   /* ---------------------------------------------------------------------- */
 
+  @Override
   public int nextIndex() {
     if (VM.VerifyAssertions) VM._assert(false);
     return 0;
   }
 
+  @Override
   public T previous() {
     if (VM.VerifyAssertions) VM._assert(false);
     return null;
   }
 
+  @Override
   public int previousIndex() {
     if (VM.VerifyAssertions) VM._assert(false);
     return 0;
   }
 
+  @Override
   public void set(Object arg0) {
     if (VM.VerifyAssertions) VM._assert(false);
   }

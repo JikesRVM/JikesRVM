@@ -71,6 +71,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * @param site Allocation site
    * @return The address of the newly allocated memory.
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     switch (allocator) {
@@ -99,6 +100,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Override
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef, int bytes, int allocator) {
     switch (allocator) {
@@ -138,6 +140,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == RCBase.rcSpace) return rc;
     if (space == RCBase.rcloSpace) return rclos;
@@ -156,6 +159,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == RCBase.PREPARE) {
       rc.prepare();
@@ -188,6 +192,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
   /**
    * Flush per-mutator remembered sets into the global remset pool.
    */
+  @Override
   public final void flushRememberedSets() {
     decBuffer.flushLocal();
     modBuffer.flushLocal();
@@ -201,6 +206,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * it is its own responsibility to ensure that they are flushed before
    * returning to MMTk.
    */
+  @Override
   public final void assertRemsetsFlushed() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(decBuffer.isFlushed());
@@ -237,6 +243,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   @Inline
   public void objectReferenceWrite(ObjectReference src, Address slot,
                            ObjectReference tgt, Word metaDataA,
@@ -264,6 +271,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
+  @Override
   @Inline
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot,
                                                ObjectReference old, ObjectReference tgt, Word metaDataA,
@@ -292,6 +300,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
+  @Override
   @Inline
   public boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
                               ObjectReference dst, Offset dstOffset, int bytes) {

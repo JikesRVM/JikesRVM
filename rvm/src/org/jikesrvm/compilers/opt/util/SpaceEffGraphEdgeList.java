@@ -24,10 +24,12 @@ class SpaceEffGraphEdgeList implements Enumeration<SpaceEffGraphEdgeList> {
   SpaceEffGraphEdgeList _next;
   SpaceEffGraphEdgeList _prev;
 
+  @Override
   public boolean hasMoreElements() {
     return _next != null;
   }
 
+  @Override
   public SpaceEffGraphEdgeList nextElement() {
     SpaceEffGraphEdgeList tmp = _next;
     _next = _next._next;

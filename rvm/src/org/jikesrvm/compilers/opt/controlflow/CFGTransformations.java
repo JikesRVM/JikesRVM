@@ -43,6 +43,7 @@ public class CFGTransformations extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -50,6 +51,7 @@ public class CFGTransformations extends CompilerPhase {
   /**
    * This is the method that actually does the work of the phase.
    */
+  @Override
   public void perform(IR ir) {
     staticPerform(ir);
   }
@@ -80,6 +82,7 @@ public class CFGTransformations extends CompilerPhase {
    * This method determines if the phase should be run, based on the
    * Options object it is passed
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     if (options.getOptLevel() < 2) {
       return false;
@@ -90,6 +93,7 @@ public class CFGTransformations extends CompilerPhase {
   /**
    * Returns the name of the phase.
    */
+  @Override
   public String getName() {
     return "Loop Normalization";
   }
@@ -97,6 +101,7 @@ public class CFGTransformations extends CompilerPhase {
   /**
    * Returns true if the phase wants the IR dumped before and/or after it runs.
    */
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }

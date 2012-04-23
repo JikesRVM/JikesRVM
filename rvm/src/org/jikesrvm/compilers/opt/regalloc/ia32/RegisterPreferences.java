@@ -26,6 +26,7 @@ public class RegisterPreferences extends GenericRegisterPreferences implements O
   /**
    * Set up register preferences based on instructions in an IR.
    */
+  @Override
   public void initialize(IR ir) {
 
     for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {

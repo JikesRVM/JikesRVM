@@ -29,6 +29,7 @@ class MethodNameFunction implements CounterNameFunction {
   /**
    * @param key the compiled method id of a method
    */
+  @Override
   public String getName(int key) {
     CompiledMethod cm = CompiledMethods.getCompiledMethod(key);
     if (cm == null) {

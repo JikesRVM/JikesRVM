@@ -455,6 +455,7 @@ class OptTestHarness {
       System.out.println(" msec");
     }
 
+    @Override
     public void notifyExit(int discard) { show(); }
   }
 }

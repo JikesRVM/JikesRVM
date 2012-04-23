@@ -71,6 +71,7 @@ public final class HeapOperand<T> extends Operand {
    * @return a new heap operand associated with the same heap variable as
    * this operand
    */
+  @Override
   public HeapOperand<T> copy() {
     return new HeapOperand<T>(value);
   }
@@ -82,6 +83,7 @@ public final class HeapOperand<T> extends Operand {
    * @param op the second operand to compare with
    * @return true or false
    */
+  @Override
   public boolean similar(Operand op) {
     if (!(op instanceof HeapOperand<?>)) {
       return false;
@@ -94,6 +96,7 @@ public final class HeapOperand<T> extends Operand {
    * Return a string representation of this operand.
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return value.toString();
   }

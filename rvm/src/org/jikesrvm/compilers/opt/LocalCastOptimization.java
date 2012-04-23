@@ -52,10 +52,12 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  */
 public final class LocalCastOptimization extends CompilerPhase {
 
+  @Override
   public String getName() {
     return "Local Cast Optimizations";
   }
 
+  @Override
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
@@ -68,6 +70,7 @@ public final class LocalCastOptimization extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -76,6 +79,7 @@ public final class LocalCastOptimization extends CompilerPhase {
    * Main routine: perform the transformation.
    * @param ir the IR to transform
    */
+  @Override
   public void perform(IR ir) {
     // loop over all basic blocks ...
     for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {

@@ -34,6 +34,7 @@ public class InvokeCompiledMethod extends PseudoBytecode {
     this.origIdx = origBCIndex;
   }
 
+  @Override
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_InvokeCompiledMethod);
     int2bytes(codes, 2, cmid);
@@ -41,10 +42,12 @@ public class InvokeCompiledMethod extends PseudoBytecode {
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     CompiledMethod cm = CompiledMethods.getCompiledMethod(cmid);
     RVMMethod callee = cm.getMethod();
@@ -72,6 +75,7 @@ public class InvokeCompiledMethod extends PseudoBytecode {
     return schanges;
   }
 
+  @Override
   public String toString() {
     //CompiledMethod cm = CompiledMethods.getCompiledMethod(cmid);
     return "InvokeCompiledMethod (0x" + Integer.toHexString(cmid) + ") " + "@" + origIdx;

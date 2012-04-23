@@ -66,6 +66,7 @@ public class LoopUnrolling extends CompilerPhase {
   /**
    * Returns the name of the phase.
    */
+  @Override
   public String getName() {
     return "Loop Unrolling";
   }
@@ -80,10 +81,12 @@ public class LoopUnrolling extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return ((options.getOptLevel() >= 3) && (options.CONTROL_UNROLL_LOG >= 1) && (!options.SSA_LOOP_VERSIONING));
   }
@@ -91,6 +94,7 @@ public class LoopUnrolling extends CompilerPhase {
   /**
    * This is the method that actually does the work of the phase.
    */
+  @Override
   public void perform(IR ir) {
     unrollFactor = (1 << ir.options.CONTROL_UNROLL_LOG);
 
@@ -989,6 +993,7 @@ public class LoopUnrolling extends CompilerPhase {
       theVisit = visit;
     }
 
+    @Override
     public Operand next() {
       Operand res = use;
       if (res != null) {
@@ -1011,11 +1016,13 @@ public class LoopUnrolling extends CompilerPhase {
       return others.next();
     }
 
+    @Override
     public boolean hasMoreElements() {
 
       return use != null || (others != null && others.hasMoreElements()) || (defs != null && defs.hasMoreElements());
     }
 
+    @Override
     public Operand nextElement() {
       return next();
     }

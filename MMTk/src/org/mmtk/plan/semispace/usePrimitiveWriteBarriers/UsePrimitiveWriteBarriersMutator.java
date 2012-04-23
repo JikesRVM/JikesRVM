@@ -37,6 +37,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void addressWrite(ObjectReference src, Address slot, Address value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.addressWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -55,6 +56,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
+  @Override
   public boolean addressTryCompareAndSwap(ObjectReference src, Address slot, Address old, Address value, Word metaDataA, Word metaDataB, int mode) {
     return VM.barriers.addressTryCompareAndSwap(src, old, value, metaDataA, metaDataB, mode);
   }
@@ -70,6 +72,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void booleanWrite(ObjectReference src, Address slot, boolean value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.booleanWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -88,6 +91,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller
    */
+  @Override
   public boolean booleanBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     return false;
   }
@@ -103,6 +107,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void byteWrite(ObjectReference src, Address slot, byte value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.byteWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -121,6 +126,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller
    */
+  @Override
   public boolean byteBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     return false;
   }
@@ -136,6 +142,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void charWrite(ObjectReference src, Address slot, char value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.charWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -154,6 +161,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller
    */
+  @Override
   public boolean charBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     return false;
   }
@@ -169,6 +177,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void doubleWrite(ObjectReference src, Address slot, double value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.doubleWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -187,6 +196,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller
    */
+  @Override
   public boolean doubleBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     return false;
   }
@@ -202,6 +212,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void extentWrite(ObjectReference src, Address slot, Extent value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.extentWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -217,6 +228,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void floatWrite(ObjectReference src, Address slot, float value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.floatWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -235,6 +247,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller
    */
+  @Override
   public boolean floatBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     return false;
   }
@@ -250,6 +263,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void intWrite(ObjectReference src, Address slot, int value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.intWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -268,6 +282,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller
    */
+  @Override
   public boolean intBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     return false;
   }
@@ -286,6 +301,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
+  @Override
   public boolean intTryCompareAndSwap(ObjectReference src, Address slot, int old, int value, Word metaDataA, Word metaDataB, int mode) {
     return VM.barriers.intTryCompareAndSwap(src, old, value, metaDataA, metaDataB, mode);
   }
@@ -301,6 +317,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void longWrite(ObjectReference src, Address slot, long value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.longWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -319,6 +336,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller
    */
+  @Override
   public boolean longBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     return false;
   }
@@ -337,6 +355,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
+  @Override
   public boolean longTryCompareAndSwap(ObjectReference src, Address slot, long old, long value, Word metaDataA, Word metaDataB, int mode) {
     return VM.barriers.longTryCompareAndSwap(src, old, value, metaDataA, metaDataB, mode);
   }
@@ -352,6 +371,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void offsetWrite(ObjectReference src, Address slot, Offset value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.offsetWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -367,6 +387,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void shortWrite(ObjectReference src, Address slot, short value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.shortWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -385,6 +406,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller
    */
+  @Override
   public boolean shortBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
     return false;
   }
@@ -400,6 +422,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The context in which the store occurred
    */
+  @Override
   public void wordWrite(ObjectReference src, Address slot, Word value, Word metaDataA, Word metaDataB, int mode) {
     VM.barriers.wordWrite(src, value, metaDataA, metaDataB, mode);
   }
@@ -418,6 +441,7 @@ public class UsePrimitiveWriteBarriersMutator extends SSMutator {
    * @param mode The context in which the store occurred
    * @return True if the swap was successful.
    */
+  @Override
   public boolean wordTryCompareAndSwap(ObjectReference src, Address slot, Word old, Word value, Word metaDataA, Word metaDataB, int mode) {
     return VM.barriers.wordTryCompareAndSwap(src, old, value, metaDataA, metaDataB, mode);
   }

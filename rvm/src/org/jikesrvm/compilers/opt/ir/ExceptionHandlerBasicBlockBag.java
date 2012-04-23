@@ -94,10 +94,13 @@ public final class ExceptionHandlerBasicBlockBag {
         }
       }
 
+      @Override
       public boolean hasMoreElements() { return cur_bag != null; }
 
+      @Override
       public BasicBlock nextElement() { return next(); }
 
+      @Override
       public BasicBlock next() {
         ExceptionHandlerBasicBlock ans;
         try {

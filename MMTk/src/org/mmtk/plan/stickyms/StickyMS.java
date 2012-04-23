@@ -160,6 +160,7 @@ public class StickyMS extends MS {
   /**
    * @return Is current GC only collecting objects allocated since last GC.
    */
+  @Override
   public final boolean isCurrentGCNursery() {
     return !collectWholeHeap;
   }
@@ -179,6 +180,7 @@ public class StickyMS extends MS {
    *
    * @return The expected (root excluded) reference count.
    */
+  @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
 
@@ -198,6 +200,7 @@ public class StickyMS extends MS {
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_NURSERY, StickyMSNurseryTraceLocal.class);

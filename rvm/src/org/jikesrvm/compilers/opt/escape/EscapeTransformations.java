@@ -61,18 +61,22 @@ public class EscapeTransformations extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.ESCAPE_MONITOR_REMOVAL || options.ESCAPE_SCALAR_REPLACE_AGGREGATES;
   }
 
+  @Override
   public final String getName() {
     return "Escape Transformations";
   }
 
+  @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -82,6 +86,7 @@ public class EscapeTransformations extends CompilerPhase {
    *
    * @param ir IR for the target method
    */
+  @Override
   public void perform(IR ir) {
     // perform simple optimizations to increase efficacy
     DefUse.computeDU(ir);

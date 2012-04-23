@@ -27,6 +27,7 @@ public final class RandomPolicyMin extends org.vmutil.options.IntOption {
         Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.random.min", "1")));
   }
 
+  @Override
   protected void validate() {
   }
 }

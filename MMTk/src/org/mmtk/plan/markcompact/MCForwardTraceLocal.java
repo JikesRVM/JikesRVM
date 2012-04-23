@@ -43,6 +43,7 @@ public final class MCForwardTraceLocal extends TraceLocal {
    * @param object The object.
    * @return True if the object is live.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(MC.MARK_COMPACT, object)) {
@@ -65,6 +66,7 @@ public final class MCForwardTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
@@ -79,6 +81,7 @@ public final class MCForwardTraceLocal extends TraceLocal {
    * @param object The object to query.
    * @return True if the object will not move.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     return !Space.isInSpace(MC.MARK_COMPACT, object);
   }

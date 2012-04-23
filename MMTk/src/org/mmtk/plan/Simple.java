@@ -189,6 +189,7 @@ public abstract class Simple extends Plan implements Constants {
    *
    * @param phaseId The unique of the phase to perform.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
@@ -284,6 +285,7 @@ public abstract class Simple extends Plan implements Constants {
    * @param oldScheduledPhase The scheduled phase to replace.
    * @param newScheduledPhase The new scheduled phase.
    */
+  @Override
   public void replacePhase(int oldScheduledPhase, int newScheduledPhase) {
     ComplexPhase cp = (ComplexPhase)Phase.getPhase(collection);
     cp.replacePhase(oldScheduledPhase, newScheduledPhase);

@@ -33,6 +33,7 @@ class SimpleSpillCost extends SpillCostEstimator {
   /**
    * Calculate the estimated cost for each register.
    */
+  @Override
   void calculate(IR ir) {
     final double moveFactor = ir.options.REGALLOC_SIMPLE_SPILL_COST_MOVE_FACTOR;
     final double memoryOperandFactor = ir.options.REGALLOC_SIMPLE_SPILL_COST_MEMORY_OPERAND_FACTOR;

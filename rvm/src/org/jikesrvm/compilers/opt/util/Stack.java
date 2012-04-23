@@ -83,10 +83,12 @@ public class Stack<T> implements Iterable<T> {
     return s;
   }
 
+  @Override
   public final Iterator<T> iterator() {
     return stack.iterator();
   }
 
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder(" --> ");
     for (T t : stack) {

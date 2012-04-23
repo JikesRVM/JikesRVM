@@ -32,6 +32,7 @@ public final class SchedulerPolicy extends org.vmutil.options.EnumOption {
   /**
    * Only accept non-negative values.
    */
+  @Override
   protected void validate() {
   }
 

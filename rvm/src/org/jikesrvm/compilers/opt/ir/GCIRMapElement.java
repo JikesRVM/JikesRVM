@@ -122,6 +122,7 @@ public final class GCIRMapElement {
    * Return a string version of this object
    * @return a string version of this object
    */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("");
     buf.append(" Instruction: ").append(inst.bcIndex).append(", ").append(inst);

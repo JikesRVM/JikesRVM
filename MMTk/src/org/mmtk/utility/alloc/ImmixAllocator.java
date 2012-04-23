@@ -168,6 +168,7 @@ public class ImmixAllocator extends Allocator implements Constants {
    * @return The address of the first byte of the allocated region or
    * zero on failure
    */
+  @Override
   protected final Address allocSlowOnce(int bytes, int align, int offset) {
     Address ptr = space.getSpace(hot, copy, lineUseCount);
 
@@ -315,6 +316,7 @@ public class ImmixAllocator extends Allocator implements Constants {
    }
 
   /** @return the space associated with this squish allocator */
+  @Override
   public final Space getSpace() { return space; }
 
   /**

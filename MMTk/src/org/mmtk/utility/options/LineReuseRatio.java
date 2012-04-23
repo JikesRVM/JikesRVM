@@ -29,6 +29,7 @@ public class LineReuseRatio extends org.vmutil.options.FloatOption {
   /**
    * Ensure the value is valid.
    */
+  @Override
   protected void validate() {
     failIf((this.value <= 0 || this.value > 1.0), "Ratio must be a float between 0 and 1");
   }

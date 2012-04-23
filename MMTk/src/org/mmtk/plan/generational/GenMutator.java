@@ -85,6 +85,7 @@ import org.vmmagic.unboxed.*;
    * @param site Allocation site
    * @return The low address of the allocated memory.
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == Gen.ALLOC_NURSERY) {
@@ -103,6 +104,7 @@ import org.vmmagic.unboxed.*;
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Override
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -120,6 +122,7 @@ import org.vmmagic.unboxed.*;
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == Gen.nurserySpace) return nursery;
     return super.getAllocatorFromSpace(space);
@@ -174,6 +177,7 @@ import org.vmmagic.unboxed.*;
    * @param metaDataB A value that assists the host VM in creating a store
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Override
   @Inline
   public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
@@ -214,6 +218,7 @@ import org.vmmagic.unboxed.*;
    * @param metaDataA A value that assists the host VM in creating a store
    * @param metaDataB A value that assists the host VM in creating a store
    */
+  @Override
   @Inline
   public final void objectReferenceNonHeapWrite(Address slot, ObjectReference tgt,
       Word metaDataA, Word metaDataB) {
@@ -240,6 +245,7 @@ import org.vmmagic.unboxed.*;
    * @param mode The context in which the store occured
    * @return True if the swap was successful.
    */
+  @Override
   @Inline
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
       Word metaDataA, Word metaDataB, int mode) {
@@ -279,6 +285,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Flush per-mutator remembered sets into the global remset pool.
    */
+  @Override
   public final void flushRememberedSets() {
     modbuf.flushLocal();
     remset.flushLocal();
@@ -293,6 +300,7 @@ import org.vmmagic.unboxed.*;
    * it is its own responsibility to ensure that they are flushed before
    * returning to MMTk.
    */
+  @Override
   public final void assertRemsetsFlushed() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(modbuf.isFlushed());
@@ -309,6 +317,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Perform a per-mutator collection phase.
    */
+  @Override
   @NoInline
   public void collectionPhase(short phaseId, boolean primary) {
 

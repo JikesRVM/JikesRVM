@@ -18,6 +18,7 @@ import java.util.Iterator;
 
 public abstract class GraphNodeEnumerator implements GraphNodeEnumeration {
 
+  @Override
   public final GraphNode nextElement() { return next(); }
 
   public static GraphNodeEnumerator create(Enumeration<GraphNode> e) {
@@ -39,8 +40,10 @@ public abstract class GraphNodeEnumerator implements GraphNodeEnumeration {
       this.e = e;
     }
 
+    @Override
     public boolean hasMoreElements() { return e.hasMoreElements(); }
 
+    @Override
     public GraphNode next() { return e.nextElement(); }
   }
 
@@ -51,8 +54,10 @@ public abstract class GraphNodeEnumerator implements GraphNodeEnumeration {
       this.i = i;
     }
 
+    @Override
     public boolean hasMoreElements() { return i.hasNext(); }
 
+    @Override
     public GraphNode next() { return i.next(); }
   }
 }

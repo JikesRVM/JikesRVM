@@ -69,6 +69,7 @@ public final class FloatConstantOperand extends ConstantOperand implements SizeC
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new FloatConstantOperand(value, offset);
   }
@@ -78,6 +79,7 @@ public final class FloatConstantOperand extends ConstantOperand implements SizeC
    *
    * @return TypeReference.Float
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.Float;
   }
@@ -87,6 +89,7 @@ public final class FloatConstantOperand extends ConstantOperand implements SizeC
    *
    * @return <code>true</code>
    */
+  @Override
   public boolean isFloat() {
     return true;
   }
@@ -99,6 +102,7 @@ public final class FloatConstantOperand extends ConstantOperand implements SizeC
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof FloatConstantOperand) && (value == ((FloatConstantOperand) op).value);
   }
@@ -108,6 +112,7 @@ public final class FloatConstantOperand extends ConstantOperand implements SizeC
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return Float.toString(value);
   }

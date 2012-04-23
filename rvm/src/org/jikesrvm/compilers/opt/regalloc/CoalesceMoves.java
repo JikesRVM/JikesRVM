@@ -41,6 +41,7 @@ public class CoalesceMoves extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -49,6 +50,7 @@ public class CoalesceMoves extends CompilerPhase {
    * Should we perform this phase?
    * @param options controlling compiler options
    */
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.SSA_COALESCE_AFTER;
   }
@@ -57,6 +59,7 @@ public class CoalesceMoves extends CompilerPhase {
    * Return a string name for this phase.
    * @return "Coalesce Moves"
    */
+  @Override
   public final String getName() {
     return "Coalesce Moves";
   }
@@ -65,6 +68,7 @@ public class CoalesceMoves extends CompilerPhase {
    * perform the transformation
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
     // Compute liveness.
     LiveAnalysis live = new LiveAnalysis(false /* GC Maps */, false /* don't skip local

@@ -107,6 +107,7 @@ public class LSTGraph extends SpaceEffGraph {
     return rootNode;
   }
 
+  @Override
   public String toString() {
     return "LST:\n" + dumpIt(rootNode);
   }

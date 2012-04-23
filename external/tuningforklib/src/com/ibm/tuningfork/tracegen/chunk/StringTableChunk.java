@@ -44,6 +44,7 @@ public class StringTableChunk extends Chunk {
 	return true;
     }
 
+    @Override
     public void close() {
 	putIntAt(STRING_COUNT_OFFSET, numberOfStrings);
 	numberOfStrings = 0;

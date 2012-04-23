@@ -69,6 +69,7 @@ public abstract class JNIGCMapIterator extends GCMapIterator implements Baseline
   // Taken:    thread
   // Returned: nothing
   //
+  @Override
   public void newStackWalk(RVMThread thread) {
     super.newStackWalk(thread);   // sets this.thread, inits registerLocations[]
     JNIEnvironment env = this.thread.getJNIEnv();
@@ -81,6 +82,7 @@ public abstract class JNIGCMapIterator extends GCMapIterator implements Baseline
     }
   }
 
+  @Override
   public void setupIterator(CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
     this.framePtr = framePtr;
   }
@@ -90,6 +92,7 @@ public abstract class JNIGCMapIterator extends GCMapIterator implements Baseline
   // When at the end of the current frame, update register locations to point
   // to the non-volatile registers saved in the JNI transition frame.
   //
+  @Override
   public Address getNextReferenceAddress() {
     // first report jni refs in the current frame in the jniRef side stack
     // until all in the frame are reported
@@ -124,14 +127,18 @@ public abstract class JNIGCMapIterator extends GCMapIterator implements Baseline
     return Address.zero();  // no more refs to report
   }
 
+  @Override
   public Address getNextReturnAddressAddress() {
     return Address.zero();
   }
 
+  @Override
   public void reset() { }
 
+  @Override
   public void cleanupPointers() { }
 
+  @Override
   public int getType() {
     return CompiledMethod.JNI;
   }

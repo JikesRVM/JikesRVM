@@ -50,6 +50,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
    * Get number of nodes
    * @return number of nodes
    */
+  @Override
   public final int numberOfNodes() { return numberOfNodes; }
 
   /**
@@ -67,6 +68,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
   /**
    * Renumber the nodes densely from 0...numberOfNodes-1.
    */
+  @Override
   public void compactNodeNumbering() {
     int number = 0;
     for (SpaceEffGraphNode n = _firstNode; n != null; n = n.getNext()) {
@@ -78,6 +80,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
   /**
    * Enumerate the nodes in no particular order
    */
+  @Override
   public GraphNodeEnumeration enumerateNodes() {
     return new NodeEnumeration(_firstNode);
   }
@@ -86,6 +89,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
   // The following are to implement TopSortInterface.
   //////////////////
 
+  @Override
   public SortedGraphNode startNode(boolean forward) {
     if (forward) {
       return (SortedGraphNode) _firstNode;
@@ -94,6 +98,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
     }
   }
 
+  @Override
   public boolean isTopSorted(boolean forward) {
     if (forward) {
       return forwardTopSorted;
@@ -102,6 +107,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
     }
   }
 
+  @Override
   public void setTopSorted(boolean forward) {
     if (forward) {
       forwardTopSorted = true;
@@ -110,6 +116,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
     }
   }
 
+  @Override
   public void resetTopSorted() {
     forwardTopSorted = false;
     backwardTopSorted = false;
@@ -125,6 +132,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
    * Add a node to the graph.
    * @param inode node to add
    */
+  @Override
   public final void addGraphNode(GraphNode inode) {
     SpaceEffGraphNode node = (SpaceEffGraphNode) inode;
     //_nodes.add(node);
@@ -162,6 +170,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
    * @param to end node
    * @see #addGraphEdge(SpaceEffGraphEdge)
    */
+  @Override
   public void addGraphEdge(GraphNode from, GraphNode to) {
     ((SpaceEffGraphNode) from).insertOut((SpaceEffGraphNode) to);
   }
@@ -320,6 +329,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
    * Return a string representation of this graph.
    * @return a string representation of the graph
    */
+  @Override
   public String toString() {
     StringBuilder res = new StringBuilder();
     for (SpaceEffGraphNode n = firstNode(); n != null; n = n.getNext()) {
@@ -404,10 +414,13 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
 
     public NodeEnumeration(SpaceEffGraphNode n) { _node = n; }
 
+    @Override
     public boolean hasMoreElements() { return _node != null; }
 
+    @Override
     public GraphNode nextElement() { return next(); }
 
+    @Override
     public GraphNode next() {
       SpaceEffGraphNode n = _node;
       _node = n.getNext();

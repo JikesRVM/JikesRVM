@@ -52,6 +52,7 @@ public class GenRCCollector extends RCBaseCollector {
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
+  @Override
   public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == RCBase.PREPARE) {
       super.collectionPhase(phaseId, primary);
@@ -83,6 +84,7 @@ public class GenRCCollector extends RCBaseCollector {
    * @param offset The alignment offset
    * @return The address of the first byte of the allocated region
    */
+  @Override
   @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
@@ -99,6 +101,7 @@ public class GenRCCollector extends RCBaseCollector {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Override
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
                              int bytes, int allocator) {
@@ -111,6 +114,7 @@ public class GenRCCollector extends RCBaseCollector {
   /**
    * Get the modified processor to use.
    */
+  @Override
   protected final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
   }
@@ -118,6 +122,7 @@ public class GenRCCollector extends RCBaseCollector {
   /**
    * Get the root trace to use.
    */
+  @Override
   protected final TraceLocal getRootTrace() {
     return rootTrace;
   }

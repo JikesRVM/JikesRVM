@@ -157,6 +157,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    * @return this method shouldn't be called and will throw an {@link
    * OptimizingCompilerException}
    */
+  @Override
   public TypeReference getType() {
     throw new OptimizingCompilerException("Getting the type for this operand has no defined meaning");
   }
@@ -208,6 +209,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     LocationOperand o = null;
     switch (type) {
@@ -271,6 +273,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof LocationOperand) && mayBeAliased(this, (LocationOperand) op);
   }
@@ -280,6 +283,7 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     if (methOp != null) return methOp.toString();
     switch (type) {

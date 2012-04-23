@@ -36,6 +36,7 @@ public final class HotMethodRecompilationEvent extends HotMethodEvent implements
     this(_cm, (double) _numSamples);
   }
 
+  @Override
   public String toString() {
     return "HotMethodRecompilationEvent: " + super.toString();
   }
@@ -45,6 +46,7 @@ public final class HotMethodRecompilationEvent extends HotMethodEvent implements
    * HotMethodRecompilationEvent.  Simply passes the event to the
    * recompilation strategy.
    */
+  @Override
   public void process() {
     ControllerPlan plan = Controller.recompilationStrategy.considerHotMethod(getCompiledMethod(), this);
 

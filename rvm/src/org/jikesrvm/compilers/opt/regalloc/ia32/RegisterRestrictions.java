@@ -67,6 +67,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
    * @param symbolics the live intervals for symbolic registers on this
    * block
    */
+  @Override
   public void addArchRestrictions(BasicBlock bb, ArrayList<LiveIntervalElement> symbolics) {
     // If there are any registers used in catch blocks, we want to ensure
     // that these registers are not used or evicted from scratch registers
@@ -380,6 +381,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?
    */
+  @Override
   public boolean isForbidden(Register symb, Register r, Instruction s) {
 
     // Look at 8-bit restrictions.

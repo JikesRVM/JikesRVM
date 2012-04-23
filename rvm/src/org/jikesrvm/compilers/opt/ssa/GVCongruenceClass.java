@@ -116,6 +116,7 @@ final class GVCongruenceClass implements Iterable<ValueGraphVertex> {
    * Return an iterator over the vertices in this congruence class
    * @return an iterator over the vertices in this congruence class
    */
+  @Override
   public Iterator<ValueGraphVertex> iterator() {
     return vertices.iterator();
   }

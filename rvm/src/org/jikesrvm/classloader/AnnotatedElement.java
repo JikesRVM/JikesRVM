@@ -82,6 +82,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   /**
    * Get the annotations for this and all super annotated elements.
    */
+  @Override
   public final Annotation[] getAnnotations() {
     return cloneAnnotations(getAnnotationsInternal());
   }
@@ -93,6 +94,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   /**
    * Get the annotations for this annotated element
    */
+  @Override
   public final Annotation[] getDeclaredAnnotations() {
     return cloneAnnotations(getDeclaredAnnotationsInternal());
   }
@@ -146,6 +148,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
   /**
    * Get the annotation implementing the specified class or null
    */
+  @Override
   @SuppressWarnings({"unchecked"})
   public final <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
     if (null == annotationClass) {
@@ -162,6 +165,7 @@ public abstract class AnnotatedElement implements java.lang.reflect.AnnotatedEle
    * Is there an annotation of this type implemented on this annotated
    * element?
    */
+  @Override
   public final boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
     return getAnnotation(annotationClass) != null;
   }

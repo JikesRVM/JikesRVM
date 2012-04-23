@@ -91,20 +91,24 @@ public class LocalCSE extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
+  @Override
   public final void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
     VM.sysWrite("% Infrequent BBs");
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.LOCAL_CSE;
   }
 
+  @Override
   public final String getName() {
     return "Local CSE";
   }
@@ -114,6 +118,7 @@ public class LocalCSE extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public final void perform(IR ir) {
     // iterate over each basic block
     for (BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
@@ -753,6 +758,7 @@ public class LocalCSE extends CompilerPhase {
      *    <li> for loads and stores: if the 2 operands and the location match
      *  </ul>
      */
+    @Override
     public boolean equals(Object o) {
       if (!(o instanceof AvailableExpression)) {
         return false;
@@ -819,6 +825,7 @@ public class LocalCSE extends CompilerPhase {
     /**
      * Unused hashcode method
      */
+    @Override
     public int hashCode() {
       return opr.hashCode();
     }

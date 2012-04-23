@@ -144,6 +144,7 @@ public class RCBase extends StopTheWorld {
    * reason all plans should operate gracefully on the default minimum
    * heap size until the point that processOptions is called.
    */
+  @Override
   @Interruptible
   public void processOptions() {
     super.processOptions();
@@ -168,6 +169,7 @@ public class RCBase extends StopTheWorld {
   /**
    * @return Whether last GC is a full GC.
    */
+  @Override
   public boolean lastCollectionFullHeap() {
     return performCycleCollection;
   }
@@ -177,6 +179,7 @@ public class RCBase extends StopTheWorld {
    *
    * @param phaseId Collection phase
    */
+  @Override
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
@@ -261,6 +264,7 @@ public class RCBase extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return (rcSpace.reservedPages() + rcloSpace.reservedPages() + super.getPagesUsed());
   }
@@ -268,6 +272,7 @@ public class RCBase extends StopTheWorld {
   /**
    * Perform a linear scan across all objects in the heap to check for leaks.
    */
+  @Override
   public void sanityLinearScan(LinearScan scan) {
     //rcSpace.linearScan(scan);
   }
@@ -280,6 +285,7 @@ public class RCBase extends StopTheWorld {
    * @param sanityRootRC The number of root references to the object.
    * @return The expected (root excluded) reference count.
    */
+  @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     if (RCBase.isRCObject(object)) {
       int fullRC = RCHeader.getRC(object);
@@ -295,6 +301,7 @@ public class RCBase extends StopTheWorld {
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     super.registerSpecializedMethods();

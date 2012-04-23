@@ -130,6 +130,7 @@ public class GenMSCollector extends GenCollector {
    * @param phaseId Collection phase to perform
    * @param primary Is this thread to do the one-off thread-local tasks
    */
+  @Override
   @NoInline
   public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
@@ -158,6 +159,7 @@ public class GenMSCollector extends GenCollector {
     super.collectionPhase(phaseId, primary);
   }
 
+  @Override
   @Inline
   public final TraceLocal getFullHeapTrace() {
     return matureTrace;

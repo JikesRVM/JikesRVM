@@ -55,10 +55,12 @@ public class NullCheckCombining extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final String getName() {
     return "NullCheckCombining";
   }
@@ -68,6 +70,7 @@ public class NullCheckCombining extends CompilerPhase {
    *
    * @param ir the IR to transform
    */
+  @Override
   public void perform(IR ir) {
     for (BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (!bb.isEmpty()) {

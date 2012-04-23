@@ -206,6 +206,7 @@ public final class DynamicLibrary {
     VM.sysWrite("DynamicLibrary.clean: not implemented yet \n");
   }
 
+  @Override
   public String toString() {
     return "dynamic library " + libName + ", handler=0x" + Long.toHexString(libHandler.toWord().toLong());
   }

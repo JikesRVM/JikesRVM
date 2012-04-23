@@ -63,6 +63,7 @@ public class Memory extends org.mmtk.vm.Memory {
    *
    * @return The space managed by the virtual machine.
    */
+  @Override
   @Interruptible
   public ImmortalSpace getVMSpace() {
     if (vmSpace == null) {
@@ -72,21 +73,25 @@ public class Memory extends org.mmtk.vm.Memory {
   }
 
   /** Global preparation for a collection. */
+  @Override
   public void globalPrepareVMSpace() {
     // Nothing in vmSpace
   }
 
   /** Per-collector preparation for a collection. */
+  @Override
   public void collectorPrepareVMSpace() {
     // Nothing in vmSpace
   }
 
   /** Per-collector post-collection work. */
+  @Override
   public void collectorReleaseVMSpace() {
     // Nothing in vmSpace
   }
 
   /** Global post-collection work. */
+  @Override
   public void globalReleaseVMSpace() {
     // Nothing in vmSpace
   }
@@ -98,6 +103,7 @@ public class Memory extends org.mmtk.vm.Memory {
    * @param start the address of the start of the heap
    * @param end the address of the end of the heap
    */
+  @Override
   public void setHeapRange(int id, Address start, Address end) {
     // TODO: More checking possible
   }
@@ -109,6 +115,7 @@ public class Memory extends org.mmtk.vm.Memory {
    * @param size the size, in bytes, of the area to be mapped
    * @return 0 if successful, otherwise the system errno
    */
+  @Override
   public int dzmmap(Address start, int size) {
     if (SimulatedMemory.map(start, size)) {
       return 0;
@@ -124,6 +131,7 @@ public class Memory extends org.mmtk.vm.Memory {
    * @return <code>true</code> if successful, otherwise
    * <code>false</code>
    */
+  @Override
   public boolean mprotect(Address start, int size) {
     return SimulatedMemory.protect(start, size);
   }
@@ -136,6 +144,7 @@ public class Memory extends org.mmtk.vm.Memory {
    * @return <code>true</code> if successful, otherwise
    * <code>false</code>
    */
+  @Override
   public boolean munprotect(Address start, int size) {
     return SimulatedMemory.unprotect(start, size);
   }
@@ -147,6 +156,7 @@ public class Memory extends org.mmtk.vm.Memory {
    * @param start Start of address range (inclusive)
    * @param len Length in bytes of range to zero
    */
+  @Override
   public void zero(boolean useNT, Address start, Extent len) {
     SimulatedMemory.zero(start, len);
   }
@@ -161,6 +171,7 @@ public class Memory extends org.mmtk.vm.Memory {
    * @param afterBytes the number of bytes after the address to be
    * included
    */
+  @Override
   public void dumpMemory(Address start, int beforeBytes, int afterBytes) {
     SimulatedMemory.dumpMemory(start, beforeBytes, afterBytes);
   }
@@ -170,6 +181,7 @@ public class Memory extends org.mmtk.vm.Memory {
    * on all processors.  Ensures that all memory writes before this
    * point are visible to all processors.
    */
+  @Override
   @Inline
   public void sync() {
     Scheduler.yield();
@@ -181,6 +193,7 @@ public class Memory extends org.mmtk.vm.Memory {
    * prefetched instructions on this processor.  Also prevents the
    * compiler from performing code motion across this point.
    */
+  @Override
   @Inline
   public void isync() {
     Scheduler.yield();
@@ -193,25 +206,36 @@ public class Memory extends org.mmtk.vm.Memory {
    * called by MMTk users.
    */
   /** @return The lowest address in the virtual address space known to MMTk */
+  @Override
   protected Address getHeapStartConstant() { return HEAP_START; }
   /** @return The highest address in the virtual address space known to MMTk */
+  @Override
   protected Address getHeapEndConstant() { return HEAP_END; }
   /** @return The lowest address in the contiguous address space available to MMTk  */
+  @Override
   protected Address getAvailableStartConstant() { return HEAP_START.plus(VMSPACE_SIZE); }
   /** @return The highest address in the contiguous address space available to MMTk */
+  @Override
   protected Address getAvailableEndConstant()  { return HEAP_END; }
   /** @return The log base two of the size of an address */
+  @Override
   protected byte getLogBytesInAddressConstant() { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
   /** @return The log base two of the size of a word */
+  @Override
   protected byte getLogBytesInWordConstant() { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
   /** @return The log base two of the size of an OS page */
+  @Override
   protected byte getLogBytesInPageConstant() { return MemoryConstants.LOG_BYTES_IN_PAGE; }
   /** @return The log base two of the minimum allocation alignment */
+  @Override
   protected byte getLogMinAlignmentConstant()  { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
   /** @return The log base two of (MAX_ALIGNMENT/MIN_ALIGNMENT) */
+  @Override
   protected byte getMaxAlignmentShiftConstant() { return 1; }
   /** @return The maximum number of bytes of padding to prepend to an object */
+  @Override
   protected int getMaxBytesPaddingConstant() { return MemoryConstants.BYTES_IN_WORD; }
   /** @return The value to store in alignment holes */
+  @Override
   protected int getAlignmentValueConstant() { return ObjectModel.ALIGNMENT_VALUE; }
 }

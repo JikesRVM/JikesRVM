@@ -118,6 +118,7 @@ import org.vmmagic.pragma.*;
    * reason all plans should operate gracefully on the default minimum
    * heap size until the point that processOptions is called.
    */
+  @Override
   @Interruptible
   public void processOptions() {
     super.processOptions();
@@ -128,6 +129,7 @@ import org.vmmagic.pragma.*;
    * The planExit method is called at RVM termination to allow the
    * trace process to finish.
    */
+  @Override
   @Interruptible
   public final void notifyExit(int value) {
     super.notifyExit(value);
@@ -144,6 +146,7 @@ import org.vmmagic.pragma.*;
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
+  @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     if (super.collectionRequired(spaceFull, space)) {
       traceInducedGC = false;
@@ -157,6 +160,7 @@ import org.vmmagic.pragma.*;
    * Collection
    */
 
+  @Override
   public void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
       lastGCWasTracing = traceInducedGC;

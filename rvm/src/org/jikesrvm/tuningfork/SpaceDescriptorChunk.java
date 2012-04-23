@@ -37,6 +37,7 @@ public class SpaceDescriptorChunk extends Chunk {
     seek(SPACE_DESCRIPTOR_DATA_OFFSET);
     numSpaces = 0;
     Space.visitSpaces(new SpaceVisitor() {
+      @Override
       public void visit(Space s) {
         numSpaces++;
         addInt(s.getIndex());

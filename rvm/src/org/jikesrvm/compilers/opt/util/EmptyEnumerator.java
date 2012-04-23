@@ -27,10 +27,12 @@ public final class EmptyEnumerator implements Enumeration<Object> {
     return (Enumeration<T>) (Enumeration) EMPTY;
   }
 
+  @Override
   public boolean hasMoreElements() {
     return false;
   }
 
+  @Override
   public Object nextElement() {
     throw new NoSuchElementException();
   }

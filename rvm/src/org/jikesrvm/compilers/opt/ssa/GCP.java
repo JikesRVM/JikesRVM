@@ -62,6 +62,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     if (options.getOptLevel() < 2) {
       return false;
@@ -88,6 +89,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
@@ -96,6 +98,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA_GCP || options.SSA_GCSE;
     }
@@ -103,6 +106,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
     /**
      * Return the name of the phase
      */
+    @Override
     public final String getName() {
       return "GCP Preparation";
     }
@@ -111,6 +115,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * perform the phase
      * @param ir
      */
+    @Override
     public final void perform(IR ir) {
       boolean dont = false;
       //VM.sysWrite("> " + ir.method + "\n");
@@ -155,6 +160,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
@@ -163,6 +169,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * Should this phase perform?
      * @param options
      */
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA_GCP || options.SSA_GCSE;
     }
@@ -170,6 +177,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
     /**
      * Return the name of the phase
      */
+    @Override
     public final String getName() {
       return "GCP Finalization";
     }
@@ -178,6 +186,7 @@ public final class GCP extends OptimizationPlanCompositeElement {
      * perform the phase
      * @param ir
      */
+    @Override
     public final void perform(IR ir) {
       ir.options.SSA = true;
       //VM.sysWrite("< " + ir.method + "\n");

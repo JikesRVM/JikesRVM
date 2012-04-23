@@ -50,6 +50,7 @@ public final class IntConstantOperand extends ConstantOperand {
    * @return a speculation on the type of the value represented by the
    * operand.
    */
+  @Override
   public TypeReference getType() {
     if ((value == 0) || (value == 1)) {
       return TypeReference.Boolean;
@@ -67,6 +68,7 @@ public final class IntConstantOperand extends ConstantOperand {
    *
    * @return <code>true</code>
    */
+  @Override
   public boolean isIntLike() {
     return true;
   }
@@ -76,6 +78,7 @@ public final class IntConstantOperand extends ConstantOperand {
    *
    * @return <code>true</code>
    */
+  @Override
   public boolean isInt() {
     return true;
   }
@@ -85,6 +88,7 @@ public final class IntConstantOperand extends ConstantOperand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new IntConstantOperand(value);
   }
@@ -125,14 +129,17 @@ public final class IntConstantOperand extends ConstantOperand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof IntConstantOperand) && (value == ((IntConstantOperand) op).value);
   }
 
+  @Override
   public boolean equals(Object o) {
     return (o instanceof IntConstantOperand) && (value == ((IntConstantOperand) o).value);
   }
 
+  @Override
   public int hashCode() {
     return value;
   }
@@ -142,6 +149,7 @@ public final class IntConstantOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     if (value > 0xffff || value < -0xffff) {
       return "0x" + Integer.toHexString(value);

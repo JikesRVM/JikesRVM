@@ -65,6 +65,7 @@ public final class TraceWriteBuffer extends TransitiveClosure {
    *
    * @param object The object to enqueue
    */
+  @Override
   @Inline
   public void processNode(ObjectReference object) {
     buffer.insert(object.toAddress());

@@ -63,6 +63,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
   /**
    * Method that is called when the sampling threshold is reached
    */
+  @Override
   void thresholdReached() {
     AOSLogging.logger.organizerThresholdReached();
     int numSamples = ((MethodListener) listener).getNumSamples();
@@ -70,6 +71,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
     data.update(samples, numSamples);
   }
 
+  @Override
   public void report() {
     VM.sysWrite("\nMethod sampler report");
     if (data != null) data.report();
@@ -79,6 +81,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
     public AsyncReporter() {
       super("Async Profile Reporter");
     }
+    @Override
     public void run() {
       for (;;) {
         RVMThread.doProfileReport.waitAndCloseWithHandshake();

@@ -28,6 +28,7 @@ public class DF_Solution extends HashMap<Object, DF_LatticeCell> {
    * Return a string representation of the dataflow solution
    * @return a string representation of the dataflow solution
    */
+  @Override
   public String toString() {
     String result = "";
     for (DF_LatticeCell cell : values()) {

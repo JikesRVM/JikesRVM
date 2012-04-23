@@ -133,6 +133,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
     if (n > 1) {
       Arrays.sort(osrarray,
         new Comparator<VariableMapElement>() {
+          @Override
           public int compare(VariableMapElement a, VariableMapElement b) {
             return a.osr.getmcOffset() - b.osr.getmcOffset();
           }

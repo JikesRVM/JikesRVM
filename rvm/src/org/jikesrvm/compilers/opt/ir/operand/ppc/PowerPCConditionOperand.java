@@ -100,10 +100,12 @@ public final class PowerPCConditionOperand extends Operand {
     return new PowerPCConditionOperand(cond);
   }
 
+  @Override
   public Operand copy() {
     return new PowerPCConditionOperand(value);
   }
 
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof PowerPCConditionOperand) && (((PowerPCConditionOperand) op).value == value);
   }
@@ -233,6 +235,7 @@ public final class PowerPCConditionOperand extends Operand {
   /**
    * Returns the string representation of this operand.
    */
+  @Override
   public String toString() {
     String result = "ppc ";
     if ((value & 0x1C0) == 0) {

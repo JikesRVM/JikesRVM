@@ -77,10 +77,12 @@ public final class LiveIntervalElement {
     this.end = end;
   }
 
+  @Override
   public String toString() {
     return "Reg: " + register + "\n     Begin: " + begin + "\n     End:   " + end;
   }
 
+  @Override
   public int hashCode() {
     return register.hashCode();
   }

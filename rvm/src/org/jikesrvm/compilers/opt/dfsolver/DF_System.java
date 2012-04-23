@@ -105,6 +105,7 @@ public abstract class DF_System {
    * Return a string representation of the system
    * @return a string representation of the system
    */
+  @Override
   public String toString() {
     String result = "EQUATIONS:\n";
     Enumeration<GraphNode> v = equations.enumerateNodes();
@@ -121,6 +122,7 @@ public abstract class DF_System {
   public Enumeration<DF_Equation> getEquations() {
     return new FilterEnumerator<GraphNode, DF_Equation>(equations.enumerateNodes(),
         new FilterEnumerator.Filter<GraphNode, DF_Equation>() {
+          @Override
           public boolean isElement(GraphNode x) {
             return x instanceof DF_Equation;
           }
@@ -358,6 +360,7 @@ public abstract class DF_System {
   }
 
   private static final Comparator<DF_Equation> dfComparator = new Comparator<DF_Equation>() {
+    @Override
     public int compare(DF_Equation o1, DF_Equation o2) {
       DF_Equation eq1 = o1;
       DF_Equation eq2 = o2;

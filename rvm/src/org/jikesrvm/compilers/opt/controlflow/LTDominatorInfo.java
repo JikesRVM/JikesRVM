@@ -277,6 +277,7 @@ class LTDominatorInfo {
   /**
    * Prints a string version of objection
    */
+  @Override
   public String toString() {
     return super.toString() + " [Parent: " + parent + " SDom: " + semiDominator + " Dom: " + dominator + "]";
   }

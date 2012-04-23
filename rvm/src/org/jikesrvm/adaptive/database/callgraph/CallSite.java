@@ -52,6 +52,7 @@ public final class CallSite {
   /**
    * @return string representation of call site
    */
+  @Override
   public String toString() {
     return "<" + method + ", " + bcIndex + ">";
   }
@@ -62,6 +63,7 @@ public final class CallSite {
    * @param obj call site to compare to
    * @return true if call sites are the same; otherwise, return false
    */
+  @Override
   public boolean equals(Object obj) {
     if (obj instanceof CallSite) {
       CallSite cs = (CallSite) obj;
@@ -74,6 +76,7 @@ public final class CallSite {
   /**
    * @return hash code
    */
+  @Override
   public int hashCode() {
     return bcIndex + method.hashCode();
   }

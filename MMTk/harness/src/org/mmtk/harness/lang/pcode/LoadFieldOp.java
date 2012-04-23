@@ -64,6 +64,7 @@ public final class LoadFieldOp extends BinaryOp {
     return frame.get(op2).getIntValue();
   }
 
+  @Override
   public String toString() {
     return String.format("%s <- %s.%s[%s]", Register.nameOf(getResult()),
         Register.nameOf(op1), fieldType == Type.OBJECT ? "object" : "int",  op2);

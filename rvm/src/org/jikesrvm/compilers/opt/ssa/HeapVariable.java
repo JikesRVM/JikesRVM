@@ -98,6 +98,7 @@ public class HeapVariable<T> {
    * Return a String representation of this variable
    * @return a String representation of this variable
    */
+  @Override
   public String toString() {
     return "HEAP<" + type + ">" + number;
   }

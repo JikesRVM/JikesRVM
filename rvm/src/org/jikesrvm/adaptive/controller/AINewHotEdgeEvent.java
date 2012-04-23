@@ -62,6 +62,7 @@ public final class AINewHotEdgeEvent extends HotMethodEvent implements Controlle
     this(_cm, (double) _numSamples, _boostFactor);
   }
 
+  @Override
   public String toString() {
     return "NewHotEdgeEvent: " + super.toString() + ", boost factor = " + getBoostFactor();
   }
@@ -70,6 +71,7 @@ public final class AINewHotEdgeEvent extends HotMethodEvent implements Controlle
    * Called when the controller is ready to process this event.
    * Simply passes itself to the recompilation strategy.
    */
+  @Override
   public void process() {
     CompiledMethod cmpMethod = getCompiledMethod();
     Controller.recompilationStrategy.considerHotCallEdge(cmpMethod, this);

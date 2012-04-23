@@ -68,6 +68,7 @@ public final class DoubleConstantOperand extends ConstantOperand implements Size
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new DoubleConstantOperand(value, offset);
   }
@@ -77,6 +78,7 @@ public final class DoubleConstantOperand extends ConstantOperand implements Size
    *
    * @return TypeReference.Double
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.Double;
   }
@@ -86,6 +88,7 @@ public final class DoubleConstantOperand extends ConstantOperand implements Size
    *
    * @return <code>true</code>
    */
+  @Override
   public boolean isDouble() {
     return true;
   }
@@ -98,6 +101,7 @@ public final class DoubleConstantOperand extends ConstantOperand implements Size
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof DoubleConstantOperand) && (value == ((DoubleConstantOperand) op).value);
   }
@@ -107,6 +111,7 @@ public final class DoubleConstantOperand extends ConstantOperand implements Size
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return Double.toString(value) + "D";
   }

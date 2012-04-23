@@ -73,6 +73,7 @@ import org.vmmagic.pragma.*;
    * Get the name of this driver type.
    * @return The name, "MMTk ImmortalSpaceDriver" for this driver.
    */
+  @Override
   protected String getDriverName() {
     return "MMTk ImmortalSpaceDriver";
   }
@@ -85,6 +86,7 @@ import org.vmmagic.pragma.*;
    * @param object The current object
    * @param total Whether to accumulate the values
    */
+  @Override
   public void scan(ObjectReference object, boolean total) {
     Address addr = object.toAddress();
 
@@ -111,6 +113,7 @@ import org.vmmagic.pragma.*;
     /**
      * Process an edge.
      */
+    @Override
     public void processEdge(ObjectReference source, Address slot) {
       // Address in Range, locate references
       Address target = slot.loadAddress();

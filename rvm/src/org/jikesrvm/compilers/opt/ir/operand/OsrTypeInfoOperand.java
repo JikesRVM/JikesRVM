@@ -40,6 +40,7 @@ public final class OsrTypeInfoOperand extends Operand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new OsrTypeInfoOperand(localTypeCodes, stackTypeCodes);
   }
@@ -52,6 +53,7 @@ public final class OsrTypeInfoOperand extends Operand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     boolean result = true;
 
@@ -73,6 +75,7 @@ public final class OsrTypeInfoOperand extends Operand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("OsrTypeInfo(");
     for (int i = 0, n = localTypeCodes.length; i < n; i++) {

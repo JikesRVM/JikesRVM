@@ -473,14 +473,17 @@ public final class DefUse {
       current = start;
     }
 
+    @Override
     public boolean hasMoreElements() {
       return current != null;
     }
 
+    @Override
     public RegisterOperand nextElement() {
       return next();
     }
 
+    @Override
     public RegisterOperand next() {
       if (current == null) raiseNoSuchElementException();
       RegisterOperand tmp = current;

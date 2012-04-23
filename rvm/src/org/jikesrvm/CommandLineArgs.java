@@ -103,10 +103,12 @@ public class CommandLineArgs {
     }
 
     /** Sorting method for Comparable. Sort by string value */
+    @Override
     public int compareTo(Prefix o) {
       return -value.compareTo(o.value);
     }
     /** Equals method to be consistent with Comparable */
+    @Override
     public boolean equals(Object o) {
       if (o instanceof Prefix) {
         return value.equals(((Prefix)o).value);
@@ -114,10 +116,12 @@ public class CommandLineArgs {
       return false;
     }
     /** Hashcode to be consistent with Comparable */
+    @Override
     public int hashCode() {
       return value.hashCode();
     }
     /** Command line string representation of the prefix */
+    @Override
     public String toString() {
       return value;
     }

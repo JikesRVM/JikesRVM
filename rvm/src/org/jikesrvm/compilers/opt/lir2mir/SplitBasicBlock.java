@@ -24,10 +24,13 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
  */
 public final class SplitBasicBlock extends CompilerPhase {
 
+  @Override
   public String getName() { return "SplitBasicBlock"; }
 
+  @Override
   public CompilerPhase newExecution(IR ir) { return this; }
 
+  @Override
   public void perform(IR ir) {
     for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock bb = e.nextElement();

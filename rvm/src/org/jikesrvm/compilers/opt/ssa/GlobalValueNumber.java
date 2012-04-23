@@ -32,6 +32,7 @@ class GlobalValueNumber extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -40,6 +41,7 @@ class GlobalValueNumber extends CompilerPhase {
    * Return the name of this phase.
    * @return "Global Value Number"
    */
+  @Override
   public final String getName() {
     return "Global Value Number";
   }
@@ -51,6 +53,7 @@ class GlobalValueNumber extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
     if (ir.desiredSSAOptions.getAbort()) return;
 

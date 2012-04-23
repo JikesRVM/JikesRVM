@@ -152,6 +152,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
   /**
    * Perform the transformation.
    */
+  @Override
   public void transform() {
     // first set up temporary scalars for the array elements
     // initialize them before the def.

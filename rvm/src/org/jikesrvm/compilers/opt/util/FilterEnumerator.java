@@ -41,6 +41,7 @@ public class FilterEnumerator<S, T> implements Enumeration<T> {
     done = true;
   }
 
+  @Override
   public T nextElement() {
     if (done) {
       throw new NoSuchElementException();
@@ -50,6 +51,7 @@ public class FilterEnumerator<S, T> implements Enumeration<T> {
     return f.map(o);
   }
 
+  @Override
   public boolean hasMoreElements() {
     return !done;
   }

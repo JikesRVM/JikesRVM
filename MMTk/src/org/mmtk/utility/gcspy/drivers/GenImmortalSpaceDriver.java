@@ -77,6 +77,7 @@ import org.vmmagic.pragma.*;
    * Get the name of this driver type.
    * @return The name, "MMTk GenImmortalSpaceDriver" for this driver.
    */
+  @Override
   protected String getDriverName() {
     return "MMTk GenImmortalSpaceDriver";
   }
@@ -107,6 +108,7 @@ import org.vmmagic.pragma.*;
    * Setup summaries part of the <code>transmit</code> method.<p>
    * Overrides method in superclass to handle additional Stream.
  */
+  @Override
   protected void setupSummaries() {
     super.setupSummaries();
     remsetStream.setSummary(totalRemset);

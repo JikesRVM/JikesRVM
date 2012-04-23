@@ -53,6 +53,7 @@ public final class CounterArrayManager extends InstrumentedEventCounterManager i
    * @param countersNeeded The number of counters being requested
    * @return The handle for this data's counter space.
    **/
+  @Override
   public synchronized int registerCounterSpace(int countersNeeded) {
     if (counterArrays.length == numCounterArrays) {
       expandCounterArrays();
@@ -76,6 +77,7 @@ public final class CounterArrayManager extends InstrumentedEventCounterManager i
    * @param handle  The handle describing which the data to be resized
    * @param countersNeeded The number of counters being requested
    **/
+  @Override
   public synchronized void resizeCounterSpace(int handle, int countersNeeded) {
     // allocate the new array
     double[] temp = new double[countersNeeded];
@@ -98,6 +100,7 @@ public final class CounterArrayManager extends InstrumentedEventCounterManager i
    * @param index The relative index number of the counter
    * @return The value of the counter
    */
+  @Override
   public double getCounter(int handle, int index) {
     return counterArrays[handle][index];
   }
@@ -109,6 +112,7 @@ public final class CounterArrayManager extends InstrumentedEventCounterManager i
    * @param index The relative index number of the counter
    * @param value The new value of the counter
    */
+  @Override
   public void setCounter(int handle, int index, double value) {
     counterArrays[handle][index] = value;
   }
@@ -121,6 +125,7 @@ public final class CounterArrayManager extends InstrumentedEventCounterManager i
    * @param incrementValue The value to add to the counter
    * @return The counter instruction
    **/
+  @Override
   public Instruction createEventCounterInstruction(int handle, int index, double incrementValue) {
     // Now create the instruction to be returned.
     Instruction c =
@@ -142,6 +147,7 @@ public final class CounterArrayManager extends InstrumentedEventCounterManager i
    * @param counterInst   The counter instruction to mutate
    * @param ir            The governing IR
    **/
+  @Override
   public void mutateOptEventCounterInstruction(Instruction counterInst, IR ir) {
     if (VM.VerifyAssertions) {
       VM._assert(InstrumentedCounter.conforms(counterInst));
@@ -206,6 +212,7 @@ public final class CounterArrayManager extends InstrumentedEventCounterManager i
   /**
    * Still  under construction.
    */
+  @Override
   public void insertBaselineCounter() {
   }
 

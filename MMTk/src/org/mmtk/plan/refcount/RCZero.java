@@ -32,6 +32,7 @@ public final class RCZero extends TransitiveClosure {
    * @param source The source of the reference.
    * @param slot The location containing the object reference.
    */
+  @Override
   @Inline
   public void processEdge(ObjectReference source, Address slot) {
     slot.store(ObjectReference.nullReference());

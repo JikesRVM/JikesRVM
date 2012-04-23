@@ -76,6 +76,7 @@ final class TypeReferenceVector {
     }
   }
 
+  @Override
   public int hashCode() {
     int val=0;
     for(int i=0; i<cnt; i++) {
@@ -84,6 +85,7 @@ final class TypeReferenceVector {
     return val;
   }
 
+  @Override
   public boolean equals(Object obj) {
     if (obj instanceof TypeReferenceVector) {
       TypeReferenceVector that = (TypeReferenceVector)obj;

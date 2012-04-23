@@ -70,6 +70,7 @@ public class AbstractAST implements AST {
   }
 
   /** @return The source token */
+  @Override
   public Token getToken() {
     return t;
   }

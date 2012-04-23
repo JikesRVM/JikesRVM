@@ -328,6 +328,7 @@ public final class ImmixSpace extends Space implements Constants {
    *
    * @param block The address of the block to be released
    */
+  @Override
   @Inline
   public void release(Address block) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Block.isAligned(block));
@@ -461,6 +462,7 @@ public final class ImmixSpace extends Space implements Constants {
    * @param object The object to be traced.
    * @return null and fail.
    */
+  @Override
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     VM.assertions.fail("unsupported interface");
     return null;
@@ -679,6 +681,7 @@ public final class ImmixSpace extends Space implements Constants {
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
+  @Override
   @Inline
   public boolean isLive(ObjectReference object) {
     if (defrag.inDefrag() && isDefragSource(object))

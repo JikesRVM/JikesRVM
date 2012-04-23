@@ -69,6 +69,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
    */
 
   /** Perform garbage collection */
+  @Override
   public void collect() {
     Phase.beginNewPhaseStack(Phase.scheduleComplex(global().collection));
   }
@@ -79,6 +80,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == RCBase.PREPARE) {
       getRootTrace().prepare();
@@ -176,6 +178,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
   }
 
   /** @return The current trace instance. */
+  @Override
   public final TraceLocal getCurrentTrace() {
     return getRootTrace();
   }

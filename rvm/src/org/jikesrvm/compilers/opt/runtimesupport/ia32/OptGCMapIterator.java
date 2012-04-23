@@ -43,6 +43,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    * registers were saved.  Also, check for special methods that also
    * save the volatile gprs.
    */
+  @Override
   protected void updateLocateRegisters() {
 
     //           HIGH MEMORY
@@ -125,6 +126,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    *  @param offset  the offset for the spill
    *  @return the resulting spill location
    */
+  @Override
   public Address getStackLocation(Address framePtr, int offset) {
     return framePtr.minus(offset);
   }
@@ -133,6 +135,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    *  Get address of the first spill location for the given frame ptr
    *  @return the first spill location
    */
+  @Override
   public Address getFirstSpillLoc() {
     return framePtr.minus(-StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
   }
@@ -141,6 +144,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    *  Get address of the last spill location for the given frame ptr
    *  @return the last spill location
    */
+  @Override
   public Address getLastSpillLoc() {
     if (compiledMethod.isSaveVolatile()) {
       return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);

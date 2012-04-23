@@ -107,6 +107,7 @@ public class CompiledMethod implements Schedulable {
   /**
    * Format the p-code for this method
    */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder();
     int i=0;
@@ -141,6 +142,7 @@ public class CompiledMethod implements Schedulable {
     return new StackFrame(decls,nTemps);
   }
 
+  @Override
   public void execute(Env env) {
     new PcodeInterpreter(env,this).exec();
   }

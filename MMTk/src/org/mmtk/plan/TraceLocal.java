@@ -90,6 +90,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * @param slot The location containing the object reference to be
    *        traced.  The object reference is <i>NOT</i> an interior pointer.
    */
+  @Override
   @Inline
   public final void processEdge(ObjectReference source, Address slot) {
     ObjectReference object = VM.activePlan.global().loadObjectReference(slot);
@@ -194,6 +195,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *
    * @param object The object to be enqueued
    */
+  @Override
   @Inline
   public final void processNode(ObjectReference object) {
     values.push(object);

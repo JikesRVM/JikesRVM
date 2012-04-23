@@ -60,6 +60,7 @@ public abstract class StopTheWorld extends Simple {
    * reason all plans should operate gracefully on the default minimum
    * heap size until the point that processOptions is called.
    */
+  @Override
   @Interruptible
   public void processOptions() {
     super.processOptions();

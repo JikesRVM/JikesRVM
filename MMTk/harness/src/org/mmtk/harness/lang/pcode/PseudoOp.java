@@ -63,6 +63,7 @@ public abstract class PseudoOp {
     return frame.get(getResult());
   }
 
+  @Override
   public String toString() {
     if (hasResult) {
       return String.format("%s <- %s", Register.nameOf(resultTemp), name);

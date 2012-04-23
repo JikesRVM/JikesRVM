@@ -159,6 +159,7 @@ final class SchedulingInfo {
    *
    * @return string representation of scheduling info
    */
+  @Override
   public String toString() {
     return "time=" + time + "; alt=" + alt + "; eTime=" + etime + "; cp=" + cp;
   }

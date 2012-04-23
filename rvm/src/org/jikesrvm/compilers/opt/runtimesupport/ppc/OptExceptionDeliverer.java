@@ -35,6 +35,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
   /**
    * Pass control to a catch block.
    */
+  @Override
   @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public void deliverException(CompiledMethod cm, Address catchBlockInstructionAddress, Throwable exceptionObject,
                                Registers registers) {
@@ -65,6 +66,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
   /**
    * Unwind a stackframe.
    */
+  @Override
   @Unpreemptible("Deliver exception possibly from unpreemptible code")
   public void unwindStackFrame(CompiledMethod cm, Registers registers) {
     Address fp = registers.getInnermostFramePointer();

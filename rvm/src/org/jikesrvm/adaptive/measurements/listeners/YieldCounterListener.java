@@ -42,6 +42,7 @@ public final class YieldCounterListener extends NullListener {
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *             EPILOGUE?
    */
+  @Override
   public void update(int whereFrom) {
     if (VM.VerifyAssertions) VM._assert(AosEntrypoints.yieldCountListenerNumYieldsField!=null);
     int yp = Synchronization.fetchAndAdd(this, AosEntrypoints.yieldCountListenerNumYieldsField.getOffset(), 1) + 1;
@@ -51,10 +52,12 @@ public final class YieldCounterListener extends NullListener {
     }
   }
 
+  @Override
   public void report() {
     VM.sysWriteln("Yield points counted: ", totalYields);
   }
 
+  @Override
   public void reset() { }
 
   private int yieldThreshold;

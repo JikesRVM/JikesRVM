@@ -71,6 +71,7 @@ public final class ReturnOp extends NullaryOp {
   }
 
   /** Format this instruction for printing */
+  @Override
   public String toString() {
     return "return " + (operand != NO_SUCH_SLOT ? "t"+operand : "");
   }

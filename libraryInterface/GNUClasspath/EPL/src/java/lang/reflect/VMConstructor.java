@@ -47,6 +47,7 @@ final class VMConstructor {
     }
   }
 
+  @Override
   public boolean equals(Object other) {
     if (other instanceof Constructor) {
       return constructor == ((Constructor<?>)other).cons.constructor;

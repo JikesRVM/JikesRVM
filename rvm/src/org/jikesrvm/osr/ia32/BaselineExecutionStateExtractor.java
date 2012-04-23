@@ -50,6 +50,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
    *
    * return a ExecutionStateExtractor object.
    */
+  @Override
   public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
     /* performs architecture and compiler dependent operations here

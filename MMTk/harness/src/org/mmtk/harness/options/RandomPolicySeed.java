@@ -27,6 +27,7 @@ public final class RandomPolicySeed extends org.vmutil.options.IntOption {
         Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.random.seed", "0")));
   }
 
+  @Override
   protected void validate() {
   }
 }

@@ -46,6 +46,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    * @param trace The closure being used.
    * @param object The object to be scanned.
    */
+  @Override
   @Inline
   public void scanObject(TransitiveClosure trace, ObjectReference object) {
     if (HandInlinedScanning.ENABLED) {
@@ -64,6 +65,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    * @param trace The trace the method has been specialized for
    * @param object The object to be scanned
    */
+  @Override
   @Inline
   public void specializedScanObject(int id, TransitiveClosure trace, ObjectReference object) {
     if (HandInlinedScanning.ENABLED) {
@@ -85,6 +87,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    * parallel GC threads were not important, the thread counter could
    * simply be replaced by a for loop).
    */
+  @Override
   public void resetThreadCounter() {
     threadCounter.reset();
   }
@@ -94,6 +97,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    * have been scanned. This can be used (for example) to clean up
    * obsolete compiled methods that are no longer being executed.
    */
+  @Override
   public void notifyInitialThreadScanComplete() {
     CompiledMethods.snipObsoleteCompiledMethods();
     /* flush out any remset entries generated during the above activities */
@@ -113,6 +117,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    *
    * @param trace The trace to use for computing roots.
    */
+  @Override
   public void computeStaticRoots(TraceLocal trace) {
     /* scan statics */
     ScanStatics.scanStatics(trace);
@@ -131,6 +136,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    *
    * @param trace The trace to use for computing roots.
    */
+  @Override
   public void computeGlobalRoots(TraceLocal trace) {
     /* scan jni functions */
     CollectorContext cc = RVMThread.getCurrentThread().getCollectorContext();
@@ -180,6 +186,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    *
    * @param trace The trace to use for computing roots.
    */
+  @Override
   public void computeThreadRoots(TraceLocal trace) {
     boolean processCodeLocations = MemoryManagerConstants.MOVES_CODE;
 
@@ -211,6 +218,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    *
    * @param trace The trace object to use to report root locations.
    */
+  @Override
   public void computeBootImageRoots(TraceLocal trace) {
     ScanBootImage.scanBootImage(trace);
   }

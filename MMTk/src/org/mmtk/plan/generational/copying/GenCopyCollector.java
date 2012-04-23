@@ -84,6 +84,7 @@ public class GenCopyCollector extends GenCollector {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
+  @Override
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
@@ -109,6 +110,7 @@ public class GenCopyCollector extends GenCollector {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator to allocate from
    */
+  @Override
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -134,6 +136,7 @@ public class GenCopyCollector extends GenCollector {
    * @param primary True if this thread should peform local single-threaded
    * actions.
    */
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
       if (phaseId == GenCopy.PREPARE) {
@@ -168,5 +171,6 @@ public class GenCopyCollector extends GenCollector {
     mature.show();
   }
 
+  @Override
   public final TraceLocal getFullHeapTrace() { return matureTrace; }
 }

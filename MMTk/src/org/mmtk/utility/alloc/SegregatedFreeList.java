@@ -55,6 +55,7 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
    *
    * @return The Space.
    */
+  @Override
   protected final S getSpace() {
     return this.space;
   }

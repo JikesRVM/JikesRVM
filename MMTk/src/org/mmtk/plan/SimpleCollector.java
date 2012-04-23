@@ -53,6 +53,7 @@ public abstract class SimpleCollector extends ParallelCollector {
    * @param primary Should this thread be used to execute any single-threaded
    * local operations?
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == Simple.PREPARE) {

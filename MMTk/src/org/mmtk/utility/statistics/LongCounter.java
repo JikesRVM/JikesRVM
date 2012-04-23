@@ -91,6 +91,7 @@ public abstract class LongCounter extends Counter {
   /**
    * Start this counter
    */
+  @Override
   public void start() {
     if (!Stats.gatheringStats) return;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!running);
@@ -101,6 +102,7 @@ public abstract class LongCounter extends Counter {
   /**
    * Stop this counter
    */
+  @Override
   public void stop() {
     if (!Stats.gatheringStats) return;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(running);
@@ -117,6 +119,7 @@ public abstract class LongCounter extends Counter {
    *
    * @param oldPhase The last phase
    */
+  @Override
   protected void phaseChange(int oldPhase) {
     if (running) {
       long now = getCurrentValue();
@@ -133,6 +136,7 @@ public abstract class LongCounter extends Counter {
    *
    * @param phase The phase to be printed
    */
+  @Override
   protected final void printCount(int phase) {
     if (VM.VERIFY_ASSERTIONS && mergePhases())
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((phase | 1) == (phase + 1));
@@ -145,6 +149,7 @@ public abstract class LongCounter extends Counter {
   /**
    * Print the current total for this counter
    */
+  @Override
   public final void printTotal() {
     printValue(totalCount);
   }
@@ -165,6 +170,7 @@ public abstract class LongCounter extends Counter {
    * @param mutator True if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
+  @Override
   protected final void printTotal(boolean mutator) {
     long total = 0;
     for (int p = (mutator) ? 0 : 1; p <= Stats.phase; p += 2) {
@@ -180,6 +186,7 @@ public abstract class LongCounter extends Counter {
    * @param mutator True if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
+  @Override
   protected final void printMin(boolean mutator) {
     int p = (mutator) ? 0 : 1;
     long min = count[p];
@@ -196,6 +203,7 @@ public abstract class LongCounter extends Counter {
    * @param mutator True if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
+  @Override
   protected final void printMax(boolean mutator) {
     int p = (mutator) ? 0 : 1;
     long max = count[p];

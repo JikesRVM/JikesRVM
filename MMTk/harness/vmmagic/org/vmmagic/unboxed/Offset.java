@@ -101,6 +101,7 @@ public final class Offset {
     return EQ(max());
   }
 
+  @Override
   public String toString() {
     return toWord().toString();
   }

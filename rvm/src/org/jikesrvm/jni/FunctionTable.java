@@ -53,6 +53,7 @@ public final class FunctionTable implements RuntimeTable<CodeArray> {
   /**
    * Return the backing array (for boot image writing)
    */
+  @Override
   public CodeArray[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     return data;
@@ -64,6 +65,7 @@ public final class FunctionTable implements RuntimeTable<CodeArray> {
    * @param index The index of the entry to get
    * @return The value of that entry
    */
+  @Override
   @Intrinsic
   @Uninterruptible
   public CodeArray get(int index) {
@@ -77,6 +79,7 @@ public final class FunctionTable implements RuntimeTable<CodeArray> {
    * @param index The index of the entry to set
    * @param value The value to set the entry to.
    */
+  @Override
   @Intrinsic
   @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   public void set(int index, CodeArray value) {
@@ -87,6 +90,7 @@ public final class FunctionTable implements RuntimeTable<CodeArray> {
   /**
    * Return the length of the ITable
    */
+  @Override
   @Intrinsic
   @Uninterruptible
   public int length() {

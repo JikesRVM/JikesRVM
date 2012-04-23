@@ -75,6 +75,7 @@ public class DF_Equation implements GraphNode {
    * Return a string representation of this object
    * @return a string representation of this object
    */
+  @Override
   public String toString() {
     if (operands[0] == null) {
       return ("NULL LHS");
@@ -190,6 +191,7 @@ public class DF_Equation implements GraphNode {
   /**
    * Implementation of GraphNode interface.
    */
+  @Override
   public void setIndex(int i) {
     index = i;
   }
@@ -197,6 +199,7 @@ public class DF_Equation implements GraphNode {
   /**
    * Implementation of GraphNode interface.
    */
+  @Override
   public int getIndex() {
     return index;
   }
@@ -207,20 +210,24 @@ public class DF_Equation implements GraphNode {
    * @return an enumeration of the equations which use the result of this
    * equation.
    */
+  @Override
   public GraphNodeEnumeration outNodes() {
     return new GraphNodeEnumeration() {
       private GraphNode elt = getLHS();
 
+      @Override
       public boolean hasMoreElements() {
         return elt != null;
       }
 
+      @Override
       public GraphNode next() {
         GraphNode x = elt;
         elt = null;
         return x;
       }
 
+      @Override
       public GraphNode nextElement() {
         return next();
       }
@@ -233,18 +240,22 @@ public class DF_Equation implements GraphNode {
    * @return an enumeration of the equations upon whose results this
    * equation depends
    */
+  @Override
   public GraphNodeEnumeration inNodes() {
     return new GraphNodeEnumeration() {
       private int i = 1;
 
+      @Override
       public boolean hasMoreElements() {
         return (i < operands.length);
       }
 
+      @Override
       public GraphNode next() {
         return operands[i++];
       }
 
+      @Override
       public GraphNode nextElement() {
         return next();
       }
@@ -253,10 +264,12 @@ public class DF_Equation implements GraphNode {
 
   private int scratch;
 
+  @Override
   public int getScratch() {
     return scratch;
   }
 
+  @Override
   public int setScratch(int o) {
     return (scratch = o);
   }

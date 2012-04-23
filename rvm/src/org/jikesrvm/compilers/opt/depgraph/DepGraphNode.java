@@ -46,6 +46,7 @@ public final class DepGraphNode extends SpaceEffGraphNode implements DepGraphCon
    * Returns the string representation of this node.
    * @return string representation of this node
    */
+  @Override
   public String toString() {
     return "[" + _instr + "]";
   }

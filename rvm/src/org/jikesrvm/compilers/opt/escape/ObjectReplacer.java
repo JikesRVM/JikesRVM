@@ -109,6 +109,7 @@ final class ObjectReplacer implements AggregateReplacer {
   /**
    * Perform the transformation
    */
+  @Override
   public void transform() {
     // store the object's fields in a ArrayList
     ArrayList<RVMField> fields = getFieldsAsArrayList(klass);

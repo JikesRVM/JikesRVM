@@ -75,6 +75,7 @@ public class GenImmixCollector extends GenCollector {
    * @param allocator The allocator to use.
    * @return The address of the first byte of the allocated region
    */
+  @Override
   @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
                                  int align, int offset, int allocator) {
@@ -107,6 +108,7 @@ public class GenImmixCollector extends GenCollector {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
+  @Override
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -134,6 +136,7 @@ public class GenImmixCollector extends GenCollector {
    * @param phaseId Collection phase to perform
    * @param primary Is this thread to do the one-off thread-local tasks
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     TraceLocal trace = GenImmix.immixSpace.inImmixDefragCollection() ? defragTrace : matureTrace;
@@ -169,6 +172,7 @@ public class GenImmixCollector extends GenCollector {
     super.collectionPhase(phaseId, primary);
   }
 
+  @Override
   @Inline
   public final TraceLocal getFullHeapTrace() {
     return GenImmix.immixSpace.inImmixDefragCollection() ? defragTrace : matureTrace;

@@ -60,6 +60,7 @@ public class CMS extends Concurrent {
    *
    * @param phaseId Collection phase to execute.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
@@ -92,6 +93,7 @@ public class CMS extends Concurrent {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
   }

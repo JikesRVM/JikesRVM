@@ -56,6 +56,7 @@ public class BlockingPriorityQueue extends PriorityQueueRVM {
    * @param _priority  the priority to
    * @param _data the object to insert
    */
+  @Override
   public final synchronized void insert(double _priority, Object _data) {
     super.insert(_priority, _data);
     try {
@@ -72,6 +73,7 @@ public class BlockingPriorityQueue extends PriorityQueueRVM {
    *
    * @return the front (minimum) object.
    */
+  @Override
   public final synchronized Object deleteMin() {
     // While the queue is empty, sleep until notified that an object has been enqueued.
     while (isEmpty()) {

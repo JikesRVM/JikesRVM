@@ -28,20 +28,24 @@ import org.jikesrvm.runtime.Memory;
  */
 final class AssemblerDriver extends CompilerPhase implements Constants {
 
+  @Override
   public String getName() {
     return "Assembler Driver";
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     //don't bother printing afterwards, PRINT_MACHINECODE handles that
     return before && options.DEBUG_CODEGEN;
   }
 
   // this class has no instance fields.
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public void perform(IR ir) {
     OptOptions options = ir.options;
     boolean shouldPrint =
@@ -86,6 +90,7 @@ final class AssemblerDriver extends CompilerPhase implements Constants {
     }
   }
 
+  @Override
   public void verify(IR ir) {
     /* Do nothing, IR invariants violated by final expansion*/
   }

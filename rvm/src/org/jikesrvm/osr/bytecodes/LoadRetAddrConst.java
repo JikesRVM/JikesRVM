@@ -25,12 +25,14 @@ public class LoadRetAddrConst extends PseudoBytecode {
     this.bcindex = off;
   }
 
+  @Override
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_LoadRetAddrConst);
     int2bytes(codes, 2, bcindex);
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
@@ -39,6 +41,7 @@ public class LoadRetAddrConst extends PseudoBytecode {
     return bcindex;
   }
 
+  @Override
   public int stackChanges() {
     return +1;
   }
@@ -47,6 +50,7 @@ public class LoadRetAddrConst extends PseudoBytecode {
     this.bcindex = off;
   }
 
+  @Override
   public String toString() {
     return "LoadRetAddrConst " + bcindex;
   }

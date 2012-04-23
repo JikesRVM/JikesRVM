@@ -422,6 +422,7 @@ public final class ConditionOperand extends Operand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new ConditionOperand(value);
   }
@@ -434,6 +435,7 @@ public final class ConditionOperand extends Operand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof ConditionOperand) && (((ConditionOperand) op).value == value);
   }
@@ -920,6 +922,7 @@ public final class ConditionOperand extends Operand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     switch (value) {
       case EQUAL:

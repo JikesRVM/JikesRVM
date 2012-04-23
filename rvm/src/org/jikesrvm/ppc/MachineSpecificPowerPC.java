@@ -55,6 +55,7 @@ public abstract class MachineSpecificPowerPC extends MachineSpecific implements 
    * @param object the number of the register holding the object reference
    * @param tibOffset the offset of the tib from the object header
    */
+  @Override
   @Interruptible
   public final void baselineEmitLoadTIB(ArchitectureSpecific.Assembler asm, int dest, int object, Offset tibOffset) {
     asm.emitLAddrOffset(dest, object, tibOffset);
@@ -69,6 +70,7 @@ public abstract class MachineSpecificPowerPC extends MachineSpecific implements 
    * @param ip The instruction pointer for the "startoff" method
    * @param sp The base of the stack
    */
+  @Override
   @Uninterruptible
   public final void initializeStack(Registers contextRegisters, Address ip, Address sp) {
     Address fp;

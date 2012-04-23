@@ -66,6 +66,7 @@ class DominatorSystem extends DF_System {
    * Initialize the lattice variables (Dominator sets) for
    * each basic block.
    */
+  @Override
   protected void initializeLatticeCells() {
     if (Dominators.COMPUTE_POST_DOMINATORS) {
       BasicBlock exit = ir.cfg.exit();
@@ -97,6 +98,7 @@ class DominatorSystem extends DF_System {
    * <p> The initial work list is every equation containing the start
    * node.
    */
+  @Override
   protected void initializeWorkList() {
     if (Dominators.COMPUTE_POST_DOMINATORS) {
       // Add every equation to work list (to be safe)
@@ -125,6 +127,7 @@ class DominatorSystem extends DF_System {
    * @param key the basic block
    * @return the new cell
    */
+  @Override
   protected DF_LatticeCell makeCell(Object key) {
     return new DominatorCell((BasicBlock) key, ir);
   }

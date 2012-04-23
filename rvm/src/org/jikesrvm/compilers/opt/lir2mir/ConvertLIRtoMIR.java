@@ -111,6 +111,7 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
         //          and then finish the removal off all validation
         //          operands (they are not present in the MIR).
         new OptimizationPlanAtomicElement(new NullCheckCombining() {
+          @Override
           public void perform(IR ir) {
             super.perform(ir);
             // ir now contains well formed MIR.
@@ -125,14 +126,17 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
    */
   private static final class ReduceOperators extends CompilerPhase {
 
+    @Override
     public String getName() {
       return "Reduce Operators";
     }
 
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public void perform(IR ir) {
       for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         switch (s.getOpcode()) {
@@ -328,14 +332,17 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
    */
   private static final class NormalizeConstantsPhase extends CompilerPhase {
 
+    @Override
     public String getName() {
       return "Normalize Constants";
     }
 
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public void perform(IR ir) {
       NormalizeConstants.perform(ir);
     }
@@ -343,14 +350,17 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
 
   private static final class DoLiveness extends CompilerPhase {
 
+    @Override
     public String getName() {
       return "Live Handlers";
     }
 
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public void perform(IR ir) {
       if (ir.options.L2M_HANDLER_LIVENESS) {
         new LiveAnalysis(false, false, true).perform(ir);
@@ -366,14 +376,17 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
    */
   private static final class DoBURS extends CompilerPhase {
 
+    @Override
     public String getName() {
       return "DepGraph & BURS";
     }
 
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public void reportAdditionalStats() {
       VM.sysWrite("  ");
       VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
@@ -382,8 +395,10 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
 
     // IR is inconsistent state between DoBURS and ComplexOperators.
     // It isn't verifiable again until after ComplexOperators completes.
+    @Override
     public void verify(IR ir) { }
 
+    @Override
     public void perform(IR ir) {
       OptOptions options = ir.options;
       DefUse.recomputeSpansBasicBlock(ir);
@@ -432,14 +447,17 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
    */
   private static final class ComplexOperators extends CompilerPhase {
 
+    @Override
     public String getName() {
       return "Complex Operators";
     }
 
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public void perform(IR ir) {
       ComplexLIR2MIRExpansion.convert(ir);
     }

@@ -33,6 +33,7 @@ public abstract class RegisterRestrictions extends GenericRegisterRestrictions {
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?
    */
+  @Override
   public boolean isForbidden(Register symb, Register r, Instruction s) {
     return false;
   }

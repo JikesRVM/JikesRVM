@@ -55,6 +55,7 @@ public class BulkCompile implements Callbacks.StartupMonitor {
     Callbacks.addStartupMonitor(new BulkCompile());
   }
 
+  @Override
   public void notifyStartup() {
     if (Controller.options.ENABLE_PRECOMPILE) {
       compileAllMethods();

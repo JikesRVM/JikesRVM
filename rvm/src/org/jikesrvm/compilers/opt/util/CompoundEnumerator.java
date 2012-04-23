@@ -25,10 +25,12 @@ public class CompoundEnumerator<T> implements Enumeration<T> {
     this.second = second;
   }
 
+  @Override
   public boolean hasMoreElements() {
     return first.hasMoreElements() || second.hasMoreElements();
   }
 
+  @Override
   public T nextElement() {
     if (first.hasMoreElements()) {
       return first.nextElement();

@@ -76,6 +76,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
   /**
    * Unwind a stackframe.
    */
+  @Override
   @Unpreemptible("Unwind stack possibly from unpreemptible code")
   public void unwindStackFrame(CompiledMethod compiledMethod, ArchitectureSpecific.Registers registers) {
     NormalMethod method = (NormalMethod) compiledMethod.getMethod();

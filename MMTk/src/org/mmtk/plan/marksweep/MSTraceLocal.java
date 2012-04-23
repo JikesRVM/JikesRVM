@@ -88,6 +88,7 @@ public final class MSTraceLocal extends TraceLocal {
    * mod buffer and for each entry, marking the object as unlogged
    * (we don't enqueue for scanning since we're doing a full heap GC).
    */
+  @Override
   protected void processRememberedSets() {
     if (modBuffer != null) {
       logMessage(5, "clearing modBuffer");

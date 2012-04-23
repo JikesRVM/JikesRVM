@@ -29,6 +29,7 @@ public final class BURSManagedFPROperand extends Operand {
   /**
    * Returns a copy of the current operand.
    */
+  @Override
   public Operand copy() {
     return new BURSManagedFPROperand(regNum);
   }
@@ -38,11 +39,13 @@ public final class BURSManagedFPROperand extends Operand {
    *
    * @param op other operand
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof BURSManagedFPROperand) && ((BURSManagedFPROperand) op).regNum == regNum;
   }
 
   // Returns the string representation of this operand.
+  @Override
   public String toString() {
     return "ST(" + regNum + ")";
   }

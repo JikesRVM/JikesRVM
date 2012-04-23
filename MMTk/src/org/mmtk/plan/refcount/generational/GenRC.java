@@ -44,6 +44,7 @@ public class GenRC extends RCBase {
    *
    * @param phaseId Collection phase
    */
+  @Override
   public final void collectionPhase(short phaseId) {
    if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
@@ -68,6 +69,7 @@ public class GenRC extends RCBase {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
+  @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
     return super.collectionRequired(spaceFull, space) || nurseryFull;
@@ -85,6 +87,7 @@ public class GenRC extends RCBase {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
+  @Override
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
   }
@@ -95,6 +98,7 @@ public class GenRC extends RCBase {
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for copying.
    */
+  @Override
   public final int getCollectionReserve() {
     return nurserySpace.reservedPages() + super.getCollectionReserve();
   }

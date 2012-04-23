@@ -66,6 +66,7 @@ import org.vmmagic.pragma.*;
    * Get the name of this driver type.
    * @return The name, "MMTk GenLOSDriver" for this driver.
    */
+  @Override
   protected String getDriverName() {
     return "MMTk GenLOSDriver";
   }
@@ -95,6 +96,7 @@ import org.vmmagic.pragma.*;
    * Overrides <code>transmitSetupSummaries </code> of superclass to
    * handle additional streams.
  */
+  @Override
   protected void setupSummaries() {
     super.setupSummaries();
     remsetStream.setSummary(totalRemset);

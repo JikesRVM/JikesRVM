@@ -61,16 +61,20 @@ public class StaticSplitting extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public String getName() { return "Static Splitting"; }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.CONTROL_STATIC_SPLITTING;
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return DEBUG;
   }
@@ -82,6 +86,7 @@ public class StaticSplitting extends CompilerPhase {
    *
    * @param ir   The IR on which to apply the phase
    */
+  @Override
   public void perform(IR ir) {
     // (1) Find candidates to split
     simpleCandidateSearch(ir);

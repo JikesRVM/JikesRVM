@@ -119,6 +119,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    * To be called when the VM is about to exit.
    * @param value the exit value
    */
+  @Override
   public void notifyExit(int value) {
     report(false);
   }

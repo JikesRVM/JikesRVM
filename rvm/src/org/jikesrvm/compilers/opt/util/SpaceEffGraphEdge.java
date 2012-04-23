@@ -147,12 +147,14 @@ public class SpaceEffGraphEdge implements GraphEdge {
    * Get the end node for the edge.
    * @return end node for the edge
    */
+  @Override
   public final GraphNode to() { return _toNode; }
 
   /**
    * Get the start node for the edge.
    * @return start node for the edge
    */
+  @Override
   public final GraphNode from() { return _fromNode; }
 
   /**

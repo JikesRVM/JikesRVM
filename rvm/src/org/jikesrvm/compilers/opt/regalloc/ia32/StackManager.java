@@ -115,6 +115,7 @@ public abstract class StackManager extends GenericStackManager {
    * the stackpointer after the prologue of the method completes).
    * @return size in bytes of the fixed portion of the stackframe
    */
+  @Override
   public final int getFrameFixedSize() {
     return frameSize - WORDSIZE;
   }
@@ -166,6 +167,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param type the type to spill
    * @return the spill location
    */
+  @Override
   public final int allocateNewSpillLocation(int type) {
 
     // increment by the spill size
@@ -187,6 +189,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param location the spill location, as an offset from the frame
    * pointer
    */
+  @Override
   public final void insertSpillBefore(Instruction s, Register r, byte type, int location) {
 
     Operator move = getMoveOperator(type);
@@ -217,6 +220,7 @@ public abstract class StackManager extends GenericStackManager {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
+  @Override
   public final void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
     Operator move = getMoveOperator(type);
     byte size = getSizeOfType(type);
@@ -247,6 +251,7 @@ public abstract class StackManager extends GenericStackManager {
    * <li> updates the <code>frameRequired</code> field of this object
    * </ul>
    */
+  @Override
   public void computeNonVolatileArea() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
@@ -332,6 +337,7 @@ public abstract class StackManager extends GenericStackManager {
    * Clean up some junk that's left in the IR after register allocation,
    * and add epilogue code.
    */
+  @Override
   public void cleanUpAndInsertEpilogue() {
 
     Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
@@ -461,6 +467,7 @@ public abstract class StackManager extends GenericStackManager {
    *    <li> Save any used non-volatile registers
    *    </ul>
    */
+  @Override
   public void insertNormalPrologue() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register ESP = phys.getESP();
@@ -674,6 +681,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param s the instruction to mutate.
    * @param symb the symbolic register operand to replace
    */
+  @Override
   public void replaceOperandWithSpillLocation(Instruction s, RegisterOperand symb) {
 
     // Get the spill location previously assigned to the symbolic
@@ -751,6 +759,7 @@ public abstract class StackManager extends GenericStackManager {
    * Given symbolic register r in instruction s, do we need to ensure that
    * r is in a scratch register is s (as opposed to a memory operand)
    */
+  @Override
   public boolean needScratch(Register r, Instruction s) {
     // We never need a scratch register for a floating point value in an
     // FMOV instruction.
@@ -985,6 +994,7 @@ public abstract class StackManager extends GenericStackManager {
    *
    * <p>Invalidate any scratch register assignments that are illegal in s.
    */
+  @Override
   public void restoreScratchRegistersBefore(Instruction s) {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
       ScratchRegister scratch = i.next();
@@ -1068,6 +1078,7 @@ public abstract class StackManager extends GenericStackManager {
    * Initialize some architecture-specific state needed for register
    * allocation.
    */
+  @Override
   public void initForArch(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
@@ -1080,6 +1091,7 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Is a particular instruction a system call?
    */
+  @Override
   public boolean isSysCall(Instruction s) {
     return s.operator == IA32_SYSCALL;
   }

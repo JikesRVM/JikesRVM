@@ -129,6 +129,7 @@ import org.vmmagic.pragma.*;
    * @param trace The trace being conducted.
    * @param object The object to be traced.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (testAndMark(object, markState))
@@ -153,12 +154,14 @@ import org.vmmagic.pragma.*;
    *
    * @param start The address of the start of the page or pages
    */
+  @Override
   @Inline
   public void release(Address start) {
     if (VM.VERIFY_ASSERTIONS)
       VM.assertions._assert(false); // this policy only releases pages enmasse
   }
 
+  @Override
   @Inline
   public boolean isLive(ObjectReference object) {
     return true;
@@ -175,6 +178,7 @@ import org.vmmagic.pragma.*;
    *         the current mark state).  While all immortal objects are live,
    *         some may be unreachable.
    */
+  @Override
   public boolean isReachable(ObjectReference object) {
     if (Plan.SCAN_BOOT_IMAGE && this == Plan.vmSpace)
       return true;  // ignore boot image "reachabilty" if we're not tracing it

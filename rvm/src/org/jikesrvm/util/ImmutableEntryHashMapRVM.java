@@ -30,10 +30,12 @@ public final class ImmutableEntryHashMapRVM<K, V> extends AbstractHashMapRVM<K,V
       next = n;
     }
 
+    @Override
     AbstractBucket<K, V> getNext() {
       return next;
     }
 
+    @Override
     AbstractBucket<K, V> setNext(AbstractBucket<K, V> n) {
       if (next == n) {
         return this;
@@ -42,14 +44,17 @@ public final class ImmutableEntryHashMapRVM<K, V> extends AbstractHashMapRVM<K,V
       }
     }
 
+    @Override
     K getKey() {
       return key;
     }
 
+    @Override
     V getValue() {
       return value;
     }
 
+    @Override
     void setValue(V v) {
       throw new UnsupportedOperationException();
     }
@@ -68,6 +73,7 @@ public final class ImmutableEntryHashMapRVM<K, V> extends AbstractHashMapRVM<K,V
     super(size);
   }
 
+  @Override
   public V remove(K key) {
     throw new UnsupportedOperationException();
   }

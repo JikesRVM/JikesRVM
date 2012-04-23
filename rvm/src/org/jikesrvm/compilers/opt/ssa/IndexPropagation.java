@@ -50,6 +50,7 @@ public final class IndexPropagation extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -59,6 +60,7 @@ public final class IndexPropagation extends CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA;
   }
@@ -67,6 +69,7 @@ public final class IndexPropagation extends CompilerPhase {
    * Return the name of this compiler phase.
    * @return "Index Propagation"
    */
+  @Override
   public String getName() {
     return "Index Propagation";
   }
@@ -83,6 +86,7 @@ public final class IndexPropagation extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public void perform(IR ir) {
     if (ir.desiredSSAOptions.getAbort()) return;
     IndexPropagationSystem system = new IndexPropagationSystem(ir);
@@ -269,6 +273,7 @@ public final class IndexPropagation extends CompilerPhase {
      * Return a string representation of this cell
      * @return a string representation of this cell
      */
+    @Override
     public String toString() {
       StringBuilder s = new StringBuilder(key.toString());
 
@@ -482,6 +487,7 @@ public final class IndexPropagation extends CompilerPhase {
      * Return a string representation of this cell
      * @return a string representation of this cell
      */
+    @Override
     public String toString() {
       StringBuilder s = new StringBuilder(key.toString());
 

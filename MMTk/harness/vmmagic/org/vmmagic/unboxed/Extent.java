@@ -98,6 +98,7 @@ public final class Extent {
     return value.NE(extent2.value);
   }
 
+  @Override
   public String toString() {
     return value.toString();
   }

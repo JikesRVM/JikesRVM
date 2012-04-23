@@ -131,6 +131,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * @param first The first page in the group of pages that were
    * allocated together.
    */
+  @Override
   @Inline
   public void release(Address first) {
     ((FreeListPageResource) pr).releasePages(first);
@@ -155,6 +156,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     boolean nurseryObject = isInNursery(object);
@@ -171,7 +173,8 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-   @Inline
+  @Override
+  @Inline
    public boolean isLive(ObjectReference object) {
     return testMarkBit(object, markState);
   }
@@ -264,6 +267,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * @return The size of the per-superpage header required by this
    * system.
    */
+  @Override
   @Inline
   protected int superPageHeaderSize() {
     return Treadmill.headerSize();
@@ -276,6 +280,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
+  @Override
   @Inline
   protected int cellHeaderSize() {
     return 0;

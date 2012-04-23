@@ -59,6 +59,7 @@ public class SSMutator extends StopTheWorldMutator {
    * Called before the MutatorContext is used, but after the context has been
    * fully registered and is visible to collection.
    */
+  @Override
   public void initMutator(int id) {
     super.initMutator(id);
     ss.rebind(SS.toSpace());
@@ -79,6 +80,7 @@ public class SSMutator extends StopTheWorldMutator {
    * @param site Allocation site
    * @return The address of the first byte of the allocated region
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == SS.ALLOC_SS)
@@ -96,6 +98,7 @@ public class SSMutator extends StopTheWorldMutator {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Override
   @Inline
   public void postAlloc(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -112,6 +115,7 @@ public class SSMutator extends StopTheWorldMutator {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == SS.copySpace0 || space == SS.copySpace1) return ss;
     return super.getAllocatorFromSpace(space);
@@ -128,6 +132,7 @@ public class SSMutator extends StopTheWorldMutator {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == SS.PREPARE) {

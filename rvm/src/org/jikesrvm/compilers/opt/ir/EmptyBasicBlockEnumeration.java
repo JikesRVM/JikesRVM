@@ -23,10 +23,13 @@ package org.jikesrvm.compilers.opt.ir;
  */
 class EmptyBasicBlockEnumeration implements BasicBlockEnumeration {
 
+  @Override
   public boolean hasMoreElements() { return false; }
 
+  @Override
   public BasicBlock nextElement() { return next(); }
 
+  @Override
   public BasicBlock next() {
     throw new java.util.NoSuchElementException("Empty BasicBlock Enumeration");
   }

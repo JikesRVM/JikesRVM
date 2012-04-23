@@ -83,14 +83,17 @@ public final class Simple extends CompilerPhase {
    */
   private final boolean sortRegisters;
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= level;
   }
 
+  @Override
   public String getName() {
     return "Simple Opts";
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -128,6 +131,7 @@ public final class Simple extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -137,6 +141,7 @@ public final class Simple extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public void perform(IR ir) {
     // Compute defList, useList, useCount fields for each register.
     DefUse.computeDU(ir);

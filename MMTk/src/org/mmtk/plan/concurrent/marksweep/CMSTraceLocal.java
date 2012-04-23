@@ -40,6 +40,7 @@ public final class CMSTraceLocal extends TraceLocal {
   /**
    * Should reference values be overwritten as the heap is traced?
    */
+  @Override
   protected boolean overwriteReferenceDuringTrace() {
     return false;
   }
@@ -50,6 +51,7 @@ public final class CMSTraceLocal extends TraceLocal {
    * @param object The object.
    * @return True if the object is live.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(CMS.MARK_SWEEP, object)) {
@@ -72,6 +74,7 @@ public final class CMSTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;

@@ -28,6 +28,7 @@ public final class GCspyPort extends org.vmutil.options.IntOption {
   /**
    * Ensure the port is valid.
    */
+  @Override
   protected void validate() {
     failIf(this.value <= 0, "Unreasonable GCSpy port value");
   }

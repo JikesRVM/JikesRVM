@@ -46,6 +46,7 @@ public class ReverseDFSenumerateByFinish extends DFSenumerateByFinish {
    * @param n A node in the DFS
    * @return The nodes that have edges leading to n
    */
+  @Override
   protected GraphNodeEnumeration getConnected(GraphNode n) {
     return n.inNodes();
   }

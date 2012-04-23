@@ -75,8 +75,10 @@ public class SpaceEffGraphNode implements GraphNode {
 
   public final void clearLoopHeader() { info &= ~LOOP_HEADER; }
 
+  @Override
   public int getScratch() { return scratch; }
 
+  @Override
   public int setScratch(int scratch) { return this.scratch = scratch; }
 
   public final void setNumber(int value) {
@@ -87,10 +89,12 @@ public class SpaceEffGraphNode implements GraphNode {
     return info & INFO_MASK;
   }
 
+  @Override
   public final int getIndex() {
     return getNumber();
   }
 
+  @Override
   public final void setIndex(int i) {
     setNumber(i);
   }
@@ -479,10 +483,12 @@ public class SpaceEffGraphNode implements GraphNode {
     return new OutEdgeEnumeration(this);
   }
 
+  @Override
   public final GraphNodeEnumeration inNodes() {
     return new InNodeEnumeration(this);
   }
 
+  @Override
   public final GraphNodeEnumeration outNodes() {
     return new OutNodeEnumeration(this);
   }
@@ -638,10 +644,13 @@ public class SpaceEffGraphNode implements GraphNode {
       _edge = n._inEdgeStart;
     }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
+    @Override
     public SpaceEffGraphEdge nextElement() { return next(); }
 
+    @Override
     public SpaceEffGraphEdge next() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextIn;
@@ -656,10 +665,13 @@ public class SpaceEffGraphNode implements GraphNode {
       _edge = n._inEdgeStart;
     }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
+    @Override
     public GraphNode nextElement() { return next(); }
 
+    @Override
     public GraphNode next() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextIn;
@@ -674,10 +686,13 @@ public class SpaceEffGraphNode implements GraphNode {
       _edge = n._outEdgeStart;
     }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
+    @Override
     public GraphEdge nextElement() { return next(); }
 
+    @Override
     public GraphEdge next() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextOut;
@@ -692,10 +707,13 @@ public class SpaceEffGraphNode implements GraphNode {
       _edge = n._outEdgeStart;
     }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
+    @Override
     public GraphNode nextElement() { return next(); }
 
+    @Override
     public GraphNode next() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextOut;

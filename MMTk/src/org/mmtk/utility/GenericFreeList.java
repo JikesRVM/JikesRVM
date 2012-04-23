@@ -182,6 +182,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    *
    * @param unit The unit to be initialized
    */
+  @Override
   protected void setSentinel(int unit) {
     setLoEntry(unit, NEXT_MASK & unit);
     setHiEntry(unit, PREV_MASK & unit);
@@ -193,6 +194,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @param unit The first unit in the lump of units
    * @return The size of the lump of units
    */
+  @Override
   protected int getSize(int unit) {
     if ((getHiEntry(unit) & MULTI_MASK) == MULTI_MASK)
       return (getHiEntry(unit + 1) & SIZE_MASK);
@@ -206,6 +208,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @param unit The first unit in the lump of units
    * @param size The size of the lump of units
    */
+  @Override
   protected void setSize(int unit, int size) {
     if (size > 1) {
       setHiEntry(unit, getHiEntry(unit) | MULTI_MASK);
@@ -221,6 +224,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @param unit The first or last unit in the lump
    * @return True if the lump is free
    */
+  @Override
   protected boolean getFree(int unit) {
     return ((getLoEntry(unit) & FREE_MASK) == FREE_MASK);
   }
@@ -232,6 +236,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @param unit The first unit in the lump
    * @param isFree True if the lump is to be marked as free
    */
+  @Override
   protected void setFree(int unit, boolean isFree) {
     int size;
     if (isFree) {
@@ -251,6 +256,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @param unit The index of the first unit in the current lump
    * @return The index of the first unit of the next lump of units in the list
    */
+  @Override
   protected int getNext(int unit) {
     int next = getHiEntry(unit) & NEXT_MASK;
     return (next <= MAX_UNITS) ? next : head;
@@ -262,6 +268,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @param unit The index of the first unit in the lump to be set
    * @param next The value to be set.
    */
+  @Override
   protected void setNext(int unit, int next) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((next >= -heads) && (next <= MAX_UNITS));
     int oldValue = getHiEntry(unit);
@@ -276,6 +283,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @return The index of the first unit of the previous lump of units
    * in the list
    */
+  @Override
   protected int getPrev(int unit) {
     int prev = getLoEntry(unit) & PREV_MASK;
     return (prev <= MAX_UNITS) ? prev : head;
@@ -287,6 +295,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @param unit The index of the first unit in the lump to be set
    * @param prev The value to be set.
    */
+  @Override
   protected void setPrev(int unit, int prev) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((prev >= -heads) && (prev <= MAX_UNITS));
     int oldValue = getLoEntry(unit);
@@ -334,6 +343,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * @return The index of the first unit in the lump to the
    * "left"/"above" the lump in question.
    */
+  @Override
   protected int getLeft(int unit) {
     if ((getHiEntry(unit - 1) & MULTI_MASK) == MULTI_MASK)
       return unit - (getHiEntry(unit - 1) & SIZE_MASK);

@@ -47,6 +47,7 @@ public final class Threads extends org.vmutil.options.IntOption {
   /**
    * Return the number of threads to use, or delegate to the runtime if this has not been set.
    */
+  @Override
   public void setValue(int value) {
     super.setValue(value);
     valueSet = true;
@@ -55,6 +56,7 @@ public final class Threads extends org.vmutil.options.IntOption {
   /**
    * Only accept values of 1 or higher.
    */
+  @Override
   protected void validate() {
     failIf(this.value < 1, "Must have at least one gc thread");
   }

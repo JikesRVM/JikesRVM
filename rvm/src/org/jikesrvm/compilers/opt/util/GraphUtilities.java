@@ -50,10 +50,12 @@ public class GraphUtilities {
     return new GraphNodeEnumerator() {
       private int top = i1;
 
+      @Override
       public boolean hasMoreElements() {
         return top > 0;
       }
 
+      @Override
       public GraphNode next() {
         return elts[--top];
       }

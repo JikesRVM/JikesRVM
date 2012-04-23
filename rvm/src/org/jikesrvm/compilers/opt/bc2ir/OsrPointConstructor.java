@@ -37,6 +37,7 @@ import org.jikesrvm.compilers.opt.ir.operand.OsrTypeInfoOperand;
  */
 public class OsrPointConstructor extends CompilerPhase {
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return VM.runningVM && options.OSR_GUARDED_INLINING;
   }
@@ -47,10 +48,12 @@ public class OsrPointConstructor extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final String getName() {
     return "OsrPointConstructor";
   }
@@ -70,6 +73,7 @@ public class OsrPointConstructor extends CompilerPhase {
   /**
    * Goes through each instruction, reconstruct OsrPoint instructions.
    */
+  @Override
   public void perform(IR ir) {
     // 1. collecting OsrPoint instructions
     LinkedList<Instruction> osrs = collectOsrPoints(ir);

@@ -59,6 +59,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   /**
    * Get compiler that generated this method's machine code.
    */
+  @Override
   public int getCompilerType() {
     return CompiledMethod.OPT;
   }
@@ -66,6 +67,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   /**
    * @return Name of the compiler that produced this compiled method.
    */
+  @Override
   public String getCompilerName() {
     return "optimizing compiler";
   }
@@ -74,6 +76,7 @@ public final class OptCompiledMethod extends CompiledMethod {
    * Get handler to deal with stack unwinding and exception delivery
    * for this method's stackframes.
    */
+  @Override
   public ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
   }
@@ -81,6 +84,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   /**
    * Find "catch" block for a machine instruction of this method.
    */
+  @Override
   @Unpreemptible
   public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     if (eTable == null) {
@@ -97,6 +101,7 @@ public final class OptCompiledMethod extends CompiledMethod {
    * @param instructionOffset offset of machine instruction that issued
    *                          the call
    */
+  @Override
   public void getDynamicLink(DynamicLink dynamicLink, Offset instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
@@ -112,6 +117,7 @@ public final class OptCompiledMethod extends CompiledMethod {
    * @param instructionOffset offset of addr from start of instructions in bytes
    * @return true if the IP is within an Uninterruptible method, false otherwise.
    */
+  @Override
   @Interruptible
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
     NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
@@ -122,6 +128,7 @@ public final class OptCompiledMethod extends CompiledMethod {
    * Find source line number corresponding to one of this method's
    * machine instructions.
    */
+  @Override
   public int findLineNumberForInstruction(Offset instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     if (bci < 0) {
@@ -133,6 +140,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
+  @Override
   @Interruptible
   public void set(StackBrowser browser, Offset instr) {
     OptMachineCodeMap map = getMCMap();
@@ -160,6 +168,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   /**
    * Advance the StackBrowser up one internal stack frame, if possible
    */
+  @Override
   @Interruptible
   public boolean up(StackBrowser browser) {
     OptMachineCodeMap map = getMCMap();
@@ -193,6 +202,7 @@ public final class OptCompiledMethod extends CompiledMethod {
    *                            start of method
    * @param out    The PrintStream to print the stack trace to.
    */
+  @Override
   @Interruptible
   public void printStackTrace(Offset instructionOffset, PrintLN out) {
     OptMachineCodeMap map = getMCMap();
@@ -233,6 +243,7 @@ public final class OptCompiledMethod extends CompiledMethod {
     }
   }
 
+  @Override
   @Interruptible
   public int size() {
     int size = TypeReference.ExceptionTable.peekType().asClass().getInstanceSize();
@@ -552,6 +563,7 @@ public final class OptCompiledMethod extends CompiledMethod {
 
   private static RVMThread.SoftHandshakeVisitor codePatchSyncRequestVisitor =
     new RVMThread.SoftHandshakeVisitor() {
+      @Override
       @Uninterruptible
       public boolean checkAndSignal(RVMThread t) {
         t.codePatchSyncRequested = true;

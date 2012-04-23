@@ -82,6 +82,7 @@ public class LocalRegPair implements OSRConstants {
    * converts tuple to string as
    * ( L/S num, type, valueType, value, operand )
    */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("(");
 

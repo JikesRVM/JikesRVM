@@ -38,6 +38,7 @@ public final class VMField {
     field = f;
   }
 
+  @Override
   public boolean equals(Object object) {
     if (object instanceof Field) {
       return field == ((Field)object).f.field;

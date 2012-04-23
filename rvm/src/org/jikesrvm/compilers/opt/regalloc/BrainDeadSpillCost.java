@@ -30,6 +30,7 @@ class BrainDeadSpillCost extends SpillCostEstimator {
    * Calculate the estimated cost for each register.
    * This brain-dead version does nothing.
    */
+  @Override
   void calculate(IR ir) {
   }
 }

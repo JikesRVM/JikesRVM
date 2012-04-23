@@ -55,6 +55,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
   /**
    * Update this phase to support the measuring of compilation
    */
+  @Override
   public void initializeForMeasureCompilation() {
     counter1 = 0;
     counter2 = 0;
@@ -67,6 +68,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
    * @param options The Options object for the current compilation.
    * @return true if the plan element should be performed.
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return myPhase.shouldPerform(options);
   }
@@ -77,6 +79,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
    *
    * @param ir The IR object to work with.
    */
+  @Override
   public void perform(IR ir) {
     long start = 0;
     try {
@@ -97,6 +100,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
   /**
    * @return a String which is the name of the phase.
    */
+  @Override
   public String getName() {
     return myPhase.getName();
   }
@@ -109,6 +113,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
    * @param timeCol Column number of time portion of report.
    * @param totalTime Total opt compilation time in ms.
    */
+  @Override
   public void reportStats(int indent, int timeCol, double totalTime) {
     if (phaseNanos == 0) return;
     int curCol = 0;
@@ -136,6 +141,7 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
    * Report the total time spent executing the PlanElement
    * @return time spend in the plan (in ms)
    */
+  @Override
   public double elapsedTime() {
     return Time.nanosToMillis(phaseNanos);
   }

@@ -32,6 +32,7 @@ public final class Collectors extends org.vmutil.options.IntOption {
    *
    * Except for unit tests, which can have 0.
    */
+  @Override
   protected void validate() {
     failIf(this.value < 0, "Need at least one collector thread");
   }

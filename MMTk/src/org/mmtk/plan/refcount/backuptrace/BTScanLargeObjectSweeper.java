@@ -27,6 +27,7 @@ public final class BTScanLargeObjectSweeper extends ExplicitLargeObjectSpace.Swe
 
   private final BTDecMarked sdm = new BTDecMarked();
 
+  @Override
   public boolean sweepLargeObject(ObjectReference object) {
     if (!RCHeader.isMarked(object)) {
       VM.scanning.scanObject(sdm, object);

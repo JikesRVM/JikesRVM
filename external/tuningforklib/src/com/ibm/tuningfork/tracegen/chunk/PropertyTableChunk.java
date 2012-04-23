@@ -47,6 +47,7 @@ public class PropertyTableChunk extends Chunk {
 	return true;
     }
 
+    @Override
     public void close() {
 	putIntAt(PROPERTY_COUNT_OFFSET, numberOfProperties);
 	numberOfProperties = 0;

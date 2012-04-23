@@ -55,6 +55,7 @@ public final class OnStackReplacementEvent implements ControllerInputEvent {
    * This function will generate a controller plan and
    * inserted in the recompilation queue.
    */
+  @Override
   public void process() {
 
     CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(CMID);

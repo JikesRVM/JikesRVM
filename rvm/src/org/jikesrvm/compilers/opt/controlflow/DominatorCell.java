@@ -58,6 +58,7 @@ class DominatorCell extends DF_AbstractCell {
    * Return a String representation of this cell.
    * @return a String representation of this cell.
    */
+  @Override
   public String toString() {
     return block + ":" + dominators;
   }

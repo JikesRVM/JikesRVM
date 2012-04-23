@@ -134,6 +134,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     }
   }
 
+  @Override
   public synchronized Class<?> loadClass(String className, boolean resolveClass) throws ClassNotFoundException {
     if (!VM.runningVM) {
       return super.loadClass(className, resolveClass);
@@ -161,6 +162,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    * @return the class object, if it was found
    * @exception ClassNotFoundException if the class was not found, or was invalid
    */
+  @Override
   public Class<?> findClass(String className) throws ClassNotFoundException {
     final boolean DBG=false;
     if (!VM.runningVM) {
@@ -217,6 +219,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    *  {@link MemberReference#parse}. */
   public static final String myName = "BootstrapCL";
 
+  @Override
   public String toString() { return myName; }
 
   private static HashMap<String, ZipFile> zipFileCache;
@@ -229,16 +232,20 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     T getResult();
   }
 
+  @Override
   public InputStream getResourceAsStream(final String name) {
     Handler<InputStream> findStream = new Handler<InputStream>() {
       InputStream stream;
 
+      @Override
       public InputStream getResult() { return stream; }
 
+      @Override
       public void process(ZipFile zf, ZipEntry ze) throws Exception {
         stream = zf.getInputStream(ze);
       }
 
+      @Override
       public void process(File file) throws Exception {
         stream = new FileInputStream(file);
       }
@@ -247,16 +254,20 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     return getResourceInternal(name, findStream, false);
   }
 
+  @Override
   public URL findResource(final String name) {
     Handler<URL> findURL = new Handler<URL>() {
       URL url;
 
+      @Override
       public URL getResult() { return url; }
 
+      @Override
       public void process(ZipFile zf, ZipEntry ze) throws Exception {
         url = new URL("jar", null, -1, "file:" + zf.getName() + "!/" + name);
       }
 
+      @Override
       public void process(File file) throws Exception {
         url = new URL("file", null, -1, file.getName());
       }
@@ -265,20 +276,24 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     return getResourceInternal(name, findURL, false);
   }
 
+  @Override
   public Enumeration<URL> findResources(final String name) {
     Handler<Enumeration<URL>> findURL = new Handler<Enumeration<URL>>() {
       Vector<URL> urls;
 
+      @Override
       public Enumeration<URL> getResult() {
         if (urls == null) urls = new Vector<URL>();
         return urls.elements();
       }
 
+      @Override
       public void process(ZipFile zf, ZipEntry ze) throws Exception {
         if (urls == null) urls = new Vector<URL>();
         urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "!/" + name));
       }
 
+      @Override
       public void process(File file) throws Exception {
         if (urls == null) urls = new Vector<URL>();
         urls.addElement(new URL("file", null, -1, file.getName()));

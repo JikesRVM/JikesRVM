@@ -27,6 +27,7 @@ public final class Bits extends org.vmutil.options.IntOption {
         Integer.valueOf(System.getProperty("mmtk.harness.bits", "32")));
   }
 
+  @Override
   protected void validate() {
     failIf(!(value == 32 || value == 64), "Bits must be 32 or 64");
   }

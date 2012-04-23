@@ -54,6 +54,7 @@ public final class StickyMSNurseryTraceLocal extends TraceLocal {
    * @param object The object.
    * @return True if the object is live.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(StickyMS.MARK_SWEEP, object))
@@ -76,6 +77,7 @@ public final class StickyMSNurseryTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
@@ -90,6 +92,7 @@ public final class StickyMSNurseryTraceLocal extends TraceLocal {
    * mod buffer and for each entry, marking the object as unlogged
    * and enqueing it for scanning.
    */
+  @Override
   protected void processRememberedSets() {
     logMessage(2, "processing modBuffer");
     while (!modBuffer.isEmpty()) {

@@ -32,10 +32,12 @@ import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
  */
 public class AdjustBranchProbabilities extends CompilerPhase {
 
+  @Override
   public final String getName() {
     return "Adjust Branch Probabilities";
   }
 
+  @Override
   public final CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -53,6 +55,7 @@ public class AdjustBranchProbabilities extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
     for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock target = e.next();

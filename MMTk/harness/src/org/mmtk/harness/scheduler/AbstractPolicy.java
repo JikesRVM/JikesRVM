@@ -59,6 +59,7 @@ public abstract class AbstractPolicy implements Policy {
    * The public method of the Policy interface
    * @return
    */
+  @Override
   public final boolean yieldNow() {
     if (taken()) {
       yieldTaken();

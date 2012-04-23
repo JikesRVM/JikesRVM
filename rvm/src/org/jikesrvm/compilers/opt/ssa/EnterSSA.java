@@ -125,6 +125,7 @@ public class EnterSSA extends CompilerPhase {
    * @param options the controlling compiler options
    * @return true iff SSA is enabled under the options
    */
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.SSA;
   }
@@ -138,6 +139,7 @@ public class EnterSSA extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -146,6 +148,7 @@ public class EnterSSA extends CompilerPhase {
    * Return a string identifying this compiler phase.
    * @return "Enter SSA"
    */
+  @Override
   public final String getName() {
     return "Enter SSA";
   }
@@ -157,6 +160,7 @@ public class EnterSSA extends CompilerPhase {
    * @param before true iff querying before the phase
    * @return true or false
    */
+  @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -168,6 +172,7 @@ public class EnterSSA extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
 
     // Exit if we don't have to recompute SSA.

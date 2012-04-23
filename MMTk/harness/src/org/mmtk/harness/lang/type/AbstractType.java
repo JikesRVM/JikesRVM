@@ -61,6 +61,7 @@ public abstract class AbstractType implements Type {
   /**
    * @see org.mmtk.harness.lang.type.Type#isCompatibleWith(org.mmtk.harness.lang.type.Type)
    */
+  @Override
   public boolean isCompatibleWith(Type rhs) {
     return this == rhs;
   }

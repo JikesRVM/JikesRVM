@@ -177,6 +177,7 @@ public final class GCIRMap implements Iterable<GCIRMapElement> {
     throw new OptimizingCompilerException("GCIRMap.createTwin: " + inst + " not found");
   }
 
+  @Override
   public Iterator<GCIRMapElement> iterator() {
     return list.iterator();
   }
@@ -191,6 +192,7 @@ public final class GCIRMap implements Iterable<GCIRMapElement> {
   /**
    * @return string version of this object
    */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("");
     if (list.isEmpty()) {

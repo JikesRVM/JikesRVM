@@ -89,6 +89,7 @@ public class ImmixCollector extends StopTheWorldCollector {
   * @param offset The alignment offset.
   * @return The address of the first byte of the allocated region
   */
+  @Override
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
@@ -106,6 +107,7 @@ public class ImmixCollector extends StopTheWorldCollector {
   * @param typeRef the type reference for the instance being created
   * @param bytes The size of the space to be allocated (in bytes)
   */
+  @Override
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -129,6 +131,7 @@ public class ImmixCollector extends StopTheWorldCollector {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
 
@@ -168,6 +171,7 @@ public class ImmixCollector extends StopTheWorldCollector {
   }
 
   /** @return The current fastTrace instance. */
+  @Override
   @Inline
   public final TraceLocal getCurrentTrace() {
     return currentTrace;

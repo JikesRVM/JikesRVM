@@ -113,6 +113,7 @@ final class ResourceReservation {
    * @param o   The object to compare with
    * @return <code>true</code> if the objects are the same; <code>false</code> otherwise.
    */
+  @Override
   public boolean equals(Object o) {
     if (!(o instanceof ResourceReservation)) {
       return false;

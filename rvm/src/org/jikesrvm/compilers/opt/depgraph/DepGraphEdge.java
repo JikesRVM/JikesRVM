@@ -201,6 +201,7 @@ public final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphCon
    * Get the string representation of edge type (used for printing).
    * @return string representation of edge type
    */
+  @Override
   public String getTypeString() {
     String result = "";
     if (isRegTrue()) {
@@ -258,6 +259,7 @@ public final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphCon
    * Returns the string representation of the edge.
    * @return string representation of the edge
    */
+  @Override
   public String toString() {
     return _fromNode + " ---> " + _toNode + getTypeString();
   }
@@ -267,6 +269,7 @@ public final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphCon
    * @return string representation of the end node
    * @see SpaceEffGraphEdge#toNodeString()
    */
+  @Override
   public String toNodeString() {
     return getTypeString() + " " + _toNode;
   }
@@ -276,6 +279,7 @@ public final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphCon
    * @return string representation of the start node
    * @see SpaceEffGraphEdge#fromNodeString()
    */
+  @Override
   public String fromNodeString() {
     return getTypeString() + " " + _fromNode;
   }

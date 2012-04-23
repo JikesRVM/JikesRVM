@@ -23,6 +23,7 @@ import org.vmmagic.pragma.*;
   /**
    * <code>true</code> if assertions should be verified
    */
+  @Override
   protected final boolean getVerifyAssertionsConstant() { return VM.VerifyAssertions;}
 
   /**
@@ -41,6 +42,7 @@ import org.vmmagic.pragma.*;
    *
    * @param message the string to log
    */
+  @Override
   public final void fail(String message) {
     Space.printUsagePages();
     Space.printUsageMB();
@@ -59,6 +61,7 @@ import org.vmmagic.pragma.*;
    *
    * @param cond the condition to be checked
    */
+  @Override
   @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void _assert(boolean cond) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
@@ -74,6 +77,7 @@ import org.vmmagic.pragma.*;
    * @param cond the condition to be checked
    * @param message the message to print
    */
+  @Override
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void _assert(boolean cond, String message) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
@@ -82,6 +86,7 @@ import org.vmmagic.pragma.*;
     VM._assert(cond);
   }
 
+  @Override
   public final void dumpStack() {
     RVMThread.dumpStack();
   }

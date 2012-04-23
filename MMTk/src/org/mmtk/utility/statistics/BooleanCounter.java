@@ -98,6 +98,7 @@ public class BooleanCounter extends Counter {
   /**
    * Start this counter
    */
+  @Override
   protected void start() {
     if (!Stats.gatheringStats) return;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!running);
@@ -107,6 +108,7 @@ public class BooleanCounter extends Counter {
   /**
    * Stop this counter
    */
+  @Override
   protected void stop() {
     if (!Stats.gatheringStats) return;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(running);
@@ -120,6 +122,7 @@ public class BooleanCounter extends Counter {
    *
    * @param oldPhase The last phase
    */
+  @Override
   void phaseChange(int oldPhase) {}
 
   /**
@@ -128,6 +131,7 @@ public class BooleanCounter extends Counter {
    *
    * @param phase The phase to be printed
    */
+  @Override
   protected final void printCount(int phase) {
     if (VM.VERIFY_ASSERTIONS && mergePhases())
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((phase | 1) == (phase + 1));
@@ -140,6 +144,7 @@ public class BooleanCounter extends Counter {
   /**
    * Print the current total number of 'true' phases for this counter
    */
+  @Override
   protected final void printTotal() {
     int total = 0;
     for (int p = 0; p <= Stats.phase; p++) {
@@ -155,6 +160,7 @@ public class BooleanCounter extends Counter {
    * @param mutator True if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
+  @Override
   protected final void printTotal(boolean mutator) {
     int total = 0;
     for (int p = (mutator) ? 0 : 1; p <= Stats.phase; p += 2) {
@@ -170,6 +176,7 @@ public class BooleanCounter extends Counter {
    * @param mutator True if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
+  @Override
   protected final void printMin(boolean mutator) {}
 
   /**
@@ -179,6 +186,7 @@ public class BooleanCounter extends Counter {
    * @param mutator True if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
+  @Override
   protected final void printMax(boolean mutator) {}
 
   /**
@@ -193,6 +201,7 @@ public class BooleanCounter extends Counter {
   /**
    * Print statistics for the most recent phase
    */
+  @Override
   public void printLast() {
     if (Stats.phase > 0) printCount(Stats.phase - 1);
   }

@@ -49,6 +49,7 @@ public final class RCFindRootSetTraceLocal extends TraceLocal {
    * @param object The object.
    * @return <code>true</code> if the object is reachable.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     return RCBase.isRCObject(object) && RCHeader.isLiveRC(object) || super.isLive(object);
   }
@@ -59,6 +60,7 @@ public final class RCFindRootSetTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     return object;
@@ -70,6 +72,7 @@ public final class RCFindRootSetTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object, boolean root) {
     if (root && RCBase.isRCObject(object)) {

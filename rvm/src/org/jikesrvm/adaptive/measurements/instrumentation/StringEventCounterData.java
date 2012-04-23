@@ -91,6 +91,7 @@ public class StringEventCounterData extends ManagedCounterData implements Report
    * Part of Reportable interface
    * Print a report at the end of execution
    */
+  @Override
   public void report() {
     // Turn off future instrumentation to avoid hanging during
     // iteration
@@ -153,6 +154,7 @@ public class StringEventCounterData extends ManagedCounterData implements Report
   /**
    *  Part of Reportable interface
    **/
+  @Override
   public void reset() {
     for (String stringName : stringToCounterMap.keySet()) {
       int counterIdx = getCounterIndexForString(stringName);

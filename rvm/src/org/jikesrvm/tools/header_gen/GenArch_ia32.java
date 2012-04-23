@@ -26,6 +26,7 @@ import org.vmmagic.unboxed.Offset;
  * Posix version: AIX PPC, Linux PPC, Linux IA32
  */
 final class GenArch_ia32 extends GenArch {
+  @Override
   public void emitArchVirtualMachineDeclarations() {
     Offset offset;
 
@@ -54,6 +55,7 @@ final class GenArch_ia32 extends GenArch {
     p("static const int ArchConstants_SSE2 = " + (ArchConstants.SSE2_BASE ? "1;\n" : "0;\n"));
   }
 
+  @Override
   public void emitArchAssemblerDeclarations() {
     if (BaselineConstants.TR != BaselineConstants.ESI) {
       throw new Error("Unexpected TR value");

@@ -83,9 +83,11 @@ import org.jikesrvm.scheduler.ThreadQueue;
     state = CLEAR;
   }
 
+  @Override
   public void setName(String str) {
     name = str;
   }
+  @Override
   public void acquire() {
     RVMThread me = RVMThread.getCurrentThread();
     Offset offset=Entrypoints.lockStateField.getOffset();
@@ -133,11 +135,13 @@ import org.jikesrvm.scheduler.ThreadQueue;
     Magic.isync();
   }
 
+  @Override
   public void check(int w) {
     if (VM.VerifyAssertions) VM._assert(RVMThread.getCurrentThread() == thread);
     where = w;
   }
 
+  @Override
   public void release() {
     where=-1;
     thread=null;

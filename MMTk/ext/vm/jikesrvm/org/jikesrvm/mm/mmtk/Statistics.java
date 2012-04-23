@@ -25,6 +25,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
    * Read nanoTime (high resolution, monotonically increasing clock).
    * Has same semantics as java.lang.System.nanoTime().
    */
+  @Override
   public long nanoTime() {
     return Time.nanoTime();
   }
@@ -34,6 +35,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
    * This method should be used with care as the cycle counters (especially on IA32 SMP machines)
    * are not a reliably time source.
    */
+  @Override
   public long cycles() {
     return Time.cycles();
   }
@@ -41,6 +43,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
   /**
    * Convert nanoseconds to milliseconds
    */
+  @Override
   public double nanosToMillis(long c) {
     return ((double)c)/1e6;
   }
@@ -48,6 +51,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
   /**
    * Convert nanoseconds to seconds
    */
+  @Override
   public double nanosToSecs(long c) {
     return ((double)c)/1e9;
   }
@@ -55,6 +59,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
   /**
    * Convert milliseconds to nanoseconds
    */
+  @Override
   public long millisToNanos(double t) {
     return (long)(t * 1e6);
   }
@@ -62,6 +67,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
   /**
    * Convert seconds to nanoseconds
    */
+  @Override
   public long secsToNanos(double t) {
     return (long)(t * 1e9);
   }
@@ -71,6 +77,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
   /**
    * Initialize performance events
    */
+  @Override
   @Interruptible
   public void perfEventInit(String events) {
     if (events.length() == 0) {
@@ -92,6 +99,7 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
   /**
    * Read a performance event
    */
+  @Override
   public void perfEventRead(int id, long[] values) {
     sysCall.sysPerfEventRead(id, values);
   }

@@ -22,6 +22,7 @@ class ReverseFilteredDFSenumerateByFinish extends ReverseDFSenumerateByFinish {
     this.filter = filter;
   }
 
+  @Override
   protected GraphNodeEnumeration getConnected(GraphNode n) {
     return filter.inNodes(n);
   }

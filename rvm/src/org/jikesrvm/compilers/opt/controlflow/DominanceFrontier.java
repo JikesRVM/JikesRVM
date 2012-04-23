@@ -50,6 +50,7 @@ public class DominanceFrontier extends CompilerPhase {
    * dictate.
    * @param options controlling compiler options
    */
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return true;
   }
@@ -60,6 +61,7 @@ public class DominanceFrontier extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -68,6 +70,7 @@ public class DominanceFrontier extends CompilerPhase {
    * Return a String representation for this phase
    * @return a String representation for this phase
    */
+  @Override
   public final String getName() {
     return "Dominance Frontier";
   }
@@ -79,6 +82,7 @@ public class DominanceFrontier extends CompilerPhase {
    * @param before true iff querying before the phase
    * @return true or false
    */
+  @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -93,6 +97,7 @@ public class DominanceFrontier extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public void perform(IR ir) {
     final boolean DEBUG = false;
     // make sure the dominator computation completed successfully

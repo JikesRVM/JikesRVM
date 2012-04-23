@@ -41,6 +41,7 @@ import org.vmmagic.pragma.*;
    * @return The start address of the memory allocated in C space
    * @see #free
    */
+  @Override
   public final Address malloc(int size) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       Address rtn  = sysCall.sysMalloc(size);
@@ -56,6 +57,7 @@ import org.vmmagic.pragma.*;
    * @param addr The address of some memory previously allocated with malloc
    * @see #malloc
    */
+  @Override
   public final void free(Address addr) {
     if (org.jikesrvm.VM.BuildWithGCSpy)
       if (!addr.isZero())
@@ -72,6 +74,7 @@ import org.vmmagic.pragma.*;
    * which are interruptible. We protect these calls with a
    * swLock/swUnlock mechanism, as per VM.sysWrite on String
    */
+  @Override
   public final Address getBytes(String str) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       if (str == null)
@@ -112,6 +115,7 @@ import org.vmmagic.pragma.*;
    * @param buffer The buffer (in C space) in which to place the formatted size
    * @param size The size in bytes
    */
+  @Override
   public final void formatSize(Address buffer, int size) {
     if (org.jikesrvm.VM.BuildWithGCSpy)
       sysCall.gcspyFormatSize(buffer, size);
@@ -125,6 +129,7 @@ import org.vmmagic.pragma.*;
    * @param bufsize The size of a buffer large enough to hold the formatted result
    * @param size The size in bytes
    */
+  @Override
   public final Address formatSize(String format, int bufsize, int size) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
       // - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
@@ -147,6 +152,7 @@ import org.vmmagic.pragma.*;
    * @param numElements number of elements in new array
    * @return the new array
    */
+  @Override
   @Interruptible
   public Object createDataArray(Object templ, int numElements) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
@@ -174,6 +180,7 @@ import org.vmmagic.pragma.*;
    * @param value The value 'string' (memory in C space)
    * @return The number of characters printed (as returned by C's sprintf
    */
+  @Override
   public final int sprintf(Address str, Address format, Address value) {
     if (org.jikesrvm.VM.BuildWithGCSpy)
       return sysCall.gcspySprintf(str, format, value);

@@ -31,6 +31,7 @@ public final class IA32ConditionOperand extends Operand implements AssemblerCons
   /**
    * Returns a copy of the current operand.
    */
+  @Override
   public Operand copy() {
     return new IA32ConditionOperand(value);
   }
@@ -40,6 +41,7 @@ public final class IA32ConditionOperand extends Operand implements AssemblerCons
    *
    * @param op other operand
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof IA32ConditionOperand) && ((IA32ConditionOperand) op).value == value;
   }
@@ -257,6 +259,7 @@ public final class IA32ConditionOperand extends Operand implements AssemblerCons
   }
 
   // Returns the string representation of this operand.
+  @Override
   public String toString() {
     return CONDITION[value];
   }

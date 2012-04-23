@@ -59,6 +59,7 @@ public class MIROptimizationPlanner extends OptimizationPlanner {
         new SplitBasicBlock(),
         // Optional printing of final LIR
         new IRPrinter("Final LIR") {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.PRINT_FINAL_LIR;
           }
@@ -70,6 +71,7 @@ public class MIROptimizationPlanner extends OptimizationPlanner {
 
         // Optional printing of initial MIR
         new IRPrinter("Initial MIR") {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.PRINT_MIR;
           }

@@ -34,6 +34,7 @@ final class BURS_IntConstantTreeNode extends BURS_TreeNode {
     setNumRegisters(0);
   }
 
+  @Override
   public String toString() {
     return "INT_CONSTANT " + value;
   }

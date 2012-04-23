@@ -28,6 +28,7 @@ public final class TrueGuardOperand extends ConstantOperand {
    *
    * @return TypeReference.VALIDATION_TYPE
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.VALIDATION_TYPE;
   }
@@ -37,6 +38,7 @@ public final class TrueGuardOperand extends ConstantOperand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new TrueGuardOperand();
   }
@@ -49,6 +51,7 @@ public final class TrueGuardOperand extends ConstantOperand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return op instanceof TrueGuardOperand;
   }
@@ -58,6 +61,7 @@ public final class TrueGuardOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "<TRUEGUARD>";
   }

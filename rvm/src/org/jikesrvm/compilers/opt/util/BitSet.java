@@ -71,6 +71,7 @@ public final class BitSet {
   /**
    * @return a String representation
    */
+  @Override
   public String toString() {
     return vector.toString();
   }

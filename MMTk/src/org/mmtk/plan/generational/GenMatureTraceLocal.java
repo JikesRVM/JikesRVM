@@ -73,6 +73,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    * @param object The object.
    * @return True if the object is live.
    */
+  @Override
   @Inline
   public boolean isLive(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
@@ -91,6 +92,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    * @return True if this object is guaranteed not to move during this
    *         collection.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (Gen.inNursery(object))
       return false;
@@ -109,6 +111,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
@@ -120,6 +123,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
   /**
    * Process any remembered set entries.
    */
+  @Override
   protected void processRememberedSets() {
     logMessage(5, "clearing modbuf");
     ObjectReference obj;

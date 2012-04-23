@@ -58,6 +58,7 @@ public interface RegisterConstants {
       }
     }
     /** @return encoded value of this register */
+    @Override
     @UninterruptibleNoWarn("Interruptible code only called during boot image creation")
     @Pure
     public byte value() {
@@ -94,6 +95,7 @@ public interface RegisterConstants {
       return result;
     }
     /** @return does this register require a REX prefix byte? */
+    @Override
     @Pure
     public boolean needsREXprefix() {
       if (VM.buildFor32Addr()) {
@@ -136,11 +138,13 @@ public interface RegisterConstants {
       }
     }
     /** @return encoded value of this register */
+    @Override
     @Pure
     public byte value() {
       return (byte)ordinal();
     }
     /** @return does this register require a REX prefix byte? */
+    @Override
     @Pure
     public boolean needsREXprefix() {
       return false; // do REX prefixes of floating point operands make sense?
@@ -171,11 +175,13 @@ public interface RegisterConstants {
       }
     }
     /** @return encoded value of this register */
+    @Override
     @Pure
     public byte value() {
       return (byte)ordinal();
     }
     /** @return does this register require a REX prefix byte? */
+    @Override
     @Pure
     public boolean needsREXprefix() {
       if (VM.buildFor32Addr()) {
@@ -210,11 +216,13 @@ public interface RegisterConstants {
       }
     }
     /** @return encoded value of this register */
+    @Override
     @Pure
     public byte value() {
       return (byte)ordinal();
     }
     /** @return does this register require a REX prefix byte? */
+    @Override
     @Pure
     public boolean needsREXprefix() {
       if (VM.buildFor32Addr()) {

@@ -56,6 +56,7 @@ public final class InlineSequence {
     return caller;
   }
 
+  @Override
   public boolean equals(Object o) {
     if (!(o instanceof InlineSequence)) return false;
     InlineSequence is = (InlineSequence) o;
@@ -110,6 +111,7 @@ public final class InlineSequence {
   /**
    * Returns the string representation of this inline sequence.
    */
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder(" ");
     for (InlineSequence is = this; is != null; is = is.caller) {
@@ -162,6 +164,7 @@ public final class InlineSequence {
    *
    * @return the hashcode for this object.
    */
+  @Override
   public int hashCode() {
     return bcIndex;
   }
@@ -179,10 +182,12 @@ public final class InlineSequence {
         }
       }
 
+      @Override
       public boolean hasMoreElements() {
         return !stack.isEmpty();
       }
 
+      @Override
       public InlineSequence nextElement() {
         return stack.pop();
       }

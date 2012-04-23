@@ -39,6 +39,7 @@ public abstract class ParallelCollector extends CollectorContext {
    * Collection.
    */
 
+  @Override
   @Unpreemptible
   public void run() {
     while(true) {
@@ -86,6 +87,7 @@ public abstract class ParallelCollector extends CollectorContext {
    *
    * @return The number of parallel workers.
    */
+  @Override
   public int parallelWorkerCount() {
     return group.activeWorkerCount();
   }
@@ -96,6 +98,7 @@ public abstract class ParallelCollector extends CollectorContext {
    *
    * @return The ordinal of this collector context, starting from 0.
    */
+  @Override
   public int parallelWorkerOrdinal() {
     return workerOrdinal;
   }
@@ -106,6 +109,7 @@ public abstract class ParallelCollector extends CollectorContext {
    *
    * @return The order this context reached the rendezvous, starting from 0.
    */
+  @Override
   public int rendezvous() {
     return group.rendezvous();
   }

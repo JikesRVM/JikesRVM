@@ -114,6 +114,7 @@ public abstract class GenericPhysicalRegisterSet implements BitSetMapping {
   /**
    * Implementation of the BitSetMapping interface.
    */
+  @Override
   public final Object getMappedObject(int n) {
     return get(n);
   }
@@ -121,6 +122,7 @@ public abstract class GenericPhysicalRegisterSet implements BitSetMapping {
   /**
    * Implementation of the BitSetMapping interface.
    */
+  @Override
   public final int getMappedIndex(Object o) {
     Register r = (Register) o;
     return r.number;
@@ -129,6 +131,7 @@ public abstract class GenericPhysicalRegisterSet implements BitSetMapping {
   /**
    * Implementation of the BitSetMapping interface.
    */
+  @Override
   public final int getMappingSize() {
     return getNumberOfPhysicalRegisters();
   }

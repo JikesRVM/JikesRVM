@@ -32,16 +32,19 @@ public class InvokeStatic extends PseudoBytecode {
     this.tid = targetId;
   }
 
+  @Override
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_InvokeStatic);
     int2bytes(codes, 2, tid);
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     RVMMethod callee = targetMethod(tid);
     int psize = callee.getParameterWords();
@@ -62,6 +65,7 @@ public class InvokeStatic extends PseudoBytecode {
     return schanges;
   }
 
+  @Override
   public String toString() {
     return "InvokeStatic " + tid;
   }

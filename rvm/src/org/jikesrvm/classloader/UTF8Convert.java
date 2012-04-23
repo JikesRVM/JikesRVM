@@ -70,10 +70,12 @@ public abstract class UTF8Convert {
       result = new char[length];
       index = 0;
     }
+    @Override
     void visit_char(char c) {
       result[index] = c;
       index++;
     }
+    @Override
     public String toString() {
       if (VM.runningVM) {
         return java.lang.JikesRVMSupport.newStringWithoutCopy(result, 0, index);
@@ -93,10 +95,12 @@ public abstract class UTF8Convert {
       result = new char[length];
       index = 0;
     }
+    @Override
     void visit_char(char c) {
       result[index] = c;
       index++;
     }
+    @Override
     public String toString() {
       if (VM.runningVM) {
         return java.lang.JikesRVMSupport.newStringWithoutCopy(result, 0, index);
@@ -111,6 +115,7 @@ public abstract class UTF8Convert {
    */
   private static final class StringHashCodeVisitor extends UTF8CharacterVisitor {
     int result = 0;
+    @Override
     void visit_char(char c) {
       result = result * 31 + c;
     }

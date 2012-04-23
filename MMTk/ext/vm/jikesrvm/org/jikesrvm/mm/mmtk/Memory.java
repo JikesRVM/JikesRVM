@@ -29,18 +29,29 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public class Memory extends org.mmtk.vm.Memory
   implements Constants, HeapLayoutConstants, SizeConstants {
 
+  @Override
   protected final Address getHeapStartConstant() { return BOOT_IMAGE_DATA_START; }
+  @Override
   protected final Address getHeapEndConstant() { return MAXIMUM_MAPPABLE; }
+  @Override
   protected final Address getAvailableStartConstant() { return BOOT_IMAGE_CODE_END; }
+  @Override
   protected final Address getAvailableEndConstant() { return MAXIMUM_MAPPABLE; }
+  @Override
   protected final byte getLogBytesInAddressConstant() { return SizeConstants.LOG_BYTES_IN_ADDRESS; }
+  @Override
   protected final byte getLogBytesInWordConstant() { return SizeConstants.LOG_BYTES_IN_WORD; }
+  @Override
   protected final byte getLogBytesInPageConstant() { return SizeConstants.LOG_BYTES_IN_PAGE; }
+  @Override
   protected final byte getLogMinAlignmentConstant() { return JavaHeader.LOG_MIN_ALIGNMENT;}
+  @Override
   protected final int getMaxBytesPaddingConstant() { return SizeConstants.BYTES_IN_DOUBLE; }
+  @Override
   protected final int getAlignmentValueConstant() { return JavaHeader.ALIGNMENT_VALUE;}
 
   /* On Intel we align code to 16 bytes as recommended in the optimization manual */
+  @Override
   protected final byte getMaxAlignmentShiftConstant() { return (VM.BuildForIA32 ? 1 : 0) + SizeConstants.LOG_BYTES_IN_LONG - SizeConstants.LOG_BYTES_IN_INT; }
 
   private static ImmortalSpace bootSpace;
@@ -65,6 +76,7 @@ import org.vmmagic.pragma.*;
    * @return The space managed by the virtual machine.  In this case,
    * the boot image space is returned.
    */
+  @Override
   @Interruptible
   public final ImmortalSpace getVMSpace() {
     if (bootSpace == null) {
@@ -74,15 +86,19 @@ import org.vmmagic.pragma.*;
   }
 
   /** Global preparation for a collection. */
+  @Override
   public final void globalPrepareVMSpace() { bootSpace.prepare(); }
 
   /** Per-collector preparation for a collection. */
+  @Override
   public final void collectorPrepareVMSpace() {}
 
   /** Per-collector post-collection work. */
+  @Override
   public final void collectorReleaseVMSpace() {}
 
   /** Global post-collection work. */
+  @Override
   public final void globalReleaseVMSpace() { bootSpace.release(); }
 
   /**
@@ -92,6 +108,7 @@ import org.vmmagic.pragma.*;
    * @param start the address of the start of the heap
    * @param end the address of the end of the heap
    */
+  @Override
   public final void setHeapRange(int id, Address start, Address end) {
     BootRecord.the_boot_record.setHeapRange(id, start, end);
   }
@@ -103,6 +120,7 @@ import org.vmmagic.pragma.*;
    * @param size the size, in bytes, of the area to be mapped
    * @return 0 if successful, otherwise the system errno
    */
+  @Override
   public final int dzmmap(Address start, int size) {
     Address result = org.jikesrvm.runtime.Memory.dzmmap(start, Extent.fromIntZeroExtend(size));
     if (result.EQ(start)) return 0;
@@ -122,6 +140,7 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if successful, otherwise
    * <code>false</code>
    */
+  @Override
   public final boolean mprotect(Address start, int size) {
     return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
                                                    org.jikesrvm.runtime.Memory.PROT_NONE);
@@ -135,6 +154,7 @@ import org.vmmagic.pragma.*;
    * @return <code>true</code> if successful, otherwise
    * <code>false</code>
    */
+  @Override
   public final boolean munprotect(Address start, int size) {
     return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
                                                    org.jikesrvm.runtime.Memory.PROT_READ |
@@ -149,6 +169,7 @@ import org.vmmagic.pragma.*;
    * @param start Start of address range (inclusive)
    * @param len Length in bytes of range to zero
    */
+  @Override
   public final void zero(boolean useNT, Address start, Extent len) {
     org.jikesrvm.runtime.Memory.zero(useNT, start,len);
   }
@@ -163,6 +184,7 @@ import org.vmmagic.pragma.*;
    * @param afterBytes the number of bytes after the address to be
    * included
    */
+  @Override
   public final void dumpMemory(Address start, int beforeBytes,
                                 int afterBytes) {
     org.jikesrvm.runtime.Memory.dumpMemory(start,beforeBytes,afterBytes);
@@ -172,11 +194,13 @@ import org.vmmagic.pragma.*;
    * Utilities from the VM class
    */
 
+  @Override
   @Inline
   public final void sync() {
     Magic.sync();
   }
 
+  @Override
   @Inline
   public final void isync() {
     Magic.isync();

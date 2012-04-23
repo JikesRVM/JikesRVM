@@ -25,10 +25,12 @@ public final class ReverseEnumerator<T> implements Enumeration<T> {
   private final ArrayList<T> vec;
   private int index;
 
+  @Override
   public boolean hasMoreElements() {
     return index > 0;
   }
 
+  @Override
   public T nextElement() {
     index--;
     if (index >= 0) {

@@ -68,6 +68,7 @@ public class EstimateBlockFrequencies extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -77,8 +78,10 @@ public class EstimateBlockFrequencies extends CompilerPhase {
    */
   private BasicBlock[] topOrder;
 
+  @Override
   public String getName() { return "Estimate Block Frequencies"; }
 
+  @Override
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
@@ -92,6 +95,7 @@ public class EstimateBlockFrequencies extends CompilerPhase {
    *              (2) basic block numbering is dense (compact has been called).
    * @param _ir the IR on which to apply the phase
    */
+  @Override
   public void perform(IR _ir) {
     // Prepare
     ir = _ir;

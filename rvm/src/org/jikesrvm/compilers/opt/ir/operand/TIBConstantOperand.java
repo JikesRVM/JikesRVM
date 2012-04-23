@@ -49,6 +49,7 @@ public final class TIBConstantOperand extends ConstantOperand {
    *
    * @return a copy of <code>this</code>
    */
+  @Override
   public Operand copy() {
     return new TIBConstantOperand(value);
   }
@@ -58,6 +59,7 @@ public final class TIBConstantOperand extends ConstantOperand {
    *
    * @return TypeReference.JavaLangObjectArray
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.TIB;
   }
@@ -67,6 +69,7 @@ public final class TIBConstantOperand extends ConstantOperand {
    *
    * @return <code>true</code>
    */
+  @Override
   public boolean isRef() {
     return true;
   }
@@ -79,6 +82,7 @@ public final class TIBConstantOperand extends ConstantOperand {
    *           are semantically equivalent or <code>false</code>
    *           if they are not.
    */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof TIBConstantOperand) && value == ((TIBConstantOperand) op).value;
   }
@@ -88,6 +92,7 @@ public final class TIBConstantOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "tib \"" + value + "\"";
   }

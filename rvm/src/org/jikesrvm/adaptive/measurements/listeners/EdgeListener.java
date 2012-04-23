@@ -117,6 +117,7 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
+  @Override
   public final void update(Address sfp, int whereFrom) {
     if (DEBUG) {
       VM.sysWrite("EdgeListener.update(", sfp, ",", whereFrom);
@@ -208,11 +209,13 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
   /**
    *  report() noop
    */
+  @Override
   public final void report() {}
 
   /**
    * Reset (in preparation of starting a new sampling window)
    */
+  @Override
   public void reset() {
     if (DEBUG) VM.sysWrite("EdgeListener.reset(): enter\n");
     samplesTaken = 0;

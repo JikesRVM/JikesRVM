@@ -196,6 +196,7 @@ public class DominatorTreeNode extends TreeNode {
    * String-i-fies the node
    * @return the node as a string
    */
+  @Override
   public final String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(block);

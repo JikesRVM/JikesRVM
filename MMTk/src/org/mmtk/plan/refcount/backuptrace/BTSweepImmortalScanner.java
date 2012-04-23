@@ -32,6 +32,7 @@ public final class BTSweepImmortalScanner extends LinearScan {
    *
    * @param object The source of the reference.
    */
+  @Override
   @Inline
   public void scan(ObjectReference object) {
     if (!RCHeader.isMarked(object)) {

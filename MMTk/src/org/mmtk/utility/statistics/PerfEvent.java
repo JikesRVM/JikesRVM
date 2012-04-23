@@ -102,6 +102,7 @@ public final class PerfEvent extends LongCounter {
     }
   }
 
+  @Override
   public String getColumnSuffix() {
     return
       overflowed ? "overflowed" :

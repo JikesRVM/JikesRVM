@@ -28,6 +28,7 @@ public final class GCspyTileSize extends org.vmutil.options.IntOption {
   /**
    * Ensure the tile size is positive
    */
+  @Override
   protected void validate() {
     failIf(this.value <= 0, "Unreasonable gcspy tilesize");
   }

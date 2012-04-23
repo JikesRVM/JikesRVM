@@ -70,6 +70,7 @@ public final class NativeMethod extends RVMMethod {
   /**
    * Generate the code for this method
    */
+  @Override
   protected synchronized CompiledMethod genCode() {
     if (isSysCall()) {
       // SysCalls are just place holder methods, the compiler

@@ -47,6 +47,7 @@ public final class Trace extends EnumSetOption {
   /**
    * Only accept non-negative values.
    */
+  @Override
   protected void validate() {
   }
 }

@@ -352,6 +352,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   /**
    * Converts the annotated loop to a concise string
    */
+  @Override
   public String toString() {
     String ifCmpString = "??";
     if ((ifCmpInstr != null) && (IfCmp.conforms(ifCmpInstr))) {
@@ -1279,6 +1280,7 @@ public final class AnnotatedLSTNode extends LSTNode {
      * Is the iterator at the end of the vector
      * @return whether there are more elements in the vector
      */
+    @Override
     public boolean hasMoreElements() {
       return currentBlock < blocks.size();
     }
@@ -1287,6 +1289,7 @@ public final class AnnotatedLSTNode extends LSTNode {
      * Get the next element from the vector and move the current block along
      * @return next element
      */
+    @Override
     public BasicBlock nextElement() {
       BasicBlock result = blocks.get(currentBlock);
       currentBlock++;
@@ -1297,6 +1300,7 @@ public final class AnnotatedLSTNode extends LSTNode {
      * Get the next element from the vector and return without requiring a cast
      * @return next element
      */
+    @Override
     public BasicBlock next() {
       BasicBlock result = blocks.get(currentBlock);
       currentBlock++;
@@ -1307,6 +1311,7 @@ public final class AnnotatedLSTNode extends LSTNode {
      * String representation of the object
      * @return string representing the object
      */
+    @Override
     public String toString() {
       return blocks.toString();
     }

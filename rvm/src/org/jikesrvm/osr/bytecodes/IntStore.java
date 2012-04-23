@@ -36,18 +36,22 @@ public class IntStore extends PseudoBytecode {
     }
   }
 
+  @Override
   public byte[] getBytes() {
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     return -1;
   }
 
+  @Override
   public String toString() {
     return "istore " + lnum;
   }

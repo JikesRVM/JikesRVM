@@ -147,7 +147,9 @@ public class Controller implements Callbacks.ExitMonitor,
 
     // Initialize the controller input queue
     controllerInputQueue = new BlockingPriorityQueue(new BlockingPriorityQueue.CallBack() {
+      @Override
       public void aboutToWait() { controllerThread.aboutToWait(); }
+      @Override
       public void doneWaiting() { controllerThread.doneWaiting(); }
     });
 
@@ -187,6 +189,7 @@ public class Controller implements Callbacks.ExitMonitor,
    * To be called when the VM is about to exit.
    * @param value the exit value
    */
+  @Override
   public void notifyExit(int value) {
     report();
   }
@@ -195,6 +198,7 @@ public class Controller implements Callbacks.ExitMonitor,
    * Called when the application wants to recompile all dynamically
    *  loaded methods.  This can be expensive!
    */
+  @Override
   public void notifyRecompileAll() {
     AOSLogging.logger.recompilingAllDynamicallyLoadedMethods();
     RecompilationManager.recompileAllDynamicallyLoadedMethods(false);

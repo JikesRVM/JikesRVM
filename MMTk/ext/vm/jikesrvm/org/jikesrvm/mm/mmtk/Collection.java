@@ -42,6 +42,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   /**
    * Spawn a thread to execute the supplied collector context.
    */
+  @Override
   @Interruptible
   public void spawnCollectorContext(CollectorContext context) {
     byte[] stack = MemoryManager.newStack(ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_COLLECTOR);
@@ -52,6 +53,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   /**
    * @return The default number of collector threads to use.
    */
+  @Override
   public int getDefaultThreads() {
     return SysCall.sysCall.sysNumProcessors();
   }
@@ -60,6 +62,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * @return The number of active threads.
    *
    */
+  @Override
   public int getActiveThreads() {
     return RVMThread.getNumActiveThreads() - RVMThread.getNumActiveDaemons();
   }
@@ -67,6 +70,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   /**
    * Block for the garbage collector.
    */
+  @Override
   @Unpreemptible
   public void blockForGC() {
     RVMThread t=RVMThread.getCurrentThread();
@@ -83,6 +87,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   /**
    * Fail with an out of memory error.
    */
+  @Override
   @UninterruptibleNoWarn
   public void outOfMemory() {
     throw RVMThread.getOutOfMemoryError();
@@ -93,6 +98,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    *
    * @param m the mutator to prepare
    */
+  @Override
   public final void prepareMutator(MutatorContext m) {
     /*
      * The collector threads of processors currently running threads
@@ -131,6 +137,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * Fixpoint until there are no threads that we haven't blocked. Fixpoint is needed to
    * catch the (unlikely) case that a thread spawns another thread while we are waiting.
    */
+  @Override
   @Unpreemptible
   public void stopAllMutators() {
     RVMThread.blockAllMutatorsForGC();
@@ -139,6 +146,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
   /**
    * Resume all mutators blocked for GC.
    */
+  @Override
   @Unpreemptible
   public void resumeAllMutators() {
     RVMThread.unblockAllMutatorsForGC();
@@ -146,16 +154,19 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
 
   private static RVMThread.SoftHandshakeVisitor mutatorFlushVisitor =
     new RVMThread.SoftHandshakeVisitor() {
+      @Override
       @Uninterruptible
       public boolean checkAndSignal(RVMThread t) {
         t.flushRequested = true;
         return true;
       }
+      @Override
       @Uninterruptible
       public void notifyStuckInNative(RVMThread t) {
         t.flush();
         t.flushRequested = false;
       }
+      @Override
       @Uninterruptible
       public boolean includeThread(RVMThread t) {
         return !t.isCollectorThread();
@@ -167,6 +178,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    * will trigger the flush and then yield until all processors have
    * flushed.
    */
+  @Override
   @UninterruptibleNoWarn("This method is really unpreemptible, since it involves blocking")
   public void requestMutatorFlush() {
     Selected.Mutator.get().flush();

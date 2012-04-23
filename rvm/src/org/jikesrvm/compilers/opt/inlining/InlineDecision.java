@@ -180,6 +180,7 @@ public final class InlineDecision {
 
   public boolean OSRTestFailed() { return testFailedOSR; }
 
+  @Override
   public String toString() {
     String s = code.toString();
     if (testFailedOSR) {

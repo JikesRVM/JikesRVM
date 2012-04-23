@@ -64,6 +64,7 @@ public class EventTypeChunk extends Chunk {
       }
     }
 
+    @Override
     public void close() {
 	putIntAt(EVENT_TYPE_OFFSET, numberOfEventTypes);
 	numberOfEventTypes = 0;

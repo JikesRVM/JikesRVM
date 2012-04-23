@@ -112,6 +112,7 @@ public final class LiveAnalysis extends CompilerPhase {
   /** Even more debugging info */
   private static final boolean VERBOSE = false;
 
+  @Override
   public String getName() {
     return "Live Analysis";
   }
@@ -186,6 +187,7 @@ public final class LiveAnalysis extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -197,6 +199,7 @@ public final class LiveAnalysis extends CompilerPhase {
    *
    * @param ir the ir
    */
+  @Override
   public void perform(IR ir) {
 
     // Debugging information
@@ -1134,6 +1137,7 @@ public final class LiveAnalysis extends CompilerPhase {
      * creates a string representation of this object
      * @return string representation of this object
      */
+    @Override
     public String toString() {
       StringBuilder buf = new StringBuilder("");
       buf.append(" Gen: ").append(gen).append("\n");

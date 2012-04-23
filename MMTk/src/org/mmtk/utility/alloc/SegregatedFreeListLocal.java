@@ -99,6 +99,7 @@ public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace>
    * @param align The requested alignment.
    * @return The address of the first word or zero on failure.
    */
+  @Override
   @NoInline
   public final Address allocSlowOnce(int bytes, int align, int offset) {
     // Did a collection occur and provide a free cell?

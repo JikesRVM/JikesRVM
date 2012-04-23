@@ -28,6 +28,7 @@ public final class Verbose extends org.vmutil.options.IntOption {
   /**
    * Only accept non-negative values.
    */
+  @Override
   protected void validate() {
     failIf(this.value < 0, "Unreasonable verbosity level");
   }

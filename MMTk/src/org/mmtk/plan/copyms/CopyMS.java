@@ -88,6 +88,7 @@ public class CopyMS extends StopTheWorld {
    *
    * @param phaseId Collection phase to execute.
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
@@ -120,6 +121,7 @@ public class CopyMS extends StopTheWorld {
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @return True if a collection is requested by the plan.
    */
+  @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
 
@@ -138,6 +140,7 @@ public class CopyMS extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, excluding space reserved for copying.
    */
+  @Override
   public int getPagesUsed() {
     return super.getPagesUsed() +
       msSpace.reservedPages() +
@@ -151,6 +154,7 @@ public class CopyMS extends StopTheWorld {
    * @return The number of pages reserved given the pending
    * allocation, including space reserved for collection.
    */
+  @Override
   public int getCollectionReserve() {
     return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
@@ -159,6 +163,7 @@ public class CopyMS extends StopTheWorld {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
+  @Override
   public final int getPagesAvail() {
     return (getTotalPages() - getPagesReserved()) >> 1;
   }
@@ -171,6 +176,7 @@ public class CopyMS extends StopTheWorld {
    * @param sanityRootRC The number of root references to the object.
    * @return The expected (root excluded) reference count.
    */
+  @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
 
@@ -185,6 +191,7 @@ public class CopyMS extends StopTheWorld {
   /**
    * Register specialized methods.
    */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_COPYMS, CopyMSTraceLocal.class);

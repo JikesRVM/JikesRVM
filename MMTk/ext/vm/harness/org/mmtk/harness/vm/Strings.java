@@ -22,6 +22,7 @@ public class Strings extends org.mmtk.vm.Strings {
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
+  @Override
   public void write(char [] c, int len) {
     String x = new String(c, 0, len);
     System.err.print(x);
@@ -33,6 +34,7 @@ public class Strings extends org.mmtk.vm.Strings {
    * @param c character array with message starting at index 0
    * @param len number of characters in message
    */
+  @Override
   public void writeThreadId(char [] c, int len) {
     String x = new String(c, 0, len);
     System.err.print(Thread.currentThread().getId() + " : " + x);
@@ -52,6 +54,7 @@ public class Strings extends org.mmtk.vm.Strings {
    * destination to copy to
    * @return the number of characters copied.
    */
+  @Override
   public int copyStringToChars(String src, char [] dst, int dstBegin, int dstEnd) {
     int count = 0;
     for (int i=0; i <src.length(); i++) {

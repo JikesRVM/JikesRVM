@@ -689,6 +689,7 @@ public final class Lock implements Constants {
    * Initialize counts in preparation for gathering statistics
    */
   private static final class AppRunStartMonitor implements Callbacks.AppRunStartMonitor {
+    @Override
     public void notifyAppRunStart(String app, int value) {
       lockOperations = 0;
       unlockOperations = 0;
@@ -702,6 +703,7 @@ public final class Lock implements Constants {
    * Report statistics at the end of execution.
    */
   private static final class ExitMonitor implements Callbacks.ExitMonitor {
+    @Override
     public void notifyExit(int value) {
       int totalLocks = lockOperations + ThinLock.fastLocks + ThinLock.slowLocks;
 

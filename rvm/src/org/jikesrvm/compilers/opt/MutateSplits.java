@@ -36,14 +36,17 @@ public final class MutateSplits extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA_LIVE_RANGE_SPLITTING;
   }
 
+  @Override
   public String getName() {
     return "Mutate Splits";
   }
@@ -51,6 +54,7 @@ public final class MutateSplits extends CompilerPhase {
   /**
    * The main entrypoint for this pass.
    */
+  @Override
   public void perform(IR ir) {
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();

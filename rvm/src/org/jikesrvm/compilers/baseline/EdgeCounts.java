@@ -53,6 +53,7 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
   @Entrypoint
   private static int[][] data;
 
+  @Override
   public void notifyExit(int value) { dumpCounts(); }
 
   /**

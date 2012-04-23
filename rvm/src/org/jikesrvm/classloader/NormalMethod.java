@@ -175,6 +175,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   /**
    * Generate the code for this method
    */
+  @Override
   protected CompiledMethod genCode() throws VerifyError {
     if (VM.writingBootImage) {
       return BootImageCompiler.compile(this);
@@ -485,6 +486,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
    * that is called "under the covers" from the generated code and thus is not subject to
    * inlining via the normal mechanisms.
    */
+  @Override
   public boolean isRuntimeServiceMethod() {
     return (summaryFlags & IS_RS_METHOD) != 0;
   }
@@ -509,6 +511,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   /**
    * @return true if the method may write to a given field
    */
+  @Override
   public boolean mayWrite(RVMField field) {
     if (!hasFieldWrite()) return false;
     FieldReference it = field.getMemberRef().asFieldReference();

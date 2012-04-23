@@ -30,6 +30,7 @@ public class BootImageWorker implements Runnable {
     this.type = type;
   }
 
+  @Override
   public void run() {
     if (type == null)
       return;

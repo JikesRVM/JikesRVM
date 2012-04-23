@@ -71,6 +71,7 @@ public class ImmixMutator extends StopTheWorldMutator {
    * @param allocator The allocator associated with this request.
    * @return The low address of the allocated memory.
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == Immix.ALLOC_DEFAULT)
@@ -88,6 +89,7 @@ public class ImmixMutator extends StopTheWorldMutator {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Override
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -106,6 +108,7 @@ public class ImmixMutator extends StopTheWorldMutator {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == Immix.immixSpace) return immix;  // FIXME is it not a problem that we have a 2:1 mapping?
     return super.getAllocatorFromSpace(space);
@@ -122,6 +125,7 @@ public class ImmixMutator extends StopTheWorldMutator {
    * @param phaseId The collection phase to perform
    * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
 

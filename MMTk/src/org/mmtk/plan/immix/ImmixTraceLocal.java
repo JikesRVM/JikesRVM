@@ -59,6 +59,7 @@ public final class ImmixTraceLocal extends TraceLocal {
    * @param object The object.
    * @return True if the object is live.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(Immix.IMMIX, object)) {
@@ -81,6 +82,7 @@ public final class ImmixTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (object.isNull()) return object;
@@ -128,6 +130,7 @@ public final class ImmixTraceLocal extends TraceLocal {
    * mod buffer and for each entry, marking the object as unlogged
    * (we don't enqueue for scanning since we're doing a full heap GC).
    */
+  @Override
   protected void processRememberedSets() {
     if (modBuffer != null) {
       logMessage(5, "clearing modBuffer");

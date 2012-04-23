@@ -90,6 +90,7 @@ public class FeedletChunk extends Chunk {
       }
     }
 
+    @Override
     public void close() {
 	putIntAt(FEEDLET_COUNT_OFFSET, feedletOperations);
 	feedletOperations = 0;

@@ -50,6 +50,7 @@ public class GenRCMutator extends RCBaseMutator {
    * @param site Allocation site
    * @return The address of the newly allocated memory.
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenRC.ALLOC_NURSERY) {
@@ -67,6 +68,7 @@ public class GenRCMutator extends RCBaseMutator {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
+  @Override
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef, int bytes, int allocator) {
     if (allocator == GenRC.ALLOC_NURSERY) {
@@ -84,6 +86,7 @@ public class GenRCMutator extends RCBaseMutator {
    * which is allocating into <code>space</code>, or <code>null</code>
    * if no appropriate allocator can be established.
    */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == GenRC.nurserySpace) return nursery;
 
@@ -101,6 +104,7 @@ public class GenRCMutator extends RCBaseMutator {
    * @param phaseId The collection phase to perform
    * @param primary perform any single-threaded local activities.
    */
+  @Override
   public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == RCBase.PREPARE) {
       nursery.rebind(GenRC.nurserySpace);

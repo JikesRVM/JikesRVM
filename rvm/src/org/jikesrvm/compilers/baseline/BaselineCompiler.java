@@ -308,6 +308,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     }
   }
 
+  @Override
   protected String getCompilerName() {
     return "baseline";
   }
