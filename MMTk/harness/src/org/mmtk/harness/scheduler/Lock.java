@@ -33,11 +33,6 @@ public abstract class Lock extends org.mmtk.vm.Lock {
     this.name = name;
   }
 
-  /**
-   * Set the name of this lock instance
-   *
-   * @param str The name of the lock (for error output).
-   */
   @Override
   public void setName(String str) {
     this.name = str;

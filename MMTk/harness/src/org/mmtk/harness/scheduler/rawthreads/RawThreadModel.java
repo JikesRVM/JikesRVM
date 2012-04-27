@@ -196,9 +196,6 @@ public final class RawThreadModel extends ThreadModel {
     return current.getOrdinal();
   }
 
-  /**
-   * Create a collector thread
-   */
   @Override
   public void scheduleCollector(CollectorContext context) {
     scheduleCollectorContext(context);
@@ -218,9 +215,6 @@ public final class RawThreadModel extends ThreadModel {
     return c;
   }
 
-  /**
-   * Create a mutator thread
-   */
   @Override
   public void scheduleMutator(Schedulable method) {
     MutatorThread m = new MutatorThread(method, RawThreadModel.this);

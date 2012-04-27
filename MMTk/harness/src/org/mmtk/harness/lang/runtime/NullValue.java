@@ -29,33 +29,21 @@ public final class NullValue extends ObjectValue {
     super(ObjectReference.nullReference());
   }
 
-  /**
-   * Get this value as a boolean.
-   */
   @Override
   public boolean getBoolValue() {
     return false;
   }
 
-  /**
-   * Prints the address of the object.
-   */
   @Override
   public String toString() {
     return "null";
   }
 
-  /**
-   * The type of this value
-   */
   @Override
   public Type type() {
     return Type.NULL;
   }
 
-  /**
-   * Object equality.
-   */
   @Override
   public boolean equals(Object other) {
     assert this == NULL; // This is a singleton!

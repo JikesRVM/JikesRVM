@@ -55,8 +55,14 @@ public abstract class ThreadModel {
 
   protected abstract void yield();
 
+  /**
+   * Create a new mutator thread
+   */
   protected abstract void scheduleMutator(Schedulable method);
 
+  /**
+   * Create a new collector thread
+   */
   protected abstract void scheduleCollector(CollectorContext context);
 
   protected abstract Thread scheduleCollectorContext(CollectorContext item);

@@ -75,6 +75,7 @@ public abstract class PseudoOp {
    * Instruction types
    */
 
+  /** Is this a branch-like instruction */
   public boolean affectsControlFlow() {
     return false;
   }
@@ -91,6 +92,7 @@ public abstract class PseudoOp {
     return false;
   }
 
+  /** Is this a return instruction */
   public boolean isReturn() {
     return false;
   }

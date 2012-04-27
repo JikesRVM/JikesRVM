@@ -44,9 +44,6 @@ public final class JavaThreadModel extends ThreadModel {
   private final Set<MutatorThread> mutatorThreads =
     Collections.synchronizedSet(new HashSet<MutatorThread>());
 
-  /**
-   * Create a new mutator thread
-   */
   @Override
   public void scheduleMutator(Schedulable code) {
     Trace.trace(Item.SCHEDULER, "Scheduling new mutator");
@@ -55,9 +52,6 @@ public final class JavaThreadModel extends ThreadModel {
     t.start();
   }
 
-  /**
-   * Create a new collector thread
-   */
   @Override
   protected void scheduleCollector(CollectorContext context) {
     Trace.trace(Item.SCHEDULER, "Scheduling new collector");

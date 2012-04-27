@@ -40,11 +40,6 @@ public class JavaLock extends org.mmtk.harness.scheduler.Lock {
     }
   }
 
-  /**
-   * Perform sanity checks on the lock. For debugging.
-   *
-   * @param w Identifies the code location in the debugging output.
-   */
   @Override
   public void check(int w) {
     System.err.println("[" + name + "] AT " + w + " held by " + holder);

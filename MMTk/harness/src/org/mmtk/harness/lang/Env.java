@@ -86,9 +86,6 @@ public class Env extends Mutator {
     return stack;
   }
 
-  /**
-   * Compute the thread roots for this mutator.
-   */
   @Override
   public void computeThreadRoots(TraceLocal trace) {
     int localCount = 0;
@@ -110,9 +107,6 @@ public class Env extends Mutator {
     return roots;
   }
 
-  /**
-   * Print the thread roots and add them to a stack for processing.
-   */
   @Override
   public Collection<ObjectReference> dumpThreadRoots(int width) {
     int frameId = 0;

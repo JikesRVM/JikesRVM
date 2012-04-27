@@ -58,13 +58,11 @@ public final class ReturnOp extends NullaryOp {
     return frame.get(operand);
   }
 
-  /** Is this a branch-like instruction */
   @Override
   public boolean affectsControlFlow() {
     return true;
   }
 
-  /** Is this a return instruction */
   @Override
   public boolean isReturn() {
     return true;
