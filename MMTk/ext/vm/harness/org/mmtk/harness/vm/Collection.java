@@ -25,21 +25,11 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class Collection extends org.mmtk.vm.Collection {
 
-  /**
-   * Prepare a mutator for collection.
-   *
-   * @param m the mutator to prepare
-   */
   @Override
   public void prepareMutator(MutatorContext m) {
     // Nothing to do
   }
 
-  /**
-   * Request each mutator flush remembered sets. This method
-   * will trigger the flush and then yield until all processors have
-   * flushed.
-   */
   @Override
   public void requestMutatorFlush() {
     Assert.notImplemented();
@@ -74,45 +64,26 @@ public class Collection extends org.mmtk.vm.Collection {
     return Harness.collectors.getValue();
   }
 
-  /**
-   * @return The number of active threads.
-   *
-   */
   @Override
   public int getActiveThreads() {
     return Mutators.count();
   }
 
-  /**
-   * Fail with an out of memory error.
-   */
   @Override
   public void outOfMemory() {
     throw new OutOfMemory();
   }
 
-  /**
-   * Spawn a thread the execute the supplied collector context.
-   */
   @Override
   public void spawnCollectorContext(CollectorContext context) {
     Scheduler.scheduleCollector(context);
   }
 
-  /**
-   * Stop all mutator threads. This is current intended to be run by a single thread.
-   *
-   * Fixpoint until there are no threads that we haven't blocked. Fixpoint is needed to
-   * catch the (unlikely) case that a thread spawns another thread while we are waiting.
-   */
   @Override
   public void stopAllMutators() {
     Scheduler.stopAllMutators();
   }
 
-  /**
-   * Resume all mutators blocked for GC.
-   */
   @Override
   public void resumeAllMutators() {
     Scheduler.resumeAllMutators();

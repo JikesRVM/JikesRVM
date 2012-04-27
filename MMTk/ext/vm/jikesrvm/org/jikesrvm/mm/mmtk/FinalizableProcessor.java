@@ -138,10 +138,6 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
     lock.release();
   }
 
-  /**
-   * Clear the contents of the table. This is called when reference types are
-   * disabled to make it easier for VMs to change this setting at runtime.
-   */
   @Override
   public void clear() {
     maxIndex = 0;

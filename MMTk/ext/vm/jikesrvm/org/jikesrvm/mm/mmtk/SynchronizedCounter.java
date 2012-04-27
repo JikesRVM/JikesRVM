@@ -47,8 +47,6 @@ public final class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
     return oldValue;
   }
 
-  // Returns the value before the add
-  //
   @Override
   public int increment() {
     if (VM.VerifyAssertions) VM._assert(!offset.isMax());

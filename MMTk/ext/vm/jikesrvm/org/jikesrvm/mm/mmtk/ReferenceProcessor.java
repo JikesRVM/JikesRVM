@@ -297,10 +297,6 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     unforwardedReferences = null;
   }
 
-  /**
-   * Clear the contents of the table. This is called when reference types are
-   * disabled to make it easier for VMs to change this setting at runtime.
-   */
   @Override
   public void clear() {
     maxIndex = 0;

@@ -21,28 +21,15 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor {
 
-  /**
-   * Clear the contents of the table. This is called when finalization is
-   * disabled to make it easier for VMs to change this setting at runtime.
-   */
   @Override
   public void clear() {
   }
 
-  /**
-   * Scan through the list of references.
-   *
-   * @param trace the thread local trace element.
-   * @param nursery true if it is safe to only scan new references.
-   */
   @Override
   public void scan(TraceLocal trace, boolean nursery) {
     Assert.notImplemented();
   }
 
-  /**
-   * Iterate over and forward entries in the table.
-   */
   @Override
   public void forward(TraceLocal trace, boolean nursery) {
     Assert.notImplemented();

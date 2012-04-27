@@ -27,33 +27,21 @@ public final class Monitor extends org.mmtk.vm.Monitor {
     this.theLock = new org.jikesrvm.scheduler.Monitor();
   }
 
-  /**
-   * Block until the lock is acquired.
-   */
   @Override
   public void lock() {
     theLock.lockNoHandshake();
   }
 
-  /**
-   * Release the lock.
-   */
   @Override
   public void unlock() {
     theLock.unlock();
   }
 
-  /**
-   * Wait for a broadcast.
-   */
   @Override
   public void await() {
     theLock.waitNoHandshake();
   }
 
-  /**
-   * Send a broadcast.
-   */
   @Override
   public void broadcast() {
     theLock.broadcast();

@@ -20,9 +20,6 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible public class Assert extends org.mmtk.vm.Assert {
-  /**
-   * <code>true</code> if assertions should be verified
-   */
   @Override
   protected final boolean getVerifyAssertionsConstant() { return VM.VerifyAssertions;}
 
@@ -37,11 +34,6 @@ import org.vmmagic.pragma.*;
     fail(str);
   }
 
-  /**
-   * Logs a message and traceback, then exits.
-   *
-   * @param message the string to log
-   */
   @Override
   public final void fail(String message) {
     Space.printUsagePages();
@@ -54,13 +46,6 @@ import org.vmmagic.pragma.*;
     VM.sysExit(rc);
   }
 
-  /**
-   * Checks that the given condition is true.  If it is not, this
-   * method does a traceback and exits. All calls to this method
-   * must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
-   *
-   * @param cond the condition to be checked
-   */
   @Override
   @Inline(value=Inline.When.AllArgumentsAreConstant)
   public final void _assert(boolean cond) {
@@ -69,14 +54,6 @@ import org.vmmagic.pragma.*;
     VM._assert(cond);
   }
 
-  /**
-   * Checks that the given condition is true.  If it is not, this
-   * method prints a message, does a traceback and exits. All calls
-   * to this method must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
-   *
-   * @param cond the condition to be checked
-   * @param message the message to print
-   */
   @Override
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void _assert(boolean cond, String message) {

@@ -40,33 +40,21 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
     return Time.cycles();
   }
 
-  /**
-   * Convert nanoseconds to milliseconds
-   */
   @Override
   public double nanosToMillis(long c) {
     return ((double)c)/1e6;
   }
 
-  /**
-   * Convert nanoseconds to seconds
-   */
   @Override
   public double nanosToSecs(long c) {
     return ((double)c)/1e9;
   }
 
-  /**
-   * Convert milliseconds to nanoseconds
-   */
   @Override
   public long millisToNanos(double t) {
     return (long)(t * 1e6);
   }
 
-  /**
-   * Convert seconds to nanoseconds
-   */
   @Override
   public long secsToNanos(double t) {
     return (long)(t * 1e9);
@@ -74,9 +62,6 @@ public final class Statistics extends org.mmtk.vm.Statistics implements Constant
 
   private PerfEvent[] perfEvents;
 
-  /**
-   * Initialize performance events
-   */
   @Override
   @Interruptible
   public void perfEventInit(String events) {

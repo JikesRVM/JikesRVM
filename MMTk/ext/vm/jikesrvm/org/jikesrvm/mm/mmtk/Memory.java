@@ -85,41 +85,23 @@ import org.vmmagic.pragma.*;
     return bootSpace;
   }
 
-  /** Global preparation for a collection. */
   @Override
   public final void globalPrepareVMSpace() { bootSpace.prepare(); }
 
-  /** Per-collector preparation for a collection. */
   @Override
   public final void collectorPrepareVMSpace() {}
 
-  /** Per-collector post-collection work. */
   @Override
   public final void collectorReleaseVMSpace() {}
 
-  /** Global post-collection work. */
   @Override
   public final void globalReleaseVMSpace() { bootSpace.release(); }
 
-  /**
-   * Sets the range of addresses associated with a heap.
-   *
-   * @param id the heap identifier
-   * @param start the address of the start of the heap
-   * @param end the address of the end of the heap
-   */
   @Override
   public final void setHeapRange(int id, Address start, Address end) {
     BootRecord.the_boot_record.setHeapRange(id, start, end);
   }
 
- /**
-   * Demand zero mmaps an area of virtual memory.
-   *
-   * @param start the address of the start of the area to be mapped
-   * @param size the size, in bytes, of the area to be mapped
-   * @return 0 if successful, otherwise the system errno
-   */
   @Override
   public final int dzmmap(Address start, int size) {
     Address result = org.jikesrvm.runtime.Memory.dzmmap(start, Extent.fromIntZeroExtend(size));
@@ -132,28 +114,12 @@ import org.vmmagic.pragma.*;
     return result.toInt();
   }
 
-  /**
-   * Protects access to an area of virtual memory.
-   *
-   * @param start the address of the start of the area to be mapped
-   * @param size the size, in bytes, of the area to be mapped
-   * @return <code>true</code> if successful, otherwise
-   * <code>false</code>
-   */
   @Override
   public final boolean mprotect(Address start, int size) {
     return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
                                                    org.jikesrvm.runtime.Memory.PROT_NONE);
   }
 
-  /**
-   * Allows access to an area of virtual memory.
-   *
-   * @param start the address of the start of the area to be mapped
-   * @param size the size, in bytes, of the area to be mapped
-   * @return <code>true</code> if successful, otherwise
-   * <code>false</code>
-   */
   @Override
   public final boolean munprotect(Address start, int size) {
     return org.jikesrvm.runtime.Memory.mprotect(start, Extent.fromIntZeroExtend(size),
@@ -162,28 +128,11 @@ import org.vmmagic.pragma.*;
                                                    org.jikesrvm.runtime.Memory.PROT_EXEC);
   }
 
-  /**
-   * Zero a region of memory.
-   *
-   * @param useNT Use non temporal instructions (if available)
-   * @param start Start of address range (inclusive)
-   * @param len Length in bytes of range to zero
-   */
   @Override
   public final void zero(boolean useNT, Address start, Extent len) {
     org.jikesrvm.runtime.Memory.zero(useNT, start,len);
   }
 
-  /**
-   * Logs the contents of an address and the surrounding memory to the
-   * error output.
-   *
-   * @param start the address of the memory to be dumped
-   * @param beforeBytes the number of bytes before the address to be
-   * included
-   * @param afterBytes the number of bytes after the address to be
-   * included
-   */
   @Override
   public final void dumpMemory(Address start, int beforeBytes,
                                 int afterBytes) {

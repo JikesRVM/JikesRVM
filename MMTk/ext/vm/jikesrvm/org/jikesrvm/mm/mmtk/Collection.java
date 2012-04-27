@@ -40,7 +40,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    */
 
   /**
-   * Spawn a thread to execute the supplied collector context.
+   * {@inheritDoc}
    */
   @Override
   @Interruptible
@@ -50,26 +50,16 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
     t.start();
   }
 
-  /**
-   * @return The default number of collector threads to use.
-   */
   @Override
   public int getDefaultThreads() {
     return SysCall.sysCall.sysNumProcessors();
   }
 
-  /**
-   * @return The number of active threads.
-   *
-   */
   @Override
   public int getActiveThreads() {
     return RVMThread.getNumActiveThreads() - RVMThread.getNumActiveDaemons();
   }
 
-  /**
-   * Block for the garbage collector.
-   */
   @Override
   @Unpreemptible
   public void blockForGC() {
@@ -85,7 +75,7 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
    */
 
   /**
-   * Fail with an out of memory error.
+   * {@inheritDoc}
    */
   @Override
   @UninterruptibleNoWarn
@@ -93,11 +83,6 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
     throw RVMThread.getOutOfMemoryError();
   }
 
-  /**
-   * Prepare a mutator for a collection.
-   *
-   * @param m the mutator to prepare
-   */
   @Override
   public final void prepareMutator(MutatorContext m) {
     /*
@@ -131,21 +116,12 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
     t.monitor().unlock();
   }
 
-  /**
-   * Stop all mutator threads. This is current intended to be run by a single thread.
-   *
-   * Fixpoint until there are no threads that we haven't blocked. Fixpoint is needed to
-   * catch the (unlikely) case that a thread spawns another thread while we are waiting.
-   */
   @Override
   @Unpreemptible
   public void stopAllMutators() {
     RVMThread.blockAllMutatorsForGC();
   }
 
-  /**
-   * Resume all mutators blocked for GC.
-   */
   @Override
   @Unpreemptible
   public void resumeAllMutators() {
@@ -173,11 +149,6 @@ public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utili
       }
     };
 
-  /**
-   * Request each mutator flush remembered sets. This method
-   * will trigger the flush and then yield until all processors have
-   * flushed.
-   */
   @Override
   @UninterruptibleNoWarn("This method is really unpreemptible, since it involves blocking")
   public void requestMutatorFlush() {

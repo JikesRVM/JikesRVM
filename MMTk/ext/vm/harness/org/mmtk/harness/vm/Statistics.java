@@ -16,49 +16,31 @@ import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible
 public class Statistics extends org.mmtk.vm.Statistics {
-  /**
-   * Read cycle counter
-   */
   @Override
   public long nanoTime() {
     return System.nanoTime();
   }
 
-  /**
-   * Convert nanoseconds to milliseconds
-   */
   @Override
   public double nanosToMillis(long c) {
     return (c) / 1e6;
   }
 
-  /**
-   * Convert nanoseconds to seconds
-   */
   @Override
   public double nanosToSecs(long c) {
     return (c) / 1e9;
   }
 
-  /**
-   * Convert milliseconds to nanoseconds
-   */
   @Override
   public long millisToNanos(double t) {
     return (long)(t * 1e6);
   }
 
-  /**
-   * Convert seconds to nanoseconds
-   */
   @Override
   public long secsToNanos(double t) {
     return (long)(t * 1e9);
   }
 
-  /**
-   * Read the cycle counter
-   */
   @Override
   public long cycles() {
     return System.nanoTime();

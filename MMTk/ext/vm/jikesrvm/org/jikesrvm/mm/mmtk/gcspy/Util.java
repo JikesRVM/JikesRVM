@@ -34,13 +34,6 @@ import org.vmmagic.pragma.*;
   public static final int KILOBYTE = 1024;
   public static final int MEGABYTE = 1024 * 1024;
 
-  /**
-   * Allocate an array of bytes with malloc
-   *
-   * @param size The size to allocate
-   * @return The start address of the memory allocated in C space
-   * @see #free
-   */
   @Override
   public final Address malloc(int size) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
@@ -51,12 +44,6 @@ import org.vmmagic.pragma.*;
       return Address.zero();
   }
 
-  /**
-   * Free an array of bytes previously allocated with malloc
-   *
-   * @param addr The address of some memory previously allocated with malloc
-   * @see #malloc
-   */
   @Override
   public final void free(Address addr) {
     if (org.jikesrvm.VM.BuildWithGCSpy)
@@ -109,12 +96,6 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  /**
-   * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
-   *
-   * @param buffer The buffer (in C space) in which to place the formatted size
-   * @param size The size in bytes
-   */
   @Override
   public final void formatSize(Address buffer, int size) {
     if (org.jikesrvm.VM.BuildWithGCSpy)
@@ -122,13 +103,6 @@ import org.vmmagic.pragma.*;
   }
 
 
-  /**
-   * Pretty print a size, converting from bytes to kilo- or mega-bytes as appropriate
-   *
-   * @param format A format string
-   * @param bufsize The size of a buffer large enough to hold the formatted result
-   * @param size The size in bytes
-   */
   @Override
   public final Address formatSize(String format, int bufsize, int size) {
     if (org.jikesrvm.VM.BuildWithGCSpy) {
@@ -144,14 +118,6 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  /**
-   * Create an array of a particular type.
-   * The easiest way to use this is:
-   *     Foo[] x = (Foo [])Stream.createDataArray(new Foo[0], numElements);
-   * @param templ a data array to use as a template
-   * @param numElements number of elements in new array
-   * @return the new array
-   */
   @Override
   @Interruptible
   public Object createDataArray(Object templ, int numElements) {
@@ -172,14 +138,6 @@ import org.vmmagic.pragma.*;
 
   //----------- Various methods modelled on string.c ---------------------//
 
-  /**
-   * sprintf(char *str, char *format, char* value)
-   *
-   * @param str The destination 'string' (memory in C space)
-   * @param format The format 'string' (memory in C space)
-   * @param value The value 'string' (memory in C space)
-   * @return The number of characters printed (as returned by C's sprintf
-   */
   @Override
   public final int sprintf(Address str, Address format, Address value) {
     if (org.jikesrvm.VM.BuildWithGCSpy)

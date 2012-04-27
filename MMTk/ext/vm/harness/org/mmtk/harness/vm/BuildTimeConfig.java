@@ -19,73 +19,37 @@ import org.mmtk.harness.Harness;
  */
 public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
 
-  /**
-   * @return The name of the current MMTk plan
-   */
   @Override
   public String getPlanName() {
     return Harness.plan.getValue();
   }
 
-  /**
-   * Return a property of type String
-   * @param name The name of the property
-   * @return The value of the property
-   */
   @Override
   public String getStringProperty(String name) {
     return System.getProperty(name);
   }
 
-  /**
-   * Return a property of type String, with default.
-   * @param name The name of the property
-   * @param dflt Default value
-   * @return The value of the property
-   */
   @Override
   public String getStringProperty(String name, String dflt) {
     return System.getProperty(name, dflt);
   }
 
-  /**
-   * Return a property of type int
-   * @param name The name of the property
-   * @return The value of the property
-   */
   @Override
   public int getIntProperty(String name) {
     return Integer.parseInt(System.getProperty(name));
   }
 
-  /**
-   * Return a property of type String, with default.
-   * @param name The name of the property
-   * @param dflt Default value
-   * @return The value of the property
-   */
   @Override
   public int getIntProperty(String name, int dflt) {
     String value = System.getProperty(name);
     return value == null ? dflt : Integer.parseInt(value);
   }
 
-  /**
-   * Return a property of type boolean
-   * @param name The name of the property
-   * @return The value of the property
-   */
   @Override
   public boolean getBooleanProperty(String name) {
     return Boolean.parseBoolean(System.getProperty(name));
   }
 
-  /**
-   * Return a property of type boolean, with default.
-   * @param name The name of the property
-   * @param dflt Default value
-   * @return The value of the property
-   */
   @Override
   public boolean getBooleanProperty(String name, boolean dflt) {
     String value = System.getProperty(name);

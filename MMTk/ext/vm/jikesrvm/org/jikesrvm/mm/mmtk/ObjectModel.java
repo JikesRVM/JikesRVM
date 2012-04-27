@@ -35,17 +35,6 @@ import org.vmmagic.pragma.*;
   @Override
   protected Offset getArrayBaseOffset() { return JavaHeaderConstants.ARRAY_BASE_OFFSET; }
 
-  /**
-   * Copy an object using a plan's allocCopy to get space and install
-   * the forwarding pointer.  On entry, <code>from</code> must have
-   * been reserved for copying by the caller.  This method calls the
-   * plan's <code>getStatusForCopy()</code> method to establish a new
-   * status word for the copied object and <code>postCopy()</code> to
-   * allow the plan to perform any post copy actions.
-   *
-   * @param from the address of the object to be copied
-   * @return the address of the new object
-   */
   @Override
   @Inline
   public ObjectReference copy(ObjectReference from, int allocator) {
@@ -112,16 +101,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Copy an object to be pointer to by the to address. This is required
-   * for delayed-copy collectors such as compacting collectors. During the
-   * collection, MMTk reserves a region in the heap for an object as per
-   * requirements found from ObjectModel and then asks ObjectModel to
-   * determine what the object's reference will be post-copy.
-   *
-   * @param from the address of the object to be copied
-   * @param to The target location.
    * @param region The start (or an address less than) the region that was reserved for this object.
-   * @return Address The address past the end of the copied object
    */
   @Override
   @Inline
@@ -153,47 +133,21 @@ import org.vmmagic.pragma.*;
     return start.plus(bytes);
   }
 
-  /**
-   * Return the reference that an object will be refered to after it is copied
-   * to the specified region. Used in delayed-copy collectors such as compacting
-   * collectors.
-   *
-   * @param from The object to be copied.
-   * @param to The region to be copied to.
-   * @return The resulting reference.
-   */
   @Override
   public ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
     return ObjectReference.fromObject(org.jikesrvm.objectmodel.ObjectModel.getReferenceWhenCopiedTo(from.toObject(), to));
   }
 
-  /**
-   * Gets a pointer to the address just past the end of the object.
-   *
-   * @param object The objecty.
-   */
   @Override
   public Address getObjectEndAddress(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.getObjectEndAddress(object.toObject());
   }
 
-  /**
-   * Return the size required to copy an object
-   *
-   * @param object The object whose size is to be queried
-   * @return The size required to copy <code>obj</code>
-   */
   @Override
   public int getSizeWhenCopied(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(object.toObject());
   }
 
-  /**
-   * Return the alignment requirement for a copy of this object
-   *
-   * @param object The object whose size is to be queried
-   * @return The alignment required for a copy of <code>obj</code>
-   */
   @Override
   public int getAlignWhenCopied(ObjectReference object) {
     TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(object);
@@ -205,12 +159,6 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  /**
-   * Return the alignment offset requirements for a copy of this object
-   *
-   * @param object The object whose size is to be queried
-   * @return The alignment offset required for a copy of <code>obj</code>
-   */
   @Override
   public int getAlignOffsetWhenCopied(ObjectReference object) {
     TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(object);
@@ -222,39 +170,21 @@ import org.vmmagic.pragma.*;
     }
   }
 
-  /**
-   * Return the size used by an object
-   *
-   * @param object The object whose size is to be queried
-   * @return The size of <code>obj</code>
-   */
   @Override
   public int getCurrentSize(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.bytesUsed(object.toObject());
   }
 
-  /**
-   * Return the next object in the heap under contiguous allocation
-   */
   @Override
   public ObjectReference getNextObject(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.getNextObject(object);
   }
 
-  /**
-   * Return an object reference from knowledge of the low order word
-   */
   @Override
   public ObjectReference getObjectFromStartAddress(Address start) {
     return org.jikesrvm.objectmodel.ObjectModel.getObjectFromStartAddress(start);
   }
 
-  /**
-   * Get the type descriptor for an object.
-   *
-   * @param ref address of the object
-   * @return byte array with the type descriptor
-   */
   @Override
   public byte [] getTypeDescriptor(ObjectReference ref) {
     Atom descriptor = Magic.getObjectType(ref).getDescriptor();
@@ -267,21 +197,11 @@ import org.vmmagic.pragma.*;
     return Magic.getArrayLength(object.toObject());
   }
 
-  /**
-   * Is the passed object an array?
-   *
-   * @param object address of the object
-   */
   @Override
   public boolean isArray(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.getObjectType(object.toObject()).isArrayType();
   }
 
-  /**
-   * Is the passed object a primitive array?
-   *
-   * @param object address of the object
-   */
   @Override
   public boolean isPrimitiveArray(ObjectReference object) {
     Object obj = object.toObject();
@@ -316,19 +236,6 @@ import org.vmmagic.pragma.*;
     org.jikesrvm.objectmodel.ObjectModel.setAvailableBit(object.toObject(), idx, flag);
   }
 
-  /**
-   * Attempts to set the bits available for memory manager use in an
-   * object.  The attempt will only be successful if the current value
-   * of the bits matches <code>oldVal</code>.  The comparison with the
-   * current value and setting are atomic with respect to other
-   * allocators.
-   *
-   * @param object the address of the object
-   * @param oldVal the required current value of the bits
-   * @param newVal the desired new value of the bits
-   * @return <code>true</code> if the bits were set,
-   * <code>false</code> otherwise
-   */
   @Override
   public boolean attemptAvailableBits(ObjectReference object,
                                              Word oldVal, Word newVal) {
@@ -336,107 +243,48 @@ import org.vmmagic.pragma.*;
                                                newVal);
   }
 
-  /**
-   * Gets the value of bits available for memory manager use in an
-   * object, in preparation for setting those bits.
-   *
-   * @param object the address of the object
-   * @return the value of the bits
-   */
   @Override
   public Word prepareAvailableBits(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.prepareAvailableBits(object.toObject());
   }
 
-  /**
-   * Sets the byte available for memory manager use in an object.
-   *
-   * @param object the address of the object
-   * @param val the new value of the byte
-   */
   @Override
   public void writeAvailableByte(ObjectReference object, byte val) {
     org.jikesrvm.objectmodel.ObjectModel.writeAvailableByte(object.toObject(), val);
   }
 
-  /**
-   * Read the byte available for memory manager use in an object.
-   *
-   * @param object the address of the object
-   * @return the value of the byte
-   */
   @Override
   public byte readAvailableByte(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.readAvailableByte(object.toObject());
   }
 
-  /**
-   * Sets the bits available for memory manager use in an object.
-   *
-   * @param object the address of the object
-   * @param val the new value of the bits
-   */
   @Override
   public void writeAvailableBitsWord(ObjectReference object, Word val) {
     org.jikesrvm.objectmodel.ObjectModel.writeAvailableBitsWord(object.toObject(), val);
   }
 
-  /**
-   * Read the bits available for memory manager use in an object.
-   *
-   * @param object the address of the object
-   * @return the value of the bits
-   */
   @Override
   public Word readAvailableBitsWord(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.readAvailableBitsWord(object.toObject());
   }
 
-  /**
-   * Gets the offset of the memory management header from the object
-   * reference address.  XXX The object model / memory manager
-   * interface should be improved so that the memory manager does not
-   * need to know this.
-   *
-   * @return the offset, relative the object reference address
-   */
   /* AJG: Should this be a variable rather than method? */
   @Override
   public Offset GC_HEADER_OFFSET() {
     return org.jikesrvm.objectmodel.ObjectModel.GC_HEADER_OFFSET;
   }
 
-  /**
-   * Returns the lowest address of the storage associated with an object.
-   *
-   * @param object the reference address of the object
-   * @return the lowest address of the object
-   */
   @Override
   @Inline
   public Address objectStartRef(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.objectStartRef(object);
   }
 
-  /**
-   * Returns an address guaranteed to be inside the storage assocatied
-   * with and object.
-   *
-   * @param object the reference address of the object
-   * @return an address inside the object
-   */
   @Override
   public Address refToAddress(ObjectReference object) {
     return org.jikesrvm.objectmodel.ObjectModel.getPointerInMemoryRegion(object);
   }
 
-  /**
-   * Checks if a reference of the given type in another object is
-   * inherently acyclic.  The type is given as a TIB.
-   *
-   * @return <code>true</code> if a reference of the type is
-   * inherently acyclic
-   */
   @Override
   @Inline
   public boolean isAcyclic(ObjectReference typeRef) {
@@ -445,11 +293,6 @@ import org.vmmagic.pragma.*;
     return type.isAcyclicReference();
   }
 
-  /**
-   * Dump debugging information for an object.
-   *
-   * @param object The object whose information is to be dumped
-   */
   @Override
   public void dumpObject(ObjectReference object) {
     DebugUtil.dumpRef(object);

@@ -27,44 +27,21 @@ public class Assert extends org.mmtk.vm.Assert {
     throw new UnsupportedOperationException("Not Implemented");
   }
 
-  /**
-   * Logs a message and traceback, then exits.
-   *
-   * @param message the string to log
-   */
   @Override
   public void fail(String message) {
     throw new RuntimeException("Assertion Failed: " + message);
   }
 
-  /**
-   * Checks that the given condition is true.  If it is not, this
-   * method does a traceback and exits.  All calls to this method
-   * must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
-   *
-   * @param cond the condition to be checked
-   */
   @Override
   public void _assert(boolean cond) {
     if (!cond) fail("");
   }
 
-  /**
-   * Checks that the given condition is true.  If it is not, this
-   * method prints a message, does a traceback and exits. All calls
-   * to this method must be guarded by <code>VM.VERIFY_ASSERTIONS</code>.
-   *
-   * @param cond the condition to be checked
-   * @param message the message to print
-   */
   @Override
   public void _assert(boolean cond, String message) {
     if (!cond) fail(message);
   }
 
-  /**
-   * Print a stack trace
-   */
   @Override
   public void dumpStack() {
     new Exception().printStackTrace();
@@ -82,7 +59,6 @@ public class Assert extends org.mmtk.vm.Assert {
     return true;
   }
 
-  /** @return true if assertions should be verified */
   @Override
   protected boolean getVerifyAssertionsConstant() {
     String value = System.getProperty("org.mmtk.harness.verify.assertions", "true");

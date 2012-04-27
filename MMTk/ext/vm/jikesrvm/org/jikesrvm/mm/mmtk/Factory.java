@@ -30,23 +30,11 @@ public final class Factory extends org.mmtk.vm.Factory {
   private static final String DEFAULT_MMTK_PROPERTIES = ".mmtk.properties";
   private static final String CONFIG_FILE_PROPERTY = "mmtk.properties";
 
-  /**
-   * Create or retrieve the OptionSet used for MMTk options.
-   *
-   * @return A concrete VM-specific OptionSet instance
-   */
   @Override
   public OptionSet getOptionSet() {
     return org.jikesrvm.options.OptionSet.gc;
   }
 
-  /**
-   * Create a new ActivePlan instance using the appropriate VM-specific
-   * concrete ActivePlan sub-class.
-   *
-   * @see ActivePlan
-   * @return A concrete VM-specific ActivePlan instance.
-   */
   @Override
   public org.mmtk.vm.ActivePlan newActivePlan() {
     try {
@@ -57,13 +45,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new Assert instance using the appropriate VM-specific
-   * concrete Assert sub-class.
-   *
-   * @see Assert
-   * @return A concrete VM-specific Assert instance.
-   */
   @Override
   public org.mmtk.vm.Assert newAssert() {
     try {
@@ -74,13 +55,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new Barriers instance using the appropriate VM-specific
-   * concrete Barriers sub-class.
-   *
-   * @see Barriers
-   * @return A concrete VM-specific Barriers instance.
-   */
   @Override
   public org.mmtk.vm.Barriers newBarriers() {
     try {
@@ -91,13 +65,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new Collection instance using the appropriate VM-specific
-   * concrete Collection sub-class.
-   *
-   * @see Collection
-   * @return A concrete VM-specific Collection instance.
-   */
   @Override
   public org.mmtk.vm.Collection newCollection() {
     try {
@@ -108,13 +75,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new BuildTimeConfig instance using the appropriate VM-specific
-   * concrete BuildTimeConfig sub-class.
-   *
-   * @see Collection
-   * @return A concrete VM-specific Collection instance.
-   */
   @Override
   public org.mmtk.vm.BuildTimeConfig newBuildTimeConfig() {
     try {
@@ -125,15 +85,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new Lock instance using the appropriate VM-specific
-   * concrete Lock sub-class.
-   *
-   * @see Lock
-   *
-   * @param name The string to be associated with this lock instance
-   * @return A concrete VM-specific Lock instance.
-   */
   @Override
   public org.mmtk.vm.Lock newLock(String name) {
     try {
@@ -144,15 +95,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new Monitor instance using the appropriate VM-specific
-   * concrete Lock sub-class.
-   *
-   * @see Monitor
-   *
-   * @param name The string to be associated with this monitor instance
-   * @return A concrete VM-specific Monitor instance.
-   */
   @Override
   public org.mmtk.vm.Monitor newMonitor(String name) {
     try {
@@ -163,13 +105,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new Memory instance using the appropriate VM-specific
-   * concrete Memory sub-class.
-   *
-   * @see Memory
-   * @return A concrete VM-specific Memory instance.
-   */
   @Override
   public org.mmtk.vm.Memory newMemory() {
     try {
@@ -180,13 +115,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new ObjectModel instance using the appropriate VM-specific
-   * concrete ObjectModel sub-class.
-   *
-   * @see ObjectModel
-   * @return A concrete VM-specific ObjectModel instance.
-   */
   @Override
   public org.mmtk.vm.ObjectModel newObjectModel() {
     try {
@@ -197,13 +125,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new ReferenceProcessor instance using the appropriate VM-specific
-   * concrete ReferenceProcessor sub-class.
-   *
-   * @see ReferenceProcessor
-   * @return A concrete VM-specific ReferenceProcessor instance.
-   */
   @Override
   public org.mmtk.vm.ReferenceProcessor newReferenceProcessor(Semantics semantics) {
     try {
@@ -214,13 +135,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new FinalizableProcessor instance using the appropriate VM-specific
-   * concrete FinalizableProcessor sub-class.
-   *
-   * @see ReferenceProcessor
-   * @return A concrete VM-specific FinalizableProcessor instance.
-   */
   @Override
   public org.mmtk.vm.FinalizableProcessor newFinalizableProcessor() {
     try {
@@ -231,13 +145,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new Scanning instance using the appropriate VM-specific
-   * concrete Scanning sub-class.
-   *
-   * @see Scanning
-   * @return A concrete VM-specific Scanning instance.
-   */
   @Override
   public org.mmtk.vm.Scanning newScanning() {
     try {
@@ -248,13 +155,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new Statistics instance using the appropriate VM-specific
-   * concrete Statistics sub-class.
-   *
-   * @see Statistics
-   * @return A concrete VM-specific Statistics instance.
-   */
   @Override
   public org.mmtk.vm.Statistics newStatistics() {
     try {
@@ -265,13 +165,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new Strings instance using the appropriate VM-specific
-   * concrete Strings sub-class.
-   *
-   * @see Strings
-   * @return A concrete VM-specific Strings instance.
-   */
   @Override
   public org.mmtk.vm.Strings newStrings() {
     try {
@@ -282,14 +175,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new SynchronizedCounter instance using the appropriate
-   * VM-specific concrete SynchronizedCounter sub-class.
-   *
-   * @see SynchronizedCounter
-   *
-   * @return A concrete VM-specific SynchronizedCounter instance.
-   */
   @Override
   public org.mmtk.vm.SynchronizedCounter newSynchronizedCounter() {
     try {
@@ -300,13 +185,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new TraceInterface instance using the appropriate VM-specific
-   * concrete TraceInterface sub-class.
-   *
-   * @see TraceInterface
-   * @return A concrete VM-specific TraceInterface instance.
-   */
   @Override
   public org.mmtk.vm.TraceInterface newTraceInterface() {
     try {
@@ -317,13 +195,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new MMTk_Events instance using the appropriate VM-specific
-   * concrete MMTk_Events sub-class.
-   *
-   * @see MMTk_Events
-   * @return A concrete VM-specific MMTk_Events instance.
-   */
   @Override
   public org.mmtk.vm.MMTk_Events newEvents() {
     try {
@@ -344,11 +215,7 @@ public final class Factory extends org.mmtk.vm.Factory {
    */
 
   /**
-   * Create a new Util instance using the appropriate VM-specific
-   * concrete Util sub-class.
-   *
-   * @see org.mmtk.vm.gcspy.Util
-   * @return A concrete VM-specific Util instance.
+   * {@inheritDoc}
    */
   @Override
   public org.mmtk.vm.gcspy.Util newGCspyUtil() {
@@ -360,13 +227,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new ServerInterpreter instance using the appropriate VM-specific
-   * concrete ServerInterpreter sub-class.
-   *
-   * @see org.mmtk.vm.gcspy.ServerInterpreter
-   * @return A concrete VM-specific ServerInterpreter instance.
-   */
   @Override
   public org.mmtk.vm.gcspy.ServerInterpreter newGCspyServerInterpreter() {
     try {
@@ -377,22 +237,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new ServerSpace instance using the appropriate VM-specific
-   * concrete ServerSpace sub-class.
-   *
-   * @param serverInterpreter The server that owns this space
-   * @param serverName The server's name
-   * @param driverName The space driver's name
-   * @param title Title for the space
-   * @param blockInfo A label for each block
-   * @param tileNum Max number of tiles in this space
-   * @param unused A label for unused blocks
-   * @param mainSpace Whether this space is the main space
-   *
-   * @see org.mmtk.vm.gcspy.ServerSpace
-   * @return A concrete VM-specific ServerSpace instance.
-   */
   @Override
   public org.mmtk.vm.gcspy.ServerSpace newGCspyServerSpace(
       org.mmtk.vm.gcspy.ServerInterpreter serverInterpreter,
@@ -413,28 +257,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new ByteStream instance using the appropriate
-   * VM-specific concrete ByteStream sub-class.
-   *
-   * @param driver        The driver that owns this Stream
-   * @param name           The name of the stream (e.g. "Used space")
-   * @param minValue       The minimum value for any item in this stream.
-   *                       Values less than this will be represented as "minValue-"
-   * @param maxValue       The maximum value for any item in this stream.
-   *                       Values greater than this will be represented as "maxValue+"
-   * @param zeroValue      The zero value for this stream
-   * @param defaultValue   The default value for this stream
-   * @param stringPre      A string to prefix values (e.g. "Used: ")
-   * @param stringPost     A string to suffix values (e.g. " bytes.")
-   * @param presentation   How a stream value is to be presented.
-   * @param paintStyle     How the value is to be painted.
-   * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
-   * @param colour         The default colour for tiles of this stream
-   * @see org.mmtk.vm.gcspy.IntStream
-   *
-   * @return A concrete VM-specific ByteStream instance.
-   */
   @Override
   public org.mmtk.vm.gcspy.ByteStream newGCspyByteStream(
       AbstractDriver driver,
@@ -461,28 +283,7 @@ public final class Factory extends org.mmtk.vm.Factory {
       return null; // never get here
     }
   }
-  /**
-   * Create a new IntStream instance using the appropriate
-   * VM-specific concrete IntStream sub-class.
-   *
-   * @param driver        The driver that owns this Stream
-   * @param name           The name of the stream (e.g. "Used space")
-   * @param minValue       The minimum value for any item in this stream.
-   *                       Values less than this will be represented as "minValue-"
-   * @param maxValue       The maximum value for any item in this stream.
-   *                       Values greater than this will be represented as "maxValue+"
-   * @param zeroValue      The zero value for this stream
-   * @param defaultValue   The default value for this stream
-   * @param stringPre      A string to prefix values (e.g. "Used: ")
-   * @param stringPost     A string to suffix values (e.g. " bytes.")
-   * @param presentation   How a stream value is to be presented.
-   * @param paintStyle     How the value is to be painted.
-   * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
-   * @param colour         The default colour for tiles of this stream
-   * @see org.mmtk.vm.gcspy.IntStream
-   *
-   * @return A concrete VM-specific IntStream instance.
-   */
+
   @Override
   public org.mmtk.vm.gcspy.IntStream newGCspyIntStream(
       AbstractDriver driver,
@@ -510,28 +311,6 @@ public final class Factory extends org.mmtk.vm.Factory {
     }
   }
 
-  /**
-   * Create a new ShortStream instance using the appropriate
-   * VM-specific concrete ShortStream sub-class.
-   *
-   * @param driver        The driver that owns this Stream
-   * @param name           The name of the stream (e.g. "Used space")
-   * @param minValue       The minimum value for any item in this stream.
-   *                       Values less than this will be represented as "minValue-"
-   * @param maxValue       The maximum value for any item in this stream.
-   *                       Values greater than this will be represented as "maxValue+"
-   * @param zeroValue      The zero value for this stream
-   * @param defaultValue   The default value for this stream
-   * @param stringPre      A string to prefix values (e.g. "Used: ")
-   * @param stringPost     A string to suffix values (e.g. " bytes.")
-   * @param presentation   How a stream value is to be presented.
-   * @param paintStyle     How the value is to be painted.
-   * @param indexMaxStream The index of the maximum stream if the presentation is *_VAR.
-   * @param colour         The default colour for tiles of this stream
-   * @see org.mmtk.vm.gcspy.IntStream
-   *
-   * @return A concrete VM-specific ShortStream instance.
-   */
   @Override
   public org.mmtk.vm.gcspy.ShortStream newGCspyShortStream(
       AbstractDriver driver,

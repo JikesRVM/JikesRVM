@@ -88,10 +88,6 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     }
   }
 
-  /**
-   * Clear the contents of the table. This is called when reference types are
-   * disabled to make it easier for VMs to change this setting at runtime.
-   */
   @Override
   public void clear() {
     Trace.trace(Item.REFERENCES, "Clearing %s references", semantics);
@@ -150,9 +146,6 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     }
   }
 
-  /**
-   * @return the number of references objects on the queue
-   */
   @Override
   public int countWaitingReferences() {
     return currentRefs.size() + newRefs.size();

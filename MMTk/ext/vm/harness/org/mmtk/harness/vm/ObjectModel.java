@@ -355,18 +355,6 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return addr.toInt() >>> MemoryConstants.LOG_BYTES_IN_WORD;
   }
 
-  /**
-   * Copy an object using a plan's allocCopy to get space and install
-   * the forwarding pointer.  On entry, <code>from</code> must have
-   * been reserved for copying by the caller.  This method calls the
-   * plan's <code>getStatusForCopy()</code> method to establish a new
-   * status word for the copied object and <code>postCopy()</code> to
-   * allow the plan to perform any post copy actions.
-   *
-   * @param from the address of the object to be copied
-   * @param allocator The allocator to use.
-   * @return the address of the new object
-   */
   @Override
   public ObjectReference copy(ObjectReference from, int allocator) {
     int oldBytes = getSize(from);
@@ -404,18 +392,6 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return to;
   }
 
-  /**
-   * Copy an object to be pointer to by the to address. This is required
-   * for delayed-copy collectors such as compacting collectors. During the
-   * collection, MMTk reserves a region in the heap for an object as per
-   * requirements found from ObjectModel and then asks ObjectModel to
-   * determine what the object's reference will be post-copy.
-   *
-   * @param from the address of the object to be copied
-   * @param to The target location.
-   * @param toRegion The start of the region that was reserved for this object
-   * @return Address The address past the end of the copied object
-   */
   @Override
   public Address copyTo(ObjectReference from, ObjectReference to, Address toRegion) {
     boolean traceThisObject = Trace.isEnabled(Item.COLLECT) || isWatched(from);
@@ -465,69 +441,33 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return objectEndAddress;
   }
 
-  /**
-   * Return the reference that an object will be refered to after it is copied
-   * to the specified region. Used in delayed-copy collectors such as compacting
-   * collectors.
-   *
-   * @param from The object to be copied.
-   * @param to The region to be copied to.
-   * @return The resulting reference.
-   */
   @Override
   public ObjectReference getReferenceWhenCopiedTo(ObjectReference from, Address to) {
     return to.toObjectReference();
   }
 
 
-  /**
-   * Return the size required to copy an object
-   *
-   * @param object The object whose size is to be queried
-   * @return The size required to copy <code>obj</code>
-   */
   @Override
   public int getSizeWhenCopied(ObjectReference object) {
     return getCopiedSize(object);
   }
 
-  /**
-   * Return the alignment requirement for a copy of this object
-   *
-   * @param object The object whose size is to be queried
-   * @return The alignment required for a copy of <code>obj</code>
-   */
   @Override
   public int getAlignWhenCopied(ObjectReference object) {
     boolean doubleAlign = (object.toAddress().loadInt(STATUS_OFFSET) & DOUBLE_ALIGN) == DOUBLE_ALIGN;
     return (doubleAlign ? 2 : 1) * MemoryConstants.BYTES_IN_WORD;
   }
 
-  /**
-   * Return the alignment offset requirements for a copy of this object
-   *
-   * @param object The object whose size is to be queried
-   * @return The alignment offset required for a copy of <code>obj</code>
-   */
   @Override
   public int getAlignOffsetWhenCopied(ObjectReference object) {
     return 0;
   }
 
-  /**
-   * Return the size used by an object
-   *
-   * @param object The object whose size is to be queried
-   * @return The size of <code>obj</code>
-   */
   @Override
   public int getCurrentSize(ObjectReference object) {
     return getSize(object);
   }
 
-  /**
-   * Return the next object in the heap under contiguous allocation
-   */
   @Override
   public ObjectReference getNextObject(ObjectReference object) {
     Address nextAddress = object.toAddress().plus(getSize(object));
@@ -540,9 +480,6 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return nextAddress.toObjectReference();
   }
 
-  /**
-   * Return an object reference from knowledge of the low order word
-   */
   @Override
   public ObjectReference getObjectFromStartAddress(Address start) {
     if ((start.loadInt() & ALIGNMENT_VALUE) != 0) {
@@ -551,81 +488,38 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return start.toObjectReference();
   }
 
-  /**
-   * Return the start address from an object reference
-   */
   public static Address getStartAddressFromObject(ObjectReference object) {
     return object.toAddress();
   }
 
-  /**
-   * Gets a pointer to the address just past the end of the object.
-   *
-   * @param object The object.
-   */
   @Override
   public Address getObjectEndAddress(ObjectReference object) {
     return object.toAddress().plus(getSize(object));
   }
 
-  /**
-   * Get the type descriptor for an object.
-   *
-   * @param ref address of the object
-   * @return byte array with the type descriptor
-   */
   @Override
   public byte[] getTypeDescriptor(ObjectReference ref) {
     return getString(ref).getBytes();
   }
 
-  /**
-   * Is the passed object an array?
-   *
-   * @param object address of the object
-   */
   @Override
   public boolean isArray(ObjectReference object) {
     Assert.notImplemented();
     return false;
   }
 
-  /**
-   * Is the passed object a primitive array?
-   *
-   * @param object address of the object
-   */
   @Override
   public boolean isPrimitiveArray(ObjectReference object) {
     Assert.notImplemented();
     return false;
   }
 
-  /**
-   * Get the length of an array object.
-   *
-   * @param object address of the object
-   * @return The array length, in elements
-   */
   @Override
   public int getArrayLength(ObjectReference object) {
     Assert.notImplemented();
     return 0;
   }
 
-  /**
-   * Attempts to set the bits available for memory manager use in an
-   * object.  The attempt will only be successful if the current value
-   * of the bits matches <code>oldVal</code>.  The comparison with the
-   * current value and setting are atomic with respect to other
-   * allocators.
-   *
-   * @param object the address of the object
-   * @param oldVal the required current value of the bits
-   * @param newVal the desired new value of the bits
-   * @return <code>true</code> if the bits were set,
-   * <code>false</code> otherwise
-   */
   @Override
   public boolean attemptAvailableBits(ObjectReference object, Word oldVal, Word newVal) {
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
@@ -635,13 +529,6 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return object.toAddress().attempt(oldVal, newVal, STATUS_OFFSET);
   }
 
-  /**
-   * Gets the value of bits available for memory manager use in an
-   * object, in preparation for setting those bits.
-   *
-   * @param object the address of the object
-   * @return the value of the bits
-   */
   @Override
   public Word prepareAvailableBits(ObjectReference object) {
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
@@ -651,12 +538,6 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return object.toAddress().prepareWord(STATUS_OFFSET);
   }
 
-  /**
-   * Sets the byte available for memory manager use in an object.
-   *
-   * @param object the address of the object
-   * @param val the new value of the byte
-   */
   @Override
   public void writeAvailableByte(ObjectReference object, byte val) {
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
@@ -666,12 +547,6 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     object.toAddress().store(val, STATUS_OFFSET);
   }
 
-  /**
-   * Read the byte available for memory manager use in an object.
-   *
-   * @param object the address of the object
-   * @return the value of the byte
-   */
   @Override
   public byte readAvailableByte(ObjectReference object) {
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
@@ -681,12 +556,6 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return object.toAddress().loadByte(STATUS_OFFSET);
   }
 
-  /**
-   * Sets the bits available for memory manager use in an object.
-   *
-   * @param object the address of the object
-   * @param val the new value of the bits
-   */
   @Override
   public void writeAvailableBitsWord(ObjectReference object, Word val) {
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
@@ -696,12 +565,6 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     object.toAddress().store(val, STATUS_OFFSET);
   }
 
-  /**
-   * Read the bits available for memory manager use in an object.
-   *
-   * @param object the address of the object
-   * @return the value of the bits
-   */
   @Override
   public Word readAvailableBitsWord(ObjectReference object) {
     if (Trace.isEnabled(Item.AVBYTE) || isWatched(object)) {
@@ -711,49 +574,21 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return object.toAddress().loadWord(STATUS_OFFSET);
   }
 
-  /**
-   * Gets the offset of the memory management header from the object
-   * reference address.  XXX The object model / memory manager
-   * interface should be improved so that the memory manager does not
-   * need to know this.
-   *
-   * @return the offset, relative the object reference address
-   */
   @Override
   public Offset GC_HEADER_OFFSET() {
     return GC_OFFSET;
   }
 
-  /**
-   * Returns the lowest address of the storage associated with an object.
-   *
-   * @param object the reference address of the object
-   * @return the lowest address of the object
-   */
   @Override
   public Address objectStartRef(ObjectReference object) {
     return object.toAddress();
   }
 
-  /**
-   * Returns an address guaranteed to be inside the storage assocatied
-   * with and object.
-   *
-   * @param object the reference address of the object
-   * @return an address inside the object
-   */
   @Override
   public Address refToAddress(ObjectReference object) {
     return object.toAddress();
   }
 
-  /**
-   * Checks if a reference of the given type in another object is
-   * inherently acyclic.  The type is given as a TIB.
-   *
-   * @return <code>true</code> if a reference of the type is
-   * inherently acyclic
-   */
   @Override
   public boolean isAcyclic(ObjectReference typeRef) {
     return false;
@@ -769,11 +604,6 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
    * String representations of objects and logging/dump methods
    */
 
-  /**
-   * Dump debugging information for an object.
-   *
-   * @param object The object whose information is to be dumped
-   */
   @Override
   public void dumpObject(ObjectReference object) {
     System.err.println("===================================");
