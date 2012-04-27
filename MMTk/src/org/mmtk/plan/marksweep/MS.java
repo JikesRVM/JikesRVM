@@ -61,9 +61,7 @@ public class MS extends StopTheWorld {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
+   * {@inheritDoc}
    */
   @Inline
   @Override
@@ -124,9 +122,6 @@ public class MS extends StopTheWorld {
     return super.willNeverMove(object);
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Interruptible
   @Override
   protected void registerSpecializedMethods() {

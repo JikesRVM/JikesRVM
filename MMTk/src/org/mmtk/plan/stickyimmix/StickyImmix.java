@@ -101,19 +101,11 @@ public class StickyImmix extends Immix {
     nextGCWholeHeap |= Options.fullHeapSystemGC.getValue();
   }
 
-  /**
-   * Force the next collection to be full heap.
-   */
   @Override
   public void forceFullHeapCollection() {
     nextGCWholeHeap = true;
   }
 
-  /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
-   */
   @Inline
   @Override
   public final void collectionPhase(short phaseId) {
@@ -153,11 +145,7 @@ public class StickyImmix extends Immix {
    */
 
   /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @return True if a collection is requested by the plan.
+   * {@inheritDoc}
    */
   @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
@@ -184,12 +172,6 @@ public class StickyImmix extends Immix {
     return false;
   }
 
-  /**
-   * Return the number of pages reserved for collection.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for collection.
-   */
   @Override
   public int getCollectionReserve() {
     return super.getCollectionReserve() + immixSpace.defragHeadroomPages();
@@ -206,24 +188,15 @@ public class StickyImmix extends Immix {
     super.printPreStats();
   }
 
-  /**
-   * @return Is current GC only collecting objects allocated since last GC.
-   */
   @Override
   public final boolean isCurrentGCNursery() {
     return !collectWholeHeap;
   }
 
-  /**
-   * @return Is last GC a full collection?
-   */
   public final boolean isLastGCFull() {
     return collectWholeHeap;
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

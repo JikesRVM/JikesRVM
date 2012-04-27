@@ -70,14 +70,6 @@ public class StickyImmixMutator extends ImmixMutator {
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Override
   @Inline
@@ -118,23 +110,6 @@ public class StickyImmixMutator extends ImmixMutator {
     return false;
   }
 
- /**
-   * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is
-   * created, we must then take appropriate write barrier actions.<p>
-   *
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param old The old reference to be swapped out
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
-   * @return True if the swap was successful.
-   */
   @Override
   @Inline
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot,
@@ -161,22 +136,12 @@ public class StickyImmixMutator extends ImmixMutator {
     modBuffer.push(src);
   }
 
-  /**
-   * Flush per-mutator remembered sets into the global remset pool.
-   */
   @Override
   public final void flushRememberedSets() {
     modBuffer.flushLocal();
     assertRemsetFlushed();
   }
 
-  /**
-   * Assert that the remsets have been flushed.  This is critical to
-   * correctness.  We need to maintain the invariant that remset entries
-   * do not accrue during GC.  If the host JVM generates barrier entires
-   * it is its own responsibility to ensure that they are flushed before
-   * returning to MMTk.
-   */
   public final void assertRemsetFlushed() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(modBuffer.isFlushed());
@@ -190,10 +155,7 @@ public class StickyImmixMutator extends ImmixMutator {
    */
 
   /**
-   * Perform a per-mutator collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
   @Override
   @Inline

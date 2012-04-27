@@ -42,6 +42,9 @@ public abstract class ConcurrentCollector extends SimpleCollector {
    * Collection
    */
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Unpreemptible
   public void run() {

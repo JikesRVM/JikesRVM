@@ -54,10 +54,7 @@ public final class ImmixTraceLocal extends TraceLocal {
    */
 
   /**
-   * Is the specified object live?
-   *
-   * @param object The object.
-   * @return True if the object is live.
+   * {@inheritDoc}
    */
   @Override
   public boolean isLive(ObjectReference object) {
@@ -106,17 +103,6 @@ public final class ImmixTraceLocal extends TraceLocal {
     return true;
   }
 
-  /**
-   * Collectors that move objects <b>must</b> override this method.
-   * It performs the deferred scanning of objects which are forwarded
-   * during bootstrap of each copying collection.  Because of the
-   * complexities of the collection bootstrap (such objects are
-   * generally themselves gc-critical), the forwarding and scanning of
-   * the objects must be dislocated.  It is an error for a non-moving
-   * collector to call this method.
-   *
-   * @param object The forwarded object to be scanned
-   */
   @Inline
   @Override
   protected void scanObject(ObjectReference object) {

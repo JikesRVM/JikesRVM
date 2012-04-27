@@ -250,9 +250,7 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -344,9 +342,6 @@ import org.vmmagic.pragma.*;
     Log.flush();
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

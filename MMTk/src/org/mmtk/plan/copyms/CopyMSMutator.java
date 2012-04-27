@@ -68,12 +68,6 @@ public class CopyMSMutator extends StopTheWorldMutator {
    * Allocate memory for an object. This class handles the default allocator
    * from the mark sweep space, and delegates everything else to the
    * superclass.
-   *
-   * @param bytes The number of bytes required for the object.
-   * @param align Required alignment for the object.
-   * @param offset Offset associated with the alignment.
-   * @param allocator The allocator associated with this request.
-   * @return The low address of the allocated memory.
    */
   @Override
   @Inline
@@ -90,11 +84,6 @@ public class CopyMSMutator extends StopTheWorldMutator {
    * Perform post-allocation actions.  Initialize the object header for
    * objects in the mark-sweep space, and delegate to the superclass for
    * other objects.
-   *
-   * @param ref The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
    */
   @Override
   @SuppressWarnings({"UnnecessaryReturnStatement"})
@@ -109,15 +98,6 @@ public class CopyMSMutator extends StopTheWorldMutator {
       super.postAlloc(ref, typeRef, bytes, allocator);
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
   @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == CopyMS.nurserySpace) return nursery;
@@ -131,10 +111,7 @@ public class CopyMSMutator extends StopTheWorldMutator {
    */
 
   /**
-   * Perform a per-mutator collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Use this thread for single-threaded local activities.
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -155,10 +132,6 @@ public class CopyMSMutator extends StopTheWorldMutator {
     super.collectionPhase(phaseId, primary);
   }
 
-  /**
-   * Flush mutator context, in response to a requestMutatorFlush.
-   * Also called by the default implementation of deinitMutator.
-   */
   @Override
   public void flush() {
     super.flush();

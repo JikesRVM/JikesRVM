@@ -26,12 +26,6 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public final class RCZero extends TransitiveClosure {
 
-  /**
-   * Trace an edge during GC.
-   *
-   * @param source The source of the reference.
-   * @param slot The location containing the object reference.
-   */
   @Override
   @Inline
   public void processEdge(ObjectReference source, Address slot) {

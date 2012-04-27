@@ -126,9 +126,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -197,14 +195,6 @@ import org.vmmagic.unboxed.ObjectReference;
     return super.willNeverMove(object);
   }
 
-  /**
-   * Return the expected reference count. For non-reference counting
-   * collectors this becomes a true/false relationship.
-   * @param object The object to check.
-   * @param sanityRootRC The number of root references to the object.
-   *
-   * @return The expected (root excluded) reference count.
-   */
   @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
@@ -219,9 +209,6 @@ import org.vmmagic.unboxed.ObjectReference;
     return super.sanityExpectedRC(object, sanityRootRC);
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

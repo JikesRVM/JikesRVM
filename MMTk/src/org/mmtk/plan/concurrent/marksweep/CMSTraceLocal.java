@@ -37,20 +37,11 @@ public final class CMSTraceLocal extends TraceLocal {
    * Externally visible Object processing and tracing
    */
 
-  /**
-   * Should reference values be overwritten as the heap is traced?
-   */
   @Override
   protected boolean overwriteReferenceDuringTrace() {
     return false;
   }
 
-  /**
-   * Is the specified object live?
-   *
-   * @param object The object.
-   * @return True if the object is live.
-   */
   @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
@@ -70,9 +61,6 @@ public final class CMSTraceLocal extends TraceLocal {
    *
    * In this instance, we refer objects in the mark-sweep space to the
    * msSpace for tracing, and defer to the superclass for all others.
-   *
-   * @param object The object to be traced.
-   * @return The new reference to the same object instance.
    */
   @Override
   @Inline

@@ -76,10 +76,7 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Use this thread for single-threaded local activities.
+   * {@inheritDoc}
    */
   @Override
   @NoInline

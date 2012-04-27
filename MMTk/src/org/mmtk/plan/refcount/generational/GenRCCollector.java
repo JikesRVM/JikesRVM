@@ -47,10 +47,7 @@ public class GenRCCollector extends RCBaseCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary perform any single-threaded local activities.
+   * {@inheritDoc}
    */
   @Override
   public final void collectionPhase(short phaseId, boolean primary) {
@@ -96,10 +93,6 @@ public class GenRCCollector extends RCBaseCollector {
 
   /**
    * Perform any post-copy actions.  In this case nothing is required.
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
    */
   @Override
   @Inline
@@ -111,17 +104,11 @@ public class GenRCCollector extends RCBaseCollector {
     ExplicitFreeListSpace.unsyncSetLiveBit(object);
   }
 
-  /**
-   * Get the modified processor to use.
-   */
   @Override
   protected final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
   }
 
-  /**
-   * Get the root trace to use.
-   */
   @Override
   protected final TraceLocal getRootTrace() {
     return rootTrace;

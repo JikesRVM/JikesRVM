@@ -101,9 +101,7 @@ public class SS extends StopTheWorld {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -139,9 +137,6 @@ public class SS extends StopTheWorld {
 
   /**
    * Return the number of pages reserved for copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
    */
   @Override
   public final int getCollectionReserve() {
@@ -188,9 +183,6 @@ public class SS extends StopTheWorld {
     return super.willNeverMove(object);
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

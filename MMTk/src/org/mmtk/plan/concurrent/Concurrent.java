@@ -39,7 +39,7 @@ public abstract class Concurrent extends Simple {
   public static final short CLEAR_BARRIER_ACTIVE        = Phase.createSimple("clear-barrier", null);
 
   // CHECKSTYLE:OFF
-  
+
   /**
    * When we preempt a concurrent marking phase we must flush mutators and then continue the closure.
    */
@@ -95,12 +95,7 @@ public abstract class Concurrent extends Simple {
    */
 
   /**
-   * The processOptions method is called by the runtime immediately after
-   * command-line arguments are available. Allocation must be supported
-   * prior to this point because the runtime infrastructure may require
-   * allocation in order to parse the command line arguments.  For this
-   * reason all plans should operate gracefully on the default minimum
-   * heap size until the point that processOptions is called.
+   * {@inheritDoc}
    */
   @Override
   @Interruptible
@@ -109,7 +104,7 @@ public abstract class Concurrent extends Simple {
 
     /* Set up the concurrent marking phase */
     replacePhase(Phase.scheduleCollector(CLOSURE), Phase.scheduleComplex(concurrentClosure));
-    
+
     if (Options.sanityCheck.getValue()) {
       Log.writeln("Collection sanity checking enabled.");
       replacePhase(Phase.schedulePlaceholder(PRE_SANITY_PLACEHOLDER), Phase.scheduleComplex(preSanityPhase));
@@ -123,11 +118,6 @@ public abstract class Concurrent extends Simple {
    */
   private boolean inConcurrentCollection = false;
 
-  /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
-   */
   @Override
   @Inline
   public void collectionPhase(short phaseId) {
@@ -151,21 +141,12 @@ public abstract class Concurrent extends Simple {
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * This method controls the triggering of an atomic phase of a concurrent
-   * collection. It is called periodically during allocation.
-   *
-   * @return True if a collection is requested by the plan.
-   */
   @Override
   protected boolean concurrentCollectionRequired() {
     return !Phase.concurrentPhaseActive() &&
       ((getPagesReserved() * 100) / getTotalPages()) > Options.concurrentTrigger.getValue();
   }
 
-  /**
-   * @return Whether last GC is a full GC.
-   */
   @Override
   public boolean lastCollectionFullHeap() {
     // TODO: Why this?

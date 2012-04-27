@@ -39,10 +39,6 @@ public abstract class SimpleMutator extends MutatorContext {
   /**
    * Perform a per-mutator collection phase.   This is executed by
    * one collector thread on behalf of a mutator thread.
-   *
-   * @param phaseId The unique phase identifier
-   * @param primary Should this thread be used to execute any single-threaded
-   * local operations?
    */
   @Override
   @Inline

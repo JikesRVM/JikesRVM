@@ -45,10 +45,7 @@ public class SSTraceLocal extends TraceLocal {
    */
 
   /**
-   * Return true if <code>obj</code> is a live object.
-   *
-   * @param object The object in question
-   * @return True if <code>obj</code> is a live object.
+   * {@inheritDoc}
    */
   @Override
   public boolean isLive(ObjectReference object) {
@@ -61,17 +58,6 @@ public class SSTraceLocal extends TraceLocal {
   }
 
 
-  /**
-   * This method is the core method during the trace of the object graph.
-   * The role of this method is to:
-   *
-   * 1. Ensure the traced object is not collected.
-   * 2. If this is the first visit to the object enqueue it to be scanned.
-   * 3. Return the forwarded reference to the object.
-   *
-   * @param object The object to be traced.
-   * @return The new reference to the same object instance.
-   */
   @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {

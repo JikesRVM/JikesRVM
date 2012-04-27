@@ -56,9 +56,7 @@ public class CMS extends Concurrent {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
+   * {@inheritDoc}
    */
   @Override
   @Inline

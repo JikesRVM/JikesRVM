@@ -94,9 +94,6 @@ public final class ComplexPhase extends Phase
     return scheduledSubPhases[index];
   }
 
-  /**
-   * Display a description of this phase, for debugging purposes.
-   */
   @Override
   protected void logPhase() {
     Log.write("ComplexPhase(");

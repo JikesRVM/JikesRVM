@@ -84,9 +84,7 @@ public class CopyMS extends StopTheWorld {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -114,13 +112,6 @@ public class CopyMS extends StopTheWorld {
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @return True if a collection is requested by the plan.
-   */
   @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
@@ -168,14 +159,6 @@ public class CopyMS extends StopTheWorld {
     return (getTotalPages() - getPagesReserved()) >> 1;
   }
 
-  /**
-   * Return the expected reference count. For non-reference counting
-   * collectors this becomes a true/false relationship.
-   *
-   * @param object The object to check.
-   * @param sanityRootRC The number of root references to the object.
-   * @return The expected (root excluded) reference count.
-   */
   @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
@@ -188,9 +171,6 @@ public class CopyMS extends StopTheWorld {
     return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

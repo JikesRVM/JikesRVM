@@ -98,19 +98,11 @@ public class StickyMS extends MS {
     nextGCWholeHeap |= Options.fullHeapSystemGC.getValue();
   }
 
-  /**
-   * Force the next collection to be full heap.
-   */
   @Override
   public void forceFullHeapCollection() {
     nextGCWholeHeap = true;
   }
 
-  /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
-   */
   @Inline
   @Override
   public final void collectionPhase(short phaseId) {
@@ -157,9 +149,6 @@ public class StickyMS extends MS {
     super.printPreStats();
   }
 
-  /**
-   * @return Is current GC only collecting objects allocated since last GC.
-   */
   @Override
   public final boolean isCurrentGCNursery() {
     return !collectWholeHeap;
@@ -172,14 +161,6 @@ public class StickyMS extends MS {
     return collectWholeHeap;
   }
 
-  /**
-   * Return the expected reference count. For non-reference counting
-   * collectors this becomes a true/false relationship.
-   * @param object The object to check.
-   * @param sanityRootRC The number of root references to the object.
-   *
-   * @return The expected (root excluded) reference count.
-   */
   @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
@@ -197,9 +178,6 @@ public class StickyMS extends MS {
     return super.sanityExpectedRC(object, sanityRootRC);
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

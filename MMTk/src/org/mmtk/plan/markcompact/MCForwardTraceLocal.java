@@ -38,10 +38,7 @@ public final class MCForwardTraceLocal extends TraceLocal {
    */
 
   /**
-   * Is the specified object live?
-   *
-   * @param object The object.
-   * @return True if the object is live.
+   * {@inheritDoc}
    */
   @Override
   public boolean isLive(ObjectReference object) {

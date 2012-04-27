@@ -39,11 +39,6 @@ public final class RCDecBuffer extends ObjectReferenceBuffer implements Constant
     super("dec", queue);
   }
 
-  /**
-   * This is the method that ensures
-   *
-   * @param object The object to process.
-   */
   @Override
   @Inline
   protected void process(ObjectReference object) {

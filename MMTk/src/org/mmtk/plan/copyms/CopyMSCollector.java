@@ -92,13 +92,6 @@ public class CopyMSCollector extends StopTheWorldCollector {
     }
   }
 
-  /**
-   * Perform any post-copy actions.
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   */
   @Override
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
@@ -115,10 +108,7 @@ public class CopyMSCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Use this thread for single-threaded local activities.
+   * {@inheritDoc}
    */
   @Override
   @Inline

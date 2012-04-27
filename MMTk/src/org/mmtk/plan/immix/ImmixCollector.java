@@ -101,11 +101,7 @@ public class ImmixCollector extends StopTheWorldCollector {
   }
 
  /**
-  * Perform any post-copy actions.
-  *
   * @param object The newly allocated object
-  * @param typeRef the type reference for the instance being created
-  * @param bytes The size of the space to be allocated (in bytes)
   */
   @Override
   @Inline
@@ -126,10 +122,7 @@ public class ImmixCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
   @Override
   @Inline

@@ -110,14 +110,6 @@ import org.vmmagic.pragma.*;
     TraceGenerator.init(workList, traceBuf);
   }
 
-  /**
-   * The processOptions method is called by the runtime immediately after
-   * command-line arguments are available. Allocation must be supported
-   * prior to this point because the runtime infrastructure may require
-   * allocation in order to parse the command line arguments.  For this
-   * reason all plans should operate gracefully on the default minimum
-   * heap size until the point that processOptions is called.
-   */
   @Override
   @Interruptible
   public void processOptions() {
@@ -139,13 +131,6 @@ import org.vmmagic.pragma.*;
     TraceGenerator.notifyExit(value);
   }
 
-  /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @return True if a collection is requested by the plan.
-   */
   @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     if (super.collectionRequired(spaceFull, space)) {
@@ -160,6 +145,9 @@ import org.vmmagic.pragma.*;
    * Collection
    */
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {

@@ -137,12 +137,6 @@ public final class GCTraceTraceLocal extends SSTraceLocal {
     return object;
   }
 
-  /**
-   * Return true if <code>obj</code> is a live object.
-   *
-   * @param object The object in question
-   * @return True if <code>obj</code> is a live object.
-   */
   @Override
   public boolean isLive(ObjectReference object) {
       if (object.isNull()) return false;

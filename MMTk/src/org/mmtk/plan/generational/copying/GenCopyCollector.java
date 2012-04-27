@@ -106,9 +106,6 @@ public class GenCopyCollector extends GenCollector {
    * for this object's GC metadata.
    *
    * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator to allocate from
    */
   @Override
   @Inline
@@ -130,11 +127,7 @@ public class GenCopyCollector extends GenCollector {
    */
 
   /**
-   * Execute a per-collector collection phase.
-   *
-   * @param phaseId The phase to execute.
-   * @param primary True if this thread should peform local single-threaded
-   * actions.
+   * {@inheritDoc}
    */
   @Override
   public void collectionPhase(short phaseId, boolean primary) {

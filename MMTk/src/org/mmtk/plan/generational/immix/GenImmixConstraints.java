@@ -26,7 +26,6 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public class GenImmixConstraints extends GenConstraints {
-  /** @return The specialized scan methods required */
   @Override
   public int numSpecializedScans() { return 2; }
   @Override

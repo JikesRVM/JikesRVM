@@ -45,8 +45,6 @@ public class NoGC extends Plan {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
    * @param phaseId Collection phase
    */
   @Inline
@@ -87,7 +85,7 @@ public class NoGC extends Plan {
    */
 
   /**
-   * Register specialized methods.
+   * {@inheritDoc}
    */
   @Interruptible
   @Override

@@ -68,10 +68,7 @@ public class MCCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -130,7 +127,9 @@ public class MCCollector extends StopTheWorldCollector {
    * Miscellaneous
    */
 
-  /** @return The current trace instance. */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public final TraceLocal getCurrentTrace() {
     if (currentTrace == TRACE_MARK) {

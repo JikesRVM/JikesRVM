@@ -72,7 +72,7 @@ public class GenMS extends Gen {
    */
 
   /**
-   * Perform a (global) collection phase.
+   * {@inheritDoc}
    */
   @Inline
   @Override
@@ -117,13 +117,6 @@ public class GenMS extends Gen {
     return msSpace.reservedPages() + super.getPagesUsed();
   }
 
-  /**
-   * Return the number of pages available for allocation into the mature
-   * space.
-   *
-   * @return The number of pages available for allocation into the mature
-   * space.
-   */
   @Override
   public int getMaturePhysicalPagesAvail() {
     return (int) (msSpace.availablePhysicalPages()/MarkSweepSpace.WORST_CASE_FRAGMENTATION);
@@ -159,9 +152,6 @@ public class GenMS extends Gen {
     return super.willNeverMove(object);
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

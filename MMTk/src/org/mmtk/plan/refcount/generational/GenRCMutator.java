@@ -40,16 +40,6 @@ public class GenRCMutator extends RCBaseMutator {
    * Mutator-time allocation
    */
 
-  /**
-   * Allocate memory for an object.
-   *
-   * @param bytes The number of bytes required for the object.
-   * @param align Required alignment for the object.
-   * @param offset Offset associated with the alignment.
-   * @param allocator The allocator associated with this request.
-   * @param site Allocation site
-   * @return The address of the newly allocated memory.
-   */
   @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
@@ -59,15 +49,6 @@ public class GenRCMutator extends RCBaseMutator {
     return super.alloc(bytes, align, offset, allocator, site);
   }
 
-  /**
-   * Perform post-allocation actions.  For many allocators none are
-   * required.
-   *
-   * @param ref The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
-   */
   @Override
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef, int bytes, int allocator) {
@@ -77,15 +58,6 @@ public class GenRCMutator extends RCBaseMutator {
     super.postAlloc(ref, typeRef, bytes, allocator);
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
   @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == GenRC.nurserySpace) return nursery;
@@ -99,10 +71,7 @@ public class GenRCMutator extends RCBaseMutator {
    */
 
   /**
-   * Perform a per-mutator collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary perform any single-threaded local activities.
+   * {@inheritDoc}
    */
   @Override
   public final void collectionPhase(short phaseId, boolean primary) {

@@ -34,12 +34,6 @@ public final class GenRCModifiedProcessor extends TransitiveClosure {
       this.trace = trace;
     }
 
-  /**
-   * Trace an edge during GC.
-   *
-   * @param source The source of the reference.
-   * @param slot The location containing the object reference.
-   */
   @Override
   @Inline
   public void processEdge(ObjectReference source, Address slot) {

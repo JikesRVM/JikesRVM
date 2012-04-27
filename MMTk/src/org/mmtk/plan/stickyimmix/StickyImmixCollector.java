@@ -70,10 +70,7 @@ public class StickyImmixCollector extends ImmixCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
   @Override
   @Inline

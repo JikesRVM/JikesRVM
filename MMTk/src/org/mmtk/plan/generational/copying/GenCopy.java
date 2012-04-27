@@ -92,9 +92,6 @@ import org.vmmagic.pragma.*;
     matureTrace = new Trace(metaDataSpace);
   }
 
-  /**
-   * @return Does the mature space do copying ?
-   */
   @Override
   protected boolean copyMature() {
     return true;
@@ -191,13 +188,6 @@ import org.vmmagic.pragma.*;
     return toSpace().reservedPages() + super.getCollectionReserve();
   }
 
-  /**
-   * Return the number of pages available for allocation into the mature
-   * space.
-   *
-   * @return The number of pages available for allocation into the mature
-   * space.
-   */
   @Override
   public int getMaturePhysicalPagesAvail() {
     return toSpace().availablePhysicalPages() >> 1;
@@ -216,9 +206,6 @@ import org.vmmagic.pragma.*;
     return toSpace();
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

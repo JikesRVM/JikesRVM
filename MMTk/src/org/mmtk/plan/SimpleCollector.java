@@ -47,11 +47,7 @@ public abstract class SimpleCollector extends ParallelCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The unique phase identifier
-   * @param primary Should this thread be used to execute any single-threaded
-   * local operations?
+   * {@inheritDoc}
    */
   @Override
   @Inline

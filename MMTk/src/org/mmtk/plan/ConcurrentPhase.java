@@ -67,9 +67,6 @@ public final class ConcurrentPhase extends Phase
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(getSchedule(this.atomicScheduledPhase) != SCHEDULE_CONCURRENT);
   }
 
-  /**
-   * Display a description of this phase, for debugging purposes.
-   */
   @Override
   protected void logPhase() {
     Log.write("ConcurrentPhase(");

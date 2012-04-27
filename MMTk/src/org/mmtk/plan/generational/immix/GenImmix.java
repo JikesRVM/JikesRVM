@@ -117,9 +117,6 @@ public class GenImmix extends Gen {
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * @return Whether last GC was an exhaustive attempt to collect the heap.  For many collectors this is the same as asking whether the last GC was a full heap collection.
-   */
   @Override
   public boolean lastCollectionWasExhaustive() {
     return lastGCWasDefrag;
@@ -143,24 +140,11 @@ public class GenImmix extends Gen {
     return immixSpace.reservedPages() + super.getPagesUsed();
   }
 
-  /**
-   * Return the number of pages available for allocation into the mature
-   * space.
-   *
-   * @return The number of pages available for allocation into the mature
-   * space.
-   */
   @Override
   public int getMaturePhysicalPagesAvail() {
     return immixSpace.availablePhysicalPages();
   }
 
-  /**
-   * Return the number of pages reserved for copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
-   */
   @Override
   public int getCollectionReserve() {
     return super.getCollectionReserve() + immixSpace.defragHeadroomPages();

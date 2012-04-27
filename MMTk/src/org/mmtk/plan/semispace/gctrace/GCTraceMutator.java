@@ -43,13 +43,7 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Perform post-allocation actions.  For many allocators none are
-   * required.
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -79,15 +73,6 @@ import org.vmmagic.pragma.*;
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * being modified
-   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Override
   @Inline
@@ -99,23 +84,6 @@ import org.vmmagic.pragma.*;
     VM.barriers.objectReferenceWrite(src, tgt, metaDataA, metaDataB, mode);
   }
 
-  /**
-   * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is
-   * created, we must then take appropriate write barrier actions.<p>
-   *
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param old The old reference to be swapped out
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
-   * @return True if the swap was successful.
-   */
   @Override
   @Inline
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot,
@@ -168,10 +136,7 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Perform a per-mutator collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary perform any single-threaded local activities.
+   * {@inheritDoc}
    */
   @Override
   public void collectionPhase(short phaseId, boolean primary) {

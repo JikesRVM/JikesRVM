@@ -40,9 +40,7 @@ public class GenRC extends RCBase {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase
+   * {@inheritDoc}
    */
   @Override
   public final void collectionPhase(short phaseId) {
@@ -62,13 +60,6 @@ public class GenRC extends RCBase {
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @return True if a collection is requested by the plan.
-   */
   @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
@@ -94,9 +85,6 @@ public class GenRC extends RCBase {
 
   /**
    * Return the number of pages reserved for copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
    */
   @Override
   public final int getCollectionReserve() {

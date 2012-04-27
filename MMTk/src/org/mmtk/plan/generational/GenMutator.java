@@ -76,14 +76,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Allocate memory for an object.
-   *
-   * @param bytes The number of bytes required for the object.
-   * @param align Required alignment for the object.
-   * @param offset Offset associated with the alignment.
-   * @param allocator The allocator associated with this request.
-   * @param site Allocation site
-   * @return The low address of the allocated memory.
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -95,15 +88,6 @@ import org.vmmagic.unboxed.*;
     return super.alloc(bytes, align, offset, allocator, site);
   }
 
-  /**
-   * Perform post-allocation actions.  For many allocators none are
-   * required.
-   *
-   * @param ref The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
-   */
   @Override
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
@@ -113,15 +97,6 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
   @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == Gen.nurserySpace) return nursery;
@@ -211,12 +186,6 @@ import org.vmmagic.unboxed.*;
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
-   *
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
    */
   @Override
   @Inline
@@ -234,16 +203,6 @@ import org.vmmagic.unboxed.*;
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param old The old reference to be swapped out
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
-   * @return True if the swap was successful.
    */
   @Override
   @Inline
@@ -263,14 +222,6 @@ import org.vmmagic.unboxed.*;
    *
    * In this case, we remember the mutated source address range and
    * will scan that address range at GC time.
-   *
-   * @param src The source of the values to be copied
-   * @param srcOffset The starting source offset
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The starting destination offset
-   * @param bytes The number of bytes to copy
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
    */
   @Inline
   @Override
@@ -282,9 +233,6 @@ import org.vmmagic.unboxed.*;
     return false;
   }
 
-  /**
-   * Flush per-mutator remembered sets into the global remset pool.
-   */
   @Override
   public final void flushRememberedSets() {
     modbuf.flushLocal();
@@ -293,13 +241,6 @@ import org.vmmagic.unboxed.*;
     assertRemsetsFlushed();
   }
 
-  /**
-   * Assert that the remsets have been flushed.  This is critical to
-   * correctness.  We need to maintain the invariant that remset entries
-   * do not accrue during GC.  If the host JVM generates barrier entires
-   * it is its own responsibility to ensure that they are flushed before
-   * returning to MMTk.
-   */
   @Override
   public final void assertRemsetsFlushed() {
     if (VM.VERIFY_ASSERTIONS) {
@@ -315,7 +256,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Perform a per-mutator collection phase.
+   * {@inheritDoc}
    */
   @Override
   @NoInline

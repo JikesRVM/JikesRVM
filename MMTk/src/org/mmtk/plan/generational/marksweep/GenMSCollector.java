@@ -101,11 +101,7 @@ public class GenMSCollector extends GenCollector {
   }
 
   /**
-   * Perform any post-copy actions.
-   *
    * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
    */
   @Inline
   @Override
@@ -125,10 +121,7 @@ public class GenMSCollector extends GenCollector {
    */
 
   /**
-   * Perform a (local) collection phase.
-   *
-   * @param phaseId Collection phase to perform
-   * @param primary Is this thread to do the one-off thread-local tasks
+   * {@inheritDoc}
    */
   @Override
   @NoInline

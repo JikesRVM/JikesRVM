@@ -102,13 +102,6 @@ public class SSCollector extends StopTheWorldCollector {
     }
   }
 
-  /**
-   * Perform any post-copy actions.
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   */
   @Override
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
@@ -124,10 +117,7 @@ public class SSCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -184,7 +174,6 @@ public class SSCollector extends StopTheWorldCollector {
     return (SS) VM.activePlan.global();
   }
 
-  /** @return the current trace object. */
   @Override
   public TraceLocal getCurrentTrace() {
     return trace;

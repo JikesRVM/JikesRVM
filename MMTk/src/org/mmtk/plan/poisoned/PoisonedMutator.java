@@ -34,18 +34,7 @@ public class PoisonedMutator extends MSMutator {
    */
 
   /**
-   * A new reference is about to be created. Take appropriate write
-   * barrier actions.<p>
-   *
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occurred
+   * {@inheritDoc}
    */
   @Inline
   @Override
@@ -53,41 +42,12 @@ public class PoisonedMutator extends MSMutator {
     VM.barriers.wordWrite(src, Poisoned.poison(tgt), metaDataA, metaDataB, mode);
   }
 
-  /**
-   * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is
-   * created, we must then take appropriate write barrier actions.<p>
-   *
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param old The old reference to be swapped out
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occurred
-   * @return True if the swap was successful.
-   */
   @Override
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
                                                Word metaDataA, Word metaDataB, int mode) {
     return VM.barriers.wordTryCompareAndSwap(src, Poisoned.poison(old), Poisoned.poison(tgt), metaDataA, metaDataB, mode);
   }
 
-  /**
-   * Read a reference. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
-   * barrier.  The call to this barrier takes the place of a load.<p>
-   *
-   * @param src The object reference holding the field being read.
-   * @param slot The address of the slot being read.
-   * @param metaDataA A value that assists the host VM in creating a load
-   * @param metaDataB A value that assists the host VM in creating a load
-   * @param mode The context in which the load occurred
-   * @return The reference that was read.
-   */
   @Inline
   @Override
   public ObjectReference objectReferenceRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {

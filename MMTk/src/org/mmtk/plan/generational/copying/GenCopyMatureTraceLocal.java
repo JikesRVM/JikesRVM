@@ -64,12 +64,6 @@ public final class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
     return super.traceObject(object);
   }
 
-  /**
-   * Return true if <code>obj</code> is a live object.
-   *
-   * @param object The object in question
-   * @return True if <code>obj</code> is a live object.
-   */
   @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
@@ -87,13 +81,7 @@ public final class GenCopyMatureTraceLocal extends GenMatureTraceLocal {
 
 
   /**
-   * Return true if this object is guaranteed not to move during this
-   * collection (i.e. this object is defintely not an unforwarded
-   * object).
-   *
-   * @param object
-   * @return True if this object is guaranteed not to move during this
-   *         collection.
+   * {@inheritDoc}
    */
   @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {

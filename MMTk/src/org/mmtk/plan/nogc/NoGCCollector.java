@@ -87,7 +87,6 @@ public class NoGCCollector extends ParallelCollector {
     return (NoGC) VM.activePlan.global();
   }
 
-  /** @return The current trace instance. */
   @Override
   public final TraceLocal getCurrentTrace() {
     return currentTrace;

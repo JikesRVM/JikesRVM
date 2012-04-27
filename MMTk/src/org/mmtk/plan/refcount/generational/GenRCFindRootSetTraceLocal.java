@@ -94,17 +94,6 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
     return object;
   }
 
-  /**
-   * Ensure that the referenced object will not move from this point through
-   * to the end of the collection. This can involve forwarding the object
-   * if necessary.
-   *
-   * <i>Non-copying collectors do nothing, copying collectors must
-   * override this method in each of their trace classes.</i>
-   *
-   * @param object The object that must not move during the collection.
-   * @return True If the object will not move during collection
-   */
   @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());

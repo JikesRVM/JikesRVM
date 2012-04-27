@@ -70,12 +70,6 @@ public class CMSMutator extends ConcurrentMutator {
    * Allocate memory for an object. This class handles the default allocator
    * from the mark sweep space, and delegates everything else to the
    * superclass.
-   *
-   * @param bytes The number of bytes required for the object.
-   * @param align Required alignment for the object.
-   * @param offset Offset associated with the alignment.
-   * @param allocator The allocator associated with this request.
-   * @return The low address of the allocated memory.
    */
   @Inline
   @Override
@@ -90,11 +84,6 @@ public class CMSMutator extends ConcurrentMutator {
    * Perform post-allocation actions.  Initialize the object header for
    * objects in the mark-sweep space, and delegate to the superclass for
    * other objects.
-   *
-   * @param ref The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
    */
   @NoInline
   @Override
@@ -108,15 +97,6 @@ public class CMSMutator extends ConcurrentMutator {
     }
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
   @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == CMS.msSpace) return ms;
@@ -129,10 +109,7 @@ public class CMSMutator extends ConcurrentMutator {
    */
 
   /**
-   * Perform a per-mutator collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -152,9 +129,6 @@ public class CMSMutator extends ConcurrentMutator {
     super.collectionPhase(phaseId, primary);
   }
 
-  /**
-   * Flush per-mutator remembered sets into the global remset pool.
-   */
   @Override
   public void flushRememberedSets() {
     remset.flush();
@@ -167,10 +141,7 @@ public class CMSMutator extends ConcurrentMutator {
    */
 
   /**
-   * Process a reference that may require being enqueued as part of a concurrent
-   * collection.
-   *
-   * @param ref The reference to check.
+   * {@inheritDoc}
    */
   @Override
   protected void checkAndEnqueueReference(ObjectReference ref) {

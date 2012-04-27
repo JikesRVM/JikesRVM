@@ -82,9 +82,7 @@ public class Immix extends StopTheWorld {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -117,9 +115,6 @@ public class Immix extends StopTheWorld {
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * @return Whether last GC was an exhaustive attempt to collect the heap.  For many collectors this is the same as asking whether the last GC was a full heap collection.
-   */
   @Override
   public boolean lastCollectionWasExhaustive() {
     return lastGCWasDefrag;
@@ -169,9 +164,6 @@ public class Immix extends StopTheWorld {
       return super.willNeverMove(object);
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

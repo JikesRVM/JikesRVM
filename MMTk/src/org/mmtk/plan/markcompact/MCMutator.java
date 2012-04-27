@@ -65,13 +65,6 @@ import org.vmmagic.unboxed.*;
    * Allocate memory for an object. This class handles the default allocator
    * from the mark sweep space, and delegates everything else to the
    * superclass.
-   *
-   * @param bytes The number of bytes required for the object.
-   * @param align Required alignment for the object.
-   * @param offset Offset associated with the alignment.
-   * @param allocator The allocator associated with this request.
-   * @param site Allocation site
-   * @return The low address of the allocated memory.
    */
   @Override
   @Inline
@@ -86,11 +79,6 @@ import org.vmmagic.unboxed.*;
    * Perform post-allocation actions.  Initialize the object header for
    * objects in the mark-sweep space, and delegate to the superclass for
    * other objects.
-   *
-   * @param ref The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
    */
   @Override
   @Inline
@@ -102,15 +90,6 @@ import org.vmmagic.unboxed.*;
       super.postAlloc(ref, typeRef, bytes, allocator);
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
   @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == MC.mcSpace) return mc;
@@ -124,10 +103,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Perform a per-mutator collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
   @Override
   @Inline

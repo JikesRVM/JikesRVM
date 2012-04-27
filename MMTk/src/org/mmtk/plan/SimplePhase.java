@@ -49,9 +49,6 @@ public final class SimplePhase extends Phase
     super(name, timer);
   }
 
-  /**
-   * Display a phase for debugging purposes.
-   */
   @Override
   protected void logPhase() {
     Log.write("SimplePhase(");

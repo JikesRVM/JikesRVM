@@ -52,14 +52,6 @@ public abstract class StopTheWorld extends Simple {
    * Collection
    */
 
-  /**
-   * The processOptions method is called by the runtime immediately after
-   * command-line arguments are available. Allocation must be supported
-   * prior to this point because the runtime infrastructure may require
-   * allocation in order to parse the command line arguments.  For this
-   * reason all plans should operate gracefully on the default minimum
-   * heap size until the point that processOptions is called.
-   */
   @Override
   @Interruptible
   public void processOptions() {

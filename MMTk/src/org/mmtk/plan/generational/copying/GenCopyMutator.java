@@ -81,14 +81,7 @@ public class GenCopyMutator extends GenMutator {
    */
 
   /**
-   * Allocate space (for an object) in the specified space
-   *
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @param allocator The allocator to allocate from
-   * @param site Allocation site
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -99,14 +92,6 @@ public class GenCopyMutator extends GenMutator {
     return super.alloc(bytes, align, offset, allocator, site);
   }
 
-  /**
-   * Perform post-allocation initialization of an object
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param allocator The allocator to allocate from
-   * @param bytes The size of the space allocated (in bytes)
-   */
   @Override
   @Inline
   public final void postAlloc(ObjectReference object, ObjectReference typeRef,
@@ -116,15 +101,6 @@ public class GenCopyMutator extends GenMutator {
     super.postAlloc(object, typeRef, bytes, allocator);
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
   @Override
   public final Allocator getAllocatorFromSpace(Space space) {
     if (space == GenCopy.matureSpace0 || space == GenCopy.matureSpace1) return mature;
@@ -138,11 +114,7 @@ public class GenCopyMutator extends GenMutator {
    */
 
   /**
-   * Execute a per-mutator collection phase.
-   *
-   * @param phaseId The phase to execute.
-   * @param primary True if this thread should peform local single-threaded
-   * actions.
+   * {@inheritDoc}
    */
   @Override
   public void collectionPhase(short phaseId, boolean primary) {

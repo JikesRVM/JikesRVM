@@ -30,11 +30,9 @@ public class StickyMSConstraints extends MSConstraints {
   @Override
   public int numSpecializedScans() { return 2; }
 
-  /** @return True if this plan requires a write barrier */
   @Override
   public boolean needsObjectReferenceWriteBarrier() { return true; }
 
-  /** @return True if this Plan requires a header bit for object logging */
   @Override
   public boolean needsLogBitInHeader() { return true; }
 

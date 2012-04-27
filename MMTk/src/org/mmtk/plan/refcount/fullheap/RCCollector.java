@@ -37,17 +37,11 @@ public class RCCollector extends RCBaseCollector {
     modProcessor = new RCModifiedProcessor();
   }
 
-  /**
-   * Get the modified processor to use.
-   */
   @Override
   protected final TransitiveClosure getModifiedProcessor() {
     return modProcessor;
   }
 
-  /**
-   * Get the root trace to use.
-   */
   @Override
   protected final TraceLocal getRootTrace() {
     return rootTrace;

@@ -136,14 +136,6 @@ public class RCBase extends StopTheWorld {
     loFreeSweeper = new BTFreeLargeObjectSweeper();
   }
 
-  /**
-   * The processOptions method is called by the runtime immediately after
-   * command-line arguments are available. Allocation must be supported
-   * prior to this point because the runtime infrastructure may require
-   * allocation in order to parse the command line arguments.  For this
-   * reason all plans should operate gracefully on the default minimum
-   * heap size until the point that processOptions is called.
-   */
   @Override
   @Interruptible
   public void processOptions() {
@@ -166,19 +158,11 @@ public class RCBase extends StopTheWorld {
     return !object.isNull() && !Space.isInSpace(VM_SPACE, object);
   }
 
-  /**
-   * @return Whether last GC is a full GC.
-   */
   @Override
   public boolean lastCollectionFullHeap() {
     return performCycleCollection;
   }
 
-  /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase
-   */
   @Override
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
@@ -258,11 +242,7 @@ public class RCBase extends StopTheWorld {
    */
 
   /**
-   * Return the number of pages used given the pending
-   * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
+   * {@inheritDoc}
    */
   @Override
   public int getPagesUsed() {
@@ -277,14 +257,6 @@ public class RCBase extends StopTheWorld {
     //rcSpace.linearScan(scan);
   }
 
-  /**
-   * Return the expected reference count. For non-reference counting
-   * collectors this becomes a true/false relationship.
-   *
-   * @param object The object to check.
-   * @param sanityRootRC The number of root references to the object.
-   * @return The expected (root excluded) reference count.
-   */
   @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     if (RCBase.isRCObject(object)) {

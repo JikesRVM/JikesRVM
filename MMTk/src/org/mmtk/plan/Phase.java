@@ -300,7 +300,7 @@ public abstract class Phase implements Constants {
   }
 
   /**
-   * Display a phase for debugging purposes.
+   * Display a description of this phase, for debugging purposes.
    */
   protected abstract void logPhase();
 

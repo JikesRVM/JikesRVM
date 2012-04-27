@@ -46,10 +46,7 @@ public final class MSTraceLocal extends TraceLocal {
    */
 
   /**
-   * Is the specified object live?
-   *
-   * @param object The object.
-   * @return <code>true</code> if the object is live.
+   * {@inheritDoc}
    */
   @Override
   public boolean isLive(ObjectReference object) {

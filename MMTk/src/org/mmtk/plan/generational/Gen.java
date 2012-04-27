@@ -140,18 +140,13 @@ public abstract class Gen extends StopTheWorld {
    */
 
   /**
-   * Force the next collection to be full heap.
+   * {@inheritDoc}
    */
   @Override
   public void forceFullHeapCollection() {
     nextGCFullHeap = true;
   }
 
-  /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
-   */
   @Override
   @NoInline
   public void collectionPhase(short phaseId) {
@@ -203,13 +198,6 @@ public abstract class Gen extends StopTheWorld {
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @return True if a collection is requested by the plan.
-   */
   @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     int availableNurseryPages = Options.nurserySize.getMaxNursery() - nurserySpace.reservedPages();
@@ -383,17 +371,11 @@ public abstract class Gen extends StopTheWorld {
     return IGNORE_REMSETS || gcFullHeap;
   }
 
-  /**
-   * @return Is current GC only collecting objects allocated since last GC.
-   */
   @Override
   public final boolean isCurrentGCNursery() {
     return !(IGNORE_REMSETS || gcFullHeap);
   }
 
-  /**
-   * @return Is last GC a full collection?
-   */
   @Override
   public final boolean lastCollectionFullHeap() {
     return gcFullHeap;
