@@ -109,8 +109,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * get number of superclasses to Object
-   * @return 0
+   * @return 0 because unboxed types do not extend java.lang.Object
    */
   @Override
   @Pure
@@ -120,9 +119,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Reference Count GC: Is a reference of this type contained in
-   * another object inherently acyclic (without cycles) ?
-   * @return true
+   * @return <code>true</code> because unboxed types cannot contain any references
    */
   @Override
   @Pure
@@ -132,9 +129,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Number of [ in descriptor for arrays; -1 for primitives; 0 for
-   * classes
-   * @return -1;
+   * @return -1
    */
   @Override
   @Pure
@@ -144,8 +139,8 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Resolution status.
-   * @return true
+   * @return <code>true</code> because unboxed types are always considered
+   * resolved"
    */
   @Override
   @Uninterruptible
@@ -154,8 +149,8 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Instantiation status.
-   * @return true
+   * @return <code>true</code> because unboxed types are always considered
+   * "instantiated"
    */
   @Override
   @Pure
@@ -165,8 +160,8 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Initialization status.
-   * @return true
+   * @return <code>true</code> because unboxed types are always considered
+   * "initialized"
    */
   @Override
   @Pure
@@ -175,14 +170,12 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
     return true;
   }
 
-  /**
-   * Only intended to be used by the BootImageWriter
-   */
   @Override
   public void markAsBootImageClass() {}
 
   /**
-   * Is this class part of the virtual machine's boot image?
+   * @return <code>true</code>. All unboxed types are included in the bootimage
+   * because they are needed for starting Jikes RVM.
    */
   @Override
   @Pure
@@ -192,10 +185,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Get the offset in instances of this type assigned to the thin
-   * lock word.  Offset.max() if instances of this type do not have thin lock
-   * words.
-   * @return Offset.max();
+   * @return <code>Offset.max()</code>
    */
   @Override
   @Pure
@@ -206,8 +196,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Whether or not this is an instance of RVMClass?
-   * @return false
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -217,8 +206,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Whether or not this is an instance of RVMArray?
-   * @return false
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -228,8 +216,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Whether or not this is a primitive type
-   * @return true
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -239,7 +226,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * @return whether or not this is a reference (ie non-primitive) type.
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -249,7 +236,7 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * @return whether or not this is an unboxed type
+   * @return <code>true</code>
    */
   @Override
   @Pure
@@ -268,9 +255,6 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
     return stackWords;
   }
 
-  /**
-   * Space required in memory in bytes.
-   */
   @Override
   @Pure
   @Uninterruptible
@@ -279,7 +263,8 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   }
 
   /**
-   * Cause resolution to take place.
+   * Cause resolution to take place. This is a no-op for unboxed types.
+   * @see UnboxedType#isResolved()
    */
   @Override
   @Pure
@@ -289,21 +274,23 @@ public final class UnboxedType extends RVMType implements Constants, ClassLoader
   public void allBootImageTypesResolved() { }
 
   /**
-   * Cause instantiation to take place.
+   * Cause instantiation to take place. This is a no-op for unboxed types.
+   * @see UnboxedType#isInstantiated()
    */
   @Override
   @Pure
   public void instantiate() {}
 
   /**
-   * Cause initialization to take place.
+   * Cause initialization to take place. This is a no-op for unboxed types.
+   * @see UnboxedType#isInitialized()
    */
   @Override
   @Pure
   public void initialize() {}
 
   /**
-   * Does this type override java.lang.Object.finalize()?
+   * @return false
    */
   @Override
   @Pure

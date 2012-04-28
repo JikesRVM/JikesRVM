@@ -132,7 +132,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * @return java Expression stack space requirement.
+   * @return 1
    */
   @Override
   @Pure
@@ -141,9 +141,6 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     return 1;
   }
 
-  /**
-   * Space required in memory in bytes.
-   */
   @Override
   @Pure
   @Uninterruptible
@@ -231,7 +228,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Does this class override java.lang.Object.finalize()?
+   * @return false
    */
   @Override
   @Pure
@@ -288,7 +285,6 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * get number of superclasses to Object
    * @return 1
    */
   @Override
@@ -298,11 +294,6 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     return 1;
   }
 
-  /**
-   * Reference Count GC: Is a reference of this type contained in
-   * another object inherently acyclic (without cycles) ?
-   * @return true
-   */
   @Override
   @Pure
   @Uninterruptible
@@ -311,8 +302,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Number of [ in descriptor for arrays; -1 for primitives; 0 for
-   * classes
+   * Number of [ in descriptor for arrays
    */
   @Override
   @Pure
@@ -321,44 +311,29 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
     return dimension;
   }
 
-  /**
-   * Resolution status.
-   */
   @Override
   @Uninterruptible
   public boolean isResolved() {
     return state >= CLASS_RESOLVED;
   }
 
-  /**
-   * Instantiation status.
-   */
   @Override
   @Uninterruptible
   public boolean isInstantiated() {
     return state >= CLASS_INSTANTIATED;
   }
 
-  /**
-   * Initialization status.
-   */
   @Override
   @Uninterruptible
   public boolean isInitialized() {
     return state == CLASS_INITIALIZED;
   }
 
-  /**
-   * Only intended to be used by the BootImageWriter
-   */
   @Override
   public void markAsBootImageClass() {
     inBootImage = true;
   }
 
-  /**
-   * Is this class part of the virtual machine's boot image?
-   */
   @Override
   @Uninterruptible
   public boolean isInBootImage() {
@@ -367,7 +342,6 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
 
   /**
    * Get the offset in instances of this type assigned to the thin lock word.
-   * Offset.max() if instances of this type do not have thin lock words.
    */
   @Override
   @Uninterruptible
@@ -376,8 +350,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Whether or not this is an instance of RVMClass?
-   * @return false
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -387,8 +360,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Whether or not this is an instance of RVMArray?
-   * @return true
+   * @return <code>true</code>
    */
   @Override
   @Pure
@@ -398,8 +370,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Whether or not this is a primitive type
-   * @return false
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -409,7 +380,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * @return whether or not this is a reference (ie non-primitive) type.
+   * @return <code>true</code>
    */
   @Override
   @Pure
@@ -419,7 +390,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * @return whether or not this is an unboxed type
+   * @return <code>false</code>
    */
   @Override
   @Pure

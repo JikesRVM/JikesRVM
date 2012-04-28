@@ -67,9 +67,6 @@ public final class NativeMethod extends RVMMethod {
           annotationDefault);
   }
 
-  /**
-   * Generate the code for this method
-   */
   @Override
   protected synchronized CompiledMethod genCode() {
     if (isSysCall()) {

@@ -172,9 +172,6 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
     computeSummary(constantPool);
   }
 
-  /**
-   * Generate the code for this method
-   */
   @Override
   protected CompiledMethod genCode() throws VerifyError {
     if (VM.writingBootImage) {
@@ -481,11 +478,6 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
     return (summaryFlags & HAS_BACK_BRANCH) != 0;
   }
 
-  /**
-   * @return true if the method is the implementation of a runtime service
-   * that is called "under the covers" from the generated code and thus is not subject to
-   * inlining via the normal mechanisms.
-   */
   @Override
   public boolean isRuntimeServiceMethod() {
     return (summaryFlags & IS_RS_METHOD) != 0;
@@ -508,9 +500,6 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
     }
   }
 
-  /**
-   * @return true if the method may write to a given field
-   */
   @Override
   public boolean mayWrite(RVMField field) {
     if (!hasFieldWrite()) return false;

@@ -376,7 +376,7 @@ public abstract class RVMType extends AnnotatedElement
 
   /**
    * Reference Count GC: Is a reference of this type contained in
-   * another object inherently acyclic (without cycles) ?
+   * another object inherently acyclic (without cycles)?
    */
   @Uninterruptible
   public abstract boolean isAcyclicReference();
@@ -705,30 +705,35 @@ public abstract class RVMType extends AnnotatedElement
   public abstract Offset getThinLockOffset();
 
   /**
+   * Is this is an instance of RVMClass?
    * @return whether or not this is an instance of RVMClass?
    */
   @Uninterruptible
   public abstract boolean isClassType();
 
   /**
+   * Is this an instance of RVMArray?
    * @return whether or not this is an instance of RVMArray?
    */
   @Uninterruptible
   public abstract boolean isArrayType();
 
   /**
+   * Is this a primitive type?
    * @return whether or not this is a primitive type
    */
   @Uninterruptible
   public abstract boolean isPrimitiveType();
 
   /**
+   * Is this an unboxed type?
    * @return whether or not this is an unboxed type
    */
   @Uninterruptible
   public abstract boolean isUnboxedType();
 
   /**
+   * Is this a reference type?
    * @return whether or not this is a reference (ie non-primitive) type.
    */
   @Uninterruptible

@@ -740,6 +740,9 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("RVMMethod: (end)   compiling " + this + "\n");
   }
 
+  /**
+   * Generate the code for this method
+   */
   protected abstract CompiledMethod genCode();
 
   //----------------------------------------------------------------//

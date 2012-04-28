@@ -171,9 +171,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Reference Count GC: Is a reference of this type contained in
-   * another object inherently acyclic (without cycles) ?
-   * @return true
+   * @return <code>true</code>
    */
   @Override
   @Pure
@@ -195,8 +193,8 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Resolution status.
-   * @return true
+   * @return <code>true</code> because primitives are always considered
+   * "resolved"
    */
   @Override
   @Uninterruptible
@@ -205,8 +203,8 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Instantiation status.
-   * @return true
+   * @return <code>true</code> because primitives are always considered
+   * "instantiated"
    */
   @Override
   @Pure
@@ -216,8 +214,8 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Initialization status.
-   * @return true
+   * @return <code>true</code> because primitives are always considered
+   * "initialized"
    */
   @Override
   @Pure
@@ -226,14 +224,12 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
     return true;
   }
 
-  /**
-   * Only intended to be used by the BootImageWriter
-   */
   @Override
   public void markAsBootImageClass() {}
 
   /**
-   * Is this class part of the virtual machine's boot image?
+   * @return <code>true</code> because primitives are needed to start
+   * Jikes RVM
    */
   @Override
   @Pure
@@ -243,9 +239,6 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Get the offset in instances of this type assigned to the thin
-   * lock word.  Offset.max() if instances of this type do not have thin lock
-   * words.
    * @return Offset.max();
    */
   @Override
@@ -257,8 +250,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Whether or not this is an instance of RVMClass?
-   * @return false
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -268,8 +260,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Whether or not this is an instance of RVMArray?
-   * @return false
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -279,8 +270,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Whether or not this is a primitive type
-   * @return true
+   * @return <code>true</code>
    */
   @Override
   @Pure
@@ -290,7 +280,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * @return whether or not this is a reference (ie non-primitive) type.
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -300,7 +290,7 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * @return whether or not this is an unboxed type
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -319,9 +309,6 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
     return stackWords;
   }
 
-  /**
-   * Space required in memory in bytes.
-   */
   @Override
   @Pure
   @Uninterruptible
@@ -330,7 +317,8 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   }
 
   /**
-   * Cause resolution to take place.
+   * Cause resolution to take place. This is a no-op for primitive types.
+   * @see Primitive#isResolved()
    */
   @Override
   @Pure
@@ -340,21 +328,23 @@ public final class Primitive extends RVMType implements Constants, ClassLoaderCo
   public void allBootImageTypesResolved() { }
 
   /**
-   * Cause instantiation to take place.
+   * Cause instantiation to take place. This is a no-op for primitive types.
+   * @see Primitive#isInstantiated()
    */
   @Override
   @Pure
   public void instantiate() {}
 
   /**
-   * Cause initialization to take place.
+   * Cause initialization to take place. This is a no-op for primitive types.
+   * @see Primitive#isInitialized()
    */
   @Override
   @Pure
   public void initialize() {}
 
   /**
-   * Does this type override java.lang.Object.finalize()?
+   * @return <code>false</code>
    */
   @Override
   @Pure

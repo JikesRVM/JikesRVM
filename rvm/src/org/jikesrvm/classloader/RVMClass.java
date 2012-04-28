@@ -214,7 +214,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Stack space requirement in words.
+   * @return 1
    */
   @Override
   @Pure
@@ -223,9 +223,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     return 1;
   }
 
-  /**
-   * Space required in memory in bytes.
-   */
   @Override
   @Pure
   @Uninterruptible
@@ -947,6 +944,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
   /**
    * Should assertions be enabled on this type?
+   * @return whether or not assertions should be enabled
    */
   @Override
   @Pure
@@ -1356,10 +1354,11 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
 
-  // RCGC: A reference to class is acyclic if the class is acyclic and
-  // final (otherwise the reference could be to a subsequently loaded
-  // cyclic subclass).
-  //
+  /**
+   * @return <code>true</code> if the class is acyclic and
+   * final (otherwise the reference could be to a subsequently loaded
+   * cyclic subclass)
+   */
   @Override
   @Uninterruptible
   public boolean isAcyclicReference() {
@@ -1792,44 +1791,29 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
     return 0;
   }
 
-  /**
-   * Resolution status.
-   */
   @Override
   @Uninterruptible
   public boolean isResolved() {
     return state >= CLASS_RESOLVED;
   }
 
-  /**
-   * Instantiation status.
-   */
   @Override
   @Uninterruptible
   public boolean isInstantiated() {
     return state >= CLASS_INSTANTIATED;
   }
 
-  /**
-   * Initialization status.
-   */
   @Override
   @Uninterruptible
   public boolean isInitialized() {
     return state == CLASS_INITIALIZED;
   }
 
-  /**
-   * Only intended to be used by the BootImageWriter
-   */
   @Override
   public void markAsBootImageClass() {
     inBootImage = true;
   }
 
-  /**
-   * Is this class part of the virtual machine's boot image?
-   */
   @Override
   @Uninterruptible
   public boolean isInBootImage() {
@@ -1838,7 +1822,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
   /**
    * Get the offset in instances of this type assigned to the thin lock word.
-   * Offset.max() if instances of this type do not have thin lock words.
    * Is only known after class has been resolved.
    */
   @Override
@@ -1849,7 +1832,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
  /**
-   * Set the thin lock offset for instances of this type. Can be called at most once.
+   * Set the thin lock offset for instances of this type. Can be called at most once
    * and is invoked from ObjectModel.allocateThinLock (in object models which
    * do not allocate thin locks for all scalar object types).
    */
@@ -1860,7 +1843,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * get number of superclasses to Object
+   * Get number of superclasses to Object.
    */
   @Override
   @Pure
@@ -1870,8 +1853,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Whether or not this is an instance of RVMClass?
-   * @return false
+   * @return <code>true</code>
    */
   @Override
   @Pure
@@ -1881,8 +1863,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Whether or not this is an instance of RVMArray?
-   * @return true
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -1892,8 +1873,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Whether or not this is a primitive type
-   * @return false
+   * @return <code>false</code>
    */
   @Override
   @Pure
@@ -1903,7 +1883,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * @return whether or not this is a reference (ie non-primitive) type.
+   * @return <code>true</code>
    */
   @Override
   @Pure
@@ -1913,7 +1893,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * @return whether or not this is an unboxed type
+   * @return <code>false</code>
    */
   @Override
   @Pure
