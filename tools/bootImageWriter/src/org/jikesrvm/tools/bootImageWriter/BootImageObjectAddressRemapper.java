@@ -26,22 +26,12 @@ final class BootImageObjectAddressRemapper implements ObjectAddressRemapper {
     return singleton;
   }
 
-  /**
-   * Map an object to an address.
-   * @param object in "local" virtual machine
-   * @return its address in a foreign virtual machine
-   */
   @Override
   public <T> Address objectAsAddress(T jdkObject) {
     jdkObject = intern(jdkObject);
     return BootImageMap.findOrCreateEntry(jdkObject).objectId;
   }
 
-  /**
-   * Map an address to an object.
-   * @param address value obtained from "objectAsAddress"
-   * @return corresponding object
-   */
   @Override
   public Object addressAsObject(Address address) {
     VM.sysWriteln("BootImageObjectAddressRemapper: called addressAsObject");
@@ -49,9 +39,6 @@ final class BootImageObjectAddressRemapper implements ObjectAddressRemapper {
     return null;
   }
 
-  /**
-   * Avoid duplicates of certain objects
-   */
   @Override
   @SuppressWarnings("unchecked")
   public <T> T intern(T obj) {
@@ -68,12 +55,6 @@ final class BootImageObjectAddressRemapper implements ObjectAddressRemapper {
     return obj;
   }
 
-  /**
-   * Identity hash code of an object
-   *
-   * @param obj the object to generate the identity hash code for
-   * @return the identity hash code
-   */
   @Override
   public int identityHashCode(Object obj) {
     BootImageMap.Entry entry = BootImageMap.findOrCreateEntry(obj);
