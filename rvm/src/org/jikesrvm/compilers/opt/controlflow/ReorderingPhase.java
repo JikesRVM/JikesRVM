@@ -15,7 +15,8 @@ package org.jikesrvm.compilers.opt.controlflow;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.TreeSet;
 
 import org.jikesrvm.VM;
@@ -172,7 +173,7 @@ public final class ReorderingPhase extends CompilerPhase {
     //     (d) Make fallthroughs explict by adding GOTOs
     int numBlocks = 0;
     TreeSet<Edge> edges = new TreeSet<Edge>();
-    HashSet<BasicBlock> chainHeads = new HashSet<BasicBlock>();
+    LinkedHashSet<BasicBlock> chainHeads = new LinkedHashSet<BasicBlock>();
     BasicBlock entry = ir.cfg.entry();
     if (VM.VerifyAssertions) VM._assert(ir.cfg.entry() == ir.cfg.firstInCodeOrder());
 
@@ -227,7 +228,7 @@ public final class ReorderingPhase extends CompilerPhase {
     }
 
     if (DEBUG) VM.sysWriteln("Chains constructed ");
-    HashMap<BasicBlock, ChainInfo> chainInfo = new HashMap<BasicBlock, ChainInfo>();
+    LinkedHashMap<BasicBlock, ChainInfo> chainInfo = new LinkedHashMap<BasicBlock, ChainInfo>();
     for (BasicBlock head : chainHeads) {
       if (DEBUG) dumpChain(head);
       chainInfo.put(head, new ChainInfo(head));
