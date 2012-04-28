@@ -92,6 +92,9 @@ public class DynamicCallGraphOrganizer extends Organizer {
 
   /**
    * Initialization: set up data structures and sampling objects.
+   * <p>
+   * Uses either timer based sampling or counter based sampling,
+   * depending on {@link Controller#options}.
    */
   @Override
   public void initialize() {
@@ -125,7 +128,6 @@ public class DynamicCallGraphOrganizer extends Organizer {
   }
 
   /**
-   * Method that is called when the sampling threshold is reached.
    * Process contents of buffer:
    *    add call graph edges and increment their weights.
    */

@@ -39,18 +39,9 @@ public class AOSInstrumentationPlan extends InstrumentationPlan {
     }
   }
 
-  /**
-   * Initialize instrumentation by the opt compiler immediately before
-   * compilation begins.
-   **/
   @Override
   public void initInstrumentation(NormalMethod method) {
   }
-
-  /**
-   * Called after compilation is complete.  If instrumentation has
-   * occurred, perform some cleanup/finalization
-   **/
 
   @Override
   public void finalizeInstrumentation(NormalMethod method) {

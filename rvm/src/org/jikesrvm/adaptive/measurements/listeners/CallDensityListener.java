@@ -29,12 +29,6 @@ public final class CallDensityListener extends NullListener {
   private double numSamples = 0;
   private double numBackedgeSamples = 0;
 
-  /**
-   * This method is called when its time to record that a
-   * yield point has occurred.
-   * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
-   *             EPILOGUE?
-   */
   @Override
   public void update(int whereFrom) {
     numSamples++;

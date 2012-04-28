@@ -75,14 +75,6 @@ class MultiLevelAdaptiveModel extends AnalyticModel {
     createViableOptionLookupTable(maxCompiler);
   }
 
-  /**
-   * Compute the set of optimization choices that should be
-   * considered by the cost-benefit model.
-   *
-   * @param prevCompiler The compiler compiler that was used to
-   *                     compile cmpMethod
-   * @param cmpMethod The compiled method being considered
-   */
   @Override
   RecompilationChoice[] getViableRecompilationChoices(int prevCompiler, CompiledMethod cmpMethod) {
     if (Controller.controllerThread.earlyRestrictOptLevels()) {

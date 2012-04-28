@@ -52,6 +52,9 @@ public final class MethodSampleOrganizer extends Organizer {
 
   /**
    * Initialization: set up data structures and sampling objects.
+   * <p>
+   * Uses either timer based sampling or counter based sampling,
+   * depending on {@link Controller#options}.
    */
   @Override
   public void initialize() {
@@ -72,9 +75,6 @@ public final class MethodSampleOrganizer extends Organizer {
     }
   }
 
-  /**
-   * Method that is called when the sampling threshold is reached
-   */
   @Override
   void thresholdReached() {
     AOSLogging.logger.organizerThresholdReached();

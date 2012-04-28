@@ -57,6 +57,9 @@ public final class YieldCounterListener extends NullListener {
     VM.sysWriteln("Yield points counted: ", totalYields);
   }
 
+  /**
+   * No-op.
+   */
   @Override
   public void reset() { }
 

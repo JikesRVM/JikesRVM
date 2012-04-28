@@ -31,7 +31,6 @@ public final class YieldpointCounterData extends StringEventCounterData implemen
    * @param manager the manager that will provide the counter space
    **/
   YieldpointCounterData(InstrumentedEventCounterManager manager) {
-    // Call superclass constructor
     super(manager, "Yieldpoint Counter");
 
     automaticallyGrowCounters(true);
@@ -73,6 +72,6 @@ public final class YieldpointCounterData extends StringEventCounterData implemen
     VM.sysWrite("Total Yieldpoints: " + total + "\n");
   }
 
-} // end of class
+}
 
 

@@ -88,7 +88,6 @@ public class StringEventCounterData extends ManagedCounterData implements Report
   }
 
   /**
-   * Part of Reportable interface
    * Print a report at the end of execution
    */
   @Override
@@ -151,9 +150,6 @@ public class StringEventCounterData extends ManagedCounterData implements Report
     return counter;
   }
 
-  /**
-   *  Part of Reportable interface
-   **/
   @Override
   public void reset() {
     for (String stringName : stringToCounterMap.keySet()) {
@@ -177,6 +173,6 @@ public class StringEventCounterData extends ManagedCounterData implements Report
    */
   int eventNumber = -1;
 
-} // end of class
+}
 
 

@@ -67,9 +67,6 @@ public final class PartialCallGraph implements Decayable, Reportable {
     totalEdgeWeights = initialWeight;
   }
 
-  /**
-   * Reset data
-   */
   @Override
   public synchronized void reset() {
     callGraph.clear();

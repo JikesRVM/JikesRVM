@@ -212,9 +212,6 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
   @Override
   public final void report() {}
 
-  /**
-   * Reset (in preparation of starting a new sampling window)
-   */
   @Override
   public void reset() {
     if (DEBUG) VM.sysWrite("EdgeListener.reset(): enter\n");

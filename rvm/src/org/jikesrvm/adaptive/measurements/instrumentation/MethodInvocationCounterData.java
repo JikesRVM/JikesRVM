@@ -32,16 +32,13 @@ public final class MethodInvocationCounterData extends ManagedCounterData implem
   }
 
   /**
-   *  Part of Reportable interface.  Called on system exit
+   *  Called on system exit
    */
   @Override
   public void report() {
     super.report(new MethodNameFunction());
   }
 
-  /**
-   *  Part of Reportable interface
-   **/
   @Override
   public void reset() {
     VM._assert(false, "TODO: implement reset for BasicBlockCounterDatabase");

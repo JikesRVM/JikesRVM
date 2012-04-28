@@ -53,15 +53,6 @@ class RecompileOptChoice extends RecompilationChoice {
     return CompilerDNA.estimateCompileTime(getCompiler(), meth);
   }
 
-  /**
-   * What is the benefit of executing this plan, given the estimated
-   * future time for the method if nothing changes?
-   *
-   * @param prevCompiler The previous compiler
-   * @param futureTimeForMethod The expected future execution time of
-   *        the method if left running with the previous compiler.
-   * @return The expected future execution time if this choice were selected
-   */
   @Override
   double getFutureExecutionTime(int prevCompiler, double futureTimeForMethod) {
     double rtFactor = CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());

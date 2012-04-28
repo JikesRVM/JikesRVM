@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.Address;
 public abstract class ContextListener extends Listener {
 
   /**
-   * Entry point when listener is awoken.
+   * This method is called when its time to record that a yield point has occurred.
    *
    * @param sfp  pointer to stack frame where call stack should start
    *             to be examined.

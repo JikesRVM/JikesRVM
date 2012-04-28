@@ -24,7 +24,8 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 public abstract class NullListener extends Listener {
   /**
-   * Entry point when listener is awoken.
+   * This method is called when its time to record that a
+   * yield point has occurred.
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *             EPILOGUE?
    */

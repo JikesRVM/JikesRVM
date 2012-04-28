@@ -58,7 +58,9 @@ public abstract class Listener {
   public final void passivate() { active = false; }
 
   /**
-   * reset the listeners data structures
+   * Reset the listeners data structures in preparation of a new sampling
+   * window. This is called by the organizer after processing the samples
+   * from the old sampling window.
    */
   public abstract void reset();
 

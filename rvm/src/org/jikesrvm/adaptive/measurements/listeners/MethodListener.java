@@ -128,9 +128,6 @@ public final class MethodListener extends Listener {
   @Override
   public void report() { }
 
-  /**
-   * Reset the buffer to prepare to take more samples.
-   */
   @Override
   public void reset() {
     numSamples = 0;
