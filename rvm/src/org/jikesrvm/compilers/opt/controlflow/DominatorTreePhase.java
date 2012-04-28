@@ -23,11 +23,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
  */
 public final class DominatorTreePhase extends CompilerPhase {
 
-  /**
-   * Should this phase be performed?
-   * @param options controlling compiler options
-   * @return true or false
-   */
   @Override
   public boolean shouldPerform(OptOptions options) {
     // only perform if the dominators were successfully computed and
@@ -55,11 +50,6 @@ public final class DominatorTreePhase extends CompilerPhase {
     return false;
   }
 
-  /**
-   * Main driver.
-   *
-   * @param ir the governing IR
-   */
   @Override
   public void perform(IR ir) {
     // make sure the dominator computation completed successfully

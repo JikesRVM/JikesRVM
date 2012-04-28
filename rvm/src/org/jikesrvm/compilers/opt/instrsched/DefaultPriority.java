@@ -38,30 +38,17 @@ class DefaultPriority extends Priority {
     this.bb = bb;
   }
 
-  /**
-   * Resets the enumeration to the first instruction in sequence
-   */
   @Override
   public final void reset() {
     i = bb.firstInstruction();
     instr = bb.forwardRealInstrEnumerator();
   }
 
-  /**
-   * Returns true if there are more instructions, false otherwise
-   *
-   * @return true if there are more instructions, false otherwise
-   */
   @Override
   public final boolean hasMoreElements() {
     return i != null || instr.hasMoreElements();
   }
 
-  /**
-   * Returns the next instruction in sequence
-   *
-   * @return the next instruction in sequence
-   */
   @Override
   public final Instruction next() {
     if (i != null) {

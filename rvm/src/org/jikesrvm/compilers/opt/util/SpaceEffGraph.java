@@ -46,10 +46,6 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
    */
   protected int numberOfNodes;
 
-  /**
-   * Get number of nodes
-   * @return number of nodes
-   */
   @Override
   public final int numberOfNodes() { return numberOfNodes; }
 
@@ -129,7 +125,6 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
   //////////////////
 
   /**
-   * Add a node to the graph.
    * @param inode node to add
    */
   @Override

@@ -106,9 +106,6 @@ final class ObjectReplacer implements AggregateReplacer {
     return new ObjectReplacer(r, klass, ir);
   }
 
-  /**
-   * Perform the transformation
-   */
   @Override
   public void transform() {
     // store the object's fields in a ArrayList

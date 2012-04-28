@@ -56,9 +56,7 @@ public final class IndexPropagation extends CompilerPhase {
   }
 
   /**
-   * Should this phase be performed?
-   * @param options controlling compiler options
-   * @return true or false
+   * @return <code>true</code> iff SSA is constructed on the HIR
    */
   @Override
   public boolean shouldPerform(OptOptions options) {

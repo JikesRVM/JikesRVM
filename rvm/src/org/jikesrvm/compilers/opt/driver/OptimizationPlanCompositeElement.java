@@ -71,10 +71,6 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
     }
   }
 
-  /**
-   * This method is called to initialize the optimization plan support
-   *  measuring compilation.
-   */
   @Override
   public void initializeForMeasureCompilation() {
     // initialize each composite object
@@ -97,13 +93,6 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
     return new OptimizationPlanCompositeElement(name, elems);
   }
 
-  /**
-   * Determine, possibly by consulting the passed options object,
-   * if this optimization plan element should be performed.
-   *
-   * @param options The Options object for the current compilation.
-   * @return true if the plan element should be performed.
-   */
   @Override
   public boolean shouldPerform(OptOptions options) {
     for (OptimizationPlanElement myElement : myElements) {
@@ -127,12 +116,6 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
     return false;
   }
 
-  /**
-   * Do the work represented by this element in the optimization plan.
-   * The assumption is that the work will modify the IR in some way.
-   *
-   * @param ir The IR object to work with.
-   */
   @Override
   public final void perform(IR ir) {
     if (printingEnabled(ir.options, true)) {
@@ -154,22 +137,11 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
     }
   }
 
-  /**
-   * @return a String which is the name of the phase.
-   */
   @Override
   public String getName() {
     return myName;
   }
 
-  /**
-   * Generate (to the sysWrite stream) a report of the
-   * time spent performing this element of the optimization plan.
-   *
-   * @param indent Number of spaces to indent report.
-   * @param timeCol Column number of time portion of report.
-   * @param totalTime Total opt compilation time in seconds.
-   */
   @Override
   public final void reportStats(int indent, int timeCol, double totalTime) {
     double myTime = elapsedTime();
@@ -207,10 +179,6 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
     VM.sysWriteln();
   }
 
-  /**
-   * Report the elapsed time spent in the PlanElement
-   * @return time spend in the plan (in seconds)
-   */
   @Override
   public double elapsedTime() {
     double total = 0.0;

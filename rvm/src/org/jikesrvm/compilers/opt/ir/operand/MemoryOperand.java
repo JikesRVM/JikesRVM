@@ -116,9 +116,6 @@ public final class MemoryOperand extends Operand {
     return new MemoryOperand(base, null, (byte) 0, Offset.zero(), size, loc, guard);
   }
 
-  /**
-   * Returns a copy of the current operand.
-   */
   @Override
   public Operand copy() {
     RegisterOperand newBase = (base != null) ? (RegisterOperand) base.copy() : null;
@@ -128,11 +125,6 @@ public final class MemoryOperand extends Operand {
     return new MemoryOperand(newBase, newIndex, scale, disp, size, newLoc, newGuard);
   }
 
-  /**
-   * Returns if this operand is the 'same' as another operand.
-   *
-   * @param op other operand
-   */
   @Override
   public boolean similar(Operand op) {
     if (op instanceof MemoryOperand) {

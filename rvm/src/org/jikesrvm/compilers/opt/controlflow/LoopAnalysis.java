@@ -33,17 +33,15 @@ public class LoopAnalysis extends CompilerPhase {
   }
 
   /**
-   * Should the optimisation be performed
+   * This phase is disabled by default.
+   * <p>
+   * It will run only on O3 but O2 is the default maximum optimization level.
    */
   @Override
   public boolean shouldPerform(OptOptions options) {
     return options.getOptLevel() >= 3;
   }
 
-  /**
-   * The main entry point
-   * @param ir the IR to process
-   */
   @Override
   public final void perform(IR ir) {
     if (!ir.hasReachableExceptionHandlers()) {

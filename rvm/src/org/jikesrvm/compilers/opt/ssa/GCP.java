@@ -96,7 +96,10 @@ public final class GCP extends OptimizationPlanCompositeElement {
 
     /**
      * Should this phase perform?
-     * @param options
+     * <p>
+     * @return <code>true</code> if SSA-based global code placement
+     *  or SSA-based global common subexpression elimination are
+     *  enabled
      */
     @Override
     public final boolean shouldPerform(OptOptions options) {
@@ -111,10 +114,6 @@ public final class GCP extends OptimizationPlanCompositeElement {
       return "GCP Preparation";
     }
 
-    /**
-     * perform the phase
-     * @param ir
-     */
     @Override
     public final void perform(IR ir) {
       boolean dont = false;
@@ -167,7 +166,9 @@ public final class GCP extends OptimizationPlanCompositeElement {
 
     /**
      * Should this phase perform?
-     * @param options
+     * <p>
+     * Perform only if global code placement
+     * or global common subexpression elimination are performed.
      */
     @Override
     public final boolean shouldPerform(OptOptions options) {
@@ -182,10 +183,6 @@ public final class GCP extends OptimizationPlanCompositeElement {
       return "GCP Finalization";
     }
 
-    /**
-     * perform the phase
-     * @param ir
-     */
     @Override
     public final void perform(IR ir) {
       ir.options.SSA = true;

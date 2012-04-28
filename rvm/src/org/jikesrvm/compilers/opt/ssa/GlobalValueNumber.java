@@ -50,8 +50,6 @@ class GlobalValueNumber extends CompilerPhase {
    * Main driver for global value number-related computations
    * <p> PRECONDITION: Array SSA form
    * <p> POSTCONDITION: ir.valueNumbers holds global value number state
-   *
-   * @param ir the governing IR
    */
   @Override
   public final void perform(IR ir) {

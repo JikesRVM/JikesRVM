@@ -35,34 +35,16 @@ public final class BasicBlockOperand extends Operand {
     block = b;
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
   @Override
   public Operand copy() {
     return new BasicBlockOperand(block);
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
   @Override
   public boolean similar(Operand op) {
     return (op instanceof BasicBlockOperand) && (block == ((BasicBlockOperand) op).block);
   }
 
-  /**
-   * Returns the string representation of this operand.
-   *
-   * @return a string representation of this operand.
-   */
   @Override
   public String toString() {
     return block.toString();

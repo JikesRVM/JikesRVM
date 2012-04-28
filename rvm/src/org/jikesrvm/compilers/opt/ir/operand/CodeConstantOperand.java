@@ -41,20 +41,13 @@ public final class CodeConstantOperand extends ConstantOperand {
     value = v;
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
   @Override
   public Operand copy() {
     return new CodeConstantOperand(value);
   }
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
-   * @return TypeReference.JavaLangObjectArray
+   * @return {@link TypeReference#CodeArray}
    */
   @Override
   public TypeReference getType() {
@@ -62,8 +55,6 @@ public final class CodeConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Does the operand represent a value of the reference data type?
-   *
    * @return <code>true</code>
    */
   @Override
@@ -71,14 +62,6 @@ public final class CodeConstantOperand extends ConstantOperand {
     return true;
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
   @Override
   public boolean similar(Operand op) {
     return (op instanceof CodeConstantOperand) && value == ((CodeConstantOperand) op).value;

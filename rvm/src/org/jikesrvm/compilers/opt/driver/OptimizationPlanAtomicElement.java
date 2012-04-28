@@ -61,24 +61,11 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
     counter2 = 0;
   }
 
-  /**
-   * Determine, possibly by consulting the passed options object,
-   * if this optimization plan element should be performed.
-   *
-   * @param options The Options object for the current compilation.
-   * @return true if the plan element should be performed.
-   */
   @Override
   public boolean shouldPerform(OptOptions options) {
     return myPhase.shouldPerform(options);
   }
 
-  /**
-   * Do the work represented by this element in the optimization plan.
-   * The assumption is that the work will modify the IR in some way.
-   *
-   * @param ir The IR object to work with.
-   */
   @Override
   public void perform(IR ir) {
     long start = 0;
@@ -97,22 +84,11 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
     }
   }
 
-  /**
-   * @return a String which is the name of the phase.
-   */
   @Override
   public String getName() {
     return myPhase.getName();
   }
 
-  /**
-   * Generate (to the sysWrite stream) a report of the
-   * time spent performing this element of the optimization plan.
-   *
-   * @param indent Number of spaces to indent report.
-   * @param timeCol Column number of time portion of report.
-   * @param totalTime Total opt compilation time in ms.
-   */
   @Override
   public void reportStats(int indent, int timeCol, double totalTime) {
     if (phaseNanos == 0) return;
@@ -137,10 +113,6 @@ public final class OptimizationPlanAtomicElement extends OptimizationPlanElement
     VM.sysWriteln();
   }
 
-  /**
-   * Report the total time spent executing the PlanElement
-   * @return time spend in the plan (in ms)
-   */
   @Override
   public double elapsedTime() {
     return Time.nanosToMillis(phaseNanos);

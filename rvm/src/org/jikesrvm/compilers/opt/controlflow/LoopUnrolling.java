@@ -86,14 +86,16 @@ public class LoopUnrolling extends CompilerPhase {
     return constructor;
   }
 
+  /**
+   * This phase is disabled by default.
+   * <p>
+   * It will run only on O3 but O2 is the default maximum optimization level.
+   */
   @Override
   public boolean shouldPerform(OptOptions options) {
     return ((options.getOptLevel() >= 3) && (options.CONTROL_UNROLL_LOG >= 1) && (!options.SSA_LOOP_VERSIONING));
   }
 
-  /**
-   * This is the method that actually does the work of the phase.
-   */
   @Override
   public void perform(IR ir) {
     unrollFactor = (1 << ir.options.CONTROL_UNROLL_LOG);

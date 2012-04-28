@@ -48,9 +48,6 @@ public class CFGTransformations extends CompilerPhase {
     return this;
   }
 
-  /**
-   * This is the method that actually does the work of the phase.
-   */
   @Override
   public void perform(IR ir) {
     staticPerform(ir);
@@ -79,8 +76,8 @@ public class CFGTransformations extends CompilerPhase {
   }
 
   /**
-   * This method determines if the phase should be run, based on the
-   * Options object it is passed
+   * Should this phase be performed?
+   * @return <code>true</code> if the opt level is at least 2 and whiles should be turned into untils
    */
   @Override
   public boolean shouldPerform(OptOptions options) {

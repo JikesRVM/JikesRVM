@@ -170,24 +170,11 @@ public final class TrapCodeOperand extends Operand {
     return trapCode == RuntimeEntrypoints.TRAP_REGENERATE;
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
   @Override
   public Operand copy() {
     return new TrapCodeOperand(trapCode);
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
   @Override
   public boolean similar(Operand op) {
     return op instanceof TrapCodeOperand && ((TrapCodeOperand) op).trapCode == trapCode;

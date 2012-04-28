@@ -81,8 +81,7 @@ public class LeaveSSA extends CompilerPhase {
   private final HashSet<Register> globalRenamePhis = new HashSet<Register>();
 
   /**
-   * Should we perform this phase?
-   * @param options controlling compiler options
+   * Is SSA form enabled for the HIR?
    */
   @Override
   public final boolean shouldPerform(OptOptions options) {
@@ -114,7 +113,6 @@ public class LeaveSSA extends CompilerPhase {
 
   /**
    * perform the main out-of-ssa transformation
-   * @param ir the governing IR
    */
   @Override
   public final void perform(IR ir) {

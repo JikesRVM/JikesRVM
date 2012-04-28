@@ -38,12 +38,6 @@ import org.jikesrvm.scheduler.RVMThread;
  */
 public final class DefaultInlineOracle extends InlineTools implements InlineOracle {
 
-  /**
-   * Should we inline a particular call site?
-   *
-   * @param state information needed to make the inlining decision
-   * @return an InlineDecision with the result
-   */
   @Override
   public InlineDecision shouldInline(final CompilationState state) {
     final OptOptions opts = state.getOptions();

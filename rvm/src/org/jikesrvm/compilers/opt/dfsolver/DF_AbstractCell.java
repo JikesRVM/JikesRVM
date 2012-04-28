@@ -50,50 +50,24 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
     defs = new HashSet<DF_Equation>(capacity);
   }
 
-  /**
-   * Returns an enumeration of the equations in which this
-   * lattice cell is used.
-   * @return an enumeration of the equations in which this
-   * lattice cell is used
-   */
   @Override
   public Iterator<DF_Equation> getUses() {
     return uses.iterator();
   }
 
-  /**
-   * Return an enumeration of the equations in which this
-   * lattice cell is defined.
-   * @return an enumeration of the equations in which this
-   * lattice cell is defined
-   */
   @Override
   public Iterator<DF_Equation> getDefs() {
     return defs.iterator();
   }
 
-  /**
-   * Return a string representation of the cell
-   * @return a string representation of the cell
-   */
   @Override
   public abstract String toString();
 
-  /**
-   * Note that this variable appears on the RHS of an equation.
-   *
-   * @param eq the equation
-   */
   @Override
   public void addUse(DF_Equation eq) {
     uses.add(eq);
   }
 
-  /**
-   * Note that this variable appears on the LHS of an equation.
-   *
-   * @param eq the equation
-   */
   @Override
   public void addDef(DF_Equation eq) {
     defs.add(eq);
@@ -144,9 +118,6 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
     index = i;
   }
 
-  /**
-   * Implementation of GraphNode interface.
-   */
   @Override
   public int getIndex() {
     return index;

@@ -152,8 +152,6 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
   }
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
    * @return this method shouldn't be called and will throw an {@link
    * OptimizingCompilerException}
    */
@@ -204,11 +202,6 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
     return f == null || f.isVolatile();
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
   @Override
   public Operand copy() {
     LocationOperand o = null;
@@ -265,14 +258,6 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
     }
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
   @Override
   public boolean similar(Operand op) {
     return (op instanceof LocationOperand) && mayBeAliased(this, (LocationOperand) op);

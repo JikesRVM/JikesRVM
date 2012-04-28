@@ -67,7 +67,6 @@ public final class PiNodes extends CompilerPhase {
    * Should this phase be performed?
    * Only perform this when we are doing an SSA-based optimization
    * that can benefit from PI nodes.
-   * @param options controlling compiler options
    */
   @Override
   public boolean shouldPerform(OptOptions options) {
@@ -130,10 +129,6 @@ public final class PiNodes extends CompilerPhase {
     this.typeChecks = typeChecks;
   }
 
-  /**
-   * Perform the transformation.
-   * @param ir the IR to optimize
-   */
   @Override
   public void perform(IR ir) {
     if (insertion) {

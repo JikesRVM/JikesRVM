@@ -64,9 +64,7 @@ public final class LongConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
-   * @return TypeReference.Long
+   * @return {@link TypeReference#Long}
    */
   @Override
   public TypeReference getType() {
@@ -74,8 +72,6 @@ public final class LongConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Does the operand represent a value of the long data type?
-   *
    * @return <code>true</code>
    */
   @Override
@@ -97,24 +93,11 @@ public final class LongConstantOperand extends ConstantOperand {
     return Bits.upper32(value);
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
   @Override
   public Operand copy() {
     return new LongConstantOperand(value, offset);
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
   @Override
   public boolean similar(Operand op) {
     return (op instanceof LongConstantOperand) && (value == ((LongConstantOperand) op).value);

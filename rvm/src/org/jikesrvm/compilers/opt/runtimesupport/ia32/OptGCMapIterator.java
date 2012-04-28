@@ -119,13 +119,6 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
     }
   }
 
-  /**
-   *  Determine the spill location given the frame ptr and spill offset.
-   *  (The location of spills varies among architectures.)
-   *  @param framePtr the frame pointer
-   *  @param offset  the offset for the spill
-   *  @return the resulting spill location
-   */
   @Override
   public Address getStackLocation(Address framePtr, int offset) {
     return framePtr.minus(offset);

@@ -57,25 +57,18 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Get compiler that generated this method's machine code.
+   * @return {@link CompiledMethod#OPT}
    */
   @Override
   public int getCompilerType() {
     return CompiledMethod.OPT;
   }
 
-  /**
-   * @return Name of the compiler that produced this compiled method.
-   */
   @Override
   public String getCompilerName() {
     return "optimizing compiler";
   }
 
-  /**
-   * Get handler to deal with stack unwinding and exception delivery
-   * for this method's stackframes.
-   */
   @Override
   public ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
@@ -111,12 +104,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     realMethod.getDynamicLink(dynamicLink, bci);
   }
 
-  /**
-   * Return whether or not the instruction offset corresponds to an uninterruptible context.
-   *
-   * @param instructionOffset offset of addr from start of instructions in bytes
-   * @return true if the IP is within an Uninterruptible method, false otherwise.
-   */
   @Override
   @Interruptible
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
@@ -137,9 +124,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     return ((NormalMethod) method).getLineNumberForBCIndex(bci);
   }
 
-  /**
-   * Set the stack browser to the innermost logical stack frame of this method
-   */
   @Override
   @Interruptible
   public void set(StackBrowser browser, Offset instr) {
@@ -165,9 +149,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     }
   }
 
-  /**
-   * Advance the StackBrowser up one internal stack frame, if possible
-   */
   @Override
   @Interruptible
   public boolean up(StackBrowser browser) {
@@ -196,12 +177,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     }
   }
 
-  /**
-   * Print this compiled method's portion of a stack trace.
-   * @param instructionOffset   The offset of machine instruction from
-   *                            start of method
-   * @param out    The PrintStream to print the stack trace to.
-   */
   @Override
   @Interruptible
   public void printStackTrace(Offset instructionOffset, PrintLN out) {

@@ -218,96 +218,41 @@ public final class RegisterOperand extends Operand {
     this.setType(rhs.type); // setting type this way will force checking of precision
   }
 
-  /**
-   * Does the operand represent a value of an int-like data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is int-like as defined by {@link TypeReference#isIntLikeType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isIntLike() {
     return type.isIntLikeType();
   }
 
-  /**
-   * Does the operand represent a value of an int data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is int-like as defined by {@link TypeReference#isIntLikeType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isInt() {
     return type.isIntType();
   }
 
-  /**
-   * Does the operand represent a value of the long data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is a long as defined by {@link TypeReference#isLongType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isLong() {
     return type.isLongType();
   }
 
-  /**
-   * Does the operand represent a value of the float data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is a float as defined by {@link TypeReference#isFloatType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isFloat() {
     return type.isFloatType();
   }
 
-  /**
-   * Does the operand represent a value of the double data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is a double as defined by {@link TypeReference#isDoubleType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isDouble() {
     return type.isDoubleType();
   }
 
-  /**
-   * Does the operand represent a value of the reference data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is a reference as defined by {@link TypeReference#isReferenceType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isRef() {
     return type.isReferenceType();
   }
 
-  /**
-   * Does the operand represent an address like data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is an address as defined by {@link TypeReference#isWordLikeType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isAddress() {
     return type.isWordLikeType();
   }
 
-  /**
-   * Does the operand definitely represent <code>null</code>?
-   *
-   * @return <code>true</code> if the operand definitely represents
-   *         <code>null</code> or <code>false</code> if it does not.
-   */
   @Override
   public boolean isDefinitelyNull() {
     return type == TypeReference.NULL_TYPE;

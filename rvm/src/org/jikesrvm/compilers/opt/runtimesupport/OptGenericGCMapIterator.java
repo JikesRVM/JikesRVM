@@ -311,10 +311,6 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
     compiledMethod = null;
   }
 
-  /**
-   * lets GC ask what type of iterator without using instanceof which can
-   * cause an allocation
-   */
   @Override
   public final int getType() {
     return CompiledMethod.OPT;

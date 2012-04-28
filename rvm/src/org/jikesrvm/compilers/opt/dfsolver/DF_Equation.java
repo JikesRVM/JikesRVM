@@ -196,9 +196,6 @@ public class DF_Equation implements GraphNode {
     index = i;
   }
 
-  /**
-   * Implementation of GraphNode interface.
-   */
   @Override
   public int getIndex() {
     return index;

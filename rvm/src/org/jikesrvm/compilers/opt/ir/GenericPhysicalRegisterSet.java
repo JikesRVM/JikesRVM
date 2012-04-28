@@ -111,26 +111,17 @@ public abstract class GenericPhysicalRegisterSet implements BitSetMapping {
     return new ReverseEnumerator<Register>(enumerateNonvolatileFPRs());
   }
 
-  /**
-   * Implementation of the BitSetMapping interface.
-   */
   @Override
   public final Object getMappedObject(int n) {
     return get(n);
   }
 
-  /**
-   * Implementation of the BitSetMapping interface.
-   */
   @Override
   public final int getMappedIndex(Object o) {
     Register r = (Register) o;
     return r.number;
   }
 
-  /**
-   * Implementation of the BitSetMapping interface.
-   */
   @Override
   public final int getMappingSize() {
     return getNumberOfPhysicalRegisters();

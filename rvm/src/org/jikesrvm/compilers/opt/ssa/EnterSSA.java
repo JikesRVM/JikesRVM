@@ -169,8 +169,6 @@ public class EnterSSA extends CompilerPhase {
    * Construct SSA form to satisfy the desired options in ir.desiredSSAOptions.
    * This module is lazy; if the actual SSA options satisfy the desired options,
    * then do nothing.
-   *
-   * @param ir the governing IR
    */
   @Override
   public final void perform(IR ir) {

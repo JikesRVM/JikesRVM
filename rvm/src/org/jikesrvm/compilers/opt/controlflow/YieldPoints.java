@@ -56,7 +56,6 @@ public class YieldPoints extends CompilerPhase {
   /**
    * Insert yield points in method prologues, loop heads, and method exits
    *
-   * @param ir the governing IR
    */
   @Override
   public final void perform(IR ir) {

@@ -24,8 +24,6 @@ import org.jikesrvm.classloader.TypeReference;
 public final class TrueGuardOperand extends ConstantOperand {
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
    * @return TypeReference.VALIDATION_TYPE
    */
   @Override
@@ -33,24 +31,11 @@ public final class TrueGuardOperand extends ConstantOperand {
     return TypeReference.VALIDATION_TYPE;
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
   @Override
   public Operand copy() {
     return new TrueGuardOperand();
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
   @Override
   public boolean similar(Operand op) {
     return op instanceof TrueGuardOperand;

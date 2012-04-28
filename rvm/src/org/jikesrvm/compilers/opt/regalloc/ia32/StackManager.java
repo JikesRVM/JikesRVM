@@ -109,12 +109,6 @@ public abstract class StackManager extends GenericStackManager {
    */
   private static boolean FLOAT_ESP = false;
 
-  /**
-   * Return the size of the fixed portion of the stack.
-   * (in other words, the difference between the framepointer and
-   * the stackpointer after the prologue of the method completes).
-   * @return size in bytes of the fixed portion of the stackframe
-   */
   @Override
   public final int getFrameFixedSize() {
     return frameSize - WORDSIZE;
@@ -160,13 +154,6 @@ public abstract class StackManager extends GenericStackManager {
     }
   }
 
-  /**
-   * Allocate a new spill location and grow the
-   * frame size to reflect the new layout.
-   *
-   * @param type the type to spill
-   * @return the spill location
-   */
   @Override
   public final int allocateNewSpillLocation(int type) {
 
@@ -179,16 +166,6 @@ public abstract class StackManager extends GenericStackManager {
     return spillPointer;
   }
 
-  /**
-   * Insert a spill of a physical register before instruction s.
-   *
-   * @param s the instruction before which the spill should occur
-   * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
-   * @param location the spill location, as an offset from the frame
-   * pointer
-   */
   @Override
   public final void insertSpillBefore(Instruction s, Register r, byte type, int location) {
 
@@ -210,16 +187,6 @@ public abstract class StackManager extends GenericStackManager {
     s.insertBefore(MIR_Move.create(move, spill, rOp));
   }
 
-  /**
-   * Insert a load of a physical register from a spill location before
-   * instruction s.
-   *
-   * @param s the instruction before which the spill should occur
-   * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
-   * @param location the spill location
-   */
   @Override
   public final void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
     Operator move = getMoveOperator(type);
@@ -240,17 +207,6 @@ public abstract class StackManager extends GenericStackManager {
     s.insertBefore(MIR_Move.create(move, rOp, spill));
   }
 
-  /**
-   * Compute the number of stack words needed to hold nonvolatile
-   * registers.
-   *
-   * Side effects:
-   * <ul>
-   * <li> updates the OptCompiler structure
-   * <li> updates the <code>frameSize</code> field of this object
-   * <li> updates the <code>frameRequired</code> field of this object
-   * </ul>
-   */
   @Override
   public void computeNonVolatileArea() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -333,10 +289,6 @@ public abstract class StackManager extends GenericStackManager {
     }
   }
 
-  /**
-   * Clean up some junk that's left in the IR after register allocation,
-   * and add epilogue code.
-   */
   @Override
   public void cleanUpAndInsertEpilogue() {
 
@@ -673,14 +625,6 @@ public abstract class StackManager extends GenericStackManager {
     ret.insertBefore(MIR_Nullary.create(IA32_POP, fpHome));
   }
 
-  /**
-   * In instruction s, replace all appearances of a symbolic register
-   * operand with uses of the appropriate spill location, as cached by the
-   * register allocator.
-   *
-   * @param s the instruction to mutate.
-   * @param symb the symbolic register operand to replace
-   */
   @Override
   public void replaceOperandWithSpillLocation(Instruction s, RegisterOperand symb) {
 
@@ -755,10 +699,6 @@ public abstract class StackManager extends GenericStackManager {
     return true;
   }
 
-  /**
-   * Given symbolic register r in instruction s, do we need to ensure that
-   * r is in a scratch register is s (as opposed to a memory operand)
-   */
   @Override
   public boolean needScratch(Register r, Instruction s) {
     // We never need a scratch register for a floating point value in an
@@ -977,23 +917,6 @@ public abstract class StackManager extends GenericStackManager {
     return frameSize + fpOffset - WORDSIZE;
   }
 
-  /**
-   * Walk over the currently available scratch registers.
-   *
-   * <p>For any scratch register r which is def'ed by instruction s,
-   * spill r before s and remove r from the pool of available scratch
-   * registers.
-   *
-   * <p>For any scratch register r which is used by instruction s,
-   * restore r before s and remove r from the pool of available scratch
-   * registers.
-   *
-   * <p>For any scratch register r which has current contents symb, and
-   * symb is spilled to location M, and s defs M: the old value of symb is
-   * dead.  Mark this.
-   *
-   * <p>Invalidate any scratch register assignments that are illegal in s.
-   */
   @Override
   public void restoreScratchRegistersBefore(Instruction s) {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
@@ -1088,9 +1011,6 @@ public abstract class StackManager extends GenericStackManager {
     phys.getFPR(7).reserveRegister();
   }
 
-  /**
-   * Is a particular instruction a system call?
-   */
   @Override
   public boolean isSysCall(Instruction s) {
     return s.operator == IA32_SYSCALL;

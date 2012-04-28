@@ -35,9 +35,6 @@ class DF_Graph implements Graph {
    */
   private int count = 0;
 
-  /**
-   * @return number of nodes in the graph
-   */
   @Override
   public int numberOfNodes() {
     return count;
@@ -77,7 +74,6 @@ class DF_Graph implements Graph {
   }
 
   /**
-   * Add a node to the graph.
    * @param x the node to add
    */
   @Override

@@ -59,14 +59,6 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
     super(phys);
   }
 
-  /**
-   * Add architecture-specific register restrictions for a basic block.
-   * Override as needed.
-   *
-   * @param bb the basic block
-   * @param symbolics the live intervals for symbolic registers on this
-   * block
-   */
   @Override
   public void addArchRestrictions(BasicBlock bb, ArrayList<LiveIntervalElement> symbolics) {
     // If there are any registers used in catch blocks, we want to ensure
@@ -377,10 +369,6 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
     return (r != ESP && r != EBP && r != ESI && r != EDI);
   }
 
-  /**
-   * Is it forbidden to assign symbolic register symb to physical register r
-   * in instruction s?
-   */
   @Override
   public boolean isForbidden(Register symb, Register r, Instruction s) {
 

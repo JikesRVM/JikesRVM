@@ -109,9 +109,6 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
       return "Live Range Splitting";
     }
 
-    /**
-     * The main entrypoint for this pass.
-     */
     @Override
     public final void perform(IR ir) {
       // 1. Compute an up-to-date loop structure tree.

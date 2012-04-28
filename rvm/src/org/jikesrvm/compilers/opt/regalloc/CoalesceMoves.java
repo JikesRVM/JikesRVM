@@ -48,7 +48,8 @@ public class CoalesceMoves extends CompilerPhase {
 
   /**
    * Should we perform this phase?
-   * @param options controlling compiler options
+   * @return <code>true</code> iff move instructions should be
+   *  coalesced after leaving SSA
    */
   @Override
   public final boolean shouldPerform(OptOptions options) {
@@ -64,10 +65,6 @@ public class CoalesceMoves extends CompilerPhase {
     return "Coalesce Moves";
   }
 
-  /**
-   * perform the transformation
-   * @param ir the governing IR
-   */
   @Override
   public final void perform(IR ir) {
     // Compute liveness.

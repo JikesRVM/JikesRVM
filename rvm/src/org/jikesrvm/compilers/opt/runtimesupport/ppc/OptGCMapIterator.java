@@ -36,11 +36,6 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
     super(registerLocations);
   }
 
-  /**
-   * If any non-volatile gprs were saved by the method being processed
-   * then update the registerLocations array with the locations where the
-   * registers were saved.
-   */
   @Override
   protected void updateLocateRegisters() {
 
@@ -99,13 +94,6 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
     }
   }
 
-  /**
-   *  Determine the stack location given the frame ptr and spill offset.
-   *  (The offset direction varies among architectures.)
-   *  @param framePtr the frame pointer
-   *  @param offset  the offset
-   *  @return the resulting stack location
-   */
   @Override
   public Address getStackLocation(Address framePtr, int offset) {
     return framePtr.plus(offset);

@@ -56,10 +56,6 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
     return (fullName.indexOf(excludePattern)) < 0;
   }
 
-  /**
-   * Initialize boot image compiler.
-   * @param args command line arguments to the bootimage compiler
-   */
   @Override
   protected void initCompiler(String[] args) {
     try {
@@ -96,11 +92,6 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
     }
   }
 
-  /**
-   * Compile a method with bytecodes.
-   * @param method the method to compile
-   * @return the compiled method
-   */
   @Override
   protected CompiledMethod compileMethod(NormalMethod method, TypeReference[] params) {
     if (method.hasNoOptCompileAnnotation()) {

@@ -277,11 +277,6 @@ public final class MethodOperand extends Operand {
     }
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
   @Override
   public Operand copy() {
     MethodOperand mo = new MethodOperand(memRef, target, type);
@@ -291,14 +286,6 @@ public final class MethodOperand extends Operand {
     return mo;
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
   @Override
   public boolean similar(Operand op) {
     if (op instanceof MethodOperand) {

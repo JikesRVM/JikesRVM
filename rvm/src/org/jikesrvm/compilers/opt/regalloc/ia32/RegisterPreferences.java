@@ -23,9 +23,6 @@ import org.jikesrvm.compilers.opt.regalloc.GenericRegisterPreferences;
 
 public class RegisterPreferences extends GenericRegisterPreferences implements Operators {
 
-  /**
-   * Set up register preferences based on instructions in an IR.
-   */
   @Override
   public void initialize(IR ir) {
 

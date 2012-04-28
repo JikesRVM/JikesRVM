@@ -340,7 +340,7 @@ public final class LoopVersioning extends CompilerPhase {
   }
 
   /**
-   * Should the optimisation be performed
+   * Should loop versioning be performed?
    */
   @Override
   public boolean shouldPerform(OptOptions options) {
@@ -348,8 +348,6 @@ public final class LoopVersioning extends CompilerPhase {
   }
 
   /**
-   * The main entry point
-   *
    * @param _ir the IR to process
    */
   @Override

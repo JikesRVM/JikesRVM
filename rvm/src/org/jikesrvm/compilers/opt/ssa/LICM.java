@@ -79,7 +79,6 @@ public class LICM extends CompilerPhase {
 
   /**
    * Execute loop invariant code motion on the given IR.
-   * @param ir
    */
   @Override
   public void perform(IR ir) {
@@ -144,8 +143,8 @@ public class LICM extends CompilerPhase {
   }
 
   /**
-   * Should this phase be executed?
-   * @param options
+   * @return <code>true</code> if SSA-based global code placement is being
+   *  performed
    */
   @Override
   public boolean shouldPerform(OptOptions options) {
