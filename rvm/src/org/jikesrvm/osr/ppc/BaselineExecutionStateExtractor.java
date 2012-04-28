@@ -43,9 +43,6 @@ import org.vmmagic.unboxed.WordArray;
 public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtractor
     implements Constants, OSRConstants, BaselineConstants, PhysicalRegisterConstants {
 
-  /**
-   * Implements ExecutionStateExtractor.extractState.
-   */
   @Override
   public ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset methFPoff, int cmid) {
 

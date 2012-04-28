@@ -261,12 +261,6 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     }
   }
 
-  /**
-   * Format and log an option value.
-   *
-   * @param o The option.
-   * @param forXml Is this part of xml output?
-   */
   @Override
   protected void logValue(Option o, boolean forXml) {
     switch (o.getType()) {
@@ -299,29 +293,16 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     }
   }
 
-  /**
-   * Log a string.
-   */
   @Override
   protected void logString(String s) {
     VM.sysWrite(s);
   }
 
-  /**
-   * Print a new line.
-   */
   @Override
   protected void logNewLine() {
     VM.sysWriteln();
   }
 
-  /**
-   * Determine the VM specific key for a given option name. Option names are
-   * space delimited with capitalised words (e.g. "GC Verbosity Level").
-   *
-   * @param name The option name.
-   * @return The VM specific key.
-   */
   @Override
   protected String computeKey(String name) {
     int space = name.indexOf(' ');
@@ -341,47 +322,22 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     } while (true);
   }
 
-  /**
-   * A non-fatal error occurred during the setting of an option. This method
-   * calls into the VM and shall not cause the system to stop.
-   *
-   * @param o The responsible option.
-   * @param message The message associated with the warning.
-   */
   @Override
   protected void warn(Option o, String message) {
     VM.sysWriteln("WARNING: Option '" + o.getKey() + "' : " + message);
   }
 
-  /**
-   * A fatal error occurred during the setting of an option. This method
-   * calls into the VM and is required to cause the system to stop.
-   *
-   * @param o The responsible option.
-   * @param message The error message associated with the failure.
-   */
   @Override
   protected void fail(Option o, String message) {
     VM.sysFail("ERROR: Option '" + o.getKey() + "' : " + message);
   }
 
-  /**
-   * Convert bytes into pages, rounding up if necessary.
-   *
-   * @param bytes The number of bytes.
-   * @return The corresponding number of pages.
-   */
   @Override
   @Uninterruptible
   protected int bytesToPages(Extent bytes) {
     return bytes.plus(Constants.BYTES_IN_PAGE-1).toWord().rshl(Constants.LOG_BYTES_IN_PAGE).toInt();
   }
 
-  /**
-   * Convert from pages into bytes.
-   * @param pages the number of pages.
-   * @return The corresponding number of bytes.
-   */
   @Override
   @Uninterruptible
   protected Extent pagesToBytes(int pages) {

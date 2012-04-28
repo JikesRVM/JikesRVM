@@ -53,15 +53,6 @@ public abstract class MachineSpecificIA extends MachineSpecific implements ArchC
 
   /* common to all ISAs */
 
-  /**
-   * The following method will emit code that moves a reference to an
-   * object's TIB into a destination register.
-   *
-   * @param asm the assembler object to emit code with
-   * @param dest the number of the destination register
-   * @param object the number of the register holding the object reference
-   * @param tibOffset the offset of the tib from the object header
-   */
   @Override
   @Interruptible
   public final void baselineEmitLoadTIB(ArchitectureSpecific.Assembler asm, int dest, int object, Offset tibOffset) {
@@ -72,15 +63,6 @@ public abstract class MachineSpecificIA extends MachineSpecific implements ArchC
     }
   }
 
-  /**
-   * The following method initializes a thread stack as if
-   * "startoff" method had been called by an empty baseline-compiled
-   *  "sentinel" frame with one local variable
-   *
-   * @param contextRegisters The context registers for this thread
-   * @param ip The instruction pointer for the "startoff" method
-   * @param sp The base of the stack
-   */
   @Override
   @Uninterruptible
   public final void initializeStack(ArchitectureSpecific.Registers contextRegisters, Address ip, Address sp) {
@@ -98,14 +80,6 @@ public abstract class MachineSpecificIA extends MachineSpecific implements ArchC
 
   /* unique to IA */
 
-  /**
-   * A thread's stack has been moved or resized.
-   * Adjust the ESP register to reflect new position.
-   *
-   * @param registers The registers for this thread
-   * @param delta The displacement to be applied
-   * @param traceAdjustments Log all adjustments to stderr if true
-   */
   @Uninterruptible
   @Override
   public final void adjustESP(ArchitectureSpecific.Registers registers, Offset delta, boolean traceAdjustments) {

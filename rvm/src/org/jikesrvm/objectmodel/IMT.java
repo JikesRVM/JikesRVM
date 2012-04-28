@@ -38,9 +38,6 @@ public final class IMT implements RuntimeTable<CodeArray> {
     this.data = new CodeArray[TIBLayoutConstants.IMT_METHOD_SLOTS];
   }
 
-  /**
-   * Return the backing array (for boot image writing)
-   */
   @Override
   public CodeArray[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
@@ -48,7 +45,7 @@ public final class IMT implements RuntimeTable<CodeArray> {
   }
 
   /**
-   * Create an IMT.
+   * Creates an IMT.
    *
    * @return The created IMT instance.
    */
@@ -58,7 +55,7 @@ public final class IMT implements RuntimeTable<CodeArray> {
   }
 
   /**
-   * Get a TIB entry.
+   * Gets an entry in the IMT.
    *
    * @param index The index of the entry to get
    * @return The value of that entry
@@ -72,7 +69,7 @@ public final class IMT implements RuntimeTable<CodeArray> {
   }
 
   /**
-   * Set a TIB entry.
+   * Sets an entry in the IMT.
    *
    * @param index The index of the entry to set
    * @param value The value to set the entry to.
@@ -86,7 +83,7 @@ public final class IMT implements RuntimeTable<CodeArray> {
   }
 
   /**
-   * Return the length of the TIB
+   * Returns the length of the IMT
    */
   @Override
   @Intrinsic

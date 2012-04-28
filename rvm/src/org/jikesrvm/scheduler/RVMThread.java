@@ -2740,7 +2740,6 @@ public final class RVMThread extends ThreadContext {
   @Interruptible
   private void callSystemExit(final int exitStatus) {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
-      // @Override // Java 1.5 - can't override interface method
       @Override
       public Object run() {
         System.exit(exitStatus);

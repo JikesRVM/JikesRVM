@@ -50,9 +50,6 @@ public final class FunctionTable implements RuntimeTable<CodeArray> {
     return new FunctionTable(size);
   }
 
-  /**
-   * Return the backing array (for boot image writing)
-   */
   @Override
   public CodeArray[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);

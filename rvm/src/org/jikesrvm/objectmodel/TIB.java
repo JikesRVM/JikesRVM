@@ -103,9 +103,6 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
     this.data = new Object[size];
   }
 
-  /**
-   * Return the backing array (for boot image writing)
-   */
   @Override
   public Object[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);

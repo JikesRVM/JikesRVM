@@ -57,7 +57,6 @@ public interface RegisterConstants {
         throw new Error("Invalid register ordinal");
       }
     }
-    /** @return encoded value of this register */
     @Override
     @UninterruptibleNoWarn("Interruptible code only called during boot image creation")
     @Pure
@@ -94,7 +93,6 @@ public interface RegisterConstants {
       }
       return result;
     }
-    /** @return does this register require a REX prefix byte? */
     @Override
     @Pure
     public boolean needsREXprefix() {
@@ -137,13 +135,11 @@ public interface RegisterConstants {
         throw new Error("Invalid register ordinal");
       }
     }
-    /** @return encoded value of this register */
     @Override
     @Pure
     public byte value() {
       return (byte)ordinal();
     }
-    /** @return does this register require a REX prefix byte? */
     @Override
     @Pure
     public boolean needsREXprefix() {
@@ -174,13 +170,11 @@ public interface RegisterConstants {
         throw new Error("Invalid register ordinal");
       }
     }
-    /** @return encoded value of this register */
     @Override
     @Pure
     public byte value() {
       return (byte)ordinal();
     }
-    /** @return does this register require a REX prefix byte? */
     @Override
     @Pure
     public boolean needsREXprefix() {
@@ -215,13 +209,11 @@ public interface RegisterConstants {
         throw new Error("Invalid register ordinal");
       }
     }
-    /** @return encoded value of this register */
     @Override
     @Pure
     public byte value() {
       return (byte)ordinal();
     }
-    /** @return does this register require a REX prefix byte? */
     @Override
     @Pure
     public boolean needsREXprefix() {

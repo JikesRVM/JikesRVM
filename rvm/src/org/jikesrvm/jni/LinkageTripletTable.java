@@ -47,9 +47,6 @@ public final class LinkageTripletTable implements RuntimeTable<AddressArray> {
     return new LinkageTripletTable(size);
   }
 
-  /**
-   * Return the backing array (for boot image writing)
-   */
   @Override
   public AddressArray[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);

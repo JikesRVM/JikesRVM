@@ -133,6 +133,8 @@ public class FieldLayoutPacked extends FieldLayout implements SizeConstants {
   }
 
   /**
+   * @param klass the class to layout
+   * @return The layout context
    * @see FieldLayout#getLayoutContext(RVMClass)
    */
   @Override

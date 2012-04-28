@@ -141,8 +141,6 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
   }
 
   /**
-   * Return the specialized method for the given type.
-   *
    * TODO: Lazily compile specialized methods?
    */
   @Override
@@ -163,17 +161,11 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
     return specializedMethods[pattern].getEntryCodeArray();
   }
 
-  /**
-   * @return the method signature of the specialized method's invoke.
-   */
   @Override
   public TypeReference[] getSignature() {
     return signature;
   }
 
-  /**
-   * @return the return type of the specialized method's invoke
-   */
   @Override
   public TypeReference getReturnType() {
     return returnType;

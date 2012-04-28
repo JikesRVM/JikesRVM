@@ -32,7 +32,6 @@ public class FieldLayoutUnpacked extends FieldLayout implements SizeConstants {
       }
     }
 
-    /** Return the next available offset for a given size */
     @Override
     int nextOffset(int size, boolean isReference) {
       int objectSize = getObjectSize();
@@ -61,10 +60,6 @@ public class FieldLayoutUnpacked extends FieldLayout implements SizeConstants {
     super(largeFieldsFirst, clusterReferenceFields);
   }
 
-  /**
-   * @param klass the class to layout
-   * @return The layout context
-   */
   @Override
   protected FieldLayoutContext getLayoutContext(RVMClass klass) {
     return new LayoutContext((byte) klass.getAlignment(), (LayoutContext) klass.getFieldLayoutContext());
