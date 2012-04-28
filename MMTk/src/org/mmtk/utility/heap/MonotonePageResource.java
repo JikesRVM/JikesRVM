@@ -327,9 +327,6 @@ public final class MonotonePageResource extends PageResource
 
   private static int CONCURRENT_ZEROING_BLOCKSIZE = 1<<16;
 
-  /**
-   * The entry point for the concurrent zeroing context.
-   */
   @Override
   public void concurrentZeroing() {
     if (VM.VERIFY_ASSERTIONS) {

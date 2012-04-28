@@ -103,7 +103,7 @@ public class EventCounter extends Counter {
    */
 
   /**
-   * Start this counter
+   * {@inheritDoc}
    */
   @Override
   protected void start() {
@@ -112,9 +112,6 @@ public class EventCounter extends Counter {
     running = true;
   }
 
-  /**
-   * Stop this counter
-   */
   @Override
   protected void stop() {
     if (!Stats.gatheringStats) return;
@@ -162,9 +159,6 @@ public class EventCounter extends Counter {
     printValue(currentCount);
   }
 
-  /**
-   * Print the current total for this counter
-   */
   @Override
   public final void printTotal() {
     long total = 0;
@@ -174,12 +168,6 @@ public class EventCounter extends Counter {
     printValue(total);
   }
 
-  /**
-   * Print the current total for either the mutator or GC phase
-   *
-   * @param mutator True if the total for the mutator phases is to be
-   * printed (otherwise the total for the GC phases will be printed).
-   */
   @Override
   protected final void printTotal(boolean mutator) {
     long total = 0;
@@ -189,13 +177,6 @@ public class EventCounter extends Counter {
     printValue(total);
   }
 
-  /**
-   * Print the current minimum value for either the mutator or GC
-   * phase.
-   *
-   * @param mutator True if the minimum for the mutator phase is to be
-   * printed (otherwise the minimum for the GC phase will be printed).
-   */
   @Override
   protected final void printMin(boolean mutator) {
     int p = (mutator) ? 0 : 1;
@@ -206,13 +187,6 @@ public class EventCounter extends Counter {
     printValue(min);
   }
 
-  /**
-   * Print the current maximum value for either the mutator or GC
-   * phase.
-   *
-   * @param mutator True if the maximum for the mutator phase is to be
-   * printed (otherwise the maximum for the GC phase will be printed).
-   */
   @Override
   protected final void printMax(boolean mutator) {
     int p = (mutator) ? 0 : 1;
@@ -232,9 +206,6 @@ public class EventCounter extends Counter {
     Log.write(value);
   }
 
-  /**
-   * Print statistics for the most recent phase
-   */
   @Override
   public void printLast() {
     if (Stats.phase > 0) printCount(Stats.phase - 1);

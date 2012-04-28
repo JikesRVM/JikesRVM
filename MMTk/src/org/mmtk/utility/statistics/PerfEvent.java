@@ -84,10 +84,6 @@ public final class PerfEvent extends LongCounter {
     return readBuffer[RAW_COUNT];
   }
 
-  /**
-   * Print the given value
-   * @param value The value to be printed
-   */
   @Override
   void printValue(long value) {
     if (overflowed) {

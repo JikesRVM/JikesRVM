@@ -89,7 +89,7 @@ public abstract class LongCounter extends Counter {
    */
 
   /**
-   * Start this counter
+   * {@inheritDoc}
    */
   @Override
   public void start() {
@@ -99,9 +99,6 @@ public abstract class LongCounter extends Counter {
     startValue = getCurrentValue();
   }
 
-  /**
-   * Stop this counter
-   */
   @Override
   public void stop() {
     if (!Stats.gatheringStats) return;
@@ -146,9 +143,6 @@ public abstract class LongCounter extends Counter {
       printValue(count[phase]);
   }
 
-  /**
-   * Print the current total for this counter
-   */
   @Override
   public final void printTotal() {
     printValue(totalCount);
@@ -179,13 +173,6 @@ public abstract class LongCounter extends Counter {
     printValue(total);
   }
 
-  /**
-   * Print the current minimum value for either the mutator or GC
-   * phase.
-   *
-   * @param mutator True if the minimum for the mutator phase is to be
-   * printed (otherwise the minimum for the GC phase will be printed).
-   */
   @Override
   protected final void printMin(boolean mutator) {
     int p = (mutator) ? 0 : 1;
@@ -196,13 +183,6 @@ public abstract class LongCounter extends Counter {
     printValue(min);
   }
 
-  /**
-   * Print the current maximum value for either the mutator or GC
-   * phase.
-   *
-   * @param mutator True if the maximum for the mutator phase is to be
-   * printed (otherwise the maximum for the GC phase will be printed).
-   */
   @Override
   protected final void printMax(boolean mutator) {
     int p = (mutator) ? 0 : 1;

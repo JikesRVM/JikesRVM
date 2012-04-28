@@ -50,11 +50,6 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
     this.freeList = AddressArray.create(sizeClassCount());
   }
 
-  /**
-   * Return the space this allocator is currently bound to.
-   *
-   * @return The Space.
-   */
   @Override
   protected final S getSpace() {
     return this.space;

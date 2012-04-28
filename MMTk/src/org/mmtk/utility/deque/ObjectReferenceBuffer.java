@@ -48,12 +48,6 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
     values = new ObjectReferenceDeque(name, queue);
   }
 
-  /**
-   * Trace an edge during GC.
-   *
-   * @param source The source of the reference.
-   * @param slot The location containing the object reference.
-   */
   @Override
   @Inline
   public final void processEdge(ObjectReference source, Address slot) {

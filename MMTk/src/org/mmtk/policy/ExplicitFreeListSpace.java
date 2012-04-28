@@ -56,18 +56,12 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
     super(name, 0, vmRequest);
   }
 
-  /**
-   * Should SegregatedFreeListSpace manage a side bitmap to keep track of live objects?
-   */
   @Override
   @Inline
   protected boolean maintainSideBitmap() {
     return true;
   }
 
-  /**
-   * Do we need to preserve free lists as we move blocks around.
-   */
   @Override
   @Inline
   protected boolean preserveFreeList() {

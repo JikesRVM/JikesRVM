@@ -222,13 +222,6 @@ import org.vmmagic.pragma.*;
     return ForwardingWord.isForwarded(object);
   }
 
-  /**
-   * Has the object in this space been reached during the current collection.
-   * This is used for GC Tracing.
-   *
-   * @param object The object reference.
-   * @return True if the object is reachable.
-   */
   @Override
   public boolean isReachable(ObjectReference object) {
     return !fromSpace || ForwardingWord.isForwarded(object);

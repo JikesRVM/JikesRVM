@@ -44,11 +44,6 @@ import org.vmmagic.pragma.*;
     super(queue);
   }
 
-  /**
-   * Flush the buffer to the shared deque (this will make any entries
-   * in the buffer visible to any other consumer associated with the
-   * shared deque).
-   */
   @Override
   public final void flushLocal() {
     super.flushLocal();

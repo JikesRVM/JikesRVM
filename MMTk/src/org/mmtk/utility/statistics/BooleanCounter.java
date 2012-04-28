@@ -96,7 +96,7 @@ public class BooleanCounter extends Counter {
    */
 
   /**
-   * Start this counter
+   * {@inheritDoc}
    */
   @Override
   protected void start() {
@@ -105,9 +105,6 @@ public class BooleanCounter extends Counter {
     running = true;
   }
 
-  /**
-   * Stop this counter
-   */
   @Override
   protected void stop() {
     if (!Stats.gatheringStats) return;
@@ -198,9 +195,6 @@ public class BooleanCounter extends Counter {
     Log.write(value);
   }
 
-  /**
-   * Print statistics for the most recent phase
-   */
   @Override
   public void printLast() {
     if (Stats.phase > 0) printCount(Stats.phase - 1);

@@ -68,7 +68,7 @@ import org.vmmagic.pragma.*;
   };
 
   /**
-   * Spawn a thread the execute the supplied collector context.
+   * Spawn a thread to execute the supplied collector context.
    */
   @Interruptible
   public abstract void spawnCollectorContext(CollectorContext context);

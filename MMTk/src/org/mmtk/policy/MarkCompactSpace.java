@@ -175,24 +175,11 @@ import org.vmmagic.pragma.*;
     return getForwardingPointer(object);
   }
 
-  /**
-   * Is this object live?
-   *
-   * @param object The object
-   * @return True if the object is live
-   */
   @Override
   public boolean isLive(ObjectReference object) {
     return isMarked(object);
   }
 
-  /**
-   * Has the object in this space been reached during the current collection.
-   * This is used for GC Tracing.
-   *
-   * @param object The object reference.
-   * @return True if the object is reachable.
-   */
   @Override
   public boolean isReachable(ObjectReference object) {
     return isMarked(object);

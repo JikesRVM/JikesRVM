@@ -106,10 +106,6 @@ import org.vmmagic.pragma.*;
     scanner = new LinearScan(this);
   }
 
-  /**
-   * Get the name of this driver type.
-   * @return The name of this driver.
-   */
   @Override
   protected String getDriverName() { return "MMTk LinearSpaceDriver"; }
 

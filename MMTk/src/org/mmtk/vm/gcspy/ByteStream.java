@@ -127,12 +127,6 @@ import org.vmmagic.pragma.*;
    */
   public void increment(int index, byte value) { data[index] += value; }
 
-  /**
-   * Send the data and summary for this stream.
-   * @param event The event
-   * @param numTiles The number of tiles to send (which may be less than maxTileNum)
-   * @see #ByteStream
-   */
   @Override
   public void send(int event, int numTiles) {
     if (DEBUG) {

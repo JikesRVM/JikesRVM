@@ -60,11 +60,6 @@ public final class MarkCompactLocal extends BumpPointer {
     prepare();
   }
 
-  /**
-   * Maximum size of a single region. Important for children that implement
-   * load balancing or increments based on region size.
-   * @return the maximum region size
-   */
   @Override
   protected Extent maximumRegionSize() { return Extent.fromIntZeroExtend(4 << LOG_BLOCK_SIZE) ; }
 

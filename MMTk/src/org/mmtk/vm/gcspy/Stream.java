@@ -195,7 +195,8 @@ import org.vmmagic.unboxed.Address;
   /**
    * Send the data for this stream.
    * @param event the event.
-   * @param numTiles the number of tiles to send.
+   * @param numTiles the number of tiles to send (which may be less than maxTileNum)
+
    */
   public abstract void send(int event, int numTiles);
 

@@ -143,27 +143,12 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
     return true;
   }
 
-  /**
-   * Return the size of the per-superpage header required by this
-   * system.  In this case it is just the underlying superpage header
-   * size.
-   *
-   * @return The size of the per-superpage header required by this
-   * system.
-   */
   @Override
   @Inline
   protected int superPageHeaderSize() {
     return DoublyLinkedList.headerSize();
   }
 
-  /**
-   * Return the size of the per-cell header for cells of a given class
-   * size.
-   *
-   * @return The size of the per-cell header for cells of a given class
-   * size.
-   */
   @Override
   @Inline
   protected int cellHeaderSize() { return 0; }

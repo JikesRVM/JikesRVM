@@ -59,9 +59,6 @@ import org.vmmagic.unboxed.*;
   @Entrypoint
   protected Address head; // the start of the buffer
 
-  /**
-   * Reset the local buffer (throwing away any local entries).
-   */
   @Override
   public void resetLocal() {
     super.resetLocal();

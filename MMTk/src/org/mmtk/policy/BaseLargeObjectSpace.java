@@ -94,7 +94,23 @@ public abstract class BaseLargeObjectSpace extends Space implements Constants {
    * Superpages
    */
 
+  /**
+   * Return the size of the per-superpage header required by this
+   * system.  In this case it is just the underlying superpage header
+   * size.
+   *
+   * @return The size of the per-superpage header required by this
+   * system.
+   */
   protected abstract int superPageHeaderSize();
+
+  /**
+   * Return the size of the per-cell header for cells of a given class
+   * size.
+   *
+   * @return The size of the per-cell header for cells of a given class
+   * size.
+   */
   protected abstract int cellHeaderSize();
 
   /**

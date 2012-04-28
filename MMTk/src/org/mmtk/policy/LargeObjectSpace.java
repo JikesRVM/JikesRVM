@@ -259,27 +259,12 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
      return (byte)(VM.objectModel.readAvailableByte(object) & NURSERY_BIT) == NURSERY_BIT;
   }
 
-  /**
-   * Return the size of the per-superpage header required by this
-   * system.  In this case it is just the underlying superpage header
-   * size.
-   *
-   * @return The size of the per-superpage header required by this
-   * system.
-   */
   @Override
   @Inline
   protected int superPageHeaderSize() {
     return Treadmill.headerSize();
   }
 
-  /**
-   * Return the size of the per-cell header for cells of a given class
-   * size.
-   *
-   * @return The size of the per-cell header for cells of a given class
-   * size.
-   */
   @Override
   @Inline
   protected int cellHeaderSize() {

@@ -120,9 +120,6 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
     return !HEADER_MARK_BITS;
   }
 
-  /**
-   * Do we need to preserve free lists as we move blocks around.
-   */
   @Override
   @Inline
   protected boolean preserveFreeList() {

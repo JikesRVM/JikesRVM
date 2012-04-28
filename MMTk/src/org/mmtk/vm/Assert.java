@@ -51,7 +51,7 @@ import org.vmmagic.pragma.Uninterruptible;
    * class, but are internal to the VM<->MM interface glue, so are never
    * called by MMTk users.
    */
-   /** @return true if assertions should be verified */
+   /** @return <code>true</code> if assertions should be verified */
   protected abstract boolean getVerifyAssertionsConstant();
 
   /*

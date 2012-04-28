@@ -270,15 +270,6 @@ public final class ImmixSpace extends Space implements Constants {
     return rtn;
   }
 
- /**
-  * This hook is called by page resources each time a space grows.  The space may
-  * tap into the hook to monitor heap growth.  The call is made from within the
-  * page resources' critical region, immediately before yielding the lock.
-  *
-  * @param start The start of the newly allocated space
-  * @param bytes The size of the newly allocated space
-  * @param newChunk True if the new space encroached upon or started a new chunk or chunks.
-  */
   @Override
   public void growSpace(Address start, Extent bytes, boolean newChunk) {
     super.growSpace(start, bytes, newChunk);
