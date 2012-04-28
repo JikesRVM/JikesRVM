@@ -205,31 +205,6 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     }
   }
 
-  /**
-   * Fetch symbolic reference to a method that's called by one of
-   * this method's instructions.
-   * @param dynamicLink place to put return information
-   * @param instructionOffset offset of machine instruction from start of
-   * this method, in bytes
-   *
-   * Notes:
-   * <ul>
-   * <li> The "instructionOffset" must point to the instruction i
-   * <em> following </em> the call
-   * instruction whose target method is sought.
-   * This allows us to properly handle the case where
-   * the only address we have to work with is a return address
-   * (ie. from a stackframe)
-   * on a machine architecture with variable length instructions.
-   * In such situations we'd have no idea how far to back up the
-   * instruction pointer
-   * to point to the "call site".
-   *
-   * <li> The implementation must not cause any allocations,
-   * because it executes with
-   * gc disabled when called by GCMapIterator.
-   * <ul>
-   */
   @Override
   @Uninterruptible
   public void getDynamicLink(DynamicLink dynamicLink, Offset instructionOffset) {
@@ -248,12 +223,6 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     return ((NormalMethod) method).getLineNumberForBCIndex(bci);
   }
 
-  /**
-   * Return whether or not the instruction offset corresponds to an uninterruptible context.
-   *
-   * @param instructionOffset of addr from start of instructions in bytes
-   * @return true if the IP is within an Uninterruptible method, false otherwise.
-   */
   @Override
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
     return method.isUninterruptible();
@@ -303,9 +272,6 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     return candidateIndex;
   }
 
-  /**
-   * Set the stack browser to the innermost logical stack frame of this method
-   */
   @Override
   public void set(StackBrowser browser, Offset instr) {
     browser.setMethod(method);
@@ -320,19 +286,11 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     }
   }
 
-  /**
-   * Advance the StackBrowser up one internal stack frame, if possible
-   */
   @Override
   public boolean up(StackBrowser browser) {
     return false;
   }
 
-  /**
-   * Print this compiled method's portion of a stack trace
-   * @param instructionOffset of machine instruction from start of method
-   * @param out the PrintLN to print the stack trace to.
-   */
   @Override
   public void printStackTrace(Offset instructionOffset, PrintLN out) {
     out.print("\tat ");
@@ -442,11 +400,6 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     }
   }
 
-  /**
-   * Return the number of bytes used to encode the compiler-specific mapping
-   * information for this compiled method.
-   * Used to gather stats on the space costs of mapping schemes.
-   */
   @Override
   public int size() {
     TypeReference TYPE = TypeReference.findOrCreate(BaselineCompiledMethod.class);

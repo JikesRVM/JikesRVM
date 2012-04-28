@@ -74,18 +74,20 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     dynamicLink = new DynamicLink();
   }
 
-  //
-  // Set the iterator to scan the map at the machine instruction offset provided.
-  // The iterator is positioned to the beginning of the map
-  //
-  //   method - identifies the method and class
-  //   instruction offset - identifies the map to be scanned.
-  //   fp  - identifies a specific occurrance of this method and
-  //         allows for processing instance specific information
-  //         i.e JSR return address values
-  //
-  //  NOTE: An iterator may be reused to scan a different method and map.
-  //
+  /**
+   * Set the iterator to scan the map at the machine instruction offset
+   * provided. The iterator is positioned to the beginning of the map. NOTE: An
+   * iterator may be reused to scan a different method and map.
+   *
+   * @param compiledMethod
+   *          identifies the method and class
+   * @param instructionOffset
+   *          identifies the map to be scanned.
+   * @param fp
+   *          identifies a specific occurrance of this method and allows for
+   *          processing instance specific information i.e JSR return address
+   *          values
+   */
   @Override
   public void setupIterator(CompiledMethod compiledMethod, Offset instructionOffset, Address fp) {
     currentCompiledMethod = (BaselineCompiledMethod) compiledMethod;
@@ -163,9 +165,10 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     reset();
   }
 
-  // Reset iteration to initial state.
-  // This allows a map to be scanned multiple times
-  //
+  /**
+   * Reset iteration to initial state.
+   * This allows a map to be scanned multiple times
+   */
   @Override
   public void reset() {
 
@@ -204,10 +207,6 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     }
   }
 
-  /**
-   * Get location of next reference.
-   * A zero return indicates that no more references exist.
-   */
   @Override
   public Address getNextReferenceAddress() {
 
@@ -346,11 +345,6 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     return Address.zero();
   }
 
-  //
-  // Gets the location of the next return address
-  // after the current position.
-  //  a zero return indicates that no more references exist
-  //
   @Override
   public Address getNextReturnAddressAddress() {
 
@@ -394,10 +388,11 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     }
   }
 
-  // cleanup pointers - used with method maps to release data structures
-  //    early ... they may be in temporary storage ie storage only used
-  //    during garbage collection
-  //
+  /**
+   * Cleanup pointers - used with method maps to release data structures early
+   * ... they may be in temporary storage ie storage only used during garbage
+   * collection
+   */
   @Override
   public void cleanupPointers() {
     // Make sure that the registerLocation array is updated with the

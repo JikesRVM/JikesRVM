@@ -241,10 +241,6 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     return offset;
   }
 
-  /**
-   * Get location of next reference. A zero return indicates that no more
-   * references exist.
-   */
   @Override
   public Address getNextReferenceAddress() {
     if (!finishedWithRegularMap) {

@@ -80,17 +80,11 @@ final class HardwareTrapCompiledMethod extends CompiledMethod {
     out.println("\tat <hardware trap>");
   }
 
-  /**
-   * Set the stack browser to the innermost logical stack frame of this method
-   */
   @Override
   public void set(StackBrowser browser, Offset instr) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /**
-   * Advance the StackBrowser up one internal stack frame, if possible
-   */
   @Override
   public boolean up(StackBrowser browser) {
     return false;
