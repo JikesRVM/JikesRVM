@@ -72,6 +72,7 @@ public class DynamicCallFileInfoReader {
           } else if (Controller.options.BULK_COMPILATION_VERBOSITY == 1) {
             VM.sysWrite(".");
           }
+          s = s.replaceAll("\\{urls[^\\}]*\\}", ""); // strip classloader cruft we can't parse
           StringTokenizer parser = new StringTokenizer(s, " \n,");
           readOneCallSiteAttribute(parser, boot);
         }

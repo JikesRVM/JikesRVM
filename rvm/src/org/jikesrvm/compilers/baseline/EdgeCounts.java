@@ -158,6 +158,7 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
       int[] cur = null;
       int curIdx = 0;
       for (String s = in.readLine(); s != null; s = in.readLine()) {
+        s = s.replaceAll("\\{urls[^\\}]*\\}", ""); // strip classloader cruft we can't parse
         StringTokenizer parser = new StringTokenizer(s, " \t\n\r\f,{}");
         String firstToken = parser.nextToken();
         if (firstToken.equals("M")) {
