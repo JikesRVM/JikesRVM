@@ -672,8 +672,18 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   protected final void SET_EXCEPTION_OBJECT(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForCaughtException();
     StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
-    RegisterOperand obj = (RegisterOperand) CacheOp.getRef(s);
-    EMIT(MIR_Move.mutate(s, IA32_MOV, sl, obj));
+    Operand val = (Operand) CacheOp.getRef(s);
+    if (val.isRegister()) {
+        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, val));
+    } else if (val.isIntConstant()) {
+        RegisterOperand temp = regpool.makeTempInt();
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val)));
+        val = temp.copyRO(); // for opt compiler var usage info?
+        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, temp));
+    } else {
+        throw new OptimizingCompilerException("BURS_Helpers",
+                "unexpected operand type "+val+" in SET_EXCEPTION_OBJECT");
+    }
   }
 
   /**
