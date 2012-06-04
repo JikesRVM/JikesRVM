@@ -32,12 +32,12 @@
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <!-- init properties for downloading classpath from cvs or from web -->
+  <!-- init properties for downloading classpath from git repository or from web -->
   <target name="init-classpath-properties" depends="prepare-ant-tasks">
     <condition property="classpath.from-web" value="true">
       <and>
         <not>
-          <isset property="classpath.from-cvs"/>
+          <isset property="classpath.from-git"/>
         </not>
         <not>
           <isset property="classpath.from-web"/>
@@ -52,18 +52,14 @@
     </condition>
   </target>
 
-  <!-- download classpath from cvs -->
-  <target name="get-classpath-from-cvs" depends="init-classpath-properties" if="classpath.from-cvs">
-    <property name="classpath.tag" value="0_${classpath.version}-release"/>
-    <test-file name="cvs.exe" location="${host.file}"/>
+  <!-- download classpath from git -->
+  <target name="get-classpath-from-git" depends="init-classpath-properties" if="classpath.from-git">
+    <test-file name="git.exe" location="${host.file}"/>
     <mkdir dir="${classpath.package.dir}"/>
     <delete dir="${classpath.package.dir}/classpath"/>
-    <exec executable="${cvs.exe}" failonerror="true" dir="${classpath.package.dir}">
-      <arg value="-q"/>
-      <arg value="-z3"/>
-      <arg value="-d:pserver:anonymous@cvs.savannah.gnu.org:/sources/classpath"/>
-      <arg value="co"/>
-      <arg value="classpath"/>
+    <exec executable="${git.exe}" failonerror="true" dir="${classpath.package.dir}">
+      <arg value="clone"/>
+      <arg value="http://git.savannah.gnu.org/r/classpath.git/"/>
     </exec>
     <exec executable="${classpath.dir}/autogen.sh" failonerror="true" dir="${classpath.dir}"/>
   </target>
@@ -97,30 +93,34 @@
           tofile="${classpath.package.dir}/classpath"/>
   </target>
 
-  <target name="fetch" depends="get-classpath-from-web,get-classpath-from-cvs"/>
+  <target name="fetch" depends="get-classpath-from-web,get-classpath-from-git"/>
 
   <!-- *************************************************************************** -->
   <!--                        patch classpath                                      -->
   <!-- In general these are patches to issues reported to classpath but not yet    -->
-  <!-- committed (patches against CVS head) or in a stable release (against 'web') -->
-  <!-- please maintain separate patches for cvs head and stable versions           -->
+  <!-- committed (patches against Git head) or in a stable release (against 'web') -->
+  <!-- please maintain separate patches for Git head and stable versions           -->
   <!-- of classpath, even if the patch is identical                                -->
   <!-- *************************************************************************** -->
 
-  <!-- Patches against CVS head -->
-  <target name="patch-classpath-cvs" depends="fetch" if="classpath.from-cvs">
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-443.patch"
+  <!-- Patches against Git head -->
+  <target name="patch-classpath-git" depends="fetch" if="classpath.from-git">
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-443.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-644.patch"
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-644.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-732.patch"
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-732.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-881.patch"
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-881.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-889-01.patch"
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-878.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
-    <patch patchfile="${components.patch.dir}/classpath-cvs.RVM-889-02.patch"
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-889-01.patch"
            dir="${classpath.package.dir}/classpath/" strip="0"/>
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-903.patch"
+           dir="${classpath.package.dir}/classpath/" strip="1"/>
+    <patch patchfile="${components.patch.dir}/classpath-git.RVM-914.patch"
+           dir="${classpath.package.dir}/classpath/" strip="1"/>
   </target>
 
   <!-- Patches against the current stable version -->
@@ -192,7 +192,7 @@
     <patch patchfile="${components.patch.dir}/classpath-web.RVM-914.patch"
            dir="${classpath.package.dir}/classpath/" strip="1"/>
   </target>
-  <target name="patch" depends="patch-classpath-web,patch-classpath-cvs"/>
+  <target name="patch" depends="patch-classpath-web,patch-classpath-git"/>
 
   <!-- build classpath in classpath.dir -->
   <target name="build" depends="fetch,patch" description="Download Classpath and build.">

@@ -1,0 +1,14 @@
+--- java/lang/ThreadLocalMap.java	2008-12-09 17:35:48.000000000 +1100
++++ java/lang/ThreadLocalMap.java	2008-12-17 11:40:22.000000000 +1100
+@@ -302,7 +302,9 @@
+    * Clear out the map. Done once during thread death.
+    */
+   void clear() {
+-    entries = null;
++    this.entries = new Entry[1];
++    this.count = 0;
++    this.hashMask = 0;
+   }
+ 
+   /**
+
