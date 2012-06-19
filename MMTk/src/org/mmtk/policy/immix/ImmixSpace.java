@@ -440,7 +440,7 @@ public final class ImmixSpace extends Space implements Constants {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!defrag.inDefrag());
     if (ObjectHeader.isMatureObject(object))
       return object;
-    else if (TMP_PREFER_COPY_ON_NURSERY_GC)
+    else if (PREFER_COPY_ON_NURSERY_GC)
       return traceObjectWithOpportunisticCopy(trace, object, allocator, true);
     else
       return fastTraceObject(trace, object);

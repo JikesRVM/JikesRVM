@@ -13,7 +13,7 @@
 package org.mmtk.plan.stickyimmix;
 
 import static org.mmtk.policy.immix.ImmixConstants.MARK_LINE_AT_SCAN_TIME;
-import static org.mmtk.policy.immix.ImmixConstants.TMP_PREFER_COPY_ON_NURSERY_GC;
+import static org.mmtk.policy.immix.ImmixConstants.PREFER_COPY_ON_NURSERY_GC;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
@@ -58,7 +58,7 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Space.isInSpace(StickyImmix.IMMIX, object))
-      return TMP_PREFER_COPY_ON_NURSERY_GC ? StickyImmix.immixSpace.copyNurseryIsLive(object) : StickyImmix.immixSpace.fastIsLive(object);
+      return PREFER_COPY_ON_NURSERY_GC ? StickyImmix.immixSpace.copyNurseryIsLive(object) : StickyImmix.immixSpace.fastIsLive(object);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
     return true;
   }
@@ -85,7 +85,7 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
   @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (Space.isInSpace(StickyImmix.IMMIX, object)) {
-      if (!TMP_PREFER_COPY_ON_NURSERY_GC)
+      if (!PREFER_COPY_ON_NURSERY_GC)
         return true;
       else
         return StickyImmix.immixSpace.willNotMoveThisNurseryGC(object);
