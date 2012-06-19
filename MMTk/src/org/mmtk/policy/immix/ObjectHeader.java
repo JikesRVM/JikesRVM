@@ -73,14 +73,14 @@ public class ObjectHeader {
     return oldMarkState;
   }
 
-  static void setMarkStateUnlogAndUnlock(ObjectReference object, byte originalHeaderByte, byte markState) {
-    byte oldValue = originalHeaderByte;
-    byte newValue = (byte) ((oldValue & ~MARK_AND_FORWARDING_MASK) | markState);
+  static void setMarkStateUnlogAndUnlock(ObjectReference object, byte gcByte, byte markState) {
+    byte oldGCByte = gcByte;
+    byte newGCByte = (byte) ((oldGCByte & ~MARK_AND_FORWARDING_MASK) | markState);
     if (HeaderByte.NEEDS_UNLOGGED_BIT)
-      newValue |= HeaderByte.UNLOGGED_BIT;
-    VM.objectModel.writeAvailableByte(object, newValue);
+      newGCByte |= HeaderByte.UNLOGGED_BIT;
+    VM.objectModel.writeAvailableByte(object, newGCByte);
     if (VM.VERIFY_ASSERTIONS)
-      VM.assertions._assert((oldValue & MARK_MASK) != markState);
+      VM.assertions._assert((oldGCByte & MARK_MASK) != markState);
   }
 
   /**
@@ -95,9 +95,9 @@ public class ObjectHeader {
     return (VM.objectModel.readAvailableByte(object) & MARK_MASK) == value;
    }
 
-  static boolean testMarkState(byte forwardingWord, byte value) {
+  static boolean testMarkState(byte gcByte, byte value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((value & MARK_MASK) == value);
-    return (forwardingWord & MARK_MASK) == value;
+    return (gcByte & MARK_MASK) == value;
   }
 
   static boolean isNewObject(ObjectReference object) {
