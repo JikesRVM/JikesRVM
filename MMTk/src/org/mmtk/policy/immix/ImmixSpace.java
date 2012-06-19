@@ -438,7 +438,9 @@ public final class ImmixSpace extends Space implements Constants {
   @Inline
   public ObjectReference nurseryTraceObject(TransitiveClosure trace, ObjectReference object, int allocator) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!defrag.inDefrag());
-    if (TMP_PREFER_COPY_ON_NURSERY_GC)
+    if (ObjectHeader.isMatureObject(object))
+      return object;
+    else if (TMP_PREFER_COPY_ON_NURSERY_GC)
       return traceObjectWithOpportunisticCopy(trace, object, allocator, true);
     else
       return fastTraceObject(trace, object);
@@ -492,9 +494,9 @@ public final class ImmixSpace extends Space implements Constants {
    */
   @Inline
   private ObjectReference traceObjectWithOpportunisticCopy(TransitiveClosure trace, ObjectReference object, int allocator, boolean nurseryCollection) {
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(nurseryCollection || (defrag.determined(true) && isDefragSource(object)));
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((nurseryCollection && !ObjectHeader.isMatureObject(object)) || (defrag.determined(true) && isDefragSource(object)));
 
-    /* now race to be the (potential) forwarder */
+    /* Race to be the (potential) forwarder */
     Word priorStatusWord = ForwardingWord.attemptToForward(object);
     if (ForwardingWord.stateIsForwardedOrBeingForwarded(priorStatusWord)) {
       /* We lost the race; the object is either forwarded or being forwarded by another thread. */
@@ -517,7 +519,7 @@ public final class ImmixSpace extends Space implements Constants {
       } else {
         /* we are the first to reach the object; either mark in place or forward it */
         ObjectReference newObject;
-        if (ObjectHeader.isPinnedObject(object) || defrag.spaceExhausted()) {
+        if (ObjectHeader.isPinnedObject(object) || (!nurseryCollection && defrag.spaceExhausted())) {
           /* mark in place */
           ObjectHeader.setMarkStateUnlogAndUnlock(object, priorState, markState);
           newObject = object;
