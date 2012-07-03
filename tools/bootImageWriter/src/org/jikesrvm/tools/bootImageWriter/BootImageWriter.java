@@ -1148,14 +1148,16 @@ public class BootImageWriter extends BootImageWriterMessages
 
     @Override
     public int compare(T a, T b) {
+      if (a == null && b == null) return 0;
       if (a == null) return 1;
       if (b == null) return -1;
       if ((a instanceof RVMType) && (b instanceof RVMType)) {
         RVMType typeA = (RVMType) a;
         RVMType typeB = (RVMType) b;
         DemographicInformation infoA = demographicData.get(typeA);
-        if (infoA == null) return 1;
         DemographicInformation infoB = demographicData.get(typeB);
+        if (infoA == null && infoB == null) return 0;
+        if (infoA == null) return 1;
         if (infoB == null) return -1;
 
         if (infoA.size > infoB.size) return -1;
