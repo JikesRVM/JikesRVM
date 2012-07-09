@@ -40,22 +40,31 @@ public class LocalRegPair implements OSRConstants {
 
   /* rest part only available after updated by LinearScan.updateOSRMaps. */
 
-  /* A reg value could be an integer constant (ICONST),
-  *                      a physical register (PHYREG), or
-  *                      a spill on the stack (SPILL).
-  * The  valueType is one of them, combined with the typeCode, one should be
-  * able to recover the value of a variable.
-  */
+  /**
+   * A reg value could be
+   * <ul>
+   *   <li>an integer constant (ICONST),
+   *   <li>a physical register (PHYREG), or
+   *   <li>a spill on the stack (SPILL).
+   * </ul>
+   * <p>
+   * The  valueType is one of them, combined with the typeCode, one should be
+   * able to recover the value of a variable.
+   */
   public byte valueType;
 
-  /* The meaning of value field depends on valueType
-  * for ICONST, ACONST and LCONST, it is the value of the constant,
-  * for PHYREG, it is the register number,
-  * for SPILL, it is the spill location.
-  */
+  /**
+   * The meaning of value field depends on valueType:
+   * <ul>
+   *   <li>for ICONST, ACONST and LCONST, it is the value of the constant,
+   *   <li>for PHYREG, it is the register number,
+   *   <li>for SPILL, it is the spill location.
+   * </ul>
+   */
   public Word value;
 
-  /* A LONG variable takes two symbolic registers, we need to know another
+  /**
+   * A LONG variable takes two symbolic registers, we need to know another
    * half part.
    */
   public LocalRegPair _otherHalf;

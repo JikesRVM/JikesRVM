@@ -105,13 +105,13 @@ public final class JavaThreadModel extends ThreadModel {
 
   /**
    * Perform the delicate operation of joining the pool of active mutators.
-   *
-   * If there isn't currently a GC in progress (!allWaitingForGC()), increment
+   * <p>
+   * If there isn't currently a GC in progress ({@code !allWaitingForGC()}), increment
    * the active mutator count and return.  If a GC has been initiated, we will
    * join it at the next GC-safe point.
-   *
+   * <p>
    * Otherwise, we 'quietly' join the active GC, by incrementing the count of
-   * waiting mutators, and calling waitForGC(false) (there has already been a 'last'
+   * waiting mutators, and calling {@code waitForGC(false)} (there has already been a 'last'
    * mutator).  Once the GC has completed, we remove ourselves from the GC,
    * and increment the activeMutators.
    */
@@ -143,7 +143,7 @@ public final class JavaThreadModel extends ThreadModel {
 
   /**
    * Perform the delicate operation of leaving the mutator pool.
-   *
+   * <p>
    * If there's a GC scheduled, and we are the last thread to join,
    * join the GC (because we are required to trigger it) and then exit.
    * Otherwise, just decrement the mutator count and leave.
@@ -301,7 +301,6 @@ public final class JavaThreadModel extends ThreadModel {
 
   /**
    * Wait for the mutator threads to exit.
-   * @see org.mmtk.harness.scheduler.ThreadModel#schedule()
    */
   @Override
   public void schedule() {

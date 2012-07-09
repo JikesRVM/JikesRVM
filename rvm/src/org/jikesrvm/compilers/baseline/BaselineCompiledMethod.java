@@ -42,7 +42,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   private boolean hasCounters;
 
   /**
-   * The lock acquistion offset for synchronized methods.  For
+   * The lock acquisition offset for synchronized methods.  For
    * synchronized methods, the offset (in the method prologue) after
    * which the monitor has been obtained.  At, or before, this point,
    * the method does not own the lock.  Used by deliverException to
@@ -101,8 +101,8 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   /**
    * Location of local general purpose variable.  These Locations are
    * positioned at the top of the stackslot that contains the value
-   * before accessing, substract size of value you want to access.
-   * e.g. to load int: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT
+   * before accessing, substract size of value you want to access.<p>
+   * e.g. to load int: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT<br>
    * e.g. to load long: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_LONG
    */
   @Uninterruptible
@@ -113,8 +113,8 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   /**
    * Location of local floating point variable.  These Locations are
    * positioned at the top of the stackslot that contains the value
-   * before accessing, substract size of value you want to access.
-   * e.g. to load float: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_FLOAT
+   * before accessing, substract size of value you want to access.<p>
+   * e.g. to load float: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_FLOAT<br>
    * e.g. to load double: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_DOUBLE
    */
   @Uninterruptible
@@ -232,11 +232,11 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    * Find bytecode index corresponding to one of this method's
    * machine instructions.
    *
-   * @param instructionOffset instruction offset to map to a bytecode index
+   * @param instructionOffset instruction offset to map to a bytecode index.<br>
    * Note: This method expects the offset to refer to the machine
    * instruction immediately FOLLOWING the bytecode in question.  just
    * like findLineNumberForInstruction. See CompiledMethod for
-   * rationale
+   * rationale.<br>
    * NOTE: instructionIndex is in units of instructions, not bytes
    * (different from all the other methods in this interface!!)
    * @return the bytecode index for the machine instruction, -1 if not

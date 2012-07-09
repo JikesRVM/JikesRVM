@@ -20,7 +20,7 @@ import java.lang.annotation.ElementType;
 /**
  * Use this annotation to mark fields that are read without the knowledge of the
  * memory management system. This means that barriers are not triggered and
- * the reference is also not traced by the garbage collector.
+ * the reference is also not traced by the garbage collector.<p>
  *
  * As annotations are loaded at class resolution time, fields marked with this
  * annotation must be private so that no unresolved accesses are compiled to them with

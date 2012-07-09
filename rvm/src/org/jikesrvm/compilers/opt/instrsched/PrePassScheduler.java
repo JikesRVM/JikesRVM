@@ -17,9 +17,6 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 
 /**
  * Pre-pass Instruction Scheduling Phase
- *
- * This class is declared as "final" which implies that all its methods
- * are "final" too.
  */
 public final class PrePassScheduler extends CompilerPhase {
 

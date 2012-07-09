@@ -23,11 +23,8 @@ import org.mmtk.harness.lang.type.Type;
 
 /**
  * Arithmetic and logical operators
- *
+ * <p>
  * Operations themselves implemented in the appropriate Expression types
- *
- * This would be an enum but it needs to inherit from AST, so that we can
- * push operators onto an AST stack.
  */
 public enum Operator {
   /* Equality */
@@ -140,14 +137,14 @@ public enum Operator {
   }
 
   /**
-   * @return true if this is a binary operation
+   * @return {@code true} if this is a binary operation
    */
   public boolean isBinary() {
     return binaryOperators.contains(this);
   }
 
   /**
-   * @return true if this is a unary operation
+   * @return {@code true} if this is a unary operation
    */
   public boolean isUnary() {
     return unaryOperators.contains(this);

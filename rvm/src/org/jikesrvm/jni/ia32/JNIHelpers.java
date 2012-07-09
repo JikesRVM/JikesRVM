@@ -112,7 +112,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   }
 
   /**
-   * This method supports var args passed from C.
+   * This method supports var args passed from C.<p>
    *
    * In the Linux Intel C convention, the caller places the args immediately above the
    * saved return address, starting with the first arg. <br>

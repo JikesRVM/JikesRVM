@@ -48,7 +48,7 @@ public final class AbstractMethod extends RVMMethod {
   /**
    * By definition, abstract methods do not have associated code. Therefore,
    * this method will return an error handling method from
-   * {@link org.jikesrvm.runtime.RuntimeEntrypoints} that will raise an {@link AbstractMethodError}
+   * RuntimeEntrypoints that will raise an {@link AbstractMethodError}
    * when it is invoked.
    *
    * @see RuntimeEntrypoints

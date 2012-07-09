@@ -31,30 +31,33 @@ import org.vmmagic.unboxed.Word;
  * This class implements a bump pointer allocator that allows linearly
  * scanning through the allocated objects. In order to achieve this in the
  * face of parallelism it maintains a header at a region (1 or more blocks)
- * granularity.
+ * granularity.<p>
  *
  * Intra-block allocation is fast, requiring only a load, addition comparison
  * and store.  If a block boundary is encountered the allocator will
- * request more memory (virtual and actual).
+ * request more memory (virtual and actual).<p>
  *
  * In the current implementation the scanned objects maintain affinity
  * with the thread that allocated the objects in the region. In the future
  * it is anticipated that subclasses should be allowed to choose to improve
- * load balancing during the parallel scan.
+ * load balancing during the parallel scan.<p>
  *
  * Each region is laid out as follows:
+ * <pre>
  *
  *  +-------------+-------------+-------------+---------------
  *  | Region  End | Next Region |  Data  End  | Data -->
  * +-------------+-------------+-------------+---------------
  *
+ * </pre>
+ *
  * The minimum region size is 32768 bytes, so the 3 or 4 word overhead is
- * less than 0.05% of all space.
+ * less than 0.05% of all space.<p>
  *
  * An intended enhancement is to facilitate a reallocation operation
  * where a second cursor is maintained over earlier regions (and at the
  * limit a lower location in the same region). This would be accompianied
- * with an alternative slow path that would allow reuse of empty regions.
+ * with an alternative slow path that would allow reuse of empty regions.<p>
  *
  * This class relies on the supporting virtual machine implementing the
  * getNextObject and related operations.
@@ -68,6 +71,10 @@ import org.vmmagic.unboxed.Word;
    */
 
   // Block size defines slow path periodicity.
+
+  /**
+   *
+   */
   private static final int LOG_DEFAULT_STEP_SIZE = 30; // 1G: let the external slow path dominate
   private static final int STEP_SIZE = 1<<(SUPPORT_CARD_SCANNING ? LOG_CARD_BYTES : LOG_DEFAULT_STEP_SIZE);
   protected static final int LOG_BLOCK_SIZE = LOG_BYTES_IN_PAGE + 3;
@@ -96,13 +103,21 @@ import org.vmmagic.unboxed.Word;
    *
    * Instance variables
    */
-  protected Address cursor; // insertion point
-  private Address internalLimit; // current internal slow-path sentinal for bump pointer
-  private Address limit; // current external slow-path sentinal for bump pointer
-  protected Space space; // space this bump pointer is associated with
-  protected Address initialRegion; // first contiguous region
-  protected final boolean allowScanning; // linear scanning is permitted if true
-  protected Address region; // current contiguous region
+
+  /** insertion point */
+  protected Address cursor;
+  /** current internal slow-path sentinel for bump pointer */
+  private Address internalLimit;
+  /** current external slow-path sentinel for bump pointer */
+  private Address limit;
+  /**  space this bump pointer is associated with */
+  protected Space space;
+  /** first contiguous region */
+  protected Address initialRegion;
+  /** linear scanning is permitted if true */
+  protected final boolean allowScanning;
+  /** current contiguous region */
+  protected Address region;
 
 
   /**
@@ -143,7 +158,7 @@ import org.vmmagic.unboxed.Word;
 
   /**
    * Allocate space for a new object.  This is frequently executed code and
-   * the coding is deliberaetly sensitive to the optimizing compiler.
+   * the coding is deliberately sensitive to the optimizing compiler.
    * After changing this, always check the IR/MC that is generated.
    *
    * @param bytes The number of bytes allocated

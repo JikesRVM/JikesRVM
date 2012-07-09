@@ -20,11 +20,11 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * Each instance of this class corresponds to one treadmill *space*.
+ * Each instance of this class corresponds to one treadmill <b>space</b>.<p>
  *
  * Each of the instance methods of this class may be called by any
  * thread (i.e. synchronization must be explicit in any instance or
- * class method).
+ * class method).<p>
  *
  * This stands in contrast to TreadmillLocal, which is instantiated
  * and called on a per-thread basis, where each instance of
@@ -36,6 +36,10 @@ public abstract class BaseLargeObjectSpace extends Space implements Constants {
   /****************************************************************************
    *
    * Class variables
+   */
+
+  /**
+   *
    */
   protected static final Word PAGE_MASK = Word.fromIntSignExtend(~(BYTES_IN_PAGE - 1));
 

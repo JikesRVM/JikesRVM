@@ -33,7 +33,9 @@ public final class LoadFixedFieldOp extends UnaryOp {
 
   /**
    * Create an instruction for the operation
+   * <pre>
    *   resultTemp <- object.<fieldType>[index]
+   * </pre>
    *
    * @param source     Source file location (parser Token)
    * @param resultTemp Result destination

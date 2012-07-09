@@ -54,7 +54,6 @@ public class Assert extends org.mmtk.vm.Assert {
    *
    * @return <code>true</code> if the virtual machine is running
    */
-  //@Override
   public boolean runningVM() {
     return true;
   }

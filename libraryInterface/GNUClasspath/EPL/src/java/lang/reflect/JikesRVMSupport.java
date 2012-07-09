@@ -27,7 +27,8 @@ public class JikesRVMSupport {
     return new Method(new VMMethod(m));
   }
 
-  @SuppressWarnings("unchecked") // Can't type-check this without <T> type<T>, which breaks javac
+  //Can't type-check this without <T> type<T>, which breaks javac
+  @SuppressWarnings("unchecked")
   public static <T> Constructor<T> createConstructor(RVMMethod m) {
     return new Constructor(new VMConstructor(m));
   }

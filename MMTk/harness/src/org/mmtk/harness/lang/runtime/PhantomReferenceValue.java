@@ -33,9 +33,6 @@ public class PhantomReferenceValue extends ReferenceValue {
     super(ref,Semantics.PHANTOM);
   }
 
-  /**
-   * @see org.mmtk.harness.lang.runtime.Value#type()
-   */
   @Override
   public Type type() {
     return Type.PHANTOMREF;

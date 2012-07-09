@@ -34,11 +34,18 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible public class Subspace {
 
-  private Address start_;       // The Subspace spans the address range [start_, end_)
+  /** start address of the subspace. A subspace spans the address
+   *  range <code>[start_, end_)</code> **/
+  private Address start_;
+  /** end address of the subspace. A subspace spans the address
+   *  range <code>[start_, end_)</code> **/
   private Address end_;
-  private int firstIndex_;      // The index of the block in which start_ lies
-  private int blockSize_;       // The block size
-  private int blockNum_;        // The number of blocks in this space
+  /** The index of the block in which {@code start_} lies */
+  private int firstIndex_;
+  /** the block size */
+  private int blockSize_;
+  /** the number of blocks in this space */
+  private int blockNum_;
 
   private static final boolean DEBUG = false;
 
@@ -132,7 +139,7 @@ import org.vmmagic.pragma.*;
    * Is an index in the range of this subspace?
    *
    * @param index The index of the block
-   * @return true if this block lies in this subspace
+   * @return {@code true} if this block lies in this subspace
    */
   public boolean indexInRange(int index) {
     return index >= firstIndex_ &&
@@ -143,7 +150,7 @@ import org.vmmagic.pragma.*;
    * Is address in the range of this subspace?
    *
    * @param addr An address
-   * @return true if this address is in a block in this subspace
+   * @return {@code true} if this address is in a block in this subspace
    */
   public boolean addressInRange(Address addr) {
     return addr.GE(start_) && addr.LT(end_);

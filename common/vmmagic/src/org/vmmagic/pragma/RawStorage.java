@@ -20,9 +20,9 @@ import org.vmmagic.Pragma;
 
 /**
  * When applied to class this annotation indicates that the data component
- * of this field consists of an intrisically managed chunk of raw memory of
+ * of this field consists of an intrinsically managed chunk of raw memory of
  * the specified size. This is used as the basic building block for native
- * width types.
+ * width types.<p>
  *
  * To construct types larger than those possible with RawStorage, simply
  * construct an type with multiple (Unboxed) fields.

@@ -26,7 +26,10 @@ import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 public final class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
-  private static final Unsafe theUnsafe = unsafe; // alias to match name that DL's FJ framework appears to expect from class libs.
+
+  /** alias to match name that DL's FJ framework appears to expect from class libs */
+  @SuppressWarnings("unused")
+  private static final Unsafe theUnsafe = unsafe;
 
   private Unsafe() {}
 

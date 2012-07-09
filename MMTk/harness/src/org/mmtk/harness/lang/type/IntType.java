@@ -24,9 +24,6 @@ public class IntType extends AbstractType {
     super("int");
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#initialValue()
-   */
   @Override
   public Value initialValue() {
     return IntValue.ZERO;

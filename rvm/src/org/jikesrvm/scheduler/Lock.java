@@ -102,8 +102,8 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  <LI> <EM>Is there any advantage to using the {@link SpinLock#tryLock}
  method?</EM>
  </OL>
- Once these questions, and the issue of using MCS locking in {@link
-SpinLock}, have been investigate, then a larger performance issue
+ Once these questions, and the issue of using MCS locking in {@link SpinLock},
+ have been investigated, then a larger performance issue
  comes into view.  A number of different light-weight locking schemes have
  been proposed over the years (see last several OOPSLA's).  It should be
  possible to implement each of them in RVM and compare their performance.
@@ -453,7 +453,7 @@ public final class Lock implements Constants {
    * Delivers up an unassigned heavy-weight lock.  Locks are allocated
    * from processor specific regions or lists, so normally no synchronization
    * is required to obtain a lock.
-   *
+   * <p>
    * Collector threads cannot use heavy-weight locks.
    *
    * @return a free Lock; or <code>null</code>, if garbage collection is not enabled

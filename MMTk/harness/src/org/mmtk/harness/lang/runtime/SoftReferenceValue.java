@@ -33,9 +33,6 @@ public class SoftReferenceValue extends ReferenceValue {
     super(ref,Semantics.SOFT);
   }
 
-  /**
-   * @see org.mmtk.harness.lang.runtime.Value#type()
-   */
   @Override
   public Type type() {
     return Type.SOFTREF;

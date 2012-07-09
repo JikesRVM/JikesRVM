@@ -93,7 +93,7 @@ import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 /**
  * Handles the conversion from LIR to MIR of operators whose
  * expansion requires the introduction of new control flow (new basic blocks).
- *
+ * <p>
  * TODO: Make these methods virtual; spilt into Common superclass with
  *       32/64 subclasses.
  */

@@ -26,7 +26,7 @@ import org.vmmagic.pragma.NonMoving;
  * An organizer for method listener information that
  * simply accumulates the samples into a private
  * MethodCountData instance.
- *
+ * <p>
  * This organizer is used to simply gather aggregate sample data and
  * report it.
  */

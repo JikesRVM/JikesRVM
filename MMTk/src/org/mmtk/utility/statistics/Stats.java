@@ -33,6 +33,9 @@ public class Stats {
    * Class variables
    */
 
+  /**
+   *
+   */
   public static final boolean GATHER_MARK_CONS_STATS = false;
 
   /** Maximum number of gc/mutator phases that can be counted */
@@ -381,6 +384,6 @@ public class Stats {
   /** @return The GC count (inclusive of any in-progress GC) */
   public static int gcCount() { return gcCount; }
 
-  /** @return True if currently gathering stats */
+  /** @return {@code true} if currently gathering stats */
   public static boolean gatheringStats() { return gatheringStats; }
 }

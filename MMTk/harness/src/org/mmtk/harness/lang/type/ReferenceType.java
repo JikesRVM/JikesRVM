@@ -42,25 +42,16 @@ public class ReferenceType extends AbstractType {
     this.semantics = semantics;
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#initialValue()
-   */
   @Override
   public Value initialValue() {
     return initialValues.get(semantics);
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.AbstractType#isObject()
-   */
   @Override
   public boolean isObject() {
     return false;
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.AbstractType#isCompatibleWith(org.mmtk.harness.lang.type.Type)
-   */
   @Override
   public boolean isCompatibleWith(Type rhs) {
     if (rhs == this) {

@@ -327,7 +327,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * Return an allocation site upon request.  The request may be made
    * in the context of compilation.
    *
-   * @param compileTime True if this request is being made in the
+   * @param compileTime {@code true} if this request is being made in the
    * context of a compilation.
    * @return an allocation site
    */
@@ -542,7 +542,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
    * @param offset the offset at which the alignment is desired.
    * @param site allocation site.
    * @return array object with header installed and all elements set
-   *         to zero/null
+   *         to zero/{@code null}
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */
   @Inline

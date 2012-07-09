@@ -16,6 +16,8 @@ import org.jikesrvm.ArchitectureSpecific.ArchConstants;
 import org.vmmagic.pragma.NonMoving;
 
 /**
+ * Represents the thread that the Jikes RVM uses to boot itself. It
+ * is created during bootimage writing.
  */
 @NonMoving
 public final class BootThread extends SystemThread {

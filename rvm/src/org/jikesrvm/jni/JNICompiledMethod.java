@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Information associated with artifical stackframe inserted at the
  * transition from Jave to JNI Native C.
- *
+ * <p>
  * Exception delivery should never see Native C frames, or the Java to C
  * transition frame.  Native C code is redispatched during exception
  * handling to either process/handle and clear the exception or to return

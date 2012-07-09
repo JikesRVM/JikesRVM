@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see Operand
  */
-
 public final class DoubleConstantOperand extends ConstantOperand implements SizeConstants {
 
   /**

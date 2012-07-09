@@ -254,7 +254,7 @@ public final class ConditionOperand extends Operand {
   }
 
   /**
-   * Is the condition code an unsigned comparision?
+   * Is the condition code an unsigned comparison?
    * @return <code>true</code> if it is or <code>false</code> if it is not
    */
   public boolean isUNSIGNED() {
@@ -317,7 +317,7 @@ public final class ConditionOperand extends Operand {
 
   /**
    * Convert this integer compare to a floating point cmpl
-   * compare. Used during bc2ir.
+   * compare. Used during BC2IR.
    */
   public void translateCMPL() {
     switch (value) {
@@ -346,7 +346,7 @@ public final class ConditionOperand extends Operand {
 
   /**
    * Convert this integer compare to a floating point cmpg
-   * compare. Used during bc2ir.
+   * compare. Used during BC2IR.
    */
   public void translateCMPG() {
     switch (value) {
@@ -375,9 +375,10 @@ public final class ConditionOperand extends Operand {
 
   /**
    * Convert this floating point compare to the equivalent unsigned
-   * integer compare. Used during IA-32 BURS - NB this doesn't respect
-   * ordered/unordered operation, so it should only be used when it's
-   * safe to.
+   * integer compare. Used during IA-32 BURS.<p>
+   *
+   * NB this doesn't respect ordered/unordered operation, so it
+   * should only be used when it's safe to.
    */
   public ConditionOperand translateUNSIGNED() {
     switch (value) {

@@ -76,36 +76,37 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  * loops that conform to being regular {@link
  * AnnotatedLSTNode}s. The optimisations performs the following
  * operations:
- *
+ * <ul>
+ * <li>
  * 1) Determine the bound and null checks to be eliminated. These are
  * the ones that operate on the loop iterator. If no bound checks can
  * be eliminated, stop optimising this loop.
- *
+ * <li>
  * 2) Determine the registers defined in the loop.
- *
+ * <li>
  * 3) Generate phi nodes that define the original register defined by
  * the loop and use two newly created registers.
- *
+ * <li>
  * 4) Create a version of the original loop that uses the first of the
  * newly created registers instead of the original registers.
- *
+ * <li>
  * 5) Create a second version, this time with the result of the
  * eliminated checks set to true.
- *
+ * <li>
  * 6) Work out what the maximum value for all the bounds checks are
  * and create branches to optimal or suboptimal loops
- *
+ * <li>
  * 7) Fix up the phi node predecessors
- *
+ * <li>
  * 8) Remove the unoptimized loop if its redundant
- *
+ * <li>
  * 9) Replace register definitions in the original loop with phi
  * instructions
- *
+ * <li>
  * 10) Compact node numbering so that CFG number of nodes reflects
  * that some basic blocks may have been deleted
- *
- *
+ * </ul>
+ * <p>
  * Example:
  * <listing>
  *   for (int t1=0; t1 &lt; 100; t1++) {

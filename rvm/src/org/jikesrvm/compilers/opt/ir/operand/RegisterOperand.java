@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
  * A symbolic or physical register.
  * A wrapper around an Register that may contain program-point specific
  * information about the value denoted by the Register.
- *
+ * <p>
  * TODO: This class is due for a refactor into subclasses
  * to split out the symbolic &amp; physical registers and to create
  * special behavior for symbolic registers used as phi operands and
@@ -153,7 +153,8 @@ public final class RegisterOperand extends Operand {
   }
 
   /**
-   * Returns a copy of this register operand as a register operand
+   * Returns a copy of this register operand as a register operand.<p>
+   *
    * NOTE: preserves the flags, info and scratchObject.  Preserving is
    * required in all cases as several phases also depend on scratch
    * and/or scratchObject being copied

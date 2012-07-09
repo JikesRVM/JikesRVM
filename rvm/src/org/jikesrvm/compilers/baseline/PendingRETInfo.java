@@ -16,10 +16,10 @@ import org.jikesrvm.VM;
 
 /**
  * This class is used during the processing of reference maps for a method.
- *
+ * <p>
  * When a JSR has been processed the processing of a RET is pending.
  * Need to track which JSR was processed, and where the "return address" value
- * is being held (ie is it on the operand stack, or in a local variable).
+ * is being held (i.e. is it on the operand stack, or in a local variable).
  * The value starts on the top of the stack, but is usually quickly moved to
  * a local variable.
  */

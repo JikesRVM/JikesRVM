@@ -37,14 +37,16 @@ import org.vmmagic.unboxed.harness.SimulatedMemory;
 
 /**
  * MMTk Harness implementation of MMTk object model
+ * <pre>
  *    GC header                              (determined by MMTk)
- *    Object id (age in allocations);        (int)
+ *    Object id (age in allocations)         (int)
  *    Allocation site                        (int)
  *    The size of the data section in words. (int)
  *    The number of reference words.         (int)
  *    Status Word (includes GC)              (WORD)
  *    References
  *    Data
+ * </pre>
  */
 @Uninterruptible
 public final class ObjectModel extends org.mmtk.vm.ObjectModel {
@@ -118,10 +120,9 @@ public final class ObjectModel extends org.mmtk.vm.ObjectModel {
     return nextObjectId;
   }
 
-  /*
+  /**
    * Watchpoints by object identifier.
    */
-
   private static final Set<Integer> watchSet = new HashSet<Integer>();
 
   /**

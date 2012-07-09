@@ -41,6 +41,10 @@ public class StickyMSCollector extends MSCollector {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   private StickyMSNurseryTraceLocal nurseryTrace;
 
   /****************************************************************************

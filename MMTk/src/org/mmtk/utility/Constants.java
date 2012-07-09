@@ -32,6 +32,10 @@ public interface Constants {
    *
    * MMTk constants
    */
+
+  /**
+   *
+   */
   int INSTANCE_FIELD = 0;
   int ARRAY_ELEMENT = 1;
 
@@ -39,6 +43,10 @@ public interface Constants {
   /****************************************************************************
    *
    * Generic sizes
+   */
+
+  /**
+   *
    */
   byte LOG_BYTES_IN_BYTE = 0;
   int BYTES_IN_BYTE = 1;
@@ -54,6 +62,10 @@ public interface Constants {
   /****************************************************************************
    *
    * Card scanning
+   */
+
+  /**
+   *
    */
   boolean SUPPORT_CARD_SCANNING = false;
   int LOG_CARD_META_SIZE = 2;// each card consumes four bytes of metadata
@@ -71,6 +83,10 @@ public interface Constants {
    * Java-specific sizes currently required by MMTk
    *
    * TODO MMTk should really become independent of these Java types
+   */
+
+  /**
+   *
    */
   byte LOG_BYTES_IN_CHAR= 1;
   int BYTES_IN_CHAR = 1 << LOG_BYTES_IN_CHAR;
@@ -93,6 +109,10 @@ public interface Constants {
   /****************************************************************************
    *
    * VM-Specific sizes
+   */
+
+  /**
+   *
    */
   byte LOG_BYTES_IN_ADDRESS = VM.LOG_BYTES_IN_ADDRESS;
   int BYTES_IN_ADDRESS = 1 << LOG_BYTES_IN_ADDRESS;

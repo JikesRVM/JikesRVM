@@ -25,6 +25,10 @@ public class ObjectHeader {
   static final int AVAILABLE_LOCAL_BITS = 8 - HeaderByte.USED_GLOBAL_BITS;
 
   /* header requirements */
+
+  /**
+   *
+   */
   public static final int LOCAL_GC_BITS_REQUIRED = AVAILABLE_LOCAL_BITS;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
@@ -39,6 +43,10 @@ public class ObjectHeader {
   public static final byte STRADDLE_BIT = 1<<STRADDLE_BIT_NUMBER;
 
   /* mark bits */
+
+  /**
+   *
+   */
   private static final int  MARK_BASE = STRADDLE_BIT_NUMBER+1;
   static final int  MAX_MARKCOUNT_BITS = AVAILABLE_LOCAL_BITS-MARK_BASE;
   private static final byte MARK_INCREMENT = 1<<MARK_BASE;
@@ -53,11 +61,11 @@ public class ObjectHeader {
    */
 
   /**
-   * Non-atomically test and set the mark bit of an object.  Return true
-   * if successful, false if the mark bit was already set.
+   * Non-atomically test and set the mark bit of an object.
    *
    * @param object The object whose mark bit is to be written
    * @param markState The value to which the mark bits will be set
+   * @return the old mark state
    */
   static byte testAndMark(ObjectReference object, byte markState) {
     byte oldValue, newValue, oldMarkState;
@@ -84,11 +92,11 @@ public class ObjectHeader {
   }
 
   /**
-   * Return true if the mark count for an object has the given value.
+   * Return {@code true} if the mark count for an object has the given value.
    *
    * @param object The object whose mark bit is to be tested
    * @param value The value against which the mark bit will be tested
-   * @return True if the mark bit for the object has the given value.
+   * @return {@code true} if the mark bit for the object has the given value.
    */
   static boolean testMarkState(ObjectReference object, byte value) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((value & MARK_MASK) == value);
@@ -161,7 +169,7 @@ public class ObjectHeader {
   /**
    * Return the mark state incremented or decremented by one.
    *
-   * @param increment If true, then return the incremented value else return the decremented value
+   * @param increment If {@code true}, then return the incremented value else return the decremented value
    * @return the mark state incremented or decremented by one.
    */
   static byte deltaMarkState(byte state, boolean increment) {

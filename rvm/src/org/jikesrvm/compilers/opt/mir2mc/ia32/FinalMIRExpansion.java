@@ -103,7 +103,7 @@ import org.vmmagic.unboxed.Offset;
  * Things that are expanded here (immediately before final assembly)
  * should only be those sequences that cannot be expanded earlier
  * due to difficulty in keeping optimizations from interfering with them.
- *
+ * <p>
  * One job of this phase is to handle the expansion of the remains of
  * table switch.  The code looks like a mess (which it is), but there
  * is little choice for relocatable IA32 code that does this.  And the

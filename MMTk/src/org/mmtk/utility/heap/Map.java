@@ -31,12 +31,16 @@ import org.vmmagic.unboxed.Word;
 @Uninterruptible
 public class Map {
 
-  /* set the map base address so that we have an unused (null) chunk at the bottome of the space for 64 bit */
+  /** set the map base address so that we have an unused {@code null} chunk at the bottome of the space for 64 bit */
   private static final Address MAP_BASE_ADDRESS = Space.BITS_IN_ADDRESS == 32 ? Address.zero() : Space.HEAP_START.minus(Space.BYTES_IN_CHUNK);
 
   /****************************************************************************
    *
    * Class variables
+   */
+
+  /**
+   *
    */
   private static final int[] descriptorMap;
   private static final int[] prevLink;

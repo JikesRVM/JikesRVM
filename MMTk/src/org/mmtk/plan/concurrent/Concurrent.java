@@ -33,6 +33,10 @@ public abstract class Concurrent extends Simple {
   /****************************************************************************
    * Class variables
    */
+
+  /**
+   *
+   */
   public static final short FLUSH_MUTATOR               = Phase.createSimple("flush-mutator", null);
   public static final short SET_BARRIER_ACTIVE          = Phase.createSimple("set-barrier", null);
   public static final short FLUSH_COLLECTOR             = Phase.createSimple("flush-collector", null);
@@ -115,6 +119,10 @@ public abstract class Concurrent extends Simple {
   /****************************************************************************
    *
    * Collection
+   */
+
+  /**
+   *
    */
   private boolean inConcurrentCollection = false;
 

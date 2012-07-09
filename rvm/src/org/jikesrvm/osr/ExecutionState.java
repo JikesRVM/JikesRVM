@@ -416,9 +416,12 @@ public class ExecutionState implements OSRConstants, BytecodeConstants {
     return last;
   }
 
-  /* add padding (NOP) at the beginning of pseudo bytecode
+  /**
+   * Adds padding (NOP) at the beginning of pseudo bytecode
    * to make the new bytecode size dividable by 4, then no branch
    * target adjustment is needed in the original code.
+   * @param head
+   * @return the new bytecode size
    */
   private static int paddingBytecode(PseudoBytecode head) {
     /* skip the first Nop. */

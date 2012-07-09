@@ -30,9 +30,11 @@ import org.jikesrvm.compilers.opt.ir.Operator;
 
 /**
  * This class inserts yield points in
- *  1) a method's prologue
- *  2) loop headers
- *  3) (optionally) method exits (epilogue, athrow)
+ * <ul>
+ *  <li>1) a method's prologue
+ *  <li>2) loop headers
+ *  <li>3) (optionally) method exits (epilogue, athrow)
+ * </ul>
  */
 public class YieldPoints extends CompilerPhase {
 
@@ -65,7 +67,7 @@ public class YieldPoints extends CompilerPhase {
 
     // (1) Insert prologue yieldpoint unconditionally.
     //     As part of prologue/epilogue insertion we'll remove
-    //     the yieldpoints in trival methods that otherwise wouldn't need
+    //     the yieldpoints in trivial methods that otherwise wouldn't need
     //     a stackframe.
     prependYield(ir.cfg.entry(), YIELDPOINT_PROLOGUE, 0, ir.gc.inlineSequence);
 

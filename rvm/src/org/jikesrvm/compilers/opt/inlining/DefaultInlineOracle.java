@@ -32,9 +32,11 @@ import org.jikesrvm.scheduler.RVMThread;
 /**
  * The default inlining oracle used by the optimizing compiler.
  * The basic strategy is as follows:
- *  (1) Always inline trivial methods that can be inlined without a guard
- *  (2) At O1 and greater use a mix of profile information and static heuristics
+ * <ol>
+ *  <li>Always inline trivial methods that can be inlined without a guard
+ *  <li>At O1 and greater use a mix of profile information and static heuristics
  *      to inline larger methods and methods that require guards.
+ * </ol>
  */
 public final class DefaultInlineOracle extends InlineTools implements InlineOracle {
 
@@ -467,7 +469,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
   /**
    * Estimate the expected cost of the inlining action
-   * (inclues both the inline body and the guard/off-branch code).
+   * (includes both the inline body and the guard/off-branch code).
    *
    * @param inlinedBodyEstimate size estimate for inlined body
    * @param needsGuard is it going to be a guarded inline?

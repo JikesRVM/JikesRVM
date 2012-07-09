@@ -148,25 +148,26 @@ public abstract class JNIHelpers extends JNIGenericHelpers
   }
 
   /**
-   * This method supports var args passed from C
+   * This method supports var args passed from C.<p>
    *
    * In the AIX C convention, the caller keeps the first 8 words in registers and
    * the rest in the spill area in the caller frame.  The callee will push the values
    * in registers out to the spill area of the caller frame and use the beginning
-   * address of this spill area as the var arg address
+   * address of this spill area as the var arg address.<p>
    *
    * For the JNI functions that takes var args, their prolog code will save the
    * var arg in the glue frame because the values in the register may be lost by
-   * subsequent calls.
+   * subsequent calls.<p>
    *
    * This method copies the var arg values that were saved earlier in glue frame into
    * the spill area of the original caller, thereby doing the work that the callee
-   * normally performs in the AIX C convention.
+   * normally performs in the AIX C convention..<p>
    *
    * NOTE:  this method assumes that it is immediately above the
    * invokeWithDotDotVarArg frame, the JNI frame, the glue frame and
    * the C caller frame in the respective order.
    * Therefore, this method will not work if called from anywhere else
+   * <pre>
    *
    *   |  fp  | <- JNIEnvironment.pushVarArgToSpillArea
    *   | mid  |
@@ -232,6 +233,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
    *   |      |
    *   |      |
    *   |      |
+   * </pre>
    *
    * @param methodID a MemberReference id
    * @param skip4Args if true, the calling JNI function has 4 args before the vararg

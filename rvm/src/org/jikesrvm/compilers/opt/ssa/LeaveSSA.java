@@ -289,7 +289,8 @@ public class LeaveSSA extends CompilerPhase {
 
   /**
    * Record pending copy operations needed to insert at the end of a basic
-   * block.
+   * block.<p>
+   *
    * TODO: this procedure is getting long and ugly.  Rewrite or refactor
    * it.
    * @param bb the basic block to process
@@ -568,7 +569,7 @@ public class LeaveSSA extends CompilerPhase {
                                                  true,   // skip (final) local propagation step
                                                  // of live analysis
                                                  false,  // don't store information at handlers
-                                                 false); // dont skip guards
+                                                 false); // don't skip guards
 
     live.perform(ir);
     // 3. initialization
@@ -581,7 +582,7 @@ public class LeaveSSA extends CompilerPhase {
       LTDominators.perform(ir, true, true);
       dom = new DominatorTree(ir, true);
     }
-    // 6. compensate for copies required by simulataneous liveness
+    // 6. compensate for copies required by simultaneous liveness
     performRename(b, dom, s);
     // 7. phis are now redundant
     removeAllPhis(ir);

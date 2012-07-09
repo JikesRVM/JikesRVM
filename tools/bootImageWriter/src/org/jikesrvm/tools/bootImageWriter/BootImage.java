@@ -118,7 +118,7 @@ public class BootImage extends BootImageWriterMessages
 
   /**
    * Use mapped byte buffers? We need to truncate the byte buffer
-   * before writing it to disk. This operation is support on UNIX but
+   * before writing it to disk. This operation is supported on UNIX but
    * not Windows.
    */
   private static final boolean mapByteBuffers = false;
@@ -408,7 +408,7 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param address address of target
    * @param objField true if this word is an object field (as opposed
-   * to a static, or tib, or some other metadata)
+   * to a static, or TIB, or some other metadata)
    * @param root Does this slot contain a possible reference into the heap? (objField must also be true)
    * @param genuineNull true if the value is a genuine null and
    * shouldn't be counted as a blanked field

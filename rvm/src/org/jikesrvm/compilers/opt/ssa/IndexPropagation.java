@@ -23,9 +23,7 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
- * IndexPropagation.java
- *
- * <p> Perform index propagation (see Fink, Knobe && Sarkar, SAS 2000)
+ * Perform index propagation (see Fink, Knobe && Sarkar, SAS 2000)
  *
  * <p> This analysis computes for each Array SSA variable A,
  * the set of value numbers V(k) such that location
@@ -73,13 +71,13 @@ public final class IndexPropagation extends CompilerPhase {
   }
 
   /**
-   * Print vervose debugging messages?
+   * Print verbose debugging messages?
    */
   private static final boolean DEBUG = false;
 
   /**
    * Perform the analysis.
-   * <p> Pre-condition: The ir is in Array SSA form and global value numbers
+   * <p> Pre-condition: The IR is in Array SSA form and global value numbers
    *    have been computed.
    *
    * @param ir the IR to optimize
@@ -136,7 +134,7 @@ public final class IndexPropagation extends CompilerPhase {
     private boolean TOP = true;
 
     /**
-     * Create a latticle cell corresponding to a heap variable.
+     * Create a lattice cell corresponding to a heap variable.
      * @param   key the heap variable associated with this cell.
      */
     ObjectCell(HeapVariable<?> key) {
@@ -343,7 +341,7 @@ public final class IndexPropagation extends CompilerPhase {
     private boolean TOP = true;
 
     /**
-     * Create a latticle cell corresponding to a heap variable.
+     * Create a lattice cell corresponding to a heap variable.
      * @param   key the heap variable associated with this cell.
      */
     ArrayCell(HeapVariable<?> key) {

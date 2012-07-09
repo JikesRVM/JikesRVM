@@ -30,9 +30,9 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  * Each machine code generator provides maps, for use by the garbage collector,
  * that tell how to interpret the stack slots at "safe points" in the
  * program's execution.
- *
+ * <p>
  * Here's a picture of what a stack might look like in memory.
- *
+ * <p>
  * Note: this (array) object is drawn upside down compared to other objects
  * because the hardware stack grows from high memory to low memory, but
  * array objects are layed out from low memory to high (header first).
@@ -77,11 +77,11 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *              +---------------+ /
  *              |(object header)|
  *  low-memory  +---------------+
- *
+ * </pre>
  *
  *
  *  The opt compiler uses a different stackframe layout
- *
+ * <pre>
  *  hi-memory
  *              +---------------+                                            ...
  *              |     IP=0      |                                             .
@@ -152,9 +152,10 @@ public interface StackframeLayoutConstants {
   /** size of frame header, in bytes */
   int STACKFRAME_HEADER_SIZE = 3*WORDSIZE;
 
-  // space to save entire FPU state.  The FPU state is saved only for 'bridge' frames
+  /** space to save entire FPU state.  The FPU state is saved only for 'bridge' frames */
   int FPU_STATE_SIZE = 108;
-  int XMM_STATE_SIZE = 8 * 4; // Currently only use the low 8 bytes, only use 4 SSE2 params
+  /** Currently only use the low 8 bytes, only use 4 SSE2 params */
+  int XMM_STATE_SIZE = 8 * 4;
 
   /** fp value indicating end of stack walkback */
   Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);
@@ -185,28 +186,32 @@ public interface StackframeLayoutConstants {
    //   to ensure that frames allocated by stack growing code will fit within guard region.
    // - STACK_SIZE_GROW must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
    //   to ensure that, if stack is grown prior to disabling gc or calling native code,
-   //   the new stack will accomodate that code without generating a stack overflow trap.
+   //   the new stack will accommodate that code without generating a stack overflow trap.
    // - Values chosen for STACK_SIZE_NATIVE and STACK_SIZE_GCDISABLED are pure guesswork
    //   selected by trial and error.
 
    // Stacks for "normal" threads grow as needed by trapping on guard region.
    // Stacks for "boot" and "collector" threads are fixed in size and cannot grow.
    //
-  /** initial stack space to allocate for normal    thread (includes guard region) */
+
+  /** initial stack space to allocate for normal thread (includes guard region) */
   int STACK_SIZE_NORMAL =
       STACK_SIZE_GUARD +
       STACK_SIZE_GCDISABLED +
-      200 * 1024; // initial stack space to allocate for normal    thread (includes guard region)
+      200 * 1024;
+  /** total stack space to allocate for boot thread (includes guard region) */
   int STACK_SIZE_BOOT =
       STACK_SIZE_GUARD +
       STACK_SIZE_GCDISABLED +
-      30 * 1024; // total   stack space to allocate for boot      thread (includes guard region)
+      30 * 1024;
+  /** total stack space to allocate for collector thread (includes guard region) */
   int STACK_SIZE_COLLECTOR =
       STACK_SIZE_GUARD +
       STACK_SIZE_GCDISABLED +
-      20 * 1024; // total   stack space to allocate for collector thread (includes guard region)
+      20 * 1024;
+  /** upper limit on stack size (includes guard region) */
   int STACK_SIZE_MAX =
-      STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED + 200 * 1024; // upper limit on stack size (includes guard region)
+      STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED + 200 * 1024;
 
   int STACK_SIZE_JNINATIVE_GROW = 0; // TODO!!;
 }

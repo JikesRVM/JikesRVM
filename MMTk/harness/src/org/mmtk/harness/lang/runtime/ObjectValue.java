@@ -18,7 +18,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Expression consisting of a simple object value
- *
+ * <p>
  * At GC time, these objects form the root set.  For the benefit of collectors
  * like MarkCompact, we need to ensure that each root is only enumerated
  * once when enumerating roots, hence the rootDiscoveryPhase field.
@@ -112,9 +112,6 @@ public class ObjectValue extends Value {
     }
   }
 
-  /**
-   * @see org.mmtk.harness.lang.runtime.Value#marshall(java.lang.Class)
-   */
   @Override
   public Object marshall(Class<?> klass) {
     if (klass.isAssignableFrom(ObjectValue.class)) {
@@ -133,7 +130,6 @@ public class ObjectValue extends Value {
 
   /**
    * Use the hash code of the underlying ObjectReference
-   * @see org.mmtk.harness.lang.runtime.Value#hashCode()
    */
   @Override
   public int hashCode() {

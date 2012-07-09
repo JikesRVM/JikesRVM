@@ -58,19 +58,20 @@ public class DynamicCallGraphOrganizer extends Organizer {
 
   private static final boolean DEBUG = false;
 
-  /*
+  /**
    * buffer provides the communication channel between the edge listener
-   * and the organizer.
-   * The buffer contains an array of triples <callee, caller, address> where
+   * and the organizer.<p>
+   * The buffer contains an array of triples {@code <callee, caller, address>} where
    * the caller and callee are CompiledMethodID's, and address identifies
    * the call site.
-   * bufferSize is the number of triples contained in buffer.
    * The edge listener adds triples.
    * At some point the listener deregisters itself and notifies the organizer
    * by calling thresholdReached().
    */
   private int[] buffer;
+  /** the buffer's size, i.e. length of {@link #buffer} */
   private int bufferSize;
+  /** the maximum number of triples contained in buffer */
   private int numberOfBufferTriples;
 
   /**
@@ -83,7 +84,8 @@ public class DynamicCallGraphOrganizer extends Organizer {
   private int thresholdReachedCount;
 
   /**
-   * Constructor
+   * Constructs a new dynamic call graph organizer that will get its data from the given edge listener.
+   * @param edgeListener the listener that provides data for this organizer
    */
   public DynamicCallGraphOrganizer(EdgeListener edgeListener) {
     listener = edgeListener;
@@ -246,6 +248,10 @@ public class DynamicCallGraphOrganizer extends Organizer {
     }
   }
 
+  /**
+   * Checks if the dynamic call graph organizer has gathered and processed enough samples to support decisions.
+   * @return {@code true} if enough data is available, {@code false} otherwise
+   */
   public boolean someDataAvailable() {
     return thresholdReachedCount == 0;
   }

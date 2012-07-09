@@ -22,7 +22,7 @@ import java.lang.annotation.ElementType;
  * This annotation marks types which have fields that can be marked
  * as either traced or untraced by the VM.  It disables GC optimizations
  * that rely on the object pattern remaining static from build time
- * to execution time.
+ * to execution time.<p>
  *
  * The property conferred by this annotation applies to all its subtypes as
  * well.

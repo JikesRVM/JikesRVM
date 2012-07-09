@@ -16,9 +16,9 @@ import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- * Unusual maps are maps to track references that don't take the usual format.
+ * Unusual maps are maps to track references that don't take the usual format.<p>
  * Currently unusual maps include:
- *    maps of locations within JSR subroutines (includes return address map)
+ *    maps of locations within JSR subroutines (includes return address map).
  * In the future the return address maps may be expanded to include other
  * internal pointers or internal/external pointers may be handled separately.
  */

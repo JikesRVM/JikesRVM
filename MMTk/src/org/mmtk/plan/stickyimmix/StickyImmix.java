@@ -32,10 +32,10 @@ import org.vmmagic.pragma.*;
  * not.  Thus nursery objects are identified by a bit in their header, not by
  * where they lie within the address space.  While Demmers et al. did their work
  * in a conservative collector, here we have an exact collector, so we can use
- * a regular write barrier, and don't need to use page protection etc.
+ * a regular write barrier, and don't need to use page protection etc.<p>
  *
  * See the PLDI'08 paper by Blackburn and McKinley for a description
- * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586
+ * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586<p>
  *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
@@ -45,12 +45,12 @@ import org.vmmagic.pragma.*;
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
  * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
- * allocation and collection.
+ * allocation and collection.<p>
  *
  * The global instance defines and manages static resources
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
- * performance properties of MMTk plans.
+ * performance properties of MMTk plans.<p>
  */
 @Uninterruptible
 public class StickyImmix extends Immix {
@@ -58,6 +58,7 @@ public class StickyImmix extends Immix {
   /****************************************************************************
    * Constants
    */
+
   /** If true, then new PLOS objects are collected at each nursery GC */
   static final boolean NURSERY_COLLECT_PLOS = true;
   /** If true then we only do full heap GCs---so we're like MarkSweep (+ write barrier) */
@@ -70,6 +71,10 @@ public class StickyImmix extends Immix {
   /****************************************************************************
    * Class variables
    */
+
+  /**
+   * TODO: this field is unused, somebody with MMTk knowledge needs to look at it
+   */
   private static int lastCommittedImmixPages = 0;
 
   /* statistics */
@@ -78,7 +83,8 @@ public class StickyImmix extends Immix {
   /****************************************************************************
    * Instance variables
    */
-  /* Remset pool */
+
+  /** Remset pool */
   public final SharedDeque modPool = new SharedDeque("msgen mod objects", metaDataSpace, 1);
 
   /**
@@ -178,7 +184,8 @@ public class StickyImmix extends Immix {
   }
 
   /**
-   * Print pre-collection statistics. In this class we prefix the output
+   * {@inheritDoc}
+   * In this class we prefix the output
    * indicating whether the collection was full heap or not.
    */
   @Override

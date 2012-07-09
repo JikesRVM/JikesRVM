@@ -21,6 +21,7 @@ import org.vmmagic.pragma.*;
 
 @Uninterruptible
 public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
+
   /**
    * Read nanoTime (high resolution, monotonically increasing clock).
    * Has same semantics as java.lang.System.nanoTime().

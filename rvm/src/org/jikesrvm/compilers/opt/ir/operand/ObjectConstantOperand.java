@@ -28,7 +28,7 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 public class ObjectConstantOperand extends ConstantOperand {
 
   /**
-   * The non-null object value
+   * The non-{@code null} object value
    */
   public final Object value;
 

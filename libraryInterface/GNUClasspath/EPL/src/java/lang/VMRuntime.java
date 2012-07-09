@@ -81,7 +81,7 @@ public final class VMRuntime {
 
   /** <b>XXX TODO</b> We currently ignore the
    * <code>loader</code> parameter.
-   * @param loader Ignored.  null means the bootstrap class loader.
+   * @param loader Ignored.  {@code null} means the bootstrap class loader.
    * @return nonzero on success, zero on failure. */
   static int nativeLoad(String libName, ClassLoader loader) {
     return DynamicLibrary.load(libName);

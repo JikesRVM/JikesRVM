@@ -153,7 +153,7 @@ public class VMSystemProperties {
     }
   }
 
-  /** Set java.library.path.
+  /** Set java.library.path.<p>
    *
    * I wish I knew where to check in the source code to confirm that this
    * is, in fact, the process we actually follow.  I do not understand this
@@ -170,23 +170,23 @@ public class VMSystemProperties {
 
   /** Override the default SystemProperties code; insert the command-line
    * arguments.
-   *
+   * <p>
    * The following are set by the "runrvm" script before we go into the C
    * boot image runner, by passing them as command-line args with the -D flag:
-   *
+   * <p>
    * os.name, os.arch, os.version
    * user.name, user.home, user.dir
    * gnu.classpath.vm.shortname, gnu.classpath.home.url,
    * java.home,
-   *
+   * <p>
    * We can look at them here via CommandLineArgs.getEnvironmentArg().
-   *
+   * <p>
    * They will be automatically set for us by
    * CommandLineArgs.lateProcessCommandLineArguments() if we do not handle
    * them here.  That won't occur until the VM is fully booted.  That's too
    * late for some classes, such as java.util.TimeZone, which will already be
    * initialized.
-   *
+   * <p>
    * In any case, this function isn't used in Jikes RVM.  Our boot sequence
    * is already handling this OK.
    */

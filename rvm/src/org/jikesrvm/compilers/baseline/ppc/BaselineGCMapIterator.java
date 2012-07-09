@@ -30,9 +30,10 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * Iterator for stack frame  built by the Baseline compiler
+ * Iterator for stack frame  built by the Baseline compiler.<p>
+ *
  * An Instance of this class will iterate through a particular
- * reference map of a method returning the offsets of any refereces
+ * reference map of a method returning the offsets of any references
  * that are part of the input parameters, local variables, and
  * java stack for the stack frame.
  */
@@ -41,26 +42,42 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
 
   // Iterator state for mapping any stackframe.
   //
-  private int mapIndex; // current offset in current map
-  private int mapId;     // id of current map out of all maps
-  private ReferenceMaps maps;      // set of maps for this method
+  /** current offset in current map */
+  private int mapIndex;
+  /** id of current map out of all maps */
+  private int mapId;
+  /** set of maps for this method */
+  private ReferenceMaps maps;
 
   // Additional iterator state for mapping dynamic bridge stackframes.
   //
-  private DynamicLink dynamicLink;                    // place to keep info returned by CompiledMethod.getDynamicLink
-  private MethodReference bridgeTarget;               // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
-  private NormalMethod currentMethod;                  // method for the frame
-  private BaselineCompiledMethod currentCompiledMethod;                  // compiled method for the frame
+  /** place to keep info returned by CompiledMethod.getDynamicLink */
+  private DynamicLink dynamicLink;
+  /** method to be invoked via dynamic bridge ({@code null}: current frame is not a dynamic bridge) */
+  private MethodReference bridgeTarget;
+  /** method for the frame */
+  private NormalMethod currentMethod;
+  /** compiled method for the frame */
+  private BaselineCompiledMethod currentCompiledMethod;
   private int currentNumLocals;
-  private TypeReference[] bridgeParameterTypes;           // parameter types passed by that method
-  private boolean bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
-  private boolean bridgeRegistersLocationUpdated; // have the register location been updated
-  private boolean finishedWithRegularMap;         // have we processed all the values in the regular map yet?
-  private int bridgeParameterInitialIndex;    // first parameter to be mapped (-1 == "this")
-  private int bridgeParameterIndex;           // current parameter being mapped (-1 == "this")
-  private int bridgeRegisterIndex;            // gpr register it lives in
-  private Address bridgeRegisterLocation;         // memory address at which that register was saved
-  private Address bridgeSpilledParamLocation;     // current spilled param location
+  /** parameter types passed by that method */
+  private TypeReference[] bridgeParameterTypes;
+  /** have all bridge parameters been mapped yet? */
+  private boolean bridgeParameterMappingRequired;
+  /** have the register location been updated */
+  private boolean bridgeRegistersLocationUpdated;
+  /** have we processed all the values in the regular map yet? */
+  private boolean finishedWithRegularMap;
+  /** first parameter to be mapped (-1 == "this") */
+  private int bridgeParameterInitialIndex;
+  /** current parameter being mapped (-1 == "this") */
+  private int bridgeParameterIndex;
+  /**  gpr register it lives in */
+  private int bridgeRegisterIndex;
+  /**  memory address at which that register was saved */
+  private Address bridgeRegisterLocation;
+  /** current spilled param location */
+  private Address bridgeSpilledParamLocation;
 
   //
   // Remember the location array for registers. This array needs to be updated

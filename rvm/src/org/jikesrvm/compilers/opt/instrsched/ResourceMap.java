@@ -16,7 +16,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 
 /**
  * Resource usage map representation
- * Used by the scheduler to accomodate resource patterns
+ * Used by the scheduler to accommodate resource patterns
  *
  * @see OperatorClass
  * @see org.jikesrvm.compilers.opt.ir.Operator
@@ -137,9 +137,17 @@ final class ResourceMap {
     return sb.toString();
   }
 
-  // Binds resources for given resource usage pattern at given time.
+  //
   // Returns false if there is a resource conflict.
-  // For internal use only.
+
+
+  /**
+   * Binds resources for given resource usage pattern at given time.
+   * @param usage
+   * @param time
+   * @return {@code false} if there's a resource conflict, {@code true}
+   *  otherwise
+   */
   private boolean schedule(int[] usage, int time) {
     grow(time + usage.length);
     if (VERBOSE >= 1) {
@@ -158,8 +166,11 @@ final class ResourceMap {
     return true;
   }
 
-  // Unbinds resources for given resource usage pattern at given time.
-  // For internal use only.
+  /**
+   * Unbinds resources for given resource usage pattern at given time.
+   * @param usage
+   * @param time
+   */
   private void unschedule(int[] usage, int time) {
     for (int i = 0; i < usage.length; i++) {
       rumap[time + i] &= ~usage[i];

@@ -30,11 +30,11 @@ import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Runtime system mechanisms and data structures to implement interface invocation.
- *
+ * <p>
  * We support two mechanisms:
  * <pre>
  *   IMT-based (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA'01).
- *   ITable-based (searched at dispatch time with 1 entry move-to-front cache(
+ *   ITable-based (searched at dispatch time with 1 entry move-to-front cache)
   * </pre>
  */
 public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
@@ -49,7 +49,7 @@ public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
    * Resolve an interface method call.
    * This routine is never called by the IMT-based dispatching code.
    * It is only called for directly indexed ITables when the table
-   * index was unknown at compile time (ie the target Interface was not loaded).
+   * index was unknown at compile time (i.e. the target Interface was not loaded).
    *
    * @param target object to which interface method is to be applied
    * @param mid id of the MemberReference for the target interface method.

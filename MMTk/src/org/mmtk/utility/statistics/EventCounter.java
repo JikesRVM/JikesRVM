@@ -30,6 +30,9 @@ public class EventCounter extends Counter {
    * Instance variables
    */
 
+  /**
+   *
+   */
   private final long[] count;
 
   protected long currentCount = 0;
@@ -65,10 +68,10 @@ public class EventCounter extends Counter {
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started
+   * @param start {@code true} if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
    * must be explicitly started).
-   * @param mergephases True if this counter does not separately
+   * @param mergephases {@code true} if this counter does not separately
    * report GC and Mutator phases.
    */
   public EventCounter(String name, boolean start, boolean mergephases) {
@@ -137,10 +140,8 @@ public class EventCounter extends Counter {
   }
 
   /**
-   * Print the value of this counter for the given phase.  Print '0'
-   * for false, '1' for true.
-   *
-   * @param phase The phase to be printed
+   * {@inheritDoc}
+   * Print '0' for {@code false}, '1' for {@code true}.
    */
   @Override
   protected final void printCount(int phase) {

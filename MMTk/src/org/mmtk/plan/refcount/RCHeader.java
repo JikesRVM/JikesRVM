@@ -22,6 +22,7 @@ import org.vmmagic.unboxed.Word;
 
 @Uninterruptible
 public class RCHeader implements Constants {
+
   /* Requirements */
   public static final int LOCAL_GC_BITS_REQUIRED = 0;
   public static final int GLOBAL_GC_BITS_REQUIRED = 2;
@@ -32,6 +33,10 @@ public class RCHeader implements Constants {
    */
 
   /* Mask bits to signify the start/finish of logging an object */
+
+  /**
+   *
+   */
   public static final int      LOG_BIT  = 0;
   public static final Word       LOGGED = Word.zero();                          //...00000
   public static final Word    UNLOGGED  = Word.one();                           //...00001
@@ -39,7 +44,7 @@ public class RCHeader implements Constants {
   public static final Word LOGGING_MASK = LOGGED.or(UNLOGGED).or(BEING_LOGGED); //...00011
 
   /**
-   * Return true if <code>object</code> is yet to be logged (for
+   * Return <code>true</code> if <code>object</code> is yet to be logged (for
    * coalescing RC).
    *
    * @param object The object in question
@@ -120,20 +125,21 @@ public class RCHeader implements Constants {
    * RC header word
    */
 
-  /* Header offset */
+  /** Header offset */
   public static final Offset RC_HEADER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
 
-  /* Reserved to allow alignment hole filling to work */
+  /** Reserved to allow alignment hole filling to work */
   public static final int RESERVED_ALIGN_BIT = 0;
 
-  /* The mark bit used for backup tracing. */
+  /** The mark bit used for backup tracing. */
   public static final int MARK_BIT = 1;
   public static final Word MARK_BIT_MASK = Word.one().lsh(MARK_BIT);
 
-  /* Current not using any bits for cycle detection, etc */
+  /** Current not using any bits for cycle detection, etc */
   public static final int BITS_USED = 2;
 
   /* Reference counting increments */
+
   public static final int INCREMENT_SHIFT = BITS_USED;
   public static final Word INCREMENT = Word.one().lsh(INCREMENT_SHIFT);
   public static final int AVAILABLE_BITS = BITS_IN_ADDRESS - BITS_USED;
@@ -141,6 +147,7 @@ public class RCHeader implements Constants {
   public static final Word LIVE_THRESHOLD = INCREMENT;
 
   /* Return values from decRC */
+
   public static final int DEC_KILL = 0;
   public static final int DEC_ALIVE = 1;
 
@@ -177,7 +184,7 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Attempt to atomically mark this object. Return true if the mark was performed.
+   * Attempt to atomically mark this object. Return <code>true</code> if the mark was performed.
    */
   @Inline
   public static boolean testAndMark(ObjectReference object) {
@@ -196,7 +203,7 @@ public class RCHeader implements Constants {
    * Perform any required initialization of the GC portion of the header.
    *
    * @param object the object
-   * @param initialInc start with a reference count of 1 (0 if false)
+   * @param initialInc start with a reference count of 1 (0 if <code>false</code>)
    */
   @Inline
   public static void initializeHeader(ObjectReference object, boolean initialInc) {
@@ -205,10 +212,10 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Return true if given object is live
+   * Return <code>true</code> if given object is live
    *
    * @param object The object whose liveness is to be tested
-   * @return True if the object is alive
+   * @return <code>true</code> if the object is alive
    */
   @Inline
   @Uninterruptible
@@ -220,7 +227,7 @@ public class RCHeader implements Constants {
    * Return the reference count for the object.
    *
    * @param object The object whose liveness is to be tested
-   * @return True if the object is alive
+   * @return <code>true</code> if the object is alive
    */
   @Inline
   @Uninterruptible

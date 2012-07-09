@@ -28,7 +28,7 @@ import org.mmtk.vm.gcspy.Util;
 /**
  * This class defines factory methods for VM-specific types which must
  * be instantiated within MMTk.  Since the concrete type is defined at
- * build time, we leave it to a concrete vm-specific instance of this class
+ * build time, we leave it to a concrete VM-specific instance of this class
  * to perform the object instantiation.
  */
 public class Factory extends org.mmtk.vm.Factory {
@@ -211,9 +211,10 @@ public class Factory extends org.mmtk.vm.Factory {
     return null;
   }
 
-  /**
+  /*
    * TuningFork support
    */
+
   @Override
   public org.mmtk.vm.MMTk_Events newEvents() {
     return new MMTkEvents();

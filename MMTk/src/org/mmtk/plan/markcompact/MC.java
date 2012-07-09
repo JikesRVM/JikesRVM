@@ -23,9 +23,9 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class implements the global state of a simple sliding mark-compact
- * collector.
+ * collector.<p>
  *
- * FIXME Need algorithmic overview and references.
+ * FIXME Need algorithmic overview and references.<p>
  *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
  * threads" (aka CPUs).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
- * allocation and collection.
+ * allocation and collection.<p>
  *
  * The global instance defines and manages static resources
  * (such as memory and virtual memory resources).  This mapping of threads to
@@ -170,24 +170,15 @@ import org.vmmagic.unboxed.ObjectReference;
    */
 
   /**
-   * Return the number of pages reserved for use given the pending
-   * allocation.  The superclass accounts for its spaces, we just
+   * {@inheritDoc}
+   * The superclass accounts for its spaces, we just
    * augment this with the mark-sweep space's contribution.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Override
   public int getPagesUsed() {
     return (mcSpace.reservedPages() + super.getPagesUsed());
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return True if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(MARK_COMPACT, object))

@@ -15,7 +15,7 @@ package org.jikesrvm;
 import org.vmmagic.pragma.RuntimeFinal;
 
 /**
- * Flags that control the behavior of our virtual machine.
+ * Flags that control the behavior of our virtual machine.<p>
  *
  * Typically these are properties that can be set from the command line
  * (and thus are NOT final).  All final properties should be
@@ -24,9 +24,9 @@ import org.vmmagic.pragma.RuntimeFinal;
 public class Properties extends Options {
 
   // The VM class hierarchy is used in three ways:
-  //    - by boot image writer to create an executable vm image
+  //    - by boot image writer to create an executable VM image
   //    - by tools that wish use VM classes for generic java programming
-  //    - by vm image itself, at execution time
+  //    - by VM image itself, at execution time
   // The following flags specify which behavior is desired.
   //
 
@@ -63,23 +63,23 @@ public class Properties extends Options {
   public static boolean safeToAllocateJavaThread = false;
 
   /**
-   * The following is set on by -X:verboseBoot= command line arg.
+   * The following is set on by -X:verboseBoot= command line argument.
    * When true, it generates messages to the sysWrite stream summarizing
    * progress during the execution of VM.boot
    */
   public static int verboseBoot = 0;
 
   /**
-   * The following is set on by -verbose:class command line arg.
+   * The following is set on by -verbose:class command line argument.
    * When true, it generates messages to the sysWrite stream summarizing
    * class loading activities
    */
   public static boolean verboseClassLoading = false;
 
   /**
-   * The following is set on by -verbose:jni command line arg.
+   * The following is set on by -verbose:jni command line argument.
    * When true, it generates messages to the sysWrite stream summarizing
-   * jni activities
+   * JNI activities
    */
   public static boolean verboseJNI = false;
 

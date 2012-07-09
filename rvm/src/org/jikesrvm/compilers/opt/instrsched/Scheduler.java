@@ -25,23 +25,17 @@ import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
 import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
- * Instruction Scheduler
- *
- * It is a simple list scheduler
- *
- * This class is declared as "final" which implies that all its methods
- * are "final" too.
- *
+ * This a simple list-based instruction scheduler.
+ * <p>
  * TODO:
- * - Add more priority lists
- *
- * - When scheduling an instruction, verify that its predecessors have
+ * <ul>
+ *   <li>Add more priority lists
+ *   <li>When scheduling an instruction, verify that its predecessors have
  *   already been scheduled.
- *
- * - Change forward propagation of earliest time to computing it from the
+ *   <li>Change forward propagation of earliest time to computing it from the
  *   scheduling time of predecessors + latencies.
- *
- * - Change bubble sort to insertion sort.
+ *   <li>Change bubble sort to insertion sort.
+ * </ul>
  */
 
 final class Scheduler {
@@ -62,9 +56,9 @@ final class Scheduler {
 
   /**
    * A constant signifying post-pass scheduling phase.
+   * <p>
    * WARNING: POSTPASS INSTRUCTION SCHEDULING (AFTER REGISTER ALLOCATION)
    * Cannot be done safely due to failure to update GCMapping information.
-   * --dave.
    */
   public static final int POSTPASS = 2;
 

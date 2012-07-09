@@ -19,7 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
 /**
- * Common super class for all VM hash maps
+ * Common super class for all VM hash maps.
  */
 abstract class AbstractHashMapRVM<K, V> {
 
@@ -33,7 +33,7 @@ abstract class AbstractHashMapRVM<K, V> {
 
     /**
      * Change the next bucket after this bucket, possibly constructing a new
-     * abstract bucket
+     * abstract bucket.
      */
     abstract AbstractBucket<K, V> setNext(AbstractBucket<K, V> n);
 

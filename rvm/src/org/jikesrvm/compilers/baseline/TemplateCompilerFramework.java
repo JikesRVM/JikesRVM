@@ -119,7 +119,7 @@ public abstract class TemplateCompilerFramework
   protected final boolean isUninterruptible;
 
   /**
-   * Is the method currently being compiled unpreemtible?
+   * Is the method currently being compiled unpreemptible?
    */
   protected final boolean isUnpreemptible;
 
@@ -132,7 +132,7 @@ public abstract class TemplateCompilerFramework
 
     klass = method.getDeclaringClass();
 
-    // new synthesized bytecodes for osr
+    // new synthesized bytecodes for OSR
     if (method.isForOsrSpecialization()) {
       bcodes = method.getOsrSynthesizedBytecodes();
     } else {

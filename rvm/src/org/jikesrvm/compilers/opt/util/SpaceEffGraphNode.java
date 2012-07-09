@@ -225,10 +225,11 @@ public class SpaceEffGraphNode implements GraphNode {
     return null;
   }
 
-  /*
+  /**
    * replaces the in edge matching e1 with e2.
-   * maintains the ordering of edges
-   * YUCK: this data structure is messy.  I assume this is in the name
+   * maintains the ordering of edges<p>
+   *
+   * TODO YUCK: this data structure is messy.  I assume this is in the name
    * of efficiency, but it makes control flow graph manipulations
    * a real pain. (SJF)
    */
@@ -326,7 +327,7 @@ public class SpaceEffGraphNode implements GraphNode {
 
   /* mark nodes according to the SCC (Strongly Connected Component Number),
      result written in 'scratch'
-     NOTE: it assummes that the 'dfs' flag has been cleared before */
+     NOTE: it assumes that the 'dfs' flag has been cleared before */
 
   public final void markSCC(int currSCC) {
     setDfsVisited();

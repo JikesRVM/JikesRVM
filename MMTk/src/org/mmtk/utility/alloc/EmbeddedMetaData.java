@@ -19,8 +19,8 @@ import org.vmmagic.pragma.*;
 
 /**
  * This plan implements constants and access methods for meta data
- * that is embeded in allocation spaces (rather than kept on the
- * side).  The basic idea is that meta data be embeded at a very
+ * that is embedded in allocation spaces (rather than kept on the
+ * side).  The basic idea is that meta data be embedded at a very
  * coarse power of two granularity for fast access, minimal wastage
  * and by making the regions coarse, the contiguous meta-data will be
  * relatively large and thus the probability of L1 conflict misses
@@ -39,7 +39,7 @@ public final class EmbeddedMetaData implements Constants {
   public static final int PAGES_IN_REGION = 1 << LOG_PAGES_IN_REGION;
 
   /**
-   * Given an address, return the begining of the meta data for the
+   * Given an address, return the beginning of the meta data for the
    * region containing the address.  This is a fast operation because
    * it only involves masking out low order bits.
    *
@@ -61,11 +61,11 @@ public final class EmbeddedMetaData implements Constants {
    * @param logCoverage The log base two of the coverage of the meta
    * data in question. For example, a value of 4 would indicate a
    * coverage of 16; one metadata byte for every 16 bytes of data.
-   * @param logAlign The log base two of the aligment or granularity
+   * @param logAlign The log base two of the alignment or granularity
    * of the meta-data (it may be arranged in bytes, words, double
    * words etc).
    * @return The offset into the meta-data for this region, given the
-   * specified address and coverage and aligment requirements.
+   * specified address and coverage and alignment requirements.
    */
   public static Extent getMetaDataOffset(Address address,
                                                   int logCoverage,

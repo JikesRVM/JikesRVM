@@ -409,9 +409,9 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * clone a Scalar or Array Object
-   * called from java/lang/Object.clone()
-   *
+   * Clone a Scalar or Array Object.
+   * called from java/lang/Object.clone().
+   * <p>
    * For simplicity, we just code this more or less in Java using
    * internal reflective operations and some magic.
    * This is inefficient for large scalar objects, but until that
@@ -419,7 +419,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * By keeping this in Java instead of dropping into Memory.copy,
    * we avoid having to add special case code to deal with write barriers,
    * and other such things.
-   *
+   * <p>
    * This method calls specific cloning routines based on type to help
    * guide the inliner (which won't inline a single large method).
    *
@@ -667,10 +667,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
 
   /**
    * Deliver a hardware exception to current java thread.
-   * @param trapCode code indicating kind of exception that was trapped
-   * (see TRAP_xxx, above)
-   * @param trapInfo array subscript (for array bounds trap, only)
-   * does not return
+   * <p>
+   * Does not return.
    * (stack is unwound, starting at trap site, and
    *           execution resumes in a catch block somewhere up the stack)
    *     /or/  execution resumes at instruction following trap
@@ -684,6 +682,10 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *           The signal handler also inserts a <hardware trap> frame
    *           onto the stack immediately above this frame, for use by
    *           HardwareTrapGCMapIterator during garbage collection.
+   *
+   * @param trapCode code indicating kind of exception that was trapped
+   * (see TRAP_xxx, above)
+   * @param trapInfo array subscript (for array bounds trap, only)
    */
   @Entrypoint
   @UnpreemptibleNoWarn
@@ -798,10 +800,12 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   /**
    * Unlock an object and then deliver a software exception
    * to current java thread.
+   * <p>
+   * Does not return (stack is unwound and execution resumes in a catch block).
+   *
    * @param objToUnlock object to unlock
    * @param objToThrow exception object to deliver
-   * (null --> deliver NullPointerException).
-   * does not return (stack is unwound and execution resumes in a catch block)
+   * ({@code null} --> deliver NullPointerException).
    */
   @NoInline
   @Entrypoint
@@ -811,7 +815,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Create and throw a java.lang.ArrayIndexOutOfBoundsException
+   * Create and throw a java.lang.ArrayIndexOutOfBoundsException.
    * Only used in some configurations where it is easier to make a call
    * then recover the array index from a trap instruction.
    */
@@ -822,7 +826,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Create and throw a java.lang.ArrayIndexOutOfBoundsException
+   * Create and throw a java.lang.ArrayIndexOutOfBoundsException.
    * Used (rarely) by the opt compiler when it has determined that
    * an array access will unconditionally raise an array bounds check
    * error, but it has lost track of exactly what the index is going to be.
@@ -833,7 +837,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Create and throw a java.lang.NullPointerException
+   * Create and throw a java.lang.NullPointerException.
    * Used in a few circumstances to reduce code space costs
    * of inlining (see java.lang.System.arraycopy()).  Could also
    * be used to raise a null pointer exception without going through
@@ -848,7 +852,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Create and throw a java.lang.ArrayStoreException
+   * Create and throw a java.lang.ArrayStoreException.
    * Used in a few circumstances to reduce code space costs
    * of inlining (see java.lang.System.arraycopy()).
    */
@@ -858,7 +862,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Create and throw a java.lang.ArithmeticException
+   * Create and throw a java.lang.ArithmeticException.
    * Used to raise an arithmetic exception without going through
    * the hardware trap handler; currently this is only done when the
    * opt compiler has determined that an instruction will unconditionally
@@ -911,7 +915,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
 
   /**
    * Build a multi-dimensional array.
-   * @param methodId  Apparently unused (!)
+   * @param methodId  TODO document me
    * @param numElements number of elements to allocate for each dimension
    * @param arrayType type of array that will result
    * @return array object
@@ -924,7 +928,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
 
   /**
    * Build a two-dimensional array.
-   * @param methodId  Apparently unused (!)
+   * @param methodId  TODO document me
    * @param dim0 the arraylength for arrays in dimension 0
    * @param dim1 the arraylength for arrays in dimension 1
    * @param arrayType type of array that will result
@@ -992,13 +996,15 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *          frame at this point.
    *   <li> we're going to be playing with raw addresses (fp, ip).
    *  </ol>
-   * @param exceptionObject exception object to deliver
-   * @param exceptionRegisters register state corresponding to exception site
-   * does not return
+   * <p>
+   * Does not return:
    * <ul>
    *  <li> stack is unwound and execution resumes in a catch block
    *  <li> <em> or </em> current thread is terminated if no catch block is found
    * </ul>
+
+   * @param exceptionObject exception object to deliver
+   * @param exceptionRegisters register state corresponding to exception site
    */
   @Unpreemptible("Deliver exception trying to avoid preemption")
   private static void deliverException(Throwable exceptionObject, Registers exceptionRegisters) {
@@ -1059,7 +1065,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * Skip over all frames below currfp with saved code pointers outside of heap
    * (C frames), stopping at the native frame immediately preceding the glue
    * frame which contains the method ID of the native method (this is necessary
-   * to allow retrieving the return address of the glue frame)
+   * to allow retrieving the return address of the glue frame).
    *
    * @param currfp The current frame is expected to be one of the JNI functions
    *            called from C, below which is one or more native stack frames
@@ -1097,7 +1103,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   /**
    * The current frame is expected to be one of the JNI functions
    * called from C,
-   * below which is one or more native stack frames
+   * below which is one or more native stack frames.
    * Skip over all frames below which do not contain any object
    * references.
    */
@@ -1109,7 +1115,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   /**
    * Unwind stack frame for an <invisible method>.
    * See also: ExceptionDeliverer.unwindStackFrame()
-   *
+   * <p>
    * !!TODO: Could be a reflective method invoker frame.
    *        Does it clobber any non-volatiles?
    *        If so, how do we restore them?
@@ -1150,7 +1156,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
 
   /**
    * Check to see if we are stress testing garbage collector and if another allocation should
-   * trigger a gc then do so.
+   * trigger a GC then do so.
    */
   @Inline
   private static void checkAllocationCountDownToGC() {
@@ -1163,7 +1169,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Return true if we are stress testing garbage collector and the system is in state where we
+   * Return {@code true} if we are stress testing garbage collector and the system is in state where we
    * can force a garbage collection.
    */
   @Inline

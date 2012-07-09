@@ -48,7 +48,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
    * otherwise.
    *
    * @param arg a String to try to process as an option command
-   * @return true if successful, false otherwise
+   * @return {@code true} if successful, {@code false} otherwise
    */
   public boolean process(String arg) {
 

@@ -55,7 +55,7 @@ public abstract class CodeArray {
   /**
    * A helper class to contain the 'real' methods of CodeArray.
    * Because Jikes RVM believes that CodeArray is really a Code[]
-   * (ie, an array of primitives), we cannot define non-hijacked methods
+   * (i.e., an array of primitives), we cannot define non-hijacked methods
    * on the 'class' CodeArray.
    */
   public static class Factory {

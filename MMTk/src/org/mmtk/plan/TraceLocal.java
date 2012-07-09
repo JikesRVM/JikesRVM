@@ -38,9 +38,10 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *
    * Instance variables
    */
-  /* gray object */
+
+  /** gray objects */
   protected final ObjectReferenceDeque values;
-  /* delayed root slots */
+  /** delayed root slots */
   protected final AddressDeque rootLocations;
 
   /****************************************************************************
@@ -122,7 +123,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *
    * @param slot The location containing the object reference to be
    * traced.  The object reference is <i>NOT</i> an interior pointer.
-   * @param untraced True if <code>objLoc</code> is an untraced root.
+   * @param untraced <code>true</code> if <code>objLoc</code> is an untraced root.
    */
   @Inline
   public final void processRootEdge(Address slot, boolean untraced) {
@@ -143,7 +144,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *
    * @param target The object the interior edge points within.
    * @param slot The location of the interior edge.
-   * @param root True if this is a root edge.
+   * @param root <code>true</code> if this is a root edge.
    */
   public final void processInteriorEdge(ObjectReference target, Address slot, boolean root) {
     Address interiorRef = slot.loadAddress();
@@ -213,7 +214,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * Is the specified object live?
    *
    * @param object The object.
-   * @return True if the object is live.
+   * @return {@code true} if the object is live.
    */
   @Inline
   public boolean isLive(ObjectReference object) {
@@ -238,7 +239,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * Is the specified object reachable? Used for GC Trace
    *
    * @param object The object.
-   * @return True if the object is live.
+   * @return {@code true} if the object is live.
    */
   @Inline
   public boolean isReachable(ObjectReference object) {
@@ -249,7 +250,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * Is the specified referent of a reference type object live?
    *
    * @param object The object.
-   * @return True if the reference object is live.
+   * @return {@code true} if the reference object is live.
    */
   @Inline
   public boolean isReferentLive(ObjectReference object) {
@@ -260,9 +261,11 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * This method is the core method during the trace of the object graph.
    * The role of this method is to:
    *
-   * 1. Ensure the traced object is not collected.
-   * 2. If this is the first visit to the object enqueue it to be scanned.
-   * 3. Return the forwarded reference to the object.
+   * <ol>
+   * <li>Ensure the traced object is not collected.</li>
+   * <li>If this is the first visit to the object enqueue it to be scanned.</li>
+   * <li>Return the forwarded reference to the object.</li>
+   * </ol>
    *
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
@@ -295,6 +298,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * important so this is the default implementation given here.
    *
    * @param object The object to be traced.
+   * @param root Is this object a root?
    * @return The new reference to the same object instance.
    */
   @Inline
@@ -311,7 +315,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * override this method in each of their trace classes.</i>
    *
    * @param object The object that must not move during the collection.
-   * @return True If the object will not move during collection
+   * @return {@code true} If the object will not move during collection
    */
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (!VM.activePlan.constraints().movesObjects())
@@ -383,7 +387,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * Make alive a referent object that is known not to be live
    * (isLive is false). This is used by the ReferenceProcessor.
    *
-   * <i>For many collectors these semantics relfect those of
+   * <i>For many collectors these semantics reflect those of
    * <code>traceObject</code>, which is implemented here.  Other
    * collectors must override this method.</i>
    *
@@ -402,7 +406,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * return its forwarded address if keeping the object alive involves
    * forwarding. This is only ever called once for an object.<p>
    *
-   * <i>For many collectors these semantics relfect those of
+   * <i>For many collectors these semantics reflect those of
    * <code>traceObject</code>, which is implemented here.  Other
    * collectors must override this method.</i>
    *
@@ -422,7 +426,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * returns true then it can be assumed that retainForFinalize will be
    * called during the current collection.
    *
-   * <i>For many collectors these semantics relfect those of
+   * <i>For many collectors these semantics reflect those of
    * <code>isLive</code>, which is implemented here.  Other
    * collectors must override this method.</i>
    *
@@ -447,6 +451,10 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *      2. threadLocalPrepare()
    *      3. threadLocalRelease()
    *      4. globalRelease()
+   */
+
+  /**
+   * TODO write JavaDoc comment
    */
   public void prepare() {
     // Nothing to do
@@ -495,7 +503,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * units of work are completed.
    *
    * @param workLimit The maximum units of work to perform.
-   * @return True if all work was completed within workLimit.
+   * @return <code>true</code> if all work was completed within workLimit.
    */
   @Inline
   public boolean incrementalTrace(int workLimit) {
@@ -516,13 +524,12 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    * Flush any remembered sets pertaining to the current collection.
    * Non-generational collectors do nothing.
    */
-
   protected void processRememberedSets() {}
 
   /**
    * Assert that the remsets have been flushed.  This is critical to
    * correctness.  We need to maintain the invariant that remset entries
-   * do not accrue during GC.  If the host JVM generates barrier entires
+   * do not accrue during GC.  If the host JVM generates barrier entries
    * it is its own responsibility to ensure that they are flushed before
    * returning to MMTk.
    */
@@ -537,7 +544,7 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
   }
 
   /**
-   * This method logs a message with preprended thread id, if the
+   * This method logs a message with prepended thread id, if the
    * verbosity level is greater or equal to the passed level.
    *
    * @param minVerbose The required verbosity level

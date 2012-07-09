@@ -18,7 +18,7 @@ import java.util.HashSet;
 
 /**
  * SpaceEffGraph package implements a generic directed graph that can
- * be a multigraph. It uses Lists to model nodes and edges information.
+ * be a multigraph. It uses Lists to model nodes and edges information.<p>
  *
  * SpaceEffGraph is a generic graph.  Extend to implement specific
  * graph types.

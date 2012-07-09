@@ -157,7 +157,7 @@ public final class PartialCallGraph implements Decayable, Reportable {
   /**
    * For the calling edge we read from a profile, we may not have
    * the methods loaded in yet. Therefore, we will record the method
-   * reference infomation first, the next time we resolved the method,
+   * reference information first, the next time we resolved the method,
    * we will promote it into the regular call graph.
    * Increment the edge represented by the input parameters,
    * creating it if it is not already in the call graph.

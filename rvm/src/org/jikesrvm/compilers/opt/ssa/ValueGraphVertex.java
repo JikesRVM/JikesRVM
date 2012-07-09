@@ -124,6 +124,3 @@ final class ValueGraphVertex extends SpaceEffGraphNode {
     return s.toString();
   }
 }
-
-
-

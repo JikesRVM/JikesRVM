@@ -16,8 +16,8 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 /**
- * Instruction priority representation
- * Used by the scheduler to enumerate over instructions
+ * Represents instruction priority. Used by the scheduler to enumerate over
+ * instructions.
  *
  * @see Scheduler
  */
@@ -29,9 +29,9 @@ abstract class Priority implements InstructionEnumeration {
   public abstract void reset();
 
   /**
-   * Returns true if there are more instructions, false otherwise
+   * Returns {@code true} if there are more instructions, false otherwise
    *
-   * @return true if there are more instructions, false otherwise
+   * @return {@code true} if there are more instructions, false otherwise
    */
   @Override
   public abstract boolean hasMoreElements();

@@ -19,7 +19,7 @@ import org.jikesrvm.runtime.Entrypoints;
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.
  * This is then copied into individual TIBs.
- *
+ * <p>
  * We do this to enable the optimizing compiler to use ptr equality of
  * target instructions to imply logical (source) equality of target methods.
  * This is used to perform guarded inlining using the "method test."

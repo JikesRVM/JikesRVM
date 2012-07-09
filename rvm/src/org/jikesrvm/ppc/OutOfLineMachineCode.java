@@ -24,22 +24,16 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * A place to put hand written machine code typically invoked by Magic
- * methods.
+ * methods.<p>
  *
  * Hand coding of small inline instruction sequences is typically handled by
  * each compiler's implementation of Magic methods.  A few Magic methods
  * are so complex that their implementations require many instructions.
  * But our compilers do not inline arbitrary amounts of machine code.
- * We therefore write such code blocks here, out of line.
+ * We therefore write such code blocks here, out of line.<p>
  *
  * These code blocks can be shared by all compilers. They can be branched to
  * via a jtoc offset (obtained from Entrypoints.XXXInstructionsMethod).
- *
- * 17 Mar 1999 Derek Lieber
- *
- * 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers
- * could inline these methods if they wanted.  We do not believe this would
- * be very easy since they return thru the LR.)
  */
 public abstract class OutOfLineMachineCode
     implements BaselineConstants, JNIStackframeLayoutConstants, AssemblerConstants {
@@ -70,22 +64,24 @@ public abstract class OutOfLineMachineCode
   // Accessed via EntryPoints
   private static ArchitectureSpecific.CodeArray restoreVolatilesInstructions;
 
-  // Machine code for reflective method invocation.
-  // See also: "Compiler.generateMethodInvocation".
-  //
-  // Registers taken at runtime:
-  //   T0 == address of method entrypoint to be called
-  //   T1 == address of gpr registers to be loaded
-  //   T2 == address of fpr registers to be loaded
-  //   T4 == address of spill area in calling frame
-  //
-  // Registers returned at runtime:
-  //   standard return value conventions used
-  //
-  // Side effects at runtime:
-  //   artificial stackframe created and destroyed
-  //   R0, volatile, and scratch registers destroyed
-  //
+  /** Machine code for reflective method invocation.
+   * See also: "Compiler.generateMethodInvocation".
+   *
+   *<pre>
+   * Registers taken at runtime:
+   *   T0 == address of method entrypoint to be called
+   *   T1 == address of gpr registers to be loaded
+   *   T2 == address of fpr registers to be loaded
+   *   T4 == address of spill area in calling frame
+   *
+   * Registers returned at runtime:
+   *   standard return value conventions used
+   *
+   * Side effects at runtime:
+   *   artificial stackframe created and destroyed
+   *   R0, volatile, and scratch registers destroyed
+   * </pre>
+   */
   private static ArchitectureSpecific.CodeArray generateReflectiveMethodInvokerInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(0);
 
@@ -184,17 +180,19 @@ public abstract class OutOfLineMachineCode
     return asm.makeMachineCode().getInstructions();
   }
 
-  // Machine code to implement "Magic.saveThreadState()".
-  //
-  // Registers taken at runtime:
-  //   T0 == address of Registers object
-  //
-  // Registers returned at runtime:
-  //   none
-  //
-  // Side effects at runtime:
-  //   T1 destroyed
-  //
+  /** Machine code to implement "Magic.saveThreadState()".
+   *
+   * <pre>
+   * Registers taken at runtime:
+   *   T0 == address of Registers object
+   *
+   * Registers returned at runtime:
+   *   none
+   *
+   * Side effects at runtime:
+   *   T1 destroyed
+   * </pre>
+   */
   private static ArchitectureSpecific.CodeArray generateSaveThreadStateInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(0);
 
@@ -231,6 +229,7 @@ public abstract class OutOfLineMachineCode
   /**
    * Machine code to implement "Magic.threadSwitch()".
    *
+   * <pre>
    * Currently not functional on PNT. Left for template for possible reintroduction.
    *
    *  Parameters taken at runtime:
@@ -245,6 +244,7 @@ public abstract class OutOfLineMachineCode
    *    saves current Thread's nonvolatile hardware state in its Registers object
    *    restores new thread's Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's Registers ip field
+   * </pre>
    */
   private static ArchitectureSpecific.CodeArray generateThreadSwitchInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(0);
@@ -300,18 +300,19 @@ public abstract class OutOfLineMachineCode
     return asm.makeMachineCode().getInstructions();
   }
 
-  // Machine code to implement "Magic.restoreHardwareExceptionState()".
-  //
-  // Registers taken at runtime:
-  //   T0 == address of Registers object
-  //
-  // Registers returned at runtime:
-  //   none
-  //
-  // Side effects at runtime:
-  //   all registers are restored except condition registers, count register,
-  //   JTOC_POINTER, and THREAD_REGISTER with execution resuming at "registers.ip"
-  //
+  /** Machine code to implement "Magic.restoreHardwareExceptionState()".
+   * <pre>
+   * Registers taken at runtime:
+   *   T0 == address of Registers object
+   *
+   * Registers returned at runtime:
+   *   none
+   *
+   * Side effects at runtime:
+   *   all registers are restored except condition registers, count register,
+   *   JTOC_POINTER, and THREAD_REGISTER with execution resuming at "registers.ip"
+   * </pre>
+   */
   private static ArchitectureSpecific.CodeArray generateRestoreHardwareExceptionStateInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(0);
 
@@ -399,17 +400,19 @@ public abstract class OutOfLineMachineCode
     return asm.makeMachineCode().getInstructions();
   }
 
-  // Machine code used to save volatile registers.
-  //
-  // Registers taken at runtime:
-  //   S0 == address of Registers object
-  //
-  // Registers returned at runtime:
-  //   none
-  //
-  // Side effects at runtime:
-  //   S1 destroyed
-  //
+  /**
+   * Machine code used to save volatile registers.
+   * <pre>
+   * Registers taken at runtime:
+   *   S0 == address of Registers object
+   *
+   * Registers returned at runtime:
+   *   none
+   *
+   * Side effects at runtime:
+   *   S1 destroyed
+   * </pre>
+   */
   private static ArchitectureSpecific.CodeArray generateRestoreVolatilesInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(0);
 

@@ -35,8 +35,10 @@ public class DynamicLinker implements Constants {
 
   /**
    * Resolve, compile if necessary, and invoke a method.
+   * <pre>
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (method dispatch table is updated and method is executed)
+   * </pre>
    */
   @Entrypoint
   static void lazyMethodInvoker() {
@@ -50,8 +52,10 @@ public class DynamicLinker implements Constants {
 
   /**
    * Report unimplemented native method error.
+   * <pre>
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (throws UnsatisfiedLinkError)
+   * </pre>
    */
   @Entrypoint
   static void unimplementedNativeMethod() {
@@ -79,9 +83,10 @@ public class DynamicLinker implements Constants {
 
     /**
      * Discover method reference to be invoked via dynamic bridge.
-     *
+     * <pre>
      * Taken:       nothing (call stack is examined to find invocation site)
      * Returned:    DynamicLink that describes call site.
+     * </pre>
      */
     @NoInline
     static DynamicLink resolveDynamicInvocation() {
@@ -107,9 +112,10 @@ public class DynamicLinker implements Constants {
 
     /**
      * Resolve method ref into appropriate RVMMethod
-     *
+     * <pre>
      * Taken:       DynamicLink that describes call site.
      * Returned:    RVMMethod that should be invoked.
+     * </pre>
      */
     @NoInline
     static RVMMethod resolveMethodRef(DynamicLink dynamicLink) {

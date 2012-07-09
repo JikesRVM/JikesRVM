@@ -32,18 +32,22 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Machine code generators:
- *
+ * <p>
  * Corresponding to a PowerPC assembler instruction of the form
+ * <pre>
  *    xx A,B,C
+ * </pre>
  * there will be a method
+ * <pre>
  *    void emitXX (int A, int B, int C).
- *
+ * </pre>
+ * <p>
  * The emitXX method appends this instruction to an MachineCode object.
  * The name of a method for generating assembler instruction with the record
  * bit set (say xx.) will be end in a lower-case r (emitXXr).
- *
+ * <p>
  * mIP will be incremented to point to the next machine instruction.
- *
+ * <p>
  * Machine code generators:
  */
 public abstract class Assembler extends AbstractAssembler implements BaselineConstants, AssemblerConstants {
@@ -52,7 +56,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   private final MachineCode mc;
   /** Debug output? */
   private final boolean shouldPrint;
-  /**  // Baseline compiler instance for this assembler.  May be null. */
+  /**  Baseline compiler instance for this assembler.  May be null. */
   final BaselineCompilerImpl compiler;
   /** current machine code instruction */
   private int mIP;
@@ -2353,15 +2357,20 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
     mc.addInstruction(mi);
   }
 
-  // Emit baseline stack overflow instruction sequence for native method prolog.
-  // For the lowest Java to C transition frame in the stack, check that there is space of
-  // STACK_SIZE_NATIVE words available on the stack;  enlarge stack if necessary.
-  // For subsequent Java to C transition frames, check for the requested size and don't resize
-  // the stack if overflow
-  // Before:   FP is current (calling) frame
-  //           TR is the current RVMThread
-  // After:    R0, S0 destroyed
-  //
+  /**
+   * Emit baseline stack overflow instruction sequence for native method prolog.
+   * For the lowest Java to C transition frame in the stack, check that there is space of
+   * STACK_SIZE_NATIVE words available on the stack;  enlarge stack if necessary.
+   * For subsequent Java to C transition frames, check for the requested size and don't resize
+   * the stack if overflow
+   * <pre>
+   * Before:   FP is current (calling) frame
+   *           TR is the current RVMThread
+   * After:    R0, S0 destroyed
+   * </pre>
+   *
+   * @param frameSize the frame's size
+   */
   public void emitNativeStackOverflowCheck(int frameSize) {
     emitLAddrOffset(S0,
                     RegisterConstants.THREAD_REGISTER,

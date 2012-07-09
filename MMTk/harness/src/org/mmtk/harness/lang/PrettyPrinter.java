@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.harness.ArchitecturalWord;
 
 /**
  * Format an AST back into Harness script-language code
- *
+ * <p>
  * Implemented as a visitor over the AST
  */
 public class PrettyPrinter extends Visitor {
@@ -122,8 +122,6 @@ public class PrettyPrinter extends Visitor {
 
   /**
    * Visit a method definition
-   *
-   * @see org.mmtk.harness.lang.Visitor#visit(org.mmtk.harness.lang.ast.NormalMethod)
    */
   @Override
   public Object visit(NormalMethod method) {
@@ -147,8 +145,6 @@ public class PrettyPrinter extends Visitor {
 
   /**
    * Visit a method-call
-   *
-   * @see org.mmtk.harness.lang.Visitor#visit(org.mmtk.harness.lang.ast.Call)
    */
   @Override
   public Object visit(Call call) {
@@ -359,7 +355,7 @@ public class PrettyPrinter extends Visitor {
   /**
    * Format an AST and return it as a string
    * @param ast
-   * @return
+   * @return a string representation of the given AST
    */
   public static String format(AST ast) {
     PrettyPrinter printer = new PrettyPrinter();

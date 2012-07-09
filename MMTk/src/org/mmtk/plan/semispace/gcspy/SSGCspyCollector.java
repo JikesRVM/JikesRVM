@@ -48,6 +48,9 @@ import org.vmmagic.pragma.*;
    * Instance fields
    */
 
+  /**
+   *
+   */
   private static final boolean DEBUG = false;
 
   /**

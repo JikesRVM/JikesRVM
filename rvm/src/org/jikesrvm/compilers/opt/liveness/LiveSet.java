@@ -16,18 +16,7 @@ import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
- * This file provides a sorted set (of registers) ADT with the
- *  following public operations:
- *
- *    clear()  - empties the set
- *    contains(reg) - checks if reg is in the set
- *    add(reg)  - adds reg to the set
- *    add(set2)  - adds the contents of set2 to the set
- *    remove(reg)  - removes reg from the set
- *    remove(set2) - removes the contents of set2 from the set
- *    enumerator() - returns an enumeration of the set
- *    toString() - returns a string version of the set
- *    isEmpty() - returns true, iff the set is empty
+ * This file provides a sorted set of registers.
  */
 public class LiveSet {
 
@@ -42,7 +31,7 @@ public class LiveSet {
   private static final boolean DEBUG = false;
 
   /**
-   * Empties the set
+   * Empties the set.
    */
   public final void clear() {
     first = null;
@@ -120,8 +109,8 @@ public class LiveSet {
   }
 
   /**
-   * adds the contents of set2 to the set
-   * @param additionList
+   * Adds the contents of the given set to this set.
+   * @param additionList the set to add to this set
    * @return whether any additions were made
    */
   public boolean add(LiveSet additionList) {
@@ -203,9 +192,9 @@ public class LiveSet {
   }
 
   /**
-   * removes the contents of the passed set from the currrent set, i.e.,
-   *    this = this - removeList
-   * @param removalList the list to remove from
+   * Removes the contents of the passed set from the this set, i.e.,
+   *    {@code this = this - removeList}
+   * @param removalList the list to remove from this set
    */
   public void remove(LiveSet removalList) {
     // for each item in the LiveSet
@@ -270,7 +259,7 @@ public class LiveSet {
   }
 
   /**
-   * removes the passed reg from the set
+   * Removes the passed register from this set.
    * @param item the registerOperand holding the register of interest
    */
   void remove(RegisterOperand item) {
@@ -301,7 +290,7 @@ public class LiveSet {
 
   /**
    * Is the current set empty?
-   * @return true iff the set is empty
+   * @return {@code true} iff the set is empty
    */
   public boolean isEmpty() {
     return first == null;

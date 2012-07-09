@@ -78,8 +78,10 @@ class SimpleSpillCost extends SpillCostEstimator {
   }
 
   /**
-   * Does instruction s have a memory operand of an inconvenient size?
-   * NOTE: This is pretty intel-specific.  Refactor to arch/ tree.
+   * Does instruction s have a memory operand of an inconvenient size?<p>
+   *
+   * NOTE: This is pretty intel-specific.
+   * TODO Refactor to arch/ tree.
    */
   static boolean hasBadSizeMemoryOperand(Instruction s) {
     for (Enumeration<Operand> e = s.getMemoryOperands(); e.hasMoreElements();) {

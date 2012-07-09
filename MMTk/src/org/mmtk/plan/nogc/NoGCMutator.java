@@ -42,6 +42,10 @@ public class NoGCMutator extends MutatorContext {
   /************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   private final ImmortalLocal nogc = new ImmortalLocal(NoGC.noGCSpace);
 
 

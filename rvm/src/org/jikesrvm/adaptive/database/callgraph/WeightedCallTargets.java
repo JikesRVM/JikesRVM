@@ -23,8 +23,8 @@ import org.jikesrvm.runtime.RuntimeEntrypoints;
 public abstract class WeightedCallTargets {
 
   /**
-   * Iterate over all of the targets, evaluating the argument function on each edge.
-   * NOTE: We guarentee that the targets will be iterated in monotonically decrasing
+   * Iterate over all of the targets, evaluating the argument function on each edge.<p>
+   * NOTE: We guarantee that the targets will be iterated in monotonically decreasing
    *       edge weight. This simplifies the coding of the inlining clients that consume
    *       this information.
    * @param func the function to evaluate on each target
@@ -32,7 +32,7 @@ public abstract class WeightedCallTargets {
   public abstract void visitTargets(Visitor func);
 
   /**
-   * Augment the weight associated with the argument method by 1.
+   * Augment the weight associated with the argument method by 1.<p>
    * NOTE: This method may change the representation of the target
    * method.  The caller must be sure to update their backing store of
    * WeightedCallTargets accordingly to avoid losing the update.
@@ -65,7 +65,7 @@ public abstract class WeightedCallTargets {
    * @param isPrecise whether or not goal is a precise target, or should be
    *        interpreted as being the root of a virtual method family, any of which
    *        are statically possible.
-   * @return the filtered call targets or null if no such target exists
+   * @return the filtered call targets or {@code null} if no such target exists
    */
   public abstract WeightedCallTargets filter(RVMMethod goal, boolean isPrecise);
 

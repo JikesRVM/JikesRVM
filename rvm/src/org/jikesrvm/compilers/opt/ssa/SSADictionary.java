@@ -100,10 +100,6 @@ import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 
-/*
- * This module tracks heap variables needed for Array SSA form.
- */
-
 /**
  * An <code> SSADictionary </code> structure holds lookaside
  * information regarding Heap Array SSA form for an IR.  The general idea
@@ -1484,7 +1480,7 @@ public final class SSADictionary {
      * retrive items from hashtables.
      *
      * @param key the object to compare with
-     * @return true or false as appropriate
+     * @return {@code true} or {@code false} as appropriate
      */
     @Override
     public boolean equals(Object key) {
@@ -1549,7 +1545,7 @@ public final class SSADictionary {
     /**
      * Are there more elements in the enumeration?
      *
-     * @return true or false
+     * @return {@code true} or {@code false}
      */
     @Override
     public boolean hasMoreElements() {

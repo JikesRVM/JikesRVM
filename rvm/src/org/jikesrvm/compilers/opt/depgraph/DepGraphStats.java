@@ -21,10 +21,9 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
 
 /**
- * Dependence Graph Statistics
- *
- * (This module will only be used for experimental measurements, so
- * compile-time overhead is less of a concern.)
+ * This module provides dependence graph statistics. It will only
+ * be used for for experimental measurements, so compile-time overhead
+ * is less of a concern.
  *
  * @see DepGraph
  */

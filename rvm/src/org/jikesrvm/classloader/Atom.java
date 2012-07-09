@@ -38,16 +38,18 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * An  utf8-encoded byte string.
- *
+ * <p>
  * Atom's are interned (canonicalized)
  * so they may be compared for equality using the "==" operator.
- *
+ * <p>
  * Atoms are used to represent names, descriptors, and string literals
  * appearing in a class's constant pool.
- *
+ * <p>
  * There is almost always a zero-length Atom, since any class which
  * contains statements like:
+ * <pre>
  *          return "";
+ * </pre>
  * will have one in its constant pool.
  */
 public final class Atom {

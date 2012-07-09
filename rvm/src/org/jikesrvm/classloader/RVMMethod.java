@@ -63,7 +63,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   private static final HashMapRVM<RVMMethod, Object> annotationDefaults =
     new HashMapRVM<RVMMethod, Object>();
   /**
-   * The offsets of virtual methods in the jtoc, if it's been placed
+   * The offsets of virtual methods in the JTOC, if it's been placed
    * there by constant propagation.
    */
   private static final ImmutableEntryHashMapRVM<RVMMethod, Integer> jtocOffsets =
@@ -570,16 +570,16 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
    * To determine if a method is interruptible, the following conditions
    * are checked (<em>in order</em>):
    * <ul>
-   * <li> If it is a <clinit> or <init> method then it is interruptible.
+   * <li> If it is a <code>&lt;clinit&gt;</code> or <code>&lt;init&gt;</code> method then it is interruptible.
    * <li> If is the synthetic 'this' method used by jikes to
-   *      factor out default initializers for <init> methods then it is interruptible.
-   * <li> If it is annotated with <CODE>Interruptible</CODE> it is interruptible.
-   * <li> If it is annotated with <CODE>Preemptible</CODE> it is interruptible.
-   * <li> If it is annotated with <CODE>Uninterruptible</CODE> it is not interruptible.
-   * <li> If it is annotated with <CODE>UninterruptibleNoWarn</CODE> it is not interruptible.
-   * <li> If it is annotated with <CODE>Unpreemptible</CODE> it is not interruptible.
-   * <li> If its declaring class is annotated with <CODE>Uninterruptible</CODE>
-   *      or <CODE>Unpreemptible</CODE> it is not interruptible.
+   *      factor out default initializers for <code>&lt;init&gt;</code> methods then it is interruptible.
+   * <li> If it is annotated with <CODE>&#064;Interruptible</CODE> it is interruptible.
+   * <li> If it is annotated with <CODE>&#064;Preemptible</CODE> it is interruptible.
+   * <li> If it is annotated with <CODE>&#064;Uninterruptible</CODE> it is not interruptible.
+   * <li> If it is annotated with <CODE>&#064;UninterruptibleNoWarn</CODE> it is not interruptible.
+   * <li> If it is annotated with <CODE>&#064;Unpreemptible</CODE> it is not interruptible.
+   * <li> If its declaring class is annotated with <CODE>&#064;Uninterruptible</CODE>
+   *      or <CODE>&#064;Unpreemptible</CODE> it is not interruptible.
    * </ul>
    */
   public final boolean isInterruptible() {
@@ -655,14 +655,14 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   }
 
   /**
-   * @return true if the method may write to a given field
+   * @return {@code true} if the method may write to a given field
    */
   public boolean mayWrite(RVMField field) {
     return true; // be conservative.  native methods can write to anything
   }
 
   /**
-   * @return true if the method is the implementation of a runtime service
+   * @return {@code true} if the method is the implementation of a runtime service
    * that is called "under the covers" from the generated code and thus is not subject to
    * inlining via the normal mechanisms.
    */
@@ -718,7 +718,6 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   /**
    * Generate machine code for this method if valid
    * machine code doesn't already exist.
-   * Return the resulting CompiledMethod object.
    */
   public final synchronized void compile() {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isResolved());
@@ -753,11 +752,14 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
 
   /**
    * Change machine code that will be used by future executions of this method
-   * (ie. optimized <-> non-optimized)
-   * @param compiledMethod new machine code
-   * Side effect: updates jtoc or method dispatch tables
+   * (ie. optimized <-> non-optimized)<p>
+   *
+   * Side effect: updates JTOC or method dispatch tables
    * ("type information blocks")
    *              for this class and its subclasses
+   *
+   * @param compiledMethod new machine code
+   *
    */
   public final synchronized void replaceCompiledMethod(CompiledMethod compiledMethod) {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isInstantiated());
@@ -772,7 +774,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
     CompiledMethod oldCompiledMethod = currentCompiledMethod;
     currentCompiledMethod = compiledMethod;
 
-    // Install the new method in jtoc/tib. If virtual, will also replace in
+    // Install the new method in JTOC/TIB. If virtual, will also replace in
     // all subclasses that inherited the method.
     getDeclaringClass().updateMethod(this);
 
@@ -782,14 +784,14 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       Statics.setSlotContents(jtocOffset, getCurrentEntryCodeArray());
     }
 
-    // Now that we've updated the jtoc/tib, old version is obsolete
+    // Now that we've updated the JTOC/TIB, old version is obsolete
     if (oldCompiledMethod != null) {
       CompiledMethods.setCompiledMethodObsolete(oldCompiledMethod);
     }
   }
 
   /**
-   * If CM is the current compiled code for this, then invaldiate it.
+   * If CM is the current compiled code for this, then invalidate it.
    */
   public final synchronized void invalidateCompiledMethod(CompiledMethod cm) {
     if (VM.VerifyAssertions) VM._assert(getDeclaringClass().isInstantiated());
@@ -816,7 +818,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
   }
 
   /**
-   * Find or create a jtoc offset for this method
+   * Find or create a JTOC offset for this method
    */
   public final synchronized Offset findOrCreateJtocOffset() {
     if (VM.VerifyAssertions) VM._assert(!isStatic() && !isObjectInitializer());

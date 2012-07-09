@@ -14,9 +14,6 @@ package org.mmtk.harness.options;
 
 import org.mmtk.harness.Harness;
 
-/**
- * The maximum heap size.
- */
 public final class RandomPolicyMax extends org.vmutil.options.IntOption {
   /**
    * Create the option.

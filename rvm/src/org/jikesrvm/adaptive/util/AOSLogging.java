@@ -30,30 +30,34 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.runtime.Time;
 
 /**
- * This class provides logging functionality for the Adaptive Optimization System
- *
+ * This class provides logging functionality for the Adaptive Optimization System.
+ * <p>
  * Right now this is fairly primitive, an evolving number of events are
  * defined and log entries are quite unsophisticated.
+ * <p>
  * Some obvious TODO items:
- *  -- compact encoding of log entries
- *  -- some notion of log format versions
- *  -- ...
- *
+ * <ul>
+ *  <li>compact encoding of log entries
+ *  <li>some notion of log format versions
+ *  <li>When is the log file flushed and closed?
+ *  <li>Do we want to put report() information in the log?
+ *  <li> ...
+ * </ul>
+ * <p>
  * NOTE: All code that writes to the log is synchronized on the PrintStream
  *      object to avoid interspersed messages, which can happen when the
  *      compilation thread and the controller thread try to log a message
  *      "at the same time".
- *
- * ***When is the log file flushed and closed?
- * ***Do we want to put report() information in the log?
- *
+ * <p>
  * The current logging levels are:
- *   0  Do no logging
- *   1  Do minimal logging at startup and VM exit.
+ * <ul>
+ *   <li>0  Do no logging
+ *   <li>1  Do minimal logging at startup and VM exit.
  *      If at all possible, do not log anything during program execution.
  *      This logging level is supposed to produce minimal performance pertubation.
- *   2  Log interesting AOS events and controller actions
- *   3  Exhaustively log pretty much everything that is going on
+ *   <li>2  Log interesting AOS events and controller actions
+ *   <li>3  Exhaustively log pretty much everything that is going on
+ * </ul>
  */
 public final class AOSLogging {
 
@@ -146,7 +150,7 @@ public final class AOSLogging {
   }
 
   /**
-   * Dumps lots of controller stats to the log file
+   * Dumps lots of controller statistics to the log file
    */
   public void printControllerStats() {
     if (Controller.options.LOGGING_LEVEL >= 1) {
@@ -366,7 +370,7 @@ public final class AOSLogging {
   /**
    * this method logs the event when the controller discovers a method that has
    * been recompiled and the previous version is still regarded as hot,
-   * i.e., still on the stack and signficant.
+   * i.e., still on the stack and significant.
    */
   public void oldVersionStillHot(HotMethodEvent hme) {
     if (Controller.options.LOGGING_LEVEL >= 2) {

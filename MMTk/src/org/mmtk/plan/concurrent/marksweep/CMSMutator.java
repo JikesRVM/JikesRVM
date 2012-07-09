@@ -45,6 +45,10 @@ public class CMSMutator extends ConcurrentMutator {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   private MarkSweepLocal ms;
   private TraceWriteBuffer remset;
 
@@ -67,9 +71,10 @@ public class CMSMutator extends ConcurrentMutator {
    */
 
   /**
-   * Allocate memory for an object. This class handles the default allocator
-   * from the mark sweep space, and delegates everything else to the
-   * superclass.
+   * {@inheritDoc}<p>
+   *
+   * This class handles the default allocator from the mark sweep space, and
+   * delegates everything else to the superclass.
    */
   @Inline
   @Override
@@ -81,9 +86,10 @@ public class CMSMutator extends ConcurrentMutator {
   }
 
   /**
-   * Perform post-allocation actions.  Initialize the object header for
-   * objects in the mark-sweep space, and delegate to the superclass for
-   * other objects.
+   * {@inheritDoc}<p>
+   *
+   * Initialize the object header for objects in the mark-sweep space,
+   * and delegate to the superclass for other objects.
    */
   @NoInline
   @Override

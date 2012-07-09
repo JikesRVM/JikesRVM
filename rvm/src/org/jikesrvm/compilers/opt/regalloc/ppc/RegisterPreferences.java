@@ -30,11 +30,15 @@ public abstract class RegisterPreferences extends GenericRegisterPreferences imp
   /**
    * If the following is set, we use a heuristic optimization as follows:
    * weight a
+   * <pre>
    *                    MOVE symbolic = symbolic
+   * </pre>
    * TWICE as much as either of:
+   * <pre>
    *                    MOVE symbolic = physical,
    *                    MOVE physical = symbolic.
-   *
+   * </pre>
+   * <p>
    * Rationale: At this point (before register allocation), the second
    * class of moves appear only due to calling conventions, parameters,
    * and return values.  We posit that the dynamic frequency of these

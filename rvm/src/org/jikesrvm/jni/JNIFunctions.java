@@ -5922,7 +5922,7 @@ public class JNIFunctions implements SizeConstants {
     }
   }
 
-  /** GetStringCritical
+  /** GetStringCritical:
    * Like GetStringChars and ReleaseStringChars, but in some VM environments
    * the VM may be able to avoid making a copy.   Native code must not issue
    * arbitrary JNI calls and must not cause the current thread to block.

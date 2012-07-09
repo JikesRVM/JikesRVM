@@ -32,10 +32,10 @@ import org.vmmagic.pragma.*;
 
   private static final boolean DEBUG = false;
 
-  // The additional remset stream
+  /** The additional remset stream */
   protected ShortStream remsetStream;
-  // Additional overall statistic
-  protected int totalRemset = 0;   // total of remset Addresses
+  /** total of remset Addresses */
+  protected int totalRemset = 0;
 
 
   /**

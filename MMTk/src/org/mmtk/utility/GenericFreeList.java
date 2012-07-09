@@ -173,7 +173,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(-this.head <= this.heads);
   }
 
-  /** Getter */
+  /* Getter */
   int[] getTable() { return table; }
   int getHeads() { return heads; }
 
@@ -222,7 +222,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * Establish whether a lump of units is free
    *
    * @param unit The first or last unit in the lump
-   * @return True if the lump is free
+   * @return {@code true} if the lump is free
    */
   @Override
   protected boolean getFree(int unit) {
@@ -234,7 +234,7 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * units in the lump are set.
    *
    * @param unit The first unit in the lump
-   * @param isFree True if the lump is to be marked as free
+   * @param isFree {@code true} if the lump is to be marked as free
    */
   @Override
   protected void setFree(int unit, boolean isFree) {
@@ -329,14 +329,14 @@ public final class GenericFreeList extends BaseGenericFreeList implements Consta
    * Return true if this unit may be coalesced with the unit below it.
    *
    * @param unit The unit in question
-   * @return True if this unit may be coalesced with the unit below it.
+   * @return {@code true} if this unit may be coalesced with the unit below it.
    */
   @Override
   public boolean isCoalescable(int unit) {
     return (getLoEntry(unit) & COALESC_MASK) == 0;
   }
 
- /**
+  /**
    * Get the lump to the "left" of the current lump (i.e. "above" it)
    *
    * @param unit The index of the first unit in the lump in question

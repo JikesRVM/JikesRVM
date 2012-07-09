@@ -36,8 +36,8 @@ public final class PcodeInterpreter {
 
   /**
    * Create a pcode interpreter for a given environment/method pair.  This will
-   * in general be a thread of execution within a script, either main() or a spawned
-   * process.
+   * in general be a thread of execution within a script, either <code>main()</code>
+   * or a spawned process.
    * @param env
    * @param method
    */

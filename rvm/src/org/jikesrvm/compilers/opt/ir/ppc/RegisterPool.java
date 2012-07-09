@@ -21,8 +21,9 @@ import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
- * Pool of symbolic registers.
- * powerPC specific implementation where JTOC is stored in a reserved register.
+ * Pool of symbolic registers.<p>
+ *
+ * PowerPC specific implementation where JTOC is stored in a reserved register.
  * Each IR contains has exactly one register pool object associated with it.
  *
  * @see Register

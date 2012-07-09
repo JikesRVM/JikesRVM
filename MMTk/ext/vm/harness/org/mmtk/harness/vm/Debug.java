@@ -44,25 +44,16 @@ public final class Debug extends org.mmtk.vm.Debug {
     return ObjectModel.addressAndSpaceString(addr);
   }
 
-  /**
-   * @see org.mmtk.vm.Debug#arrayRemsetEntry(org.vmmagic.unboxed.Address, org.vmmagic.unboxed.Address)
-   */
   @Override
   public void arrayRemsetEntry(Address start, Address guard) {
     Trace.trace(Item.REMSET, "arrayRemset: [%s,%s)", start, guard);
   }
 
-  /**
-   * @see org.mmtk.vm.Debug#modbufEntry(org.vmmagic.unboxed.ObjectReference)
-   */
   @Override
   public void modbufEntry(ObjectReference object) {
     Trace.trace(Item.REMSET, "modbuf: %s", format(object));
   }
 
-  /**
-   * @see org.mmtk.vm.Debug#remsetEntry(org.vmmagic.unboxed.Address)
-   */
   @Override
   public void remsetEntry(Address slot) {
     try {
@@ -73,9 +64,6 @@ public final class Debug extends org.mmtk.vm.Debug {
     }
   }
 
-  /**
-   * @see org.mmtk.vm.Debug#globalPhase(short, boolean)
-   */
   @Override
   public void globalPhase(short phaseId, boolean before) {
     if (phaseId == Simple.RELEASE && before) {
@@ -83,9 +71,6 @@ public final class Debug extends org.mmtk.vm.Debug {
     }
   }
 
-  /**
-   * @see org.mmtk.vm.Debug#traceObject(org.mmtk.plan.TraceLocal, org.vmmagic.unboxed.ObjectReference)
-   */
   @Override
   public void traceObject(TraceLocal trace, ObjectReference object) {
     Trace.trace(Item.TRACEOBJECT, "traceObject: %s", format(object));

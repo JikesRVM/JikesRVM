@@ -57,7 +57,7 @@ public abstract class ParallelCollector extends CollectorContext {
   }
 
   /**
-   * Perform a (local) collection phase.
+   * Perform a (local, i.e.per-collector) collection phase.
    *
    * @param phaseId The unique phase identifier
    * @param primary Should this thread be used to execute any single-threaded

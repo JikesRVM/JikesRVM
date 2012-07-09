@@ -16,7 +16,6 @@ package org.jikesrvm.osr.bytecodes;
 /**
  * artificial instruction, load a PC on the stack.
  */
-
 public class LoadRetAddrConst extends PseudoBytecode {
   private static final int bsize = 6;
   private int bcindex;

@@ -891,6 +891,7 @@ public final class Callbacks {
   /**
    * Notify the callback manager that the application completed executing
    * Will return once all the callbacks are invoked.
+   * @param app name of application
    */
   public static void notifyAppComplete(String app) {
     synchronized (appCompleteLock) {
@@ -947,6 +948,8 @@ public final class Callbacks {
   /**
    * Notify the callback manager that the application started a run
    * Will return once all the callbacks are invoked.
+   * @param app application name
+   * @param run run number
    */
   public static void notifyAppRunStart(String app, int run) {
     synchronized (appRunStartLock) {
@@ -1131,6 +1134,7 @@ public final class Callbacks {
 
   /**
    * Return class name of the object.
+   * @param o the object
    * @return class name of the object
    */
   private static Atom getClass(Object o) {
@@ -1156,6 +1160,7 @@ public final class Callbacks {
 
   /**
    * Print current stack trace.
+   * @param message error message
    */
   @SuppressWarnings("unused")
   private static void printStack(String message) {

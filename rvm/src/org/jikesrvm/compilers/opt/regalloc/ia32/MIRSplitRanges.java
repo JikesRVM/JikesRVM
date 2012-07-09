@@ -53,17 +53,17 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
   }
 
   /**
-   * The main method.
+   * The main method.<p>
    *
    * We split live ranges for registers around PEIs which have catch
    * blocks.  Suppose we have a
    * PEI s which uses a symbolic register r1.  We must ensure that after
    * register allocation, r1 is NOT assigned to a scratch location in s,
-   * since this would mess up code in the catch block that uses r1.
+   * since this would mess up code in the catch block that uses r1.<p>
    *
    * So, instead, we introduce a new temporary r2 which holds the value of
    * r1.  The live range for r2 spans only the instruction s.  Later, we
-   * will ensure that r2 is never spilled.
+   * will ensure that r2 is never spilled.<p>
    *
    * TODO: This could be implemented more efficiently.
    *

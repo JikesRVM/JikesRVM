@@ -34,7 +34,7 @@ public class Time {
    * Return the value of a hardware cycle counter (RDTSC on IA32, time base register on PPC).
    * This is a very cheap, but also unreliable "timing" mechanism.
    * There is absolutely no guarantee that the values returned from this method will
-   * either by monotonic (ie, "time" can go backwards) or
+   * either by monotonic (i.e., "time" can go backwards) or
    * smooth ("time" can appear to move at a variable rate).
    * This method should only be used for approximate timing in frequently executed code.
    * We intentionally do not provide an API for converting from cycles to seconds because

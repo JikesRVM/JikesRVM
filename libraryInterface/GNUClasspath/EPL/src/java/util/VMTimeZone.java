@@ -15,11 +15,18 @@ package java.util;
 /** java.util.VMTimeZone for compatibility with GNU classpath 0.11.
  */
 public class VMTimeZone {
+
+  /**
+   * This method is a no-op.<p>
+   *
+   * We don't need to do anything here; Jikes RVM automatically takes care
+   * of this for us, since {@code bin/runrvm} always sets the
+   * {@code user.timezone} property.
+   *
+   * @return {@code null}
+   */
   static TimeZone getDefaultTimeZoneId() {
-    return null;                // We don't need to do anything here; Jikes
-                                // RVM automatically takes care of this for
-                                // us, since "bin/runrvm" always sets the
-                                // user.timezone property.
+    return null;
   }
 
 }

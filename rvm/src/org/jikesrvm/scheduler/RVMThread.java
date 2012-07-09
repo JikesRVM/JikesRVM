@@ -2809,7 +2809,7 @@ public final class RVMThread extends ThreadContext {
   // We should also have a pragma that saves all non-volatiles in opt compiler,
   // BaselineExecuctionStateExtractor.java, should then restore all
   // non-volatiles before stack replacement
-  // todo fix this -- related to SaveVolatile
+  // TODO fix this -- related to SaveVolatile
   @Entrypoint
   @Unpreemptible("Becoming another thread interrupts the current thread, avoid preemption in the process")
   public static void yieldpointFromPrologue() {
@@ -4068,10 +4068,10 @@ public final class RVMThread extends ThreadContext {
    * only have setDaemon invoked on it before it is started, Threads can become
    * daemons at any time. Note: making the last non daemon a daemon will
    * terminate the VM.
-   *
+   * <p>
    * Note: This method might need to be uninterruptible so it is final, which is
    * why it isn't called setDaemon.
-   *
+   * <p>
    * Public so that java.lang.Thread can use it.
    */
   public void makeDaemon(boolean on) {
@@ -4576,7 +4576,7 @@ public final class RVMThread extends ThreadContext {
    * for space-separating or newline-terminating output.
    *
    * @param leftJustify
-   *          minium number of characters emitted, with any extra characters
+   *          minimum number of characters emitted, with any extra characters
    *          being spaces.
    */
   public void dumpWithPadding(int leftJustify) {
@@ -4668,7 +4668,7 @@ public final class RVMThread extends ThreadContext {
   /**
    * Dump this thread's info, for debugging. Copy the info about it into a
    * destination char array. We do not use any spacing or newline characters.
-   *
+   * <p>
    * This is identical to calling {@link #dump(char[],int)} with an
    * <code>offset</code> of zero.
    */
@@ -4697,7 +4697,7 @@ public final class RVMThread extends ThreadContext {
    * means yieldpoints are enabled outside of the call to debug) t* =
    * numActiveThreads d* = numActiveDaemons * parenthetical values, printed only
    * if traceDetails = true)
-   *
+   * <p>
    * We serialize against a mutex to avoid intermingling debug output from
    * multiple threads.
    */
@@ -4727,7 +4727,7 @@ public final class RVMThread extends ThreadContext {
    * threadCreationMutex (if any) e* = java thread id of the owner of
    * threadExecutionMutex (if any) t* = numActiveThreads d* = numActiveDaemons *
    * parenthetical values, printed only if traceDetails = true)
-   *
+   * <p>
    * We serialize against a mutex to avoid intermingling debug output from
    * multiple threads.
    */
@@ -4790,6 +4790,7 @@ public final class RVMThread extends ThreadContext {
 
   /**
    * Print interesting scheduler information, starting with a stack traceback.
+   * <p>
    * Note: the system could be in a fragile state when this method is called, so
    * we try to rely on as little runtime functionality as possible (eg. use no
    * bytecodes that require RuntimeEntrypoints support).

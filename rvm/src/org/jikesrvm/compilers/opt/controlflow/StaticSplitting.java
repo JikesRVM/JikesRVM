@@ -194,7 +194,7 @@ public class StaticSplitting extends CompilerPhase {
 
   /**
    * Return the cold predecessor to the argument block.
-   * If there is not exactly 1, return null.
+   * If there is not exactly 1, return {@code null}.
    */
   private BasicBlock findColdPrev(BasicBlock bb) {
     BasicBlock cold = null;

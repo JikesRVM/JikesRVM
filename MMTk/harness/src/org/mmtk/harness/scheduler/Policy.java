@@ -13,15 +13,15 @@
 package org.mmtk.harness.scheduler;
 
 /**
- * Interface to the per-thread scheduler policy.  The method yieldNow()
- * is called every time a thread reaches a yield point, and the method
- * returns true if a yield is required.
+ * Interface to the per-thread scheduler policy.
  */
 public interface Policy {
 
-  /**
-   * @return True if the current policy requires that we yield.
-   */
-  boolean yieldNow();
+    /**
+    * This method is called every time a thread reaches a yield point.
+    *
+    * @return {@code true} if the current policy requires that we yield.
+    */
+    boolean yieldNow();
 
 }

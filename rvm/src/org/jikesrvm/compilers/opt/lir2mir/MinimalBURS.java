@@ -41,7 +41,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * the same input as the input LIR instructions.
  * This results in poor code quality, but can be done very quickly.
  * The intended purpose is to reduce compile time by doing quick and
- * dirty instruction selection for infrequntly executed basic blocks.
+ * dirty instruction selection for infrequently executed basic blocks.
  *
  * @see BURS_STATE
  * @see BURS_TreeNode
@@ -147,7 +147,13 @@ final class MinimalBURS extends BURS {
     return root;
   }
 
-  // Generate code for a single tree root.
+
+
+  /**
+   * Generates code for a single tree root.
+   * @param k the root to start generation at
+   * @param burs
+   */
   private void generateTree(BURS_TreeNode k, BURS_STATE burs) {
     BURS_TreeNode child1 = k.child1;
     BURS_TreeNode child2 = k.child2;

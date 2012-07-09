@@ -30,6 +30,7 @@ import org.vmmagic.pragma.*;
  * as faithful as possible to semiSpace/Plan.java.
  *
  * The generated trace format is as follows:
+ * <pre>
  *    B 345678 12
  *      (Object 345678 was created in the boot image with a size of 12 bytes)
  *    U 59843 234 47298
@@ -59,7 +60,7 @@ import org.vmmagic.pragma.*;
  *         with offset 23; b) the object allocated is of type java.lang.Foo)
  *    D 342789 361460
  *      (Object 342789 became unreachable after 361460 was allocated)
- *
+ * </pre>
  * This class implements a simple semi-space collector. See the Jones
  * & Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
@@ -85,6 +86,10 @@ import org.vmmagic.pragma.*;
    */
 
   /* Spaces */
+
+  /**
+   *
+   */
   public static final RawPageSpace traceSpace = new RawPageSpace("trace", VMRequest.create());
   public static final int TRACE = traceSpace.getDescriptor();
 

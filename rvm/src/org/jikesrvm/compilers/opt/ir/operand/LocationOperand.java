@@ -67,13 +67,13 @@ public final class LocationOperand extends Operand implements org.jikesrvm.compi
 
   /**
    * Method operand that corresponds to this location;
-   * null if this is not a method access.
+   * {@code null} if this is not a method access.
    */
   MethodOperand methOp;
 
   /**
    * Array element type that corresponds to the type of the array that contains
-   * this location; null if this is not an array access.
+   * this location; {@code null} if this is not an array access.
    */
   TypeReference arrayElementType;
 

@@ -55,9 +55,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.GraphNode;
 import org.jikesrvm.util.BitVector;
 
-/*
- * Loop unrolling
- */
 public class LoopUnrolling extends CompilerPhase {
 
   static final boolean DEBUG = false;

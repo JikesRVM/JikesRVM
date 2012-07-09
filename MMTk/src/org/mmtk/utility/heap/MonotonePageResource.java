@@ -37,6 +37,10 @@ public final class MonotonePageResource extends PageResource
    *
    * Instance variables
    */
+
+  /**
+   *
+   */
   private Address cursor;
   private Address sentinel;
   private final int metaDataPagesPerRegion;
@@ -87,25 +91,7 @@ public final class MonotonePageResource extends PageResource
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
   }
 
-  /**
-   * Return the number of available physical pages for this resource.
-   * This includes all pages currently unused by this resource's page
-   * cursor. If the resource is using discontiguous space it also includes
-   * currently unassigned discontiguous space.<p>
-   *
-   * Note: This just considers physical pages (ie virtual memory pages
-   * allocated for use by this resource). This calculation is orthogonal
-   * to and does not consider any restrictions on the number of pages
-   * this resource may actually use at any time (ie the number of
-   * committed and reserved pages).<p>
-   *
-   * Note: The calculation is made on the assumption that all space that
-   * could be assigned to this resource would be assigned to this resource
-   * (ie the unused discontiguous space could just as likely be assigned
-   * to another competing resource).
-   *
-   * @return The number of available physical pages for this resource.
-   */
+
   @Override
   public int getAvailablePhysicalPages() {
     int rtn = Conversions.bytesToPages(sentinel.diff(cursor));
@@ -186,13 +172,10 @@ public final class MonotonePageResource extends PageResource
   }
 
   /**
-   * Adjust a page request to include metadata requirements, if any.<p>
+   * {@inheritDoc}<p>
    *
    * In this case we simply report the expected page cost. We can't use
    * worst case here because we would exhaust our budget every time.
-   *
-   * @param pages The size of the pending allocation in pages
-   * @return The number of required pages, inclusive of any metadata
    */
   @Override
   public int adjustForMetaData(int pages) {
@@ -296,7 +279,7 @@ public final class MonotonePageResource extends PageResource
    * Adjust the start and cursor fields to point to the next chunk
    * in the linked list of chunks tied down by this page resource.
    *
-   * @return True if we moved to the next chunk; false if we hit the
+   * @return {@code true} if we moved to the next chunk; {@code false} if we hit the
    * end of the linked list.
    */
   private boolean moveToNextChunk() {

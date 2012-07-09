@@ -156,7 +156,7 @@ import org.vmmagic.unboxed.*;
   /**
    * Decide how to grow/shrink the heap to respond
    * to application's memory usage.
-   * @return true if heap size was changed, false otherwise
+   * @return {@code true} if heap size was changed, {@code false} otherwise
    */
   public static boolean considerHeapSize() {
     Extent oldSize = currentHeapSize;

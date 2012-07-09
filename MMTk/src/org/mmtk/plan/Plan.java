@@ -60,6 +60,10 @@ public abstract class Plan implements Constants {
    * Constants
    */
 
+  /**
+   *
+   */
+
   /* GC State */
   public static final int NOT_IN_GC = 0; // this must be zero for C code
   public static final int GC_PREPARE = 1; // before setup and obtaining root
@@ -300,6 +304,12 @@ public abstract class Plan implements Constants {
   /****************************************************************************
    * Allocation
    */
+
+  /**
+   * @param compileTime is this a call by the compiler?
+   * @return an allocation site
+   *
+   */
   public static int getAllocationSite(boolean compileTime) {
     if (compileTime) // a new allocation site is being compiled
       return allocationSiteCount++;
@@ -313,8 +323,10 @@ public abstract class Plan implements Constants {
 
   /**
    * Perform a (global) collection phase.
+   *
+   * @param phaseId The unique id of the phase to perform.
    */
-  public abstract void collectionPhase(short phase);
+  public abstract void collectionPhase(short phaseId);
 
   /**
    * Replace a phase.
@@ -376,7 +388,7 @@ public abstract class Plan implements Constants {
 
   /**
    * Return the expected reference count. For non-reference counting
-   * collectors this becomes a true/false relationship.
+   * collectors this becomes a {@code true/false} relationship.
    *
    * @param object The object to check.
    * @param sanityRootRC The number of root references to the object.
@@ -397,7 +409,7 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * @return True is a stress test GC is required
+   * @return {@code true} is a stress test GC is required
    */
   @Inline
   public final boolean stressTestGCRequired() {
@@ -414,6 +426,9 @@ public abstract class Plan implements Constants {
    * GC State
    */
 
+  /**
+   *
+   */
   protected static boolean userTriggeredCollection;
   protected static boolean internalTriggeredCollection;
   protected static boolean lastInternalTriggeredCollection;
@@ -431,26 +446,26 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * Return true if stacks have been prepared in this collection cycle.
+   * Return {@code true} if stacks have been prepared in this collection cycle.
    *
-   * @return True if stacks have been prepared in this collection cycle.
+   * @return {@code true} if stacks have been prepared in this collection cycle.
    */
   public static boolean stacksPrepared() {
     return stacksPrepared;
   }
   /**
-   * Return true if a collection is in progress.
+   * Return {@code true} if a collection is in progress.
    *
-   * @return True if a collection is in progress.
+   * @return {@code true} if a collection is in progress.
    */
   public static boolean gcInProgress() {
     return gcStatus != NOT_IN_GC;
   }
 
   /**
-   * Return true if a collection is in progress and past the preparatory stage.
+   * Return {@code true} if a collection is in progress and past the preparatory stage.
    *
-   * @return True if a collection is in progress and past the preparatory stage.
+   * @return {@code true} if a collection is in progress and past the preparatory stage.
    */
   public static boolean gcInProgressProper() {
     return gcStatus == GC_PROPER;
@@ -483,7 +498,7 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * Print out statistics at the start of a GC
+   * Print pre-collection statistics.
    */
   public void printPreStats() {
     if ((Options.verbose.getValue() == 1) ||
@@ -611,14 +626,14 @@ public abstract class Plan implements Constants {
   }
 
   /**
-   * @return True if this collection was triggered by application code.
+   * @return {@code true} if this collection was triggered by application code.
    */
   public static boolean isUserTriggeredCollection() {
     return userTriggeredCollection;
   }
 
   /**
-   * @return True if this collection was triggered internally.
+   * @return {@code true} if this collection was triggered internally.
    */
   public static boolean isInternalTriggeredCollection() {
     return lastInternalTriggeredCollection;
@@ -626,6 +641,10 @@ public abstract class Plan implements Constants {
 
   /****************************************************************************
    * Harness
+   */
+
+  /**
+   *
    */
   protected static boolean insideHarness = false;
 
@@ -830,7 +849,7 @@ public abstract class Plan implements Constants {
    *
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @param space The space that triggered the poll.
-   * @return true if a collection is required.
+   * @return <code>true</code> if a collection is required.
    */
   public final boolean poll(boolean spaceFull, Space space) {
     if (collectionRequired(spaceFull, space)) {
@@ -879,11 +898,11 @@ public abstract class Plan implements Constants {
 
   /**
    * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
+   * during allocation. Returns <code>true</code> to trigger a collection.
    *
    * @param spaceFull Space request failed, must recover pages within 'space'.
    * @param space TODO
-   * @return True if a collection is requested by the plan.
+   * @return <code>true</code> if a collection is requested by the plan.
    */
   protected boolean collectionRequired(boolean spaceFull, Space space) {
     boolean stressForceGC = stressTestGCRequired();
@@ -896,7 +915,7 @@ public abstract class Plan implements Constants {
    * This method controls the triggering of an atomic phase of a concurrent
    * collection. It is called periodically during allocation.
    *
-   * @return True if a collection is requested by the plan.
+   * @return <code>true</code> if a collection is requested by the plan.
    */
   protected boolean concurrentCollectionRequired() {
     return false;
@@ -918,7 +937,7 @@ public abstract class Plan implements Constants {
    * whether it needs to copy IO buffers etc.
    *
    * @param object The object in question
-   * @return True if it is not possible that the object will ever move.
+   * @return <code>true</code> if it is not possible that the object will ever move.
    */
   public boolean willNeverMove(ObjectReference object) {
     if (!VM.activePlan.constraints().movesObjects())

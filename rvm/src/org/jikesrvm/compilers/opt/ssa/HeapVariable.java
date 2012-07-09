@@ -17,7 +17,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.util.BitVector;
 
 /**
- * An HeapVariable represents a heap variable for heap array SSA form
+ * An HeapVariable represents a heap variable for heap array SSA form.
  */
 public class HeapVariable<T> {
   /**
@@ -106,7 +106,7 @@ public class HeapVariable<T> {
   /**
    * Is this heap variable exposed on procedure entry?
    * <p> Equivalently: is the number = zero?
-   * @return true or false
+   * @return {@code true} or {@code false}
    */
   public boolean isExposedOnEntry() {
     return (number == 0);

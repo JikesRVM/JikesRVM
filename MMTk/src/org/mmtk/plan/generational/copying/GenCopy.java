@@ -50,7 +50,7 @@ import org.vmmagic.pragma.*;
  * (such as memory and virtual memory resources) which are "global"
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
- * performance proprties of this plan.
+ * performance properties of this plan.
  */
 @Uninterruptible public class GenCopy extends Gen {
 
@@ -60,7 +60,11 @@ import org.vmmagic.pragma.*;
    */
 
   // GC state
-  static boolean hi = false; // True if copying to "higher" semispace
+
+  /**
+   * <code>true</code> if copying to "higher" semispace
+   */
+  static boolean hi = false;
 
   /**
    * The low half of the copying mature space.  We allocate into this space
@@ -80,6 +84,10 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    *
    * Instance fields
+   */
+
+  /**
+   *
    */
   final Trace matureTrace;
 
@@ -128,9 +136,7 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Perform a phase of the currently active collection.
-   *
-   * @param phaseId Collection phase to process
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -166,9 +172,6 @@ import org.vmmagic.pragma.*;
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Override
   @Inline

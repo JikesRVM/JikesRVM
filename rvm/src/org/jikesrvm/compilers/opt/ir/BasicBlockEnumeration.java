@@ -26,6 +26,7 @@ public interface BasicBlockEnumeration extends Enumeration<BasicBlock> {
 
   /**
    * Single preallocated empty BasicBlockEnumeration.
+   * <p>
    * WARNING: Think before you use this; getting two possible concrete
    * types may prevent inlining of hasMoreElements and next(), thus
    * blocking scalar replacement.  Only use Empty when we have no hope

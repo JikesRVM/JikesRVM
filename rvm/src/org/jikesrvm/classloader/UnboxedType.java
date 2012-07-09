@@ -21,7 +21,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Description of an Unboxed Magic type.
+ * Description of an Unboxed Magic type.<p>
  *
  * Currently, unboxed types are restricted to be values that can fit in a single machines word.
  *

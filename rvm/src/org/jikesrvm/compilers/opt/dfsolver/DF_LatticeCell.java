@@ -17,8 +17,6 @@ import java.util.Iterator;
 import org.jikesrvm.compilers.opt.util.GraphNode;
 
 /**
- * DF_LatticeCell.java
- *
  * Represents a single lattice cell in a dataflow equation system.
  */
 public interface DF_LatticeCell extends GraphNode {

@@ -14,9 +14,6 @@ package org.mmtk.harness.options;
 
 import org.mmtk.harness.Harness;
 
-/**
- * Number of collector threads.
- */
 public final class Trace extends EnumSetOption {
   /**
    * Create the option.

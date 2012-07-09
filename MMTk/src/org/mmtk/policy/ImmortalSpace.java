@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements tracing for a simple immortal collection
  * policy.  Under this policy all that is required is for the
- * "collector" to propogate marks in a liveness trace.  It does not
+ * "collector" to propagate marks in a liveness trace.  It does not
  * actually collect.  This class does not hold any state, all methods
  * are static.
  */
@@ -38,12 +38,20 @@ import org.vmmagic.pragma.*;
    *
    * Class variables
    */
+
+  /**
+   *
+   */
   static final byte GC_MARK_BIT_MASK = 1;
   private static final int META_DATA_PAGES_PER_REGION = CARD_META_PAGES_PER_REGION;
 
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private byte markState = 0; // when GC off, the initialization value
 
@@ -106,7 +114,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Used to mark boot image objects during a parallel scan of objects during GC
-   * Returns true if marking was done.
+   * Returns {@code true} if marking was done.
    */
   @Inline
   private static boolean testAndMark(ObjectReference object, byte value) {
@@ -174,7 +182,7 @@ import org.vmmagic.pragma.*;
    * necessary.
    *
    * @param object The address of an object in immortal space to test
-   * @return True if <code>ref</code> may be a reachable object (e.g., having
+   * @return <code>true</code> if <code>ref</code> may be a reachable object (e.g., having
    *         the current mark state).  While all immortal objects are live,
    *         some may be unreachable.
    */

@@ -19,7 +19,7 @@ import org.jikesrvm.runtime.ReflectionBase;
 import org.jikesrvm.runtime.Reflection;
 
 /**
- * Implementation of java.lang.reflect.Field for JikesRVM.
+ * Implementation of java.lang.reflect.Field for JikesRVM.<p>
  *
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.

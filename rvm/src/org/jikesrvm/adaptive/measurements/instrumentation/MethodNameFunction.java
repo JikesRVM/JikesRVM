@@ -16,14 +16,9 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 
 /**
- * MethodNameFunction.java
- *
- *
  * This class takes a compiled method id and returns a string
  * representation of the method name.
- *
  **/
-
 class MethodNameFunction implements CounterNameFunction {
 
   /**

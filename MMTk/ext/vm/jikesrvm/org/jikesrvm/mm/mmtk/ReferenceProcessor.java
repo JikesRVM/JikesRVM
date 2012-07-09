@@ -37,14 +37,14 @@ import java.lang.ref.PhantomReference;
  * PhantomReferences. When a java/lang/ref/Reference object is created,
  * its address is added to a table of pending reference objects of the
  * appropriate type. An address is used so the reference will not stay
- * alive during gc if it isn't in use elsewhere the mutator. During
- * gc, the various lists are processed in the proper order to
+ * alive during GC if it isn't in use elsewhere the mutator. During
+ * GC, the various lists are processed in the proper order to
  * determine if any Reference objects are ready to be enqueued or
  * whether referents that have died should be kept alive until the
  * Reference is explicitly cleared. MMTk drives this processing and
  * uses this class, via the VM interface, to scan the lists of pending
  * reference objects.
- *
+ * <p>
  * As an optimization for generational collectors, each reference type
  * maintains two queues: a nursery queue and the main queue.
  */
@@ -263,17 +263,15 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    */
 
   /**
-   * Scan through all references and forward.
-   *
+   * {@inheritDoc}
+   * <p>
    * Collectors like MarkCompact determine liveness and move objects
    * using separate traces.
-   *
+   * <p>
    * Currently ignores the nursery hint.
-   *
+   * <p>
    * TODO parallelise this code
    *
-   * @param trace The trace
-   * @param nursery Is this a nursery collection ?
    */
   @Override
   public void forward(TraceLocal trace, boolean nursery) {
@@ -303,13 +301,13 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
-   * Scan through the list of references. Calls ReferenceProcessor's
+   * {@inheritDoc} Calls ReferenceProcessor's
    * processReference method for each reference and builds a new
    * list of those references still active.
-   *
+   * <p>
    * Depending on the value of <code>nursery</code>, we will either
    * scan all references, or just those created since the last scan.
-   *
+   * <p>
    * TODO parallelise this code
    *
    * @param nursery Scan only the newly created references

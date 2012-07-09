@@ -20,7 +20,6 @@ import org.vmmagic.unboxed.Word;
 /**
  * OSR_PseudoBytecode is super class of all pseudo instructions.
  */
-
 public abstract class PseudoBytecode implements BytecodeConstants, OSRConstants, SizeConstants {
 
   public PseudoBytecode next;

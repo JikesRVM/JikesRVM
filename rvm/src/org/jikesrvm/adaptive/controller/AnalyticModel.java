@@ -44,7 +44,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    * considered by the cost-benefit model, given the previous compiler.
    *
    * @param prevCompiler The compiler compiler that was used to
-   *                     comile cmpMethod
+   *                     compile cmpMethod
    * @param cmpMethod The compiled method being considered
    */
   abstract RecompilationChoice[] getViableRecompilationChoices(int prevCompiler, CompiledMethod cmpMethod);
@@ -257,7 +257,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
     if (!considerForRecompilation(event, plan)) return;
     double prevCompileTime = cmpMethod.getCompilationTime();
 
-    // Use the model to caclulate expected cost of (1) doing nothing
+    // Use the model to calculate expected cost of (1) doing nothing
     // and (2) recompiling at the same opt level with the FDO boost
     double futureTimeForMethod = futureTimeForMethod(event);
     double futureTimeForFDOMethod = prevCompileTime + (futureTimeForMethod / event.getBoostFactor());

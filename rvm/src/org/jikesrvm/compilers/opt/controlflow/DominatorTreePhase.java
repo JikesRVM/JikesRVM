@@ -43,7 +43,7 @@ public final class DominatorTreePhase extends CompilerPhase {
    * Should the IR be printed before and/or after this phase?
    * @param options controlling compiler options
    * @param before query control
-   * @return true or false.
+   * @return {@code false}
    */
   @Override
   public boolean printingEnabled(OptOptions options, boolean before) {

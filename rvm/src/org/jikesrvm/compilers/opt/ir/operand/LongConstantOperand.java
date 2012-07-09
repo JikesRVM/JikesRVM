@@ -38,7 +38,7 @@ public final class LongConstantOperand extends ConstantOperand {
   /**
    * Offset in JTOC where this long constant lives. (0 for constants
    * obtained from constant folding)
-   * //KV: is this field still necessary
+   * TODO is this field still necessary?
    */
   public Offset offset;
 
@@ -54,9 +54,9 @@ public final class LongConstantOperand extends ConstantOperand {
 
   /**
    * Constructs a new long constant operand with the specified value and JTOC offset.
-   * //KV: is this method still necessary
+   * TODO is this constructor still necessary?
    * @param v value
-   * @param i offset in the jtoc
+   * @param i offset in the JTOC
    */
   public LongConstantOperand(long v, Offset i) {
     value = v;

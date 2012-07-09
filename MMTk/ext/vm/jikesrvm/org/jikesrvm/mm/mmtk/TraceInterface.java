@@ -48,6 +48,10 @@ import org.vmmagic.unboxed.Word;
    *
    * Class variables
    */
+
+  /**
+   *
+   */
   private static byte[][] allocCallMethods;
 
   static {
@@ -73,6 +77,9 @@ import org.vmmagic.unboxed.Word;
    * Public Methods
    */
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean gcEnabled() {
     return RVMThread.gcEnabled();
@@ -83,7 +90,7 @@ import org.vmmagic.unboxed.Word;
    * used for allocation/tracing.
    *
    * @param name The method name to test as an array of bytes
-   * @return True if the method is a "real" method, false otherwise.
+   * @return {@code true} if the method is a "real" method, {@code false} otherwise.
    */
   private boolean isAllocCall(byte[] name) {
     for (int i = 0; i < allocCallMethods.length; i++) {
@@ -206,6 +213,9 @@ import org.vmmagic.unboxed.Word;
    * Wrapper methods
    */
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Inline
   public void updateDeathTime(ObjectReference obj) {

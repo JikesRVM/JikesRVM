@@ -58,7 +58,6 @@ import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 /**
  * This class contains the high level logic for executing an inlining decision.
  *
- *
  * @see InlineDecision
  * @see GenerationContext
  */
@@ -125,7 +124,7 @@ public class Inliner {
 
   /**
    * Return a generation context that represents the
-   * execution of inlDec in the context <parent,ebag> for
+   * execution of inlDec in the context <code>&lt;parent,ebag&gt;</code> for
    * the call instruction callSite.
    * <p> PRECONDITION: inlDec.isYes()
    * <p> POSTCONDITIONS:
@@ -431,7 +430,7 @@ public class Inliner {
         }
         container.cfg.linkInCodeOrder(children[i].cfg.lastInCodeOrder(), testFailed);
       }
-      //Step 6: finsh by linking container.prologue & testFailed
+      //Step 6: finish by linking container.prologue & testFailed
       container.prologue.insertOut(testFailed);
       container.cfg.linkInCodeOrder(container.prologue, testFailed);
       return container;

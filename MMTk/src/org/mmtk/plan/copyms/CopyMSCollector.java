@@ -42,6 +42,9 @@ public class CopyMSCollector extends StopTheWorldCollector {
    * Instance fields
    */
 
+  /**
+   *
+   */
   private MarkSweepLocal mature;
   private CopyMSTraceLocal trace;
 
@@ -67,14 +70,7 @@ public class CopyMSCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   *
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
   @Override
   @Inline

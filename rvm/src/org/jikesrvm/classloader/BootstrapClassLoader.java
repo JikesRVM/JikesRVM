@@ -41,7 +41,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   private static String bootstrapClasspath;
 
   /**
-   * Set list of places to be searched for vm classes and resources.
+   * Set list of places to be searched for VM classes and resources.
    * @param bootstrapClasspath path specification in standard "classpath"
    *    format
    */

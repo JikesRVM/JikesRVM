@@ -185,9 +185,7 @@ public abstract class Simple extends Plan implements Constants {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId The unique of the phase to perform.
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -280,10 +278,8 @@ public abstract class Simple extends Plan implements Constants {
   }
 
   /**
-   * Replace a scheduled phase. Used for example to replace a placeholder.
-   *
-   * @param oldScheduledPhase The scheduled phase to replace.
-   * @param newScheduledPhase The new scheduled phase.
+   * {@inheritDoc}
+   * Used for example to replace a placeholder.
    */
   @Override
   public void replacePhase(int oldScheduledPhase, int newScheduledPhase) {

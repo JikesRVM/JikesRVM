@@ -21,11 +21,11 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Moral equivalent of java.lang.ref.Reference
- *
+ * <p>
  * In the MMTk harness, Reference types aren't heap objects.  This has the up side
  * that we can debug problems with forwarding of referents more easily, but means
  * that we don't exercise the method getForwardedReference, just getForwardedReferent.
- *
+ * <p>
  * TODO make this more comprehensive.
  */
 public abstract class ReferenceValue extends Value {
@@ -47,9 +47,6 @@ public abstract class ReferenceValue extends Value {
     cleared = true;
   }
 
-  /**
-   * @see org.mmtk.harness.lang.runtime.Value#getObjectValue()
-   */
   @Override
   public ObjectReference getObjectValue() {
     return cleared ? ObjectReference.nullReference() : ref;
@@ -64,7 +61,7 @@ public abstract class ReferenceValue extends Value {
 
   /**
    * GC-time processing of the contained object.
-   *
+   * <p>
    * Corresponds to the core of the processReference method of the MMTk ReferenceProcessor
    * for the WEAK reference type.
    *
@@ -84,7 +81,7 @@ public abstract class ReferenceValue extends Value {
   /**
    * Deferred GC-time processing of the contained object, used in collectors
    * like MarkCompact which determine liveness separately from copying.
-   *
+   * <p>
    * Corresponds to the core of the forward method of the MMTk ReferenceProcessor
    * for the WEAK reference type.
    *
@@ -105,9 +102,6 @@ public abstract class ReferenceValue extends Value {
     processReference(trace);
   }
 
-  /**
-   * @see org.mmtk.harness.lang.runtime.Value#equals(java.lang.Object)
-   */
   @Override
   public boolean equals(Object o) {
     return this == o;

@@ -158,7 +158,7 @@ public class ParallelCollectorGroup implements Constants {
    * Is the given context and member of this group.
    *
    * @param context The context to pass.
-   * @return True if the context is a member.
+   * @return {@code true} if the context is a member.
    */
   public boolean isMember(CollectorContext context) {
     for(CollectorContext c: contexts) {

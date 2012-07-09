@@ -124,7 +124,6 @@ public final class SimulatedMemory {
   /**
    * Get a page with an int offset
    * @param address
-   * @param offset
    * @return
    */
   private static MemoryPage getPage(Address address) {
@@ -380,7 +379,6 @@ public final class SimulatedMemory {
    * Zero a region of memory.
    * @param start Start of address range (inclusive)
    * @param size Length in bytes of range to zero
-   * Returned: nothing
    */
   public static void zero(Address start, Extent size) {
     Trace.trace(Item.MEMORY,"zero(%s,%s)\n", start.toString(), size.toString());
@@ -391,7 +389,6 @@ public final class SimulatedMemory {
    * Zero a region of memory.
    * @param start Start of address range (inclusive)
    * @param size Length in bytes of range to zero
-   * Returned: nothing
    */
   public static void zero(Address start, int size) {
     Trace.trace(Item.MEMORY,"zero(%s,%d)\n", start.toString(), size);
@@ -412,7 +409,6 @@ public final class SimulatedMemory {
    * Zero a region of memory.
    * @param start Start of address range (inclusive)
    * @param size Length in bytes of range to zero
-   * Returned: nothing
    */
   public static void zeroNew(Address start, int size) {
     Trace.trace(Item.MEMORY,"zero(%s,%d)\n", start.toString(), size);

@@ -34,6 +34,10 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
   /************************************************************************
    * Initialization
    */
+
+  /**
+   *
+   */
   protected final ObjectReferenceDeque newRootBuffer;
   private final BTTraceLocal backupTrace;
   private final ObjectReferenceDeque modBuffer;

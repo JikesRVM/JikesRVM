@@ -333,9 +333,9 @@ public final class FreeListPageResource extends PageResource implements Constant
   }
 
   /**
-   * Adjust a page request to include metadata requirements, if any.  In the
-   * case of a free-list allocator, meta-data is pre-allocated, so simply
-   * return the un-adjusted request size.
+   * {@inheritDoc}<p>
+   * In the case of a free-list allocator, meta-data is pre-allocated, so
+   * simply return the un-adjusted request size.
    *
    * @param pages The size of the pending allocation in pages
    * @return The (unadjusted) request size, since metadata is pre-allocated

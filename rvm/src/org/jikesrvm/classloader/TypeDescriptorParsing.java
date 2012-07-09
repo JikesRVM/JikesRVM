@@ -155,7 +155,7 @@ public abstract class TypeDescriptorParsing implements ClassLoaderConstants {
    * character for a VM identifier.
    *
    * @param c      character to evaluate for VM identifier compatibility
-   * @return boolean  true iff <code>c</code> represents a valid VM identifier starting character
+   * @return boolean  {@code true} iff <code>c</code> represents a valid VM identifier starting character
    */
   @Pure
   public static boolean isVMIdentifierStart(char c) {
@@ -179,7 +179,7 @@ public abstract class TypeDescriptorParsing implements ClassLoaderConstants {
    * character for a VM identifier.
    *
    * @param c      character to evaluate for VM identifier compatibility
-   * @return boolean  true iff <code>c</code> represents a valid VM identifier non-starting character
+   * @return boolean  {@code true} iff <code>c</code> represents a valid VM identifier non-starting character
    */
   @Pure
   public static boolean isVMIdentifierPart(char c) {

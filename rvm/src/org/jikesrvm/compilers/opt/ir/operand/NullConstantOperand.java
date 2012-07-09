@@ -15,7 +15,7 @@ package org.jikesrvm.compilers.opt.ir.operand;
 import org.jikesrvm.classloader.TypeReference;
 
 /**
- * This operand represents the null constant.
+ * This operand represents the {@code null} constant.
  *
  * @see Operand
  */

@@ -22,10 +22,10 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * An instance of this class provides iteration across the references
  * represented by a frame built by the OPT compiler.
- *
+ * <p>
  * The architecture-specific version of the GC Map iterator.  It inherits
  * its architecture-independent code from OptGenericGCMapIterator.
- * This version is for the PowerPC
+ * This version is for the PowerPC.
  */
 @Uninterruptible
 public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements ArchConstants {

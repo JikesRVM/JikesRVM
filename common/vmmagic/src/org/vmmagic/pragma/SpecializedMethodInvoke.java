@@ -20,7 +20,7 @@ import org.vmmagic.Pragma;
 
 /**
  * This pragma indicates that a particular method is a specialized
- * method invocation point, and could be optimized as such.
+ * method invocation point, and could be optimized as such.<p>
  *
  * All such methods must be static.
  */

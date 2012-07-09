@@ -32,6 +32,9 @@ import org.vmmagic.pragma.*;
    * protected int enqueued;
    */
 
+  /**
+   *
+   */
   @Inline
   protected final Offset bufferOffset(Address buf) {
     return buf.toWord().and(BUFFER_MASK).toOffset();
@@ -65,6 +68,10 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    *
    * Private and protected static final fields (aka constants)
+   */
+
+  /**
+   *
    */
   protected static final int LOG_PAGES_PER_BUFFER = 0;
   protected static final int PAGES_PER_BUFFER = 1 << LOG_PAGES_PER_BUFFER;

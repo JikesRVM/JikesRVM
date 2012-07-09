@@ -55,7 +55,7 @@ import org.vmmagic.unboxed.Offset;
  * Assembler; it handles basic impedance-matching functionality
  * such as determining which addressing mode is suitable for a given
  * IA32MemoryOperand.  This class also provides some boilerplate
- * methods that do not depend on how instructions sould actually be
+ * methods that do not depend on how instructions should actually be
  * assembled, like the top-level generateCode driver.  This class is
  * not meant to be used in isolation, but rather to provide support
  * from the Assembler.
@@ -320,7 +320,7 @@ abstract class AssemblerBase extends Assembler
 
   /**
    * Given a memory operand, return the 3 bit IA32 ISA encoding
-   * of its index regsiter.  This function translates the optimizing
+   * of its index register.  This function translates the optimizing
    * compiler register operand representing the index of the given
    * memory operand into the 3 bit IA32 ISA encoding that
    * can be passed to the Assembler.  This function assumes its
@@ -507,7 +507,7 @@ abstract class AssemblerBase extends Assembler
    *  Return the label representing the target of the given branch
    * operand.  These labels are used to represent branch targets
    * that have not yet been assembled, and so cannot be given
-   * concrete machine code offsets.  All instructions are nunbered
+   * concrete machine code offsets.  All instructions are numbered
    * just prior to assembly, and these numbers are used as labels.
    * This method also returns 0 (not a valid label) for int
    * constants to simplify generation of branches (the branch
@@ -568,7 +568,7 @@ abstract class AssemblerBase extends Assembler
    * name means operate upon byte data.
    *
    * @param inst the instruction being queried
-   * @return true if inst operates upon byte data
+   * @return {@code true} if inst operates upon byte data
    */
   boolean isByte(Instruction inst) {
     for(Operator opr : byteSizeOperators){
@@ -626,7 +626,7 @@ abstract class AssemblerBase extends Assembler
    * this convention.
    *
    * @param inst the instruction being queried
-   * @return true if inst operates upon quad data
+   * @return {@code true} if inst operates upon quad data
    */
   boolean isQuad(Instruction inst) {
     for(Operator opr : quadSizeOperators){
@@ -651,7 +651,7 @@ abstract class AssemblerBase extends Assembler
    * target is less than 127 bytes
    * @param start the branch instruction
    * @param target the value of the mcOffset of the target label
-   * @return true if the relative offset will be less than 127, false otherwise
+   * @return {@code true} if the relative offset will be less than 127, false otherwise
    */
   protected boolean targetIsClose(Instruction start, int target) {
     Instruction inst = start.nextInstructionInCodeOrder();

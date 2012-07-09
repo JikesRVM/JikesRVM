@@ -339,12 +339,12 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    */
 
   /**
-   * Return true if this {@link Address} instance is <i>less
+   * Return {@code true} if this {@link Address} instance is <i>less
    * than</i> <code>addr2</code>.
    *
    * @param addr2 the {@link Address} to be compared to this
    * {@link Address}.
-   * @return true if this {@link Address} instance is <i>less
+   * @return {@code true} if this {@link Address} instance is <i>less
    * than</i> <code>addr2</code>.
    */
  public boolean LT(Address addr2) {
@@ -356,12 +356,12 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
   }
 
   /**
-   * Return true if this {@link Address} instance is <i>less
+   * Return {@code true} if this {@link Address} instance is <i>less
    * than or equal to</i> <code>addr2</code>.
    *
    * @param addr2 the {@link Address} to be compared to this
    * {@link Address}.
-   * @return true if this {@link Address} instance is <i>less
+   * @return {@code true} if this {@link Address} instance is <i>less
    * than or equal to</i> <code>addr2</code>.
    */
   public boolean LE(Address addr2) {
@@ -370,12 +370,12 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
   }
 
   /**
-   * Return true if this {@link Address} instance is <i>greater
+   * Return {@code true} if this {@link Address} instance is <i>greater
    * than</i> <code>addr2</code>.
    *
    * @param addr2 the {@link Address} to be compared to this
    * {@link Address}.
-   * @return true if this {@link Address} instance is <i>greater
+   * @return {@code true} if this {@link Address} instance is <i>greater
    * than</i> <code>addr2</code>.
    */
   public boolean GT(Address addr2) {
@@ -384,12 +384,12 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
   }
 
   /**
-   * Return true if this {@link Address} instance is <i>greater
+   * Return {@code true} if this {@link Address} instance is <i>greater
    * than or equal to</i> <code>addr2</code>.
    *
    * @param addr2 the {@link Address} to be compared to this
    * {@link Address}.
-   * @return true if this {@link Address} instance is <i>greater
+   * @return {@code true} if this {@link Address} instance is <i>greater
    * than or equal to</i> <code>addr2</code>.
    */
   public boolean GE(Address addr2) {
@@ -398,12 +398,12 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
   }
 
   /**
-   * Return true if this {@link Address} instance is <i>equal
+   * Return {@code true} if this {@link Address} instance is <i>equal
    * to</i> <code>addr2</code>.
    *
    * @param addr2 the {@link Address} to be compared to this
    * {@link Address}.
-   * @return true if this {@link Address} instance is <i>equal
+   * @return {@code true} if this {@link Address} instance is <i>equal
    * to</i> <code>addr2</code>.
    */
   public boolean EQ(Address addr2) {
@@ -412,12 +412,12 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
   }
 
   /**
-   * Return true if this {@link Address} instance is <i>not equal
+   * Return {@code true} if this {@link Address} instance is <i>not equal
    * to</i> <code>addr2</code>.
    *
    * @param addr2 the {@link Address} to be compared to this
    * {@link Address}.
-   * @return true if this {@link Address} instance is <i>not
+   * @return {@code true} if this {@link Address} instance is <i>not
    * equal to</i> <code>addr2</code>.
    */
   public boolean NE(Address addr2) {
@@ -1090,7 +1090,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    *
    * @param old the old value.
    * @param value the new value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(int old, int value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1104,7 +1104,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    * @param old the old value.
    * @param value the new value.
    * @param offset the offset to the current instance.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(int old, int value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1117,7 +1117,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    *
    * @param old the old value.
    * @param value the new value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(Word old, Word value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1131,7 +1131,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    * @param old the old value.
    * @param value the new value.
    * @param offset the offset to the current instance.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(Word old, Word value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1144,7 +1144,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    *
    * @param old the old value.
    * @param value the new value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(ObjectReference old, ObjectReference value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1158,7 +1158,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    * @param old the old value.
    * @param value the new value.
    * @param offset the offset to the current instance.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(ObjectReference old, ObjectReference value,
                          Offset offset) {
@@ -1172,7 +1172,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    *
    * @param old the old value.
    * @param value the new value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(Address old, Address value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -1186,7 +1186,7 @@ public final class Address extends ArchitecturalWord implements SizeConstants {
    * @param old the old value.
    * @param value the new value.
    * @param offset the offset to the current instance.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(Address old, Address value, Offset offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);

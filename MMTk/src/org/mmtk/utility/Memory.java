@@ -19,10 +19,10 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class implements basic memory copying, setting and clearing
- * operations.
+ * operations.<p>
  *
- * NOTE: Most of the operations in this class are performed at teh
- * granularity of a Java integer (ie 4-byte units)
+ * NOTE: Most of the operations in this class are performed at the
+ * granularity of a Java integer (ie 4-byte units)<p>
  *
  * FIXME: Why can't these operations be performed at word-granularity?
  */
@@ -108,7 +108,7 @@ public class Memory implements Constants {
    *
    * @param start The start address of the range to be checked
    * @param bytes The size of the region to be checked, in bytes
-   * @return True if the region is zeroed
+   * @return {@code true} if the region is zeroed
    */
   @Inline
   public static boolean IsZeroed(Address start, int bytes) {
@@ -117,10 +117,10 @@ public class Memory implements Constants {
 
   /**
    * Assert that a memory range is zeroed.  An assertion failure will
-   * occur if the region is not zeroed.
+   * occur if the region is not zeroed.<p>
    *
    * this is in the inline allocation sequence when
-   * VM.VERIFY_ASSERTIONS is true, it is carefully written to
+   * VM.VERIFY_ASSERTIONS is {@code true}, it is carefully written to
    * reduce the impact on code space.
    *
    * @param start The start address of the range to be checked
@@ -132,13 +132,13 @@ public class Memory implements Constants {
   }
 
   /**
-   * Verbosely check and return true if a memory range is set to some
+   * Verbosely check and return {@code true} if a memory range is set to some
    * integer value
    *
    * @param start The start address of the range to be checked
    * @param bytes The size of the region to be checked, in bytes
    * @param value The value to which this region should be set
-   * @return True if the region has been correctly set
+   * @return {@code true} if the region has been correctly set
    */
   @Inline
   public static boolean isSet(Address start, int bytes, int value) {
@@ -147,7 +147,7 @@ public class Memory implements Constants {
 
   /**
    * Assert appropriate alignment, triggering an assertion failure if
-   * the value does not satisify the alignment requirement of the
+   * the value does not satisfy the alignment requirement of the
    * memory operations.
    *
    * @param value The value to be tested
@@ -173,7 +173,7 @@ public class Memory implements Constants {
    *
    * @param start The address to start checking at
    * @param bytes The size of the region to check, in bytes
-   * @param verbose If true, produce verbose output
+   * @param verbose If {@code true}, produce verbose output
    * @param value The value to which the memory should be set
    */
   @NoInline
@@ -181,7 +181,7 @@ public class Memory implements Constants {
       int value)
     /* Inlining this loop into the uninterruptible code can
      *  cause/encourage the GCP into moving a get_obj_tib into the
-     * interruptible region where the tib is being installed via an
+     * interruptible region where the TIB is being installed via an
      * int_store
    */ {
     if (VM.VERIFY_ASSERTIONS) assertAligned(bytes);

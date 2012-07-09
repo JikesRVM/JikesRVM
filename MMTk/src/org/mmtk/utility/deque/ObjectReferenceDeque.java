@@ -30,6 +30,10 @@ import org.vmmagic.pragma.*;
    *
    * Public instance methods
    */
+
+  /**
+   *
+   */
   public final String name;
 
   /**
@@ -70,7 +74,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Push an object onto the object queue, force this out of line
-   * ("OOL"), in some circumstnaces it is too expensive to have the
+   * ("OOL"), in some circumstances it is too expensive to have the
    * push inlined, so this call is made.
    *
    * @param object the object to be pushed onto the object queue

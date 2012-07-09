@@ -48,7 +48,6 @@ final class BaselineExceptionTable extends ExceptionTable {
       try {
         eTable[i * 4 + EX_TYPE] = exceptionTypes[i].resolve().getId();
       } catch (NoClassDefFoundError except) {
-        // Yuck.  If this happens beatup Dave and make him do the right thing.
         // For now, we are forcing early loading of exception types to
         // avoid a bunch of ugly issues in resolving the type when delivering
         // the exception.  The problem is that we currently can't allow a GC

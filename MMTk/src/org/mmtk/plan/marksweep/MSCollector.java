@@ -39,6 +39,10 @@ public class MSCollector extends StopTheWorldCollector {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   protected MSTraceLocal fullTrace = new MSTraceLocal(global().msTrace, null);;
   protected TraceLocal currentTrace = fullTrace;
 

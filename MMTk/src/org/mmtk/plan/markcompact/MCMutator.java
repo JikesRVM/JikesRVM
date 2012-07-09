@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.*;
  *
  * Specifically, this class defines <i>MC</i> mutator-time allocation
  * and per-mutator thread collection semantics (flushing and restoring
- * per-mutator allocator state).
+ * per-mutator allocator state).<p>
  *
  * See {@link MC} for an overview of the mark-compact algorithm.<p>
  *
@@ -62,9 +62,10 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Allocate memory for an object. This class handles the default allocator
-   * from the mark sweep space, and delegates everything else to the
-   * superclass.
+   * {@inheritDoc}<p>
+   *
+   * This class handles the default allocator from the mark sweep space,
+   * and delegates everything else to the superclass.
    */
   @Override
   @Inline
@@ -76,9 +77,10 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Perform post-allocation actions.  Initialize the object header for
-   * objects in the mark-sweep space, and delegate to the superclass for
-   * other objects.
+   * {@inheritDoc}<p>
+   *
+   * Initialize the object header for objects in the mark-sweep space,
+   * and delegate to the superclass for other objects.
    */
   @Override
   @Inline
@@ -124,8 +126,6 @@ import org.vmmagic.unboxed.*;
   /**
    * Flush the pages this mutator has allocated back to the global
    * dirty page list, where the collectors can find them.
-   *
-   * @see org.mmtk.plan.MutatorContext#flush()
    */
   @Override
   public void flush() {

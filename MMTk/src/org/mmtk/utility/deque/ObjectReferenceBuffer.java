@@ -31,6 +31,10 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
    *
    * Instance variables
    */
+
+  /**
+   *
+   */
   private final ObjectReferenceDeque values;
 
   /****************************************************************************
@@ -93,7 +97,7 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
   }
 
   /**
-   * Retrives an object.
+   * Retrieves an object.
    *
    * @return The object retrieved.
    */
@@ -115,7 +119,7 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
   }
 
   /**
-   * Return true if this buffer is locally empty
+   * Return {@code true} if this buffer is locally empty
    */
   public final boolean isFlushed() {
     return values.isFlushed();

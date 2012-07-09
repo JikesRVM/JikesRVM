@@ -26,13 +26,12 @@ import org.vmmagic.unboxed.ObjectReference;
  * Collection sanity checker for the MMTk Harness.  This class is used to
  * take heap snapshots before and after a collection, and ensure that the
  * objects live after the collection exactly those live before collection.
- *
+ * <p>
  * Note that this is in no way problematic for partial-heap collectors that
  * only collect part of the heap - uncollected objects in the mature space
  * don't affect the live set either way.
- *
- * We also check:
- * - That no objects are duplicated
+ * <p>
+ * We also check that no objects are duplicated.
  */
 public class GcSanity {
 

@@ -29,6 +29,10 @@ public final class TraceWriteBuffer extends TransitiveClosure {
    *
    * Instance variables
    */
+
+  /**
+   *
+   */
   private final WriteBuffer buffer;
 
   /****************************************************************************
@@ -54,7 +58,7 @@ public final class TraceWriteBuffer extends TransitiveClosure {
 
 
   /**
-   * @return True if the buffer is flushed.
+   * @return <code>true</code> if the buffer is flushed.
    */
   public boolean isFlushed() {
     return buffer.isFlushed();

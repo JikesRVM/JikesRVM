@@ -235,7 +235,9 @@ public class ManagedCounterData {
   /**
    * Sort a Vector<Counter> by decreasing count.
    * (code borrowed from InstructionSampler.java)
+   * <p>
    * Shell sort
+   * <p>
    * Reference: "The C Programming Language", Kernighan & Ritchie, p. 116
    */
   private void sort(Vector<?> v) {
@@ -270,7 +272,6 @@ public class ManagedCounterData {
    *  When a data object is registered with a counter manager, it is
    *  given an id, which is stored here.
    **/
-
   protected int handle = -1;
 
   /**

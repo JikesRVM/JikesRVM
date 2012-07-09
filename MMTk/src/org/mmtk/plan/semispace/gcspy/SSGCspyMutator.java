@@ -45,6 +45,9 @@ import org.vmmagic.unboxed.*;
    * Instance fields
    */
 
+  /**
+   *
+   */
   private static final boolean DEBUG = false;
 
   private static final boolean LOS_TOSPACE = true;    // gather from tospace

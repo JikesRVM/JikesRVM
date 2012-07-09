@@ -28,7 +28,7 @@ import org.jikesrvm.util.BitVector;
 
 /**
  * Identify natural loops and builds the LST (Loop Structure Tree)
- *
+ * <p>
  * Note: throws an exception if an irreducible loop is found
  * (which I believe could only happen in Java from modified bytecode,
  *  because Java source code is structured enough to prevent

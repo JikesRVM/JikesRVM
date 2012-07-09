@@ -56,8 +56,10 @@ import org.vmmagic.unboxed.*;
    *
    * Protected instance methods and fields
    */
+
+  /** the start of the buffer */
   @Entrypoint
-  protected Address head; // the start of the buffer
+  protected Address head;
 
   @Override
   public void resetLocal() {

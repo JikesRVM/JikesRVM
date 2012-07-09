@@ -14,7 +14,7 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * BC_FloatStore: fstore, fstore_<i>
+ * BC_FloatStore: {@code fstore}, {@code fstore_<i>}
  */
 public class FloatStore extends PseudoBytecode {
   private int bsize;

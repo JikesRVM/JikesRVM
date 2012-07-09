@@ -23,8 +23,8 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * Generic GCspy Server Interpreter
- *
+ * Generic GCspy Server Interpreter.
+ * <p>
  * This class implements the GCspy server.
  * The server runs as a separate pthread and communicates with GCspy
  * clients. It handles commands from the client and passes data to it.

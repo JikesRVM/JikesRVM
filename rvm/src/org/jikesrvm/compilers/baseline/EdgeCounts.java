@@ -58,7 +58,7 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
 
   /**
    * Attempt to use edge counts from an input file.  If the source
-   * file is not null, then clear any existing counts and read in new
+   * file is not {@code null}, then clear any existing counts and read in new
    * counts from the file provided.
    *
    * @param inputFileName The name of the edge count file (possibly null)

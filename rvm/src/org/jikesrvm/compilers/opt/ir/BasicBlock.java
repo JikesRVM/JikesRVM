@@ -1180,12 +1180,15 @@ public class BasicBlock extends SortedGraphNode {
 
   /**
    * Recompute the normal out edges of 'this' based on the
-   * semantics of the branch instructions in the block.
+   * semantics of the branch instructions in the block.<p>
    *
    * WARNING: Use this method with caution.  It does not update the
    * CFG edges correctly if the method contains certain instructions
    * such as throws and returns.  Incorrect liveness info and GC maps
-   * result, causing crashes during GC.  CMVC Defect 171189
+   * result, causing crashes during GC.<p>
+   *
+   * TODO check if warning is still current and if there's info on
+   *  CMVC Defect 171189 anywhere
    */
   public final void recomputeNormalOut(IR ir) {
     deleteNormalOut();
@@ -1382,7 +1385,7 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * For each basic block b which is a "normal" successor of this,
    * make a copy of b, and set up the CFG so that this block has
-   * normal out edges to the copies.
+   * normal out edges to the copies.<p>
    *
    * WARNING: Use this method with caution.  See comment on
    * BasicBlock.recomputeNormalOut()
@@ -1400,7 +1403,7 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * For basic block b which has to be a "normal" successor of this,
    * make a copy of b, and set up the CFG so that this block has
-   * normal out edges to the copy.
+   * normal out edges to the copy.<p>
    *
    * WARNING: Use this method with caution.  See comment on
    * BasicBlock.recomputeNormalOut()
@@ -1415,7 +1418,7 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * For basic block b which has to be a "normal" successor of this,
    * make a copy of b, and set up the CFG so that this block has
-   * normal out edges to the copy.
+   * normal out edges to the copy.<p>
    *
    * WARNING: Use this method with caution.  See comment on
    * BasicBlock.recomputeNormalOut()
@@ -1489,7 +1492,7 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * Change all branches from this to b to branches that go to bCopy instead.
    * This method also handles this.fallThrough, so `this' should still be in
-   * the code order when this method is called.
+   * the code order when this method is called.<p>
    *
    * WARNING: Use this method with caution.  See comment on
    * BasicBlock.recomputeNormalOut()
@@ -1565,13 +1568,17 @@ public class BasicBlock extends SortedGraphNode {
    * If this block has a single non-Exception successor in the CFG
    * then we may be able to merge the two blocks together.
    * In order for this to be legal, it must be the case that:
-   *  (1) The successor block has no other in edges than the one from this.
-   *  (2) Both blocks have the same exception handlers.
+   * <ol>
+   *  <li>The successor block has no other in edges than the one from this.
+   *  <li>Both blocks have the same exception handlers.
+   * </ol>
    * Merging the blocks is always desirable when
-   *  (a) the successor block is the next block in code order
-   *  (b) the successor block is not the next block in the code order,
+   * <ol>
+   *  <li>the successor block is the next block in code order
+   *  <li>the successor block is not the next block in the code order,
    *      but ends in an unconditional branch (ie it doesn't have a
    *      fallthrough successor in the code order that we could be screwing up).
+   * </ol>
    *
    * @param ir the IR object containing the basic block to be merged
    * @return <code>true</code> if  the block was merged or

@@ -75,14 +75,7 @@ public class GenCopyCollector extends GenCollector {
    */
 
   /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   *
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -102,10 +95,9 @@ public class GenCopyCollector extends GenCollector {
   }
 
   /**
-   * Perform any post-copy actions.  In this case we clear any bits used
-   * for this object's GC metadata.
+   * {@inheritDoc}<p>
    *
-   * @param object The newly allocated object
+   * In this case we clear any bits used for this object's GC metadata.
    */
   @Override
   @Inline

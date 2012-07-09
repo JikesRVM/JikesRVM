@@ -21,7 +21,7 @@ import org.vmmagic.Pragma;
 /**
  * A pragma that can be used to declare that a particular method is logically
  * uninterruptible even though it contains bytecodes that are actually
- * interruptible.
+ * interruptible.<p>
  *
  * The effect of this pragma is to suppress warning messages about violations of
  * uninterruptiblity when compiling a method that throws this exception. There
@@ -34,7 +34,7 @@ import org.vmmagic.Pragma;
  * <li> The interruptible regions represent an 'error' condition that will never
  * be executed unless the VM is already in the process of reporting an error,
  * for example RuntimeEntrypoints.raiseClassCastException.
- * <ul>
+ * </ul>
  * Extreme care must be exercised when using this pragma since it suppresses the
  * checking of uninterruptibility.
  * <p>

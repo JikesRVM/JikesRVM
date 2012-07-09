@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public class Barriers extends org.mmtk.vm.Barriers {
   /**
-   * Perform the actual write of a boolean write barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param value The value that the slot will be updated to
@@ -38,7 +38,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of a boolean read barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -54,7 +54,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of a byte write barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param value The value that the slot will be updated to
@@ -70,7 +70,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of a byte read barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -86,7 +86,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of a char write barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param value The value that the slot will be updated to
@@ -102,7 +102,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of a char read barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -118,7 +118,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of a short write barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param value The value that the slot will be updated to
@@ -134,7 +134,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of a short read barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -150,7 +150,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of a int write barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param value The value that the slot will be updated to
@@ -166,7 +166,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of a int read barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -182,7 +182,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Attempt an atomic compare and exchange in a write barrier sequence.
+   * {@inheritDoc}
    *
    * @param objref The object that has the int field
    * @param old The old int to be swapped out
@@ -200,7 +200,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of a long write barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param value The value that the slot will be updated to
@@ -216,7 +216,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of a long read barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -232,7 +232,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Attempt an atomic compare and exchange in a write barrier sequence.
+   * {@inheritDoc}
    *
    * @param ref The object that has the long field
    * @param old The old long to be swapped out
@@ -251,7 +251,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of a float write barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param value The value that the slot will be updated to
@@ -267,7 +267,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of a float read barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -283,7 +283,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of a double write barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param value The value that the slot will be updated to
@@ -299,7 +299,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of a double read barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -315,7 +315,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of an object reference write barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param value The value that the slot will be updated to
@@ -331,7 +331,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of an object reference read barrier.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -347,9 +347,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of the non-heap write barrier.  This is
-   * used when the store is not to an object, but to a non-heap location
-   * such as statics or the stack.
+   * {@inheritDoc}
    *
    * @param slot The address that contains the reference field
    * @param target The value that the slot will be updated to
@@ -364,8 +362,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Atomically write a reference field of an object or array and return
-   * the old value of the reference field.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param target The value that the slot will be updated to
@@ -386,7 +383,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Attempt an atomic compare and exchange in a write barrier sequence.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param old The old reference to be swapped out
@@ -405,7 +402,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
 
 
   /**
-   * Perform the actual write of the write barrier, writing the value as a raw Word.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param target The value that the slot will be updated to
@@ -421,8 +418,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Atomically write a reference field of an object or array and return
-   * the old value of the reference field.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param target The value that the slot will be updated to
@@ -444,7 +440,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Attempt an atomic compare and exchange in a write barrier sequence.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param old The old reference to be swapped out
@@ -463,7 +459,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of the read barrier, returning the value as a raw Word.
+   * {@inheritDoc}
    *
    * @param ref The object that has the reference field
    * @param slot The address to be read from
@@ -479,7 +475,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of the write barrier, writing the value as a raw Address.
+   * {@inheritDoc}
    *
    * @param ref The object that has the Address field
    * @param target The value that the slot will be updated to
@@ -496,7 +492,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of the read barrier, returning the value as a raw Address.
+   * {@inheritDoc}
    *
    * @param ref The object that has the Address field
    * @param slot Opaque, VM-specific, meta-data identifying the slot
@@ -513,7 +509,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Attempt an atomic compare and exchange in a write barrier sequence.
+   * {@inheritDoc}
    *
    * @param ref The object that has the Address field
    * @param old The old address to be swapped out
@@ -532,7 +528,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of the write barrier, writing the value as a raw Offset.
+   * {@inheritDoc}
    *
    * @param ref The object that has the Offset field
    * @param target The value that the slot will be updated to
@@ -549,7 +545,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of the read barrier, returning the value as a raw Offset.
+   * {@inheritDoc}
    *
    * @param ref The object that has the Offset field
    * @param slot Opaque, VM-specific, meta-data identifying the slot
@@ -566,7 +562,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual write of the write barrier, writing the value as a raw Extent.
+   * {@inheritDoc}
    *
    * @param ref The object that has the Extent field
    * @param target The value that the slot will be updated to
@@ -583,7 +579,7 @@ public class Barriers extends org.mmtk.vm.Barriers {
   }
 
   /**
-   * Perform the actual read of the read barrier, returning the value as a raw Extent.
+   * {@inheritDoc}
    *
    * @param ref The object that has the Extent field
    * @param slot Opaque, VM-specific, meta-data identifying the slot
@@ -599,16 +595,6 @@ public class Barriers extends org.mmtk.vm.Barriers {
     return slot.toAddress().loadExtent();
   }
 
-  /**
-   * Sets an element of an object array without invoking any write
-   * barrier.  This method is called by the Map class to ensure
-   * potentially-allocation-triggering write barriers do not occur in
-   * allocation slow path code.
-   *
-   * @param dst the destination array
-   * @param index the index of the element to set
-   * @param value the new value for the element
-   */
   @Override
   public void objectArrayStoreNoGCBarrier(Object [] dst, int index, Object value) {
     dst[index] = value;

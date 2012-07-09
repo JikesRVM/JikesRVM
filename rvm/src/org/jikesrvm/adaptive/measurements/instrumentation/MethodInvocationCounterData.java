@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 /**
  * An instance of this class is used to store method counters.  It is
  * initialized at startup, and instrumentation phase
- * InsertMethodInvocationCounter.java inserts instrumentation that
+ * InsertMethodInvocationCounter inserts instrumentation that
  * writes into this data.
  */
 public final class MethodInvocationCounterData extends ManagedCounterData implements Reportable {

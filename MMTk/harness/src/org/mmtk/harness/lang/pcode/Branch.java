@@ -26,7 +26,9 @@ public final class Branch extends UnaryOp {
   public final boolean branchOn;
 
   /**
-   * Create a branch instruction.  Jump to 'target' if cond.loadBoolean() == branchOn
+   * Create a branch instruction.  Jump to {@code target}
+   * if {@code cond.loadBoolean() == branchOn}
+   * @param source
    * @param cond Branch condition
    * @param branchOn Sense of the comparison
    * @param target Jump target
@@ -39,10 +41,11 @@ public final class Branch extends UnaryOp {
 
   /**
    * Create a branch instruction without a target.  Target will be filled in
-   * later by the compiler. Jump to 'target' if cond.loadBoolean() == branchOn
+   * later by the compiler. Jump to {@code target}
+   * if {@code cond.loadBoolean() == branchOn}
+   * @param source
    * @param cond Branch condition
    * @param branchOn Sense of the comparison
-   * @param target Jump target
    */
   public Branch(AST source, Register cond, boolean branchOn) {
     super(source,"if"+branchOn,cond);

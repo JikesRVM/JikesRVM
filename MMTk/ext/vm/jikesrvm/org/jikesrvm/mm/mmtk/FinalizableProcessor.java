@@ -24,8 +24,9 @@ import org.mmtk.plan.TraceLocal;
 
 /**
  * This class manages the processing of finalizable objects.
+ * <p>
+ * TODO can this be a linked list?
  */
-// can this be a linked list?
 @Uninterruptible
 public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor implements SizeConstants {
 
@@ -144,10 +145,10 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   }
 
   /**
-   * Scan through all entries in the table and forward.
-   *
+   * {@inheritDoc}.
+   * <p>
    * Currently ignores the nursery hint.
-   *
+   * <p>
    * TODO parallelise this code?
    *
    * @param trace The trace
@@ -162,13 +163,13 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   }
 
   /**
-   * Scan through the list of references. Calls ReferenceProcessor's
+   * {@inheritDoc} Calls ReferenceProcessor's
    * processReference method for each reference and builds a new
    * list of those references still active.
-   *
+   * <p>
    * Depending on the value of <code>nursery</code>, we will either
    * scan all references, or just those created since the last scan.
-   *
+   * <p>
    * TODO parallelise this code
    *
    * @param nursery Scan only the newly created references

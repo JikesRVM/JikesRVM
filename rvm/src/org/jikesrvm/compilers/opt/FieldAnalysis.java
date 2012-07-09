@@ -216,7 +216,7 @@ public final class FieldAnalysis extends CompilerPhase {
       info.concreteType = t;
     } else if (oldType != t) {
       // we've previously determined a DIFFERENT! concrete type.
-      // meet the two types: ie., change it to bottom.
+      // meet the two types: i.e., change it to bottom.
       info.setBottom();
     }
   }

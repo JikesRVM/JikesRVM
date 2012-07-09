@@ -20,7 +20,7 @@ public class Constant extends AbstractAST implements Expression {
 
   public final Value value;
 
-  /** A constant with no program location (eg for default values */
+  /** A constant with no program location (e.g. for default values) */
   public Constant(Value value) {
     super(0,0);
     this.value = value;

@@ -45,6 +45,10 @@ public class StickyImmixCollector extends ImmixCollector {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   private StickyImmixNurseryTraceLocal nurseryTrace;
   private final ImmixAllocator nurseryCopy;
 
@@ -83,7 +87,7 @@ public class StickyImmixCollector extends ImmixCollector {
 
     if (!collectWholeHeap) {
       if (phaseId == StickyImmix.PREPARE) {
-        currentTrace = (TraceLocal) nurseryTrace;
+        currentTrace = nurseryTrace;
         immix.prepare(false);
         nurseryTrace.prepare();
         nurseryCopy.reset();

@@ -73,7 +73,7 @@ public final class SpecializationDatabase {
 
   /**
    * Return an iteration of SpecializedMethods that represents
-   * specialied compiled versions of the method pointed by RVMMethod
+   * specialized compiled versions of the method pointed by RVMMethod
    * @return null if no specialized versions
    */
   static synchronized Iterator<SpecializedMethod> getSpecialVersions(RVMMethod m) {

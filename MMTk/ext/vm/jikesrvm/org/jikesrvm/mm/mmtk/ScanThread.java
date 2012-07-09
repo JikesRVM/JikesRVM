@@ -87,7 +87,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
   /** quietly validates each ref reported by map iterators */
   static final boolean VALIDATE_REFS = VM.VerifyAssertions;
 
-  /**
+  /*
    * debugging options to produce printout during scanStack
    * MULTIPLE GC THREADS WILL PRODUCE SCRAMBLED OUTPUT so only
    * use these when running with PROCESSORS=1
@@ -98,6 +98,10 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
   /***********************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private final GCMapIteratorGroup iteratorGroup = new GCMapIteratorGroup();
   @Untraced
@@ -552,7 +556,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * native C code, but have not been reported for GC.  calling
    * getNextReferenceAddress without first calling setup... will
    * report the remaining jniRefs in the current "frame" of the
-   * jniRefs stack.  (this should be the bottom frame)
+   * jniRefs stack.  (this should be the bottom frame)<p>
    *
    * FIXME: SB: Why is this AIX specific?  Why depend on the
    * preprocessor?

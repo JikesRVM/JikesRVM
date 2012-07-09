@@ -45,6 +45,10 @@ import org.vmmagic.unboxed.*;
    *
    * Instance fields
    */
+
+  /**
+   *
+   */
   protected final CopyLocal nursery = new CopyLocal(Gen.nurserySpace);
 
   private final ObjectReferenceDeque modbuf;    /* remember modified scalars */
@@ -57,7 +61,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Constructor
+   * Constructor<p>
    *
    * Note that each mutator is a producer of remsets, while each
    * collector is a consumer.  The <code>GenCollector</code> class
@@ -137,20 +141,11 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * A new reference is about to be created.  Take appropriate write
-   * barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   @Override
   @Inline
@@ -180,8 +175,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * A new reference is about to be created in a location that is not
-   * a regular heap object.  Take appropriate write barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
@@ -196,9 +190,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is
-   * created, we must then take appropriate write barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
@@ -215,10 +207,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the mutated source address range and
    * will scan that address range at GC time.

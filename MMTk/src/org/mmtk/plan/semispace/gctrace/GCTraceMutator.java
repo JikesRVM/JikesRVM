@@ -67,8 +67,7 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * A new reference is about to be created.  Take appropriate write
-   * barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
@@ -97,10 +96,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * @param src The source of the values to be copied
    * @param srcOffset The offset of the first source address, in

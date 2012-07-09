@@ -24,6 +24,7 @@ import org.vmmagic.unboxed.Offset;
 public abstract class MachineSpecific {
 
   /* common to all ISAs */
+
   /**
    * The following method will emit code that moves a reference to an
    * object's TIB into a destination register.
@@ -31,7 +32,7 @@ public abstract class MachineSpecific {
    * @param asm the assembler object to emit code with
    * @param dest the number of the destination register
    * @param object the number of the register holding the object reference
-   * @param tibOffset the offset of the tib from the object header
+   * @param tibOffset the offset of the TIB from the object header
    */
   public abstract void baselineEmitLoadTIB(Assembler asm, int dest, int object, Offset tibOffset);
 

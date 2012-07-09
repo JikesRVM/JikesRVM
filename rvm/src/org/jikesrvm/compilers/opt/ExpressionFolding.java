@@ -310,7 +310,7 @@ public class ExpressionFolding extends IRTools {
   /**
    * Get the register that's used by the candidate instruction
    * @param s the instruction
-   * @return register used by candidate or null if this isn't a candidate
+   * @return register used by candidate or {@code null} if this isn't a candidate
    */
   private static RegisterOperand getUseFromCandidate(Instruction s) {
     if (Binary.conforms(s)) {
@@ -349,7 +349,7 @@ public class ExpressionFolding extends IRTools {
    * Get the register that's defined by the candidate instruction
    * @param first is this the first instruction?
    * @param s the instruction
-   * @return register used by candidate or null if this isn't a candidate
+   * @return register used by candidate or {@code null} if this isn't a candidate
    */
   private static RegisterOperand getDefFromCandidate(Instruction s, boolean first) {
     if (Binary.conforms(s)) {
@@ -2548,7 +2548,7 @@ public class ExpressionFolding extends IRTools {
    *
    * @param s the instruction
    * @param ssa are we in SSA form?
-   * @return the computed register, or null
+   * @return the computed register, or {@code null}
    */
   private static Register isCandidateExpression(Instruction s, boolean ssa) {
 

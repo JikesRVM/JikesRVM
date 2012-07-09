@@ -14,9 +14,8 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * BC_RefStore: astore, astore_<i>
+ * BC_RefStore: {@code astore}, {@code astore_<i>}
  */
-
 public class RefStore extends PseudoBytecode {
   private int bsize;
   private byte[] codes;

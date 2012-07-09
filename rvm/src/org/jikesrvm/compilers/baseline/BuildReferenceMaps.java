@@ -135,7 +135,7 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
     // Double mapping is when the parameters for a method are included in the map of
     // the method as well as in the map of the caller of the method. The original
     // intent was that with double mapping call sites that are tricks
-    // (eg Magic.callFunctionReturnVoid ) would at least be correctly mapped on one
+    // (e.g. Magic.callFunctionReturnVoid ) would at least be correctly mapped on one
     // of the two sides. However with more recent changes to the runtime stack frame
     // layout, the parameters specified on the caller side occupy different
     // locations than the parameters on the callee side for the baseline compiler.
@@ -1626,7 +1626,7 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
             break;
           }
 
-          // For the <x>aload instructions the map is needed in case gc occurs
+          // For the <x>aload instructions the map is needed in case GC occurs
           // while the array index check is taking place. Stack has not been
           // altered yet.
           case JBC_iaload:
@@ -1676,7 +1676,7 @@ final class BuildReferenceMaps implements BytecodeConstants, ClassLoaderConstant
             break;
           }
 
-          // For the <x>astore instructions the map recorded is in case gc occurs
+          // For the <x>astore instructions the map recorded is in case GC occurs
           // during the array index bounds check or the arraystore check (for aastore).
           // Stack has not been modified at this point.
           case JBC_iastore:

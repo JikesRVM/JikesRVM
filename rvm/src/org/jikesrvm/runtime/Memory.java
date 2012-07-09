@@ -28,10 +28,10 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Low level memory management functions.
- *
+ * <p>
  * Note that this class is "uninterruptible" - calling its methods will never
- * cause the current thread to yield the cpu to another thread (one that
- * might cause a gc, for example).
+ * cause the current thread to yield the CPU to another thread (one that
+ * might cause a GC, for example).
  */
 @Uninterruptible
 public class Memory {
@@ -194,8 +194,8 @@ public class Memory {
 
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
-   *
-   * Assumption src != dst || (srcPos >= dstPos + 2).
+   * <p>
+   * Assumption; {@code src != dst || (srcPos >= dstPos + 2)}.
    *
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
@@ -211,8 +211,8 @@ public class Memory {
   }
   /**
    * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
-   *
-   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 2 bytes.
+   * <p>
+   * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 2 bytes.
    *
    * @param dstPtr The destination start address
    * @param srcPtr The source start address
@@ -284,7 +284,7 @@ public class Memory {
 
   /**
    * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
-   *
+   * <p>
    * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
    *
    * @param src     the source array
@@ -302,8 +302,8 @@ public class Memory {
 
   /**
    * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
-   *
-   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 8 bytes.
+   * <p>
+   * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 8 bytes.
    *
    * @param src     the source array
    * @param srcIdx  index in the source array to begin copy
@@ -345,7 +345,7 @@ public class Memory {
 
   /**
    * Copy copyBytes from src to dst.
-   * Assumption either the ranges are non overlapping, or src >= dst + 4.
+   * Assumption: either the ranges are non overlapping, or {@code src >= dst + 4}.
    * Also, src and dst are 4 byte aligned and numBytes is a multiple of 4.
    *
    * @param dst the destination addr
@@ -393,7 +393,7 @@ public class Memory {
 
   /**
    * Copy numbytes from src to dst.
-   * Assumption either the ranges are non overlapping, or src >= dst + BYTES_IN_ADDRESS.
+   * Assumption: either the ranges are non overlapping, or {@code src >= dst + BYTES_IN_ADDRESS}.
    * Also, src and dst are word aligned and numBytes is a multiple of BYTES_IN_ADDRESS.
    * @param dst the destination addr
    * @param src the source addr
@@ -425,10 +425,12 @@ public class Memory {
 
   /**
    * Copy a region of memory.
+   * <p>
+   * Assumption: source and destination regions do not overlap
+   *
    * @param dst   Destination address
    * @param src   Source address
    * @param cnt   Number of bytes to copy
-   * Assumption: source and destination regions do not overlap
    */
   public static void memcopy(Address dst, Address src, Extent cnt) {
     SysCall.sysCall.sysCopy(dst, src, cnt);

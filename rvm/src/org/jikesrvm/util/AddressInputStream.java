@@ -18,7 +18,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Access raw memory region as an input stream
+ * Access raw memory region as an input stream.
  */
 public final class AddressInputStream extends InputStream {
   /** Address of memory region to be read */

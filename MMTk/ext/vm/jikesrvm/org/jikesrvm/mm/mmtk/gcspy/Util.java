@@ -53,13 +53,13 @@ import org.vmmagic.pragma.*;
 
   /**
    * Convert a String to a 0-terminated array of bytes
+   * <p>
+   * WARNING: we call out to String.length and String.charAt, both of
+   * which are interruptible. We protect these calls with a
+   * swLock/swUnlock mechanism, as per VM.sysWrite on String.
    *
    * @param str The string to convert
    * @return The address of a null-terminated array in C-space
-   *
-   * WARNING: we call out to String.length and String.charAt, both of
-   * which are interruptible. We protect these calls with a
-   * swLock/swUnlock mechanism, as per VM.sysWrite on String
    */
   @Override
   public final Address getBytes(String str) {

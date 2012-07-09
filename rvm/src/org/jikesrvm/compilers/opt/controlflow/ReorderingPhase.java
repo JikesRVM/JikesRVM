@@ -35,9 +35,11 @@ import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
  * branch prediction. This code assumes that basic block frequencies have
  * been computed and blocks have been marked infrequent.
  * This pass actually implements two code placement algorithms:
- * (1) A simple 'fluff' removal pass that moves all infrequent basic blocks
+ * <ul>
+ *  <li>(1) A simple 'fluff' removal pass that moves all infrequent basic blocks
  *     to the end of the code order.
- * (2) Pettis and Hansen Algo2.
+ *  <li>(2) Pettis and Hansen Algo2.
+ * </ul>
  */
 public final class ReorderingPhase extends CompilerPhase {
 

@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * Each instance of this class corresponds to one raw page space.
+ * Each instance of this class corresponds to one raw page space.<p>
  *
  * This class provides access to raw memory for managing internal meta
  * data.
@@ -64,7 +64,7 @@ public final class RawPageSpace extends Space implements Constants {
   }
 
   /**
-   * Trace an object.
+   * Trace an object.<p>
    *
    * This makes no sense for a raw page space and should never be
    * called.

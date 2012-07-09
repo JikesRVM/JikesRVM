@@ -22,20 +22,20 @@ import org.jikesrvm.compilers.opt.liveness.LiveSetEnumerator;
 import org.jikesrvm.util.LinkedListRVM;
 
 /**
- *
  *  This class holds GC maps for various program points.
  *  This data structure is IR-based.  In a later phase, this information
  *  will be used to create the final GC map (see OptMachineCodeMap.java)
  */
 public final class GCIRMap implements Iterable<GCIRMapElement> {
   /**
-   *  This is the list of maps
-   *   Each element on the list is an GCIRMapElement, which is a pair
-   *          - an IR instruction (the GC point)
-   *          - a list of RegSpillListElement, which initially hold symbolic
-   *               registers that are references
-   *               (these are expanded to either physical regs or spills
-   *                by the register allocator)
+   *  This is the list of maps.
+   *  Each element on the list is an GCIRMapElement, which is a pair
+   *   <ol>
+   *     <li>an IR instruction (the GC point)
+   *     <li>a list of RegSpillListElement, which initially hold symbolic
+   *         registers that are references (these are expanded to either
+   *         physical regs or spills by the register allocator)
+   *   </ol>
    */
   private final LinkedListRVM<GCIRMapElement> list = new LinkedListRVM<GCIRMapElement>();
 
@@ -140,7 +140,7 @@ public final class GCIRMap implements Iterable<GCIRMapElement> {
   /**
    * This method moves an entry in the GCIRMap that is specified
    * by inst to the end of the list. Only one element of the list will be moved per call.
-   * If the instruction is not found in the GC Map and exeception is thrown.
+   * If the instruction is not found in the GC Map and exception is thrown.
    * @param inst    the IR instruction we want to remove
    */
   public void moveToEnd(Instruction inst) {
@@ -161,8 +161,8 @@ public final class GCIRMap implements Iterable<GCIRMapElement> {
   /**
    * This method inserts an entry for a "twin" instruction immediately after the
    * original entry.
-   * If the instruction is not found in the GC Map an exeception is thrown.
-   * @param inst    the orignal IR instruction
+   * If the instruction is not found in the GC Map an exception is thrown.
+   * @param inst    the original IR instruction
    * @param twin    the new twin IR instruction
    */
   public void insertTwin(Instruction inst, Instruction twin) {

@@ -37,15 +37,15 @@ public class Collection extends org.mmtk.vm.Collection {
 
   /**
    * Possibly yield the current concurrent collector thread. Return
-   * true if yielded.
+   * {@code true} if yielded.
    */
   public boolean yieldpoint() {
     return Mutator.current().gcSafePoint();
   }
 
   /**
-   * Block for the garbage collector.
-   *
+   * {@inheritDoc}
+   * <p>
    * An MMTk class calls this when it is in Mutator context, and the mutator
    * needs to block and wait for a GC to complete.
    */
@@ -57,7 +57,7 @@ public class Collection extends org.mmtk.vm.Collection {
   /**
    * @return The default number of collector threads to use.
    *
-   * In the Harness, this is a command-line option
+   * In the Harness, this is a command-line option.
    */
   @Override
   public int getDefaultThreads() {

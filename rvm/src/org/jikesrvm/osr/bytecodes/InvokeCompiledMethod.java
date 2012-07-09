@@ -20,7 +20,6 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 /**
  * invoke a compiled method
  */
-
 public class InvokeCompiledMethod extends PseudoBytecode {
 
   private static int bsize = 10;

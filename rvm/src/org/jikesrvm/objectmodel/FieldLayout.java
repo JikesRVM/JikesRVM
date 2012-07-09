@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * This abstract class defines the interface for schemes that layout fields
  * in an object.  Not header fields, (scalar) object fields.
- *
+ * <p>
  * The field layout object encapsulates layout state.
  */
 public abstract class FieldLayout implements SizeConstants {

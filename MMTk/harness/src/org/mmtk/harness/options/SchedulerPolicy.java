@@ -15,9 +15,6 @@ package org.mmtk.harness.options;
 import org.mmtk.harness.Harness;
 import org.mmtk.harness.scheduler.Scheduler.SchedPolicy;
 
-/**
- * Number of collector threads.
- */
 public final class SchedulerPolicy extends org.vmutil.options.EnumOption {
   /**
    * Create the option.

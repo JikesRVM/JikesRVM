@@ -63,7 +63,7 @@ public class GenMS extends Gen {
    * Instance fields
    */
 
-  /* The trace class for a full-heap collection */
+  /** The trace class for a full-heap collection */
   public final Trace matureTrace = new Trace(metaDataSpace);
 
   /*****************************************************************************
@@ -107,9 +107,6 @@ public class GenMS extends Gen {
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Inline
   @Override
@@ -128,10 +125,7 @@ public class GenMS extends Gen {
    */
 
   /**
-   * Accessor method to allow the generic generational code in Gen.java
-   * to access the mature space.
-   *
-   * @return The active mature space
+   * {@inheritDoc}
    */
   @Override
   @Inline
@@ -139,12 +133,6 @@ public class GenMS extends Gen {
     return msSpace;
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return True if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(MS, object))

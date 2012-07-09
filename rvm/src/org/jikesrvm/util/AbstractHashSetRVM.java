@@ -19,7 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
 /**
- * Common super class for all VM hash sets
+ * Common super class for all VM hash sets.
  */
 abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
 

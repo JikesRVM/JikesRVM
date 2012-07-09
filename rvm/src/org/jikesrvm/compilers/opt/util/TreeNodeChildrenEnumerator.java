@@ -64,6 +64,3 @@ final class TreeNodeChildrenEnumerator implements Enumeration<TreeNode> {
     return returnValue;
   }
 }
-
-
-

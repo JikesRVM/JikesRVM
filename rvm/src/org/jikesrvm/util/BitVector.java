@@ -15,9 +15,7 @@ package org.jikesrvm.util;
 import java.io.Serializable;
 
 /**
- * BitVector.java
- *
- * implements a bit vector
+ * Implements a bit vector.
  */
 public final class BitVector implements Serializable {
   /** Support for serialization */

@@ -37,7 +37,7 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Description of a java "class" type.<br/>
+ * Description of a java "class" type.<p>
  *
  * This description is read from a ".class" file as classes/field/methods
  * referenced by the running program need to be bound in to the running image.
@@ -205,7 +205,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
   /**
    * Package name - something like "java.lang".
-   * Returns the empty string if the class is a member of the unnamed package.
+   * @return package name or the empty string if the class is a member of the unnamed package
    */
   public String getPackageName() {
     String className = toString();
@@ -303,7 +303,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * @return true if this is a representation of a local class, ie
+   * @return {@code true} if this is a representation of a local class, ie
    * local to a block of code.
    */
   public boolean isLocalClass() {
@@ -311,13 +311,13 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * @return true if this is a representation of a member class
+   * @return {@code true} if this is a representation of a member class
    */
   public boolean isMemberClass() {
     return ((declaringClass != null) && ((modifiers & ACC_STATIC) == 0));
   }
   /**
-   * @return true if this an object of this class could be assigned to Throwable
+   * @return {@code true} if this an object of this class could be assigned to Throwable
    */
   public boolean isThrowable() {
     return (getTypeRef() == TypeReference.JavaLangThrowable) ||
@@ -341,15 +341,15 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /**
    * Name of source file from which class was compiled -
    * something like "c:\java\src\java\lang\Object.java".
-   * (null --> "unknown - wasn't recorded by compiler").
+   * ({@code null} --> "unknown - wasn't recorded by compiler").
    */
   public Atom getSourceName() {
     return sourceName;
   }
 
   /**
-   * Superclass of this class (null means "no superclass",
-   * ie. class is "java/lang/Object").
+   * Superclass of this class ({@code null} means "no superclass",
+   * i.e. class is "java/lang/Object").
    */
   @Uninterruptible
   public RVMClass getSuperClass() {
@@ -374,7 +374,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Fields defined directly by this class (ie. not including superclasses).
+   * Fields defined directly by this class (i.e. not including superclasses).
    */
   @Uninterruptible
   public RVMField[] getDeclaredFields() {
@@ -392,7 +392,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Methods defined directly by this class (ie. not including superclasses).
+   * Methods defined directly by this class (i.e. not including superclasses).
    */
   @Uninterruptible
   public RVMMethod[] getDeclaredMethods() {
@@ -445,7 +445,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Static initializer method for this class (null -> no static initializer
+   * Static initializer method for this class ({@code null} -> no static initializer
    *  or initializer already been run).
    */
   @Uninterruptible
@@ -495,7 +495,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * Find description of a field of this class.
    * @param fieldName field name - something like "foo"
    * @param fieldDescriptor field descriptor - something like "I"
-   * @return description (null --> not found)
+   * @return description ({@code null} --> not found)
    */
   public RVMField findDeclaredField(Atom fieldName, Atom fieldDescriptor) {
     for (RVMField field : declaredFields) {
@@ -509,7 +509,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /**
    * Find description of a field of this class. NB. ignores descriptor.
    * @param fieldName field name - something like "foo"
-   * @return description (null --> not found)
+   * @return description ({@code null} --> not found)
    */
   public RVMField findDeclaredField(Atom fieldName) {
     for (RVMField field : declaredFields) {
@@ -552,7 +552,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /**
    * Find description of "public static void main(String[])"
    * method of this class.
-   * @return description (null --> not found)
+   * @return description ({@code null} --> not found)
    */
   public RVMMethod findMainMethod() {
     Atom mainName = Atom.findOrCreateAsciiAtom(("main"));
@@ -600,7 +600,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
   /**
    * Get offset of a literal constant, in bytes.
-   * Offset is with respect to virtual machine's "table of contents" (jtoc).
+   * Offset is with respect to virtual machine's "table of contents" (HTOC).
    */
   public Offset getLiteralOffset(int constantPoolIndex) {
     return ClassFileReader.getLiteralOffset(this.constantPool, constantPoolIndex);
@@ -943,7 +943,6 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Should assertions be enabled on this type?
    * @return whether or not assertions should be enabled
    */
   @Override
@@ -1023,9 +1022,10 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Generate size and offset information for members of this class and
-   * allocate space in jtoc for static fields, static methods, and virtual
-   * method table.
+   * {@inheritDoc} Space in the JTOC is allocated for static fields,
+   * static methods and constructors. Moreover, this method  generates size
+   * and offset information for members of this class.<p>
+   *
    * Side effects: superclasses and superinterfaces are resolved.
    */
   @Override
@@ -1394,7 +1394,8 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Compile this class's methods, build type information block, populate jtoc.
+   * {@inheritDoc} The TIB will also be built.<p>
+   *
    * Side effects: superclasses are instantiated.
    */
   @Override
@@ -1496,7 +1497,8 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Execute this class's static initializer, <clinit>.
+   * {@inheritDoc}<p>
+   *
    * Side effects: superclasses are initialized, static fields receive
    * initial values.
    */
@@ -1690,7 +1692,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
   /**
    * Update this class's TIB entry for the given method to point to
-   * the current compiled code for the given method.
+   * the current compiled code for the given method.<p>
    * NOTE: This method is intentionally not synchronized to avoid deadlocks.
    *       We instead rely on the fact that we are always updating the JTOC with
    *       the most recent instructions for the method.
@@ -1706,7 +1708,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
 
   /**
    * Update the TIB entry's for all classes that inherit the given method
-   * to point to the current compiled code for the given method.
+   * to point to the current compiled code for the given method.<p>
    * NOTE: This method is intentionally not synchronized to avoid deadlocks.
    *       We instead rely on the fact that we are always updating the JTOC with
    *       the most recent instructions for the method.
@@ -1832,7 +1834,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
  /**
-   * Set the thin lock offset for instances of this type. Can be called at most once
+   * Set the thin lock offset for instances of this type. Can be called at most once.
    * and is invoked from ObjectModel.allocateThinLock (in object models which
    * do not allocate thin locks for all scalar object types).
    */

@@ -84,7 +84,7 @@ public class StackTrace {
 
   /**
    * Walk the stack counting the number of stack frames encountered.
-   * The stack being walked is our stack, so code is Uninterrupible to stop the
+   * The stack being walked is our stack, so code is Uninterruptible to stop the
    * stack moving.
    * @return number of stack frames encountered
    */
@@ -338,7 +338,7 @@ public class StackTrace {
 
   /**
    * Find the first non-VM method/exception initializer method in the stack
-   * trace. As we're working with the compiled methods we're assumig the
+   * trace. As we're working with the compiled methods we're assuming the
    * constructor of the exception won't have been inlined into the throwing
    * method.
    *

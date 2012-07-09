@@ -37,10 +37,12 @@ import org.vmmagic.pragma.Uninterruptible;
  * </ul>
  *
  *  Note: This file contains two types of methods
- *         1) methods called during compilation to create the GC maps
+ *  <ul>
+ *    <li>1) methods called during compilation to create the GC maps
  *            these methods are virtual
- *         2) methods called at GC time (no allocation allowed!)
+ *    <li>2) methods called at GC time (no allocation allowed!)
  *            these methods are static
+ *  </ul>
  */
 @Uninterruptible
 public final class OptGCMap implements OptGCMapIteratorConstants {

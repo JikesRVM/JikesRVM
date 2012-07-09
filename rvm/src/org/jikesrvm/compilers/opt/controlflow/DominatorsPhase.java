@@ -60,6 +60,7 @@ public final class DominatorsPhase extends CompilerPhase {
    * phase, so always return true.  The parent composite phase will
    * dictate.
    * @param options controlling compiler options
+   * @return {@code true}
    */
   @Override
   public boolean shouldPerform(OptOptions options) {
@@ -79,7 +80,7 @@ public final class DominatorsPhase extends CompilerPhase {
    * Should the IR be printed before and/or after this phase?
    * @param options controlling compiler options
    * @param before query control
-   * @return true or false
+   * @return {@code false}
    */
   @Override
   public boolean printingEnabled(OptOptions options, boolean before) {

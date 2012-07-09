@@ -40,18 +40,19 @@ public interface BaselineConstants extends Constants, ArchConstants {
 
   // Constants describing baseline compiler conventions for
   // saving registers in stackframes.
-  //
+
   int STACKFRAME_REG_SAVE_OFFSET = STACKFRAME_BODY_OFFSET;
-  // offset from FP of the saved registers.
-  // Some registers are saved in all baseline
-  // frames, and most register as saved in the
-  // dynamic bridge frames.
+  /** offset from FP of the saved registers. Some registers are saved in all baseline
+    * frames, and most register as saved in the  dynamic bridge frames. */
   int STACKFRAME_FIRST_PARAMETER_OFFSET = STACKFRAME_REG_SAVE_OFFSET - (2 * WORDSIZE);
-  // bridge frames save 2 additional GPRs
+  /** bridge frames save 2 additional GPRs **/
   int BRIDGE_FRAME_EXTRA_SIZE = (SSE2_FULL ? XMM_STATE_SIZE : FPU_STATE_SIZE) + (2 * WORDSIZE);
 
-  int SAVED_GPRS = 2; // EDI and EBX are nonvolatile registers used by baseline compiler
-  int SAVED_GPRS_FOR_SAVE_LS_REGISTERS = 3; // save all non-volatiles
+  /** EDI and EBX are nonvolatile registers used by baseline compiler **/
+  int SAVED_GPRS = 2;
+  /** save all non-volatiles **/
+  int SAVED_GPRS_FOR_SAVE_LS_REGISTERS = 3;
+
   Offset EDI_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET);
   Offset EBX_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET).minus(WORDSIZE);
   Offset EBP_SAVE_OFFSET = Offset.fromIntSignExtend(STACKFRAME_REG_SAVE_OFFSET).minus(WORDSIZE*2);

@@ -20,7 +20,7 @@ import org.mmtk.harness.lang.runtime.SoftReferenceValue;
 import org.mmtk.harness.lang.runtime.WeakReferenceValue;
 import org.mmtk.harness.scheduler.Scheduler;
 
-/**************************************************************************
+/**
  *
  * "built in" intrinsic functions
  *

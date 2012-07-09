@@ -14,7 +14,7 @@ package org.jikesrvm.adaptive.util;
 
 /**
  * Additional option values that are computed internally are defined
- * here.  Commnad line options are inherited from AOSExternalOptions
+ * here.  Command line options are inherited from AOSExternalOptions
  * which is machine generated from the various .dat files.
  */
 public final class AOSOptions extends AOSExternalOptions {

@@ -30,6 +30,9 @@ public abstract class LongCounter extends Counter {
    * Instance variables
    */
 
+  /**
+   *
+   */
   private final long[] count;
 
   private long startValue = 0;
@@ -81,6 +84,10 @@ public abstract class LongCounter extends Counter {
    *
    * Counter-specific methods
    */
+
+  /**
+   *
+   */
   protected abstract long getCurrentValue();
 
   /****************************************************************************
@@ -128,10 +135,8 @@ public abstract class LongCounter extends Counter {
   }
 
   /**
-   * Print the value of this counter for the given phase.  Print '0'
-   * for false, '1' for true.
-   *
-   * @param phase The phase to be printed
+   * {@inheritDoc}
+   * Print '0' for {@code false}, '1' for {@code true}.
    */
   @Override
   protected final void printCount(int phase) {
@@ -158,12 +163,6 @@ public abstract class LongCounter extends Counter {
     return totalCount;
   }
 
-  /**
-   * Print the current total for either the mutator or GC phase
-   *
-   * @param mutator True if the total for the mutator phases is to be
-   * printed (otherwise the total for the GC phases will be printed).
-   */
   @Override
   protected final void printTotal(boolean mutator) {
     long total = 0;

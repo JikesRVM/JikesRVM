@@ -105,7 +105,7 @@ public class Services implements SizeConstants {
 
 
   /** Copy a String into a character array.
-   *
+   *  <p>
    *  This function may be called during GC and may be used in conjunction
    *  with the MMTk {@link org.mmtk.utility.Log} class.   It avoids write barriers and allocation.
    *  <p>
@@ -139,8 +139,9 @@ public class Services implements SizeConstants {
     return sprintf(dest, destOffset, src, 0, src.length);
   }
 
-  /** Copies characters from <code>src</code> into the destination character
-   * array <code>dest</code>.
+  /**
+   *  Copies characters from <code>src</code> into the destination character
+   *  array <code>dest</code>.<p>
    *
    *  The first character to be copied is at index <code>srcBegin</code>; the
    *  last character to be copied is at index <code>srcEnd-1</code>.  (This is
@@ -172,18 +173,19 @@ public class Services implements SizeConstants {
     return destOffset + 1;
   }
 
-  /** Copy the printed decimal representation of a long into
+  /**
+   * Copy the printed decimal representation of a long into
    * a character array.  The value is not padded and no
-   * thousands seperator is copied.  If the value is negative a
+   * thousands separator is copied.  If the value is negative a
    * leading minus sign (-) is copied.
-   *
-   *  This function may be called during GC and may be used in conjunction
-   *  with the Log class.   It avoids write barriers and allocation.
-   *  <p>
-   *  XXX This function should probably be moved to a sensible location where
-   *   we can use it as a utility.   Suggestions welcome.
    * <p>
-   *  XXX This method's implementation is stolen from the {@link org.mmtk.utility.Log} class.
+   * This function may be called during GC and may be used in conjunction
+   * with the Log class.   It avoids write barriers and allocation.
+   * <p>
+   * XXX This function should probably be moved to a sensible location where
+   *  we can use it as a utility.   Suggestions welcome.
+   * <p>
+   * XXX This method's implementation is stolen from the {@link org.mmtk.utility.Log} class.
    *
    * @param dest char array to copy into.
    * @param offset Offset into <code>dest</code> where we start copying

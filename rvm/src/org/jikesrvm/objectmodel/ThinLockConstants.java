@@ -18,6 +18,7 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * Constants used to implement thin locks.
+ * <p>
  * A portion of a word, either in the object header
  * or in some other location, is used to provide light weight
  * synchronization operations. This class defines

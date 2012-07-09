@@ -55,7 +55,7 @@ import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
 import org.jikesrvm.compilers.opt.util.Queue;
 
 /**
- * This class does the job. It is a subphase of GCP.
+ * This class does loop invariant code movement. It is a subphase of {@link GCP} (global code placement).
  */
 public class LICM extends CompilerPhase {
   /** Generate debug output? */
@@ -972,7 +972,7 @@ public class LICM extends CompilerPhase {
 
   /**
    * check that inside the loop, the heap variable is only used/defed
-   * by simple, non-volatile loads/stores
+   * by simple, non-volatile loads/stores<p>
    *
    * returns one of:
    * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_COMPLEX
@@ -1007,7 +1007,7 @@ public class LICM extends CompilerPhase {
 
   /**
    * check that inside the loop, the heap variable is only used/defed
-   * by simple, non-volatile loads/stores
+   * by simple, non-volatile loads/stores<p>
    *
    * returns one of:
    * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_COMPLEX

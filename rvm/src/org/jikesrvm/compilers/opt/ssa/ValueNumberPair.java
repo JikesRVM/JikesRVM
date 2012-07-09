@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ssa;
 
 /**
- * utility class: represents a pair of value numbers.
+ * Represents a pair of value numbers.
  */
 class ValueNumberPair implements Comparable<ValueNumberPair> {
   /** the value number of an array pointer */

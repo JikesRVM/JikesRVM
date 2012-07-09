@@ -19,8 +19,6 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
 import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
- * DF_LatticeCell.java
- *
  * Represents a single lattice cell in a dataflow system.
  */
 public abstract class DF_AbstractCell implements DF_LatticeCell {

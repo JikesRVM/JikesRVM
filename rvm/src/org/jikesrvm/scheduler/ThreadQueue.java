@@ -83,7 +83,7 @@ public class ThreadQueue {
   }
 
   /**
-   * Private helper. Gets the next pointer of cur unless cur is null, in which
+   * Private helper. Gets the next pointer of cur unless cur is {@code null}, in which
    * case it returns head.
    */
   private RVMThread getNext(RVMThread cur) {
@@ -95,8 +95,8 @@ public class ThreadQueue {
   }
 
   /**
-   * Private helper. Sets the next pointer of cur to value unless cur is null,
-   * in which case it sets head. Also sets tail as appropraite.
+   * Private helper. Sets the next pointer of cur to value unless cur is {@code null},
+   * in which case it sets head. Also sets tail as appropriate.
    */
   private void setNext(RVMThread cur, RVMThread value) {
     if (cur == null) {

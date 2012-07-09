@@ -152,7 +152,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * @param ir the containing IR
    * @param s the branch instruction to optimize
    * @param bb the containing basic block
-   * @return true if an optimization was applied, false otherwise
+   * @return {@code true} if an optimization was applied, {@code false} otherwise
    */
   @Override
   protected boolean optimizeBranchInstruction(IR ir, Instruction s, BasicBlock bb) {
@@ -195,7 +195,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * @param ir governing IR
    * @param g the instruction to optimize
    * @param bb the basic block holding g
-   * @return true if made a transformation
+   * @return {@code true} if made a transformation
    */
   private boolean processGoto(IR ir, Instruction g, BasicBlock bb) {
     BasicBlock targetBlock = g.getBranchTarget();
@@ -303,7 +303,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * @param ir the governing IR
    * @param cb the instruction to optimize
    * @param bb the basic block holding if
-   * @return true iff made a transformation
+   * @return {@code true} iff made a transformation
    */
   private boolean processConditionalBranch(IR ir, Instruction cb, BasicBlock bb) {
     BasicBlock targetBlock = cb.getBranchTarget();
@@ -408,7 +408,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * @param ir the governing IR
    * @param cb the instruction to optimize
    * @param bb the basic block holding if
-   * @return true iff made a transformation
+   * @return {@code true} iff made a transformation
    */
   private boolean processInlineGuard(IR ir, Instruction cb, BasicBlock bb) {
     BasicBlock targetBlock = cb.getBranchTarget();
@@ -472,7 +472,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * @param ir the governing IR
    * @param cb the instruction to optimize
    * @param bb the basic block holding if
-   * @return true iff made a transformation
+   * @return {@code true} iff made a transformation
    */
   private boolean processTwoTargetConditionalBranch(IR ir, Instruction cb, BasicBlock bb) {
     // First condition/target

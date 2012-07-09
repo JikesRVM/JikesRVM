@@ -104,12 +104,12 @@ public final class ChunkList implements Constants {
   }
 
   /**
-   * A chunk iterator.  Return the next chunk in sequence, or null if the
+   * A chunk iterator.  Return the next chunk in sequence, or {@code null} if the
    * next chunk is limit.
    *
    * @param chunk The chunk
    * @param limit The starting point (if next is equal to this, we're done)
-   * @return The next chunk in the sequence, or null if next is limit.
+   * @return The next chunk in the sequence, or {@code null} if next is limit.
    */
   private Address nextChunk(final Address chunk, final Address limit) {
     return nextChunk(chunk, Chunk.getMap(limit), 1);
@@ -117,12 +117,12 @@ public final class ChunkList implements Constants {
 
   /**
    * A chunk iterator.  Return the next chunk in sequence, strided
-   * by stride steps, or null if the next chunk is start.
+   * by stride steps, or {@code null} if the next chunk is start.
    *
    * @param chunk The chunk
    * @param start The point where this iterator started, which defines its end-point
    * @param stride The stride by which the iterator should be stepped
-   * @return The next chunk in the sequence, or null if next is start.
+   * @return The next chunk in the sequence, or {@code null} if next is start.
    */
   public Address nextChunk(final Address chunk, final int start, final int stride) {
     if (VM.VERIFY_ASSERTIONS) checkMap();
@@ -131,12 +131,12 @@ public final class ChunkList implements Constants {
 
   /**
    * A chunk iterator.  Return the next chunk in sequence, strided
-   * by stride steps, or null if the next chunk is start.
+   * by stride steps, or {@code null} if the next chunk is start.
    *
    * @param entry The entry we're currently up to
    * @param start The point where this iterator started, which defines its end-point
    * @param stride The stride by which the iterator should be stepped
-   * @return The next chunk in the sequence, or null if next is start.
+   * @return The next chunk in the sequence, or {@code null} if next is start.
    */
   private Address nextChunk(int entry, final int start, final int stride) {
     if (VM.VERIFY_ASSERTIONS) checkMap();

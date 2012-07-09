@@ -35,9 +35,6 @@ public class Expect extends AbstractAST implements Statement {
     }
   }
 
-  /**
-   * @see org.mmtk.harness.lang.ast.AbstractAST#accept(org.mmtk.harness.lang.Visitor)
-   */
   @Override
   public Object accept(Visitor v) {
     return v.visit(this);

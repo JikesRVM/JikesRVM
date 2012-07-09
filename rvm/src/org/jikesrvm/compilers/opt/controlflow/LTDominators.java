@@ -27,9 +27,9 @@ import org.jikesrvm.compilers.opt.util.Stack;
  * TOPLAS 1(1), July 1979.  This implementation uses path compression and
  * results in a O(e * alpha(e,n)) complexity, where e is the number of
  * edges in the CFG and n is the number of nodes.
- *
+ * <p>
  * Sources: TOPLAS article, Muchnick book
- *
+ * <p>
  * The current implementation (4/25/00) does not include the EXIT node
  * in any solution despite the fact that it is part of the CFG (it has
  * incoming edges).  This is to be compatible with the old code.
@@ -372,12 +372,13 @@ public class LTDominators extends Stack<BasicBlock> {
 
   /**
    * This method inspects the passed block and returns the following:
-   *    block,                       if block is a root of a tree in the forest
-   *
-   *    any vertex, u != r such that                        otherwise
-   *      r is the root of the tree containing block and
-   *                                        *
-   *      semi(u) is minimum on the path  r -> v
+   * <ul>
+   *   <li>block, if block is a root of a tree in the forest
+   *   <li>any vertex, u != r such that r is the root of the tree
+   *       containing block and semi(u) is minimum on the path  r -> v,
+   *       otherwise
+   * </ul>
+   * <p>
    *
    * See TOPLAS 1(1), July 1979, p 128 for details.
    *

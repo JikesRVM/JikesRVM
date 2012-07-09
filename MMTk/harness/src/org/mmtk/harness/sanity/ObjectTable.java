@@ -182,7 +182,7 @@ public final class ObjectTable {
   /**
    * Check whether an object reference is valid.  A reference is valid if it was
    * allocated at some point, or if it has been copied during the current GC.
-   *
+   * <p>
    * This is imprecise, and will report some dead objects as being live, eg
    * in a generational collector.
    *
@@ -213,12 +213,14 @@ public final class ObjectTable {
    * Adjust the object table for an object copy.
    *
    * Thread-safe because:
-   *   - objects is a concurrent map
-   *   - Mutations of the entry are synchronized on the entry itself.
-   *   - Attempts by two threads to copy an object simultaneously are
+   * <ul>
+   *  <li>objects is a concurrent map
+   *  <li>Mutations of the entry are synchronized on the entry itself.
+   *  <li>Attempts by two threads to copy an object simultaneously are
    *     errors that need to be detected.  This is detected by an
    *     assertion in the {@link Entry#copy(ObjectReference, ObjectReference)}
    *     method.
+   * </ul>
    * @param src Source reference
    * @param dest Destination reference
    */

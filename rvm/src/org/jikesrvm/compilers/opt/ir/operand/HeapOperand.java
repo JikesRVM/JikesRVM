@@ -81,7 +81,7 @@ public final class HeapOperand<T> extends Operand {
    * heap operand?
    *
    * @param op the second operand to compare with
-   * @return true or false
+   * @return {@code true} or {@code false}
    */
   @Override
   public boolean similar(Operand op) {

@@ -20,11 +20,11 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A MethodListener defines a listener to collect method invocation samples.
- *
+ * <p>
  * Samples are collected in a buffer.
  * When sampleSize samples have been collected
  * the listener's organizer is activated to process them.
- *
+ * <p>
  * Defines update's interface to be a compiled method identifier, CMID.
  */
 @Uninterruptible
@@ -41,8 +41,8 @@ public final class MethodListener extends Listener {
   int numSamples;
 
   /**
-   * The sample buffer
-   * Key Invariant: samples.length >= sampleSize
+   * The sample buffer.
+   * Key Invariant: {@code samples.length >= sampleSize}
    */
   int[] samples;
 
@@ -56,7 +56,7 @@ public final class MethodListener extends Listener {
 
   /**
    * This method is called when a sample is taken.
-   * It parameter "cmid" represents the compiled method ID of the method
+   * It parameter {@code cmid} represents the compiled method ID of the method
    * which was executing at the time of the sample.  This method
    * bumps the counter and checks whether a threshold is reached.
    * <p>
@@ -104,7 +104,7 @@ public final class MethodListener extends Listener {
   }
 
   /**
-   * This method records a sample containing the CMID (compiled method ID)
+   * This method records a sample containing the {@code CMID} (compiled method ID)
    * passed.  Since multiple threads may be taking samples concurrently,
    * we use fetchAndAdd to distribute indices into the buffer AND to record
    * when a sample is taken.  (Thread 1 may get an earlier index, but complete

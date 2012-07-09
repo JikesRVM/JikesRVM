@@ -37,6 +37,10 @@ public class NoGCCollector extends ParallelCollector {
   /************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   private final NoGCTraceLocal trace = new NoGCTraceLocal(global().trace);
   protected final TraceLocal currentTrace = trace;
 
@@ -53,12 +57,6 @@ public class NoGCCollector extends ParallelCollector {
     VM.assertions.fail("GC Triggered in NoGC Plan. Is -X:gc:ignoreSystemGC=true ?");
   }
 
-  /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary perform any single-threaded local activities.
-   */
   @Inline
   @Override
   public final void collectionPhase(short phaseId, boolean primary) {

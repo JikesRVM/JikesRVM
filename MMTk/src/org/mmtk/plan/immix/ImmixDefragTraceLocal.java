@@ -40,6 +40,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
 
  /**
    * Constructor
+   * @param trace TODO
    * @param modBuffer TODO
    */
   public ImmixDefragTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
@@ -66,12 +67,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
   }
 
   /**
-   * This method is the core method during the trace of the object graph.
-   * The role of this method is to:
-   *
-   * 1. Ensure the traced object is not collected.
-   * 2. If this is the first visit to the object enqueue it to be scanned.
-   * 3. Return the forwarded reference to the object.
+   * {@inheritDoc}<p>
    *
    * In this instance, we refer objects in the mark-sweep space to the
    * immixSpace for tracing, and defer to the superclass for all others.
@@ -90,12 +86,12 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
   }
 
   /**
-   * Return true if this object is guaranteed not to move during this
+   * Return {@code true} if this object is guaranteed not to move during this
    * collection (i.e. this object is defintely not an unforwarded
    * object).
    *
    * @param object
-   * @return True if this object is guaranteed not to move during this
+   * @return {@code true} if this object is guaranteed not to move during this
    *         collection.
    */
   @Override

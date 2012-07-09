@@ -3655,7 +3655,7 @@ public final class BC2IR
 
   /**
    * Generate a null-check instruction for the given operand.
-   * @return true if an unconditional throw is generated, false otherwise
+   * @return {@code true} if an unconditional throw is generated, {@code false} otherwise
    */
   public boolean do_NullCheck(Operand ref) {
     if (gc.noNullChecks()) {
@@ -3749,7 +3749,7 @@ public final class BC2IR
 
   /**
    * Generate a boundscheck instruction for the given operand and index.
-   * @return true if an unconditional throw is generated, false otherwise
+   * @return {@code true} if an unconditional throw is generated, {@code false} otherwise
    */
   public boolean do_BoundsCheck(Operand ref, Operand index) {
     // Unsafely eliminate all bounds checks
@@ -3765,7 +3765,7 @@ public final class BC2IR
 
   /**
    * Generate a check for 0 for the given operand
-   * @return true if an unconditional trap is generated, false otherwise
+   * @return {@code true} if an unconditional trap is generated, {@code false} otherwise
    */
   private boolean do_IntZeroCheck(Operand div) {
     if (div instanceof IntConstantOperand) {
@@ -3791,7 +3791,7 @@ public final class BC2IR
 
   /**
    * Generate a check for 0 for the given operand
-   * @return true if an unconditional trap is generated, false otherwise
+   * @return {@code true} if an unconditional trap is generated, {@code false} otherwise
    */
   private boolean do_LongZeroCheck(Operand div) {
     if (div instanceof LongConstantOperand) {
@@ -3820,7 +3820,7 @@ public final class BC2IR
    * @param ref the array reference
    * @param elem the element to be written to the array
    * @param elemType the type of the array references elements
-   * @return true if an unconditional throw is generated, false otherwise
+   * @return {@code true} if an unconditional throw is generated, {@code false} otherwise
    */
   private boolean do_CheckStore(Operand ref, Operand elem, TypeReference elemType) {
     if (!gc.doesCheckStore) return false;
@@ -3900,8 +3900,8 @@ public final class BC2IR
 
   /**
    * Get or create a block at the specified target.
-   * If simStack is non-null, rectifies stack state with target stack state.
-   * If simLocals is non-null, rectifies local state with target local state.
+   * If simStack is non-{@code null}, rectifies stack state with target stack state.
+   * If simLocals is non-{@code null}, rectifies local state with target local state.
    * Any instructions needed to rectify stack/local state are appended to from.
    * If the target is between bcodes.index() and runoff, runoff is
    * updated to be target.
@@ -3909,8 +3909,8 @@ public final class BC2IR
    * @param target target index
    * @param from the block from which control is being transfered
    *                  and to which stack rectification instructions are added.
-   * @param simStack stack state to rectify, or null
-   * @param simLocals local state to rectify, or null
+   * @param simStack stack state to rectify, or {@code null}
+   * @param simLocals local state to rectify, or {@code null}
    */
   private BasicBlockLE getOrCreateBlock(int target, BasicBlockLE from, OperandStack simStack, Operand[] simLocals) {
     if ((target > bcodes.index()) && (target < runoff)) {
@@ -4384,10 +4384,17 @@ public final class BC2IR
                         gc.getConditionalBranchProfileOperand(instrIndex - bciAdjustment, offset < 0));
   }
 
-  //// REPLACE LOCALS ON STACK.
-  // Replaces copies of local <#index,type> with
-  // newly-generated temporaries, and
-  // generates the necessary move instructions.
+////REPLACE LOCALS ON STACK.
+  //
+
+
+
+  /**
+   * Replaces copies of local {@code <#index,type>} with
+   * newly-generated temporaries, and generates the necessary move instructions.
+   * @param index the local's index
+   * @param type the local's type
+   */
   private void replaceLocalsOnStack(int index, TypeReference type) {
     int i;
     int size = stack.getSize();
@@ -4618,7 +4625,7 @@ public final class BC2IR
    *
    * @param inlDec the inline decision for this call site
    * @param callSite the call instruction we are attempting to inline
-   * @return true if inlining succeeded, false otherwise
+   * @return {@code true} if inlining succeeded, {@code false} otherwise
    */
   private boolean maybeInlineMethod(InlineDecision inlDec, Instruction callSite) {
     if (inlDec.isNO()) {
@@ -5377,7 +5384,8 @@ public final class BC2IR
     /**
      * Do a final pass over the generated basic blocks to create
      * the initial code ordering. All blocks generated for the method
-     * will be inserted after gc.prologue.
+     * will be inserted after gc.prologue.<p>
+     *
      * NOTE: Only some CFG edges are created here.....
      * we're mainly just patching together a code linearization.
      */
@@ -5595,7 +5603,7 @@ public final class BC2IR
      * (by the call to getOrCreateBlock). <p>
      * PRECONDITION: bble.low and bble.max have already been correctly
      * set to reflect the invariant that a basic block is in exactly one
-     * "handler range."
+     * "handler range."<p>
      * Also initializes bble.block.exceptionHandlers.
      */
     private void initializeExceptionHandlers(BasicBlockLE bble, Operand[] simLocals) {
@@ -5726,8 +5734,8 @@ public final class BC2IR
      * @param target target index
      * @param from the block from which control is being transfered
      *                  and to which rectification instructions are added.
-     * @param simStack stack state to rectify, or null
-     * @param simLocals local state to rectify, or null
+     * @param simStack stack state to rectify, or {@code null}
+     * @param simLocals local state to rectify, or {@code null}
      */
     private BasicBlockLE getOrCreateBlock(BasicBlockLE x, boolean shouldCreate, int target, BasicBlockLE from,
                                           OperandStack simStack, Operand[] simLocals) {
@@ -5797,8 +5805,8 @@ public final class BC2IR
 
     /**
      * Conditionally create a block at the specified target as a child of x.
-     * If simStack is non-null, rectifies stack state with target stack state.
-     * If simLocals is non-null, rectifies local state with target local state.
+     * If simStack is non-{@code null}, rectifies stack state with target stack state.
+     * If simLocals is non-{@code null}, rectifies local state with target local state.
      * Any instructions needed to rectify stack/local state are appended to
      * from.
      *
@@ -5807,10 +5815,10 @@ public final class BC2IR
      * @param target target index
      * @param from the block from which control is being transfered
      *                  and to which rectification instructions are added.
-     * @param simStack stack state to rectify, or null
-     * @param simLocals local state to rectify, or null
+     * @param simStack stack state to rectify, or {@code null}
+     * @param simLocals local state to rectify, or {@code null}
      * @param left are we creating a left child of parent?
-     * @return the newly create block, or null if !shouldCreate
+     * @return the newly created block, or {@code null} if !shouldCreate
      */
     private BasicBlockLE condCreateAndInit(BasicBlockLE x, boolean shouldCreate, int target, BasicBlockLE from,
                                            OperandStack simStack, Operand[] simLocals, boolean left) {
@@ -5888,7 +5896,7 @@ public final class BC2IR
 
     /**
      * Returns the basic block which has the next-higher bytecode index.
-     * Returns null if x is the highest block.
+     * Returns {@code null} if x is the highest block.
      * @param x basic block at which to start the search for a higher block
      * @param value the contents of x.low (makes tail call elim work better
      *              if we avoid the obvious 1 argument wrapper function)
@@ -6233,7 +6241,7 @@ public final class BC2IR
     Operand[] localState;
 
     /**
-     * The desired fallthrough (next in code order) BBLE (may be null).
+     * The desired fallthrough (next in code order) BBLE (may be {@code null}).
      * NOTE: we may not always end up actually falling through
      * (see BBSet.finalPass).
      */

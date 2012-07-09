@@ -192,6 +192,8 @@ public class ScanBootImage implements Constants {
    *
    * Build-time encoding (assumed to be single-threaded)
    */
+
+  /** */
   private static int lastOffset = Integer.MIN_VALUE / 2;  /* bootstrap value */
   private static int oldIndex = 0;
   private static int codeIndex = 0;
@@ -367,7 +369,7 @@ public class ScanBootImage implements Constants {
    * Encode a 4-byte encoding, taking a byte array, the current index into
    * it, and the value to be encoded.
    *
-   * @param code A byte array to containthe encoded value
+   * @param code A byte array to contain the encoded value
    * @param index The current offset into the code array
    * @param value The value to be encoded
    * @return The updated index into the code array

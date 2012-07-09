@@ -15,7 +15,7 @@ package org.jikesrvm.adaptive.util;
 import org.jikesrvm.classloader.MethodReference;
 
 /**
- * A unresolved call site is a pair: <MethodReference, bcIndex>
+ * A unresolved call site is a pair: {@code <MethodReference, bcIndex>}.
  */
 public final class UnResolvedCallSite {
 
@@ -61,7 +61,7 @@ public final class UnResolvedCallSite {
    * Determine if two call sites are the same.  Exact match: no wild cards.
    *
    * @param obj call site to compare to
-   * @return true if call sites are the same; otherwise, return false
+   * @return {@code true} if call sites are the same; otherwise, return {@code fales}
    */
   @Override
   public boolean equals(Object obj) {

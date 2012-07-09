@@ -36,18 +36,13 @@ class RecompileOptChoice extends RecompilationChoice {
 
   /**
    * Constructor
+   * @param level the opt level associated with this choice
    */
   RecompileOptChoice(int level) {
     thisChoiceOptLevel = level;
     thisChoiceCompiler = CompilerDNA.getCompilerConstant(level);
   }
 
-  /**
-   * What is the cost of executing this plan?
-   *
-   * @param meth The method being considered for recompilation.
-   * @return The expected cost of exeuting this recompilation choice
-   */
   @Override
   double getCost(NormalMethod meth) {
     return CompilerDNA.estimateCompileTime(getCompiler(), meth);
@@ -60,16 +55,8 @@ class RecompileOptChoice extends RecompilationChoice {
   }
 
   /**
-   * Return a controller plan that will start this recompilation
-   * choice in action.  In this case, simply create a plan to
-   * recompile at level "optLevel"
-   *
-   * @param cmpMethod The method in question
-   * @param prevCompiler The previous compiler
-   * @param prevTimeForMethod The estimated future time had nothing been done
-   * @param bestActionTime The estimated total time implementing this choice
-   * @param expectedCompilationTime The expected time for recompiling
-   * @return The controller plan implementing this recompilation choice
+   * {@inheritDoc}
+   * In this case, simply create a plan to recompile at level {@link #thisChoiceOptLevel}.
    */
   @Override
   ControllerPlan makeControllerPlan(CompiledMethod cmpMethod, int prevCompiler, double prevTimeForMethod,
@@ -96,13 +83,16 @@ class RecompileOptChoice extends RecompilationChoice {
 
   /**
    * Which opt-level is associated with this choice?
+   * @return the opt-level for this choice
    */
   int getOptLevel() {
     return thisChoiceOptLevel;
   }
 
   /**
-   * Which "compiler" (@see CompilerDNA) is associated with this choice?
+   * Which "compiler" is associated with this choice?
+   * @return the integer representing the compiler for this choice
+   * @see CompilerDNA#getCompilerConstant(int)
    */
   int getCompiler() {
     return thisChoiceCompiler;

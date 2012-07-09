@@ -45,8 +45,10 @@ public class LiveSetEnumerator implements Enumeration<RegisterOperand> {
   }
 
   /**
-   * Returns the next element, if one exists, otherwise throws an exception
-   * @return the next element, if one exists, otherwise throws an exception
+   * Returns the next element, if one exists, otherwise throws an exception.
+   *
+   * @return the next element
+   * @throws NoSuchElementException if no next element exists
    */
   @Override
   public RegisterOperand nextElement() {

@@ -70,7 +70,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 public final class ControlFlowGraph extends SpaceEffGraph {
 
   /**
-   * The distringuished exit node of the FCFG
+   * The distinguished exit node of the FCFG
    */
   private final BasicBlock _exitNode;
 
@@ -126,7 +126,7 @@ public final class ControlFlowGraph extends SpaceEffGraph {
    * to use entry and exit; we want topological traversals to be with
    * respect to FCFG edges not the code linearization order
    *
-   * @param forward  true for forward traversal, false for reverse
+   * @param forward  {@code true} for forward traversal, {@code false} for reverse
    * @return the node to use as the start of a topological traversal
    */
   @Override
@@ -292,7 +292,7 @@ public final class ControlFlowGraph extends SpaceEffGraph {
 
   /**
    * Add a block not currently in the code ordering to the end of the
-   * code ordring.
+   * code ordering.
    * No impact on FCFG edges.
    *
    * @param bb the block to add to the end of the code ordering
@@ -342,7 +342,7 @@ public final class ControlFlowGraph extends SpaceEffGraph {
   }
 
   /**
-   * Clear the code ordering information for the CFG.
+   * Clear the code ordering information for the CFG.<p>
    * NOTE: This method should only be called as part of a
    *       whole scale recomputation of the code order, for example
    *       by ReorderingPhase

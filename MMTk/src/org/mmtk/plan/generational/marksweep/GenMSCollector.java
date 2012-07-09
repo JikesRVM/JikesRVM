@@ -69,15 +69,7 @@ public class GenMSCollector extends GenCollector {
    */
 
   /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   *
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @param allocator The allocator to use.
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
   @Inline
   @Override
@@ -100,9 +92,6 @@ public class GenMSCollector extends GenCollector {
     }
   }
 
-  /**
-   * @param object The newly allocated object
-   */
   @Inline
   @Override
   public final void postCopy(ObjectReference object, ObjectReference typeRef,

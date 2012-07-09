@@ -17,6 +17,7 @@ import org.jikesrvm.VM;
 /**
  * An iterator over an encoded OSR map.
  * It is a bit odd to used now.
+ * <pre>
  *     while (it.hasMore()) {
  *       it.getKind();
  *       it.getNumber();
@@ -26,6 +27,7 @@ import org.jikesrvm.VM;
  *
  *       it.moveToNext();
  *     }
+ *</pre>
  */
 
 public class OSRMapIterator implements OSRConstants {

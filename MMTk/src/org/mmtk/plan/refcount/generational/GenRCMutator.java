@@ -29,6 +29,10 @@ public class GenRCMutator extends RCBaseMutator {
   /************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   private final CopyLocal nursery;
 
   public GenRCMutator() {
@@ -40,6 +44,9 @@ public class GenRCMutator extends RCBaseMutator {
    * Mutator-time allocation
    */
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {

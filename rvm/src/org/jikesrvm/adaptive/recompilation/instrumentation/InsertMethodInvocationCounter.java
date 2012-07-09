@@ -27,7 +27,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
  * basic block of the method.  It uses a
  * InstrumentedEventCounterManager to obtain the space to put the
  * counters.
- *
+ * <p>
  * Note: one counter data, (MethodInvocationCounterData) is shared
  * across all methods, and is initialized at boot time.  This is
  * unlike other kinds of instrumentation (such as basic block

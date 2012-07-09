@@ -66,12 +66,7 @@ public final class ImmixTraceLocal extends TraceLocal {
   }
 
   /**
-   * This method is the core method during the trace of the object graph.
-   * The role of this method is to:
-   *
-   * 1. Ensure the traced object is not collected.
-   * 2. If this is the first visit to the object enqueue it to be scanned.
-   * 3. Return the forwarded reference to the object.
+   * {@inheritDoc}<p>
    *
    * In this instance, we refer objects in the mark-sweep space to the
    * immixSpace for tracing, and defer to the superclass for all others.
@@ -92,9 +87,6 @@ public final class ImmixTraceLocal extends TraceLocal {
    * Ensure that the referenced object will not move from this point through
    * to the end of the collection. This can involve forwarding the object
    * if necessary.
-   *
-   * @param object The object that must not move during the collection.
-   * @return True If the object will not move during collection
    */
   @Inline
   @Override

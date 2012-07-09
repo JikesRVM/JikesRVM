@@ -20,16 +20,14 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 
 /**
- * UTF8Convert
- *
  * Abstract class that contains conversion routines to/from utf8
  * and/or pseudo-utf8.  It does not support utf8 encodings of
  * more than 3 bytes.
- *
+ * <p>
  * The difference between utf8 and pseudo-utf8 is the special
  * treatment of null.  In utf8, null is encoded as a single byte
  * directly, whereas in pseudo-utf8, it is encoded as a two-byte
- * sequence.  See the JVM spec for more information.
+ * sequence.  See the JVM specification for more information.
  */
 public abstract class UTF8Convert {
 
@@ -126,7 +124,7 @@ public abstract class UTF8Convert {
 
   /**
    * Convert the given sequence of (pseudo-)utf8 formatted bytes
-   * into a String.
+   * into a String.<p>
    *
    * The acceptable input formats are controlled by the
    * STRICTLY_CHECK_FORMAT, ALLOW_NORMAL_UTF8, and ALLOW_PSEUDO_UTF8
@@ -148,7 +146,7 @@ public abstract class UTF8Convert {
    *
    * The acceptable input formats are controlled by the
    * STRICTLY_CHECK_FORMAT, ALLOW_NORMAL_UTF8, and ALLOW_PSEUDO_UTF8
-   * flags.
+   * flags.<p>
    *
    * @param utf8 (pseudo-)utf8 byte array
    * @throws UTFDataFormatException if the (pseudo-)utf8 byte array is not valid (pseudo-)utf8
@@ -162,7 +160,7 @@ public abstract class UTF8Convert {
 
   /**
    * Convert the given sequence of (pseudo-)utf8 formatted bytes
-   * into a String hashCode.
+   * into a String hashCode.<p>
    *
    * The acceptable input formats are controlled by the
    * STRICTLY_CHECK_FORMAT, ALLOW_NORMAL_UTF8, and ALLOW_PSEUDO_UTF8
@@ -188,7 +186,7 @@ public abstract class UTF8Convert {
 
   /**
    * Visit all bytes of the given utf8 string calling the visitor when a
-   * character is decoded.
+   * character is decoded.<p>
    *
    * The acceptable input formats are controlled by the
    * STRICTLY_CHECK_FORMAT, ALLOW_NORMAL_UTF8, and ALLOW_PSEUDO_UTF8
@@ -252,7 +250,7 @@ public abstract class UTF8Convert {
 
   /**
    * Visit all bytes of the given utf8 string calling the visitor when a
-   * character is decoded.
+   * character is decoded.<p>
    *
    * The acceptable input formats are controlled by the
    * STRICTLY_CHECK_FORMAT, ALLOW_NORMAL_UTF8, and ALLOW_PSEUDO_UTF8
@@ -316,7 +314,7 @@ public abstract class UTF8Convert {
 
   /**
    * Convert the given String into a sequence of (pseudo-)utf8
-   * formatted bytes.
+   * formatted bytes.<p>
    *
    * The output format is controlled by the WRITE_PSEUDO_UTF8 flag.
    *
@@ -346,7 +344,7 @@ public abstract class UTF8Convert {
 
   /**
    * Convert the given String into a sequence of (pseudo-)utf8
-   * formatted bytes.
+   * formatted bytes.<p>
    *
    * The output format is controlled by the WRITE_PSEUDO_UTF8 flag.
    *
@@ -396,7 +394,7 @@ public abstract class UTF8Convert {
    * Check whether the given sequence of bytes is valid (pseudo-)utf8.
    *
    * @param bytes byte array to check
-   * @return true iff the given sequence is valid (pseudo-)utf8.
+   * @return {@code true} iff the given sequence is valid (pseudo-)utf8.
    */
   public static boolean check(byte[] bytes) {
     for (int i = 0, n = bytes.length; i < n;) {

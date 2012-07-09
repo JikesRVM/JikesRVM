@@ -30,9 +30,6 @@ class MutatorThread extends RawThread {
     setName("Mutator-"+model.nextMutatorId());
   }
 
-  /*
-   * Thread.run()
-   */
   @Override
   public void run() {
     Trace.trace(Item.SCHEDULER, "%d: initial yield",this.getId());

@@ -101,6 +101,10 @@ public class RCBase extends StopTheWorld {
    *
    * Class fields
    */
+
+  /**
+   *
+   */
   public static final ExplicitFreeListSpace rcSpace = new ExplicitFreeListSpace("rc", VMRequest.create());
   public static final ExplicitLargeObjectSpace rcloSpace = new ExplicitLargeObjectSpace("rclos", VMRequest.create());
 
@@ -115,6 +119,10 @@ public class RCBase extends StopTheWorld {
   /*****************************************************************************
    *
    * Instance fields
+   */
+
+  /**
+   *
    */
   public final Trace rootTrace;
   public final Trace backupTrace;
@@ -154,6 +162,9 @@ public class RCBase extends StopTheWorld {
    * Collection
    */
 
+  /**
+   *
+   */
   public static final boolean isRCObject(ObjectReference object) {
     return !object.isNull() && !Space.isInSpace(VM_SPACE, object);
   }
@@ -270,9 +281,6 @@ public class RCBase extends StopTheWorld {
     return SanityChecker.ALIVE;
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

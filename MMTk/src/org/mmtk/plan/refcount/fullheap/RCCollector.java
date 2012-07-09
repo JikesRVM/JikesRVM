@@ -26,6 +26,10 @@ public class RCCollector extends RCBaseCollector {
   /************************************************************************
    * Initialization
    */
+
+  /**
+   *
+   */
   private final RCFindRootSetTraceLocal rootTrace;
   private final RCModifiedProcessor modProcessor;
 

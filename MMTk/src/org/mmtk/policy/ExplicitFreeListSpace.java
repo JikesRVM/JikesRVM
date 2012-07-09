@@ -35,6 +35,10 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
    *
    * Class variables
    */
+
+  /**
+   *
+   */
   public static final int LOCAL_GC_BITS_REQUIRED = 0;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
@@ -90,13 +94,6 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
     return makeFreeList(block, sizeClass);
   }
 
-  /**
-   * Notify that a new block has been installed. This is to ensure that
-   * appropriate collection state can be initialized for the block
-   *
-   * @param block The new block
-   * @param sizeClass The block's sizeclass.
-   */
   @Override
   protected void notifyNewBlock(Address block, int sizeClass) {
     clearLiveBits(block, sizeClass);
@@ -162,10 +159,8 @@ public final class ExplicitFreeListSpace extends SegregatedFreeListSpace impleme
   }
 
   /**
-   *
-   * @param object The object in question
-   * @return True if this object is known to be live (i.e. it is marked)
-   */
+  * @return {@code true} if this object is known to be live (i.e. it is marked)
+  */
   @Override
   @Inline
   public boolean isLive(ObjectReference object) {

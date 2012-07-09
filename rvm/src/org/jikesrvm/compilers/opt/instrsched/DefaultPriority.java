@@ -17,8 +17,8 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 /**
- * Default (IR-order) instruction list
- * Used by the scheduler to enumerate over instructions
+ * Default (IR-order) instruction list.
+ * Used by the scheduler to enumerate over instructions.
  *
  * @see Priority
  * @see Scheduler

@@ -43,6 +43,9 @@ public class MCCollector extends StopTheWorldCollector {
    * Instance fields
    */
 
+  /**
+   *
+   */
   private final MCMarkTraceLocal markTrace;
   private final MCForwardTraceLocal forwardTrace;
   private final MarkCompactCollector mc;

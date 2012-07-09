@@ -21,11 +21,11 @@ import org.vmmagic.pragma.*;
 /**
  * Each instance of this class is intended to provide fast,
  * unsynchronized access to a treadmill.  Therefore instances must not
- * be shared across truely concurrent threads (CPUs).  Rather, one or
+ * be shared across truly concurrent threads (CPUs).  Rather, one or
  * more instances of this class should be bound to each CPU.  The
  * shared VMResource used by each instance is the point of global
  * synchronization, and synchronization only occurs at the granularity
- * of aquiring (and releasing) chunks of memory from the VMResource.
+ * of acquiring (and releasing) chunks of memory from the VMResource.<p>
  *
  * If there are C CPUs and T TreadmillSpaces, there must be C X T
  * instances of this class, one for each CPU, TreadmillSpace pair.

@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Phases of a garbage collection.
- *
  */
 @Uninterruptible
 public final class SimplePhase extends Phase

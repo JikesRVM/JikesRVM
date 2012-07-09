@@ -17,8 +17,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
-/*
- *
+/**
  * A simple class that holds an element in a LiveSet.
  */
 final class LiveSetElement {

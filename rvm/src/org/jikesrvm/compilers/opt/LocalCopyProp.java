@@ -31,7 +31,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * Perform local copy propagation for a factored basic block.
  * Orthogonal to the copy propagation performed in Simple
  * since here we use flow-sensitive analysis within a basic block.
- *
+ * <p>
  * TODO: factor out common functionality in the various local propagation
  * phases?
  */

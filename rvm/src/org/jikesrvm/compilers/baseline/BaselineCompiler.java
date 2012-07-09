@@ -122,10 +122,11 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
 
   /**
    * Generate a report of time spent in various phases of the baseline compiler.
-   * <p> NB: This method may be called in a context where classloading and/or
-   * GC cannot be allowed.
-   * Therefore we must use primitive sysWrites for output and avoid string
+   * <p> NB: This method may be called in a context where class loading and/or
+   * GC cannot be allowed. Therefore we must use primitive sysWrites for output and avoid string
    * appends and other allocations.
+   * <p>
+   * FIXME should this method be uninterruptible?
    *
    * @param explain Should an explanation of the metrics be generated?
    */
@@ -228,7 +229,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
       }
     }
 
-    // Phase 3: Code gen
+    // Phase 3: Code generation
     int[] bcMap;
     MachineCode machineCode;
     CodeArray instructions;

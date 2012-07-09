@@ -17,7 +17,7 @@ import org.mmtk.utility.Constants;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class manages the encoding and decoding of virtual memory requests.
+ * This class manages the encoding and decoding of virtual memory requests.<p>
  *
  * By encapsulating this aspect of the construction of a space, we greatly
  * reduce the number of constructors required.

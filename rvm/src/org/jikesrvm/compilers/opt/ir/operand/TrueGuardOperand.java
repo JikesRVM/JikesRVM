@@ -15,9 +15,9 @@ package org.jikesrvm.compilers.opt.ir.operand;
 import org.jikesrvm.classloader.TypeReference;
 
 /**
- * This operand represents a "true" guard.
- * Eg non-nullness of the result of an allocation or
- * boundcheck eliminate via analysis of the loop induction variables.
+ * This operand represents a "true" guard, e.g. non-nullness
+ * of the result of an allocation or
+ * boundcheck eliminated via analysis of the loop induction variables.
  *
  * @see Operand
  */

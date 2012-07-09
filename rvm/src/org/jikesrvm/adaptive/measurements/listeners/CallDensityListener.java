@@ -18,7 +18,7 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A simple listener to accumulate counts of total events
- * and the fraction of those events that occured at loop backedges.
+ * and the fraction of those events that occurred at loop backedges.
  * In effect, this provides a mechanism for estimating the
  * call density of the program.  If most yieldpoints are being taken at
  * backedges, then call density is low.

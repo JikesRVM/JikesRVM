@@ -35,9 +35,9 @@ import org.vmmagic.pragma.*;
 
   private static final boolean DEBUG = false;
 
-  // The Stream for newly promoted objects
+  /** The Stream for newly promoted objects */
   protected ShortStream remsetStream;
-  // Statistics for remset references
+  /** Statistics for remset references */
   protected int totalRemset = 0;
 
 
@@ -83,7 +83,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Heelper methods to create the additional streams
+   * Helper methods to create the additional streams
  */
   @Interruptible
   private ShortStream createRemsetStream() {
@@ -107,7 +107,7 @@ import org.vmmagic.pragma.*;
   /**
    * Setup summaries part of the <code>transmit</code> method.<p>
    * Overrides method in superclass to handle additional Stream.
- */
+  */
   @Override
   protected void setupSummaries() {
     super.setupSummaries();
@@ -118,7 +118,7 @@ import org.vmmagic.pragma.*;
    * Handle a remset address
    *
    * @param addr Remset Address
-   * @return true if the given Address is in this subspace.
+   * @return {@code true} if the given Address is in this subspace.
    */
   public boolean handleRemsetAddress(Address addr) {
     if(subspace.addressInRange(addr)) {
@@ -137,7 +137,7 @@ import org.vmmagic.pragma.*;
    * Reset the remset Stream
    * The remset Stream has to be reset seperately because we do not
    * gather data in the usual way using scan().
- */
+   */
   public void resetRemsetStream() {
     remsetStream.resetData();
     totalRemset = 0;

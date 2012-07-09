@@ -36,7 +36,8 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
   private TypeOperand[] exceptionTypes;
 
   /**
-   * The liveness information at the beginning of this block
+   * The liveness information at the beginning of this block.
+   * <p>
    *  NOTE: If we decide to store this for all blocks, we should move
    *  this field to BasicBlock (the parent class)
    */
@@ -149,7 +150,7 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
   }
 
   /**
-   * Get how many table entires this EHBB needs.
+   * Get how many table entries this EHBB needs.
    * Really only of interest during final assembly.
    *
    * @see org.jikesrvm.compilers.opt.runtimesupport.OptExceptionTable

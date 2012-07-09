@@ -163,7 +163,7 @@ public abstract class InlineTools implements OptConstants {
 
   /**
    * Should the callee method always be inlined?
-   * Usually this is becuase of a programmer directive (InlinePragma),
+   * Usually this is because of a programmer directive (InlinePragma),
    * but we also use this mechanism to hardwire a couple special cases.
    *
    * @param callee the method being considered for inlining
@@ -243,12 +243,13 @@ public abstract class InlineTools implements OptConstants {
 
   /**
    * Is it safe to speculatively inline the callee into the caller?
-   *
+   * <p>
    * Some forms of speculative inlining are unsafe to apply to
    * methods of the core virtual machine because if we are forced to
    * invalidate the methods, we will be unable to compile their
    * replacement method.
-   * The current test is overly conservative, but past attempts at
+   * <p>
+   * TODO The current test is overly conservative, but past attempts at
    * defining a more precise set of "third rail" classes have
    * always resulted in missing some (only to discover them later
    * when Jikes RVM hangs or crashes.)

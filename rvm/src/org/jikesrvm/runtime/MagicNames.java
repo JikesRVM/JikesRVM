@@ -16,6 +16,7 @@ import org.jikesrvm.classloader.Atom;
 
 /**
  * Method names that are treated specially by compiler.
+ * <p>
  * See also: Magic, various magic compilers.
  */
 public class MagicNames {

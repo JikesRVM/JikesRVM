@@ -64,21 +64,21 @@ final class VMCommonLibrarySupport {
     throw new IllegalAccessException("Access to " + member + " is denied to " + accessingClass);
   }
   /**
-   * Method just to throw an instantiation exception without being inlined
+   * Method just to throw an InstantiationException without being inlined
    */
   @NoInline
   private static void throwNewInstantiationException(String str) throws InstantiationException{
     throw new InstantiationException(str);
   }
   /**
-   * Method just to throw a negative array size exception without being inlined
+   * Method just to throw a NegativeArraySizeException without being inlined
    */
   @NoInline
   private static void throwNewNegativeArraySizeException() {
     throw new NegativeArraySizeException();
   }
   /**
-   * Method just to throw an null pointer exception without being inlined
+   * Method just to throw an NullPointerException without being inlined
    */
   @NoInline
   private static void throwNewNullPointerException() {
@@ -441,7 +441,7 @@ final class VMCommonLibrarySupport {
   }
   /* ---- Constructor/Method Support ---- */
   /**
-   * Convert from "vm" type system to "jdk" type system.
+   * Convert from "VM" type system to "JDK" type system.
    */
   static Class<?>[] typesToClasses(TypeReference[] types) {
     Class<?>[] classes = new Class[types.length];

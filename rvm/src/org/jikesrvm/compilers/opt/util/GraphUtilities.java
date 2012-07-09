@@ -20,7 +20,7 @@ public class GraphUtilities {
 
   /**
    * Return an enumeration of the nodes, or a subset of the nodes, in an
-   * acyclic graph in topological order .
+   * acyclic graph in topological order. <p>
    *
    * Note: if G is cyclic, results are undefined
    */

@@ -31,17 +31,7 @@ public final class Strings extends org.mmtk.vm.Strings {
     VM.tsysWrite(c, len);
   }
 
-  /**
-   * Copies characters from the string into the character array.
-   * Thread switching is disabled during this method's execution.
-   *
-   * @param str the source string
-   * @param dst the destination array
-   * @param dstBegin the start offset in the desination array
-   * @param dstEnd the index after the last character in the
-   * destination to copy to
-   * @return the number of characters copied.
-   */
+
   @Override
   public int copyStringToChars(String str, char [] dst,
                                int dstBegin, int dstEnd) {

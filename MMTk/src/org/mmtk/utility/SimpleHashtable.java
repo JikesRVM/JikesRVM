@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * This class implements a simple hashtable. It is intended for use
  * in sanity checking or debugging, not high-performance algorithms.<p>
  *
- * This class is not thread safe.
+ * This class is <i>not thread safe</i>.
  */
 @Uninterruptible public abstract class SimpleHashtable implements Constants {
   /** The number of low order bits to ignore */
@@ -96,11 +96,11 @@ import org.vmmagic.unboxed.*;
    * Retrieve a pointer to the entry for the given object, or zero if one
    * does not exist, unless create is passed.<p>
    *
-   * If create is true, the return is guaranteed to be non-null.
+   * If create is {@code true}, the return is guaranteed to be non-{@code null}.
    *
    * @param key The key used to lookup.
    * @param create Create a new entry if not found.
-   * @return A pointer to the reference or null.
+   * @return A pointer to the reference or {@code null}.
    */
   @Inline
   public final Address getEntry(Word key, boolean create) {
@@ -173,7 +173,7 @@ import org.vmmagic.unboxed.*;
    * null if it is the last entry.
    *
    * @param curr The object to look for the next entry from.
-   * @return The next entry or null.
+   * @return The next entry or {@code null}.
    */
   public final Address getNext(Address curr) {
     Address entry = curr.plus(entrySize);

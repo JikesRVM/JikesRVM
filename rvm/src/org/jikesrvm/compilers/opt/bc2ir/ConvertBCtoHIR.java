@@ -27,7 +27,7 @@ public final class ConvertBCtoHIR extends CompilerPhase {
   }
 
   /**
-   * Generate HIR for ir.method into ir
+   * Generate HIR for ir.method into IR
    *
    * @param ir The IR to generate HIR into
    */

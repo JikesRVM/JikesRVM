@@ -988,7 +988,7 @@ public class EnterSSA extends CompilerPhase {
   /**
    * After performing renaming on heap phi functions, this
    * routines notifies the SSA dictionary of the new names.
-   *
+   * <p>
    * FIXME - this was commented out: delete it ??  RJG
    *
    * @param ir the governing IR
@@ -1033,7 +1033,7 @@ public class EnterSSA extends CompilerPhase {
     }
   }
 
-  /**
+  /*
    * Compute type information for operands in each phi instruction.
    *
    * PRECONDITION: Def-use chains computed.
@@ -1111,7 +1111,7 @@ public class EnterSSA extends CompilerPhase {
   }
 
   /**
-   * Remove all unreachable operands from scalar phi functions
+   * Remove all unreachable operands from scalar phi functions<p>
    *
    * NOT CURRENTLY USED
    */
@@ -1144,10 +1144,10 @@ public class EnterSSA extends CompilerPhase {
 
   /**
    * Return the meet of the types on the rhs of a phi instruction
+   * <p>
+   * SIDE EFFECT: bashes the Instruction scratch field.
    *
    * @param s phi instruction
-   *
-   * SIDE EFFECT: bashes the Instruction scratch field.
    */
   private static TypeReference meetPhiType(Instruction s) {
 

@@ -73,7 +73,7 @@ public class VM extends Properties implements Constants, ExitStatus {
   //----------------------------------------------------------------------//
 
   /**
-   * Prepare vm classes for use by boot image writer.
+   * Prepare VM classes for use by boot image writer.
    * @param classPath class path to be used by RVMClassLoader
    * @param bootCompilerArgs command line arguments for the bootimage compiler
    */
@@ -86,7 +86,7 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   /**
-   * Prepare vm classes for use by tools.
+   * Prepare VM classes for use by tools.
    */
   @Interruptible
   public static void initForTool() {
@@ -94,7 +94,7 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   /**
-   * Prepare vm classes for use by tools.
+   * Prepare VM classes for use by tools.
    * @param classpath class path to be used by RVMClassLoader
    */
   @Interruptible
@@ -106,16 +106,18 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   /**
-   * Begin vm execution.
+   * Begin VM execution.<p>
+   *
    * Uninterruptible because we are not setup to execute a yieldpoint
-   * or stackoverflow check in the prologue this early in booting.
+   * or stackoverflow check in the prologue this early in booting.<p>
    *
    * The following machine registers are set by "C" bootstrap program
    * before calling this method:
-   *    JTOC_POINTER        - required for accessing globals
-   *    FRAME_POINTER       - required for accessing locals
-   *    THREAD_ID_REGISTER  - required for method prolog (stack overflow check)
-   * @exception Exception
+   * <ol>
+   *   <li>JTOC_POINTER - required for accessing globals
+   *   <li>FRAME_POINTER - required for accessing locals
+   *   <li>THREAD_ID_REGISTER - required for method prolog (stack overflow check)
+   * </ol>
    */
   @UnpreemptibleNoWarn("No point threading until threading is booted")
   @Entrypoint
@@ -208,7 +210,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     // Initialize statics that couldn't be placed in bootimage, either
     // because they refer to external state (open files), or because they
     // appear in fields that are unique to Jikes RVM implementation of
-    // standard class library (not part of standard jdk).
+    // standard class library (not part of standard JDK).
     // We discover the latter by observing "host has no field" and
     // "object not part of bootimage" messages printed out by bootimage
     // writer.
@@ -339,7 +341,7 @@ public class VM extends Properties implements Constants, ExitStatus {
       runClassInitializer("java.util.zip.InflaterDynHeader");
       runClassInitializer("java.util.zip.InflaterHuffmanTree");
     }
-    // Run class intializers that require JNI
+    // Run class initializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
     if (VM.BuildForGnuClasspath) {
       System.loadLibrary("javaio");
@@ -516,11 +518,11 @@ public class VM extends Properties implements Constants, ExitStatus {
   }
 
   /**
-   * Run <clinit> method of specified class, if that class appears
+   * Run {@code <clinit>} method of specified class, if that class appears
    * in bootimage and actually has a clinit method (we are flexible to
    * allow one list of classes to work with different bootimages and
    * different version of classpath (eg 0.05 vs. cvs head).
-   *
+   * <p>
    * This method is called only while the VM boots.
    *
    * @param className
@@ -571,9 +573,10 @@ public class VM extends Properties implements Constants, ExitStatus {
   //----------------------------------------------------------------------//
 
   /**
-   * Verify a runtime assertion (die w/traceback if assertion fails).
+   * Verify a runtime assertion (die w/traceback if assertion fails).<p>
+   *
    * Note: code your assertion checks as
-   * "if (VM.VerifyAssertions) VM._assert(xxx);"
+   * {@code if (VM.VerifyAssertions) VM._assert(xxx);}
    * @param b the assertion to verify
    */
   @Inline(value=Inline.When.AllArgumentsAreConstant)
@@ -583,8 +586,11 @@ public class VM extends Properties implements Constants, ExitStatus {
 
   /**
    * Verify a runtime assertion (die w/message and traceback if
-   * assertion fails).   Note: code your assertion checks as
-   * "if (VM.VerifyAssertions) VM._assert(xxx,yyy);"
+   * assertion fails).<p>
+   *
+   * Note: code your assertion checks as
+   * {@code if (VM.VerifyAssertions) VM._assert(xxx);}
+   *
    * @param b the assertion to verify
    * @param message the message to print if the assertion is false
    */
@@ -2407,7 +2413,7 @@ public class VM extends Properties implements Constants, ExitStatus {
    *    shutdown function  does not come with a message.
    * @param showNumber Print <code>number</code> following
    *    <code>message</code>?
-   * @param number Print this number, if <code>showNumber</code> is true. */
+   * @param number Print this number, if <code>showNumber</code> is {@code true}. */
   private static void handlePossibleRecursiveExit(String called, int depth, String message, boolean showNumber,
                                                   int number) {
     if (depth > 1 &&
@@ -2464,7 +2470,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     }
     /* Emergency death. */
     sysCall.sysExit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
-    /* And if THAT fails, go into an inf. loop.  Ugly, but it's better than
+    /* And if THAT fails, go into an infinite loop.  Ugly, but it's better than
        returning from this function and leading to yet more cascading errors.
        and misleading error messages.   (To the best of my knowledge, we have
        never yet reached this point.)  */
@@ -2480,7 +2486,7 @@ public class VM extends Properties implements Constants, ExitStatus {
   /**
    * Create class instances needed for boot image or initialize classes
    * needed by tools.
-   * @param bootstrapClasspath places where vm implemention class reside
+   * @param bootstrapClasspath places where VM implementation class reside
    * @param bootCompilerArgs command line arguments to pass along to the
    *                         boot compiler's init routine.
    */
@@ -2511,31 +2517,34 @@ public class VM extends Properties implements Constants, ExitStatus {
   /**
    * The disableGC() and enableGC() methods are for use as guards to protect
    * code that must deal with raw object addresses in a collection-safe manner
-   * (ie. code that holds raw pointers across "gc-sites").
+   * (i.e. code that holds raw pointers across "gc-sites").<p>
    *
-   * Authors of code running while gc is disabled must be certain not to
+   * Authors of code running while GC is disabled must be certain not to
    * allocate objects explicitly via "new", or implicitly via methods that,
    * in turn, call "new" (such as string concatenation expressions that are
    * translated by the java compiler into String() and StringBuffer()
-   * operations). Furthermore, to prevent deadlocks, code running with gc
+   * operations). Furthermore, to prevent deadlocks, code running with GC
    * disabled must not lock any objects. This means the code must not execute
-   * any bytecodes that require runtime support (eg. via RuntimeEntrypoints)
+   * any bytecodes that require runtime support (e.g. via RuntimeEntrypoints)
    * such as:
-   *   - calling methods or accessing fields of classes that haven't yet
+   * <ul>
+   *   <li>calling methods or accessing fields of classes that haven't yet
    *     been loaded/resolved/instantiated
-   *   - calling synchronized methods
-   *   - entering synchronized blocks
-   *   - allocating objects with "new"
-   *   - throwing exceptions
-   *   - executing trap instructions (including stack-growing traps)
-   *   - storing into object arrays, except when runtime types of lhs & rhs
+   *   <li>calling synchronized methods
+   *   <li>entering synchronized blocks
+   *   <li>allocating objects with "new"
+   *   <li>throwing exceptions
+   *   <li>executing trap instructions (including stack-growing traps)
+   *   <li>storing into object arrays, except when runtime types of lhs & rhs
    *     match exactly
-   *   - typecasting objects, except when runtime types of lhs & rhs
+   *   <li>typecasting objects, except when runtime types of lhs & rhs
    *     match exactly
+   * </ul>
    *
+   * <p>
    * Recommendation: as a debugging aid, Allocator implementations
    * should test "Thread.disallowAllocationsByThisThread" to verify that
-   * they are never called while gc is disabled.
+   * they are never called while GC is disabled.
    */
   @Inline
   @Unpreemptible("We may boost the size of the stack with GC disabled and may get preempted doing this")
@@ -2552,14 +2561,14 @@ public class VM extends Properties implements Constants, ExitStatus {
   @Inline
   @Unpreemptible("We may boost the size of the stack with GC disabled and may get preempted doing this")
   public static void disableGC(boolean recursiveOK) {
-    // current (non-gc) thread is going to be holding raw addresses, therefore we must:
+    // current (non-GC) thread is going to be holding raw addresses, therefore we must:
     //
-    // 1. make sure we have enough stack space to run until gc is re-enabled
+    // 1. make sure we have enough stack space to run until GC is re-enabled
     //    (otherwise we might trigger a stack reallocation)
     //    (We can't resize the stack if there's a native frame, so don't
     //     do it and hope for the best)
     //
-    // 2. force all other threads that need gc to wait until this thread
+    // 2. force all other threads that need GC to wait until this thread
     //    is done with the raw addresses
     //
     // 3. ensure that this thread doesn't try to allocate any objects

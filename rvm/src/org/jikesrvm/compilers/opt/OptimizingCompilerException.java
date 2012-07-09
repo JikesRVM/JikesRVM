@@ -70,7 +70,7 @@ public class OptimizingCompilerException extends RuntimeException {
   }
 
   /**
-   * @param   err message descrining reason for exception
+   * @param   err message describing reason for exception
    * @param   b is the exception fatal?
    */
   public OptimizingCompilerException(String err, boolean b) {
@@ -154,8 +154,8 @@ public class OptimizingCompilerException extends RuntimeException {
 
   /**
    * Use the UNREACHABLE methods to mark code that should never execute
-   * eg, unexpected cases of switch statments and nested if/then/else
-   * @param module module in which exception occured
+   * e.g., unexpected cases of switch statements and nested if/then/else
+   * @param module module in which exception occurred
    * @exception OptimizingCompilerException
    */
   public static void UNREACHABLE(String module) throws OptimizingCompilerException {
@@ -164,7 +164,7 @@ public class OptimizingCompilerException extends RuntimeException {
 
   /**
    * Use the UNREACHABLE methods to mark code that should never execute
-   * eg, unexpected cases of switch statments and nested if/then/else
+   * e.g., unexpected cases of switch statements and nested if/then/else
    * @param   module opt compiler module in which exception was raised
    * @param   err1 message describing reason for exception
    * @exception OptimizingCompilerException
@@ -175,7 +175,7 @@ public class OptimizingCompilerException extends RuntimeException {
 
   /**
    * Use the UNREACHABLE methods to mark code that should never execute
-   * eg, unexpected cases of switch statments and nested if/then/else
+   * e.g., unexpected cases of switch statements and nested if/then/else
    * @param   module opt compiler module in which exception was raised
    * @param   err1 message describing reason for exception
    * @param   err2 message describing reason for exception

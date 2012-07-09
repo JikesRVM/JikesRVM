@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.ir.Register;
 class FI_EscapeSummary {
 
   /**
-   * Returns true iff ANY object pointed to by symbolic register r
+   * Returns {@code true} iff ANY object pointed to by symbolic register r
    * MUST be thread local
    */
   boolean isThreadLocal(Register r) {
@@ -31,7 +31,7 @@ class FI_EscapeSummary {
   }
 
   /**
-   * Returns true iff ANY object pointed to by symbolic register r
+   * Returns {@code true} iff ANY object pointed to by symbolic register r
    * MUST be method local
    */
   boolean isMethodLocal(Register r) {

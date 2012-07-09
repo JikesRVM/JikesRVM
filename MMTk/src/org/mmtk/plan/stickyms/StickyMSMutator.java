@@ -44,6 +44,9 @@ public class StickyMSMutator extends MSMutator {
    * Instance fields
    */
 
+  /**
+   *
+   */
   private ObjectReferenceDeque modBuffer;
 
   /****************************************************************************
@@ -65,8 +68,7 @@ public class StickyMSMutator extends MSMutator {
    */
 
   /**
-   * A new reference is about to be created.  Take appropriate write
-   * barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
@@ -82,10 +84,7 @@ public class StickyMSMutator extends MSMutator {
   }
 
   /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the mutated source address range and
    * will scan that address range at GC time.

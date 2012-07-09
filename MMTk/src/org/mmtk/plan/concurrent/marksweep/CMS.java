@@ -35,6 +35,9 @@ public class CMS extends Concurrent {
    * Class variables
    */
 
+  /**
+   *
+   */
   public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
@@ -48,6 +51,9 @@ public class CMS extends Concurrent {
    * Instance variables
    */
 
+  /**
+   *
+   */
   public final Trace msTrace = new Trace(metaDataSpace);
 
   /*****************************************************************************
@@ -84,24 +90,15 @@ public class CMS extends Concurrent {
    */
 
   /**
-   * Return the number of pages reserved for use given the pending
-   * allocation.  The superclass accounts for its spaces, we just
+   * {@inheritDoc}
+   * The superclass accounts for its spaces, we just
    * augment this with the mark-sweep space's contribution.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Override
   public int getPagesUsed() {
     return (msSpace.reservedPages() + super.getPagesUsed());
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return True if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(MARK_SWEEP, object))

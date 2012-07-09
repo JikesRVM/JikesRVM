@@ -21,7 +21,8 @@ public interface RegisterConstants {
   //               RVM register usage conventions - Intel version.                         //
   //---------------------------------------------------------------------------------------//
 
-  byte LG_INSTRUCTION_WIDTH = 0;             // log2 of instruction width in bytes
+  /** log2 of instruction width in bytes */
+  byte LG_INSTRUCTION_WIDTH = 0;
   int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
 
   /**

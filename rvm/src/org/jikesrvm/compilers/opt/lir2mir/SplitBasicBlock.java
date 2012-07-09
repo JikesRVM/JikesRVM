@@ -46,7 +46,7 @@ public final class SplitBasicBlock extends CompilerPhase {
   /**
    * Splits basic block
    *
-   * @return null if no splitting is done, returns the second block if splitting is done.
+   * @return {@code null} if no splitting is done, returns the second block if splitting is done.
    */
   BasicBlock splitEachBlock(BasicBlock bb, IR ir) {
 

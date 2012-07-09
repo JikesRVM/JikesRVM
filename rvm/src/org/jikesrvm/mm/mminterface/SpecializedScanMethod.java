@@ -39,11 +39,11 @@ import org.vmmagic.unboxed.ObjectReference;
 /**
  * A method that scan objects and is specialized to a specific MMTk
  * TransitiveClosure type.
- *
+ * <p>
  * In general as there may not be a 1-1 mapping between objects and the
  * specialized methods this class is responsible for performing the
  * mapping.
- *
+ * <p>
  * Specialized methods must have a static 'invoke' method that matches
  * the given signature and return type.
  */
@@ -172,10 +172,10 @@ public final class SpecializedScanMethod extends SpecializedMethod implements Si
   }
 
   /**
-   * This method peforms the scanning of a given object.
-   *
+   * This method performs the scanning of a given object.
+   * <p>
    * This is the method that (may) be hijacked by the compiler to call the specialized method.
-   *
+   * <p>
    * It is safe for a compiler to ignore the potential gains and just use this method
    * directly.
    *

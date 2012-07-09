@@ -24,19 +24,19 @@ import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 import org.vmmagic.pragma.NoInline;
 
 /**
- * This class is not meant to be instantiated.
+ * This class is not meant to be instantiated.<p>
  * It simply serves as a place to collect the implementation of
- * primitive IR enumerations.
+ * primitive IR enumerations.<p>
  * None of these functions are meant to be called directly from
- * anywhere except IR, Instruction, and BasicBlock.
+ * anywhere except IR, Instruction, and BasicBlock.<p>
  * General clients should use the higher level interfaces provided
- * by those classes
+ * by those classes.
  */
 public abstract class IREnumeration {
 
   /**
    * Forward intra basic block instruction enumerations from
-   * from start...last inclusive.
+   * from start...last inclusive.<p>
    *
    * NB: start and last _must_ be in the same basic block
    *     and must be in the proper relative order.
@@ -78,7 +78,7 @@ public abstract class IREnumeration {
 
   /**
    * Reverse intra basic block instruction enumerations from
-   * from start...last inclusive.
+   * from start...last inclusive.<p>
    *
    * NB: start and last _must_ be in the same basic block
    *     and must be in the proper relative order.
@@ -286,7 +286,7 @@ public abstract class IREnumeration {
     /**
      * Are there more elements in the enumeration?
      *
-     * @return true or false
+     * @return {@code true} or {@code false}
      */
     @Override
     public boolean hasMoreElements() {

@@ -35,7 +35,7 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
  * through a command line option:
  * <code>-X:aos:cafi=path-to-advice-file</code>.
  * This file specifies which methods should be optimized, and at
- * what level.
+ * what level.<p>
  *
  * Optionally, a dynamic call graph and edge counts may also
  * be provided in advice files, at the command line.
@@ -64,7 +64,7 @@ public class BulkCompile implements Callbacks.StartupMonitor {
 
   /**
    * Compile all methods nominated in the compiler advice,
-   * which should have been provided in a .ca advice file.
+   * which should have been provided in a .ca advice file.<p>
    *
    * This method will be called at boot time (via notifyStartup())
    * if ENABLE_PRECOMPILE is true.  For replay compilation, this

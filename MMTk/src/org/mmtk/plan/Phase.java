@@ -22,13 +22,13 @@ import org.vmmagic.pragma.*;
 
 /**
  * A garbage collection proceeds as a sequence of phases. Each
- * phase is either simple (singular) or complex (an array).
+ * phase is either simple (singular) or complex (an array).<p>
  *
  * The context an individual phase executes in may be global, mutator,
- * or collector.
+ * or collector.<p>
  *
  * Phases are executed within a stack and all synchronization between
- * parallel GC threads is managed from within this class.
+ * parallel GC threads is managed from within this class.<p>
  *
  * @see MutatorContext#collectionPhase
  */
@@ -339,7 +339,7 @@ public abstract class Phase implements Constants {
 
   /**
    * Do we need to add a sync point to reset the mutator count. This
-   * is necessary for consecutive mutator phases and unneccessary
+   * is necessary for consecutive mutator phases and unnecessary
    * otherwise. Again we separate in even and odd to ensure that there
    * is no race between the primary thread setting and the helper
    * threads reading.
@@ -348,7 +348,7 @@ public abstract class Phase implements Constants {
 
   /**
    * Do we need to add a sync point to reset the mutator count. This
-   * is necessary for consecutive mutator phases and unneccessary
+   * is necessary for consecutive mutator phases and unnecessary
    * otherwise. Again we separate in even and odd to ensure that there
    * is no race between the primary thread setting and the helper
    * threads reading.
@@ -751,7 +751,7 @@ public abstract class Phase implements Constants {
   }
 
   /**
-   * @return True if there is an active concurrent phase.
+   * @return {@code true}if there is an active concurrent phase.
    */
   public static boolean concurrentPhaseActive() {
     return (concurrentPhaseId > 0);

@@ -22,8 +22,6 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * ServerSpace.java
- *
  * This class implements the GCspy Space abstraction.
  * Here, it largely to forward calls to the gcspy C library.
  */
@@ -76,6 +74,9 @@ import org.vmmagic.pragma.*;
    */
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void setTilename(int i, Address start, Address end) {
     if (VM.BuildWithGCSpy)

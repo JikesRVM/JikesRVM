@@ -21,13 +21,13 @@ import org.vmmagic.pragma.Uninterruptible;
  */
 @Uninterruptible
 public final class PerfEvent extends LongCounter {
-  /** True if the counter did not run due to contention for a physical counter */
+  /** {@code true} if the counter did not run due to contention for a physical counter */
   private boolean contended;
 
-  /** True if the counter did not run all of the time and has been scaled appropriately */
+  /** {@code true} if the counter did not run all of the time and has been scaled appropriately */
   private boolean scaled;
 
-  /** True if the counter overflowed */
+  /** {@code true} if the counter overflowed */
   private boolean overflowed;
 
   /** The index of the counter in the native array */
@@ -42,7 +42,7 @@ public final class PerfEvent extends LongCounter {
   private static final int TIME_ENABLED = 1;
   private static final int TIME_RUNNING = 2;
 
-  /** True if any data was scaled */
+  /** {@code true} if any data was scaled */
   public static boolean dataWasScaled = false;
 
   public PerfEvent(int index, String name) {

@@ -23,11 +23,13 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode.GraphEdgeEnumeration;
 
 /**
  * This class represents a graph, where
- *    - the nodes are registers
- *    - the edge weights represent affinities between registers.
- *
+ * <ul>
+ *   <li> the nodes are registers
+ *   <li> the edge weights represent affinities between registers.
+ * </ul>
+ * <p>
  * This graph is used to drive coalescing during register allocation.
- *
+ * <p>
  * Implementation: this is meant to be an undirected graph.  By
  * convention, we enforce that the register with the lower number is the
  * source of an edge.

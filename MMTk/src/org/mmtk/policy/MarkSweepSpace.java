@@ -41,6 +41,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    *
    * Class variables
    */
+
   /**
    * Select between using mark bits in a side bitmap, or mark bits
    * in the headers of object (or other sub-class scheme), and a single
@@ -69,6 +70,10 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private byte markState = 1;
   private byte allocState = 0;
@@ -157,11 +162,10 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   }
 
   /**
-   * Notify that a new block has been installed. This is to ensure that
-   * appropriate collection state can be initialized for the block
+   * {@inheritDoc}<p>
    *
-   * @param block The new block
-   * @param sizeClass The block's sizeclass.
+   * This is to ensure that appropriate collection state can be initialized
+   * for the block.
    */
   @Override
   protected void notifyNewBlock(Address block, int sizeClass) {
@@ -274,9 +278,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   }
 
   /**
-   *
-   * @param object The object in question
-   * @return True if this object is known to be live (i.e. it is marked)
+   * @return {@code true} if this object is known to be live (i.e. it is marked)
    */
   @Override
   @Inline
@@ -382,7 +384,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * Return true if the mark count for an object has the given value.
    *
    * @param object The object whose mark bit is to be tested
-   * @return True if the mark bit for the object is set.
+   * @return <code>true</code> if the mark bit for the object is set.
    */
   @Inline
   private boolean testMarkState(ObjectReference object) {

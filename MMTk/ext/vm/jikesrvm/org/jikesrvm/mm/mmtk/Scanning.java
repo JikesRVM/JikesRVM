@@ -37,6 +37,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
    *
    * Class variables
    */
+
   /** Counter to track index into thread table for root tracing.  */
   private static final SynchronizedCounter threadCounter = new SynchronizedCounter();
 
@@ -191,4 +192,3 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
     ScanBootImage.scanBootImage(trace);
   }
 }
-

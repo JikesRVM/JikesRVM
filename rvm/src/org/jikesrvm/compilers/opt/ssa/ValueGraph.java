@@ -67,13 +67,13 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
  * This class implements the value graph used in global value numbering
  * a la Alpern, Wegman and Zadeck.  See Muchnick p.348 for a nice
  * discussion.
- *
+ * <p>
  * From Muchnick, "the <em>value graph</em> of a procedure is a
  * labeled directed graph whose nodes are labeled with operators,
  * function symbols, or constants, and whose edges represent
  * generating assignments and point from an operator or function to
  * its operands; the edges are labeled with natural numbers that
- * indicate the operand postion that each operand has with repsect to
+ * indicate the operand position that each operand has with respect to
  * the given operator or function."
  */
 final class ValueGraph {
@@ -778,7 +778,7 @@ final class ValueGraph {
   /**
    * Bypass MOVE instructions that def an operand: return the first def
    * in the chain that is not the result of a MOVE instruction.
-   *
+   * <p>
    * Note: treat PI instructions like MOVES
    *
    * @param op the RegisterOperand

@@ -40,6 +40,10 @@ public class MSMutator extends StopTheWorldMutator {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   protected MarkSweepLocal ms = new MarkSweepLocal(MS.msSpace);
 
 
@@ -48,9 +52,10 @@ public class MSMutator extends StopTheWorldMutator {
    */
 
   /**
-   * Allocate memory for an object. This class handles the default allocator
-   * from the mark sweep space, and delegates everything else to the
-   * superclass.
+   * {@inheritDoc}<p>
+   *
+   * This class handles the default allocator from the mark sweep space,
+   * and delegates everything else to the superclass.
    */
   @Inline
   @Override
@@ -62,9 +67,10 @@ public class MSMutator extends StopTheWorldMutator {
   }
 
   /**
-   * Perform post-allocation actions.  Initialize the object header for
-   * objects in the mark-sweep space, and delegate to the superclass for
-   * other objects.
+   * {@inheritDoc}<p>
+   *
+   * Initialize the object header for objects in the mark-sweep space,
+   * and delegate to the superclass for other objects.
    */
   @Inline
   @Override

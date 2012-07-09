@@ -127,8 +127,11 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
     return POSITIVE_MASK(value);
   }
 
+
   /**
-   * returns true if the constant fits the mask of PowerPC's RLWINM
+   *
+   * @param value
+   * @return {@code true} if the constant fits the mask of PowerPC's RLWINM
    */
   protected final boolean POSITIVE_MASK(int value) {
     if (value == 0) {
@@ -323,8 +326,9 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
   }
 
   /**
-   * Emit code to move 32 bits from GPRs to FPRs
-   * Note: intentionally use 'null' location to prevent DepGraph
+   * Emits code to move 32 bits from GPRs to FPRs.<p>
+   *
+   * Note: intentionally uses {@code null} location to prevent DepGraph
    * from assuming that load/store not aliased. We're stepping outside
    * the Java type system here!
    */
@@ -337,8 +341,9 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
   }
 
   /**
-   * Emit code to move 64 bits from FPRs to GPRs
-   * Note: intentionally use 'null' location to prevent DepGraph
+   * Emit codes to move 64 bits from FPRs to GPRs.<p>
+   *
+   * Note: intentionally uses {@code null} location to prevent DepGraph
    * from assuming that load/store not aliased. We're stepping outside
    * the Java type system here!
    */
@@ -358,8 +363,9 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
   }
 
   /**
-   * Emit code to move 64 bits from GPRs to FPRs
-   * Note: intentionally use 'null' location to prevent DepGraph
+   * Emits code to move 64 bits from GPRs to FPRs.<p>
+   *
+   * Note: intentionally uses {@code null} location to prevent DepGraph
    * from assuming that load/store not aliased. We're stepping outside
    * the Java type system here!
    */

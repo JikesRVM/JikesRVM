@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 /**
- *  This class is used only for the pre-allocated empty enumeration in
+ * This class is used only for the pre-allocated empty enumeration in
  * BasicBlockEnumeration.  It cannot be an anonymous class in
  * BasicBlockEnumeration because BasicBlockEnumeration is an
  * interface, and when javadoc sees the anonymous class, it converts

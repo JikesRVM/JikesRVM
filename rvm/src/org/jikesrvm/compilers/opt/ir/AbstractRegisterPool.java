@@ -79,7 +79,7 @@ public abstract class AbstractRegisterPool {
   }
 
   /**
-   * Release a now unused register.
+   * Release a now unused register.<p>
    * NOTE: It is the CALLERS responsibility to ensure that the register is no
    * longer used!!!!
    * @param r the register to release
@@ -240,6 +240,7 @@ public abstract class AbstractRegisterPool {
   /**
    * MIR: Get the other half of the register pair that is
    * associated with the argument register.
+   * <p>
    * Note: this isn't incredibly general, but all architectures we're currently
    * targeting need at most 2 machine registers to hold Java data values, so
    * for now don't bother implementing a general mechanism.

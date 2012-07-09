@@ -59,7 +59,7 @@ final class TreeBottomUpEnumerator implements Enumeration<TreeNode> {
 
   /**
    * returns the next element in the list iterator
-   * @return the next element in the list iterator or null
+   * @return the next element in the list iterator or {@code null}
    */
   @Override
   public TreeNode nextElement() {
@@ -79,6 +79,3 @@ final class TreeBottomUpEnumerator implements Enumeration<TreeNode> {
     list.add(node);
   }
 }
-
-
-

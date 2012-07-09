@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This abstract class implements the core functionality of generic
- * two-generationa copying collectors.  Nursery collections occur when
+ * two-generation copying collectors.  Nursery collections occur when
  * either the heap is full or the nursery is full.  The nursery size
  * is determined by an optional command line argument.  If undefined,
  * the nursery size is "infinite", so nursery collections only occur
@@ -50,6 +50,10 @@ public abstract class Gen extends StopTheWorld {
   /*****************************************************************************
    *
    * Constants
+   */
+
+  /**
+   *
    */
   public static final float DEFAULT_PRETENURE_THRESHOLD_FRACTION = 0.5f; // if object is bigger than this fraction of nursery, pretenure to LOS
   protected static final float SURVIVAL_ESTIMATE = 0.8f; // est yield
@@ -81,6 +85,10 @@ public abstract class Gen extends StopTheWorld {
    * Class fields
    */
 
+  /**
+   *
+   */
+
   /* Statistics */
   protected static final BooleanCounter fullHeap = new BooleanCounter("majorGC", true, true);
   private static final Timer fullHeapTime = new Timer("majorGCTime", false, true);
@@ -89,7 +97,7 @@ public abstract class Gen extends StopTheWorld {
   public static final SizeCounter nurseryMark;
   public static final SizeCounter nurseryCons;
 
-  /** The nursery space is where all new objects are allocated by default */
+  /* The nursery space is where all new objects are allocated by default */
   private static final VMRequest vmRequest = USE_DISCONTIGUOUS_NURSERY ? VMRequest.create() : VMRequest.create(NURSERY_VM_FRACTION, true);
   public static final CopySpace nurserySpace = new CopySpace("nursery", false, vmRequest);
 
@@ -100,7 +108,12 @@ public abstract class Gen extends StopTheWorld {
    *
    * Instance fields
    */
+
   /* status fields */
+
+  /**
+   *
+   */
   public boolean gcFullHeap = false;
   public boolean nextGCFullHeap = false;
 
@@ -109,6 +122,10 @@ public abstract class Gen extends StopTheWorld {
 
   /**
    * Remset pools
+   */
+
+  /**
+   *
    */
   public final SharedDeque modbufPool = new SharedDeque("modBufs",metaDataSpace, 1);
   public final SharedDeque remsetPool = new SharedDeque("remSets",metaDataSpace, 1);
@@ -223,7 +240,7 @@ public abstract class Gen extends StopTheWorld {
   /**
    * Determine if this GC should be a full heap collection.
    *
-   * @return True is this GC should be a full heap collection.
+   * @return <code>true</code> is this GC should be a full heap collection.
    */
   protected boolean requiresFullHeapCollection() {
     if (userTriggeredCollection && Options.fullHeapSystemGC.getValue()) {
@@ -248,7 +265,7 @@ public abstract class Gen extends StopTheWorld {
    * we must never let the nursery grow to the extent that it can't be
    * copied into the mature space.
    *
-   * @return True if the nursery has grown to the extent that it may not be
+   * @return {@code true} if the nursery has grown to the extent that it may not be
    * able to be copied into the mature space.
    */
   private boolean virtualMemoryExhausted() {
@@ -266,12 +283,9 @@ public abstract class Gen extends StopTheWorld {
    */
 
   /**
-   * Return the number of pages in use given the pending
-   * allocation.  Simply add the nursery's contribution to that of
+   * {@inheritDoc}
+   * Simply add the nursery's contribution to that of
    * the superclass.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Override
   public int getPagesUsed() {
@@ -291,10 +305,7 @@ public abstract class Gen extends StopTheWorld {
   }
 
   /**
-   * Return the number of pages reserved for copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
+   * Return the number of pages reserved for collection.
    */
   @Override
   public int getCollectionReserve() {
@@ -316,10 +327,10 @@ public abstract class Gen extends StopTheWorld {
    */
 
   /**
-   * Return true if the address resides within the nursery
+   * Return {@code true} if the address resides within the nursery
    *
    * @param addr The object to be tested
-   * @return true if the address resides within the nursery
+   * @return {@code true} if the address resides within the nursery
    */
   @Inline
   static boolean inNursery(Address addr) {
@@ -330,10 +341,10 @@ public abstract class Gen extends StopTheWorld {
   }
 
   /**
-   * Return true if the object resides within the nursery
+   * Return {@code true} if the object resides within the nursery
    *
    * @param obj The object to be tested
-   * @return true if the object resides within the nursery
+   * @return {@code true} if the object resides within the nursery
    */
   @Inline
   static boolean inNursery(ObjectReference obj) {
@@ -359,13 +370,16 @@ public abstract class Gen extends StopTheWorld {
   }
 
   /**
+   * Accessor method to allow the generic generational code in Gen.java
+   * to access the mature space.
+   *
    * @return The mature space, set by each subclass of <code>Gen</code>.
    */
   protected abstract Space activeMatureSpace();
 
   /**
-   * @return True if we should trace the whole heap during collection. True if
-   *         we're ignorning remsets or if we're doing a full heap GC.
+   * @return {@code true} if we should trace the whole heap during collection. True if
+   *         we're ignoring remsets or if we're doing a full heap GC.
    */
   public final boolean traceFullHeap() {
     return IGNORE_REMSETS || gcFullHeap;
@@ -381,12 +395,6 @@ public abstract class Gen extends StopTheWorld {
     return gcFullHeap;
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return True if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(NURSERY, object))
@@ -394,14 +402,6 @@ public abstract class Gen extends StopTheWorld {
     return super.willNeverMove(object);
   }
 
-  /**
-   * Return the expected reference count. For non-reference counting
-   * collectors this becomes a true/false relationship.
-   *
-   * @param object The object to check.
-   * @param sanityRootRC The number of root references to the object.
-   * @return The expected (root excluded) reference count.
-   */
   @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
@@ -425,9 +425,6 @@ public abstract class Gen extends StopTheWorld {
     return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

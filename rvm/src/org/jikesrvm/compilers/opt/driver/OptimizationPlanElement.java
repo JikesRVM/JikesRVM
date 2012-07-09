@@ -18,14 +18,14 @@ import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
  * An element in the opt compiler's optimization plan.
- *
+ * <p>
  * NOTE: Instances of subclasses of this class are
  *       held in OptimizationPlanner.masterPlan
  *       and thus represent global state.
  *       It is therefore incorrect for any per-compilation
  *       state to be stored in an instance field of
  *       one of these objects.
- *
+ * <p>
  * TODO: refactor the optimization plan elements and compiler phases
  */
 public abstract class OptimizationPlanElement {
@@ -35,7 +35,7 @@ public abstract class OptimizationPlanElement {
    * if this optimization plan element should be performed.
    *
    * @param options The Options object for the current compilation.
-   * @return true if the plan element should be performed.
+   * @return {@code true} if the plan element should be performed.
    */
   public abstract boolean shouldPerform(OptOptions options);
 

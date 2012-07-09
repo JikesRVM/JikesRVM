@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * not.  Thus nursery objects are identified by a bit in their header, not by
  * where they lie within the address space.  While Demmers et al. did their work
  * in a conservative collector, here we have an exact collector, so we can use
- * a regular write barrier, and don't need to use page protection etc.
+ * a regular write barrier, and don't need to use page protection etc.<p>
  *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
@@ -43,12 +43,12 @@ import org.vmmagic.unboxed.ObjectReference;
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
  * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
- * allocation and collection.
+ * allocation and collection.<p>
  *
  * The global instance defines and manages static resources
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
- * performance properties of MMTk plans.
+ * performance properties of MMTk plans.<p>
  */
 @Uninterruptible
 public class StickyMS extends MS {
@@ -56,27 +56,33 @@ public class StickyMS extends MS {
   /****************************************************************************
    * Constants
    */
-  /** If true, then new PLOS objects are collected at each nursery GC */
+
+  /** If {@code true}, then new PLOS objects are collected at each nursery GC */
   static final boolean NURSERY_COLLECT_PLOS = true;
-  /** If true then we only do full heap GCs---so we're like MarkSweep (+ write barrier) */
+  /** If {@code true} then we only do full heap GCs---so we're like MarkSweep (+ write barrier) */
   static final boolean MAJOR_GC_ONLY = false;
 
   /****************************************************************************
    * Class variables
    */
 
+  /**
+   *
+   */
   public static int SCAN_NURSERY = 1;
 
   /****************************************************************************
    * Instance variables
    */
+
   /* status fields */
+
   /** will the next collection collect the whole heap? */
   public boolean nextGCWholeHeap = false;
   /** will this collection collect the whole heap */
   public boolean collectWholeHeap = nextGCWholeHeap;
 
-  /* Remset pool */
+  /** Remset pool */
   public final SharedDeque modPool = new SharedDeque("msgen mod objects", metaDataSpace, 1);
 
   /****************************************************************************
@@ -139,7 +145,8 @@ public class StickyMS extends MS {
    */
 
   /**
-   * Print pre-collection statistics. In this class we prefix the output
+   * {@inheritDoc}
+   * In this class we prefix the output
    * indicating whether the collection was full heap or not.
    */
   @Override

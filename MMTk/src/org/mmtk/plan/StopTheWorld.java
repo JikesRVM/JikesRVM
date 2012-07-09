@@ -52,6 +52,9 @@ public abstract class StopTheWorld extends Simple {
    * Collection
    */
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Interruptible
   public void processOptions() {

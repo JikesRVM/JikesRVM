@@ -38,7 +38,7 @@ import org.vmmagic.unboxed.Offset;
  * Description of a java "array" type. <p>
  *
  * This description is not read from a ".class" file, but rather
- * is manufactured by the vm as execution proceeds.
+ * is manufactured by the VM as execution proceeds.
  *
  * @see RVMType
  * @see RVMClass
@@ -497,7 +497,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
 
   /**
    * Instantiate an array.
-   * Main result is to copy the virtual methods from JavaLangObject's tib.
+   * Main result is to copy the virtual methods from JavaLangObject's TIB.
    */
   @Override
   public synchronized void instantiate() {

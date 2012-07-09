@@ -23,7 +23,7 @@ public abstract class UnResolvedWeightedCallTargets {
 
   /**
    * Iterate over all of the targets, evaluating the argument function on each edge.
-   * NOTE: We guarentee that the targets will be iterated in monotonically decrasing
+   * NOTE: We guarantee that the targets will be iterated in monotonically decreasing
    *       edge weight. This simplifies the coding of the inlining clients that consume
    *       this information.
    * @param func the function to evaluate on each target
@@ -61,7 +61,7 @@ public abstract class UnResolvedWeightedCallTargets {
 
   /**
    * @param goal MethodReference that is the only statically possible target
-   * @return the filtered call targets or null if no such target exisits
+   * @return the filtered call targets or null if no such target exists
    */
   public abstract UnResolvedWeightedCallTargets filter(MethodReference goal);
 

@@ -54,7 +54,7 @@ public final class ReferenceMaps implements BaselineConstants {
   private JSRInfo jsrInfo;
 
   /**
-   * size of individul maps
+   * size of individual maps
    */
   private int bytesPerMap() {
     return ((bitsPerMap + 7) / 8) + 1;
@@ -93,19 +93,19 @@ public final class ReferenceMaps implements BaselineConstants {
 
   /**
    * Given a machine code instruction offset, return an index to
-   * identify the stack map closest to the offset ( but not beyond)
+   * identify the stack map closest to the offset ( but not beyond).<p>
    *
    * Usage note: "machCodeOffset" must point to the instruction *following*
    *              the actual instruction
    * whose stack map is sought. This allows us to properly handle the case where
-   * the only address we have to work with is a return address (ie. from a stackframe)
-   * or an exception address (ie. from a null pointer dereference, array bounds check,
+   * the only address we have to work with is a return address (i.e. from a stackframe)
+   * or an exception address (i.e. from a null pointer dereference, array bounds check,
    * or divide by zero) on a machine architecture with variable length instructions.
    * In such situations we'd have no idea how far to back up the instruction pointer
-   * to point to the "call site" or "exception site".
+   * to point to the "call site" or "exception site".<p>
    *
    * If the located site is within the scope of a jsr subroutine
-   *  the index value returned is a negative number
+   *  the index value returned is a negative number.
    */
   public int locateGCPoint(Offset machCodeOffset, RVMMethod method) {
 
@@ -133,7 +133,7 @@ public final class ReferenceMaps implements BaselineConstants {
         break;
       }
     }
-    // scan to find any better location ie closer to the site
+    // scan to find any better location i.e. closer to the site
     for (int i = index + 1; i < mapCount; i++) {
       Offset dist = machCodeOffset.minus(MCSites[i]);
       if (dist.sLT(Offset.zero())) continue;
@@ -243,11 +243,10 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * @param index offset in the JSR reference map,
-   * @return The offset where the next reference can be found.
-   * @return <code>NOMORE</code> when no more pointers can be found
-   * <p>
-   * NOTE: There is only one JSR map for the entire method because it has to
+   * Given an offset in the jsr reference map,
+   * return the offset where the next returnAddress can be found.<p>
+
+   *  NOTE: There is only one JSR map for the entire method because it has to
    *       be constructed at GC time and would normally require additional
    *       storage.
    * <p>
@@ -256,6 +255,11 @@ public final class ReferenceMaps implements BaselineConstants {
    *       in multiple threads concurrently, then the MethodMap must be locked
    *       when a JSR map is being scanned.  This should be a low probability
    *       event.
+   *
+   * @param index offset in the JSR reference map,
+   * @return The offset where the next reference can be found or
+   *  <code>NOMORE</code> when no more pointers can be found
+   *
    */
   public int getNextJSRRefIndex(int index) {
     // user index to locate the gc point of interest
@@ -300,7 +304,7 @@ public final class ReferenceMaps implements BaselineConstants {
 
   /**
    * Given an offset in the jsr returnAddress map,
-   *   return the offset where the next returnAddress can be found.
+   *   return the offset where the next returnAddress can be found.<p>
    *
    * NOTE: there is only one jsr returnAddress map for the entire method because it has to be
    *       be constructed a GC time and would normally require additional storage.
@@ -308,13 +312,14 @@ public final class ReferenceMaps implements BaselineConstants {
    *       is built in that space. When multiple threads exist and if GC runs
    *       in multiple threads concurrently, then the MethodMap must be locked
    *       when a jsr map is being scanned.
-   *       This shoulkd be a low probability event.
+   *       This should be a low probability event.<p>
    *
    * NOTE: return addresses are handled separately from references because they point
    *       inside an object ( internal pointers)
    *
-   * Return NOMORE when no
-   * more pointers can be found
+   * @param index offset in the JSR returnAddress map,
+   * @return The offset where the next reference can be found or
+   *  <code>NOMORE</code> when no more pointers can be found
    */
   public int getNextJSRReturnAddrIndex(int index) {
     // use the preallocated map to locate the current point of interest
@@ -439,14 +444,12 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * Given the information about a GC point, record the information in the proper tables
-   *
-   *  The information is the following
-   *      the index in the bytecode of this site,
-   *      a byte array that describes the contents of the local variables and the java stack,
-   *      the last offset of a byte that contains information about the map,
-   *      a boolean to indicate that this map is a replacement for a currently
-   *        existing map.
+   * Given the information about a GC point, record the information in the proper tables.
+   * @param byteindex the index in the bytecode of this site
+   * @param byteMap a byte array that describes the contents of the local variables and the java stack
+   * @param BBLastPtr the last offset of a byte that contains information about the map
+   * @param replacemap whether this map is a replacement for a currently
+   *        existing map
    */
   @Interruptible
   public void recordStkMap(int byteindex, byte[] byteMap, int BBLastPtr, boolean replacemap) {
@@ -573,7 +576,7 @@ public final class ReferenceMaps implements BaselineConstants {
    * @param returnAddrIndex   Index in the stack where the return address
    *                            for the jsr routine (in which this gcpoint is located)
    *                            can be found
-   * @param replacemap        False if this is the first time this map point has been
+   * @param replacemap        {@code false} if this is the first time this map point has been
    *                          recorded.
    */
   @Interruptible
@@ -591,7 +594,7 @@ public final class ReferenceMaps implements BaselineConstants {
       findJSRSiteMap:
       for (mapNum = 0; mapNum < mapCount; mapNum++) {
         if (MCSites[mapNum] == byteindex) {
-          // gc site found - get index in unusual map table and the unusual Map
+          // GC site found - get index in unusual map table and the unusual Map
           unusualMapIndex = JSR_INDEX_MASK & referenceMaps[mapNum * bytesPerMap()];
           internalReturnIndex = returnAddrIndex - 1; //-1 for jsrbit
           if (unusualMapIndex == JSR_INDEX_MASK) {
@@ -620,7 +623,7 @@ public final class ReferenceMaps implements BaselineConstants {
       // add unusual map to UnusualMap table (table may need to be expanded)
       unusualMapIndex = addUnusualMap(jsrSiteMap);
 
-      // set back pointer ie pointer from unusual maps back into referencemaps
+      // set back pointer i.e. pointer from unusual maps back into referencemaps
       jsrSiteMap.setNormalMapIndex(mapNum);
 
       // setup index in reference maps
@@ -762,23 +765,26 @@ public final class ReferenceMaps implements BaselineConstants {
   /**
    * Setup a map  within a JSR Subroutine. This requires using up one
    * of the unusual maps. This routine is called when the caller gets a
-   *  negative mapindex value return from {@link #locateGCPoint}. This routine
-   *  searches the map tables and uses its stack frameAddress input to build
-   *  reference and returnAddress maps. The caller uses the getNext...
-   *  routines to scan these maps for offsets in the frame of the
-   *  related references.
+   * negative mapindex value return from {@link #locateGCPoint}. This routine
+   * searches the map tables and uses its stack frameAddress input to build
+   * reference and returnAddress maps. The caller uses the getNext...
+   * routines to scan these maps for offsets in the frame of the
+   * related references.<p>
+   *
+   * Steps for this routine:
+   * <ol>
+   *   <li>use the mapid to get index of the Unusual Map
+   *   <li>from the unusual map and the frame - get the location of the jsr invoker
+   *   <li>from the invoker address and the code base address - get the machine code offset
+   *   from the machine code offset locate the map for that instruction
+   *   <li>if the invoker was itself in a jsr- merge the delta maps of each jsr and
+   *     compute the new total delta maps
+   *   <li>else the invoker was not already in a jsr merge the unusual map differences
+   *     with the invoker map
+   * </ol>
    *
    * @param mapid             Index of map of instruction where map is required
    *                          ( this value was returned by locateGCpoint)
-   * steps for this routine
-   *   use the mapid to get index of the Unusual Map
-   *   from the unusual map and the frame - get the location of the jsr invoker
-   *   from the invoker address and the code base address - get the machine code offset
-   *   from the machine code offset locate the map for that instruction
-   *   if the invoker was itself in a jsr- merge the delta maps of each jsr and
-   *     compute the new total delta maps
-   *   else the invoker was not already in a jsr merge the unusual map differences
-   *     with the invoker map
    */
   public int setupJSRSubroutineMap(int mapid) {
 
@@ -888,12 +894,12 @@ public final class ReferenceMaps implements BaselineConstants {
 
   /**
    * convert a portion of an array word of Bytes into a bitmap of references
-   * ie given a byte array,
+   * i.e. given a byte array,
    *    a starting offset in the array,
    *    the length to scan,
    *    and the type of byte to scan for
    *   ... convert the area in the array to a
-   *        word of bits ... max length is 31 ie BITS_PER_MAP_ELEMENT
+   *        word of bits ... max length is 31 i.e. BITS_PER_MAP_ELEMENT
    */
   private byte convertMapElement(byte[] curBBMap, int offset, int len, byte reftype) {
     byte bitmap = 0;
@@ -908,7 +914,7 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * get Next free word in referencemaps for gc call sites
+   * get Next free word in referencemaps for GC call sites
    */
   @Interruptible
   private int getNextMapElement() {
@@ -948,12 +954,15 @@ public final class ReferenceMaps implements BaselineConstants {
       return offset;
     }
   */
+
   /**
-   * given a starting bitnumber in a map,
-   * the index of the corresponding byte,
-   * and the remaining number of bits in the map,
-   * this routine scans forward to find the next ref in
-   * the map (inclusive search ie include bitnum)
+   * Scans the map for the next reference.
+   *
+   * @param bitnum starting bitnumber in a map (inclusive)
+   * @param wordnum index of the corresponding byte,
+   * @param remaining remaining number of bits in the map,
+   * @param map map to search
+   * @return TODO document me
    */
   private int scanForNextRef(int bitnum, int wordnum, int remaining, byte[] map) {
     int retbit, count = 0;
@@ -998,11 +1007,13 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * given a bitnumber in a map,
-   * the index of the corresponding map byte,
-   * and the remaining number of bits in the byte,
-   * this routine scans forward to find the next ref in
-   * the byte or return zero if not found
+   * Scans for a reference in a byte.
+   *
+   * @param bitnum bitnumber in the map
+   * @param bytenum index of the corresponding map byte
+   * @param toscan the remaining number of bits in the byte,
+   * @param map the map
+   * @return next ref in the byte or zero if not found
    */
   private int scanByte(int bitnum, int bytenum, int toscan, byte[] map) {
     int count = 0, mask;
@@ -1036,15 +1047,16 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * given a bytearray where each byte describes the corresponding word on a stack,
-   *  the length of the byte array,
-   *  and the type of information that is desired to be scanned
-   * this subroutine scans the byte array looking for the type of information requested
-   * and builds a bit array in the stack maps with the information
-   * Skip one bits in the bitarray if skipOnBit is true - we need to skip one bit
-   *   for setRef and setNonRef maps so they are properly merged with jsr base maps.
-   *   However, we leave the retAddrMap alone.
-   * it returns the index of the map in the reference map
+   * Scans the byte array to look for the type of information that was requested. Builds a
+   * bit array in the stack maps with the information.
+   *
+   * @param byteMap bytearray where each byte describes the corresponding word on a stack
+   * @param BBLastPtr length of the byte array
+   * @param refType type of information that is to be scanned
+   * @param mapslot slot where map should be stored, 0 for next free slot
+   * @param skipOneBit should a bit in the bitarray be skipped? Necessary for setRef and
+   * setNonRef maps so so they are properly merged with jsr base maps.
+   * @return index of the map in the reference map
    */
   @Interruptible
   int scanByteArray(byte[] byteMap, int BBLastPtr, byte refType, int mapslot, boolean skipOneBit) {
@@ -1085,8 +1097,10 @@ public final class ReferenceMaps implements BaselineConstants {
     return mapslot;
   }
 
+
   /**
-   * subroutine to deep copy an UnusualMap into the jsrInfo.extraUnusualMap
+   * Makes a deep copy of {@code from} into {@code jsrInfo.extraUnusualMap}
+   * @param from
    */
   private void unusualMapcopy(UnusualMaps from) {
     jsrInfo.extraUnusualMap.setReturnAddressIndex(from.getReturnAddressIndex());
@@ -1096,12 +1110,9 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * subroutine to copy a bitmap into the extra unusualmap
-   * inputs
-   *   the index of the map in the jsrInfo.extraUnusualMap ie the "to" map
-   *   the index of the map to copy ie the "from" map
-   *   mapid is used to get the length of the map
-   * output is in the extraunusual map
+   * Copies a bit map into the extra unusualmap.
+   * @param extramapindex  the index of the map in the jsrInfo.extraUnusualMap ie the "to" map
+   * @param index he index of the map to copy ie the "from" map
    */
   private void copyBitMap(int extramapindex, int index) {
     if (VM.TraceStkMaps) {
@@ -1125,11 +1136,19 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * merge unusual maps- occurs in nested jsr conditions
-   *  merge each nested delta map ( as represented by the jsrMapid of the
-   *  location site) into the jsrInfo.extraUnusualMap where the deltas are accumulated
+   *
+   *  m
    *  NOTE: while the routine is written to combine 2 jsrInfo.unusualMaps in general
    *      in reality the target map is always the same ( the jsrInfo.extraUnusualMap)
+   */
+
+  /**
+   * Merges unusual maps (occurs in nested jsr conditions) by merging each nested
+   * delta map ( as represented by the jsrMapid of the location site) into the
+   * jsrInfo.extraUnusualMap where the deltas are accumulated
+   *
+   * @param jsrUnusualMapid the delta map's id
+   * @return merged map
    */
   private UnusualMaps combineDeltaMaps(int jsrUnusualMapid) {
     //get the delta unusualMap
@@ -1235,9 +1254,11 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * Merge a delta map (as represented by its index in the referencemap table)
-   * into a target map (similarly represented)
-   * and use the operation indicated ( OR or NAND or COPY)
+   * Merges a delta map into a target map.
+   *
+   * @param targetindex the delta map's index in the reference map table
+   * @param deltaindex the target map's index in the reference map tbale
+   * @param Op the merge operation to use
    */
   private void mergeMap(int targetindex, int deltaindex, MergeOperation Op) {
     int i;
@@ -1373,8 +1394,16 @@ public final class ReferenceMaps implements BaselineConstants {
   /**
    * This routine is used to find an Unusual map with an index
    * greater than 127
-   * it returns the index by doing a sequential scan and looking for the mapid
-   *  in the normal map directory
+   *
+   */
+
+  /**
+   * Finds an unsual map with an index greater than 127. It returns the index
+   * by doing a sequential scan and looking for the mapid in the normal map
+   * directory.
+   *
+   * @param mapid the map's id
+   * @return the map's index
    */
   int findUnusualMap(int mapid) {
     int i;
@@ -1394,8 +1423,8 @@ public final class ReferenceMaps implements BaselineConstants {
   }
 
   /**
-   * show the basic information for each of the maps
-   *    this is for testing use
+   * Shows the basic information for each of the maps.
+   * This is for testing use.
    */
   public void showInfo() {
     VM.sysWriteln("showInfo- reference maps");
@@ -1512,8 +1541,7 @@ public final class ReferenceMaps implements BaselineConstants {
    * @param mcoff  The machine code offset of the instruction *following* the
    *               actual instruction.
    * @param lidx the local index
-   * @return true, if it is a reference type
-   *         false, otherwise
+   * @return {@code true}, if it is a reference type. {@code false}, otherwise
    */
   public boolean isLocalRefType(RVMMethod method, Offset mcoff, int lidx) {
     int bytenum, bitnum;

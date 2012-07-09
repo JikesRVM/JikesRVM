@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.Offset;
  * Description of a java "primitive" type (int, float, etc.)
  *
  * <p> This description is not read from a ".class" file, but rather
- * is manufactured by the vm before execution begins.
+ * is manufactured by the VM before execution begins.
  *
  * <p> Note that instances of primitives are not objects:
  * <ul>

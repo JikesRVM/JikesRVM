@@ -21,7 +21,7 @@ import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.ReflectionBase;
 
 /**
- * Implementation of java.lang.reflect.VMConstructor for JikesRVM.
+ * Implementation of java.lang.reflect.VMConstructor for JikesRVM.<p>
  *
  * By convention, order methods in the same order
  * as they appear in the method summary list of Sun's 1.4 Javadoc API.

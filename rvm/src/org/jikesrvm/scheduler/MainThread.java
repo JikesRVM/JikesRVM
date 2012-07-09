@@ -42,8 +42,8 @@ public final class MainThread extends Thread {
 
   /**
    * Create "main" thread.
-   * Taken: args[0]    = name of class containing "main" method
-   *        args[1..N] = parameters to pass to "main" method
+   * @param args {@code args[0]}: name of class containing "main" method;
+   *  {@code args[1..N]}: parameters to pass to "main" method
    */
   public MainThread(String[] args) {
     super("MainThread");
@@ -129,7 +129,7 @@ public final class MainThread extends Thread {
 
   /**
    * Run "main" thread.
-   *
+   * <p>
    * This code could be made a little shorter by relying on Reflection
    * to do the classloading and compilation.  We intentionally do it here
    * to give us a chance to provide error messages that are specific to

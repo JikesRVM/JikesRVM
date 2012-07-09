@@ -32,10 +32,6 @@ import org.mmtk.plan.TransitiveClosure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
-/**
- *
- *
- */
 @Uninterruptible
 public class Scanning extends org.mmtk.vm.Scanning {
   public static final int THREAD_ITERATOR_TABLE_ENTRIES = 2048;

@@ -17,8 +17,10 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 
 /**
  * Wrapper around a pair of parallel arrays:
- *  (1) an array of compiled method id's
- *  (2) an array of counts: how many times each compiled method id is counted
+ * <ol>
+ *  <li>an array of compiled method id's
+ *  <li>an array of counts: how many times each compiled method id is counted
+ * </ol>
  */
 public final class MethodCountSet {
   /**
@@ -45,7 +47,7 @@ public final class MethodCountSet {
   /**
    * String representation of fields
    *
-   * @return string representation of compiled method id's and thier counts
+   * @return string representation of compiled method id's and their counts
    */
   @Override
   public String toString() {

@@ -13,34 +13,12 @@
 package org.jikesrvm.ppc;
 
 /**
- * Disassembler for Rios instruction set.
+ * Disassembler for Rios instruction set.<p>
  *
  * Defined: disasm(inst, addr, buf, reg)
  *          INSTRUCTION inst; Address addr;  CHAR *buf; CHAR reg[4][10];
  *
- * 31 Jul 1990 Derek Lieber.
- *      Borrowed from libdbx (opcode.c, decode.c).
- *
- * 30 Jan 1998 Ton Ngo:
- *      adapted for Java debugger jdp
- *
- *  7 Aug 1998 John Whaley:
- *      rewritten in Java
- *
- *  26 Jan 1999 Ton Ngo:
- *    New instruction for PowerPC that are not in the POWER instruction set
- *    opcode is bit 0-5 of the instruction
- *    extop is the extended opcode as listed in the manual
- *    key is extop plus additional bits for variation on an opcode (. or o)
- *    form is the instruction format: I, B, SC, D, DS, X, XL, XFX, XFL, XO, A, M
- *    format is a local enumeration to specify how to print the instruction
- *    (this is specific to each decode_?? method).
- *
- * 18 Dec 2000 Dave Grove:
- *    Changed the mnemonics for POWER instructions that have
- *    different names on the PowerPC to use the PowerPC mnemonic.
- *    (Applied changes from Appendix F of PPC Architecture book).
- *
+ *  <pre>
  *  mnemonic    opcode  extop   key     form    format  Example
  *  --------    ------  ---     ---     ----    ------  --------
  *  dcbf        31      86      172     X       6       7C0218AC
@@ -106,13 +84,9 @@ package org.jikesrvm.ppc;
  *  mfibatu
  *  mtibatl
  *  mtibatu
+ *  </pre>
  *
- * 23 Apr 2003 Kris Venstermans:
- *    Added instruction decoding for 64 bit architecture.
- *    Use of constant definitions instead of integers.
- *    Cleaned up some old power instructions.
  */
-
 public class Disassembler implements ArchConstants {
   // special register name copied from /usr/include/sys/reg.h
   static final int IAR = 128;
@@ -127,7 +101,11 @@ public class Disassembler implements ArchConstants {
   static final int FPINFO = 138;
   static final int FPSCRX = 148;
 
-  // for testing purposes
+  /**
+   * For testing purposes only.
+   * @param args array with 2 elements: first element is instruction,
+   *  second one is address
+   */
   public static void main(String[] args) {
 
     int instr = Integer.parseInt(args[0], 16);
@@ -446,12 +424,13 @@ public class Disassembler implements ArchConstants {
 
   /**
    *  Opcode 30 table:
-   *  The key is bits 27 through 30 of the instruction.
-   *  "Form" is the instruction format:
+   *  <ol>
+   *    <li>The key is bits 27 through 30 of the instruction.
+   *    <li>"Form" is the instruction format:
    *      I, B, SC, D, DS, X, XL, XFX, XFL, XO, A, M, MDS, MD
-   *  "format" is how the instruction should be printed (specific to the disassembler)
+   *    <li>"format" is how the instruction should be printed (specific to the disassembler)
+   *  </ol>
    */
-
   static OpcodeXX[] opcode30 = {
 
       /*               key        form     format       mnemonic       */
@@ -469,12 +448,13 @@ public class Disassembler implements ArchConstants {
 
   /**
    *  Opcode 31 table:
-   *  The key is bits 21 through 31 of the instruction.
-   *  "Form" is the instruction format:
+   *  <ol>
+   *    <li>The key is bits 21 through 31 of the instruction.
+   *    <li>"Form" is the instruction format:
    *      I, B, SC, D, DS, X, XL, XFX, XFL, XO, A, M
-   *  "format" is how the instruction should be printed (specific to the disassembler)
+   *    <li>"format" is how the instruction should be printed (specific to the disassembler)
+   *  </ol>
    */
-
   static OpcodeXX[] opcode31 = {
 
       /*                  key        form     format       mnemonic       */
@@ -689,11 +669,11 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
       /*    2,    */  new OpcodeTab(X, "RESERVED"),
       /*    3,    */  new OpcodeTab(X, "RESERVED")};
 
-/*  Opcode 63 table: The key is computed by taking
- *  bits 21 through 31 of the instruction. "Form" is
- *  the instruction format and "format" is how the
- *  instruction should be printed.  */
-
+  /**  Opcode 63 table: The key is computed by taking
+   *  bits 21 through 31 of the instruction. "Form" is
+   *  the instruction format and "format" is how the
+   *  instruction should be printed.
+   */
   static OpcodeXX[] opcode63 = {
 
       /*                  key        form     format       mnemonic       */
@@ -734,14 +714,14 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
       new OpcodeXX(1692, X_FORM, 21, "fcfid"),
       new OpcodeXX(1693, X_FORM, 21, "fcfid.")};
 
+  /**
+   *  opcode59 table: These are the addition for the PowerPC set
+   *  Key is  bits 26 through 31 of the instruction.
+   *  "Form" is the instruction format and "format" is how the
+   *  instruction should be printed (the enumeration is specific
+   *  to each decode method)
+   */
   static OpcodeXX[] opcode59 = {
-
-      /*  opcode59 table: These are the addition for the PowerPC set
-      *  Key is  bits 26 through 31 of the instruction.
-      *  "Form" is the instruction format and "format" is how the
-      *  instruction should be printed (the enumeration is specific
-      *  to each decode method)
-      */
 
       /*                  key        form     format       mnemonic       */
       new OpcodeXX(42, A_FORM, 0, "fadds"),
@@ -761,12 +741,13 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
       new OpcodeXX(40, A_FORM, 0, "fsubs"),
       new OpcodeXX(41, A_FORM, 0, "fsubs.")};
 
+  /**
+   *  Aform table: The key is computed by taking
+   *  bits 26 through 31 of the instruction. "Form" is
+   *  the instruction format and "format" is how the
+   *  instruction should be printed.
+   */
   static OpcodeXX[] Aform = {
-
-      /*  Aform table: The key is computed by taking
-*  bits 26 through 31 of the instruction. "Form" is
-*  the instruction format and "format" is how the
-*  instruction should be printed.  */
 
       /*                  key        form     format       mnemonic       */
       new OpcodeXX(36, A_FORM, 0, "fdiv"),
@@ -861,7 +842,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
    *  numeric form into something more
    *  readable.
    */
-
   public static String disasm(int inst, int addr) {
     int opcode;
     int form;
@@ -904,7 +884,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode the D instruction format */
-
   static String decode_Dform(int inst, int opcode) {
     int rt, RA, TO, BF, FRT, ufield;
     int sfield;
@@ -1011,7 +990,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode the DS instruction format */
-
   static String decode_DSform(int inst, int opcode) {
     int XO, RT, RA, sfield;
     String datafield, mnemonic;
@@ -1053,7 +1031,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode the B instruction format */
-
   static String decode_Bform(int addr, int inst, int opcode) {
     int AA, LK, BO, BI;
     String mnemonic;
@@ -1103,7 +1080,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode the SC instruction format */
-
   static String decode_SCform(int inst, int opcode) {
     int SA, LK, LEV, FL1, FL2, SV;
 
@@ -1130,7 +1106,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode the XL instruction format */
-
   static String decode_XLform(int inst, int opcode) {
     String mnemonic;
     int ext_opcode;
@@ -1181,7 +1156,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   static String[] Mforms = {"rlimi", "rlimi.", "rlinm", "rlinm.", "rlmi", "rlmi.", "rlnm", "rlnm."};
 
   /* Decode the M instruction format */
-
   static String decode_Mform(int inst, int opcode) {
     int RS, RA;
     int MB, ME, Rc;
@@ -1262,7 +1236,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode opcode 30 and then the relevent format */
-
   static String decode_opcode30(int inst) {
     OpcodeXX search_results;
     String mnemonic;
@@ -1348,7 +1321,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode the X instruction format */
-
   static String decode_Xform(int inst, String mnemonic, int format, int ext_op) {
     int rt, RA, RB, NB, SH, FRS, SPR, FRT;
     int BF, BFA, I, BT, SR, FRA, FRB, TO;
@@ -1482,7 +1454,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode the XFX instruction format */
-
   static String decode_XFXform(int inst) {
     int rt, FXM;
 
@@ -1532,7 +1503,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode opcode 59 and then the relevent format */
-
   static String decode_opcode59(int inst) {
     OpcodeXX search_results;
     String mnemonic;
@@ -1558,7 +1528,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode opcode 63 and then the relevent format */
-
   static String decode_opcode63(int inst) {
     OpcodeXX search_results;
     String mnemonic;
@@ -1591,7 +1560,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode the XFL instruction format */
-
   static String decode_XFLform(int inst) {
     int FLM, FRB, Rc;
 
@@ -1608,7 +1576,6 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
   }
 
   /* Decode the A instruction format */
-
   static String decode_Aform(int inst, String mnemonic, int format) {
     int FRT, FRA, FRB, FRC;
 
@@ -1712,10 +1679,9 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
     return c;
   }
 
-  /*
-   * Simply return whether an instruction is a branch_with_link
+  /**
+   * Is the given instruction a branch_with_link?
    */
-  /* static int branch_link(inst) */
   public static boolean isBranchAndLink(int inst) {
     int opcode, ext_op;
     int link;
@@ -1739,11 +1705,9 @@ new OpcodeXX(1973, X_FORM, 9, "extsw.")};
     return link != 0;
   }
 
-  /*
-   * Return whether an instruction is a branch for yieldpoint
-   *  used by OPT compiler
+  /**
+   * Is the given instruction a branch for yieldpoint used by OPT compiler?
    */
-  /* static int branch_for_yieldpoint(inst) */
   public static boolean isBranchForYieldpoint(int inst) {
     int opcode;
     int link;

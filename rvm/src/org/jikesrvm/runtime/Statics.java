@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.Word;
  * <p> These fields, methods and literal constants form the "root set"
  * of all the objects in the running virtual machine. They are stored
  * in an array where the middle element is always pointed to by the
- * virtual machine's "table of contents" (jtoc) register. The slots of
+ * virtual machine's "table of contents" (JTOC) register. The slots of
  * this array hold either primitives (int, long, float, double),
  * object pointers, or array pointers. To enable the garbage collector
  * to differentiate between reference and non-reference values,
@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.Word;
  *      class D { static void m() {} }
  * </pre>
  *
- * <p>Here's a picture of what the corresponding jtoc would look like
+ * <p>Here's a picture of what the corresponding JTOC would look like
  * in memory:
  *
  * <pre>
@@ -92,7 +92,7 @@ public class Statics implements Constants {
   private static final int numReferenceSlots = 0x20000; // 128k
 
   /**
-   * Static data values (pointed to by jtoc register).
+   * Static data values (pointed to by JTOC register).
    * This is currently fixed-size, although at one point the system's plans
    * called for making it dynamically growable.  We could also make it
    * non-contiguous.
@@ -245,10 +245,10 @@ public class Statics implements Constants {
   }
 
   /**
-   * Find or allocate a slot in the jtoc for an object literal.
+   * Find or allocate a slot in the JTOC for an object literal.
    * @param       literal value
    * @return offset of slot that was allocated
-   * Side effect: literal value is stored into jtoc
+   * Side effect: literal value is stored into JTOC
    */
   public static int findOrCreateObjectLiteral(Object literal) {
     int off = findObjectLiteral(literal);
@@ -265,7 +265,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Find a slot in the jtoc with this object literal in else return 0
+   * Find a slot in the JTOC with this object literal in else return 0
    * @param  literal value
    * @return offset containing literal or 0
    */
@@ -277,8 +277,8 @@ public class Statics implements Constants {
   }
 
   /**
-   * Mark a slot that was previously a field as being a literal as its value is
-   * final
+   * Marks a slot that was previously a field as being a literal as its value is
+   * final.
    */
   public static synchronized void markAsNumericLiteral(int size, Offset fieldOffset) {
     int slot = offsetAsSlot(fieldOffset);
@@ -291,8 +291,8 @@ public class Statics implements Constants {
   }
 
   /**
-   * Mark a slot that was previously a field as being a literal as its value is
-   * final
+   * Marks a slot that was previously a field as being a literal as its value is
+   * final.
    */
   public static synchronized void markAsReferenceLiteral(Offset fieldOffset) {
     Object literal = getSlotContentsAsObject(fieldOffset);
@@ -310,7 +310,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Allocate a numeric slot in the jtoc.
+   * Allocate a numeric slot in the JTOC.
    * @param size of slot
    * @param field is the slot for a field
    * @return offset of slot that was allocated as int
@@ -379,7 +379,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Allocate a reference slot in the jtoc.
+   * Allocate a reference slot in the JTOC.
    * @param field is the slot for a field
    * @return offset of slot that was allocated as int
    * (two slots are allocated on 64bit architectures)
@@ -397,14 +397,14 @@ public class Statics implements Constants {
    * Grow the statics table
    */
   private static void enlargeTable() {
-    // !!TODO: enlarge slots[] and descriptions[], and modify jtoc register to
+    // !!TODO: enlarge slots[] and descriptions[], and modify JTOC register to
     // point to newly enlarged slots[]
-    // NOTE: very tricky on IA32 because opt uses 32 bit literal address to access jtoc.
+    // NOTE: very tricky on IA32 because opt uses 32 bit literal address to access JTOC.
     VM.sysFail("Statics.enlargeTable: jtoc is full");
   }
 
   /**
-   * Fetch number of numeric jtoc slots currently allocated.
+   * Fetch number of numeric JTOC slots currently allocated.
    */
   @Uninterruptible
   public static int getNumberOfNumericSlots() {
@@ -412,7 +412,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch number of reference jtoc slots currently allocated.
+   * Fetch number of reference JTOC slots currently allocated.
    */
   @Uninterruptible
   public static int getNumberOfReferenceSlots() {
@@ -420,7 +420,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch total number of slots comprising the jtoc.
+   * Fetch total number of slots comprising the JTOC.
    */
   @Uninterruptible
   public static int getTotalNumberOfSlots() {
@@ -428,9 +428,9 @@ public class Statics implements Constants {
   }
 
   /**
-   * Does specified jtoc slot contain a reference?
+   * Does specified JTOC slot contain a reference?
    * @param  slot obtained from offsetAsSlot()
-   * @return true --> slot contains a reference
+   * @return {@code true} --> slot contains a reference
    */
   @Uninterruptible
   public static boolean isReference(int slot) {
@@ -438,9 +438,9 @@ public class Statics implements Constants {
   }
 
   /**
-   * Does specified jtoc slot contain an int sized literal?
+   * Does specified JTOC slot contain an int sized literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return true --> slot contains a reference
+   * @return {@code true} --> slot contains a reference
    */
   public static boolean isIntSizeLiteral(int slot) {
     if (isReference(slot) || slot < getLowestInUseSlot()) {
@@ -451,9 +451,9 @@ public class Statics implements Constants {
   }
 
   /**
-   * Does specified jtoc slot contain a long sized literal?
+   * Does specified JTOC slot contain a long sized literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return true --> slot contains a reference
+   * @return {@code true} --> slot contains a reference
    */
   public static boolean isLongSizeLiteral(int slot) {
     if (isReference(slot) || slot < getLowestInUseSlot() || ((slot & 1) != 0)) {
@@ -464,9 +464,9 @@ public class Statics implements Constants {
   }
 
   /**
-   * Does specified jtoc slot contain a reference literal?
+   * Does specified JTOC slot contain a reference literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return true --> slot contains a reference
+   * @return {@code true} --> slot contains a reference
    */
   public static boolean isReferenceLiteral(int slot) {
     if (!isReference(slot) || slot > getHighestInUseSlot()) {
@@ -486,7 +486,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch jtoc object (for JNI environment and GC).
+   * Fetch JTOC object (for JNI environment and GC).
    */
   @Uninterruptible
   public static Address getSlots() {
@@ -494,7 +494,7 @@ public class Statics implements Constants {
   }
 
   /**
-   * Fetch jtoc object (for JNI environment and GC).
+   * Fetch JTOC object (for JNI environment and GC).
    */
   @Uninterruptible
   public static int[] getSlotsAsIntArray() {

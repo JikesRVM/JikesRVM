@@ -37,13 +37,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * <p>These code blocks can be shared by all compilers. They can be branched to
  * via a jtoc offset (obtained from Entrypoints.XXXInstructionsField).
- *
- * <p> 17 Mar 1999 Derek Lieber (adapted from powerPC version in 2000
- * by somebody)
- *
- * <p> 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers
- * could inline these methods if they wanted.  We do not believe this would
- * be very easy since they return assuming the return address is on the stack.)
  */
 public abstract class OutOfLineMachineCode implements BaselineConstants {
   //-----------//
@@ -177,7 +170,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
   /**
    * Machine code for reflective method invocation.
-   *
+   * <pre>
    * VM compiled with NUM_PARAMETERS_GPRS == 0
    *   Registers taken at runtime:
    *     none
@@ -219,6 +212,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    * Side effects at runtime:
    *   artificial stackframe created and destroyed
    *   volatile, and scratch registers destroyed
+   * </pre>
    */
   private static ArchitectureSpecific.CodeArray generateReflectiveMethodInvokerInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(100);
@@ -441,7 +435,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
   /**
    * Machine code to implement "Magic.saveThreadState()".
-   *
+   * <pre>
    *  Registers taken at runtime:
    *    T0 == address of Registers object
    *
@@ -451,6 +445,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *  Side effects at runtime:
    *    S0, T1 destroyed
    *    Thread state stored into Registers object
+   * </pre>
    */
   private static ArchitectureSpecific.CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) {
@@ -493,7 +488,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
   /**
    * Machine code to implement "Magic.threadSwitch()".
-   *
+   * <pre>
    * NOTE: Currently not functional for PNT: left as a guide for possible reimplementation.
    *
    *  Parameters taken at runtime:
@@ -508,6 +503,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *    saves current Thread's nonvolatile hardware state in its Registers object
    *    restores new thread's Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's Registers ip field
+   * </pre>
    */
   private static ArchitectureSpecific.CodeArray generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) {
@@ -591,7 +587,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
   /**
    * Machine code to implement "Magic.restoreHardwareExceptionState()".
-   *
+   * <pre>
    *  Registers taken at runtime:
    *    T0 == address of Registers object
    *
@@ -601,6 +597,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *  Side effects at runtime:
    *    all registers are restored except THREAD_REGISTER and EFLAGS;
    *    execution resumes at "registers.ip"
+   * </pre>
    */
   private static ArchitectureSpecific.CodeArray generateRestoreHardwareExceptionStateInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(0);

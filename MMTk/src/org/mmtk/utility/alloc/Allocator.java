@@ -29,10 +29,10 @@ import org.vmmagic.pragma.*;
  * allocation can cause a GC which violate the uninterruptability assumption.
  * This results in the thread being moved to a different processor so that
  * the allocator object it is using is not actually the one for the processor
- * it is running on.
+ * it is running on.<p>
  *
  * This class also includes functionality to assist allocators with
- * ensuring that requests are aligned according to requests.
+ * ensuring that requests are aligned according to requests.<p>
  *
  * Failing to handle this properly will lead to very hard to trace bugs
  * where the allocation that caused a GC or allocations immediately following

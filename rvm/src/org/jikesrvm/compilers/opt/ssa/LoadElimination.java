@@ -127,6 +127,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
     /**
      * main driver for redundant load elimination
+     * <p>
      * Preconditions: Array SSA form and Global Value Numbers computed
      * @param ir the governing IR
      */
@@ -166,7 +167,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * Walk over each instruction.  If its a USE (load) of a heap
    * variable and the value is available, then replace the load
    * with a move from a register.
-   *
+   * <p>
    * POSTCONDITION: sets up the mapping 'registers' from value number
    *                 to temporary register
    * @param ir the IR
@@ -246,6 +247,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
   /**
    * Replace a Load instruction s with a load from a scalar register r
+   * <p>
    * TODO: factor this functionality out elsewhere
    */
   static void replaceLoadWithMove(Register r, Instruction load) {
@@ -256,6 +258,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
   /**
    * Perform scalar replacement actions for a Def of a heap variable.
+   * <p>
    * NOTE: Even loads can def a heap variable.
    *
    * @param UseRepSet stores the uses(loads) that have been eliminated
@@ -478,11 +481,14 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
   /**
    * Do a quick pass over the IR, and return types that are candidates
-   * for redundant load elimination.
-   * Algorithm: return those types T where
-   *    1) there's a load L(i) of type T
-   *    2) there's another load or store M(j) of type T, M!=L and V(i) == V(j)
+   * for redundant load elimination.<p>
    *
+   * Algorithm: return those types T where
+   * <ul>
+   *   <li>there's a load L(i) of type T
+   *   <li>there's another load or store M(j) of type T, M!=L and V(i) == V(j)
+   * </ul>
+   * <p>
    * The result contains objects of type RVMField and TypeReference, whose
    * narrowest common ancestor is Object.
    */

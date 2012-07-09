@@ -245,7 +245,7 @@ public abstract class GenericStackManager extends IRTools {
   private LinearScan.ActiveSet activeSet = null;
 
   /**
-   * Replace all occurences of register r1 in an instruction with register
+   * Replace all occurrences of register r1 in an instruction with register
    * r2.
    *
    * Also, for any register r3 that is spilled to the same location as
@@ -270,7 +270,7 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * We will have to save and restore all non-volatile registers around
-   * system calls, to protect ourselve from malicious native code that may
+   * system calls, to protect ourselves from malicious native code that may
    * bash these registers.  Call this routine before register allocation
    * in order to allocate space on the stack frame to store these
    * registers.
@@ -289,7 +289,7 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * We will have to save and restore all non-volatile registers around
-   * system calls, to protect ourselve from malicious native code that may
+   * system calls, to protect ourselves from malicious native code that may
    * bash these registers.  Call this routine before register allocation
    * in order to get the stack-frame offset previously reserved for this
    * data.
@@ -347,13 +347,13 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * If there is a scratch register available which currently holds the
-   * value of symbolic register r, then return that scratch register.
+   * value of symbolic register r, then return that scratch register.<p>
    *
    * Additionally, if there is a scratch register available which is
    * mapped to the same stack location as r, then return that scratch
-   * register.
+   * register.<p>
    *
-   * Else return null.
+   * Else return {@code null}.
    *
    * @param r the symbolic register to hold
    * @param s the instruction for which we need r in a register
@@ -383,8 +383,9 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * If register r is currently in use as a scratch register,
-   * then return that scratch register.
-   * Else return null.
+   * then return that scratch register.<p>
+   *
+   * Else return {@code null}.
    */
   private ScratchRegister getPhysicalScratchRegister(Register r) {
     for (ScratchRegister sr : scratchInUse) {
@@ -396,7 +397,7 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   * Walk over the currently available scratch registers.
+   * Walk over the currently available scratch registers.<p>
    *
    * For any register which is dirty, note this in the scratch map for
    * instruction s.
@@ -413,7 +414,7 @@ public abstract class GenericStackManager extends IRTools {
    * Walk over the currently available scratch registers, and spill their
    * contents to memory before instruction s.  Also restore the correct live
    * value for each scratch register. Normally, s should end a
-   * basic block.
+   * basic block.<p>
    *
    * SPECIAL CASE: If s is a return instruction, only restore the scratch
    * registers that are used by s.  The others are dead.
@@ -782,7 +783,8 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * Assuming instruction s uses the spill location loc,
-   * return the symbolic register that embodies that use.
+   * return the symbolic register that embodies that use.<p>
+   *
    * Note that at most one such register can be used, since at most one
    * live register can use a given spill location.
    */
@@ -802,9 +804,9 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * Return a FPR that does not appear in instruction s, to be used as a
-   * scratch register to hold register r
+   * scratch register to hold register r.
    * Except, do NOT return any register that is a member of the reserved set.
-   *
+   * <p>
    * Throw an exception if none found.
    */
   private Register getFirstFPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
@@ -827,8 +829,8 @@ public abstract class GenericStackManager extends IRTools {
    * before instruction s, to hold symbolic register r.
    * Except, do NOT
    * return any register that is a member of the reserved set.
-   *
-   * Return null if none found
+   * <p>
+   * Return {@code null} if none found
    */
   private Register getFirstDeadFPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -877,8 +879,8 @@ public abstract class GenericStackManager extends IRTools {
    * before instruction s, to hold symbolic register r.
    * Except, do NOT
    * return any register that is a member of the reserved set.
-   *
-   * return null if none found
+   * <p>
+   * return {@code null} if none found.
    */
   private Register getFirstDeadGPRNotUsedIn(Register r, Instruction s, ArrayList<Register> reserved) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();

@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements a simple counter of events of different sizes
  * (eg object allocations, where total number of objects and total
- * volume of objects would be counted).
+ * volume of objects would be counted).<p>
  *
  * The counter is trivially composed from two event counters (one for
  * counting the number of events, the other for counting the volume).
@@ -28,6 +28,10 @@ public class SizeCounter {
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private EventCounter units;
   private EventCounter volume;

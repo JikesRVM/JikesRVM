@@ -28,7 +28,7 @@ public final class InlineSequence {
   public final NormalMethod method;
 
   /**
-   * Caller info.  null if none.
+   * Caller info. {@code null} if none.
    */
   public final InlineSequence caller;
 

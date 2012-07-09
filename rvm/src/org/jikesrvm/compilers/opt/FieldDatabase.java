@@ -52,7 +52,9 @@ final class FieldDatabase {
     return null;
   }
 
-  // a data structure holding information about a field
+  /**
+   * A data structure holding information about a field.
+   */
   static final class FieldDatabaseEntry {
     private final ImmutableEntryHashMapRVM<RVMMethod, FieldWriterInfo> summaries;
     /** have we already determined all methods are analyzed? */
@@ -116,8 +118,11 @@ final class FieldDatabase {
     }
   } // class FieldDatabaseEntry
 
-  // a data structure holding information about a particular <method,field>
-  // combination, where the method may write the field
+  /**
+   * A data structure holding information about a particular
+   * {@code <method,field>}  combination, where the method
+   * may write the field.
+   */
   static final class FieldWriterInfo {
     static final int BOTTOM = 0x1;
     static final int ANALYZED = 0x2;

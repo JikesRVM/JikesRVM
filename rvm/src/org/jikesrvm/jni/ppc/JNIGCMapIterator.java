@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.WordArray;
  * Threads JNIEnvironment.  It will update register location addresses
  * for the non-votatile registers to point to the register save area
  * in the transition frame.
- *
+ * <p>
  * If GC happens, the saved non-volatile regs may get modified (ex. a ref
  * to a live object that gets moved), and a restore flag in the frame is
  * set to cause the returning Native code to restore those registers from

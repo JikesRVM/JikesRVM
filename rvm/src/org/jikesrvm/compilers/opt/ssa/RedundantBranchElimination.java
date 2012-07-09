@@ -48,14 +48,15 @@ import org.jikesrvm.compilers.opt.ir.Move;
  * NOTE: the check for exactly one in edge is used to rule out
  *       situations like the following:
  * <pre>
- [5~ *      if (C) goto L2              // cb2
+ *      if (C) goto L2              // cb2
  *      x = x + 1;
  *  L2: x = x + 1;
  *      if (C) goto L3.            // cb1
  * </pre>
+ * Consider redundant branch elimination for cb1.
  * Here L2 (the target of cb2) dominates cb1, but it
  * is not correct to eliminate cb1 because it is also
- * reachable (but not dominated) from the continutation
+ * reachable (but not dominated) from the continuation
  * block of cb2!
  */
 public final class RedundantBranchElimination extends OptimizationPlanCompositeElement {

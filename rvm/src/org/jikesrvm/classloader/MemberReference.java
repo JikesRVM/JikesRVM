@@ -241,7 +241,7 @@ public abstract class MemberReference {
 
   /**
    * @return the RVMMember this reference resolves to if it is already known
-   * or null if it cannot be resolved without risking class loading.
+   * or {@code null} if it cannot be resolved without risking class loading.
    */
   public final RVMMember peekResolvedMember() {
     if (isFieldReference()) {

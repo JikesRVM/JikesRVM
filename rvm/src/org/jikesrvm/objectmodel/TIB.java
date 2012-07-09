@@ -366,7 +366,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
   /**
    * Does this slot in the TIB hold a TIB entry?
    * @param slot the TIB slot
-   * @return true if this the array element TIB
+   * @return {@code true} if this the array element TIB
    */
   public boolean slotContainsTib(int slot) {
     if (slot == TIB_ARRAY_ELEMENT_TIB_INDEX && getType().isArrayType()) {
@@ -379,7 +379,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
   /**
    * Does this slot in the TIB hold code?
    * @param slot the TIB slot
-   * @return true if slot is one that holds a code array reference
+   * @return {@code true} if slot is one that holds a code array reference
    */
   public boolean slotContainsCode(int slot) {
     if (VM.VerifyAssertions) {

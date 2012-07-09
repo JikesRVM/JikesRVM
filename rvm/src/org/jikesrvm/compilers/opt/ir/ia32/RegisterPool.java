@@ -23,7 +23,8 @@ import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
 
 /**
- * Pool of symbolic registers.
+ * Pool of symbolic registers.<p>
+ *
  * Intel specific implementation where JTOC is stored in the processor object
  * and accessed through the processor register.
  *
@@ -42,9 +43,10 @@ public abstract class RegisterPool extends GenericRegisterPool implements Operat
 
   /**
    * Return a constant operand that is the base address of the JTOC.
+   * <p>
    * TODO: This really should be returning an AddressConstantOperand,
    *       but that causes rippling changes in BURS that are larger
-   *       than I want to deal with right now. --dave 12/20/2005.
+   *       than we want to deal with right now.
    *
    * @param  ir  the containing IR
    * @param s    the instruction to insert the load operand before

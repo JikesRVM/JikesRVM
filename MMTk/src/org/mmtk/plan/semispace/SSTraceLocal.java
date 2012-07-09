@@ -20,7 +20,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implments the core functionality for a transitive
+ * This class implements the core functionality for a transitive
  * closure over the heap graph.
  */
 @Uninterruptible

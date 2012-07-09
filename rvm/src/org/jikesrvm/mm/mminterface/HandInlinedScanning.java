@@ -123,7 +123,7 @@ public class HandInlinedScanning {
   /**
    * Hand-inlined scanning of objects.  The cases of the conditional
    * are ordered in descending frequency of patterns.
-   *
+   * <p>
    * This entry point does not fall back to specialized scanning.
    */
   @Inline

@@ -23,10 +23,10 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * An instance of this class provides iteration across the references
  * represented by a frame built by the OPT compiler.
- *
+ * <p>
  * The architecture-specific version of the GC Map iterator.  It inherits
  * its architecture-independent code from OptGenericGCMapIterator.
- * This version is for IA32
+ * This version is for IA32.
  */
 @Uninterruptible
 public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements SizeConstants {
@@ -38,10 +38,10 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
   }
 
   /**
-   * If any non-volatile gprs were saved by the method being processed
+   * If any non-volatile GPRs were saved by the method being processed
    * then update the registerLocations array with the locations where the
    * registers were saved.  Also, check for special methods that also
-   * save the volatile gprs.
+   * save the volatile GPRs.
    */
   @Override
   protected void updateLocateRegisters() {

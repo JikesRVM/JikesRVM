@@ -48,7 +48,7 @@ public final class RawThreadModel extends ThreadModel {
 
   /**
    * The 'scheduler woken' flag.
-   *
+   * <p>
    * Unchecked invariant: at most one of schedulerIsAwake and (RawThread)isCurrent
    * are true at any given time.
    */
@@ -144,25 +144,16 @@ public final class RawThreadModel extends ThreadModel {
     return (MMTkThread)Thread.currentThread();
   }
 
-  /**
-   * @see org.mmtk.harness.scheduler.ThreadModel#currentLog()
-   */
   @Override
   public Log currentLog() {
     return current.getLog();
   }
 
-  /**
-   * @see org.mmtk.harness.scheduler.ThreadModel#currentMutator()
-   */
   @Override
   public Mutator currentMutator() {
     return ((MutatorThread)current).env;
   }
 
-  /**
-   * @see org.mmtk.harness.scheduler.ThreadModel#currentCollector()
-   */
   @Override
   public CollectorContext currentCollector() {
     return ((CollectorThread)current).context;
@@ -173,9 +164,6 @@ public final class RawThreadModel extends ThreadModel {
    */
   private final Map<String,ThreadQueue> rendezvousQueues = new HashMap<String,ThreadQueue>();
 
-  /**
-   * @see org.mmtk.harness.scheduler.ThreadModel#mutatorRendezvous(java.lang.String, int)
-   */
   @Override
   public int mutatorRendezvous(String where, int expected) {
     String barrierName = "Barrier-"+where;
@@ -255,7 +243,6 @@ public final class RawThreadModel extends ThreadModel {
 
   /**
    * Yield (to the runQueue) if the scheduler policy requires that we do so.
-   * @see org.mmtk.harness.scheduler.ThreadModel#yield()
    */
   @Override
   public void yield() {

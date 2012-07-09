@@ -30,9 +30,10 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * Iterator for stack frame  built by the Baseline compiler
+ * Iterator for stack frame  built by the Baseline compiler.
+ * <p>
  * An Instance of this class will iterate through a particular
- * reference map of a method returning the offsets of any refereces
+ * reference map of a method returning the offsets of any references
  * that are part of the input parameters, local variables, and
  * java stack for the stack frame.
  */
@@ -114,7 +115,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
    * @param instructionOffset
    *          identifies the map to be scanned.
    * @param fp
-   *          identifies a specific occurrance of this method and allows for
+   *          identifies a specific occurrence of this method and allows for
    *          processing instance specific information i.e JSR return address
    *          values
    */
@@ -217,8 +218,10 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
   }
 
   /**
-   * given a index in the local area (biased : local0 has index 1)
-   *   this routine determines the correspondig offset in the stack
+   * Converts a biased index from a local area into an offset in the stack.
+   *
+   * @param index index in the local area (biased : local0 has index 1)
+   * @return corresponding offset in the stack
    */
   public short convertIndexToLocation(int index) {
     if (index == 0) return 0;
@@ -381,10 +384,6 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     return Address.zero();
   }
 
-  /**
-   * Gets the location of the next return address after the current position. A
-   * zero return indicates that no more references exist
-   */
   @Override
   public Address getNextReturnAddressAddress() {
     if (mapId >= 0) {
@@ -406,7 +405,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
 
   /**
    * Cleanup pointers - used with method maps to release data structures early
-   * ... they may be in temporary storage ie storage only used during garbage
+   * ... they may be in temporary storage i.e. storage only used during garbage
    * collection
    */
   @Override

@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * This class implements the global state of a full-heap collector
  * with a copying nursery and mark-sweep mature space.  Unlike a full
  * generational collector, there is no write barrier, no remembered set, and
- * every collection is full-heap.
+ * every collection is full-heap.<p>
  *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
  * threads" (aka CPUs).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
- * allocation and collection.
+ * allocation and collection.<p>
  *
  * The global instance defines and manages static resources
  * (such as memory and virtual memory resources).  This mapping of threads to
@@ -54,6 +54,10 @@ public class CopyMS extends StopTheWorld {
   /****************************************************************************
    * Class variables
    */
+
+  /**
+   *
+   */
   public static final CopySpace nurserySpace = new CopySpace("nursery", false, VMRequest.create(0.15f, true));
   public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
 
@@ -69,6 +73,9 @@ public class CopyMS extends StopTheWorld {
    * Instance variables
    */
 
+  /**
+   *
+   */
   public final Trace trace;
 
   /**
@@ -125,11 +132,7 @@ public class CopyMS extends StopTheWorld {
    */
 
   /**
-   * Return the number of pages reserved for use given the pending
-   * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
+   * {@inheritDoc}
    */
   @Override
   public int getPagesUsed() {
@@ -141,9 +144,6 @@ public class CopyMS extends StopTheWorld {
   /**
    * Return the number of pages reserved for collection.
    * For mark sweep this is a fixed fraction of total pages.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for collection.
    */
   @Override
   public int getCollectionReserve() {

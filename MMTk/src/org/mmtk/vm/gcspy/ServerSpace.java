@@ -18,7 +18,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * Abstract class for the GCspy Space abstraction.
+ * Abstract class for the GCspy Space abstraction.<p>
  *
  * Implementing classes will largely forward calls to the gcspy C library.
  */
@@ -28,20 +28,25 @@ import org.vmmagic.pragma.*;
    *
    * Class variables
    */
-  protected static final String DEFAULT_UNUSED_STRING = "NOT USED";       // The "unused" string
+
+  /** The "unused" string */
+  protected static final String DEFAULT_UNUSED_STRING = "NOT USED";
 
   /****************************************************************************
   *
   * Instance variables
   */
-  protected int spaceId;         // the space's ID
-  protected Address driver;      // a pointer to the C driver, gcspy_gc_drivert *driver;
+
+  /** the space's ID */
+  protected int spaceId;
+  /** a pointer to the C driver, {@code gcspy_gc_drivert *driver} */
+  protected Address driver;
   protected static final boolean DEBUG = false;
 
 
   /**
    * Get a pointer to the native driver
-   * @return The address of the C driver, gcspy_gc_drivert *, used in all calls
+   * @return The address of the C driver, {@code gcspy_gc_drivert *}, used in all calls
    * to the C library.
    */
   Address getDriverAddress() {
@@ -86,7 +91,7 @@ import org.vmmagic.pragma.*;
   /**
    * Add a stream to the native driver
    * @param id the stream's ID
-   * @return the address of the C gcspy_gc_stream_t
+   * @return the address of the C {@code gcspy_gc_stream_t}
    */
   public abstract Address addStream(int id);
 

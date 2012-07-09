@@ -30,6 +30,3 @@ interface SpecializationContext {
    */
   CompiledMethod specialCompile(NormalMethod source);
 }
-
-
-

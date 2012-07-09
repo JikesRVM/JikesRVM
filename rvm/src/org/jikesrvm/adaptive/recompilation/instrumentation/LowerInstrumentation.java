@@ -73,7 +73,7 @@ public class LowerInstrumentation extends CompilerPhase {
     // Convert all instrumentation instructions into actual counter code
     lowerInstrumentation(ir);
 
-    // TODO: For efficiency, should proably call Simple, or
+    // TODO: For efficiency, should probably call Simple, or
     // branch optimizations or something.
   }
 
@@ -117,7 +117,7 @@ public class LowerInstrumentation extends CompilerPhase {
       // actual counting code.  For now, we'll hard code the counter
       // manager.  Ideally it should be stored in the instruction,
       // (to allow multiple counter managers.  It would also make this
-      // code independant of the adaptive system..)
+      // code independent of the adaptive system..)
       InstrumentedEventCounterManager counterManager = Instrumentation.eventCounterManager;
 
       counterManager.mutateOptEventCounterInstruction(i, ir);

@@ -61,20 +61,18 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
- *  InstrumentationSamplingFramework
- *
- *  Transforms the method so that instrumention is sampled, rather
+ *  Transforms the method so that instrumentation is sampled, rather
  *  than executed exhaustively.  Includes both the full-duplication
  *  and no-duplication variations.  See Arnold-Ryder PLDI 2001, and
  *  the section 4.1 of Arnold's PhD thesis.
- *
+ *  <p>
  *  NOTE: This implementation uses yieldpoints to denote where checks
  *  should be placed (to transfer control into instrumented code).  It
  *  is currently assumed that these are on method entries and
  *  backedges.  When optimized yieldpoint placement exists either a)
  *  it should be turned off when using this phase, or b) this phase
  *  should detect its own check locations.
- *
+ *  <p>
  *  To avoid the complexity of duplicating exception handler maps,
  *  exception handler blocks are split and a check at the top of the
  *  handler.  Thus exceptions from both the checking and duplicated
@@ -667,15 +665,15 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   /**
    * Go through all blocks in duplicated code and adjust the edges as
    * follows:
-   *
-   * 1) All edges (in duplicated code) that go into a block with a
+   * <ol>
+   *   <li>All edges (in duplicated code) that go into a block with a
    * yieldpoint must jump to back to the original code.  This is
    * actually already satisfied because we appended goto's to all
    * duplicated bb's (the goto's go back to orig code)
-   *
-   * 2) All edges that do NOT go into a yieldpoint block must stay
+   *   <li>All edges that do NOT go into a yieldpoint block must stay
    * (either fallthrough or jump to a block in) in the duplicated
    * code.
+   * </ol>
    *
    * @param ir the governing IR */
   private static void adjustPointersInDuplicatedCode(IR ir, HashMap<BasicBlock, BasicBlock> origToDupMap) {
@@ -715,8 +713,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   }
 
   /**
-   * Remove instrumentation from the orignal version of all duplicated
-   * basic blocks.
+   * Remove instrumentation from the original version of all duplicated
+   * basic blocks.<p>
    *
    * The yieldpoints can also be removed from either the original or
    * the duplicated code.  If you remove them from the original, it
@@ -750,7 +748,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * block.  This 1) helps eliminate the artificially large live
    * ranges that might have been created (assuming the reg allocator
    * isn't too smart) and 2) it prevents BURS from crashing.
-   *
+   * <p>
    * PRECONDITION:  the spansBasicBlock bit must be correct by calling
    *                DefUse.recomputeSpansBasicBlock(IR);
    */
@@ -832,7 +830,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   /**
    * The given register a) does not span multiple basic block, and b)
    * is used in a basic block that is being duplicated.   It is
-   * therefore safe to replace all occurences of the register with a
+   * therefore safe to replace all occurrences of the register with a
    * new register.  This method returns the duplicated
    * register that is associated with the given register.  If a
    * duplicated register does not exist, it is created and recorded.
@@ -882,10 +880,11 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   /**
    * Take an instrumentation operation (an instruction) and guard it
    * with a counter-based check.
-   *
-   * 1) split the basic block before and after the i
+   * <ol>
+   *   <li>split the basic block before and after the i
    *    to get A -> B -> C
-   * 2) Add check to A, making it go to B if it succeeds, otherwise C
+   *   <li>Add check to A, making it go to B if it succeeds, otherwise C
+   * </ol>
    */
   private void conditionalizeInstrumentationOperation(IR ir, Instruction i, BasicBlock bb) {
 

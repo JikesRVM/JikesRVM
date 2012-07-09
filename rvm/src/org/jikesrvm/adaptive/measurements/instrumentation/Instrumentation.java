@@ -18,14 +18,9 @@ import org.jikesrvm.adaptive.util.AOSOptions;
 import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 
 /**
- * Instrumentation.java
- *
  * This class is used to provide general functionality useful to
  * instrumenting methods.
- *
- *
  */
-
 public final class Instrumentation {
 
   /**
@@ -61,7 +56,7 @@ public final class Instrumentation {
       AOSDatabase.methodInvocationCounterData = new MethodInvocationCounterData(eventCounterManager);
 
       // Method Counters have only one array of counters for the whole
-      // program, so initialize it here. Make it automitacally double
+      // program, so initialize it here. Make it automatically double
       // in size when needed.
       AOSDatabase.methodInvocationCounterData.
           automaticallyGrowCounters(true);

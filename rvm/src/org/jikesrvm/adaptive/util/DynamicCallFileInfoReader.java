@@ -26,13 +26,13 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 
 /**
- * Utility to read dynamic call graph annotations from file in ascii format.
- * Takes a single argument: the name of the file containing the ascii
+ * Utility to read dynamic call graph annotations from file in ASCII format.
+ * Takes a single argument: the name of the file containing the ASCII
  * annotations.  Each line of the file corresponds to an annotation
  * for one method and has the following format:
  * <p>
  * <pre>
- * CallSite < classloader, classname, method, signature> method_size byte_code_index <callee_classloader, classname, method, signature> method_size weight: weight
+ * CallSite &lt; classloader, classname, method, signature&gt; method_size byte_code_index &lt;callee_classloader, classname, method, signature&gt; method_size weight: weight
  * </pre>
  * Where the types and meanings of the fields is as follows:
  * <ul>
@@ -45,10 +45,10 @@ import org.jikesrvm.classloader.MethodReference;
 public class DynamicCallFileInfoReader {
 
   /**
-   * Read annoations from a specified file. Reads all annotations at
+   * Read annotations from a specified file. Reads all annotations at
    * once and returns a collection of compiler advice attributes.
    *
-   * @param file The annoation file to be read
+   * @param file The annotation file to be read
    */
   public static void readDynamicCallFile(String file, boolean boot) {
     BufferedReader fileIn = null;
@@ -129,7 +129,7 @@ public class DynamicCallFileInfoReader {
    * Establish the RVMMethod for a given MethodReference gracefully.
    *
    * @param ref The MethodReference
-   * @return The RVMMethod, or null on failure.
+   * @return The RVMMethod, or {@code null} on failure.
    */
   private static RVMMethod getMethod(MethodReference ref) {
     if (ref.getType().getClassLoader() == RVMClassLoader.getApplicationClassLoader()) {

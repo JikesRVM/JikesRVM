@@ -39,7 +39,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 /**
  * This module holds utility functions for SSA form.
  *
- * Our SSA form is <em> Heap Array SSA Form </em>, an extension of
+ * <p> Our SSA form is <em> Heap Array SSA Form </em>, an extension of
  * SSA that allows analysis of scalars, arrays, and object fields
  * in a unified framework.  See our SAS 2000 paper
  * <a href="http://www.research.ibm.com/jalapeno/publication.html#sas00">
@@ -172,7 +172,7 @@ class SSA {
   }
 
   /**
-   * Create a move instruction r1 := r2.
+   * Create a move instruction r1 := r2.<p>
    *
    * TODO: This utility function should be moved elsewhere.
    *
@@ -192,7 +192,7 @@ class SSA {
   }
 
   /**
-   * Create a move instruction r1 := c.
+   * Create a move instruction r1 := c.<p>
    *
    * !!TODO: put this functionality elsewhere.
    *

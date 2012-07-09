@@ -21,18 +21,20 @@ import org.jikesrvm.VM;
  *  the source when the machine-code-index of the target is known.
  *  There need not be an explicit target, if the reference is used (by
  *  the compiler) within the machine-code for one bytecode.
- *
+ *  <p>
  *  There are three kinds of forward reference:
- *    1) unconditional branches
- *    2) conditional branches
- *    3) switch cases
+ *  <ol>
+ *    <li>unconditional branches
+ *    <li>conditional branches
+ *    <li>switch cases
+ *  </ol>
  *  Each subclass must be able to resolve itself.
- *
+ *  <p>
  *  This class also includes the machinery for maintaining a priority
  *  queue of forward references, priorities being target bytecode
  *  addresses.  The head of this priority queue is maintained by a
  *  Assembler object.
- *
+ *  <p>
  *  The priority queue is implemented as a one-way linked list of forward
  *  references with strictly increasing targets.  The link for this list
  *  is "next".  A separate linked list ("other" is the link) contains all
@@ -44,6 +46,7 @@ public abstract class ForwardReference {
   final int targetBytecodeIndex;     // optional
 
   /* Support for priority queue of forward references */
+
   /** Has next larger targetBytecodeIndex */
   ForwardReference next;
   /** Has the same targetBytecodeIndex */

@@ -25,7 +25,7 @@ public class SchedulerTestCases {
 
   /**
    * One thread inserts a single item into the result list
-   *
+   * <p>
    * Expected result: A list containing the single item.
    *
    * @param a The item
@@ -40,7 +40,7 @@ public class SchedulerTestCases {
 
   /**
    * One thread inserts two items into the result list
-   *
+   * <p>
    * Expected result: A list containing the two items in order.
    *
    * @param a The item
@@ -55,7 +55,7 @@ public class SchedulerTestCases {
 
   /**
    * Two threads insert a single item each into the result list
-   *
+   * <p>
    * Expected result: A list containing the two items in a
    * policy/scheduler-dependent order.
    *
@@ -73,7 +73,7 @@ public class SchedulerTestCases {
 
   /**
    * Two threads insert two items each into the result list
-   *
+   * <p>
    * Expected result: A list containing the four items in a
    * policy/scheduler-dependent order.
    * @param items The four items.

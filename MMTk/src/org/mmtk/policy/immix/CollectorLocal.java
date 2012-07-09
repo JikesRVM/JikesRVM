@@ -40,6 +40,10 @@ public final class CollectorLocal implements Constants {
    *
    * Instance variables
    */
+
+  /**
+   *
+   */
   private final ImmixSpace immixSpace;
   private final ChunkList chunkMap;
   private final Defrag defrag;

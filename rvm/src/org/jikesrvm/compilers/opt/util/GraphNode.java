@@ -18,7 +18,6 @@ package org.jikesrvm.compilers.opt.util;
  * defined in terms of this interface, and all graph implementations
  * should make sure their nodes implement this interface.
  *
- *
  * @see Graph
  * @see GraphEdge
  * @see GraphUtilities

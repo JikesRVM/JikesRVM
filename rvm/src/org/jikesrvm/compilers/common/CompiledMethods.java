@@ -46,7 +46,7 @@ public class CompiledMethods implements SizeConstants {
   /**
    * Java methods that have been compiled into machine code.
    * Note that there may be more than one compiled versions of the same method
-   * (ie. at different levels of optimization).
+   * (i.e. at different levels of optimization).
    */
   private static CompiledMethod[][] compiledMethods = new CompiledMethod[16][1 << LOG_ROW_SIZE];
 
@@ -156,10 +156,10 @@ public class CompiledMethods implements SizeConstants {
   }
 
   /**
-   * Find the method whose machine code contains the specified instruction.
+   * Find the method whose machine code contains the specified instruction.<p>
    *
    * Assumption: caller has disabled gc (otherwise collector could move
-   *                objects without fixing up the raw <code>ip</code> pointer)
+   *                objects without fixing up the raw <code>ip</code> pointer)<p>
    *
    * Note: this method is highly inefficient. Normally you should use the
    * following instead:
@@ -168,12 +168,11 @@ public class CompiledMethods implements SizeConstants {
    * RVMClassLoader.getCompiledMethod(Magic.getCompiledMethodID(fp))
    * </code>
    *
-   * @param ip  instruction address
-   *
-   * Usage note: <code>ip</code> must point to the instruction *following* the
+   * @param ip  instruction address. Usage note: <code>ip</code> must point
+   * to the instruction *following* the
    * actual instruction whose method is sought. This allows us to properly
    * handle the case where the only address we have to work with is a return
-   * address (ie. from a stackframe) or an exception address (ie. from a null
+   * address (i.e. from a stackframe) or an exception address (i.e. from a null
    * pointer dereference, array bounds check, or divide by zero) on a machine
    * architecture with variable length instructions.  In such situations we'd
    * have no idea how far to back up the instruction pointer to point to the
@@ -221,6 +220,7 @@ public class CompiledMethods implements SizeConstants {
    * Snip reference to CompiledMethod so that we can reclaim code space. If
    * the code is currently being executed, stack scanning is responsible for
    * marking it NOT obsolete. Keep such reference until a future GC.
+   * <p>
    * NOTE: It's expected that this is processed during GC, after scanning
    *    stacks to determine which methods are currently executing.
    */

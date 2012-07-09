@@ -20,7 +20,7 @@ import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 
 /**
- * Phases of a garbage collection.
+ * Phases of a garbage collection.<p>
  *
  * A concurrent phase runs concurrently with mutator activity.
  */

@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.Offset;
  * uses an unsynchronized two dimensional array of doubles to allocate
  * its counters. (see InstrumentedEventCounterManager.java for a
  * description of a counter manager)
- *
+ * <p>
  * NOTE: Much of this class was stolen from CounterArray.java, which
  * is now gone.
  */

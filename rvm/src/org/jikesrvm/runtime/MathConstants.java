@@ -62,7 +62,7 @@ public class MathConstants {
   @Entrypoint
   static final float maxlongF = java.lang.Float.intBitsToFloat(0x5F000000);
 
-  // smallest double that can be rounded to an int
+  /** smallest double that can be rounded to an int */
   @Entrypoint
   static final double minint = (double) Integer.MIN_VALUE;
 }

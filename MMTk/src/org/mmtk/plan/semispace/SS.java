@@ -36,7 +36,7 @@ import org.vmmagic.unboxed.*;
  * (such as memory and virtual memory resources) which are "global"
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
- * performance proprties of this plan.
+ * performance properties of this plan.
  */
 @Uninterruptible
 public class SS extends StopTheWorld {
@@ -46,8 +46,8 @@ public class SS extends StopTheWorld {
    * Class variables
    */
 
-  /** True if allocating into the "higher" semispace */
-  public static boolean hi = false; // True if allocing to "higher" semispace
+  /** {@code true} if allocating into the "higher" semispace */
+  public static boolean hi = false;
 
   /** One of the two semi spaces that alternate roles at each collection */
   public static final CopySpace copySpace0 = new CopySpace("ss0", false, VMRequest.create());
@@ -66,6 +66,10 @@ public class SS extends StopTheWorld {
 
   /**
    * Class variables
+   */
+
+  /**
+   *
    */
   public static final int ALLOC_SS = Plan.ALLOC_DEFAULT;
 
@@ -149,9 +153,6 @@ public class SS extends StopTheWorld {
    * Return the number of pages reserved for use given the pending
    * allocation.  This is <i>exclusive of</i> space reserved for
    * copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Override
   public int getPagesUsed() {
@@ -170,12 +171,6 @@ public class SS extends StopTheWorld {
     return(super.getPagesAvail()) >> 1;
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return True if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(SS0, object) || Space.isInSpace(SS1, object))

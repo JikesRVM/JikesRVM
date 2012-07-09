@@ -16,9 +16,6 @@ import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Env;
 
-/**
- * Number of collector threads.
- */
 public final class GcEvery extends org.vmutil.options.EnumOption {
   /**
    * Create the option.

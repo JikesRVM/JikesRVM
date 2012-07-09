@@ -52,6 +52,10 @@ public class ImmixCollector extends StopTheWorldCollector {
   /****************************************************************************
    * Instance fields
    */
+
+   /**
+    *
+    */
    protected ImmixTraceLocal fastTrace;
    protected ImmixDefragTraceLocal defragTrace;
    protected CollectorLocal immix;
@@ -79,16 +83,9 @@ public class ImmixCollector extends StopTheWorldCollector {
   * Collection-time allocation
   */
 
- /**
-  * Allocate space for copying an object (this method <i>does not</i>
-  * copy the object, it only allocates space)
-  *
-  * @param original A reference to the original object
-  * @param bytes The size of the space to be allocated (in bytes)
-  * @param align The requested alignment.
-  * @param offset The alignment offset.
-  * @return The address of the first byte of the allocated region
-  */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
@@ -100,9 +97,6 @@ public class ImmixCollector extends StopTheWorldCollector {
     return copy.alloc(bytes, align, offset);
   }
 
- /**
-  * @param object The newly allocated object
-  */
   @Override
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,

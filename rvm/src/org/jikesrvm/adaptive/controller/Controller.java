@@ -167,7 +167,7 @@ public class Controller implements Callbacks.ExitMonitor,
     // boot any instrumentation options
     Instrumentation.boot(options);
 
-    // boot the aos database
+    // boot the AOS database
     AOSDatabase.boot(options);
 
     CounterBasedSampling.boot(options);
@@ -239,11 +239,11 @@ public class Controller implements Callbacks.ExitMonitor,
 
   /**
    * This method is called when the VM is exiting to provide a hook to allow
-   * the adpative optimization subsystem to generate a summary report.
+   * the adaptive optimization subsystem to generate a summary report.
    * It can also be called directly from driver programs to allow
    * reporting on a single run of a benchmark that the driver program
    * is executing in a loop (in which case the adaptive system isn't actually
-   * exiting.....so some of the log messages may get a little wierd).
+   * exiting.....so some of the log messages may get a little weird).
    */
   public static void report() {
     if (!booted) return;

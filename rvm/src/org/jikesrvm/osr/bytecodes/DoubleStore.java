@@ -14,7 +14,7 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * BC_DoubleStore: dstore, dstore_<l>
+ * BC_DoubleStore: {@code dstore}, {@code dstore_<i>}
  */
 
 public class DoubleStore extends PseudoBytecode {

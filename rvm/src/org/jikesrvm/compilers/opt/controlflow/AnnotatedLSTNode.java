@@ -878,7 +878,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   /**
    * Is the a particular block in this loop?
    *
-   * @return true => block is in the loop, false => block not in loop
+   * @return {@code true} iff block is in the loop
    */
   public boolean isInLoop(BasicBlock block) {
     return CFGTransformations.inLoop(block, loop);

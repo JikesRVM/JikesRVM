@@ -20,9 +20,6 @@ import org.jikesrvm.compilers.opt.inlining.InlineOracle;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /*
- * CompilationPlan.java
- *
- *
  * An instance of this class acts instructs the optimizing
  * compiler how to compile the specified method.
  */

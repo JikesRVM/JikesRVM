@@ -283,11 +283,15 @@ import org.vmmagic.unboxed.*;
    *
    * Sorting Stack management routines
    */
+
+  /**
+   *
+   */
   private int stackLoc;
   private AddressArray stackBase;
 
   /*
-   * Allocate memory for the stack and intialize it with the first range
+   * Allocate memory for the stack and initialize it with the first range
    * to partition
    */
   private void initStack() {

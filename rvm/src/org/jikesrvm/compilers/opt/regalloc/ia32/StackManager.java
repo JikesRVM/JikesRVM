@@ -85,7 +85,6 @@ import org.vmmagic.unboxed.Offset;
  * Class to manage the allocation of the "compiler-specific" portion of
  * the stackframe.  This class holds only the architecture-specific
  * functions.
- * <p>
  */
 public abstract class StackManager extends GenericStackManager {
 
@@ -327,7 +326,8 @@ public abstract class StackManager extends GenericStackManager {
 
   /**
    * Insert an explicit stack overflow check in the prologue <em>after</em>
-   * buying the stack frame.
+   * buying the stack frame.<p>
+   *
    * SIDE EFFECT: mutates the plg into a trap instruction.  We need to
    * mutate so that the trap instruction is in the GC map data structures.
    *
@@ -904,11 +904,11 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * @param fpOffset offset in bytes from the top of the stack frame
-   * @return offset in bytes from the stack pointer.
-   *
    * PRECONDITION: The final frameSize is calculated before calling this
    * routine.
+   *
+   * @param fpOffset offset in bytes from the top of the stack frame
+   * @return offset in bytes from the stack pointer.
    */
   private int FPOffset2SPOffset(int fpOffset) {
     // Note that SP = FP - frameSize + WORDSIZE;

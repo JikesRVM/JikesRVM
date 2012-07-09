@@ -57,7 +57,7 @@ public final class FloatConstantOperand extends ConstantOperand implements SizeC
    * Constructs a new float constant operand with the specified value and JTOC offset.
    *
    * @param v value
-   * @param i offset in the jtoc
+   * @param i offset in the JTOC
    */
   public FloatConstantOperand(float v, Offset i) {
     value = v;

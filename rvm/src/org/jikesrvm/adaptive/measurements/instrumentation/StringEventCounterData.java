@@ -19,8 +19,6 @@ import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 
 /**
- * StringEventCounterData.java
- *
  * A generic data object that maps strings to counters.  The key
  * method is "Instruction getCounterInstructionForEvent(String)"
  * which, given a string, returns a counter instruction that

@@ -38,7 +38,6 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
- *
  * This pass inserts PI nodes (Effectively copies)
  * on branch edges, to introduce new names for analysis
  */
@@ -46,8 +45,10 @@ public final class PiNodes extends CompilerPhase {
 
   /**
    * Should we insert PI nodes for array references after bounds-checks
-   * and null-checks?  TODO: if this is false, then null-check elimination
-   * will be ineffective.  TODO: prove that null-check elimination is
+   * and null-checks?
+   * <p>TODO: if this is false, then null-check elimination
+   * will be ineffective.
+   * <p>TODO: prove that null-check elimination is
    * sound before turning this on again.
    */
   static final boolean CHECK_REF_PI = false;

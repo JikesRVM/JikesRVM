@@ -576,7 +576,7 @@ public abstract class IRTools {
    * Is the operand u, which is a use in instruction s, also a def
    * in instruction s?  That is, is this operand defined as a DU operand
    * in InstructionFormatList.dat.
-   *
+   * <p>
    * TODO!!: This implementation is slow.  Think about adding
    * some IR support for this functionality; possibly add methods like
    * enumeratePureDefs(), enumerateImpureUses(), etc ..., and restructure
@@ -598,7 +598,7 @@ public abstract class IRTools {
    * Is the operand d, which is a def in instruction s, also a def
    * in instruction s?  That is, is this operand defined as a DU operand
    * in InstructionFormatList.dat.
-   *
+   * <p>
    * TODO!!: This implementation is slow.  Think about adding
    * some IR support for this functionality; possibly add methods like
    * enumeratePureDefs(), enumerateImpureUses(), etc ..., and restructure

@@ -137,7 +137,9 @@ public final class MethodReference extends MemberReference {
 
   /**
    * Resolve the method reference for an invoke special into a target
-   * method, return null if the method cannot be resolved without classloading.
+   * method, if that is possible without causing classloading.
+   *
+   * @return target method or {@code null} if the method cannot be resolved without classloading.
    */
   public synchronized RVMMethod resolveInvokeSpecial() {
     RVMClass thisClass = (RVMClass) type.peekType();
@@ -173,7 +175,7 @@ public final class MethodReference extends MemberReference {
   /**
    * Find the RVMMethod that this method reference refers to using
    * the search order specified in JVM spec 5.4.3.3.
-   * @return the RVMMethod that this method ref resolved to or null if it cannot be resolved.
+   * @return the RVMMethod that this method ref resolved to or {@code null} if it cannot be resolved.
    */
   public RVMMethod peekResolvedMethod() {
     if (resolvedMember != null) return resolvedMember;
@@ -186,8 +188,8 @@ public final class MethodReference extends MemberReference {
 
   /**
    * Find the RVMMethod that this field reference refers to using
-   * the search order specified in JVM spec 5.4.3.3.
-   * @return the RVMMethod that this method ref resolved to.
+   * the search order specified in JVM specification 5.4.3.3.
+   * @return the RVMMethod that this method reference resolved to.
    */
   public synchronized RVMMethod resolve() {
     if (resolvedMember != null) return resolvedMember;
@@ -197,16 +199,16 @@ public final class MethodReference extends MemberReference {
   }
 
   /**
-   * Return true iff this member reference refers to a method which
+   * Return {@code true} iff this member reference refers to a method which
    * is declared as part of an abstract class but actually is an
    * interface method, known formally as a "miranda method".
-   *
+   * <p>
    * This method is necessary to handle the special case where an
    * invokevirtual is defined on an abstract class, where the
    * method invocation points to a method inherited from an
    * interface.
    *
-   * @return boolean    true iff this member method reference is a miranda method
+   * @return boolean    {@code true} iff this member method reference is a miranda method
    */
   public boolean isMiranda() {
 
@@ -316,7 +318,7 @@ public final class MethodReference extends MemberReference {
   /**
    * Find the RVMMethod that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.4.
-   * @return the RVMMethod that this method ref resolved to or null if it cannot be resolved without trigering class loading
+   * @return the RVMMethod that this method ref resolved to or {@code null} if it cannot be resolved without trigering class loading
    */
   public RVMMethod peekInterfaceMethod() {
     if (resolvedMember != null) return resolvedMember;
@@ -360,7 +362,7 @@ public final class MethodReference extends MemberReference {
   /**
    * Find the RVMMethod that this member reference refers to using
    * the search order specified in JVM spec 5.4.3.4.
-   * @return the RVMMethod that this method ref resolved to or null for error
+   * @return the RVMMethod that this method ref resolved to or {@code null} for error
    */
   private RVMMethod resolveInterfaceMethodInternal(RVMClass declaringClass) {
     RVMMethod it = declaringClass.findDeclaredMethod(name, descriptor);

@@ -16,7 +16,7 @@ import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.objectmodel.ThinLockConstants;
 
 /**
- * Constants describing vm object, stack, and register characteristics.
+ * Constants describing VM object, stack, and register characteristics.
  * Some of these constants are architecture-specific
  * and some are (at the moment) architecture-neutral.
  */
@@ -30,11 +30,12 @@ public interface Constants extends ThinLockConstants,         // architecture-ne
    */
   boolean NOT_REACHED = false;
 
-  /**
+  /*
    * Reflection uses an integer return from a function which logically
-   * returns a triple.  The values are packed in the interger return value
+   * returns a triple.  The values are packed in the integer return value
    * by the following masks.
    */
+
   int REFLECTION_GPRS_BITS = 5;
   int REFLECTION_GPRS_MASK = (1 << REFLECTION_GPRS_BITS) - 1;
   int REFLECTION_FPRS_BITS = 5;

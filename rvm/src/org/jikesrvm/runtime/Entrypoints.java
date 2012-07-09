@@ -26,7 +26,7 @@ import org.jikesrvm.classloader.NormalMethod;
  */
 public class Entrypoints {
   // The usual causes for getField/Method() to fail are:
-  //  1. you mispelled the class name, member name, or member signature
+  //  1. you misspelled the class name, member name, or member signature
   //  2. the class containing the specified member didn't get compiled
   //
 

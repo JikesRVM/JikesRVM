@@ -52,7 +52,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 
-/*
+/**
  * Simple flow-insensitive optimizations.
  *
  * <p> Except for the "CompilerPhase" methods, all fields and methods in

@@ -16,7 +16,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 
 /**
  * Represents a symbolic name for a stack location.
- *
+ * <p>
  * The stack location is defined by an offset from either the framepointer
  * (top of stack frame) or stackpointer-home-location (bottom of frame).
  */

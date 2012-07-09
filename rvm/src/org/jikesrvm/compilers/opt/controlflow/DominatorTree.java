@@ -23,11 +23,11 @@ import org.jikesrvm.util.BitVector;
 /**
  * This class provides the abstraction of a dominator tree
  *
- * TODO: we do not support IRs with exception handlers.
+ * <p>TODO: we do not support IRs with exception handlers.
  */
 public class DominatorTree extends Tree {
   /**
-   * True if we are computing regular dominators, false for post-dominators
+   * {@code true} if we are computing regular dominators, {@code false} for post-dominators
    */
   private final boolean forward;
 
@@ -247,7 +247,7 @@ public class DominatorTree extends Tree {
   }
 
   /**
-   * Creates domniator tree nodes for the passed block and adds them to the
+   * Creates dominator tree nodes for the passed block and adds them to the
    * map.
    * @param b the basic block
    */

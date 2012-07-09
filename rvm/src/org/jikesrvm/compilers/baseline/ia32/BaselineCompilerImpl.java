@@ -86,7 +86,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   @Override
   protected void initializeCompiler() {
-    //nothing to do for intel
+    //nothing to do for Intel
   }
 
   public final byte getLastFixedStackRegister() {
@@ -100,13 +100,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   @Uninterruptible
   public static short getGeneralLocalLocation(int index, short[] localloc, NormalMethod m) {
     return offsetToLocation(getStartLocalOffset(m) -
-                            (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
+                            (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on Intel
   }
 
   @Uninterruptible
   public static short getFloatLocalLocation(int index, short[] localloc, NormalMethod m) {
     return offsetToLocation(getStartLocalOffset(m) -
-                            (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on intel
+                            (index << LOG_BYTES_IN_ADDRESS)); //we currently do not use location arrays on Intel
   }
 
   @Uninterruptible
@@ -153,7 +153,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    *
    * @param size amount to change ESP/RSP by
    * @param mayClobber can the value in S0 or memory be destroyed?
-   * (ie can we use a destructive short push/pop opcode)
+   * (i.e. can we use a destructive short push/pop opcode)
    */
   private void adjustStack(int size, boolean mayClobber) {
     final boolean debug=false;
@@ -249,7 +249,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     ObjectModel.baselineEmitLoadTIB(asm, dest.value(), object.value());
   }
   /**
-   * Notify BaselineCompilerImpl that we are starting code gen for the bytecode biStart
+   * Notify BaselineCompilerImpl that we are starting code generation for the bytecode biStart
    */
   @Override
   protected final void starting_bytecode() {}
@@ -4204,9 +4204,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   /**
    * OSR routine to emit code to invoke a compiled method (with known jtoc
    * offset). Treat it like a resolved invoke static, but take care of
-   * this object in the case.
+   * this object in the case.<p>
    *
-   * I have not thought about GCMaps for invoke_compiledmethod
+   * I have not thought about GCMaps for invoke_compiledmethod.<p>
    * TODO: Figure out what the above GCMaps comment means and fix it!
    */
   @Override

@@ -29,8 +29,8 @@ import org.jikesrvm.util.BitVector;
 /**
  *  This Phase supports
  *  <ul>
- *    <li> transforming while into until loops,
- *    <li>  elimination of critical edges,
+ *    <li>transforming while into until loops,
+ *    <li>elimination of critical edges,
  *  </ul>
  */
 public class CFGTransformations extends CompilerPhase {
@@ -96,7 +96,7 @@ public class CFGTransformations extends CompilerPhase {
   }
 
   /**
-   * Returns true if the phase wants the IR dumped before and/or after it runs.
+   * Returns {@code true} if the phase wants the IR dumped before and/or after it runs.
    */
   @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
@@ -368,7 +368,7 @@ public class CFGTransformations extends CompilerPhase {
       for (int i = 0; i < numberOfIns; ++i) {
         ins[i] = ie.next();
       }
-      // skip blocks, that do not fullfil our requirements for `a'
+      // skip blocks, that do not fulfill our requirements for `a'
       for (int i = 0; i < numberOfIns; ++i) {
         BasicBlock a = ins[i];
         if (a.getNumberOfOut() <= 1) {

@@ -14,11 +14,10 @@ package org.jikesrvm.compilers.opt.ir.operand;
 
 import java.util.Arrays;
 import org.jikesrvm.classloader.MemberReference;
-/*
+/**
  * An InlinedOsrTypeInfoOperand object keeps necessary information
  * to recover non-inlined status for an inlined method.
  */
-
 public final class InlinedOsrTypeInfoOperand extends Operand {
 
   ////////////////////////////////////////////

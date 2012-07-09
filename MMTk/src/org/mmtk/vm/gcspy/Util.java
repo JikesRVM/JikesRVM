@@ -143,7 +143,7 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * sprintf(char *str, char *format, char* value)
+   * {@code sprintf(char *str, char *format, char* value)}
    *
    * @param str The destination 'string' (memory in C space)
    * @param format The format 'string' (memory in C space)
@@ -155,7 +155,7 @@ import org.vmmagic.pragma.*;
   /**
    * Create an array of a particular type.
    * The easiest way to use this is:
-   *     Foo[] x = (Foo [])Stream.createDataArray(new Foo[0], numElements);
+   *     {@code Foo[] x = (Foo [])Stream.createDataArray(new Foo[0], numElements);}
    * @param templ a data array to use as a template
    * @param numElements number of elements in new array
    * @return the new array

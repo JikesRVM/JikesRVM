@@ -18,15 +18,17 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * A memory operand.
- * Used to represent complex addrssing modes on CISC machines.
+ * Used to represent complex addressing modes on CISC machines.
  * A memory operand contains some set of other operands that are used
  * in the address calculation.
- *
+ * <p>
  * May contain 0, 1, or 2 RegisterOperands as well as a scale factor and
- * dispacement.
- *
+ * displacement.
+ * <p>
  * The effective address represented by this operand is:
+ * <pre>
  *     [base] + [index]*(2^scale) + disp
+ * </pre>
  *
  * @see Operand
  */
@@ -43,12 +45,12 @@ public final class MemoryOperand extends Operand {
   public Operand guard;
 
   /**
-   * The base register (may be null)
+   * The base register (may be {@code null})
    */
   public RegisterOperand base;
 
   /**
-   * The index register (may be null)
+   * The index register (may be {@code null})
    */
   public RegisterOperand index;
 

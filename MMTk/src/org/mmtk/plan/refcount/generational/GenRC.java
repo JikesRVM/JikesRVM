@@ -91,12 +91,6 @@ public class GenRC extends RCBase {
     return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return True if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(NURSERY, object)) {

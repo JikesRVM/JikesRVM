@@ -81,7 +81,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    */
   private static final boolean MUTATE_FMOV = VM.BuildForIA32;
 
-  /**
+  /*
    * debug flags
    */
   private static final boolean DEBUG = false;
@@ -121,7 +121,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   /**
    *  Returns the interval associated with the passed register.
    *  @param reg the register
-   *  @return the live interval or null
+   *  @return the live interval or {@code null}
    */
   static CompoundInterval getInterval(Register reg) {
     return (CompoundInterval) reg.scratchObject;
@@ -298,7 +298,8 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     *  Perform the linear scan register allocation algorithm
+     *  Perform the linear scan register allocation algorithm.<p>
+     *
      *  See TOPLAS 21(5), Sept 1999, p 895-913
      *  @param ir the IR
      */
@@ -349,10 +350,12 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
 
   /**
    * Implements a basic live interval (no holes), which is a pair
+   * <pre>
    *   begin    - the starting point of the interval
    *   end      - the ending point of the interval
+   * </pre>
    *
-   *   Begin and end are numbers given to each instruction by a numbering pass
+   * <p> Begin and end are numbers given to each instruction by a numbering pass.
    */
   static class BasicInterval {
 

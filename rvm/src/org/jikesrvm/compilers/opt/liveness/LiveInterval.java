@@ -34,7 +34,7 @@ final class LiveInterval {
    *
    * @param set  the set of registers, encoded as a LiveSet object
    * @param block the basic block
-   * @param inst the intruction where the register's live range ends,
+   * @param inst the instruction where the register's live range ends,
    *             null represents the end of the basic block
    */
   public static void createEndLiveRange(LiveSet set, BasicBlock block, Instruction inst) {

@@ -24,7 +24,7 @@ import org.vmmagic.pragma.*;
  * This plan has been modified slightly to perform the processing necessary
  * for GC trace generation.  To maximize performance, it attempts to remain
  * as faithful as possible to semiSpace/Plan.java.
- *
+ * <pre>
  * The generated trace format is as follows:
  *    B 345678 12
  *      (Object 345678 was created in the boot image with a size of 12 bytes)
@@ -55,7 +55,7 @@ import org.vmmagic.pragma.*;
  *         with offset 23; b) the object allocated is of type java.lang.Foo)
  *    D 342789 361460
  *      (Object 342789 became unreachable after 361460 was allocated)
- *
+ * </pre>
  * This class implements a simple semi-space collector. See the Jones
  * & Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
@@ -71,7 +71,7 @@ import org.vmmagic.pragma.*;
  * (such as memory and virtual memory resources) which are "global"
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
- * performance proprties of this plan.
+ * performance properties of this plan.
  */
 @Uninterruptible
 public final class GCTraceTraceLocal extends SSTraceLocal {
@@ -117,14 +117,6 @@ public final class GCTraceTraceLocal extends SSTraceLocal {
     }
   }
 
-  /**
-   * If the referenced object has moved, return the new location.
-   *
-   * Some copying collectors will need to override this method.
-   *
-   * @param object The object which may have been forwarded.
-   * @return The new location of <code>object</code>.
-   */
   @Override
   @Inline
   public ObjectReference getForwardedReference(ObjectReference object) {

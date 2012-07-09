@@ -43,6 +43,10 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   *
   * Class variables
   */
+
+  /**
+   *
+   */
   protected static final boolean LAZY_SWEEP = true;
   private static final boolean COMPACT_SIZE_CLASSES = false;
   protected static final int MIN_CELLS = 6;
@@ -73,6 +77,10 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   protected final Lock lock = VM.newLock("SegregatedFreeListGlobal");
   protected final AddressArray consumedBlockHead = AddressArray.create(sizeClassCount());
@@ -265,7 +273,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   }
 
   /**
-   * Get the size class for a given number of bytes.
+   * Get the size class for a given number of bytes.<p>
    *
    * We use size classes based on a worst case internal fragmentation
    * loss target of 1/8.  In fact, across sizes from 8 bytes to 512
@@ -398,7 +406,8 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
   protected abstract Address advanceToBlock(Address block, int sizeClass);
 
   /**
-   * Notify that a new block has been installed.
+   * Notify that a new block has been installed. This is to ensure that
+   * appropriate collection state can be initialized for the block
    *
    * @param block The new block
    * @param sizeClass The block's sizeclass.
@@ -410,7 +419,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * live. This is only used when maintainSideBitmap is false.
    *
    * @param object The object to query
-   * @return True if the cell should be reclaimed
+   * @return {@code true} if the cell should be reclaimed
    */
   protected boolean reclaimCellForObject(ObjectReference object) {
     VM.assertions.fail("Must implement reclaimCellForObject if not maintaining side bitmap");
@@ -562,7 +571,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * @param block The block
    * @param blockSize The size of the block
    * @param clearMarks should we clear block mark bits as we process.
-   * @return True if any cells in the block are live
+   * @return {@code true} if any cells in the block are live
    */
   @Inline
   protected boolean containsLiveCell(Address block, Extent blockSize, boolean clearMarks) {
@@ -612,7 +621,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * In the cell containing this object live?
    *
    * @param object The object
-   * @return True if the cell is live
+   * @return {@code true} if the cell is live
    */
   @Inline
   protected boolean isCellLive(ObjectReference object) {
@@ -702,7 +711,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
 
   /**
    * Sweep a block, freeing it and making it available if any live cells were found.
-   * if it contains no free objects.
+   * if it contains no free objects.<p>
    *
    * This is designed to be called in parallel by multiple collector threads.
    */
@@ -802,7 +811,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * Atomically set the live bit for a given object
    *
    * @param object The object whose live bit is to be set.
-   * @return True if the bit was changed to true.
+   * @return {@code true} if the bit was changed to true.
    */
   @Inline
   public static boolean testAndSetLiveBit(ObjectReference object) {
@@ -845,8 +854,8 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * Set the live bit for a given address
    *
    * @param address The address whose live bit is to be set.
-   * @param set True if the bit is to be set, as opposed to cleared
-   * @param atomic True if we want to perform this operation atomically
+   * @param set {@code true} if the bit is to be set, as opposed to cleared
+   * @param atomic {@code true} if we want to perform this operation atomically
    */
   @Inline
   private static boolean updateLiveBit(Address address, boolean set, boolean atomic) {
@@ -879,7 +888,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
    * Set the live bit for a given address
    *
    * @param address The address whose live bit is to be set.
-   * @return true if this operation changed the state of the live bit.
+   * @return {@code true} if this operation changed the state of the live bit.
    */
   @Inline
   protected static boolean liveBitSet(Address address) {

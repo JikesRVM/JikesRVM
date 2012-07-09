@@ -122,7 +122,7 @@ public class OSRProfiler implements Callbacks.ExitMonitor {
       if (cmplplan != null) {
         if (VM.VerifyAssertions) {VM._assert(cmplplan.getMethod() == state.meth);}
 
-        // for invalidated method, we donot perform OSR guarded inlining anymore.
+        // for invalidated method, we do not perform OSR guarded inlining anymore.
         // the Options object may be shared by several methods,
         // we have to reset it back
         boolean savedOsr = cmplplan.options.OSR_GUARDED_INLINING;

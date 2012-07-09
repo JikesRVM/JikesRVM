@@ -25,9 +25,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
- * Command line option processing.
- *
- *      Arbitrary prefix support
+ * Command line option processing iwth arbitrary prefix support.
  */
 public class CommandLineArgs {
   private static final boolean DEBUG = false;
@@ -93,7 +91,10 @@ public class CommandLineArgs {
     /** Number of arguments of this type seen */
     public int count = 0;
 
-    /** Construct a prefix with the given argument string and type */
+    /** Construct a prefix with the given argument string and type
+     * @param v argument string
+     * @param t type of prefix, must be non-null
+     */
     public Prefix(String v, PrefixType t) {
       value = v;
       type = t;
@@ -135,7 +136,7 @@ public class CommandLineArgs {
   /**
    * A list of possible prefixes for command line arguments.
    * Each argument will be classified by the prefix it matches.
-   * One prefix can contain another.
+   * One prefix can contain another.<p>
    *
    * Prefixes are normally matched with the start of the argument.
    * If the last character of the prefix is a '$', the prefix (without the
@@ -143,7 +144,7 @@ public class CommandLineArgs {
    * If the last character of the prefix is a ' ' (space), the prefix
    * (without the trailing ' ') will be matched with the whole argument,
    * and the next argument will be appended to the end of the one matching
-   * the prefix, with a space in between.
+   * the prefix, with a space in between.<p>
    *
    * The type will be used to classify the prefix.  Multiple entries CAN
    * have the same type.
@@ -344,6 +345,8 @@ public class CommandLineArgs {
 
   /**
    * Find a Prefix object of a given type.
+   * @param type given type
+   * @return prefix if found, {@code null} otherwise
    */
   private static Prefix findPrefix(PrefixType type) {
     for (Prefix prefix : prefixes) if (prefix.type == type) return prefix;
@@ -381,6 +384,7 @@ public class CommandLineArgs {
 
   /**
    * Get all environment arguments as pairs of string of key followed by value
+   * @return all environment arguments or {@code null}, if none were found
    */
   public static String[] getEnvironmentArgs() {
     if (!VM.runningVM) throw new IllegalAccessError("Environment variables can't be read in a non-running VM");
@@ -390,6 +394,7 @@ public class CommandLineArgs {
   /**
    * Extract the first -D... command line argument that matches a given
    * variable, and return it.
+   * @param variable the non-null variable to match
    * @return the environment arg, or null if there is none.
    */
   public static String getEnvironmentArg(String variable) {
@@ -772,8 +777,10 @@ public class CommandLineArgs {
    * Primitive parsing of float/double values.
    * Done this way to enable us to parse command line arguments
    * early in VM booting before we are able to do the JNI call
-   * that using Double.valueOf would require.
-   * Does not support the full Java spec.
+   * that using {@code Double.valueOf} would require.
+   * Does not support the full Java specification.
+   * @param arg the float value to parse
+   * @return value as float
    */
   public static float primitiveParseFloat(String arg) {
     byte[] b = stringToBytes("floating point", arg);
@@ -784,7 +791,9 @@ public class CommandLineArgs {
    * Primitive parsing of byte/integer numeric values.
    * Done this way to enable us to parse command line arguments
    * early in VM booting before we are able call
-   * Byte.parseByte or Integer.parseInt.
+   * {@code  Byte.parseByte} or {@code Integer.parseInt}.
+   * @param arg the int or byte value to parse
+   * @return value as int
    */
   public static int primitiveParseInt(String arg) {
     byte[] b = stringToBytes("integer or byte", arg);
@@ -869,16 +878,18 @@ public class CommandLineArgs {
     return stringToBytes(null, arg);
   }
 
-  /** Convert the string s (the "argument") to a null-terminated byte array.
+  /**
+   * Convert the string s (the "argument") to a null-terminated byte array.
    * This is used for converting arguments and for converting fixed
    * strings we pass down to lower commands.
    *
-   * @return a byte array that represents <code>arg</code> as a
-   * null-terminated C string.
-   * Returns null for a null arg.
-   *
    * @param arg the argument to convert
-   * @param argName text to print for error reporting. */
+   * @param argName text to print for error reporting.
+   *
+   * @return a byte array that represents <code>arg</code> as a
+   * {@code null}-terminated C string. Returns {@code null} for a {@code null}
+   * arg.
+   */
   private static byte[] stringToBytes(String argName, String arg) {
     if (arg == null) {
       return null;

@@ -40,6 +40,9 @@ import org.vmmagic.pragma.*;
    * Instance fields
    */
 
+  /**
+   *
+   */
   protected final GenNurseryTraceLocal nurseryTrace;
 
   protected final LargeObjectLocal los;
@@ -56,7 +59,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   *
+   * <p>
    * Note that the collector is a consumer of remsets, while the
    * mutator is a producer.  The <code>GenMutator</code> class is
    * responsible for construction of the WriteBuffer (producer).

@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * A description of a java type.
- *
+ * <p>
  * This class is the base of the java type system.
  * To the three kinds of java objects
  * (class-instances, array-instances, primitive-instances)
@@ -44,7 +44,7 @@ import org.vmmagic.unboxed.Offset;
  *      resolved.
  *
  * <li> A "resolve" phase follows symbolic references as needed to discover
- *   ancestry, to measure field sizes, and to allocate space in the jtoc
+ *   ancestry, to measure field sizes, and to allocate space in the JTOC
  *   for the class's static fields and methods.
  *
  * <li>  An "instantiate" phase initializes and
@@ -70,7 +70,7 @@ public abstract class RVMType extends AnnotatedElement
   protected static final int[] NOREFS_OFFSET_ARRAY = new int[0];
 
   /**
-   * Alias 'null' for clarity
+   * Alias {@code null} for clarity
    */
   public static final int[] REFARRAY_OFFSET_ARRAY = null;
 
@@ -194,7 +194,7 @@ public abstract class RVMType extends AnnotatedElement
   protected final int id;
 
   /**
-   * index of jtoc slot that has type information block for this RVMType
+   * index of JTOC slot that has type information block for this RVMType
    */
   protected final int tibOffset;
 
@@ -340,7 +340,7 @@ public abstract class RVMType extends AnnotatedElement
 
   /**
    * Should assertions be enabled on this type?
-   * @return false
+   * @return {@code false}
    */
   public boolean getDesiredAssertionStatus() {
     return false;
@@ -348,9 +348,11 @@ public abstract class RVMType extends AnnotatedElement
 
   /**
    * Descriptor for this type.
-   * For a class, something like "Ljava/lang/String;".
-   * For an array, something like "[I" or "[Ljava/lang/String;".
-   * For a primitive, something like "I".
+   * <ul>
+   *   <li>For a class, something like "Ljava/lang/String;".
+   *   <li>For an array, something like "[I" or "[Ljava/lang/String;".
+   *   <li>For a primitive, something like "I".
+   * </ul>
    */
   @Uninterruptible
   public final Atom getDescriptor() {
@@ -368,8 +370,10 @@ public abstract class RVMType extends AnnotatedElement
 
   /**
    * get number of superclasses to Object
-   *   0 java.lang.Object, Primitive, and Classes that are interfaces
-   *   1 for RVMArrays and classes that extend Object directly
+   * <ul>
+   *   <li>0 java.lang.Object, Primitive, and Classes that are interfaces
+   *   <li>1 for RVMArrays and classes that extend Object directly
+   * </ul>
    */
   @Uninterruptible
   public abstract int getTypeDepth();
@@ -654,33 +658,33 @@ public abstract class RVMType extends AnnotatedElement
   // Methods implemented in Primitive, RVMArray or RVMClass
 
   /**
-   * Resolution status.
+   * Resolution status.<p>
    * If the class/array has been "resolved", then size and offset information is
    * available by which the compiler can generate code to access this
    * class/array's
    * fields/methods via direct loads/stores/calls (rather than generating
-   * code to access fields/methods symbolically, via dynamic linking stubs).
+   * code to access fields/methods symbolically, via dynamic linking stubs).<p>
    * Primitives are always treated as "resolved".
    */
   @Uninterruptible
   public abstract boolean isResolved();
 
   /**
-   * Instantiation status.
+   * Instantiation status.<p>
    * If the class/array has been "instantiated",
    * then all its methods have been compiled
-   * and its type information block has been placed in the jtoc.
+   * and its type information block has been placed in the JTOC.<p>
    * Primitives are always treated as "instantiated".
    */
   @Uninterruptible
   public abstract boolean isInstantiated();
 
   /**
-   * Initialization status.
+   * Initialization status.<p>
    * If the class has been "initialized",
-   * then its <clinit> method has been executed.
-   * Arrays have no <clinit> methods so they become
-   * "initialized" immediately upon "instantiation".
+   * then its {@code <clinit>} method has been executed.
+   * Arrays have no {@code <clinit>} methods so they become
+   * "initialized" immediately upon "instantiation".<p>
    * Primitives are always treated as "initialized".
    */
   @Uninterruptible
@@ -768,15 +772,15 @@ public abstract class RVMType extends AnnotatedElement
 
   /**
    * Cause resolution to take place.
-   * This will cause slots to be allocated in the jtoc.
+   * This will cause slots to be allocated in the JTOC.
    */
   public abstract void resolve();
 
   /**
    * This method is only called by the bootimage writer.
    * It is called after {@link #resolve()} has been called on all
-   * bootimaage types but before {@link #instantiate()} has been called
-   * on any bootimaage type.
+   * bootimage types but before {@link #instantiate()} has been called
+   * on any bootimage type.
    * This provides a hook to compute various summaries that cannot be computed before types
    * are resolved.
    */
@@ -785,13 +789,13 @@ public abstract class RVMType extends AnnotatedElement
   /**
    * Cause instantiation to take place.
    * This will cause the class's methods to be compiled and slots in the
-   * jtoc to be filled-in.
+   * JTOC to be filled-in.
    */
   public abstract void instantiate();
 
   /**
    * Cause initialization to take place.
-   * This will cause the class's <clinit> method to be executed.
+   * This will cause the class's {@code <clinit>} method to be executed.
    */
   public abstract void initialize();
 

@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public final class SanityCheckerLocal implements Constants {
 
-  /* Trace */
+  /** Trace */
   final SanityRootTraceLocal rootTraceLocal;
 
   /****************************************************************************
@@ -39,7 +39,7 @@ public final class SanityCheckerLocal implements Constants {
   /**
    * Perform any sanity checking collection phases.
    *
-   * @param phaseId The id to proces
+   * @param phaseId The id to process
    * @param primary Perform local single threaded actions on this thread
    * @return True if the phase was handled.
    */

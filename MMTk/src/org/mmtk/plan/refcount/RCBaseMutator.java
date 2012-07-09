@@ -34,6 +34,10 @@ public class RCBaseMutator extends StopTheWorldMutator {
   /************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   private final ExplicitFreeListLocal rc;
   private final LargeObjectLocal rclos;
   private final ObjectReferenceDeque modBuffer;
@@ -128,6 +132,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * Collection
    */
 
+
   /**
    * {@inheritDoc}
    */
@@ -213,10 +218,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
   }
 
   /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
+   * {@inheritDoc}
    *
    * @param src The source of the values to be copied
    * @param srcOffset The offset of the first source address, in

@@ -46,9 +46,10 @@ import org.jikesrvm.util.BitVector;
 public class DominanceFrontier extends CompilerPhase {
   /**
    * Should this phase be performed?  This is a member of a composite
-   * phase, so always return true.  The parent composite phase will
+   * phase, so always return {@code true}.  The parent composite phase will
    * dictate.
    * @param options controlling compiler options
+   * @return {@code true}
    */
   @Override
   public final boolean shouldPerform(OptOptions options) {
@@ -79,8 +80,8 @@ public class DominanceFrontier extends CompilerPhase {
    * Should the IR be printed either before or after performing this phase?
    *
    * @param options controlling compiler options
-   * @param before true iff querying before the phase
-   * @return true or false
+   * @param before {@code true} iff querying before the phase
+   * @return {@code false}
    */
   @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {

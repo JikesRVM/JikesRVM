@@ -163,7 +163,7 @@ public abstract class PhysicalDefUse {
       }
     }
 
-    // artifically make static to enable scalar replacement of
+    // Artificially make static to enable scalar replacement of
     // enumeration object without requiring this method to be inlined.
     private static Register getReg(int m, PhysicalRegisterSet phys) {
       switch (m) {
@@ -193,7 +193,7 @@ public abstract class PhysicalDefUse {
           return phys.getESP();
       }
       OptimizingCompilerException.UNREACHABLE();
-      return null; // placate jikes.
+      return null;
     }
   }
 }

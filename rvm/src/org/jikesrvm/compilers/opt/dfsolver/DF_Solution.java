@@ -15,8 +15,6 @@ package org.jikesrvm.compilers.opt.dfsolver;
 import java.util.HashMap;
 
 /**
- * DF_Solution.java
- *
  * Represents the solution to a system of Data Flow equations.
  * Namely, a function mapping Objects to DF_LatticeCells
  */

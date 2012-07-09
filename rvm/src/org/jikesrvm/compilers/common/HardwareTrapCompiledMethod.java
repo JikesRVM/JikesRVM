@@ -23,7 +23,7 @@ import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Information associated with artifical stackframe inserted by hardware
+ * Information associated with artificial stackframe inserted by hardware
  * trap handler.
  */
 final class HardwareTrapCompiledMethod extends CompiledMethod {

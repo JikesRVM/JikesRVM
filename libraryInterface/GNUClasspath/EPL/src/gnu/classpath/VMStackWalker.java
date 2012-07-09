@@ -14,7 +14,7 @@ package gnu.classpath;
 
 /** This is a cheap stack browser.  Better would be something like
  * the Jikes RVM {@link StackBrowser} class.
- *
+ * <p>
  * This is our interface to GNU Classpath.  We quote the official
  * Classpath Javadoc here, as part of clearly describing the interface.
  * Never the less, look at the source code of the GNU Class
@@ -31,11 +31,12 @@ import org.jikesrvm.classloader.RVMType;
 
 public final class VMStackWalker {
 
-  /**                                                          n-
-   * Walk up the stack and return the first non-null class loader.
-   * If there aren't any non-null class loaders on the stack, return null.
+  /**
+   * Walk up the stack and return the first non-{@code null} class loader.
+   * If there aren't any non-{@code null} class loaders on the stack, return
+   * {@code null}.
    *
-   * @return the first non-null classloader on stack or null.ge
+   * @return the first non-{@code null} classloader on stack or {@code null}
    */
   public static ClassLoader firstNonNullClassLoader() {
     for (Class<?> type : getClassContext()) {

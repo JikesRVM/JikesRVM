@@ -36,6 +36,10 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
   *
   * Instance fields.
   */
+
+  /**
+   *
+   */
  private final ObjectReferenceDeque modBuffer;
 
   /**
@@ -74,12 +78,12 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
   }
 
   /**
-   * Return true if this object is guaranteed not to move during this
+   * Return {@code true} if this object is guaranteed not to move during this
    * collection (i.e. this object is definitely not an unforwarded
    * object).
    *
    * @param object
-   * @return True if this object is guaranteed not to move during this
+   * @return {@code true} if this object is guaranteed not to move during this
    *         collection.
    */
   @Override

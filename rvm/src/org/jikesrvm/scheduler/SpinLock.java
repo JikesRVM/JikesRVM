@@ -28,7 +28,7 @@ import org.vmmagic.pragma.NoInline;
  * <p> Alternative (to Java monitors) light-weight synchronization
  * mechanism to implement Java monitors {@link Lock}.  These locks
  * should not be used where Java monitors would suffice, or where
- * an adaptive mutex is required (@link HeavyCondLock}.  They are
+ * an adaptive mutex is required.  They are
  * intended to be held only briefly!
  *
  * <p> Normally, contending <code>RVMThread</code>s will spin on

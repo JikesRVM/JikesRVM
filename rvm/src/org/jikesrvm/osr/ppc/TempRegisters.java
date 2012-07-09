@@ -19,7 +19,7 @@ import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 /**
- * Temporary resiter set.
+ * Temporary register set.
  * see: Registers
  */
 public class TempRegisters implements RegisterConstants {
@@ -35,7 +35,7 @@ public class TempRegisters implements RegisterConstants {
 
   /**
    * if a GPR holds a reference to an object, we convert the raw memory
-   * address to a reference. When objs[i] is null, the GPR[i] is not
+   * address to a reference. When objs[i] is {@code null}, the GPR[i] is not
    * holding a reference.
    */
   Object[] objs;

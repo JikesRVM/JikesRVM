@@ -42,9 +42,8 @@ public final class HotMethodRecompilationEvent extends HotMethodEvent implements
   }
 
   /**
-   * This function defines how the controller handles a
-   * HotMethodRecompilationEvent.  Simply passes the event to the
-   * recompilation strategy.
+   * {@inheritDoc}
+   * In this case, the method simply passes the event to the recompilation strategy.
    */
   @Override
   public void process() {

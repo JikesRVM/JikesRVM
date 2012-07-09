@@ -18,13 +18,11 @@ import org.jikesrvm.adaptive.measurements.instrumentation.YieldpointCounterData;
 import org.jikesrvm.adaptive.util.AOSOptions;
 
 /**
- * AOSDatabase.java
- *
  * Used to keep track of the various data structures that make up the
  * AOS database.
  */
 public final class AOSDatabase {
-  /**
+  /*
    * Static links to data objects that are "whole-program" (as opposed
    * to per-method)
    */

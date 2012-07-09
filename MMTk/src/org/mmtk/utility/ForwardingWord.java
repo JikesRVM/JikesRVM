@@ -38,6 +38,7 @@ public class ForwardingWord {
    *  2. BEING_FORWARDED: Being forwarded (forwarding is underway)
    *  3.       FORWARDED: Forwarded
    */
+
   /** If this bit is set, then forwarding of this object is incomplete */
   private static final byte BEING_FORWARDED = 2; // ...10
   /** If this bit is set, then forwarding of this object has commenced */
@@ -106,7 +107,7 @@ public class ForwardingWord {
    * Has an object been forwarded?
    *
    * @param object The object to be checked
-   * @return True if the object has been forwarded
+   * @return {@code true} if the object has been forwarded
    */
   @Inline
   public static boolean isForwarded(ObjectReference object) {
@@ -117,7 +118,7 @@ public class ForwardingWord {
    * Has an object been forwarded or is it being forwarded?
    *
    * @param object The object to be checked
-   * @return True if the object has been forwarded
+   * @return {@code true} if the object has been forwarded
    */
   @Inline
   public static boolean isForwardedOrBeingForwarded(ObjectReference object) {
@@ -128,7 +129,7 @@ public class ForwardingWord {
    * Has an object been forwarded or being forwarded?
    *
    * @param header The object header to be checked
-   * @return True if the object has been forwarded
+   * @return {@code true} if the object has been forwarded
    */
   @Inline
   public static boolean stateIsForwardedOrBeingForwarded(Word header) {
@@ -139,7 +140,7 @@ public class ForwardingWord {
    * Has an object been forwarded or being forwarded?
    *
    * @param header The object header to be checked
-   * @return True if the object has been forwarded
+   * @return {@code true} if the object has been forwarded
    */
   @Inline
   public static boolean stateIsBeingForwarded(Word header) {

@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 
 /**
  * Defines an attribute for compiler advice, and maintains a map
- * allowing attributes to be retrived by method and bytecode offset.
+ * allowing attributes to be retrieved by method and bytecode offset.
  * <p>
  * Each attribute encodes an compiler site and the advice for that
  * site:

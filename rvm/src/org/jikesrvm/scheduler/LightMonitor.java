@@ -166,5 +166,3 @@ public final class LightMonitor {
     unlock();
   }
 }
-
-

@@ -17,9 +17,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Bits.java
- *
- * utilities for manipulating values at the bit-level.
+ * Utilities for manipulating values at the bit-level.
  */
 public class Bits {
 

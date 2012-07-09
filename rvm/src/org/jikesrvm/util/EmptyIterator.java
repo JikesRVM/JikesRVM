@@ -15,7 +15,7 @@ package org.jikesrvm.util;
 import java.util.Iterator;
 
 /**
- * A generic iterator containing no items
+ * A generic iterator containing no items.
  */
 public final class EmptyIterator<T> implements Iterator<T> {
   @Override

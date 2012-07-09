@@ -90,9 +90,14 @@ public class EstimateBlockFrequencies extends CompilerPhase {
 
   /**
    * Compute relative basic block frequencies for the argument IR based on the
-   * branch probability information on each conditional and multiway branch.
-   * Assumptions: (1) LST is valid
-   *              (2) basic block numbering is dense (compact has been called).
+   * branch probability information on each conditional and multiway branch.<p>
+   *
+   * Assumptions:
+   * <ol>
+   *   <li>LST is valid
+   *   <li>basic block numbering is dense (compact has been called)
+   * </ol>
+   *
    * @param _ir the IR on which to apply the phase
    */
   @Override
@@ -146,12 +151,17 @@ public class EstimateBlockFrequencies extends CompilerPhase {
   }
 
   /**
-   * Compute which blocks are infrequent.
-   * Algorithm: let f = INFREQUENT_THRESHOLD.
-   * Start with S = {all basic blocks}.
-   * Sort the blocks by frequency.  Starting with the most frequent
-   * blocks, remove blocks from S until the sum of block frequencies in S
-   * <= f.  Then blocks in S are infrequent.
+   * Compute which blocks are infrequent.<p>
+   *
+   * Algorithm:
+   * <ol>
+   *   <li>let f = INFREQUENT_THRESHOLD.
+   *   <li>Start with S = {all basic blocks}.
+   *   <li>Sort the blocks by frequency.  Starting with the most frequent
+   *       blocks, remove blocks from S until the sum of block frequencies in S
+   *       <= f.  Then blocks in S are infrequent.
+   * </ol>
+   * </pre>
    *
    * @param ir the governing IR.
    */

@@ -33,8 +33,6 @@ import org.vmmagic.unboxed.Word;
 
 /**
  * A method that has been compiled into machine code by one of our compilers.
- * We implement SynchronizedObject because we need to synchronize
- * on the CompiledMethod object as part of the invalidation protocol.
  */
 public abstract class CompiledMethod implements SizeConstants {
 
@@ -109,7 +107,7 @@ public abstract class CompiledMethod implements SizeConstants {
 
   public void setSpecialForOSR() {
     flags |= SPECIAL_FOR_OSR;
-    // set jtoc
+    // set JTOC
     this.osrJTOCoffset = Statics.allocateReferenceSlot(false).toInt();
     Statics.setSlotContents(this.getOsrJTOCoffset(), this.instructions);
   }
@@ -259,7 +257,7 @@ public abstract class CompiledMethod implements SizeConstants {
   /**
    * Does the code for the compiled method contain the given return address?
    * @param ip a return address
-   * @return true if it belongs to this method's code, false otherwise.
+   * @return {@code true} if it belongs to this method's code, {@code false} otherwise.
    */
   @Uninterruptible
   public final boolean containsReturnAddress(Address ip) {
@@ -307,7 +305,7 @@ public abstract class CompiledMethod implements SizeConstants {
   }
 
   /**
-   * Mark the compiled method as outdated (ie requires OSR),
+   * Mark the compiled method as outdated (i.e. requires OSR),
    * the flag is set in AnalyticModel
    */
   @Uninterruptible
@@ -361,7 +359,7 @@ public abstract class CompiledMethod implements SizeConstants {
   /**
    * Identify the compiler that produced this compiled method.
    * @return one of TRAP, BASELINE, OPT, or JNI.
-   * Note: use this instead of "instanceof" when gc is disabled (ie. during gc)
+   * Note: use this instead of "instanceof" when GC is disabled (i.e. during GC)
    */
   @Uninterruptible
   public abstract int getCompilerType();
@@ -398,12 +396,7 @@ public abstract class CompiledMethod implements SizeConstants {
   /**
    * Find "catch" block for a machine instruction of
    * this method that might be guarded
-   * against specified class of exceptions by a "try" block .
-   *
-   * @param instructionOffset offset of machine instruction from start of this method, in bytes
-   * @param exceptionType type of exception being thrown - something like "NullPointerException"
-   * @return offset of machine instruction for catch block
-   * (-1 --> no catch block)
+   * against specified class of exceptions by a "try" block.<p>
    *
    * Notes:
    * <ul>
@@ -412,9 +405,9 @@ public abstract class CompiledMethod implements SizeConstants {
    * instruction whose catch block is sought.
    * This allows us to properly handle the case where
    * the only address we have to work with is a return address
-   * (ie. from a stackframe)
+   * (i.e. from a stackframe)
    * or an exception address
-   * (ie. from a null pointer dereference, array bounds check,
+   * (i.e. from a {@code null} pointer dereference, array bounds check,
    * or divide by zero) on a machine architecture with variable length
    * instructions.
    * In such situations we'd have no idea how far to back up the
@@ -422,18 +415,20 @@ public abstract class CompiledMethod implements SizeConstants {
    * to point to the "call site" or "exception site".
    *
    * <li> This method must not cause any allocations, because it executes with
-   * gc disabled when called by RuntimeEntrypoints.deliverException().
+   * GC disabled when called by RuntimeEntrypoints.deliverException().
    * </ul>
+   *
+   * @param instructionOffset offset of machine instruction from start of this method, in bytes
+   * @param exceptionType type of exception being thrown - something like "NullPointerException"
+   * @return offset of machine instruction for catch block
+   * (-1 --> no catch block)
    */
   @Unpreemptible
   public abstract int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType);
 
   /**
    * Fetch symbolic reference to a method that's called by one of
-   * this method's instructions.
-   * @param dynamicLink place to put return information
-   * @param instructionOffset offset of machine instruction from start of
-   * this method, in bytes
+   * this method's instructions.<p>
    *
    * Notes:
    * <ul>
@@ -442,7 +437,7 @@ public abstract class CompiledMethod implements SizeConstants {
    * instruction whose target method is sought.
    * This allows us to properly handle the case where
    * the only address we have to work with is a return address
-   * (ie. from a stackframe)
+   * (i.e. from a stackframe)
    * on a machine architecture with variable length instructions.
    * In such situations we'd have no idea how far to back up the
    * instruction pointer
@@ -450,8 +445,12 @@ public abstract class CompiledMethod implements SizeConstants {
    *
    * <li> The implementation must not cause any allocations,
    * because it executes with
-   * gc disabled when called by GCMapIterator.
+   * GC disabled when called by GCMapIterator.
    * <ul>
+   *
+   * @param dynamicLink place to put return information
+   * @param instructionOffset offset of machine instruction from start of
+   * this method, in bytes
    */
   @Uninterruptible
   public abstract void getDynamicLink(DynamicLink dynamicLink, Offset instructionOffset);
@@ -459,9 +458,6 @@ public abstract class CompiledMethod implements SizeConstants {
   /**
    * Find source line number corresponding to one of this method's
    * machine instructions.
-   * @param instructionOffset of machine instruction from start of this method, in bytes
-   * @return source line number
-   * (0 == no line info available, 1 == first line of source file)
    *
    * <p> Usage note: "instructionOffset" must point to the
    * instruction <em> following </em> the actual instruction
@@ -476,6 +472,11 @@ public abstract class CompiledMethod implements SizeConstants {
    * In such situations we'd have no idea how far to back up the
    * instruction pointer
    * to point to the "call site" or "exception site".
+   *
+   * @param instructionOffset of machine instruction from start of this method, in bytes
+   * @return source line number
+   * (0 == no line info available, 1 == first line of source file)
+   *
    */
   @Uninterruptible
   public int findLineNumberForInstruction(Offset instructionOffset) {
@@ -487,7 +488,7 @@ public abstract class CompiledMethod implements SizeConstants {
    * of the compiled method's code array) corresponds to an uninterruptible context.
    *
    * @param instructionOffset of addr from start of instructions in bytes
-   * @return true if the IP is within an Uninterruptible method, false otherwise.
+   * @return {@code true} if the IP is within an Uninterruptible method, {@code false} otherwise.
    */
   @Interruptible
   public abstract boolean isWithinUninterruptibleCode(Offset instructionOffset);
@@ -512,7 +513,7 @@ public abstract class CompiledMethod implements SizeConstants {
   /**
    * Return the number of bytes used to encode the compiler-specific mapping
    * information for this compiled method.
-   * Used to gather stats on the space costs of mapping schemes.
+   * Used to gather statistics on the space costs of mapping schemes.
    */
   public int size() { return 0; }
 

@@ -469,7 +469,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
   /**
    * Emit the code to push a long value
-   * contained in 'reg' onto the expression stack.
+   * contained in 'reg' onto the expression stack.<p>
+   *
    * NOTE: in 32 bit mode, reg is actually a FP register and
    * we are treating the long value as if it were an FP value to do this in
    * one instruction!!!
@@ -593,7 +594,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
   /**
    * Emit the code to pop a long value
-   * from the expression stack into the register 'reg'.
+   * from the expression stack into the register 'reg'.<p>
+   *
    * NOTE: in 32 bit mode, reg is actually a FP register and
    * we are treating the long value as if it were an FP value to do this in
    * one instruction!!!
@@ -3669,7 +3671,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   /**
    * Emit code to invoke a compiled method (with known jtoc offset).
    * Treat it like a resolved invoke static, but take care of
-   * this object in the case.
+   * this object in the case.<p>
    *
    * I havenot thought about GCMaps for invoke_compiledmethod
    * TODO: Figure out what the above GCMaps comment means and fix it!
@@ -3698,7 +3700,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    *  implemented in java bytecodes. These instructions are generated whenever
    *  we encounter an "invokestatic" bytecode that calls a method with a
    *  signature of the form "static native Magic.xxx(...)".
-   *  23 Jan 1998 Derek Lieber
    *
    * NOTE: when adding a new "methodName" to "generate()", be sure to also
    * consider how it affects the values on the stack and update
@@ -3706,7 +3707,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * If no call is actually generated, the map will reflect the status of the
    * locals (including parameters) at the time of the call but nothing on the
    * operand stack for the call site will be mapped.
-   *  7 Jul 1998 Janice Shepherd
    */
 
   /** Generate inline code sequence for specified method.

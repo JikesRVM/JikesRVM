@@ -34,6 +34,10 @@ public abstract class ConcurrentMutator extends SimpleMutator {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   public static boolean newMutatorBarrierActive = false;
   protected volatile boolean barrierActive = false;
 
@@ -76,8 +80,7 @@ public abstract class ConcurrentMutator extends SimpleMutator {
   */
 
   /**
-   * A new reference is about to be created. Take appropriate write
-   * barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * <b>In this case we employ a Yuasa style snapshot barrier.</b>
    *
@@ -99,10 +102,7 @@ public abstract class ConcurrentMutator extends SimpleMutator {
   }
 
   /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
+   * {@inheritDoc}
    *
    * @param src The source of the values to be copied
    * @param srcOffset The offset of the first source address, in

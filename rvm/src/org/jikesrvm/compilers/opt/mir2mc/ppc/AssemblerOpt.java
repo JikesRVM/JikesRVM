@@ -1230,8 +1230,10 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
     return mi;
   }
 
-  // used to build a link list of unresolved forward branches
-  // on the target label instr.
+  /**
+   * Used to build a link list of unresolved forward branches
+   * on the target label instr.
+   */
   private static final class BranchSrcElement {
     Instruction source;
     BranchSrcElement next;

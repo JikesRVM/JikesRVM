@@ -55,7 +55,7 @@ public final class AddressConstantOperand extends ConstantOperand {
    * Constructs a new address constant operand with the specified offset value.
    *
    * @param v value
-   * TODO: make a separte OffsetConstantOperand
+   * TODO: make a separate OffsetConstantOperand
    */
   public AddressConstantOperand(Extent v) {
     this(v.toWord().toAddress());
@@ -65,7 +65,7 @@ public final class AddressConstantOperand extends ConstantOperand {
    * Constructs a new address constant operand with the specified offset value.
    *
    * @param v value
-   * TODO: make a separte OffsetConstantOperand
+   * TODO: make a separate OffsetConstantOperand
    */
   public AddressConstantOperand(Word v) {
     this(v.toAddress());

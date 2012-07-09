@@ -52,7 +52,7 @@ public abstract class RecompilationStrategy {
   // (at least for now)
 
   /**
-   *  Initialize the recompilation strategy.
+   *  Initialize the recompilation strategy.<p>
    *
    *  Note: This uses the command line options to set up the
    *  optimization plans, so this must be run after the command line
@@ -110,8 +110,8 @@ public abstract class RecompilationStrategy {
    * Should we consider the hme for recompilation?
    *
    * @param hme the HotMethodEvent
-   * @param plan the ControllerPlan for the compiled method (may be null)
-   * @return true/false value
+   * @param plan the ControllerPlan for the compiled method (may be {@code null})
+   * @return {@code true/false} value
    */
   boolean considerForRecompilation(HotMethodEvent hme, ControllerPlan plan) {
     RVMMethod method = hme.getMethod();
@@ -168,7 +168,7 @@ public abstract class RecompilationStrategy {
   }
 
   /**
-   *  This method returns true if we've already tried to recompile the
+   *  This method returns {@code true} if we've already tried to recompile the
    *  passed method.  It does not guarantee that the compilation was
    *  successful.
    *
@@ -246,7 +246,7 @@ public abstract class RecompilationStrategy {
     String[] optCompilerOptions = Controller.getOptCompilerOptions();
     for (int i = 0; i <= maxOptLevel; i++) {
       _options[i] = options.dup();
-      _options[i].setOptLevel(i);               // set optimization level specific optimiations
+      _options[i].setOptLevel(i);               // set optimization level specific optimizations
       processCommandLineOptions(_options[i], i, maxOptLevel, optCompilerOptions);
       _optPlans[i] = OptimizationPlanner.createOptimizationPlan(_options[i]);
     }

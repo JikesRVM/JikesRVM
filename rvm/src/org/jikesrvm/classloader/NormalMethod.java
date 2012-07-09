@@ -48,7 +48,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   public static final int MAGIC_COST = 0;
   // News are actually more expensive than calls
   // but bias to inline methods that allocate
-  // objects becuase we expect better downstream optimization of
+  // objects because we expect better downstream optimization of
   // the caller due to class analysis
   // and propagation of nonNullness
   public static final int ALLOCATION_COST = 4;
@@ -105,17 +105,17 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   private short operandWords;
 
   /**
-   * bytecodes for this method (null --> none)
+   * bytecodes for this method ({@code null} --> none)
    */
   private final byte[] bytecodes;
 
   /**
-   * try/catch/finally blocks for this method (null --> none)
+   * try/catch/finally blocks for this method ({@code null} --> none)
    */
   private final ExceptionHandlerMap exceptionHandlerMap;
 
   /**
-   * pc to source-line info (null --> none)
+   * pc to source-line info ({@code null} --> none)
    * Each entry contains both the line number (upper 16 bits)
    * and corresponding start PC (lower 16 bits).
    */
@@ -267,7 +267,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
 
   /**
    * Checks if the method is in state for OSR specialization now
-   * @return true, if it is (with prologue)
+   * @return {@code true}, if it is (with prologue)
    */
   public boolean isForOsrSpecialization() {
     synchronized(synthesizedBytecodes) {
@@ -277,7 +277,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
 
   /**
    * Sets method in state for OSR specialization, i.e, the subsequent calls
-   * of {@link #getBytecodes} return the stream of specialized bytecodes.
+   * of {@link #getBytecodes} return the stream of specialized bytecodes.<p>
    *
    * NB: between flag and action, it should not allow GC or threadSwitch happen.
    * @param prologue   The bytecode of prologue
@@ -388,91 +388,91 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   }
 
   /**
-   * @return true if the method contains a Magic.xxx or Address.yyy
+   * @return {@code true} if the method contains a Magic.xxx or Address.yyy
    */
   public boolean hasMagic() {
     return (summaryFlags & HAS_MAGIC) != 0;
   }
 
   /**
-   * @return true if the method contains a monitorenter/exit or is synchronized
+   * @return {@code true} if the method contains a monitorenter/exit or is synchronized
    */
   public boolean hasSynch() {
     return (summaryFlags & HAS_SYNCH) != 0;
   }
 
   /**
-   * @return true if the method contains an allocation
+   * @return {@code true} if the method contains an allocation
    */
   public boolean hasAllocation() {
     return (summaryFlags & HAS_ALLOCATION) != 0;
   }
 
   /**
-   * @return true if the method contains an athrow
+   * @return {@code true} if the method contains an athrow
    */
   public boolean hasThrow() {
     return (summaryFlags & HAS_THROW) != 0;
   }
 
   /**
-   * @return true if the method contains an invoke
+   * @return {@code true} if the method contains an invoke
    */
   public boolean hasInvoke() {
     return (summaryFlags & HAS_INVOKE) != 0;
   }
 
   /**
-   * @return true if the method contains a getfield or getstatic
+   * @return {@code true} if the method contains a getfield or getstatic
    */
   public boolean hasFieldRead() {
     return (summaryFlags & HAS_FIELD_READ) != 0;
   }
 
   /**
-   * @return true if the method contains a putfield or putstatic
+   * @return {@code true} if the method contains a putfield or putstatic
    */
   public boolean hasFieldWrite() {
     return (summaryFlags & HAS_FIELD_WRITE) != 0;
   }
 
   /**
-   * @return true if the method contains an array load
+   * @return {@code true} if the method contains an array load
    */
   public boolean hasArrayRead() {
     return (summaryFlags & HAS_ARRAY_READ) != 0;
   }
 
   /**
-   * @return true if the method contains an array store
+   * @return {@code true} if the method contains an array store
    */
   public boolean hasArrayWrite() {
     return (summaryFlags & HAS_ARRAY_WRITE) != 0;
   }
 
   /**
-   * @return true if the method contains a jsr
+   * @return {@code true} if the method contains a jsr
    */
   public boolean hasJSR() {
     return (summaryFlags & HAS_JSR) != 0;
   }
 
   /**
-   * @return true if the method contains a conditional branch
+   * @return {@code true} if the method contains a conditional branch
    */
   public boolean hasCondBranch() {
     return (summaryFlags & HAS_COND_BRANCH) != 0;
   }
 
   /**
-   * @return true if the method contains a switch
+   * @return {@code true} if the method contains a switch
    */
   public boolean hasSwitch() {
     return (summaryFlags & HAS_SWITCH) != 0;
   }
 
   /**
-   * @return true if the method contains a backwards branch
+   * @return {@code true} if the method contains a backwards branch
    */
   public boolean hasBackwardsBranch() {
     return (summaryFlags & HAS_BACK_BRANCH) != 0;
@@ -490,7 +490,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
    * and thus is not subject to inlining via the normal mechanisms.
    * For example, the implementations of bytecodes such as new or checkcast
    * or the implementation of yieldpoints.
-   * @param value true if this is a runtime service method, false it is not.
+   * @param value {@code true} if this is a runtime service method, false it is not.
    */
   public void setRuntimeServiceMethod(boolean value) {
     if (value) {

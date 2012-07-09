@@ -121,14 +121,14 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * The tail is empty (or null), and the shared deque has no buffers
+   * The tail is empty (or {@code null}), and the shared deque has no buffers
    * available.  If the head has sufficient entries, consume the head.
    * Otherwise try wait on the shared deque until either all other
    * clients of the reach exhaustion or a buffer becomes
    * available.
    *
    * @param arity The arity of this buffer
-   * @return True if the consumer has eaten all of the entries
+   * @return {@code true} if the consumer has eaten all of the entries
    */
   @SuppressWarnings("unused")
   private boolean tailStarved(int arity) {

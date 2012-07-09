@@ -14,9 +14,6 @@ package org.mmtk.harness.options;
 
 import org.mmtk.harness.Harness;
 
-/**
- * The initial heap size.
- */
 public final class Bits extends org.vmutil.options.IntOption {
   /**
    * Create the option.

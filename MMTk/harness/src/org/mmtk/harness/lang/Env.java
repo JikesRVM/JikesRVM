@@ -95,9 +95,6 @@ public class Env extends Mutator {
     Trace.trace(Item.ROOTS, "Locals: %d", localCount);
   }
 
-  /**
-   * @see org.mmtk.harness.Mutator#getRoots()
-   */
   @Override
   public Collection<ObjectValue> getRoots() {
     List<ObjectValue> roots = new ArrayList<ObjectValue>();
@@ -120,10 +117,6 @@ public class Env extends Mutator {
     return roots;
   }
 
-
-  /**
-   * @see org.mmtk.harness.Mutator#gcSafePoint()
-   */
   @Override
   public boolean gcSafePoint() {
     if (gcEverySafepoint) {
@@ -133,9 +126,6 @@ public class Env extends Mutator {
   }
 
 
-  /**
-   * @see org.mmtk.harness.Mutator#end()
-   */
   @Override
   public void end() {
     if (!(expectedThrowable == null)) fail(("Expected exception of class " + expectedThrowable + " not found"));

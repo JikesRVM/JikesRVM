@@ -32,11 +32,10 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * OSR_BaselineExecStateExtractor retrieves the VM scope descriptor
+ * A class that retrieves the VM scope descriptor
  * from a suspended thread whose top method was compiled by the
  * baseline compiler.
  */
-
 public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtractor
     implements Constants, ArchConstants, OSRConstants, PhysicalRegisterConstants {
 

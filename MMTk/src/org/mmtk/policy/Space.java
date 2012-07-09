@@ -51,6 +51,9 @@ public abstract class Space implements Constants {
    * Class variables
    */
 
+  /**
+   *
+   */
   private static boolean DEBUG = false;
 
   // the following is somewhat arbitrary for the 64 bit system at this stage
@@ -85,6 +88,10 @@ public abstract class Space implements Constants {
    *
    * Instance variables
    */
+
+  /**
+   *
+   */
   private final String name;
   private final int nameLength;
   protected final int descriptor;
@@ -116,7 +123,7 @@ public abstract class Space implements Constants {
    * @param name The name of this space (used when printing error messages etc)
    * @param movable Are objects in this space movable?
    * @param immortal Are objects in this space immortal (uncollected)?
-   * @param zeroed if it is true, allocated memory is zeroed.
+   * @param zeroed if it is {@code true}, allocated memory is zeroed.
    * @param vmRequest An object describing the virtual memory requested.
    */
   protected Space(String name, boolean movable, boolean immortal, boolean zeroed, VMRequest vmRequest) {
@@ -216,10 +223,10 @@ public abstract class Space implements Constants {
   /** Index getter @return The index (ordinal number) of this space */
   public final int getIndex() { return index; }
 
-  /** Immortal getter @return True if this space is never collected */
+  /** Immortal getter @return {@code true} if this space is never collected */
   public final boolean isImmortal() { return immortal; }
 
-  /** Movable getter @return True if objects in this space may move */
+  /** Movable getter @return {@code true} if objects in this space may move */
   public boolean isMovable() { return movable; }
 
   /** ReservedPages getter @return The number of reserved pages */
@@ -242,10 +249,10 @@ public abstract class Space implements Constants {
    */
 
   /**
-   * Return true if the given object is in an immortal (uncollected) space.
+   * Return {@code true} if the given object is in an immortal (uncollected) space.
    *
    * @param object The object in question
-   * @return True if the given object is in an immortal (uncollected) space.
+   * @return {@code true} if the given object is in an immortal (uncollected) space.
    */
   public static boolean isImmortal(ObjectReference object) {
     Space space = getSpaceForObject(object);
@@ -256,10 +263,10 @@ public abstract class Space implements Constants {
   }
 
   /**
-   * Return true if the given object is in space that moves objects.
+   * Return {@code true} if the given object is in space that moves objects.
    *
    * @param object The object in question
-   * @return True if the given object is in space that moves objects.
+   * @return {@code true} if the given object is in space that moves objects.
    */
   @Inline
   public static boolean isMovable(ObjectReference object) {
@@ -271,10 +278,10 @@ public abstract class Space implements Constants {
   }
 
   /**
-   * Return true if the given object is in a space managed by MMTk.
+   * Return {@code true} if the given object is in a space managed by MMTk.
    *
    * @param object The object in question
-   * @return True if the given object is in a space managed by MMTk.
+   * @return {@code true} if the given object is in a space managed by MMTk.
    */
   @Inline
   public static boolean isMappedObject(ObjectReference object) {
@@ -282,10 +289,10 @@ public abstract class Space implements Constants {
   }
 
   /**
-   * Return true if the given address is in a space managed by MMTk.
+   * Return {@code true} if the given address is in a space managed by MMTk.
    *
    * @param address The address in question
-   * @return True if the given address is in a space managed by MMTk.
+   * @return {@code true} if the given address is in a space managed by MMTk.
    */
   @Inline
   public static boolean isMappedAddress(Address address) {
@@ -293,12 +300,12 @@ public abstract class Space implements Constants {
   }
 
   /**
-   * Return true if the given object is the space associated with the
+   * Return {@code true} if the given object is the space associated with the
    * given descriptor.
    *
    * @param descriptor The descriptor for a space
    * @param object The object in question
-   * @return True if the given object is in the space associated with
+   * @return {@code true} if the given object is in the space associated with
    * the descriptor.
    */
   @Inline
@@ -308,12 +315,12 @@ public abstract class Space implements Constants {
   }
 
   /**
-   * Return true if the given address is the space associated with the
+   * Return {@code true} if the given address is the space associated with the
    * given descriptor.
    *
    * @param descriptor The descriptor for a space
    * @param address The address in question.
-   * @return True if the given address is in the space associated with
+   * @return {@code true} if the given address is in the space associated with
    * the descriptor.
    */
   @Inline
@@ -464,7 +471,7 @@ public abstract class Space implements Constants {
    *
    * @param start The start of the newly allocated space
    * @param bytes The size of the newly allocated space
-   * @param newChunk True if the new space encroached upon or started a new chunk or chunks.
+   * @param newChunk {@code true} if the new space encroached upon or started a new chunk or chunks.
    */
   public void growSpace(Address start, Extent bytes, boolean newChunk) {}
 
@@ -472,7 +479,7 @@ public abstract class Space implements Constants {
    * Release one or more contiguous chunks associated with a discontiguous
    * space.
    *
-   * @param chunk THe address of the start of the contiguous chunk or chunks
+   * @param chunk The address of the start of the contiguous chunk or chunks
    * @return The number of chunks freed
    */
   public int releaseDiscontiguousChunks(Address chunk) {
@@ -654,7 +661,7 @@ public abstract class Space implements Constants {
    *
    * @param pages The number of pages
    * @param mode An enumeration type that specifies the format for the
-   * prining (PAGES, MB, PAGES_MB, or MB_PAGES).
+   * printing (PAGES, MB, PAGES_MB, or MB_PAGES).
    */
   private static void printPages(int pages, int mode) {
     double mb = (double) (pages << LOG_BYTES_IN_PAGE) / (double) (1 << 20);
@@ -688,7 +695,7 @@ public abstract class Space implements Constants {
    * This is used for GC Tracing.
    *
    * @param object The object reference.
-   * @return True if the object is reachable.
+   * @return {@code true} if the object is reachable.
    */
   public boolean isReachable(ObjectReference object) {
     return isLive(object);
@@ -699,7 +706,7 @@ public abstract class Space implements Constants {
    * Is the object in this space alive?
    *
    * @param object The object reference.
-   * @return True if the object is live.
+   * @return {@code true} if the object is live.
    */
   public abstract boolean isLive(ObjectReference object);
 
@@ -707,7 +714,7 @@ public abstract class Space implements Constants {
    * Align an address to a space chunk
    *
    * @param addr The address to be aligned
-   * @param down If true the address will be rounded down, otherwise
+   * @param down If {@code true} the address will be rounded down, otherwise
    * it will rounded up.
    * @return The chunk-aligned address
    */
@@ -720,7 +727,7 @@ public abstract class Space implements Constants {
    * Align an extent to a space chunk
    *
    * @param bytes The extent to be aligned
-   * @param down If true the extent will be rounded down, otherwise
+   * @param down If {@code true} the extent will be rounded down, otherwise
    * it will rounded up.
    * @return The chunk-aligned extent
    */

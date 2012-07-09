@@ -40,7 +40,7 @@ public interface DepGraphConstants {
 
   /**
    * Compact redundant edges?
-   * Set to false if redundant edges are desired.
+   * Set to {@code false} if redundant edges are desired.
    */
   boolean COMPACT = true;
 }

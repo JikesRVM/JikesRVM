@@ -40,7 +40,10 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
    * Returns a common superclass of the two types.
    * NOTE: If both types are references, but are not both loaded, then this
    * may be a conservative approximation (java.lang.Object).
-   * If there is no common superclass, than null is returned.
+   *
+   * @param t1 first type
+   * @param t2 second type
+   * @return a common superclass or {@code null} if there's none
    */
   public static TypeReference findCommonSuperclass(TypeReference t1, TypeReference t2) {
     if (t1 == t2) {
@@ -194,7 +197,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
    * <p> Return Constants.MAYBE if the question cannot be currently answered
    *    (for example if one/both of the classes is not resolved)
    *
-   * <p> Takes into account the special 'null-type', which corresponds to a null
+   * <p> Takes into account the special 'null-type', which corresponds to a {@code null}
    * constant.
    *
    * @param parentType parent type

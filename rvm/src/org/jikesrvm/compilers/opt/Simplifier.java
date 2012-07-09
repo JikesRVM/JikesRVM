@@ -1566,7 +1566,7 @@ public abstract class Simplifier extends IRTools {
           // There will be an INT_ZERO_CHECK
           // guarding this instruction that will result in an
           // ArithmeticException.  We
-          // should probabbly just remove the INT_REM as dead code.
+          // should probably just remove the INT_REM as dead code.
           return DefUseEffect.UNCHANGED;
         }
         if (op1.isIntConstant()) {

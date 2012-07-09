@@ -31,7 +31,7 @@ import org.mmtk.harness.lang.type.Type;
 
 /**
  * A method that is implemented directly in Java rather than in the scripting language.
- *
+ * <p>
  * This class also contains definitions of the built-in intrinsic methods.
  */
 public class IntrinsicMethod extends Method {
@@ -268,8 +268,7 @@ public class IntrinsicMethod extends Method {
 
   /**
    * Evaluate the method as an expression
-   * @see Method{@link #eval(Env, Value...)}
-   *
+   * <p>
    * Also used by the visitor to evaluate ...
    */
   public Value eval(Env env, Value...values) {

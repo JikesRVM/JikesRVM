@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * Stack
  * Stack is a smaller implementation of java.util.Stack, that uses a linked
  * list rather than a vector.
  */

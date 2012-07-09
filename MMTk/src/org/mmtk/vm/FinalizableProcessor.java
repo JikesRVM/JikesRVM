@@ -31,7 +31,7 @@ public abstract class FinalizableProcessor {
    * Scan through the list of references.
    *
    * @param trace the thread local trace element.
-   * @param nursery true if it is safe to only scan new references.
+   * @param nursery {@code true} if it is safe to only scan new references.
    */
   public abstract void scan(TraceLocal trace, boolean nursery);
 

@@ -16,7 +16,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
 
 /**
- * Abstract class for the GCspy server interpreter
+ * Abstract class for the GCspy server interpreter<p>
  *
  * Implementing classes will mostly forward calls to the C gcspy library.
  */
@@ -55,7 +55,7 @@ import org.vmmagic.unboxed.Address;
 
   /**
    * Get a pointer to the C server, gcspy_main_server_t.
-   * This address is used in alll calls to the server in the C library.
+   * This address is used in all calls to the server in the C library.
    * @return the address of the server
    */
   public Address getServerAddress() { return server; }
@@ -93,7 +93,7 @@ import org.vmmagic.unboxed.Address;
   /**
    * Are we connected to a GCspy client?
    * @param event The current event
-   * @return true if we are connected
+   * @return {@code true} if we are connected
    */
   public abstract boolean isConnected(int event);
 

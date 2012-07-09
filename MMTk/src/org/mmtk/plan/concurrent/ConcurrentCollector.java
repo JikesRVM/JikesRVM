@@ -79,12 +79,6 @@ public abstract class ConcurrentCollector extends SimpleCollector {
     }
   }
 
-  /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
-   */
   @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {

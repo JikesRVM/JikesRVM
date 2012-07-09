@@ -39,7 +39,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
 
   /**
    * Should this phase be performed?  This is a member of a composite
-   * phase, so always return true.  The parent composite phase will
+   * phase, so always return {@code true}.  The parent composite phase will
    * dictate.
    * @param options controlling compiler options
    */
@@ -61,7 +61,7 @@ public final class PostDominatorsPhase extends CompilerPhase {
    * Should the IR be printed before and/or after this phase?
    * @param options controlling compiler options
    * @param before query control
-   * @return true or false
+   * @return {@code false}
    */
   @Override
   public boolean printingEnabled(OptOptions options, boolean before) {

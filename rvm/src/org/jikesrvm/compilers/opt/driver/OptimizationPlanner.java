@@ -163,7 +163,8 @@ public class OptimizationPlanner {
 
   /**
    * Convert the ArrayList to an array of elements.
-   * TODO: this is a bad name (finalize), isn't it?
+   * @param planElementList the array list to convert, must be non-{@code null}
+   * @return list as array
    */
   private static OptimizationPlanElement[] toArray(ArrayList<OptimizationPlanElement> planElementList) {
     OptimizationPlanElement[] p = new OptimizationPlanElement[planElementList.size()];

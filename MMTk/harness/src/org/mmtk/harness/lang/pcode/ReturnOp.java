@@ -34,7 +34,7 @@ public final class ReturnOp extends NullaryOp {
     this.operand = operand.getIndex();
   }
 
-  /** A return op with no return value, ie from a void method */
+  /** A return op with no return value, ie. from a void method */
   public ReturnOp(AST source) {
     super(source,"return");
     this.operand = NO_SUCH_SLOT;

@@ -66,7 +66,7 @@ public class NullCheckCombining extends CompilerPhase {
   }
 
   /**
-   * Perform nullcheck combining and valdiation register removal.
+   * Perform nullcheck combining and validation register removal.
    *
    * @param ir the IR to transform
    */

@@ -30,12 +30,20 @@ public class NoGC extends Plan {
   /*****************************************************************************
    * Class variables
    */
+
+  /**
+   *
+   */
   public static final ImmortalSpace noGCSpace = new ImmortalSpace("default", VMRequest.create());
   public static final int NOGC = noGCSpace.getDescriptor();
 
 
   /*****************************************************************************
    * Instance variables
+   */
+
+  /**
+   *
    */
   public final Trace trace = new Trace(metaDataSpace);
 
@@ -45,7 +53,7 @@ public class NoGC extends Plan {
    */
 
   /**
-   * @param phaseId Collection phase
+   * {@inheritDoc}
    */
   @Inline
   @Override
@@ -67,12 +75,9 @@ public class NoGC extends Plan {
    */
 
   /**
-   * Return the number of pages reserved for use given the pending
-   * allocation.  The superclass accounts for its spaces, we just
+   * {@inheritDoc}
+   * The superclass accounts for its spaces, we just
    * augment this with the default space's contribution.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Override
   public int getPagesUsed() {

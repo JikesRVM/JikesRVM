@@ -40,10 +40,11 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
   private final Vector<OptOptions> options = new Vector<OptOptions>();
   private final OptOptions masterOptions = new OptOptions();
 
-  // If excludePattern is null, all methods are opt-compiled (or attempted).
-  // Otherwise, methods that match the pattern are not opt-compiled.
-  // In any case, the class OptSaveVolatile is always opt-compiled.
-  //
+  /**
+   * If excludePattern is {@code null}, all methods are opt-compiled (or attempted).
+   * Otherwise, methods that match the pattern are not opt-compiled.
+   * In any case, the class OptSaveVolatile is always opt-compiled.
+   */
   private String excludePattern;
 
   private boolean match(RVMMethod method) {

@@ -23,7 +23,6 @@ import org.jikesrvm.classloader.NormalMethod;
  * execution.  This support can be used to eliminate the effects
  * of early vs. late compilation by removing all dynamic linking
  * and "bad" class hierarchy based optimizations.
- * <p>
  */
 public final class RecompilationManager {
 

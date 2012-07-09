@@ -29,10 +29,10 @@ import org.jikesrvm.compilers.opt.ir.Prologue;
 
 /**
  * The following OPT phase inserts counters on all instructions in the
- * IR.  It maintians one counter for each operand type, so it output
+ * IR.  It maintains one counter for each operand type, so it output
  * how many loads were executed, how many int_add's etc.  This is
  * useful for debugging and assessing the accuracy of optimizations.
- *
+ * <p>
  * Note: The counters are added at the end of HIR, so the counts will
  * NOT reflect any changes to the code that occur after HIR.
  */

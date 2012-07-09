@@ -22,10 +22,10 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements the global state of an immix collector.
+ * This class implements the global state of an immix collector.<p>
  *
  * See the PLDI'08 paper by Blackburn and McKinley for a description
- * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586
+ * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586<p>
  *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.*;
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
  * threads" (aka CPUs or in Jikes RVM, Processors).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
- * allocation and collection.
+ * allocation and collection.<p>
  *
  * The global instance defines and manages static resources
  * (such as memory and virtual memory resources).  This mapping of threads to
@@ -52,6 +52,10 @@ public class Immix extends StopTheWorld {
   /****************************************************************************
    * Class variables
    */
+
+  /**
+   *
+   */
   public static final ImmixSpace immixSpace = new ImmixSpace("immix", VMRequest.create());
   public static final int IMMIX = immixSpace.getDescriptor();
 
@@ -62,6 +66,9 @@ public class Immix extends StopTheWorld {
    * Instance variables
    */
 
+  /**
+   *
+   */
   public final Trace immixTrace = new Trace(metaDataSpace);
   /** will the next collection collect the whole heap? */
   public boolean nextGCWholeHeap = true;
@@ -129,9 +136,6 @@ public class Immix extends StopTheWorld {
    * Return the number of pages reserved for use given the pending
    * allocation.  The superclass accounts for its spaces, we just
    * augment this with the mark-sweep space's contribution.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Override
   public int getPagesUsed() {
@@ -140,21 +144,12 @@ public class Immix extends StopTheWorld {
 
   /**
    * Return the number of pages reserved for collection.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for collection.
    */
   @Override
   public int getCollectionReserve() {
     return super.getCollectionReserve() + immixSpace.defragHeadroomPages();
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return True if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(IMMIX, object)) {

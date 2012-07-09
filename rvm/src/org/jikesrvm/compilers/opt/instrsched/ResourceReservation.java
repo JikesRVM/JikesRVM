@@ -20,7 +20,9 @@ package org.jikesrvm.compilers.opt.instrsched;
  * @see OperatorClass
  */
 final class ResourceReservation {
-  // Resource Class.
+  /**
+   * Resource Class.
+   */
   private final int rclass;
   /**
    * Start Time.
@@ -75,8 +77,13 @@ final class ResourceReservation {
     return (rclass & 0x80000000) != 0;
   }
 
-  // Compares this reservation with another reservation
-  // For internal use only.
+  /**
+   * Compares this reservation with another reservation.
+   * @param r the other reservation
+   * @return a negative int if this is less than the other reservation,
+   *  a positive int if this is greater than the other and zero if
+   *  they are equal
+   */
   private int compareTo(ResourceReservation r) {
     if (rclass() != r.rclass()) {
       return rclass() - r.rclass();
@@ -125,7 +132,7 @@ final class ResourceReservation {
    * Checks whether this reservation conflicts with specified reservation.
    *
    * @param rsrv the reservation to check
-   * @return true if the reservations conflict; false otherwise.
+   * @return {@code true} if the reservations conflict; {@code false} otherwise.
    */
   public boolean conflicts(ResourceReservation rsrv) {
     return (rclass() == rsrv.rclass() && start < rsrv.start + rsrv.duration && start + duration > rsrv.start);

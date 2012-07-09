@@ -41,7 +41,7 @@ public class SpawnOp extends EnnaryOp implements ResolvableOp {
 
   private final class SpawnedMethod implements Schedulable {
 
-    /* The method parameters */
+    /** The method parameters */
     private final Value[] values;
 
     public SpawnedMethod(Value...values) {

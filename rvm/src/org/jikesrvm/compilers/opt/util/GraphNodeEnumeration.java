@@ -21,7 +21,6 @@ import java.util.Enumeration;
  * nodes implement this interface, and all graph utilities that need
  * to enumerate nodes should use this interface.
  *
- *
  * @see Graph
  * @see GraphNode
  */

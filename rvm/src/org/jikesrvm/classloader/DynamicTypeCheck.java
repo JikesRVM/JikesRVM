@@ -51,17 +51,19 @@ import org.vmmagic.pragma.Uninterruptible;
  * <p>
  * (2) Otherwise, is the LHS an array?
  *    If so, there are three sub-cases
- *    (2a) LHS is [^k primitive:
+ *    <ul>
+ *    <li>(2a) LHS is [^k primitive:
  *        If so, the dimensionality of the RHS must be k
  *        and the baseclass of the RHS must be the same primitive
- *    (2b) LHS is [^k class:
+ *    <li>(2b) LHS is [^k class:
  *        If so, the dimensionality of the RHS must be k
  *        and the baseclass of the RHS must be assignable with class (see #3)
  *        _OR_ the dimensionality of the RHS must be >k
  *        and the baseclass of the LHS is java.lang.Cloneable or java.io.Serializable
- *    (2c) LHS is [^k Ljava.lang.Object:
+ *    <li>(2c) LHS is [^k Ljava.lang.Object:
  *        If so, either the dimensionality of the RHS is greater than k
  *        or, this dimensionality is k and the baseclass is NOT primitive
+ *    <ul>
  * <p>
  * (3) Otherwise, is the LHS unresolved?
  *    If so, fall back to calling RuntimeEntrypoints.instanceOf at runtime which will

@@ -25,7 +25,6 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
  * It adjust the byte code index of instructions from specialized
  * byte code to its original byte code.
  */
-
 public class AdjustBCIndexes extends CompilerPhase {
 
   @Override

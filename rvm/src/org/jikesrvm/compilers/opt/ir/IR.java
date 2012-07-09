@@ -442,7 +442,7 @@ public final class IR {
    * Warning: Only valid before register allocation (see CallingConvention)
    *
    * @param op the operand to check
-   * @return true if the op is a parameter to the IR, false otherwise
+   * @return {@code true} if the op is a parameter to the IR, {@code false} otherwise
    */
   public boolean isParameter(Operand op) {
     for (OperandEnumeration e = getParameters(); e.hasMoreElements();) {
@@ -575,7 +575,7 @@ public final class IR {
   }
 
   /**
-   * Clear (set to null) the scratch object on
+   * Clear (set to {@code null}) the scratch object on
    * all instructions currently in this IR.
    */
   public void clearInstructionScratchObject() {
@@ -586,7 +586,7 @@ public final class IR {
   }
 
   /**
-   * Clear (set to null) the scratch object on
+   * Clear (set to {@code null}) the scratch object on
    * all basic blocks currently in this IR.
    */
   public void clearBasicBlockScratchObject() {
@@ -675,7 +675,7 @@ public final class IR {
   }
 
   /**
-   * Verify that the IR is well-formed.
+   * Verify that the IR is well-formed.<p>
    * NB: this is expensive -- be sure to guard invocations with
    * debugging flags.
    *
@@ -686,7 +686,7 @@ public final class IR {
   }
 
   /**
-   * Verify that the IR is well-formed.
+   * Verify that the IR is well-formed.<p>
    * NB: this is expensive -- be sure to guard invocations with
    * debugging flags.
    *
@@ -1339,7 +1339,7 @@ public final class IR {
    *
    * @param where the verification location
    * @param operand the operand to pull a variable from
-   * @return null if the variable should be ignored otherwise the variable
+   * @return {@code null} if the variable should be ignored otherwise the variable
    */
   private Object getVariableUse(String where, Operand operand) {
     if (operand.isConstant() ||
@@ -1393,7 +1393,7 @@ public final class IR {
    *
    * @param where the verification location
    * @param operand the operand to pull a variable from
-   * @return null if the variable should be ignored otherwise the variable
+   * @return {@code null} if the variable should be ignored otherwise the variable
    */
   private Object getVariableDef(String where, Operand operand) {
     if (operand.isRegister()) {

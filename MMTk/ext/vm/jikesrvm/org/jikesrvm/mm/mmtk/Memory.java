@@ -50,7 +50,7 @@ import org.vmmagic.pragma.*;
   @Override
   protected final int getAlignmentValueConstant() { return JavaHeader.ALIGNMENT_VALUE;}
 
-  /* On Intel we align code to 16 bytes as recommended in the optimization manual */
+  /** On Intel we align code to 16 bytes as recommended in the optimization manual. */
   @Override
   protected final byte getMaxAlignmentShiftConstant() { return (VM.BuildForIA32 ? 1 : 0) + SizeConstants.LOG_BYTES_IN_LONG - SizeConstants.LOG_BYTES_IN_INT; }
 

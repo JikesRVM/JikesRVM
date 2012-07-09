@@ -141,7 +141,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    *                         the callee (all exits via throw)
    * </ul>
    * NOTE: BC2IR assumes that epilogue is a single basic block
-   *       (ie it has no out edges)
+   *       (i.e. it has no out edges)
    */
   public BasicBlock epilogue;
 
@@ -431,7 +431,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * This is probably not the prettiest way to handle this, but it requires
    * no changes to BC2IR's & Inliner's high level control logic.
    *
-   * @param parent the parent gc
+   * @param parent the parent GC
    * @param ebag the enclosing exception handlers (null if none)
    * @return the synthetic context
    */
@@ -631,7 +631,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
         prob = 0.5f;
       }
     }
-    // experimental option: flip the probablity to see how bad things would be if
+    // experimental option: flip the probability to see how bad things would be if
     // we were completely wrong.
     if (options.inverseFrequencyCounters()) {
       prob = 1f - prob;
@@ -696,7 +696,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
       appendInstruction(epilogue, s, SYNCHRONIZED_MONITOREXIT_BCI);
     }
 
-    // Deal with Uninteruptible code.
+    // Deal with Uninterruptible code.
     if (!isOutermost && requiresUnintMarker()) {
       Instruction s = Empty.create(UNINT_END);
       appendInstruction(epilogue, s, EPILOGUE_BCI);
@@ -797,7 +797,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   }
 
   /**
-   * Make sure, the gc is still in sync with the IR, even if we applied some
+   * Make sure, the generation context is still in sync with the IR, even if we applied some
    * optimizations. This method should be called before hir2lir conversions
    * which might trigger inlining.
    */

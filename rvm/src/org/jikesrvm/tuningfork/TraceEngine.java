@@ -111,7 +111,7 @@ public final class TraceEngine {
 
 
   /**
-   * Put some basic properties about this vm build & current execution into the feed.
+   * Put some basic properties about this VM build & current execution into the feed.
    */
   private void writeInitialProperites() {
     addProperty("rvm version", Configuration.RVM_VERSION_STRING);

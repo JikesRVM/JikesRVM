@@ -25,15 +25,14 @@ import org.vmmagic.unboxed.*;
  * the implementation language (Java) and the language being
  * implemented are the same.  This is true in the case of Jikes RVM,
  * but it is not true for any VM implementing a language other than
- * Java.
- *
+ * Java.<p>
  *
  * Each instance of this class is a doubly-linked list, in which
  * each item or node is a piece of memory.  The first two words of each node
  * contains the forward and backward links.  The third word contains
- * the treadmill.  The remaining portion is the payload.
+ * the treadmill.  The remaining portion is the payload.<p>
  *
- * The treadmill object itself must not be moved.
+ * The treadmill object itself must not be moved.<p>
  *
  * Access to the instances may be synchronized depending on the
  * constructor argument.
@@ -48,6 +47,10 @@ import org.vmmagic.unboxed.*;
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private Address head;
   private final Lock lock;
@@ -162,7 +165,7 @@ import org.vmmagic.unboxed.*;
    * Return true if a cell is on a given treadmill
    *
    * @param node The cell being searched for
-   * @return True if the cell is found on the treadmill
+   * @return <code>true</code> if the cell is found on the treadmill
    */
   public boolean isMember(Address node) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isNode(node));

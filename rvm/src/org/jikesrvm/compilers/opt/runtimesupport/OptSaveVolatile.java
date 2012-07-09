@@ -25,9 +25,11 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that
- * save/restore all registers (both volatile and non-volatile).
+ * save/restore all registers (both volatile and non-volatile).<p>
+ *
  * TODO: Instead of SaveVolatile, make this class implement
- * DynamicBridge...will allow us to kill support for SaveVolatile!.
+ * DynamicBridge...will allow us to kill support for SaveVolatile!.<p>
+ *
  * ISSUE: GCMapping for dynamic bridge assumes that it is being used for
  *        lazy method compilation.  Need to generalize to support
  *        opt's use for other purposes.

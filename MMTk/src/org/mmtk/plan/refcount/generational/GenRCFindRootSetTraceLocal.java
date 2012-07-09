@@ -47,7 +47,6 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
   /**
    * Is the specified object reachable?
    *
-   * @param object The object.
    * @return <code>true</code> if the object is reachable.
    */
   @Override
@@ -58,9 +57,6 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
 
   /**
    * When we trace a non-root object we do nothing.
-   *
-   * @param object The object to be traced.
-   * @return The new reference to the same object instance.
    */
   @Override
   @Inline
@@ -70,9 +66,6 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
 
   /**
    * When we trace a root object we remember it.
-   *
-   * @param object The object to be traced.
-   * @return The new reference to the same object instance.
    */
   @Override
   @Inline

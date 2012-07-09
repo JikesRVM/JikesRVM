@@ -45,15 +45,15 @@ import org.jikesrvm.runtime.Time;
  * debugging of the optimizing compiler.
  * For example, the following command line:
  * <br>
- *   rvm -X:h=100 org.jikesrvm.tools.oth.OptTestHarness -oc:O2 -oc:phases=true
- *      -class hanoi -er hanoi run  -
+ * <pre>rvm -X:h=100 org.jikesrvm.tools.oth.OptTestHarness -oc:O2 -oc:phases=true -class hanoi -er hanoi run  -</pre>
  * <br>
  * invokes the opt compiler at Opt level 2 and phases=true to compile
  * the class hanoi, it then executes the run method of class hanoi.
  * <p>
- * Any command that can be given to the optimizing compiler via -X:irc:<cmd>
- * can be given to the optimizing compiler by org.jikesrvm.tools.oth.OptTestHarness via -oc:<cmd>.
+ * Any command that can be given to the optimizing compiler via -X:irc:&lt;cmd&gt;
+ * can be given to the optimizing compiler by org.jikesrvm.tools.oth.OptTestHarness via -oc:&lt;cmd&gt;.
  * In addition, the org.jikesrvm.tools.oth.OptTestHarness supports the following commands:
+ * <pre>
  * -useBootOptions           Use the same OptOptions as the bootimage compiler.
  * -longcommandline <filename>    Read commands (one per line) from a file
  * +baseline                      Switch default compiler to baseline
@@ -65,6 +65,7 @@ import org.jikesrvm.runtime.Time;
  * -methodBase <class> <method> [-|<descrip>] Compile method with base compiler
  * -er <class> <method> [-|<descrip>] {args} Compile with default compiler and execute a method
  * -performance                   Show performance results
+ * </pre>
  */
 class OptTestHarness {
   static boolean DISABLE_CLASS_LOADING = false;
@@ -140,8 +141,16 @@ class OptTestHarness {
     return i;
   }
 
-  // if "methdesc" is "-", find the first method with "methname" in "klass",
-  // otherwise, find the method whose signature matches "methdesc"
+
+  /**
+   * Finds a method, either one with a given descriptor or the first matching
+   * one in in the given class.
+   * @param klass the class to search
+   * @param methname the method's name
+   * @param methdesc a descriptor of the method's signature if a specific
+   *  method is desired or "-" to find the first method with the given name
+   * @return the method or {@code null} if no method was found
+   */
   static RVMMethod findDeclaredOrFirstMethod(RVMClass klass, String methname, String methdesc) {
     if (klass == null) return null;
     Atom methodName = Atom.findOrCreateAsciiAtom(methname);

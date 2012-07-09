@@ -48,7 +48,7 @@ public class BlockingPriorityQueue extends PriorityQueueRVM {
   }
 
   /**
-   * Insert the object passed with the priority value passed
+   * Insert the object passed with the priority value passed.<p>
    *
    * Notify any sleeping consumer threads that an object
    * is available for consumption.

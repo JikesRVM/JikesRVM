@@ -35,7 +35,7 @@ import org.vmmagic.pragma.*;
    * Constructor
    *
    * @param queue The shared stack to which this stack will append
-   * its buffers (when full or flushed) and from which it will aquire new
+   * its buffers (when full or flushed) and from which it will acquire new
    * buffers when it has exhausted its own.
    */
   public SortTODAddressStack(SortTODSharedDeque queue) {

@@ -60,10 +60,13 @@ import org.vmmagic.unboxed.Offset;
  *                  <li> general debugging support.
  *                  <li> adaptive system profiling
  *                  </ul>
- *
+ *</ul>
+ *<p>
  *  Note: This file contains two types of methods
- *         1) methods called during compilation to create the maps
- *         2) methods called at GC time (no allocation allowed!)
+ *  <ul>
+ *       <li>1) methods called during compilation to create the maps
+ *       <li>2) methods called at GC time (no allocation allowed!)
+ *  </ul>
  */
 public final class OptMachineCodeMap implements Constants, OptConstants {
 
@@ -77,7 +80,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
   }
 
   /**
-   * Private null constructor for no information
+   * Private constructor for no information.
    */
   private OptMachineCodeMap() {
     MCInformation = null;
@@ -142,7 +145,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * This method is the source method that the instruction came from.
    *
    * @param MCOffset the machine code offset of interest
-   * @return null if unknown
+   * @return {@code null} if unknown
    */
   @Uninterruptible
   public NormalMethod getMethodForMCOffset(Offset MCOffset) {
@@ -226,7 +229,7 @@ public final class OptMachineCodeMap implements Constants, OptConstants {
    * @param caller caller RVMMethod
    * @param bcIndex bytecode index of the caller method
    * @param callee callee RVMMethod
-   * @return true if the call edge is <em>definitely</em> inlined in this compiled method.
+   * @return {@code true} if the call edge is <em>definitely</em> inlined in this compiled method.
    */
   public boolean hasInlinedEdge(RVMMethod caller, int bcIndex, RVMMethod callee) {
     if (MCInformation == null) return false;

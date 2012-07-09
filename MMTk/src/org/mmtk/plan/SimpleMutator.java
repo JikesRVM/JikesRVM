@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class (and its sub-classes) implement <i>per-mutator thread</i>
- * behavior and state.
+ * behavior and state.<p>
  *
  * MMTk assumes that the VM instantiates instances of MutatorContext
  * in thread local storage (TLS) for each application thread. Accesses

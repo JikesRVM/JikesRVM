@@ -16,9 +16,7 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
 import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
- * DF_Equation.java
- *
- * represents a single Data Flow equation
+ * Represents a single Data Flow equation.
  */
 public class DF_Equation implements GraphNode {
 
@@ -26,7 +24,7 @@ public class DF_Equation implements GraphNode {
    * Evaluate this equation, setting a new value for the
    * left-hand side.
    *
-   * @return true if the lhs value changed. false otherwise
+   * @return {@code true} if the lhs value changed. {@code false} otherwise
    */
   boolean evaluate() {
     return operator.evaluate(operands);
@@ -42,7 +40,7 @@ public class DF_Equation implements GraphNode {
   }
 
   /**
-   * Return the operandsin this equation.
+   * Return the operands in this equation.
    * @return the operands in this equation.
    */
   public DF_LatticeCell[] getOperands() {

@@ -17,7 +17,6 @@ package org.jikesrvm.adaptive.measurements;
  *  eligible for decay if they register with the
  *  RuntimeMeasurements class.
  */
-
 public interface Decayable {
 
   /**

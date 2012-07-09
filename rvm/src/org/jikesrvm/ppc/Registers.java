@@ -32,21 +32,26 @@ public abstract class Registers implements ArchConstants {
   // The following are used both for thread context switching
   // and for hardware exception reporting/delivery.
   //
+
+  /** word size general purpose registers (either 32 or 64 bit) */
   @Untraced
-  public final WordArray gprs; // word size general purpose registers (either 32 or 64 bit)
+  public final WordArray gprs;
   @Untraced
   public final double[] fprs; // 64-bit floating point registers
   public final WordArray gprsShadow;
   public final double[] fprsShadow;
-  public Address ip; // instruction address register
+  /** instruction address register **/
+  public Address ip;
 
   // The following are used by exception delivery.
   // They are set by either Runtime.athrow or the C hardware exception
   // handler and restored by "Magic.restoreHardwareExceptionState".
   // They are not used for context switching.
   //
-  public Address lr;     // link register
-  public boolean inuse; // do exception registers currently contain live values?
+  /** link register */
+  public Address lr;
+  /** do exception registers currently contain live values? */
+  public boolean inuse;
 
   private static final Address invalidIP = Address.max();
 

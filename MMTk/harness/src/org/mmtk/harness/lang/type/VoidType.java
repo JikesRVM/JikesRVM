@@ -23,17 +23,11 @@ public class VoidType extends AbstractType {
     super("void");
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#initialValue()
-   */
   @Override
   public Value initialValue() {
     throw new RuntimeException("Can't instantiate a VOID value");
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.AbstractType#isCompatibleWith(org.mmtk.harness.lang.type.Type)
-   */
   @Override
   public boolean isCompatibleWith(Type rhs) {
     return false;

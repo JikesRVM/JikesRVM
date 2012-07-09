@@ -18,16 +18,21 @@ import org.jikesrvm.classloader.TypeReference;
 
 /**
  * Represents a constant code operand, found for example, from an
- * TIBConstantOperand. NB we don't use an object constant operand
- * because: 1) code doesn't form part of the object literals 2) we
- * need to support replacement
+ * TIBConstantOperand.<p>
+ *
+ * NB we don't use an object constant operand
+ * because
+ * <ol>
+ *   <li>code doesn't form part of the object literals
+ *   <li>we need to support replacement
+ * </ol>
  *
  * @see Operand
  */
 public final class CodeConstantOperand extends ConstantOperand {
 
   /**
-   * The non-null method for the code represent
+   * The non-{@code null} method for the code represent
    */
   public final RVMMethod value;
 

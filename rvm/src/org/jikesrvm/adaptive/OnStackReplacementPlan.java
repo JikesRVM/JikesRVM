@@ -32,10 +32,10 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * A OSR_ControllerOnStackReplacementPlan is scheduled by ControllerThread,
- * and executed by the RecompilationThread.
+ * and executed by the RecompilationThread.<p>
  *
  * It has the suspended thread whose activation being replaced,
- * and a compilation plan.
+ * and a compilation plan.<p>
  *
  * The execution of this plan compiles the method, installs the new
  * code, and reschedule the thread.
@@ -45,7 +45,8 @@ public class OnStackReplacementPlan implements Constants {
   private final Offset tsFromFPoff;
   private final Offset ypTakenFPoff;
 
-  /* Status is write-only at the moment, but I suspect it comes in
+  /**
+   * Status is write-only at the moment, but I suspect it comes in
    * handy for debugging -- RJG
    */
   @SuppressWarnings("unused")

@@ -385,7 +385,7 @@ class SimpleEscape extends CompilerPhase {
    *
    * @param use the use to check
    * @param ir the governing IR
-   * @return true if it may escape, false otherwise
+   * @return {@code true} if it may escape, {@code false} otherwise
    */
   private static boolean checkEscapesThread(RegisterOperand use, IR ir, Set<Register> visited) {
     Instruction inst = use.instruction;

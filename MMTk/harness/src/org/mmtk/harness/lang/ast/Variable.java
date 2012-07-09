@@ -24,7 +24,8 @@ public class Variable extends AbstractAST implements Expression {
 
   /**
    * Constructor
-   * @param slot
+   * @param t
+   * @param symbol
    */
   public Variable(Token t, Symbol symbol) {
     super(t);

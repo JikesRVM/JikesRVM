@@ -22,7 +22,6 @@ import org.jikesrvm.classloader.TypeReference;
  * ObjectHolder.getRefAt and ObjectHolder.cleanRefs
  * indiced by GETREFAT and CLEANREFS.
  */
-
 public class InvokeStatic extends PseudoBytecode {
 
   private static final int bsize = 6;

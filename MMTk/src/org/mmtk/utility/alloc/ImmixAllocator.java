@@ -38,17 +38,26 @@ public class ImmixAllocator extends Allocator implements Constants {
    *
    * Instance variables
    */
-  protected final ImmixSpace space;    /* space this allocator is associated with */
+
+  /** space this allocator is associated with */
+  protected final ImmixSpace space;
   private final boolean hot;
   private final boolean copy;
 
-  private Address cursor;               /* bump pointer */
-  private Address limit;                /* limit for bump pointer */
-  private Address largeCursor;          /* bump pointer for large objects */
-  private Address largeLimit;           /* limit for bump pointer for large objects */
-  private boolean requestForLarge;      /* is the current request for large or small? */
-  private boolean straddle;             /* did the last allocation straddle a line? */
-  private int lineUseCount;             /* approximation to bytes allocated (measured at 99% accurate)  07/10/30 */
+  /** bump pointer */
+  private Address cursor;
+  /** limit for bump pointer */
+  private Address limit;
+  /** bump pointer for large objects */
+  private Address largeCursor;
+  /** limit for bump pointer for large objects */
+  private Address largeLimit;
+  /** is the current request for large or small? */
+  private boolean requestForLarge;
+  /** did the last allocation straddle a line? */
+  private boolean straddle;
+  /** approximation to bytes allocated (measured at 99% accurate)  07/10/30 */
+  private int lineUseCount;
   private Address markTable;
   private Address recyclableBlock;
   private int line;
@@ -91,7 +100,7 @@ public class ImmixAllocator extends Allocator implements Constants {
 
   /**
    * Allocate space for a new object.  This is frequently executed code and
-   * the coding is deliberaetly sensitive to the optimizing compiler.
+   * the coding is deliberately sensitive to the optimizing compiler.
    * After changing this, always check the IR/MC that is generated.
    *
    * @param bytes The number of bytes allocated
@@ -122,7 +131,7 @@ public class ImmixAllocator extends Allocator implements Constants {
 
   /**
    * Allocate space for a new object.  This is frequently executed code and
-   * the coding is deliberaetly sensitive to the optimizing compiler.
+   * the coding is deliberately sensitive to the optimizing compiler.
    * After changing this, always check the IR/MC that is generated.
    *
    * @param bytes The number of bytes allocated

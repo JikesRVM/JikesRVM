@@ -45,10 +45,12 @@ public class AdjustBranchProbabilities extends CompilerPhase {
   /**
    * Simplistic adjustment of branch probabilities.
    * The main target of this pass is to detect idioms like
+   * <pre>
    *   if (P) { infrequent block }
    *   if (P) { } else { infrequent block }
+   * </pre>
    * that are introduced by ExpandRuntimeServices.
-   *
+   * <p>
    * Key idea: If a block is infrequent then make sure that
    *           any conditional branch that targets/avoids the block
    *           does not have 0.5 as its branch probability.

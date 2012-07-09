@@ -13,12 +13,10 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import java.util.Arrays;
-/*
+/**
  * An OsrTypeInfoOperand object keeps type information of locals
  * and stacks at a byte code index.
  */
-
-
 public final class OsrTypeInfoOperand extends Operand {
 
   /**

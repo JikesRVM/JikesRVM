@@ -47,7 +47,7 @@ public class Statistics extends org.mmtk.vm.Statistics {
   }
 
   /**
-   * Read (a set of) performance counters
+   * This operation is not implemented.
    */
   @Override
   public void perfEventRead(int x,long[] y) {
@@ -55,9 +55,7 @@ public class Statistics extends org.mmtk.vm.Statistics {
   }
 
   /**
-   * Initialize performance counters
-   *
-   * @param metric An string identifying the metrics being read
+   * This operation is not implemented, only empty strings are supported.
    */
   @Override
   public void perfEventInit(String events) {

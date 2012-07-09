@@ -32,7 +32,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * Each instance of this class corresponds to one immix *space*.
+ * Each instance of this class corresponds to one immix <b>space</b>.
  * Each of the instance methods of this class may be called by any
  * thread (i.e. synchronization must be explicit in any instance or
  * class method).  This contrasts with the SquishLocal, where
@@ -48,11 +48,19 @@ public final class ImmixSpace extends Space implements Constants {
    *
    * Class variables
    */
+
+  /**
+   *
+   */
   private static short reusableMarkStateThreshold = 0;
 
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private byte markState = ObjectHeader.MARK_BASE_VALUE;
           byte lineMarkState = RESET_LINE_MARK_STATE;
@@ -190,9 +198,9 @@ public final class ImmixSpace extends Space implements Constants {
   */
 
   /**
-   * Return true if this space is currently being collected.
+   * Return {@code true} if this space is currently being collected.
    *
-   * @return True if this space is currently being collected.
+   * @return {@code true} if this space is currently being collected.
    */
   @Inline
   public boolean inImmixCollection() {
@@ -200,9 +208,9 @@ public final class ImmixSpace extends Space implements Constants {
   }
 
   /**
-   * Return true if this space is currently being defraged.
+   * Return {@code true} if this space is currently being defraged.
    *
-   * @return True if this space is currently being defraged.
+   * @return {@code true} if this space is currently being defraged.
    */
   @Inline
   public boolean inImmixDefragCollection() {
@@ -327,14 +335,12 @@ public final class ImmixSpace extends Space implements Constants {
     ((FreeListPageResource) pr).releasePages(block);
   }
 
- /**
-  * Release one or more contiguous chunks associated with a discontiguous
-  * space. This hook is called by the page level allocators whenever a
-  * complete discontiguous chunk is released.
-  *
-  * @param chunk THe address of the start of the contiguous chunk or chunks
-  * @return The number of chunks freed
-  */
+  /**
+   * {@inheritDoc}<p>
+   *
+   * This hook is called by the page level allocators whenever a
+   * complete discontiguous chunk is released.
+   */
   @Override
   public int releaseDiscontiguousChunks(Address chunk) {
     chunkMap.removeChunkFromMap(chunk);
@@ -365,7 +371,7 @@ public final class ImmixSpace extends Space implements Constants {
   * a copying GC.
   *
   * @param object the object ref to the storage to be initialized
- * @param majorGC Is this copy happening during a major gc?
+  * @param majorGC Is this copy happening during a major gc?
   */
   @Inline
   public void postCopy(ObjectReference object, int bytes, boolean majorGC) {
@@ -644,7 +650,7 @@ public final class ImmixSpace extends Space implements Constants {
       short markState = blockStateCursor.loadShort();
       if (markState != 0 && markState <= reusableMarkStateThreshold) {
         int usable = LINES_IN_BLOCK - markState;
-        short bucket = (short) Block.getConservativeSpillCount(blockCursor);
+        short bucket = Block.getConservativeSpillCount(blockCursor);
         if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(bucket >= 0 && bucket <= MAX_CONSV_SPILL_COUNT);
         spillAvailHistogram[bucket] += usable;
         usableLines += usable;
@@ -672,7 +678,7 @@ public final class ImmixSpace extends Space implements Constants {
    * Generic test of the liveness of an object
    *
    * @param object The object in question
-   * @return True if this object is known to be live (i.e. it is marked)
+   * @return {@code true} if this object is known to be live (i.e. it is marked)
    */
   @Override
   @Inline
@@ -698,7 +704,7 @@ public final class ImmixSpace extends Space implements Constants {
    * Test the liveness of an object during defragmentation
    *
    * @param object The object in question
-   * @return True if this object is known to be live (i.e. it is marked)
+   * @return {@code true} if this object is known to be live (i.e. it is marked)
    */
   @Inline
   public boolean fastIsLive(ObjectReference object) {
@@ -768,6 +774,10 @@ public final class ImmixSpace extends Space implements Constants {
   *
   * Misc
   */
+
+  /**
+   *
+   */
   public static boolean isRecycleAllocChunkAligned(Address ptr) {
     return ptr.toWord().and(RECYCLE_ALLOC_CHUNK_MASK).EQ(Word.zero());
   }

@@ -23,40 +23,43 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 
 /**
  * An instance of this class describes a compilation decision made by
- * the controller
+ * the controller.<p>
  *
- * Constraints:
- *   Given the plan list of a method:
- *      Only one plan will have status COMPLETED
- *      Multiple plans may have status OUTDATED
- *      Only one plan will have status IN_PROGRESS
- *
+ * Constraints: Given the plan list of a method:
+ * <ul>
+ *   <li>Only one plan will have status COMPLETED
+ *   <li>Multiple plans may have status OUTDATED
+ *   <li>Only one plan will have status IN_PROGRESS
+ * </ul>
+ * <p>
  * status states:
+ * <pre>
  * UNINITIALIZED -> IN_PROGRESS -> COMPLETED -> OUTDATED
  *             \              \--> ABORTED_COMPILATION_ERROR (never recompile method)
+ * </pre>
  */
 public final class ControllerPlan {
 
-  // The plan was created, but the setStatus method was never called
+  /** The plan was created, but the setStatus method was never called */
   public static final byte UNINITIALIZED = 0;
 
-  // The plan was successfully completed, i.e., the method was recompiled
+  /** The plan was successfully completed, i.e., the method was recompiled */
   public static final byte COMPLETED = 1;
 
-  // Compilation began the method, but failed in an error
+  /** Compilation for the method was begun, but failed in an error */
   public static final byte ABORTED_COMPILATION_ERROR = 2;
 
-  // The compilation is still in progress
+  /** The compilation is still in progress */
   public static final byte IN_PROGRESS = 3;
 
-  // The compilation completed, but a new plan for the same method also
-  // completed, so this is not the most recent completed plan
+  /** The compilation completed, but a new plan for the same method also
+    * completed, so this is not the most recent completed plan */
   public static final byte OUTDATED = 4;
 
-  // The compilation plan is for a promotion from BASE to OPT
+  /** The compilation plan is for a promotion from BASE to OPT */
   public static final byte OSR_BASE_2_OPT = 5;
 
-  // This is used by clients to initialize local variables for Java semantics
+  /** This is used by clients to initialize local variables for Java semantics */
   public static final byte UNKNOWN = 99;
 
   /**
@@ -138,7 +141,7 @@ public final class ControllerPlan {
   /**
    * Execute the plan.
    *
-   * @return true on success, false on failure
+   * @return {@code true} on success, {@code false} on failure
    */
   public boolean execute() {
     // mark plan as in progress and insert it into controller memory
@@ -160,10 +163,12 @@ public final class ControllerPlan {
   /**
    * This method will recompile the method designated by the controller plan
    * {@link #getCompPlan}.  It also
-   *  1) credits the samples associated with the old compiled method
+   * <ol>
+   *   <li>credits the samples associated with the old compiled method
    *     ID to the new method ID and clears the old value.
-   *  2) clears inlining information
-   *  3) updates the status of the controller plan
+   *   <li>clears inlining information
+   *   <li>updates the status of the controller plan
+   * </ol>
    */
   public CompiledMethod doRecompile() {
     CompilationPlan cp = getCompPlan();

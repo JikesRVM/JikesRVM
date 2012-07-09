@@ -55,11 +55,54 @@ import org.jikesrvm.osr.VariableMap;
 /**
  * This class performs a flow-sensitive iterative live variable analysis.
  * The result of this analysis is live ranges for each basic block.
- * (@see BasicBlock)
- * This class can also optionally construct GC maps. These GC maps
- * are later used to create the final gc map (see OptReferenceMap.java).
+ * (@see BasicBlock)<p>
  *
- * The bottom of the file contains comments regarding imprecise exceptions.
+ * This class can also optionally construct GC maps. These GC maps
+ * are later used to create the final gc map (see OptReferenceMap.java).<p>
+ *
+ * Previously we used to be concerned that we didn't lose any
+ * precision due to imprecise modeling of exceptions.
+ * However, the troublesome situation cannot occur in Java. The rest of the
+ * comment for this class explains why that situation cannot occur.<p>
+ *
+ * The Java SPEC forces the compiler to declare a variable as uninitialized
+ * in those case that would be problematic. Consider the following
+ * ***ILLEGAL*** example:
+ *
+ * <pre>
+ * static void main(String arg[]) {
+ *   Object x;
+ *
+ *   try {
+ *     foo();
+ *     x = null;
+ *     bar();
+ *   }
+ *   catch (FooException e) {
+ *   }
+ *
+ *   catch (BarException e) {
+ *     Object a = x;
+ *   }
+ * }
+ * </pre>
+ *
+ * <p>
+ * Here x is live in the Bar catch block, but not above the assignment
+ * in the try block.  We only kill off values coming from
+ * catch blocks if they are in the first PEI region (above the call
+ * to foo).  Thus, our analysis will conservatively record that x
+ * is live above the assignment.<p>
+ *
+ * However, the Java SPEC requires compilers to state that x is uninitialized
+ * here, even though it isn't.  Thus, this scenario cannot occur.
+ * Basically, every variable used in a catch block needs to be defined
+ * before the TRY statement.  (The SPEC doesn't explicitly state this, but
+ * on page 398 (Sec 16.2.13) it says that every variable used in a *finally*
+ * block needs to be defined before the TRY statement, which is even more
+ * restrictive.<p>
+ *
+ * Bottomline: losing precision is not a concern!
  */
 public final class LiveAnalysis extends CompilerPhase {
   // Real Instance Variables
@@ -695,17 +738,19 @@ public final class LiveAnalysis extends CompilerPhase {
   /**
    *  This method performs the last phase of the analysis, local propagation.
    *  It uses the results from the fixed point analysis to determine the
-   *  local live information within a basic block.
+   *  local live information within a basic block.<p>
    *
    *  It walks the IR and, using the live information computed for each
    *  basic block, i.e., the results of the iterative solution, makes a single
    *  pass backward walk through the basic block, GENing and KILLing
    *  local information.  This produces the set of live variables at each
-   *  instruction.
+   *  instruction.<p>
    *
    *  This information is saved into two data structures:
-   *       - at all GC points, live references are recorded
-   *       - at all instructions, live range information is recorded
+   *  <ul>
+   *    <li>at all GC points, live references are recorded
+   *    <li>at all instructions, live range information is recorded
+   *  </ul>
    *
    *  @param ir the IR
    */
@@ -1253,42 +1298,3 @@ public final class LiveAnalysis extends CompilerPhase {
     osrMap.insertFirst(inst, mvarList);
   }
 }
-
-// Previously we used to be concerned that we didn't lose any
-// precision due to imprecise modeling of exceptions.
-// However, the troublesome situation cannot occur in Java
-// because the Java SPEC forces the compiler to declare a variable
-// as uninitialized.
-//
-// Conside the following ***ILLEGAL*** example:
-//
-//  static void main(String arg[]) {
-//    Object x;
-//    try {
-//      foo();
-//      x = null;
-//      bar();
-//    }
-//    catch (FooException e) {
-//    }
-//
-//    catch (BarException e) {
-//      Object a = x;
-//    }
-//  }
-//
-//  Here x is live in the Bar catch block, but not above the assignment
-//  in the try block.  Recall that we only kill off values coming from
-//  catch blocks if they are in the first PEI region (above the call
-//  to foo).  Thus, our analysis will conservatively record that x
-//  is live above the assignment.
-//
-//  However, the Java SPEC requires compilers to state that x is uninitialized
-//  here, even though it isn't.  Thus, this scenario cannot occur.
-//  Basically, every variable used in a catch block needs to be defined
-//  before the TRY statement.  (The SPEC doesn't explicitly state this, but
-//  on page 398 (Sec 16.2.13) it says that
-//     every variable used in a *finally* block needs to be defined
-//  before the TRY statement, which is even more restrictive.
-//  Bottomline: losing precision is not a concern!
-

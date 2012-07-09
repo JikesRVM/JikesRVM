@@ -18,9 +18,9 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
- * An element in the opt compiler's optimzation plan
+ * An element in the opt compiler's optimization plan
  * that aggregates together other OptimizationPlan elements.
- *
+ * <p>
  * NOTE: Instances of subclasses of this class are
  *       held in OptimizationPlanner.masterPlan
  *       and thus represent global state.
@@ -110,7 +110,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
    *
    * @param options the compiler options for the compilation
    * @param before true when invoked before perform, false otherwise.
-   * @return true if the IR should be printed, false otherwise.
+   * @return {@code true} if the IR should be printed, {@code false} otherwise.
    */
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;

@@ -19,15 +19,15 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A Listener object is invoked when online measurement information
  * needs to be collected.
- *
+ * <p>
  * This class does not define the update() method, the call back method from
  * the runtime when a sample should be taken.
  * The expectation is that immediately derived classes define an interface to
  * the update() method from which classes may be further derived.
- *
+ * <p>
  * CONSTRAINTS:
  * Classes that are derived from Listener
- * must be annotated as Uninterruptible to ensure that they
+ * must be annotated as {@link Uninterruptible} to ensure that they
  * are not interrupted by a thread switch.
  * Since thread switching is disabled, listeners are
  * expected to complete execution quickly, and therefore,
@@ -80,9 +80,9 @@ public abstract class Listener {
     }
   }
 
-  // Is the listener active or passive?
+  /** Is the listener active or passive? */
   private boolean active = false;
-  // My organizer.
+  /**  the associated organizer */
   private Organizer organizer;
 
 }

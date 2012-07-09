@@ -14,7 +14,7 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * BC_LongStore: lstore, lstore_<n>
+ * BC_LongStore: {@code lstore}, {@code lstore_<n>}
  */
 
 public class LongStore extends PseudoBytecode {

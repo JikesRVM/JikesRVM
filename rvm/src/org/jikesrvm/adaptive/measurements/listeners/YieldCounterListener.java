@@ -20,7 +20,7 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A YieldCounterListener samples yield points, and
  * notifies an Organizer when a threshold is reached.
- *
+ * <p>
  * In effect, this class provides a way to "wake up" an infrequent
  * service periodically.
  */
@@ -36,12 +36,6 @@ public final class YieldCounterListener extends NullListener {
     this.yieldThreshold = yieldThreshold;
   }
 
-  /**
-   * This method is called when its time to record that a
-   * yield point has occurred.
-   * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
-   *             EPILOGUE?
-   */
   @Override
   public void update(int whereFrom) {
     if (VM.VerifyAssertions) VM._assert(AosEntrypoints.yieldCountListenerNumYieldsField!=null);

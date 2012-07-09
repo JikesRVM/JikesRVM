@@ -14,12 +14,13 @@ package org.mmtk.harness;
 
 /**
  * A timeout thread.  Exits the harness if it isn't cancelled in time.
- *
+ * <p>
  * Use like this:
- *
+ * <pre>
  *   TimeoutThread timeout = new TimeoutThread(10);
  *   .. do stuff ..
  *   timeout.cancel();
+ * </pre>
  */
 final class TimeoutThread implements Runnable {
   private static final boolean VERBOSE = false;
@@ -47,9 +48,6 @@ final class TimeoutThread implements Runnable {
     }
   }
 
-  /**
-   * @see java.lang.Thread#run()
-   */
   @Override
   public void run() {
     long startTime = System.currentTimeMillis();

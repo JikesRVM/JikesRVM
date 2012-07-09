@@ -18,19 +18,23 @@ import org.jikesrvm.classloader.TypeReference;
 
 /**
  * Represents a constant TIB operand, found for example, from an
- * ObjectConstantOperand. NB we don't use an object constant
- * operand because: 1) TIBs don't form part of the object literals 2)
- * loads on the contents of a tib can be turned into constant moves,
- * whereas for arrays in general this isn't the case. We don't use
- * TypeOperand as the type of the operand is RVMType, whereas a
- * TIBs type is Object[].
+ * ObjectConstantOperand.<p>
+ * NB: we don't use an object constant operand because:
+ * <ol>
+ *   <li>TIBs don't form part of the object literals
+ *   <li>Loads on the contents of a TIB can be turned into constant moves,
+ *       whereas for arrays in general this isn't the case.
+ * </ol>
+ * <p>
+ * NB: we don't use TypeOperand as the type of the operand is RVMType, whereas a
+ * TIBs type is {@code Object[]}.
  *
  * @see Operand
  */
 public final class TIBConstantOperand extends ConstantOperand {
 
   /**
-   * The non-null type for this tib
+   * The non-{@code null} type for this TIB
    */
   public final RVMType value;
 

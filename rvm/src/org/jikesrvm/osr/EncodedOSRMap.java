@@ -24,13 +24,12 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * EncodedOSRMap provides the samilar function as GC map
+ * EncodedOSRMap provides the similar function as GC map
  * in OptMachineCodeMap.
- *
+ * <p>
  * In OptCompiledMethod, an instance of this class will represent
  * all OSR map info for that method.
  */
-
 public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConstants {
 
   /** osr info entries */
@@ -171,7 +170,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
   /**
    * Generate value in the Osr map,
    * return the index of the first integer in the map.
-   *
+   * <p>
    * An OSR Map has following structure:
    * <pre>
    * | regmap || mid, mpc, (n1, n2) ... ||
@@ -181,10 +180,10 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
    * the execution state extractor can convert the value to an
    * object to avoid confusing GC.
    * The MSB of regmap indicates next mid is valid.
-   *
+   * <p>
    * The MSB of mid indicates if the next mid item will be
    * available.
-   *
+   * <p>
    * The MSB of mpc indicates if the next is a valid pair
    */
   private int generateOsrMaps(ArrayList<Integer> tempOsrMaps, LinkedList<MethodVariables> mVarList) {
@@ -237,7 +236,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConsta
 
   /**
    * Process on 32-bit tuple.
-   *
+   * <p>
    * tuple, maps the local to register, spill
    * isLast, indicates to set NEXT_BIT
    */

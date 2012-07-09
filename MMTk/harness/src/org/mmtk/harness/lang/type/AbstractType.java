@@ -26,41 +26,26 @@ public abstract class AbstractType implements Type {
     this.name = name;
   }
 
-  /**
-   * @see java.lang.Object#toString()
-   */
   @Override
   public String toString() {
     return getName();
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#isObject()
-   */
   @Override
   public boolean isObject() {
     return false;
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#isUserType()
-   */
   @Override
   public boolean isUserType() {
     return false;
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#isCompatibleWith(org.mmtk.harness.lang.type.Type)
-   */
   @Override
   public boolean isCompatibleWith(Type rhs) {
     return this == rhs;

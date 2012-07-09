@@ -83,10 +83,14 @@ import org.vmmagic.unboxed.*;
    *
    * Protected instance methods and fields
    */
+
+  /** the location in the buffer */
   @Entrypoint
-  protected Address tail; // the location in the buffer
-  protected Address tailBufferEnd; // the end of the buffer
-  protected final SharedDeque queue; // the shared queue
+  protected Address tail;
+  /** the end of the buffer */
+  protected Address tailBufferEnd;
+  /** the shared queue */
+  protected final SharedDeque queue;
 
   /**
    * Reset the local buffer (throwing away any local entries).

@@ -23,6 +23,7 @@ import org.vmutil.options.OptionSet;
 
 /**
  * A set-valued option, eg opt=v1,v2,v3
+ * <p>
  * The values of the set come from an enumeration
  */
 public class EnumSetOption extends Option {
@@ -38,8 +39,8 @@ public class EnumSetOption extends Option {
    * @param set The option set this option belongs to.
    * @param name The space separated name for the option.
    * @param description The purpose of the option.
-   * @param values A mapping of int to string for the enum.
-   * @param defaultValue The default value of the option.
+   * @param options
+   * @param defaultValues
    */
   protected EnumSetOption(OptionSet set, String name, String description, String[] options, String defaultValues) {
     super(set, ENUM_SET_OPTION, name, description);

@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.harness.SimulatedMemory;
  * allow the core of MMTk to be compiled.  This <b>must</b> be
  * replaced with a concrete implementation appropriate to a specific
  * VM.
- *
+ * <p>
  * The address type is used by the runtime system and collector to
  * denote machine addresses.  We use a separate type instead of the
  * Java int type for coding clarity,  machine-portability (it can map
@@ -36,6 +36,10 @@ public final class Address {
   /****************************************************************************
    *
    * Special values
+   */
+
+  /**
+   *
    */
   private final ArchitecturalWord value;
 

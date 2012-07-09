@@ -17,15 +17,15 @@ import org.vmmagic.unboxed.*;
 
 /**
  * The abstract base class for all option sets.
- *
- * Concrete instantiations of this class include logic
- *
+ * <p>
+ * Concrete instantiations of this class include logic.
+ * <p>
  * All options within the system should have a unique name. No
  * two options shall have a name that is the same when a case
  * insensitive comparison between the names with spaces removed
  * is performed. Only basic alphanumeric characters and spaces
  * are allowed.
- *
+ * <p>
  * The VM is required to provide a one way mapping function that
  * takes the name and creates a VM style name, such as mapping
  * "No Finalizer" to noFinalizer. The VM may not remove any letters
@@ -63,10 +63,10 @@ public abstract class OptionSet {
 
   /**
    * Using the VM determined key, look up the corresponding option,
-   * or return null if an option can not be found.
+   * or return <code>null</code> if an option can not be found.
    *
    * @param key The (unique) option key.
-   * @return The option, or null.
+   * @return The option, or <code>null</code>.
    */
   public final Option getOption(String key) {
     Option o = getFirst();
@@ -83,7 +83,7 @@ public abstract class OptionSet {
    * Return the first option. This can be used with the getNext method to
    * iterate through the options.
    *
-   * @return The first option, or null if no options exist.
+   * @return The first option, or <code>null</code> if no options exist.
    */
   public final Option getFirst() {
     return head;
@@ -114,7 +114,7 @@ public abstract class OptionSet {
   }
 
   /**
-   * Log the option value in Xml.
+   * Log the option value in XML.
    *
    * @param o The option to log.
    */
@@ -128,7 +128,7 @@ public abstract class OptionSet {
   }
 
   /**
-   * Log the option values in Xml.
+   * Log the option values in XML.
    */
   public void logXml() {
     logString("<options>");
@@ -146,7 +146,7 @@ public abstract class OptionSet {
    * Format and log an option value.
    *
    * @param o The option.
-   * @param forXml Is this part of xml output?
+   * @param forXml Is this part of XML output?
    */
   protected abstract void logValue(Option o, boolean forXml);
 

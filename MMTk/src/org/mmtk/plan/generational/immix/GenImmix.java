@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.*;
  * <code>NURSERY_THRESHOLD</code><p>
  *
  * See the PLDI'08 paper by Blackburn and McKinley for a description
- * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586
+ * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586<p>
  *
  * See the Jones & Lins GC book, chapter 7 for a detailed discussion
  * of generational collection and section 7.3 for an overview of the
@@ -69,7 +69,8 @@ public class GenImmix extends Gen {
    *
    * Instance fields
    */
-  /* The trace class for a full-heap collection */
+
+  /** The trace class for a full-heap collection */
   public final Trace matureTrace = new Trace(metaDataSpace);
   private boolean lastGCWasDefrag = false;
 
@@ -79,7 +80,7 @@ public class GenImmix extends Gen {
    */
 
   /**
-   * Perform a (global) collection phase.
+   * {@inheritDoc}
    */
   @Inline
   @Override
@@ -130,9 +131,6 @@ public class GenImmix extends Gen {
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Inline
   @Override
@@ -156,9 +154,6 @@ public class GenImmix extends Gen {
    */
 
   /**
-   * Accessor method to allow the generic generational code in Gen.java
-   * to access the mature space.
-   *
    * @return The active mature space
    */
   @Override
@@ -167,12 +162,6 @@ public class GenImmix extends Gen {
     return immixSpace;
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return true if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(IMMIX, object)) {
@@ -182,9 +171,6 @@ public class GenImmix extends Gen {
       return super.willNeverMove(object);
   }
 
-  /**
-   * Register specialized methods.
-   */
   @Override
   @Interruptible
   protected void registerSpecializedMethods() {

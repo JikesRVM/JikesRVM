@@ -439,7 +439,7 @@ final class NormalBURS extends BURS {
   }
 
   /**
-   * Return true if node n must be a root of a BURS tree
+   * Return {@code true} if node n must be a root of a BURS tree
    * based only on its register true dependencies.
    * If the node might later have to be marked as a tree
    * root, then include in a set of problem nodes.

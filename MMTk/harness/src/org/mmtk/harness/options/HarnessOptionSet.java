@@ -49,7 +49,7 @@ public final class HarnessOptionSet extends org.vmutil.options.OptionSet {
   public static final int WORD_SET_OPTION = 1003;
 
   /**
-   * Take a string (most likely a command-line argument) and try to proccess it
+   * Take a string (most likely a command-line argument) and try to process it
    * as an option command.  Return true if the string was understood, false
    * otherwise.
    *

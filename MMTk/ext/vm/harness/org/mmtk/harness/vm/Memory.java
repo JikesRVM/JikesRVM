@@ -41,6 +41,8 @@ public class Memory extends org.mmtk.vm.Memory {
    * and AVAILABLE_END() to be contiguous and unmapped.
    *
    * @return The high bound of the memory that MMTk can allocate.
+   *
+   * TODO is this comment in the right place?
    */
    private static ImmortalSpace vmSpace = null;
    private static Extent VMSPACE_SIZE = Extent.fromIntZeroExtend(0x10000000);

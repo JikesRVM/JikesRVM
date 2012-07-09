@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implments the core functionality for a transitive
+ * This class implements the core functionality for a transitive
  * closure over the heap graph.
  */
 @Uninterruptible
@@ -32,10 +32,13 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    *
    * Instance fields.
    */
+
+  /**
+   *
+   */
   private final ObjectReferenceDeque modbuf;
   private final AddressDeque remset;
   private final AddressPairDeque arrayRemset;
-
 
   /**
    * Constructor
@@ -110,7 +113,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    * Will the object move from now on during the collection.
    *
    * @param object The object to query.
-   * @return True if the object is guaranteed not to move.
+   * @return {@code true} if the object is guaranteed not to move.
    */
   @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {

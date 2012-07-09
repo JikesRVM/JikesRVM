@@ -21,7 +21,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implments the core functionality for a transitive
+ * This class implements the core functionality for a transitive
  * closure over the heap graph, specifically in a Generational Mark-Sweep
  * collector.
  */

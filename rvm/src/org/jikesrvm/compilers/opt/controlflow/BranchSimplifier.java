@@ -57,7 +57,7 @@ public abstract class BranchSimplifier {
    * all basic blocks in the IR to remove unreachable code.
    *
    * @param bb the basic block to simplify
-   * @return true if we do something, false otherwise.
+   * @return {@code true} if we do something, {@code false} otherwise.
    */
   public static boolean simplify(BasicBlock bb, IR ir) {
     boolean didSomething = false;
