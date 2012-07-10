@@ -306,7 +306,7 @@ public final class RegisterOperand extends Operand {
 
   private void verifyPreciseType() {
     if (!VM.VerifyAssertions) {
-      VM._assert(false); // this call should always be guarded
+      VM.sysFail("Calls to verifyPreciseType must always be guarded by if \"(VM.VerifyAssertions)\"!");
     } else {
       if (isPreciseType() && type != null &&
           type.isClassType() && type.isResolved()) {

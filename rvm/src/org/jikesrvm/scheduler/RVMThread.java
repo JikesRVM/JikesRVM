@@ -2411,7 +2411,7 @@ public final class RVMThread extends ThreadContext {
       VM.sysWrite("No yieldpoints on thread ", threadSlot);
       VM.sysWrite(" with addr ", Magic.objectAsAddress(this));
       VM.sysWriteln();
-      VM._assert(false);
+      VM.sysFail("Yieldpoints are disabled on this thread!");
     }
   }
 

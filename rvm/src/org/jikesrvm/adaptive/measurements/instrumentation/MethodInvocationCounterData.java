@@ -41,7 +41,9 @@ public final class MethodInvocationCounterData extends ManagedCounterData implem
 
   @Override
   public void reset() {
-    VM._assert(false, "TODO: implement reset for BasicBlockCounterDatabase");
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED, "TODO: implement reset for BasicBlockCounterDatabase");
+    }
   }
 
 }

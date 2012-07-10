@@ -405,7 +405,7 @@ public final class TypeReference {
       } else if (this == CodeArray) {
         return Code;
       } else {
-        if (VM.VerifyAssertions) VM._assert(false, "Unexpected case of Magic arrays!");
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "Unexpected case of Magic arrays!");
         return null;
       }
     } else {

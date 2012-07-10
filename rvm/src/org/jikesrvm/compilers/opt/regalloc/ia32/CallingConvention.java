@@ -648,7 +648,7 @@ public abstract class CallingConvention extends IRTools
     }
 
     if (VM.VerifyAssertions && paramByteOffset != 8) {
-      VM._assert(false, "pb = " + paramByteOffset + "; expected 8");
+      VM._assert(VM.NOT_REACHED, "pb = " + paramByteOffset + "; expected 8");
     }
 
     // Now that we've made the calling convention explicit in the prologue,

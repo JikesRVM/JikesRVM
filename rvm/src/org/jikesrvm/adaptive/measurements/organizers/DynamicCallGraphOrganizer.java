@@ -125,7 +125,7 @@ public class DynamicCallGraphOrganizer extends Organizer {
     } else if (Controller.options.cgCBS()) {
       RuntimeMeasurements.installCBSContextListener((EdgeListener) listener);
     } else {
-      if (VM.VerifyAssertions) VM._assert(false, "Unexpected value of call_graph_listener_trigger");
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "Unexpected value of call_graph_listener_trigger");
     }
   }
 

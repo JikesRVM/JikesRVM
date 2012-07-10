@@ -145,7 +145,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     case SOFT:    return softReferenceProcessor;
     case PHANTOM: return phantomReferenceProcessor;
     default:
-      VM._assert(false,"Unrecognized semantics");
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED,"Unrecognized semantics");
       return null;
     }
   }

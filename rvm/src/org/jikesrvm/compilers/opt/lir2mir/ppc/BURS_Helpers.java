@@ -1440,7 +1440,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
                              I(regpool.getSecondReg(rightReg))));
       EMIT(MIR_Binary.create(PPC_ADDE, I(defReg), I(leftReg), I(rightReg)));
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
@@ -1457,7 +1457,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
                              I(regpool.getSecondReg(rightReg))));
       EMIT(MIR_Binary.create(PPC_SUBFE, I(defReg), I(leftReg), I(rightReg)));
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
@@ -1468,7 +1468,7 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
       EMIT(MIR_Binary.create(PPC_SUBFIC, I(regpool.getSecondReg(defReg)), I(regpool.getSecondReg(leftReg)), IC(0)));
       EMIT(MIR_Unary.create(PPC_SUBFZE, I(defReg), I(leftReg)));
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 

@@ -417,7 +417,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
                 VM.sysWriteln("  Method " + i + ": " + methodsToInline.get(i));
                 VM.sysWriteln("  NeedsGuard: " + methodsNeedGuard.get(i));
               }
-              VM._assert(false);
+              VM._assert(VM.NOT_REACHED);
             }
           }
           methods[idx] = target;

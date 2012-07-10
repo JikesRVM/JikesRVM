@@ -561,7 +561,7 @@ public final class AnnotatedLSTNode extends LSTNode {
         if (val1.isConstant()) {
           return val1.asIntConstant().value + getFixedDistanceFromPhiIterator(val2);
         } else {
-          VM._assert(val2.isConstant());
+          if (VM.VerifyAssertions) VM._assert(val2.isConstant());
           return getFixedDistanceFromPhiIterator(val1) + val2.asIntConstant().value;
         }
       } else if (opInstr.operator.opcode == INT_SUB_opcode) {
@@ -570,7 +570,7 @@ public final class AnnotatedLSTNode extends LSTNode {
         if (val1.isConstant()) {
           return val1.asIntConstant().value - getFixedDistanceFromPhiIterator(val2);
         } else {
-          VM._assert(val2.isConstant());
+          if (VM.VerifyAssertions) VM._assert(val2.isConstant());
           return getFixedDistanceFromPhiIterator(val1) - val2.asIntConstant().value;
         }
       }

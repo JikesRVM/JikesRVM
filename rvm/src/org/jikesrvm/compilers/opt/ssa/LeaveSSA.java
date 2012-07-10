@@ -654,7 +654,7 @@ public class LeaveSSA extends CompilerPhase {
           } else if (op instanceof UnreachableOperand) {
             // do nothing
           } else {
-            if (VM.VerifyAssertions) VM._assert(false);
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           }
         }
       }

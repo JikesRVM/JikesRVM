@@ -43,7 +43,7 @@ public final class LinkedListRVM<T> implements List<T> {
    */
   @Override
   public void add(int pos, T entry) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -102,7 +102,7 @@ public final class LinkedListRVM<T> implements List<T> {
    */
   @Override
   public boolean addAll(Collection<? extends T> arg0) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false;
   }
 
@@ -113,7 +113,7 @@ public final class LinkedListRVM<T> implements List<T> {
    */
   @Override
   public boolean addAll(int arg0, Collection<? extends T> arg1) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false;
   }
 
@@ -209,7 +209,7 @@ public final class LinkedListRVM<T> implements List<T> {
   /** UNIMPLEMENTED */
   @Override
   public int lastIndexOf(Object arg0) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -221,7 +221,7 @@ public final class LinkedListRVM<T> implements List<T> {
   /** UNIMPLEMENTED */
   @Override
   public ListIterator<T> listIterator(int arg0) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 
@@ -284,21 +284,21 @@ public final class LinkedListRVM<T> implements List<T> {
   /** UNIMPLEMENTED */
   @Override
   public boolean removeAll(Collection<?> arg0) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false;
   }
 
   /** UNIMPLEMENTED */
   @Override
   public boolean retainAll(Collection<?> arg0) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false;
   }
 
   /** UNIMPLEMENTED */
   @Override
   public T set(int arg0, T arg1) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 
@@ -310,21 +310,21 @@ public final class LinkedListRVM<T> implements List<T> {
   /** UNIMPLEMENTED */
   @Override
   public List<T> subList(int arg0, int arg1) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 
   /** UNIMPLEMENTED */
   @Override
   public Object[] toArray() {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 
   /** UNIMPLEMENTED */
   @Override
   public <U> U[] toArray(U[] arg0) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 

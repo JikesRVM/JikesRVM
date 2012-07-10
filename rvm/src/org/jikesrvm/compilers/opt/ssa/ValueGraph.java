@@ -127,7 +127,7 @@ final class ValueGraph {
               if (v2.getName() instanceof Register &&
                   v2.getLabel() instanceof Register &&
                   v2.getLabel() != v2.getName()) {
-                VM._assert(false);
+                VM._assert(VM.NOT_REACHED);
               }
             }
             v.copyVertex(v2);

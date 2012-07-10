@@ -1349,7 +1349,7 @@ public final class LoopVersioning extends CompilerPhase {
       if (val1.isConstant()) {
         return val1.asIntConstant().value + getConstantAdjustedArrayLengthDistance(val2);
       } else {
-        VM._assert(val2.isConstant());
+        if (VM.VerifyAssertions) VM._assert(val2.isConstant());
         return getConstantAdjustedArrayLengthDistance(val1) + val2.asIntConstant().value;
       }
     } else if (opInstr.operator.opcode == INT_SUB_opcode) {
@@ -1358,7 +1358,7 @@ public final class LoopVersioning extends CompilerPhase {
       if (val1.isConstant()) {
         return val1.asIntConstant().value - getConstantAdjustedArrayLengthDistance(val2);
       } else {
-        VM._assert(val2.isConstant());
+        if (VM.VerifyAssertions) VM._assert(val2.isConstant());
         return getConstantAdjustedArrayLengthDistance(val1) - val2.asIntConstant().value;
       }
     } else {

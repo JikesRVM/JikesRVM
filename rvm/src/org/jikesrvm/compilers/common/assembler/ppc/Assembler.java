@@ -407,7 +407,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
       case NE:
         return EQ;
     }
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return -1;
   }
 
@@ -1779,7 +1779,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int DIVDtemplate = 31 << 26 | 489 << 1;
 
   public final void emitDIVD(int RT, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = DIVDtemplate | RT << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1788,7 +1788,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int EXTSWtemplate = 31 << 26 | 986 << 1;
 
   public final void emitEXTSW(int RA, int RS) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = EXTSWtemplate | RS << 21 | RA << 16;
     mIP++;
     mc.addInstruction(mi);
@@ -1797,7 +1797,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int FCTIDZtemplate = 63 << 26 | 815 << 1;
 
   public final void emitFCTIDZ(int FRT, int FRB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = FCTIDZtemplate | FRT << 21 | FRB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1806,7 +1806,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int FCFIDtemplate = 63 << 26 | 846 << 1;
 
   public final void emitFCFID(int FRT, int FRB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = FCFIDtemplate | FRT << 21 | FRB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1821,7 +1821,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
 
   private void _emitLD(int RT, int DS, int RA) {
     //DS is already checked to fit 16 bits
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = LDtemplate | RT << 21 | RA << 16 | (DS & 0xFFFC);
     mIP++;
     mc.addInstruction(mi);
@@ -1830,7 +1830,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int LDARXtemplate = 31 << 26 | 84 << 1;
 
   public final void emitLDARX(int RT, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = LDARXtemplate | RT << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1839,7 +1839,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int LDUtemplate = 58 << 26 | 1;
 
   public final void emitLDU(int RT, int DS, int RA) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
     int mi = LDUtemplate | RT << 21 | RA << 16 | (DS & 0xFFFC);
     mIP++;
@@ -1849,7 +1849,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int LDUXtemplate = 31 << 26 | 53 << 1;
 
   public final void emitLDUX(int RT, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = LDUXtemplate | RT << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1858,7 +1858,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int LDXtemplate = 31 << 26 | 21 << 1;
 
   public final void emitLDX(int RT, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = LDXtemplate | RT << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1873,7 +1873,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
 
   private void _emitLWA(int RT, int DS, int RA) {
     //DS is already checked to fit 16 bits
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = LWAtemplate | RT << 21 | RA << 16 | (DS & 0xFFFC);
     mIP++;
     mc.addInstruction(mi);
@@ -1882,7 +1882,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int LWAXtemplate = 31 << 26 | 341 << 1;
 
   public final void emitLWAX(int RT, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = LWAXtemplate | RT << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1891,7 +1891,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int MULHDUtemplate = 31 << 26 | 9 << 1;
 
   public final void emitMULHDU(int RT, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = MULHDUtemplate | RT << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1900,7 +1900,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int MULLDtemplate = 31 << 26 | 233 << 1;
 
   public final void emitMULLD(int RT, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = MULLDtemplate | RT << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1909,7 +1909,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int SLDItemplate = 30 << 26 | 1 << 2;
 
   public final void emitSLDI(int RA, int RS, int N) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi =
         SLDItemplate |
         RS << 21 |
@@ -1923,13 +1923,13 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   }
 
   public final void emitRLDINM(int RA, int RS, int SH, int MB, int ME) {
-    VM._assert(false, "PLEASE IMPLEMENT ME");
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "PLEASE IMPLEMENT ME");
   }
 
   static final int SLDtemplate = 31 << 26 | 27 << 1;
 
   public final void emitSLD(int RA, int RS, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = SLDtemplate | RS << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1938,7 +1938,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int SRADtemplate = 31 << 26 | 794 << 1;
 
   public final void emitSRAD(int RA, int RS, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = SRADtemplate | RS << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1947,7 +1947,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int SRADItemplate = 31 << 26 | 413 << 2;
 
   public final void emitSRADI(int RA, int RS, int SH) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = SRADItemplate | RS << 21 | RA << 16 | (SH & 0x1F) << 11 | (SH & 0x20) >> 4;
     mIP++;
     mc.addInstruction(mi);
@@ -1956,7 +1956,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int SRADIrtemplate = SRADItemplate | 1;
 
   public final void emitSRADIr(int RA, int RS, int SH) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = SRADIrtemplate | RS << 21 | RA << 16 | (SH & 0x1F) << 11 | (SH & 0x20) >> 4;
     mIP++;
     mc.addInstruction(mi);
@@ -1965,7 +1965,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int SRDtemplate = 31 << 26 | 539 << 1;
 
   public final void emitSRD(int RA, int RS, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = SRDtemplate | RS << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -1980,7 +1980,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
 
   private void _emitSTD(int RS, int DS, int RA) {
     //DS is already checked to fit 16 bits
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = STDtemplate | RS << 21 | RA << 16 | (DS & 0xFFFC);
     mIP++;
     mc.addInstruction(mi);
@@ -1988,7 +1988,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
 
   //private: use emitSTWOffset or emitSTAddrOffset instead
   private void emitSTDoffset(int RS, int RA, Offset Dis) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     if (VM.VerifyAssertions) VM._assert(fits(Dis, 16));
     int DS = maskLower16(Dis);
     int mi = STDtemplate | RS << 21 | RA << 16 | (DS & 0xFFFC);
@@ -1999,7 +1999,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int STDCXrtemplate = 31 << 26 | 214 << 1 | 1;
 
   public final void emitSTDCXr(int RS, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = STDCXrtemplate | RS << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -2008,7 +2008,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int STDUtemplate = 62 << 26 | 1;
 
   public final void emitSTDU(int RS, int DS, int RA) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     if (VM.VerifyAssertions) VM._assert(fits(DS, 16));
     int mi = STDUtemplate | RS << 21 | RA << 16 | (DS & 0xFFFC);
     mIP++;
@@ -2018,7 +2018,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int STDUXtemplate = 31 << 26 | 181 << 1;
 
   public final void emitSTDUX(int RS, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = STDUXtemplate | RS << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -2027,7 +2027,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int STDXtemplate = 31 << 26 | 149 << 1;
 
   public final void emitSTDX(int RS, int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = STDXtemplate | RS << 21 | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -2037,7 +2037,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int TDLEtemplate = TDtemplate | 0x14 << 21;
 
   public final void emitTDLE(int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = TDLEtemplate | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -2046,7 +2046,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int TDLTtemplate = TDtemplate | 0x10 << 21;
 
   public final void emitTDLT(int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = TDLTtemplate | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -2055,7 +2055,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int TDLLEtemplate = TDtemplate | 0x6 << 21;
 
   public final void emitTDLLE(int RA, int RB) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = TDLLEtemplate | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
@@ -2064,7 +2064,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int TDItemplate = 2 << 26;
 
   public final void emitTDI(int TO, int RA, int SI) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = TDItemplate | TO << 21 | RA << 16 | SI & 0xFFFF;
     mIP++;
     mc.addInstruction(mi);
@@ -2073,7 +2073,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int TDEQItemplate = TDItemplate | 0x4 << 21;
 
   public final void emitTDEQ0(int RA) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = TDEQItemplate | RA << 16;
     mIP++;
     mc.addInstruction(mi);
@@ -2082,7 +2082,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int TDWItemplate = TDItemplate | 0x1F << 21 | 0xC << 16;
 
   public final void emitTDWI(int SI) {
-    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(false);
+    if (!VM.BuildFor64Addr && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     int mi = TDWItemplate | SI & 0xFFFF;
     mIP++;
     mc.addInstruction(mi);

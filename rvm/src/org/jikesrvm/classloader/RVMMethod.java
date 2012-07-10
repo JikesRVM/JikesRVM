@@ -389,7 +389,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
       } else if (pt == RVMType.DoubleType) {
         return JBC_dreturn;
       } else {
-        VM._assert(false);
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         return -1;
       }
     }

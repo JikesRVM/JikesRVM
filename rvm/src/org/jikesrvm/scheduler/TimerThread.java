@@ -73,7 +73,7 @@ public class TimerThread extends SystemThread {
   private static void printExceptionAndDie(Throwable e) {
     VM.sysWriteln("Unexpected exception thrown in timer thread: ",e.toString());
     e.printStackTrace();
-    VM._assert(VM.NOT_REACHED);
+    VM.sysFail("Died in timer thread.");
   }
 }
 

@@ -1059,7 +1059,9 @@ public class BootImageWriter extends BootImageWriterMessages
       if (!newBootRecordImageAddress.EQ(bootRecordImageAddress)) {
         VM.sysWriteln("bootRecordImageOffset = ", bootRecordImageAddress);
         VM.sysWriteln("newBootRecordImageOffset = ", newBootRecordImageAddress);
-        VM._assert(newBootRecordImageAddress.EQ(bootRecordImageAddress));
+        if (VM.VerifyAssertions) {
+          VM._assert(newBootRecordImageAddress.EQ(bootRecordImageAddress));
+        }
       }
       // Make sure pending entries are fully written out
       processPendingEntries();

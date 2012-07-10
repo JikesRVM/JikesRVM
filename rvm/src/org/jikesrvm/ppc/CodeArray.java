@@ -26,22 +26,22 @@ public abstract class CodeArray {
   private int[] data;
 
   public CodeArray(int size) {
-    if (VM.runningVM) VM._assert(false);  // should be unreachable
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be unreachable
     data = new int[size];
   }
 
   public int get(int index) {
-    if (VM.runningVM) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     return data[index];
   }
 
   public void set(int index, int v) {
-    if (VM.runningVM) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     data[index] = v;
   }
 
   public int length() {
-    if (VM.runningVM) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     return data.length;
   }
 

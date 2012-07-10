@@ -289,7 +289,7 @@ abstract class AssemblerBase extends Assembler
   }
 
   MM getMM_Reg(Operand op) {
-    VM._assert(false, "MM registers not currently supported in the opt compiler");
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "MM registers not currently supported in the opt compiler");
     return null;
   }
 
@@ -923,7 +923,7 @@ abstract class AssemblerBase extends Assembler
     if (isImm(MIR_CondBranch.getTarget(inst))) {
       emitJCC_Cond_Imm(cond, getImm(MIR_CondBranch.getTarget(inst)));
     } else {
-      if (VM.VerifyAssertions && !isLabel(MIR_CondBranch.getTarget(inst))) VM._assert(false, inst.toString());
+      if (VM.VerifyAssertions && !isLabel(MIR_CondBranch.getTarget(inst))) VM._assert(VM.NOT_REACHED, inst.toString());
       int sourceLabel = -inst.getmcOffset();
       int targetLabel = getLabel(MIR_CondBranch.getTarget(inst));
       int delta = targetLabel - sourceLabel;
@@ -984,7 +984,7 @@ abstract class AssemblerBase extends Assembler
     } else if (isRegInd(MIR_Branch.getTarget(inst))) {
       emitJMP_RegInd(getBase(MIR_Branch.getTarget(inst)));
     } else {
-      if (VM.VerifyAssertions) VM._assert(false, inst.toString());
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, inst.toString());
     }
   }
 

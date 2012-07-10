@@ -570,7 +570,7 @@ public class Statics implements Constants {
       } else if (unboxed instanceof Offset) {
         return ((Offset) unboxed).toWord().toAddress();
       } else {
-        if (VM.VerifyAssertions) VM._assert(false);
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         return Address.zero();
       }
     }

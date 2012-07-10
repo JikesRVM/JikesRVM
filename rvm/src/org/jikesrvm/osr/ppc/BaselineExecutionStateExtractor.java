@@ -251,7 +251,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
     if (kind == LOCAL) {
       start = 0;
     } else {
-      VM._assert(false); //implement me for stack
+      VM._assert(VM.NOT_REACHED); //implement me for stack
     }
     int size = types.length;
     for (int i = start; i < size; i++) {

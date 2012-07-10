@@ -35,7 +35,7 @@ abstract class ArchitecturalWord {
   }
 
   ArchitecturalWord(long value) {
-    @32MASK@VM._assert(VM.NOT_REACHED);
+    @32MASK@VM.sysFail("Detected use of long constructor for 32-bit word!");
     @32MASK@this.value = (int)value;
     @64MASK@this.value = value;
   }

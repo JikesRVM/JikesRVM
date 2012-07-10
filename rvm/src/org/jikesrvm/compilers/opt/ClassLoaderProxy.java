@@ -62,8 +62,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
         } else if (t1.isByteType() || t2.isByteType()) {
           return TypeReference.Byte;
         } else {
-          // Unreachable
-          if (VM.VerifyAssertions) VM._assert(false);
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           return null;
         }
       } else if (t1.isWordLikeType() && t2.isWordLikeType()) {
@@ -106,7 +105,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
           arrayDimensions++;
           type = t1;
         } else {
-          if (VM.VerifyAssertions) VM._assert(false);
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         }
       }
       --arrayDimensions;

@@ -376,7 +376,7 @@ public abstract class CompiledMethod implements SizeConstants {
       case JNI:
         return "JNI";
       default:
-        if (VM.VerifyAssertions) VM._assert(false);
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         return null;
     }
   }

@@ -35,7 +35,7 @@ final class BootImageObjectAddressRemapper implements ObjectAddressRemapper {
   @Override
   public Object addressAsObject(Address address) {
     VM.sysWriteln("BootImageObjectAddressRemapper: called addressAsObject");
-    VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 

@@ -80,25 +80,25 @@ public final class LinkedListIteratorRVM<T> implements ListIterator<T> {
 
   @Override
   public int nextIndex() {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
   @Override
   public T previous() {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 
   @Override
   public int previousIndex() {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
   @Override
   public void set(Object arg0) {
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
 }

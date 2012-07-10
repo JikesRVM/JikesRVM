@@ -558,8 +558,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
             char bits = Magic.getCharAtOffset(obj, offset);
             Magic.setCharAtOffset(newObj, offset, bits);
           } else {
-            if (VM.VerifyAssertions)
-              VM._assert(size == BYTES_IN_BYTE);
+            if (VM.VerifyAssertions) VM._assert(size == BYTES_IN_BYTE);
             byte bits = Magic.getByteAtOffset(obj, offset);
             Magic.setByteAtOffset(newObj, offset, bits);
           }

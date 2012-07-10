@@ -42,7 +42,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference result = Selected.Mutator.get().javaLangReferenceReadBarrier(ObjectReference.fromObject(obj));
       return result.toObject();
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return null;
   }
 
@@ -78,7 +78,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().booleanWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -98,7 +98,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_BOOLEAN);
       Selected.Mutator.get().booleanWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -116,7 +116,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().booleanRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return false;
   }
 
@@ -135,7 +135,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_BOOLEAN);
       return Selected.Mutator.get().booleanRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return false;
   }
 
@@ -187,7 +187,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().byteWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -207,7 +207,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index);
       Selected.Mutator.get().byteWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -225,7 +225,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().byteRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -244,7 +244,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index);
       return Selected.Mutator.get().byteRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -297,7 +297,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().charWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -317,7 +317,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_CHAR);
       Selected.Mutator.get().charWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -335,7 +335,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().charRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -354,7 +354,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_CHAR);
       return Selected.Mutator.get().charRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -407,7 +407,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().shortWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -427,7 +427,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_SHORT);
       Selected.Mutator.get().shortWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -445,7 +445,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().shortRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -464,7 +464,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_SHORT);
       return Selected.Mutator.get().shortRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -518,7 +518,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().intWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -538,7 +538,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_INT);
       Selected.Mutator.get().intWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -556,7 +556,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().intRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -575,7 +575,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_INT);
       return Selected.Mutator.get().intRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -612,7 +612,7 @@ public class Barriers implements org.mmtk.utility.Constants {
                                                          Word.zero(), // do not have location metadata
                                                          INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return false;
   }
 
@@ -647,7 +647,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().longWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -667,7 +667,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_LONG);
       Selected.Mutator.get().longWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -685,7 +685,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().longRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -704,7 +704,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_LONG);
       return Selected.Mutator.get().longRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -723,7 +723,7 @@ public class Barriers implements org.mmtk.utility.Constants {
                                                           Word.zero(), // do not have location metadata
                                                           INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return false;
   }
 
@@ -775,7 +775,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().floatWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -795,7 +795,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_FLOAT);
       Selected.Mutator.get().floatWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -813,7 +813,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().floatRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -832,7 +832,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_FLOAT);
       return Selected.Mutator.get().floatRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -885,7 +885,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().doubleWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -905,7 +905,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_DOUBLE);
       Selected.Mutator.get().doubleWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -923,7 +923,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().doubleRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -942,7 +942,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_DOUBLE);
       return Selected.Mutator.get().doubleRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return 0;
   }
 
@@ -998,7 +998,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().wordWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -1016,7 +1016,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().wordRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return Word.zero();
   }
 
@@ -1036,7 +1036,7 @@ public class Barriers implements org.mmtk.utility.Constants {
                                                           Word.zero(), // do not have location metadata
                                                           INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return false;
   }
 
@@ -1064,7 +1064,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().addressWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -1082,7 +1082,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().addressRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return Address.zero();
   }
 
@@ -1102,7 +1102,7 @@ public class Barriers implements org.mmtk.utility.Constants {
                                                           Word.zero(), // do not have location metadata
                                                           INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return false;
   }
 
@@ -1130,7 +1130,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().extentWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -1148,7 +1148,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().extentRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return Extent.zero();
   }
 
@@ -1176,7 +1176,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().offsetWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -1194,7 +1194,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().offsetRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return Offset.zero();
   }
 
@@ -1228,7 +1228,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       Selected.Mutator.get().objectReferenceWrite(src, src.toAddress().plus(offset), ObjectReference.fromObject(value), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -1248,7 +1248,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
       Selected.Mutator.get().objectReferenceWrite(array, array.toAddress().plus(offset), ObjectReference.fromObject(value), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -1266,7 +1266,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       ObjectReference src = ObjectReference.fromObject(ref);
       return Selected.Mutator.get().objectReferenceRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD).toObject();
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return null;
   }
 
@@ -1285,7 +1285,7 @@ public class Barriers implements org.mmtk.utility.Constants {
       Offset offset = Offset.fromIntZeroExtend(index << MemoryManagerConstants.LOG_BYTES_IN_ADDRESS);
       return Selected.Mutator.get().objectReferenceRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT).toObject();
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return null;
   }
 
@@ -1334,7 +1334,7 @@ public class Barriers implements org.mmtk.utility.Constants {
           offset.toWord(),
           Word.fromIntZeroExtend(locationMetadata));
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -1354,7 +1354,7 @@ public class Barriers implements org.mmtk.utility.Constants {
           offset.toWord(),
           Word.fromIntZeroExtend(locationMetadata)).toObject();
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return null;
   }
 
@@ -1379,7 +1379,7 @@ public class Barriers implements org.mmtk.utility.Constants {
           Word.zero(), // do not have location metadata
           INSTANCE_FIELD);
     } else if (VM.VerifyAssertions)
-      VM._assert(false);
+      VM._assert(VM.NOT_REACHED);
     return false;
   }
 }

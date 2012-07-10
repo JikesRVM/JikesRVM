@@ -129,7 +129,7 @@ public class CompiledMethods implements SizeConstants {
     } else if (compilerType == CompiledMethod.JNI) {
       cm = new JNICompiledMethod(id, m);
     } else {
-      if (VM.VerifyAssertions) VM._assert(false, "Unexpected compiler type!");
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "Unexpected compiler type!");
     }
     setCompiledMethod(id, cm);
     return cm;

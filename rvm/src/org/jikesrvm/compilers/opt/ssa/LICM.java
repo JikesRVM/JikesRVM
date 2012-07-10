@@ -1085,7 +1085,7 @@ public class LICM extends CompilerPhase {
       return ((useDominates(AStore.getArray(inst), block)) && useDominates(AStore.getIndex(inst), block));
     }
     if (VM.VerifyAssertions) {
-      VM._assert(false, "inst: " + inst);
+      VM._assert(VM.NOT_REACHED, "inst does not conform to PutStatic, Putfield or AStore: " + inst);
     }
     return false;
   }

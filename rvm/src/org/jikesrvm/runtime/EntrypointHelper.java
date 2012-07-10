@@ -13,7 +13,6 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
@@ -72,7 +71,7 @@ public class EntrypointHelper {
                 " desc=" +
                 memberDescriptor +
                 "\n");
-    VM._assert(Constants.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null; // placate jikes
   }
 

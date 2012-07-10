@@ -71,7 +71,7 @@ public final class MethodSampleOrganizer extends Organizer {
     } else if (Controller.options.mlCBS()) {
       RuntimeMeasurements.installCBSMethodListener(methodListener);
     } else {
-      if (VM.VerifyAssertions) VM._assert(false, "Unexpected value of method_listener_trigger");
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "Unexpected value of method_listener_trigger");
     }
   }
 

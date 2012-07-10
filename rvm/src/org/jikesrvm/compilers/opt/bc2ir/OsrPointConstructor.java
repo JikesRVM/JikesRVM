@@ -159,7 +159,7 @@ public class OsrPointConstructor extends CompilerPhase {
 
             if (bar == null) {
               VM.sysWrite("call site :" + callsite);
-              VM._assert(false);
+              if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
             }
 
             adjustBCIndex(bar);

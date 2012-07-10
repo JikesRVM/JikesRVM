@@ -218,7 +218,7 @@ public abstract class RecompilationStrategy {
         OptCompiledMethod optMeth = (OptCompiledMethod) cmpMethod;
         return CompilerDNA.getCompilerConstant(optMeth.getOptLevel());
       default:
-        if (VM.VerifyAssertions) VM._assert(false, "Unknown Compiler");
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "Unknown Compiler");
         return -1;
     }
   }

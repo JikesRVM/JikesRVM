@@ -22,7 +22,7 @@ public class BootImageMemberLookupError extends Error {
   final Member jdkMember;
   BootImageMemberLookupError(RVMMember rvmMember, Member jdkMember, Object o, Throwable t) {
     super(t);
-    if (VM.runningVM) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);
     }
     this.rvmMember = rvmMember;

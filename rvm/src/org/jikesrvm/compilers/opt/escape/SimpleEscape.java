@@ -315,7 +315,7 @@ class SimpleEscape extends CompilerPhase {
 
       if (VM.VerifyAssertions && use.getType() == null) {
         ir.printInstructions();
-        VM._assert(false, "type of " + use + " is null");
+        VM._assert(VM.NOT_REACHED, "type of " + use + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -331,7 +331,7 @@ class SimpleEscape extends CompilerPhase {
 
       if (VM.VerifyAssertions && def.getType() == null) {
         ir.printInstructions();
-        VM._assert(false, "type of " + def + " is null");
+        VM._assert(VM.NOT_REACHED, "type of " + def + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -349,7 +349,7 @@ class SimpleEscape extends CompilerPhase {
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       if (VM.VerifyAssertions && use.getType() == null) {
         ir.printInstructions();
-        VM._assert(false, "type of " + use + " is null");
+        VM._assert(VM.NOT_REACHED, "type of " + use + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -364,7 +364,7 @@ class SimpleEscape extends CompilerPhase {
     for (RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
       if (VM.VerifyAssertions && def.getType() == null) {
         ir.printInstructions();
-        VM._assert(false, "type of " + def + " is null");
+        VM._assert(VM.NOT_REACHED, "type of " + def + " is null");
       }
 
       // if the type is primitive, just say it escapes

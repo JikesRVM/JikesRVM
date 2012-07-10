@@ -152,7 +152,7 @@ public abstract class TemplateCompilerFramework
 
     // Double check logically uninterruptible methods have been annotated as
     // uninterruptible
-    // TODO: remove logically uninterruptible annotations
+    // TODO: remove logically uninterruptible annotations (see RVM-115).
     if (VM.VerifyAssertions && method.hasLogicallyUninterruptibleAnnotation()) {
       VM._assert(isUninterruptible, "LogicallyUninterruptible but not Uninterruptible method: ",
         method.toString());
@@ -204,7 +204,7 @@ public abstract class TemplateCompilerFramework
     if (compilerName.equals("baseline")) {
       VM.sysWrite("-methodBaseline ");
     } else if (VM.VerifyAssertions) {
-      VM._assert(false, "Unknown compiler");
+      VM._assert(VM.NOT_REACHED, "Unknown compiler");
     }
     VM.sysWrite(method.getDeclaringClass().toString());
     VM.sysWrite(" ");
@@ -1620,7 +1620,7 @@ public abstract class TemplateCompilerFramework
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("anewarray ", arrayRef, bcodes.index());
 
           if (VM.VerifyAssertions && elementTypeRef.isUnboxedType()) {
-            VM._assert(false,
+            VM._assert(VM.NOT_REACHED,
                        "During compilation of " +
                        method +
                        " found an anewarray of " +

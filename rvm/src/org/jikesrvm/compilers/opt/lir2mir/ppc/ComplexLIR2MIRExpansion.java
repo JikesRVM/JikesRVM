@@ -117,21 +117,21 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
           if (VM.BuildFor64Addr) {
             double_2long(s, ir);
           } else {
-            if (VM.VerifyAssertions) VM._assert(false);
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           }
           break;
         case LONG_SHR_opcode:
           if (VM.BuildFor32Addr) {
             long_shr(s, ir);
           } else {
-            if (VM.VerifyAssertions) VM._assert(false);
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           }
           break;
         case LONG_IFCMP_opcode:
           if (VM.BuildFor32Addr) {
             long_ifcmp(s, ir);
           } else {
-            if (VM.VerifyAssertions) VM._assert(false);
+            if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           }
           break;
         case BOOLEAN_CMP_INT_opcode:
@@ -289,7 +289,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
       case FLOAT_CMPL_opcode:
         break;
       default:
-        if (VM.VerifyAssertions) VM._assert(false);
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
         break;
     }
     Register res = Binary.getClearResult(s).getRegister();

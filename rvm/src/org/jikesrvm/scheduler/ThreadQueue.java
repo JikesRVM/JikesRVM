@@ -146,7 +146,7 @@ public class ThreadQueue {
     VM.sysWriteln("Could not remove Thread #", t.getThreadSlot(),
         " from queue!");
     dump();
-    VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false; // make javac happy
   }
 

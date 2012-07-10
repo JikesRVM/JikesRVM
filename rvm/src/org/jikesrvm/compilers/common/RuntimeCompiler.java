@@ -373,7 +373,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
 
       return cm;
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
     }
   }
@@ -407,7 +407,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
         }
       }
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
     }
   }
@@ -436,7 +436,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
         }
       }
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
     }
   }
@@ -471,7 +471,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
         return fallback(method);
       }
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
     }
   }
@@ -515,7 +515,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
         compilationInProgress = false;
       }
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return null;
     }
   }
@@ -569,7 +569,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
         }
       }
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return -1;
     }
   }
@@ -588,7 +588,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
                                   (OptOptions) options);
       return recompileWithOpt(plan);
     } else {
-      if (VM.VerifyAssertions) VM._assert(false);
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
       return -1;
     }
   }

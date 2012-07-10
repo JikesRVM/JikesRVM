@@ -120,7 +120,7 @@ public final class GCMapIteratorGroup implements SizeConstants {
         return jniIterator;
     }
     if (VM.VerifyAssertions) {
-      VM._assert(false, "GCMapIteratorGroup.selectIterator: Unknown type of compiled method");
+      VM._assert(VM.NOT_REACHED, "GCMapIteratorGroup.selectIterator: Unknown type of compiled method");
     }
     return null;
   }
