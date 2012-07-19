@@ -36,6 +36,7 @@
   <!-- location of resources -->
   <property name="primordials.dir" location="build/primordials"/>
   <property name="main.java" location="rvm/src"/>
+  <property name="test.java" location="rvm/test-src/"/>
   <property name="mmtk.java" location="MMTk/src"/>
   <property name="mmtk-harness.java" location="MMTk/harness/src"/>
   <property name="mmtk-harness-vmmagic.java" location="MMTk/harness/vmmagic"/>
@@ -68,6 +69,7 @@
   <property name="build.native" location="${build.base}/c"/>
   <property name="build.objs" location="${build.base}/objs"/>
   <property name="build.classes" location="${build.base}/classes"/>
+  <property name="build.test-classes" location="${build.base}/test-classes"/>
   <property name="build.rt.jar" location="${build.base}/rvmrt.jar"/>
   <property name="build.vm.jar" location="${build.base}/jksvm.jar"/>
   <property name="build.vmmagic.classes" location="${build.base}/vmmagic/classes"/>
@@ -98,6 +100,10 @@
   <condition property="classpath.classlib" value="true">
     <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
   </condition>
+
+  <!-- Set the properties for unit test reports -->
+  <property name="junit.reports.bootstrap" location="${build.base}/test-reports-bootstrap"/>
+  <property name="junit.reports.rvm" location="${build.base}/test-reports-rvm"/>
 
   <!-- Permit parallelisation of the bootimage build -->
   <property name="bootimage.threads" value="1"/>
@@ -307,6 +313,7 @@
         </ant>
       </sequential>
     </if>
+    <ant antfile="build/components/junit.xml" target="ensure"/>
     <property file="${components.file}"/>
   </target>
 
@@ -1291,6 +1298,68 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
+  <target name="test-compile" depends="compile">
+
+    <delete dir="${build.test-classes}"/>
+    <mkdir dir="${build.test-classes}"/>
+
+    <javac destdir="${build.test-classes}"
+      debug="true"
+      fork="true"
+      memoryMaximumSize="500M"
+      srcdir="${test.java}"
+      includeantruntime="false">
+      <classpath>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
+        <pathelement location="${build.test-classes}"/>
+        <pathelement location="${build.classes}"/>
+        <pathelement location="${junit.jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="bootstrap-unit-tests" description="Run unit tests the boostrap VM" depends="test-compile">
+
+    <delete dir="${junit.reports.bootstrap}"/>
+    <mkdir dir="${junit.reports.bootstrap}"/>
+
+    <junit haltonfailure="yes" printsummary="true" showoutput="true">
+      <classpath>
+        <pathelement location="${build.vmmagic-stub.classes}"/>
+        <pathelement location="${build.test-classes}"/>
+        <pathelement location="${build.classes}"/>
+        <pathelement location="${junit.jar}"/>
+      </classpath>
+      <batchtest fork="yes" todir="${junit.reports.bootstrap}">
+        <formatter type="plain"/>
+        <fileset dir="${build.test-classes}">
+          <include name="**/*Test.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+  </target>
+
+  <target name="rvm-unit-tests" description="Run unit tests on Jikes RVM" depends="runtime">
+
+    <delete dir="${junit.reports.rvm}"/>
+    <mkdir dir="${junit.reports.rvm}"/>
+
+    <junit jvm="${dist.base}/rvm" haltonfailure="yes" printsummary="true" showoutput="true" >
+      <jvmarg value="-Xbootclasspath/a:${build.test-classes}:${junit.jar}"/>
+      <classpath>
+        <!-- Technically unnecessary as ${junit.jar} is on the boot classpath,
+             but needed to make the <junit> task's sanity checks happy. -->
+        <pathelement location="${junit.jar}"/>
+      </classpath>
+      <batchtest fork="yes" todir="${junit.reports.rvm}">
+        <formatter type="plain"/>
+        <fileset dir="${build.test-classes}">
+          <include name="**/*Test.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+  </target>
+
   <target name="compile-vmmagic" depends="compile">
     <mkdir dir="${build.vmmagic.classes}"/>
     <javac srcdir="${vmmagic.java}" destdir="${build.vmmagic.classes}" debug="true" debugLevel="lines,source"
@@ -1303,7 +1372,7 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="package" depends="compile,compile-vmmagic,package-classpath,package-harmony"/>
+  <target name="package" depends="bootstrap-unit-tests,compile-vmmagic,package-classpath,package-harmony"/>
 
   <target name="package-harmony" if="harmony.classlib">
     <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false">
@@ -2031,7 +2100,7 @@ target.jni-suffix=${target.jni-suffix}
 
   <target name="runtime" depends="cross-compile-host,cross-compile-target" description="Build the runtime."/>
 
-  <target name="main" depends="runtime"/>
+  <target name="main" depends="rvm-unit-tests"/>
 
   <!-- Create an image using a profile (which requires first creating a profile) -->
   <target name="profiled-image">
@@ -2046,7 +2115,7 @@ target.jni-suffix=${target.jni-suffix}
   </target>
 
   <!-- Create an edge profile by creating a baseline-compiled sibling to this image and profiling it -->
-  <target name="create-bootimage-profile" depends="runtime">
+  <target name="create-bootimage-profile" depends="rvm-unit-tests">
 	<ant antfile="build/components/dacapo.xml" target="ensure" inheritall="false" inheritrefs="false"/>
 	<mkdir dir="${build.profiles}"/>
 	<exec executable="${dist.base}/rvm" failonerror="true"
@@ -2118,6 +2187,7 @@ target.jni-suffix=${target.jni-suffix}
       <formatter type="xml" tofile="${build.dir}/checkstyle/report.xml"/>
       <fileset dir="rvm/src" includes="**/*.java"/>
       <fileset dir="rvm/src-generated" includes="**/*.java"/>
+      <fileset dir="${test.java}" includes="**/*.java"/>
       <fileset dir="MMTk" includes="**/*.java" excludes="harness/src-generated/**/*.java"/>
       <fileset dir="common/vmmagic" includes="**/*.java"/>
       <fileset dir="common/options" includes="**/*.java"/>
@@ -2360,8 +2430,9 @@ target.jni-suffix=${target.jni-suffix}
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
       </conditions>
       <sequential>
-	<copy file="${classpath.lib.dir}/classpath.jar" tofile="eclipse/classpath.jar" />
-	<property name="classpath.template.name" value="classpath.template" />
+        <copy file="${classpath.lib.dir}/classpath.jar" tofile="eclipse/classpath.jar" />
+        <copy file="${junit.jar}" tofile="eclipse/junit.jar" />
+        <property name="classpath.template.name" value="classpath.template" />
       </sequential>
     </if>
     <if>
