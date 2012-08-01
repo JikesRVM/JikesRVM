@@ -13,6 +13,8 @@
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.database.AOSDatabase;
 import org.jikesrvm.adaptive.measurements.instrumentation.Instrumentation;
@@ -20,7 +22,6 @@ import org.jikesrvm.adaptive.measurements.instrumentation.StringEventCounterData
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
@@ -80,8 +81,8 @@ public class InsertInstructionCounters extends CompilerPhase {
     // Create a vector of basic blocks up front because the blocks
     // are modified as we iterate below.
     ArrayList<BasicBlock> bbList = new ArrayList<BasicBlock>();
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
-      BasicBlock bb = bbe.next();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
+      BasicBlock bb = bbe.nextElement();
       bbList.add(bb);
     }
 

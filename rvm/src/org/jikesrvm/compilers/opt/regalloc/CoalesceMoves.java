@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
+import java.util.Enumeration;
 import java.util.HashSet;
 
 import org.jikesrvm.compilers.opt.DefUse;
@@ -19,7 +20,6 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -82,7 +82,7 @@ public class CoalesceMoves extends CompilerPhase {
     HashSet<Instruction> dead = new HashSet<Instruction>(5);
 
     // for each Move instruction ...
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       if (s.operator.isMove()) {
         Register r = Move.getResult(s).asRegister().getRegister();

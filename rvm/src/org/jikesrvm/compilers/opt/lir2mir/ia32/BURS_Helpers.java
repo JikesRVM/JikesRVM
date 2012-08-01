@@ -90,6 +90,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -127,7 +129,6 @@ import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.TrapIf;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
@@ -332,11 +333,11 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       return use;
     } else {
       RegisterOperand rop = use.asRegister();
-      RegisterOperandEnumeration defs = DefUse.defs(rop.getRegister());
+      Enumeration<RegisterOperand> defs = DefUse.defs(rop.getRegister());
       if (!defs.hasMoreElements()) {
         return use;
       } else {
-        Operand def = defs.next();
+        Operand def = defs.nextElement();
         if (defs.hasMoreElements()) {
           return def;
         } else {

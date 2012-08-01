@@ -12,11 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.dfsolver.DF_LatticeCell;
 import org.jikesrvm.compilers.opt.dfsolver.DF_Solution;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
@@ -181,8 +182,8 @@ public class Dominators {
    * @param ir the IR
    */
   public static void printDominators(IR ir) {
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock b = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock b = e.nextElement();
       DominatorInfo i = (DominatorInfo) b.scratchObject;
       System.out.println("Dominators of " + b + ":" + i.dominators);
     }

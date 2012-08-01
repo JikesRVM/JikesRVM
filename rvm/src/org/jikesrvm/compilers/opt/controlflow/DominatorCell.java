@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.dfsolver.DF_AbstractCell;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.util.BitVector;
 
@@ -77,8 +78,8 @@ class DominatorCell extends DF_AbstractCell {
    * @param ir the governing ir
    */
   public void setTOP(IR ir) {
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock b = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock b = e.nextElement();
       dominators.set(b.getNumber());
     }
   }

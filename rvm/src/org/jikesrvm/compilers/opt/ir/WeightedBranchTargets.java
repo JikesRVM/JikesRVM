@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
@@ -46,8 +48,8 @@ public final class WeightedBranchTargets {
     max = 0;
 
     float prob = 1f;
-    for (InstructionEnumeration ie = bb.enumerateBranchInstructions(); ie.hasMoreElements();) {
-      Instruction s = ie.next();
+    for (Enumeration<Instruction> ie = bb.enumerateBranchInstructions(); ie.hasMoreElements();) {
+      Instruction s = ie.nextElement();
       if (IfCmp.conforms(s)) {
         BasicBlock target = IfCmp.getTarget(s).target.getBasicBlock();
         BranchProfileOperand prof = IfCmp.getBranchProfile(s);

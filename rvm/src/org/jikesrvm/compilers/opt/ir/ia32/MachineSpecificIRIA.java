@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.ir.ia32;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -20,12 +22,9 @@ import org.jikesrvm.compilers.opt.ir.MIR_CondBranch;
 import org.jikesrvm.compilers.opt.ir.MIR_CondBranch2;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.MachineSpecificIR;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP;
 import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_DEF;
@@ -213,17 +212,17 @@ public abstract class MachineSpecificIRIA extends MachineSpecificIR {
   @Override
   public void rewriteFPStack(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    for (BasicBlockEnumeration b = ir.getBasicBlocks(); b.hasMoreElements();) {
+    for (Enumeration<BasicBlock> b = ir.getBasicBlocks(); b.hasMoreElements();) {
       BasicBlock bb = b.nextElement();
 
       // The following holds the floating point stack offset from its
       // 'normal' position.
       int fpStackOffset = 0;
 
-      for (InstructionEnumeration inst = bb.forwardInstrEnumerator(); inst.hasMoreElements();) {
-        Instruction s = inst.next();
-        for (OperandEnumeration ops = s.getOperands(); ops.hasMoreElements();) {
-          Operand op = ops.next();
+      for (Enumeration<Instruction> inst = bb.forwardInstrEnumerator(); inst.hasMoreElements();) {
+        Instruction s = inst.nextElement();
+        for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
+          Operand op = ops.nextElement();
           if (op.isRegister()) {
             RegisterOperand rop = op.asRegister();
             Register r = rop.getRegister();

@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
@@ -20,7 +22,6 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
@@ -121,8 +122,8 @@ public final class FieldAnalysis extends CompilerPhase {
     // walk over each instructions.  For each putfield or putstatic,
     // record the concrete type assigned to a field; or, record
     // BOTTOM if the concrete type is unknown.
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (PutField.conforms(s)) {
         LocationOperand l = PutField.getLocation(s);
         RVMField f = l.getFieldRef().peekResolvedField();

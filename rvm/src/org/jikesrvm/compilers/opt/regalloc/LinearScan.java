@@ -39,8 +39,6 @@ import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -1863,9 +1861,9 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
         listOfBlocks = bb;
 
         // number the instructions last to first
-        InstructionEnumeration e = bb.reverseInstrEnumerator();
+        Enumeration<Instruction> e = bb.reverseInstrEnumerator();
         while (e.hasMoreElements()) {
-          Instruction inst = e.next();
+          Instruction inst = e.nextElement();
           setDFN(inst, curDfn);
           curDfn--;
         }
@@ -2506,10 +2504,10 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      *  Also used by ClassWriter
      */
     public static void replaceSymbolicRegisters(IR ir) {
-      for (InstructionEnumeration inst = ir.forwardInstrEnumerator(); inst.hasMoreElements();) {
-        Instruction s = inst.next();
-        for (OperandEnumeration ops = s.getOperands(); ops.hasMoreElements();) {
-          Operand op = ops.next();
+      for (Enumeration<Instruction> inst = ir.forwardInstrEnumerator(); inst.hasMoreElements();) {
+        Instruction s = inst.nextElement();
+        for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
+          Operand op = ops.nextElement();
           if (op.isRegister()) {
             RegisterOperand rop = op.asRegister();
             Register r = rop.getRegister();

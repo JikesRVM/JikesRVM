@@ -12,10 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.util.BitVector;
 
@@ -44,7 +44,7 @@ class LTDominatorInfo {
   // block, otherwise, we'll skip the (redundant)
   // initialization step for the block
   //  See LTDominators.DFS() for details
-  private BasicBlockEnumeration bbEnum;
+  private Enumeration<BasicBlock> bbEnum;
 
   /**
    * @param block the basic block this info is associated with
@@ -243,7 +243,7 @@ class LTDominatorInfo {
    * Helper method to return the Info field associated with a block
    * @return the basic block enumeration, could be null
    */
-  public BasicBlockEnumeration getEnum() {
+  public Enumeration<BasicBlock> getEnum() {
     return bbEnum;
   }
 
@@ -251,7 +251,7 @@ class LTDominatorInfo {
    * set the basic block enum field
    * @param bbEnum basic block enum
    */
-  public void setEnum(BasicBlockEnumeration bbEnum) {
+  public void setEnum(Enumeration<BasicBlock> bbEnum) {
     this.bbEnum = bbEnum;
   }
 

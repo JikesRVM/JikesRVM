@@ -14,6 +14,7 @@ package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,11 +32,9 @@ import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETSTATIC;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
@@ -367,8 +366,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         }
 
         // Step 2, Make all of bb's predecessors point to the check instead
-        for (BasicBlockEnumeration preds = bb.getIn(); preds.hasMoreElements();) {
-          BasicBlock pred = preds.next();
+        for (Enumeration<BasicBlock> preds = bb.getIn(); preds.hasMoreElements();) {
+          BasicBlock pred = preds.nextElement();
           pred.redirectOuts(bb, checkBB, ir);
         }
 
@@ -621,8 +620,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * @param bb The basic block in which to look
    * @return The first instruction in bb that has operator operator.  */
   private static Instruction getFirstInstWithOperator(Operator operator, BasicBlock bb) {
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction i = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction i = ie.nextElement();
 
       if (i.operator() == operator) {
         return i;
@@ -638,8 +637,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * @return The first instruction in bb that has a yield point
    */
   public static Instruction getFirstInstWithYieldPoint(BasicBlock bb) {
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction i = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction i = ie.nextElement();
 
       if (isYieldpoint(i)) {
         return i;
@@ -682,8 +681,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     for (BasicBlock dupBlock : origToDupMap.values()) {
 
       // Look at the successors of duplicated Block.
-      for (BasicBlockEnumeration out = dupBlock.getNormalOut(); out.hasMoreElements();) {
-        BasicBlock origSucc = out.next();
+      for (Enumeration<BasicBlock> out = dupBlock.getNormalOut(); out.hasMoreElements();) {
+        BasicBlock origSucc = out.nextElement();
 
         BasicBlock dupSucc = origToDupMap.get(origSucc);
 
@@ -731,8 +730,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
 
       // Remove all instrumentation instructions.  They already have
       // been transfered to the duplicated code.
-      for (InstructionEnumeration ie = origBlock.forwardInstrEnumerator(); ie.hasMoreElements();) {
-        Instruction i = ie.next();
+      for (Enumeration<Instruction> ie = origBlock.forwardInstrEnumerator(); ie.hasMoreElements();) {
+        Instruction i = ie.nextElement();
         if (isInstrumentationInstruction(i) || (isYieldpoint(i) && ir.options.ADAPTIVE_REMOVE_YP_FROM_CHECKING)) {
 
           if (DEBUG) VM.sysWrite("Removing " + i + "\n");
@@ -771,8 +770,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     clearScratchObjects(bb, ir);
 
     // For each instruction in the block
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction inst = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction inst = ie.nextElement();
 
       // Look at each register operand
       int numOperands = inst.getNumberOfOperands();
@@ -805,8 +804,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    */
   private static void clearScratchObjects(BasicBlock bb, IR ir) {
     // For each instruction in the block
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction inst = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction inst = ie.nextElement();
 
       // Look at each register operand
       int numOperands = inst.getNumberOfOperands();
@@ -857,11 +856,11 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     cbsReg = ir.regpool.makeTempInt();
 
     ArrayList<Instruction> instrumentationOperations = new ArrayList<Instruction>();
-    for (BasicBlockEnumeration allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
-      BasicBlock bb = allBB.next();
+    for (Enumeration<BasicBlock> allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
+      BasicBlock bb = allBB.nextElement();
 
-      for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-        Instruction i = ie.next();
+      for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+        Instruction i = ie.nextElement();
 
         // If it's an instrumentation operation, remember the instruction
         if (isInstrumentationInstruction(i)) {
@@ -931,8 +930,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    */
   public static void dumpCFG(IR ir) {
 
-    for (BasicBlockEnumeration allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
-      BasicBlock curBB = allBB.next();
+    for (Enumeration<BasicBlock> allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
+      BasicBlock curBB = allBB.nextElement();
       curBB.printExtended();
     }
   }

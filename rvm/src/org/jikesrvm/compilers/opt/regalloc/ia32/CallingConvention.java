@@ -28,7 +28,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Prologue;
@@ -544,7 +543,7 @@ public abstract class CallingConvention extends IRTools
   private static int countFPRParamsInPrologue(Instruction p) {
     int result = 0;
     // walk over the parameters
-    for (OperandEnumeration e = p.getDefs(); e.hasMoreElements();) {
+    for (Enumeration<Operand> e = p.getDefs(); e.hasMoreElements();) {
       Operand param = e.nextElement();
       if (param.isRegister()) {
         RegisterOperand symb = (RegisterOperand) param;
@@ -582,7 +581,7 @@ public abstract class CallingConvention extends IRTools
     ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight, FPRRegisterParams);
 
     // deal with each parameter
-    for (OperandEnumeration e = p.getDefs(); e.hasMoreElements();) {
+    for (Enumeration<Operand> e = p.getDefs(); e.hasMoreElements();) {
       RegisterOperand symbOp = (RegisterOperand) e.nextElement();
       TypeReference rType = symbOp.getType();
       if (rType.isFloatType() || rType.isDoubleType()) {

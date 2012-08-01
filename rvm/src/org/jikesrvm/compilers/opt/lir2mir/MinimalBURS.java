@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_Debug;
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_STATE;
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
@@ -19,9 +21,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.OTHER_OPERAND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
@@ -64,8 +64,8 @@ final class MinimalBURS extends BURS {
    */
   public void invoke(BasicBlock bb) {
     BURS_STATE burs = new BURS_STATE(this);
-    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       BURS_TreeNode tn = buildTree(s);
       burs.label(tn);
       BURS_STATE.mark(tn, /* goalnt */(byte) 1);
@@ -90,8 +90,8 @@ final class MinimalBURS extends BURS {
 
     BURS_TreeNode root = new BURS_TreeNode(new DepGraphNode(s));
     BURS_TreeNode cur = root;
-    for (OperandEnumeration uses = s.getUses(); uses.hasMoreElements();) {
-      Operand op = uses.next();
+    for (Enumeration<Operand> uses = s.getUses(); uses.hasMoreElements();) {
+      Operand op = uses.nextElement();
       if (op == null) continue;
 
       // Set child = BURS_TreeNode for operand op

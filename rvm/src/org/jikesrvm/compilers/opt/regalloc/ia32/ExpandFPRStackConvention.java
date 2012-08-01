@@ -12,16 +12,16 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.Operators;
@@ -102,7 +102,7 @@ public final class ExpandFPRStackConvention extends CompilerPhase implements Ope
     }
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    for (BasicBlockEnumeration b = ir.getBasicBlocks(); b.hasMoreElements();) {
+    for (Enumeration<BasicBlock> b = ir.getBasicBlocks(); b.hasMoreElements();) {
       BasicBlock bb = b.nextElement();
 
       if (bb instanceof ExceptionHandlerBasicBlock) {
@@ -118,7 +118,7 @@ public final class ExpandFPRStackConvention extends CompilerPhase implements Ope
       // 'normal' position.
       int fpStackOffset = 0;
 
-      for (InstructionEnumeration inst = bb.forwardInstrEnumerator(); inst.hasMoreElements();) {
+      for (Enumeration<Instruction> inst = bb.forwardInstrEnumerator(); inst.hasMoreElements();) {
         Instruction s = inst.nextElement();
         if (s.operator().isFpPop()) {
           // A pop instruction 'ends' a dummy live range.

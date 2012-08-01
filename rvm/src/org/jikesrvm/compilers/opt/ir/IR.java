@@ -301,8 +301,8 @@ public final class IR {
    * Print the instructions in this IR to System.out.
    */
   public void printInstructions() {
-    for (InstructionEnumeration e = forwardInstrEnumerator(); e.hasMoreElements();) {
-      Instruction i = e.next();
+    for (Enumeration<Instruction> e = forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction i = e.nextElement();
       System.out.print(i.bcIndex + "\t" + i);
 
       // Print block frequency with the label instruction
@@ -372,10 +372,10 @@ public final class IR {
    * iteration over all the instructions in this IR.
    * The IR must <em>not</em> be modified during the iteration.
    *
-   * @return an InstructionEnumeration that enumerates the
+   * @return an enumeration that enumerates the
    *         instructions in forward code order.
    */
-  public InstructionEnumeration forwardInstrEnumerator() {
+  public Enumeration<Instruction> forwardInstrEnumerator() {
     return IREnumeration.forwardGlobalIE(this);
   }
 
@@ -384,20 +384,20 @@ public final class IR {
    * iteration over all the instructions in this IR.
    * The IR must <em>not</em> be modified during the iteration.
    *
-   * @return an InstructionEnumeration that enumerates the
+   * @return an enumeration that enumerates the
    *         instructions in reverse code order.
    */
-  public InstructionEnumeration reverseInstrEnumerator() {
+  public Enumeration<Instruction> reverseInstrEnumerator() {
     return IREnumeration.reverseGlobalIE(this);
   }
 
   /**
    * Enumerate the basic blocks in the IR in an arbitrary order.
    *
-   * @return an BasicBlockEnumeration that enumerates the
+   * @return an enumeration of {@link BasicBlock}s that enumerates the
    *         basic blocks in an arbitrary order.
    */
-  public BasicBlockEnumeration getBasicBlocks() {
+  public Enumeration<BasicBlock> getBasicBlocks() {
     return IREnumeration.forwardBE(this);
   }
 
@@ -405,10 +405,10 @@ public final class IR {
    * Forward (with respect to the current code linearization order)
    * iteration overal all the basic blocks in the IR.
    *
-   * @return an BasicBlockEnumeration that enumerates the
+   * @return an enumeration of {@link BasicBlock}s that enumerates the
    *         basic blocks in forward code order.
    */
-  public BasicBlockEnumeration forwardBlockEnumerator() {
+  public Enumeration<BasicBlock> forwardBlockEnumerator() {
     return IREnumeration.forwardBE(this);
   }
 
@@ -416,10 +416,10 @@ public final class IR {
    * Reverse (with respect to the current code linearization order)
    * iteration overal all the basic blocks in the IR.
    *
-   * @return an BasicBlockEnumeration that enumerates the
+   * @return an enumeration of {@link BasicBlock}s that enumerates the
    *         basic blocks in reverse code order.
    */
-  public BasicBlockEnumeration reverseBlockEnumerator() {
+  public Enumeration<BasicBlock> reverseBlockEnumerator() {
     return IREnumeration.reverseBE(this);
   }
 
@@ -429,7 +429,7 @@ public final class IR {
    *
    * @return the parameters of the IR.
    */
-  public OperandEnumeration getParameters() {
+  public Enumeration<Operand> getParameters() {
     for (Instruction s = firstInstructionInCodeOrder(); true; s = s.nextInstructionInCodeOrder()) {
       if (s.operator() == IR_PROLOGUE) {
         return s.getDefs();
@@ -445,8 +445,8 @@ public final class IR {
    * @return {@code true} if the op is a parameter to the IR, {@code false} otherwise
    */
   public boolean isParameter(Operand op) {
-    for (OperandEnumeration e = getParameters(); e.hasMoreElements();) {
-      if (e.next().similar(op)) return true;
+    for (Enumeration<Operand> e = getParameters(); e.hasMoreElements();) {
+      if (e.nextElement().similar(op)) return true;
     }
     return false;
   }
@@ -500,14 +500,14 @@ public final class IR {
    *             enumerate.
    * @return an enumeration of said blocks.
    */
-  public BasicBlockEnumeration getBasicBlocks(BitVector bits) {
+  public Enumeration<BasicBlock> getBasicBlocks(BitVector bits) {
     return new BitSetBBEnum(this, bits);
   }
 
   // TODO: It would be easy to avoid creating the Stack if we switch to
   //       the "advance" pattern used in BasicBlock.BBEnum.
   // TODO: Make this an anonymous local class.
-  private static final class BitSetBBEnum implements BasicBlockEnumeration {
+  private static final class BitSetBBEnum implements Enumeration<BasicBlock> {
     private final Stack<BasicBlock> stack;
 
     BitSetBBEnum(IR ir, BitVector bits) {
@@ -526,9 +526,6 @@ public final class IR {
 
     @Override
     public BasicBlock nextElement() { return stack.pop(); }
-
-    @Override
-    public BasicBlock next() {return stack.pop(); }
   }
 
   /**
@@ -590,9 +587,9 @@ public final class IR {
    * all basic blocks currently in this IR.
    */
   public void clearBasicBlockScratchObject() {
-    BasicBlockEnumeration e = getBasicBlocks();
+    Enumeration<BasicBlock> e = getBasicBlocks();
     while (e.hasMoreElements()) {
-      e.next().scratchObject = null;
+      e.nextElement().scratchObject = null;
     }
   }
 
@@ -652,9 +649,9 @@ public final class IR {
    * For more information {@link BasicBlock see}.
    */
   public void unfactor() {
-    BasicBlockEnumeration e = getBasicBlocks();
+    Enumeration<BasicBlock> e = getBasicBlocks();
     while (e.hasMoreElements()) {
-      BasicBlock b = e.next();
+      BasicBlock b = e.nextElement();
       b.unfactor(this);
     }
   }
@@ -831,16 +828,16 @@ public final class IR {
     for (BasicBlock cur = cfg.firstInCodeOrder(); cur != null; cur = (BasicBlock) cur.getNext()) {
 
       // Check incoming edges
-      for (BasicBlockEnumeration e = cur.getIn(); e.hasMoreElements();) {
-        BasicBlock pred = e.next();
+      for (Enumeration<BasicBlock> e = cur.getIn(); e.hasMoreElements();) {
+        BasicBlock pred = e.nextElement();
         if (!pred.pointsOut(cur)) {
           verror(where, pred + " is an inEdge of " + cur + " but " + cur + " is not an outEdge of " + pred);
         }
       }
 
       // Check outgoing edges
-      for (BasicBlockEnumeration e = cur.getOut(); e.hasMoreElements();) {
-        BasicBlock succ = e.next();
+      for (Enumeration<BasicBlock> e = cur.getOut(); e.hasMoreElements();) {
+        BasicBlock succ = e.nextElement();
         if (!succ.pointsIn(cur)) {
           verror(where, succ + " is an outEdge of " + cur + " but " + cur + " is not an inEdge of " + succ);
         }
@@ -856,8 +853,8 @@ public final class IR {
         cur.recomputeNormalOut(this);
 
         // Confirm outgoing edges didn't change
-        for (BasicBlockEnumeration e = cur.getOut(); e.hasMoreElements();) {
-          BasicBlock succ = e.next();
+        for (Enumeration<BasicBlock> e = cur.getOut(); e.hasMoreElements();) {
+          BasicBlock succ = e.nextElement();
           if (!origOutSet.contains(succ) && !succ.isExit() // Sometimes recomput is conservative in adding edge to exit
             // because it relies soley on the mayThrowUncaughtException
             // flag.
@@ -895,8 +892,8 @@ public final class IR {
     // (via a CFG edge) to a block
     // that is in the bblist are also in the bblist
     for (BasicBlock cur = cfg.firstInCodeOrder(); cur != null; cur = (BasicBlock) cur.getNext()) {
-      for (BasicBlockEnumeration e = cur.getIn(); e.hasMoreElements();) {
-        BasicBlock pred = e.next();
+      for (Enumeration<BasicBlock> e = cur.getIn(); e.hasMoreElements();) {
+        BasicBlock pred = e.nextElement();
         if (pred.scratch != inBBListMarker) {
           verror(where,
                  "In Method " +
@@ -908,8 +905,8 @@ public final class IR {
                  " but it is not in the CFG!");
         }
       }
-      for (BasicBlockEnumeration e = cur.getOut(); e.hasMoreElements();) {
-        BasicBlock succ = e.next();
+      for (Enumeration<BasicBlock> e = cur.getOut(); e.hasMoreElements();) {
+        BasicBlock succ = e.nextElement();
         if (succ.scratch != inBBListMarker) {
           // the EXIT block is never in the BB list
           if (succ != cfg.exit()) {
@@ -944,11 +941,11 @@ public final class IR {
       IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(this, block);
       boolean startingInstructionsPassed = false;
       while (instructions.hasMoreElements()) {
-        Instruction instruction = instructions.next();
+        Instruction instruction = instructions.nextElement();
         // Perform (1) and (3)
         IREnumeration.AllUsesEnum useOperands = new IREnumeration.AllUsesEnum(this, instruction);
         while (useOperands.hasMoreElements()) {
-          Operand use = useOperands.next();
+          Operand use = useOperands.nextElement();
           if (use.instruction != instruction) {
             verror(where,
                    "In block " +
@@ -974,7 +971,7 @@ public final class IR {
         }
         IREnumeration.AllDefsEnum defOperands = new IREnumeration.AllDefsEnum(this, instruction);
         while (defOperands.hasMoreElements()) {
-          Operand def = defOperands.next();
+          Operand def = defOperands.nextElement();
           if (def.instruction != instruction) {
             verror(where,
                    "In block " +
@@ -1026,18 +1023,18 @@ public final class IR {
           case FLOAT_IFCMP_opcode:
           case DOUBLE_IFCMP_opcode:
           case REF_IFCMP_opcode:
-            instruction = instructions.next();
+            instruction = instructions.nextElement();
             if (!Goto.conforms(instruction) && !BBend.conforms(instruction) && !MIR_Branch.conforms(instruction)) {
               verror(where, "Unexpected instruction after IFCMP " + instruction);
             }
             if (Goto.conforms(instruction) || MIR_Branch.conforms(instruction)) {
-              instruction = instructions.next();
+              instruction = instructions.nextElement();
               if (!BBend.conforms(instruction)) {
                 verror(where, "Unexpected instruction after GOTO/MIR_BRANCH " + instruction);
               }
             }
             if (instructions.hasMoreElements()) {
-              verror(where, "Unexpected instructions after BBEND " + instructions.next());
+              verror(where, "Unexpected instructions after BBEND " + instructions.nextElement());
             }
             break;
           case TABLESWITCH_opcode:
@@ -1052,17 +1049,17 @@ public final class IR {
             // please uncomment the next line:
             //case TRAP_opcode:
           case GOTO_opcode:
-            Instruction next = instructions.next();
+            Instruction next = instructions.nextElement();
             if (!BBend.conforms(next)) {
               verror(where, "Unexpected instruction after " + instruction + "\n" + next);
             }
             if (instructions.hasMoreElements()) {
-              verror(where, "Unexpected instructions after BBEND " + instructions.next());
+              verror(where, "Unexpected instructions after BBEND " + instructions.nextElement());
             }
             break;
           case BBEND_opcode:
             if (instructions.hasMoreElements()) {
-              verror(where, "Unexpected instructions after BBEND " + instructions.next());
+              verror(where, "Unexpected instructions after BBEND " + instructions.nextElement());
             }
             break;
           default:
@@ -1130,16 +1127,16 @@ public final class IR {
     }
 
     // Recurse to next BBs
-    BasicBlockEnumeration outBlocks = curBB.getNormalOut();
+    Enumeration<BasicBlock> outBlocks = curBB.getNormalOut();
     while (outBlocks.hasMoreElements()) {
-      BasicBlock out = outBlocks.next();
+      BasicBlock out = outBlocks.nextElement();
       if (!visitedNormalBBs.get(out.getNumber())) {
         verifyAllBlocksAreReachable(where, out, visitedNormalBBs, visitedExceptionalBBs, false);
       }
     }
     outBlocks = curBB.getExceptionalOut();
     while (outBlocks.hasMoreElements()) {
-      BasicBlock out = outBlocks.next();
+      BasicBlock out = outBlocks.nextElement();
       if (!visitedExceptionalBBs.get(out.getNumber())) {
         verifyAllBlocksAreReachable(where, out, visitedNormalBBs, visitedExceptionalBBs, true);
       }
@@ -1249,7 +1246,7 @@ public final class IR {
     // Process instructions in block
     IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(this, curBB);
     while (instructions.hasMoreElements()) {
-      Instruction instruction = instructions.next();
+      Instruction instruction = instructions.nextElement();
       // Special phi handling case
       if (Phi.conforms(instruction)) {
         if ((!inSSAForm()) && (!inSSAFormAwaitingReEntry())) {
@@ -1281,7 +1278,7 @@ public final class IR {
         // General use follows def test
         IREnumeration.AllUsesEnum useOperands = new IREnumeration.AllUsesEnum(this, instruction);
         while (useOperands.hasMoreElements()) {
-          Object variable = getVariableUse(where, useOperands.next());
+          Object variable = getVariableUse(where, useOperands.nextElement());
           if ((variable != null) && (!definedVariables.contains(variable))) {
             if (instruction.operator.toString().indexOf("xor") != -1)
               continue;
@@ -1299,7 +1296,7 @@ public final class IR {
       // Add definitions to defined variables
       IREnumeration.AllDefsEnum defOperands = new IREnumeration.AllDefsEnum(this, instruction);
       while (defOperands.hasMoreElements()) {
-        Object variable = getVariableDef(where, defOperands.next());
+        Object variable = getVariableDef(where, defOperands.nextElement());
         // Check that a variable isn't defined twice when we believe we're in SSA form
         if (variable != null) {
           if ((inSSAForm()) && (!inSSAFormAwaitingReEntry())) {
@@ -1313,14 +1310,14 @@ public final class IR {
     }
     // Recurse to next BBs
     visitedBBs.set(curBB.getNumber());
-    BasicBlockEnumeration outBlocks;
+    Enumeration<BasicBlock> outBlocks;
     if (traceExceptionEdges) {
       outBlocks = curBB.getOut(); // <-- very slow
     } else {
       outBlocks = curBB.getNormalOut();
     }
     while (outBlocks.hasMoreElements()) {
-      BasicBlock out = outBlocks.next();
+      BasicBlock out = outBlocks.nextElement();
       if (!visitedBBs.get(out.getNumber())) {
         verifyUseFollowsDef(where,
                             new HashSet<Object>(definedVariables),

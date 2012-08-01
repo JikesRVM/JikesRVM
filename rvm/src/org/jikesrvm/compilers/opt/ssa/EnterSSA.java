@@ -41,15 +41,12 @@ import org.jikesrvm.compilers.opt.ir.Athrow;
 import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.MonitorOp;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Prepare;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -241,25 +238,25 @@ public class EnterSSA extends CompilerPhase {
   @SuppressWarnings("unused")
   private void computeNonLocals() {
     nonLocalRegisters = new HashSet<Register>(20);
-    BasicBlockEnumeration blocks = ir.getBasicBlocks();
+    Enumeration<BasicBlock> blocks = ir.getBasicBlocks();
     while (blocks.hasMoreElements()) {
       HashSet<Register> killed = new HashSet<Register>(5);
-      BasicBlock block = blocks.next();
-      InstructionEnumeration instrs = block.forwardRealInstrEnumerator();
+      BasicBlock block = blocks.nextElement();
+      Enumeration<Instruction> instrs = block.forwardRealInstrEnumerator();
       while (instrs.hasMoreElements()) {
-        Instruction instr = instrs.next();
-        OperandEnumeration uses = instr.getUses();
+        Instruction instr = instrs.nextElement();
+        Enumeration<Operand> uses = instr.getUses();
         while (uses.hasMoreElements()) {
-          Operand op = uses.next();
+          Operand op = uses.nextElement();
           if (op instanceof RegisterOperand) {
             if (!killed.contains(op.asRegister().getRegister())) {
               nonLocalRegisters.add(op.asRegister().getRegister());
             }
           }
         }
-        OperandEnumeration defs = instr.getDefs();
+        Enumeration<Operand> defs = instr.getDefs();
         while (defs.hasMoreElements()) {
-          Operand op = defs.next();
+          Operand op = defs.nextElement();
           if (op instanceof RegisterOperand) {
             killed.add(op.asRegister().getRegister());
           }
@@ -279,9 +276,9 @@ public class EnterSSA extends CompilerPhase {
     if (!ir.hasReachableExceptionHandlers()) return;
 
     HashSet<Pair<BasicBlock, RegisterOperand>> needed = new HashSet<Pair<BasicBlock,RegisterOperand>>(4);
-    BasicBlockEnumeration blocks = ir.getBasicBlocks();
+    Enumeration<BasicBlock> blocks = ir.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       if (block.getExceptionalOut().hasMoreElements()) {
         Instruction pei = block.lastRealInstruction();
         if (pei != null && pei.isPEI() && ResultCarrier.conforms(pei)) {
@@ -291,9 +288,9 @@ public class EnterSSA extends CompilerPhase {
           if (v != null) {
             Register orig = v.getRegister();
             {
-              BasicBlockEnumeration out = block.getApplicableExceptionalOut(pei);
+              Enumeration<BasicBlock> out = block.getApplicableExceptionalOut(pei);
               while (out.hasMoreElements()) {
-                BasicBlock exp = out.next();
+                BasicBlock exp = out.nextElement();
                 LiveSet explive = live.getLiveInfo(exp).getIn();
                 if (explive.contains(orig)) {
                   copyNeeded = true;
@@ -302,9 +299,9 @@ public class EnterSSA extends CompilerPhase {
               }
             }
             if (copyNeeded) {
-              BasicBlockEnumeration out = block.getApplicableExceptionalOut(pei);
+              Enumeration<BasicBlock> out = block.getApplicableExceptionalOut(pei);
               while (out.hasMoreElements()) {
-                BasicBlock exp = out.next();
+                BasicBlock exp = out.nextElement();
                 needed.add(new Pair<BasicBlock, RegisterOperand>(exp, v));
               }
             }
@@ -321,9 +318,9 @@ public class EnterSSA extends CompilerPhase {
         Register register = registerOp.getRegister();
         Register temp = ir.regpool.getReg(register);
         inBlock.prependInstruction(SSA.makeMoveInstruction(ir, register, temp, type));
-        BasicBlockEnumeration outBlocks = inBlock.getIn();
+        Enumeration<BasicBlock> outBlocks = inBlock.getIn();
         while (outBlocks.hasMoreElements()) {
-          BasicBlock outBlock = outBlocks.next();
+          BasicBlock outBlock = outBlocks.nextElement();
           Instruction x = SSA.makeMoveInstruction(ir, temp, register, type);
           SSA.addAtEnd(ir, outBlock, x, true);
         }
@@ -436,9 +433,9 @@ public class EnterSSA extends CompilerPhase {
    */
   private void registerExits(IR ir) {
     SSADictionary dictionary = ir.HIRInfo.dictionary;
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
-      BasicBlock b = bbe.next();
-      for (InstructionEnumeration e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
+      BasicBlock b = bbe.nextElement();
+      for (Enumeration<Instruction> e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
         Instruction s = e.nextElement();
         // we already handled calls in a previous pass.
         if (Call.conforms(s)) {
@@ -461,10 +458,10 @@ public class EnterSSA extends CompilerPhase {
    */
   private void registerCalls(IR ir) {
     SSADictionary dictionary = ir.HIRInfo.dictionary;
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
-      BasicBlock b = bbe.next();
-      for (InstructionEnumeration e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
-        Instruction s = e.next();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
+      BasicBlock b = bbe.nextElement();
+      for (Enumeration<Instruction> e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
+        Instruction s = e.nextElement();
         boolean isSynch = (s.operator() == READ_CEILING) || (s.operator() == WRITE_FLOOR) || (s.operator() == FENCE);
         if (isSynch ||
             Call.conforms(s) ||
@@ -487,10 +484,10 @@ public class EnterSSA extends CompilerPhase {
    */
   private void registerHeapVariables(IR ir) {
     SSADictionary dictionary = ir.HIRInfo.dictionary;
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
-      BasicBlock b = bbe.next();
-      for (InstructionEnumeration e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
-        Instruction s = e.next();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
+      BasicBlock b = bbe.nextElement();
+      for (Enumeration<Instruction> e = b.forwardInstrEnumerator(); e.hasMoreElements();) {
+        Instruction s = e.nextElement();
         if (s.isImplicitLoad() ||
             s.isImplicitStore() ||
             s.isAllocation() ||
@@ -554,12 +551,12 @@ public class EnterSSA extends CompilerPhase {
     }
 
     // loop over each basic block
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       int bbNumber = bb.getNumber();
       // visit each instruction in the basic block
-      for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-        Instruction s = ie.next();
+      for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+        Instruction s = ie.nextElement();
         // record each def in the instruction
         // skip SSA defs
         for (int j = 0; j < s.getNumberOfDefs(); j++) {
@@ -658,13 +655,13 @@ public class EnterSSA extends CompilerPhase {
    */
   private Instruction makePhiInstruction(Register r, BasicBlock bb) {
     int n = bb.getNumberOfIn();
-    BasicBlockEnumeration in = bb.getIn();
+    Enumeration<BasicBlock> in = bb.getIn();
     TypeReference type = null;
     Instruction s = Phi.create(PHI, new RegisterOperand(r, type), n);
     for (int i = 0; i < n; i++) {
       RegisterOperand junk = new RegisterOperand(r, type);
       Phi.setValue(s, i, junk);
-      BasicBlock pred = in.next();
+      BasicBlock pred = in.nextElement();
       Phi.setPred(s, i, new BasicBlockOperand(pred));
     }
     s.position = ir.gc.inlineSequence;
@@ -761,8 +758,8 @@ public class EnterSSA extends CompilerPhase {
    */
   private void search(BasicBlock X, Stack<RegisterOperand>[] S) {
     if (DEBUG) System.out.println("SEARCH " + X);
-    for (InstructionEnumeration ie = X.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction A = ie.next();
+    for (Enumeration<Instruction> ie = X.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction A = ie.nextElement();
       if (A.operator() != PHI) {
         // replace each use
         for (int u = A.getNumberOfDefs(); u < A.getNumberOfOperands(); u++) {
@@ -799,8 +796,8 @@ public class EnterSSA extends CompilerPhase {
     } // end of first loop
 
     if (DEBUG) System.out.println("SEARCH (second loop) " + X);
-    for (BasicBlockEnumeration y = X.getOut(); y.hasMoreElements();) {
-      BasicBlock Y = y.next();
+    for (Enumeration<BasicBlock> y = X.getOut(); y.hasMoreElements();) {
+      BasicBlock Y = y.nextElement();
       if (DEBUG) System.out.println(" Successor: " + Y);
       int j = numPredProcessed[Y.getNumber()]++;
       if (Y.isExit()) continue;
@@ -839,8 +836,8 @@ public class EnterSSA extends CompilerPhase {
     } // end of third loop
 
     if (DEBUG) System.out.println("SEARCH (fourth loop) " + X);
-    for (InstructionEnumeration a = X.forwardInstrEnumerator(); a.hasMoreElements();) {
-      Instruction A = a.next();
+    for (Enumeration<Instruction> a = X.forwardInstrEnumerator(); a.hasMoreElements();) {
+      Instruction A = a.nextElement();
       // loop over each def
       for (int d = 0; d < A.getNumberOfDefs(); d++) {
         Operand newOp = A.getOperand(d);
@@ -940,8 +937,8 @@ public class EnterSSA extends CompilerPhase {
       }
     } // end of first loop
 
-    for (BasicBlockEnumeration y = X.getOut(); y.hasMoreElements();) {
-      BasicBlock Y = y.next();
+    for (Enumeration<BasicBlock> y = X.getOut(); y.hasMoreElements();) {
+      BasicBlock Y = y.nextElement();
       if (Y.isExit()) continue;
       int j = numPredProcessed[Y.getNumber()]++;
       // replace each USE in each HEAP-PHI function for Y
@@ -997,7 +994,7 @@ public class EnterSSA extends CompilerPhase {
   // HeapOperand requires casts to a generic type
   private void registerRenamedHeapPhis(IR ir) {
     SSADictionary ssa = ir.HIRInfo.dictionary;
-    for (BasicBlockEnumeration e1 = ir.getBasicBlocks(); e1.hasMoreElements();) {
+    for (Enumeration<BasicBlock> e1 = ir.getBasicBlocks(); e1.hasMoreElements();) {
       BasicBlock bb = e1.nextElement();
       for (Enumeration<Instruction> e2 = ssa.getAllInstructions(bb); e2.hasMoreElements();) {
         Instruction s = e2.nextElement();
@@ -1024,8 +1021,8 @@ public class EnterSSA extends CompilerPhase {
   @SuppressWarnings("unused")
   private void copyHeapDefs(IR ir, HashMap<Instruction, HeapOperand<?>[]> store) {
     SSADictionary dictionary = ir.HIRInfo.dictionary;
-    for (BasicBlockEnumeration be = ir.forwardBlockEnumerator(); be.hasMoreElements();) {
-      BasicBlock bb = be.next();
+    for (Enumeration<BasicBlock> be = ir.forwardBlockEnumerator(); be.hasMoreElements();) {
+      BasicBlock bb = be.nextElement();
       for (Enumeration<Instruction> e = dictionary.getAllInstructions(bb); e.hasMoreElements();) {
         Instruction s = e.nextElement();
         store.put(s, ir.HIRInfo.dictionary.getHeapDefs(s));

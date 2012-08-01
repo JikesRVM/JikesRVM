@@ -15,15 +15,15 @@ package org.jikesrvm.compilers.opt.controlflow;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Trap;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 
@@ -132,8 +132,8 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
    */
   private static boolean applySimplify(IR ir) {
     boolean didSomething = false;
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       didSomething |= BranchSimplifier.simplify(bb, ir);
     }
     return didSomething;
@@ -147,11 +147,11 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
    */
   protected boolean applyPeepholeBranchOpts(IR ir) {
     boolean didSomething = false;
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       if (!bb.isEmpty()) {
-        for (InstructionEnumeration ie = bb.enumerateBranchInstructions(); ie.hasMoreElements();) {
-          Instruction s = ie.next();
+        for (Enumeration<Instruction> ie = bb.enumerateBranchInstructions(); ie.hasMoreElements();) {
+          Instruction s = ie.nextElement();
           if (optimizeBranchInstruction(ir, s, bb)) {
             didSomething = true;
             // hack: we may have modified the instructions; start over

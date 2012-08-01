@@ -478,8 +478,8 @@ public abstract class IRTools {
     boolean foundGoto = false;
     BranchOperand target = bb.makeJumpTarget();
     BranchOperand outTarget = out.makeJumpTarget();
-    for (InstructionEnumeration e = in.reverseRealInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = in.reverseRealInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (IfCmp2.conforms(s)) {
         if (IfCmp2.getTarget1(s).similar(outTarget)) {
           IfCmp2.setTarget1(s, (BranchOperand) target.copy());

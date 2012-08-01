@@ -198,9 +198,9 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
     }
     exmsg = exmsg + exceptionTypes[exceptionTypes.length - 1].toString();
     exmsg = exmsg + " for";
-    BasicBlockEnumeration in = getIn();
+    Enumeration<BasicBlock> in = getIn();
     while (in.hasMoreElements()) {
-      exmsg = exmsg + " " + in.next().toString();
+      exmsg = exmsg + " " + in.nextElement().toString();
     }
     exmsg = exmsg + ")";
 

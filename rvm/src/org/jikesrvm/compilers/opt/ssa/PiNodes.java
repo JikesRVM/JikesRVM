@@ -15,13 +15,13 @@ package org.jikesrvm.compilers.opt.ssa;
 import static org.jikesrvm.compilers.opt.ir.Operators.PI;
 
 import java.lang.reflect.Constructor;
+import java.util.Enumeration;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
 import org.jikesrvm.compilers.opt.ir.GuardedUnary;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -29,7 +29,6 @@ import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.Operator;
@@ -155,9 +154,9 @@ public final class PiNodes extends CompilerPhase {
    *  @param ir the governing IR
    */
   private void insertPiIfNodes(IR ir) {
-    InstructionEnumeration e = ir.forwardInstrEnumerator();
+    Enumeration<Instruction> e = ir.forwardInstrEnumerator();
     while(e.hasMoreElements()) {
-      Instruction instr = e.next();
+      Instruction instr = e.nextElement();
       // TODO: what other compareops generate useful assertions?
       if (IfCmp.conforms(instr) || InlineGuard.conforms(instr)) {
 
@@ -167,10 +166,10 @@ public final class PiNodes extends CompilerPhase {
           continue;
         }
         // insert new basic blocks on each edge out of thisbb
-        BasicBlockEnumeration outBB = thisbb.getNormalOut();
-        BasicBlock out1 = outBB.next();
+        Enumeration<BasicBlock> outBB = thisbb.getNormalOut();
+        BasicBlock out1 = outBB.nextElement();
         BasicBlock new1 = IRTools.makeBlockOnEdge(thisbb, out1, ir);
-        BasicBlock out2 = outBB.next();
+        BasicBlock out2 = outBB.nextElement();
         BasicBlock new2 = IRTools.makeBlockOnEdge(thisbb, out2, ir);
 
         // For these types of IfCmp's, the Pi Node is not actually
@@ -363,8 +362,8 @@ public final class PiNodes extends CompilerPhase {
    * @param ir the governing IR
    */
   static void cleanUp(IR ir) {
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (s.operator == PI) {
         RegisterOperand result = GuardedUnary.getResult(s);
         Operator mv = IRTools.getMoveOp(result.getType());

@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -26,7 +27,7 @@ public class RegisterPreferences extends GenericRegisterPreferences implements O
   @Override
   public void initialize(IR ir) {
 
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       switch (s.operator.opcode) {
         case IA32_MOV_opcode:

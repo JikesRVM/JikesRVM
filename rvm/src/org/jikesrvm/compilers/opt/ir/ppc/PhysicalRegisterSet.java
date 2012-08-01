@@ -20,7 +20,7 @@ import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.util.BitSet;
 import org.jikesrvm.compilers.opt.util.CompoundEnumerator;
-import org.jikesrvm.compilers.opt.util.EmptyEnumerator;
+import org.jikesrvm.util.EmptyEnumeration;
 import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
 import org.jikesrvm.ppc.RegisterConstants;
 
@@ -675,7 +675,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
       case CONDITION_REG:
         return enumerateVolatileConditionRegisters();
       case SPECIAL_REG:
-        return EmptyEnumerator.emptyEnumeration();
+        return EmptyEnumeration.emptyEnumeration();
       default:
         throw new OptimizingCompilerException("Unsupported volatile type");
     }
@@ -709,7 +709,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
       case CONDITION_REG:
         return enumerateNonvolatileConditionRegisters();
       case SPECIAL_REG:
-        return EmptyEnumerator.emptyEnumeration();
+        return EmptyEnumeration.emptyEnumeration();
       default:
         throw new OptimizingCompilerException("Unsupported non-volatile type");
     }

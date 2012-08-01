@@ -85,7 +85,9 @@ public class LSTNode extends SpaceEffGraphNode {
     return tab + header + " " + loop + " " + loopExits + "\n";
   }
 
-  public LSTNode getParent() { return (LSTNode) inNodes().next(); }
+  public LSTNode getParent() {
+    return (LSTNode) inNodes().nextElement();
+  }
 
   public Enumeration<LSTNode> getChildren() {
     return new Enumeration<LSTNode>() {

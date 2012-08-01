@@ -61,6 +61,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_USHR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_XOR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
 
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -78,9 +79,7 @@ import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.IfCmp2;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Return;
@@ -852,9 +851,9 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    */
   private static boolean hasFloatingPointDef(BasicBlock bb, boolean invert) {
     if (bb == null) return false;
-    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
-      for (OperandEnumeration d = s.getDefs(); d.hasMoreElements();) {
+      for (Enumeration<Operand> d = s.getDefs(); d.hasMoreElements();) {
         Operand def = d.nextElement();
         if (def.isRegister()) {
           if (def.asRegister().getRegister().isFloatingPoint() != invert) return true;
@@ -870,9 +869,9 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    */
   private boolean hasLongDef(BasicBlock bb) {
     if (bb == null) return false;
-    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
-      for (OperandEnumeration d = s.getDefs(); d.hasMoreElements();) {
+      for (Enumeration<Operand> d = s.getDefs(); d.hasMoreElements();) {
         Operand def = d.nextElement();
         if (def.isRegister()) {
           if (def.asRegister().getRegister().isLong()) return true;
@@ -894,7 +893,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     // block.
     HashSet<Register> defined = new HashSet<Register>();
 
-    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       // for now, only the following opcodes are legal.
@@ -943,7 +942,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
       }
 
       // make sure no register is defined more than once in this block.
-      for (OperandEnumeration defs = s.getDefs(); defs.hasMoreElements();) {
+      for (Enumeration<Operand> defs = s.getDefs(); defs.hasMoreElements();) {
         Operand def = defs.nextElement();
         if (VM.VerifyAssertions) VM._assert(def.isRegister());
         Register r = def.asRegister().getRegister();
@@ -960,7 +959,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    */
   private int evaluateCost(BasicBlock bb) {
     int result = 0;
-    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       if (!s.isBranch()) result++;
     }
@@ -979,7 +978,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
 
     int count = 0;
     // first count the number of instructions
-    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       count++;
@@ -987,7 +986,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     // now copy.
     Instruction[] result = new Instruction[count];
     int i = 0;
-    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       Instruction sprime = s.copyWithoutLinks();
@@ -1008,7 +1007,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     HashMap<Register, Register> map = new HashMap<Register, Register>();
     for (Instruction s : set) {
       // rewrite the uses to use the new names
-      for (OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
+      for (Enumeration<Operand> e = s.getUses(); e.hasMoreElements();) {
         Operand use = e.nextElement();
         if (use != null && use.isRegister()) {
           Register r = use.asRegister().getRegister();
@@ -1088,7 +1087,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     // Now insert conditional moves to replace each instruction in the diamond.
     // First handle the taken branch.
     if (taken != null) {
-      for (InstructionEnumeration e = taken.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      for (Enumeration<Instruction> e = taken.forwardRealInstrEnumerator(); e.hasMoreElements();) {
         Instruction s = e.nextElement();
         if (s.isBranch()) continue;
         Operand def = s.getDefs().nextElement();
@@ -1117,7 +1116,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     HashMap<Register, Instruction> notTakenMap = new HashMap<Register, Instruction>();
     // Next handle the not taken branch.
     if (notTaken != null) {
-      for (InstructionEnumeration e = notTaken.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      for (Enumeration<Instruction> e = notTaken.forwardRealInstrEnumerator(); e.hasMoreElements();) {
         Instruction s = e.nextElement();
         if (s.isBranch()) continue;
         Operand def = s.getDefs().nextElement();
@@ -1206,7 +1205,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     if (fb.getNumberOfNormalOut() != 1) {
       return false;
     }
-    BasicBlock jb = fb.getNormalOut().next();               // join block
+    BasicBlock jb = fb.getNormalOut().nextElement();               // join block
     // make sure it's a diamond
     if (!tb.pointsOut(jb)) {
       return false;

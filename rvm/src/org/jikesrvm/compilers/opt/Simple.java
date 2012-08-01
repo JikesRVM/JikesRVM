@@ -35,7 +35,6 @@ import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
 import org.jikesrvm.compilers.opt.controlflow.BranchSimplifier;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
 import org.jikesrvm.compilers.opt.ir.GuardedUnary;
@@ -43,7 +42,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NewArray;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -558,7 +556,7 @@ public final class Simple extends CompilerPhase {
       // there is at least 1 def.
       boolean isDead = true;
       boolean foundRegisterDef = false;
-      for (OperandEnumeration defs = instr.getDefs(); defs.hasMoreElements();) {
+      for (Enumeration<Operand> defs = instr.getDefs(); defs.hasMoreElements();) {
         Operand def = defs.nextElement();
         if (!def.isRegister()) {
           isDead = false;
@@ -631,8 +629,8 @@ public final class Simple extends CompilerPhase {
    */
   void simplifyConstantBranches(IR ir) {
     boolean didSomething = false;
-    for (BasicBlockEnumeration e = ir.forwardBlockEnumerator(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.forwardBlockEnumerator(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       didSomething |= BranchSimplifier.simplify(bb, ir);
     }
     if (didSomething) {

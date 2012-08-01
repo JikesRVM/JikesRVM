@@ -29,8 +29,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
@@ -67,8 +65,8 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
     // catch block remain valid.  For now, we do this by forcing any
     // register used in such a PEI as not spilled.  TODO: relax this
     // restriction for better code.
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction s = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction s = ie.nextElement();
       if (s.isPEI() && s.operator != IR_PROLOGUE) {
         if (bb.hasApplicableExceptionalOut(s) || !SCRATCH_IN_PEI) {
           for (Enumeration<Operand> e = s.getOperands(); e.hasMoreElements();) {
@@ -111,8 +109,8 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
           break;
       }
     }
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction s = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction s = ie.nextElement();
       if (s.operator == IA32_FNINIT) {
         // No floating point register survives across an FNINIT
         for (LiveIntervalElement symb : symbolics) {
@@ -142,8 +140,8 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
    * Does instruction s contain an 8-bit memory operand?
    */
   final boolean has8BitMemoryOperand(Instruction s) {
-    for (OperandEnumeration me = s.getMemoryOperands(); me.hasMoreElements();) {
-      MemoryOperand mop = (MemoryOperand) me.next();
+    for (Enumeration<Operand> me = s.getMemoryOperands(); me.hasMoreElements();) {
+      MemoryOperand mop = (MemoryOperand) me.nextElement();
       if (mop.size == 1) {
         return true;
       }
@@ -157,11 +155,11 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
    * @param s the instruction to restrict
    */
   final void handle8BitRestrictions(Instruction s) {
-    for (OperandEnumeration me = s.getMemoryOperands(); me.hasMoreElements();) {
-      MemoryOperand mop = (MemoryOperand) me.next();
+    for (Enumeration<Operand> me = s.getMemoryOperands(); me.hasMoreElements();) {
+      MemoryOperand mop = (MemoryOperand) me.nextElement();
       if (mop.size == 1) {
-        for (OperandEnumeration e2 = s.getRootOperands(); e2.hasMoreElements();) {
-          Operand rootOp = e2.next();
+        for (Enumeration<Operand> e2 = s.getRootOperands(); e2.hasMoreElements();) {
+          Operand rootOp = e2.nextElement();
           if (rootOp.isRegister()) {
             restrictTo8Bits(rootOp.asRegister().getRegister());
           }

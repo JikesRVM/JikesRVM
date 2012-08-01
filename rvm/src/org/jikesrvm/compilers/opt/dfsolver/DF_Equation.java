@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.dfsolver;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
  * Represents a single Data Flow equation.
@@ -206,8 +207,8 @@ public class DF_Equation implements GraphNode {
    * equation.
    */
   @Override
-  public GraphNodeEnumeration outNodes() {
-    return new GraphNodeEnumeration() {
+  public Enumeration<GraphNode> outNodes() {
+    return new Enumeration<GraphNode>() {
       private GraphNode elt = getLHS();
 
       @Override
@@ -216,15 +217,10 @@ public class DF_Equation implements GraphNode {
       }
 
       @Override
-      public GraphNode next() {
+      public GraphNode nextElement() {
         GraphNode x = elt;
         elt = null;
         return x;
-      }
-
-      @Override
-      public GraphNode nextElement() {
-        return next();
       }
     };
   }
@@ -236,8 +232,8 @@ public class DF_Equation implements GraphNode {
    * equation depends
    */
   @Override
-  public GraphNodeEnumeration inNodes() {
-    return new GraphNodeEnumeration() {
+  public Enumeration<GraphNode> inNodes() {
+    return new Enumeration<GraphNode>() {
       private int i = 1;
 
       @Override
@@ -246,13 +242,8 @@ public class DF_Equation implements GraphNode {
       }
 
       @Override
-      public GraphNode next() {
-        return operands[i++];
-      }
-
-      @Override
       public GraphNode nextElement() {
-        return next();
+        return operands[i++];
       }
     };
   }

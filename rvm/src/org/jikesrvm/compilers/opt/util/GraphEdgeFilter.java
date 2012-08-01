@@ -12,11 +12,13 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
+import java.util.Enumeration;
+
 
 public interface GraphEdgeFilter {
 
-  GraphNodeEnumeration inNodes(GraphNode node);
+  Enumeration<GraphNode> inNodes(GraphNode node);
 
-  GraphNodeEnumeration outNodes(GraphNode node);
+  Enumeration<GraphNode> outNodes(GraphNode node);
 
 }

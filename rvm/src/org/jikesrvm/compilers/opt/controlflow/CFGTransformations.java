@@ -14,16 +14,17 @@ package org.jikesrvm.compilers.opt.controlflow;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.WeightedBranchTargets;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
+import org.jikesrvm.compilers.opt.util.GraphNode;
 import org.jikesrvm.util.BitVector;
 
 /**
@@ -119,7 +120,7 @@ public class CFGTransformations extends CompilerPhase {
    * deal with a sub tree of the loop structure tree
    */
   private static boolean turnLoopTreeIntoUntils(LSTNode t, IR ir) {
-    GraphNodeEnumeration e = t.outNodes();
+    Enumeration<GraphNode> e = t.outNodes();
     while (e.hasMoreElements()) {
       LSTNode n = (LSTNode) e.nextElement();
       if (turnLoopTreeIntoUntils(n, ir)) {
@@ -146,7 +147,7 @@ public class CFGTransformations extends CompilerPhase {
    * deal with a sub tree of the loop structure tree
    */
   private static void ensureLandingPads(LSTNode t, IR ir) {
-    GraphNodeEnumeration e = t.outNodes();
+    Enumeration<GraphNode> e = t.outNodes();
     while (e.hasMoreElements()) {
       LSTNode n = (LSTNode) e.nextElement();
       ensureLandingPads(n, ir);
@@ -209,9 +210,9 @@ public class CFGTransformations extends CompilerPhase {
     int i = 0;
     int exiters = 0;
 
-    BasicBlockEnumeration e = ir.getBasicBlocks(n.loop);
+    Enumeration<BasicBlock> e = ir.getBasicBlocks(n.loop);
     while (e.hasMoreElements()) {
-      BasicBlock b = e.next();
+      BasicBlock b = e.nextElement();
       if (!exitsLoop(b, n.loop)) {
         // header doesn't exit: nothing to do
         if (b == n.header) return false;
@@ -258,8 +259,8 @@ public class CFGTransformations extends CompilerPhase {
     BitVector loop = n.loop;
 
     int i = 0;
-    BasicBlockEnumeration be = header.getIn();
-    while (be.hasMoreElements()) if (!inLoop(be.next(), loop)) i++;
+    Enumeration<BasicBlock> be = header.getIn();
+    while (be.hasMoreElements()) if (!inLoop(be.nextElement(), loop)) i++;
 
     BasicBlock[] res = new BasicBlock[i];
 
@@ -280,8 +281,8 @@ public class CFGTransformations extends CompilerPhase {
     BitVector loop = n.loop;
 
     int i = 0;
-    BasicBlockEnumeration be = header.getIn();
-    while (be.hasMoreElements()) if (inLoop(be.next(), loop)) i++;
+    Enumeration<BasicBlock> be = header.getIn();
+    while (be.hasMoreElements()) if (inLoop(be.nextElement(), loop)) i++;
 
     BasicBlock[] res = new BasicBlock[i];
 
@@ -302,8 +303,8 @@ public class CFGTransformations extends CompilerPhase {
     BitVector loop = n.loop;
 
     int i = 0;
-    BasicBlockEnumeration be = header.getOut();
-    while (be.hasMoreElements()) if (inLoop(be.next(), loop)) i++;
+    Enumeration<BasicBlock> be = header.getOut();
+    while (be.hasMoreElements()) if (inLoop(be.nextElement(), loop)) i++;
 
     BasicBlock[] res = new BasicBlock[i];
 
@@ -317,12 +318,12 @@ public class CFGTransformations extends CompilerPhase {
   }
 
   static void killFallThroughs(IR ir, BitVector nloop) {
-    BasicBlockEnumeration bs = ir.getBasicBlocks(nloop);
+    Enumeration<BasicBlock> bs = ir.getBasicBlocks(nloop);
     while (bs.hasMoreElements()) {
-      BasicBlock block = bs.next();
-      BasicBlockEnumeration bi = block.getIn();
+      BasicBlock block = bs.nextElement();
+      Enumeration<BasicBlock> bi = block.getIn();
       while (bi.hasMoreElements()) {
-        BasicBlock in = bi.next();
+        BasicBlock in = bi.nextElement();
         if (inLoop(in, nloop)) continue;
         in.killFallThrough();
       }
@@ -337,9 +338,9 @@ public class CFGTransformations extends CompilerPhase {
   }
 
   private static boolean exitsLoop(BasicBlock b, BitVector loop) {
-    BasicBlockEnumeration be = b.getOut();
+    Enumeration<BasicBlock> be = b.getOut();
     while (be.hasMoreElements()) {
-      if (!inLoop(be.next(), loop)) return true;
+      if (!inLoop(be.nextElement(), loop)) return true;
     }
     return false;
   }
@@ -353,9 +354,9 @@ public class CFGTransformations extends CompilerPhase {
    * So we split only edges, where `a' has a lower loop nesting depth than `b'.
    */
   public static void splitCriticalEdges(IR ir) {
-    BasicBlockEnumeration e = ir.getBasicBlocks();
+    Enumeration<BasicBlock> e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
-      BasicBlock b = e.next();
+      BasicBlock b = e.nextElement();
       int numberOfIns = b.getNumberOfIn();
       //Exception handlers and blocks with less than two inputs
       // are no candidates for `b'.
@@ -364,9 +365,9 @@ public class CFGTransformations extends CompilerPhase {
       }
       // copy the predecessors, since we will alter the incoming edges.
       BasicBlock[] ins = new BasicBlock[numberOfIns];
-      BasicBlockEnumeration ie = b.getIn();
+      Enumeration<BasicBlock> ie = b.getIn();
       for (int i = 0; i < numberOfIns; ++i) {
-        ins[i] = ie.next();
+        ins[i] = ie.nextElement();
       }
       // skip blocks, that do not fulfill our requirements for `a'
       for (int i = 0; i < numberOfIns; ++i) {

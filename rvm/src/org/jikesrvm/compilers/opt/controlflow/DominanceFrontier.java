@@ -17,7 +17,6 @@ import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.util.TreeNode;
 import org.jikesrvm.util.BitVector;
@@ -120,8 +119,8 @@ public class DominanceFrontier extends CompilerPhase {
       BitVector DF = new BitVector(ir.getMaxBasicBlockNumber() + 1);
       v.setDominanceFrontier(DF);
       // for each Y in Succ(X) do
-      for (BasicBlockEnumeration y = X.getOut(); y.hasMoreElements();) {
-        BasicBlock Y = y.next();
+      for (Enumeration<BasicBlock> y = X.getOut(); y.hasMoreElements();) {
+        BasicBlock Y = y.nextElement();
         // skip EXIT node
         if (Y.isExit()) {
           continue;
@@ -142,8 +141,8 @@ public class DominanceFrontier extends CompilerPhase {
           System.out.println("Processing Z = " + Z);
         }
         // for each Y in DF(Z) do
-        for (BasicBlockEnumeration y = zVertex.domFrontierEnumerator(ir); y.hasMoreElements();) {
-          BasicBlock Y = y.next();
+        for (Enumeration<BasicBlock> y = zVertex.domFrontierEnumerator(ir); y.hasMoreElements();) {
+          BasicBlock Y = y.nextElement();
           // if (idom(Y)!=X) then DF(X) <- DF(X) U Y
           if (LTDominatorInfo.getIdom(Y) != X) {
             DF.set(Y.getNumber());

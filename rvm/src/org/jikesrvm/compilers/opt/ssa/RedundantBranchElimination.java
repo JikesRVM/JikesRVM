@@ -16,6 +16,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.controlflow.DominatorTree;
@@ -24,7 +26,6 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
@@ -137,8 +138,8 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
       // (1) Remove redundant conditional branches and locally fix the PHIs
       GlobalValueNumberState gvns = ir.HIRInfo.valueNumbers;
       DominatorTree dt = ir.HIRInfo.dominatorTree;
-      for (BasicBlockEnumeration bbs = ir.getBasicBlocks(); bbs.hasMoreElements();) {
-        BasicBlock candBB = bbs.next();
+      for (Enumeration<BasicBlock> bbs = ir.getBasicBlocks(); bbs.hasMoreElements();) {
+        BasicBlock candBB = bbs.nextElement();
         Instruction candTest = candBB.firstBranchInstruction();
         if (candTest == null) continue;
         if (!(IfCmp.conforms(candTest) || InlineGuard.conforms(candTest))) continue;
@@ -185,8 +186,8 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
         // save it now before removeFromCFGAndCodeOrder nulls it out!!!
         BasicBlock nextNode = (BasicBlock) node.getNext();
         if (!node.dfsVisited()) {
-          for (BasicBlockEnumeration e = node.getOut(); e.hasMoreElements();) {
-            BasicBlock target = e.next();
+          for (Enumeration<BasicBlock> e = node.getOut(); e.hasMoreElements();) {
+            BasicBlock target = e.nextElement();
             if (target != node && !target.isExit() && target.dfsVisited()) {
               SSA.purgeBlockFromPHIs(node, target);
             }

@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER_opcode;
 
+import java.util.Enumeration;
 import java.util.LinkedList;
 
 import org.jikesrvm.VM;
@@ -24,7 +25,6 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.OsrBarrier;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
@@ -109,9 +109,9 @@ public class OsrPointConstructor extends CompilerPhase {
   private LinkedList<Instruction> collectOsrPoints(IR ir) {
     LinkedList<Instruction> osrs = new LinkedList<Instruction>();
 
-    InstructionEnumeration instenum = ir.forwardInstrEnumerator();
+    Enumeration<Instruction> instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
-      Instruction inst = instenum.next();
+      Instruction inst = instenum.nextElement();
 
       if (OsrPoint.conforms(inst)) {
         osrs.add(inst);
@@ -279,9 +279,9 @@ public class OsrPointConstructor extends CompilerPhase {
 
   /** remove OsrBarrier instructions. */
   private void removeOsrBarriers(IR ir) {
-    InstructionEnumeration instenum = ir.forwardInstrEnumerator();
+    Enumeration<Instruction> instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
-      Instruction inst = instenum.next();
+      Instruction inst = instenum.nextElement();
       // clean the scratObjects of each instruction
       inst.scratchObject = null;
       if (OsrBarrier.conforms(inst)) {
@@ -294,9 +294,9 @@ public class OsrPointConstructor extends CompilerPhase {
   // it's a debugging tool
   private void verifyNoOsrBarriers(IR ir) {
     VM.sysWrite("Verifying no osr barriers");
-    InstructionEnumeration instenum = ir.forwardInstrEnumerator();
+    Enumeration<Instruction> instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
-      Instruction inst = instenum.next();
+      Instruction inst = instenum.nextElement();
       if (inst.operator().opcode == OSR_BARRIER_opcode) {
         VM.sysWriteln(" NOT SANE");
         VM.sysWriteln(inst.toString());

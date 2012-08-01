@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.compilers.opt.dfsolver;
 
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
  * Represents a single lattice cell in a dataflow system.
@@ -72,34 +72,28 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
   }
 
   @Override
-  public GraphNodeEnumeration inNodes() {
-    return new GraphNodeEnumeration() {
+  public Enumeration<GraphNode> inNodes() {
+    return new Enumeration<GraphNode>() {
       private final Iterator<DF_Equation> i = defs.iterator();
 
       @Override
       public boolean hasMoreElements() { return i.hasNext(); }
 
       @Override
-      public GraphNode next() { return i.next(); }
-
-      @Override
-      public GraphNode nextElement() { return next(); }
+      public GraphNode nextElement() { return i.next(); }
     };
   }
 
   @Override
-  public GraphNodeEnumeration outNodes() {
-    return new GraphNodeEnumeration() {
+  public Enumeration<GraphNode> outNodes() {
+    return new Enumeration<GraphNode>() {
       private final Iterator<DF_Equation> i = uses.iterator();
 
       @Override
       public boolean hasMoreElements() { return i.hasNext(); }
 
       @Override
-      public GraphNode next() { return i.next(); }
-
-      @Override
-      public GraphNode nextElement() { return next(); }
+      public GraphNode nextElement() { return i.next(); }
     };
   }
 

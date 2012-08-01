@@ -50,7 +50,6 @@ import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Athrow;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
@@ -4517,8 +4516,8 @@ public final class BC2IR
     // generated if they are reachable from a callee.
     // See maybeInlineMethod.
     if (gc.enclosingHandlers != null) {
-      for (BasicBlockEnumeration e = gc.enclosingHandlers.enumerator(); e.hasMoreElements();) {
-        ExceptionHandlerBasicBlock xbb = (ExceptionHandlerBasicBlock) e.next();
+      for (Enumeration<BasicBlock> e = gc.enclosingHandlers.enumerator(); e.hasMoreElements();) {
+        ExceptionHandlerBasicBlock xbb = (ExceptionHandlerBasicBlock) e.nextElement();
         byte mustCatch = xbb.mustCatchException(exceptionType);
         if (mustCatch != NO || xbb.mayCatchException(exceptionType) != NO) {
           if (DBG_EX) {
@@ -4588,8 +4587,8 @@ public final class BC2IR
     }
     // Now, consider the enclosing exception context; ditto NOTE above.
     if (gc.enclosingHandlers != null) {
-      for (BasicBlockEnumeration e = gc.enclosingHandlers.enumerator(); e.hasMoreElements();) {
-        ExceptionHandlerBasicBlock xbb = (ExceptionHandlerBasicBlock) e.next();
+      for (Enumeration<BasicBlock> e = gc.enclosingHandlers.enumerator(); e.hasMoreElements();) {
+        ExceptionHandlerBasicBlock xbb = (ExceptionHandlerBasicBlock) e.nextElement();
         if (DBG_EX) {
           db("PEI of unknown type could be caught by enclosing handler " + xbb);
         }
@@ -5268,8 +5267,8 @@ public final class BC2IR
               // blocks except 'block' to move mop into a register.
               RegisterOperand mopTmp = gc.temps.makeTemp(mop);
               if (DBG_STACK || DBG_SELECTED) db("Merged stack has constant operand " + mop);
-              for (BasicBlockEnumeration preds = p.block.getIn(); preds.hasMoreElements();) {
-                BasicBlock pred = preds.next();
+              for (Enumeration<BasicBlock> preds = p.block.getIn(); preds.hasMoreElements();) {
+                BasicBlock pred = preds.nextElement();
                 if (pred == block) continue;
                 injectMove(pred, mopTmp.copyRO(), mop.copy());
               }

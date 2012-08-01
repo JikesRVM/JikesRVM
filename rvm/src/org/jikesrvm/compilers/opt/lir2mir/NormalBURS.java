@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_Debug;
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_STATE;
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
@@ -22,7 +24,6 @@ import org.jikesrvm.compilers.opt.depgraph.DepGraphEdge;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_COMBINE;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_COND_MOVE;
@@ -106,9 +107,9 @@ final class NormalBURS extends BURS {
       Instruction instr = n.instruction();
       // cur_parent = current parent node for var length IR instructions
       // loop for USES of an instruction
-      for (OperandEnumeration uses = instr.getUses(); uses.hasMoreElements();) {
+      for (Enumeration<Operand> uses = instr.getUses(); uses.hasMoreElements();) {
         // Create tree edge for next use.
-        Operand op = uses.next();
+        Operand op = uses.nextElement();
         if (op == null) continue;
 
         // Set child = BURS_TreeNode for operand op

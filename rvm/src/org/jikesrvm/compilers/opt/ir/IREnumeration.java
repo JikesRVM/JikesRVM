@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import java.util.Enumeration;
 import java.util.Iterator;
 import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
@@ -48,8 +49,8 @@ public abstract class IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  public static InstructionEnumeration forwardIntraBlockIE(final Instruction start, final Instruction end) {
-    return new InstructionEnumeration() {
+  public static Enumeration<Instruction> forwardIntraBlockIE(final Instruction start, final Instruction end) {
+    return new Enumeration<Instruction>() {
       private Instruction current = start;
       private final Instruction last = end;
 
@@ -57,10 +58,7 @@ public abstract class IREnumeration {
       public boolean hasMoreElements() { return current != null; }
 
       @Override
-      public Instruction nextElement() { return next(); }
-
-      @Override
-      public Instruction next() {
+      public Instruction nextElement() {
         Instruction res = current;
         if (current == last) {
           current = null;
@@ -90,8 +88,8 @@ public abstract class IREnumeration {
    * @param end   the instruction to end with
    * @return an enumeration of the instructions from start to end
    */
-  public static InstructionEnumeration reverseIntraBlockIE(final Instruction start, final Instruction end) {
-    return new InstructionEnumeration() {
+  public static Enumeration<Instruction> reverseIntraBlockIE(final Instruction start, final Instruction end) {
+    return new Enumeration<Instruction>() {
       private Instruction current = start;
       private final Instruction last = end;
 
@@ -99,10 +97,7 @@ public abstract class IREnumeration {
       public boolean hasMoreElements() { return current != null; }
 
       @Override
-      public Instruction nextElement() { return next(); }
-
-      @Override
-      public Instruction next() {
+      public Instruction nextElement() {
         Instruction res = current;
         if (current == last) {
           current = null;
@@ -124,18 +119,15 @@ public abstract class IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
    */
-  public static InstructionEnumeration forwardGlobalIE(final IR ir) {
-    return new InstructionEnumeration() {
+  public static Enumeration<Instruction> forwardGlobalIE(final IR ir) {
+    return new Enumeration<Instruction>() {
       private Instruction current = ir.firstInstructionInCodeOrder();
 
       @Override
       public boolean hasMoreElements() { return current != null; }
 
       @Override
-      public Instruction nextElement() { return next(); }
-
-      @Override
-      public Instruction next() {
+      public Instruction nextElement() {
         try {
           Instruction res = current;
           current = current.nextInstructionInCodeOrder();
@@ -154,18 +146,15 @@ public abstract class IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the insturctions in ir
    */
-  public static InstructionEnumeration reverseGlobalIE(final IR ir) {
-    return new InstructionEnumeration() {
+  public static Enumeration<Instruction> reverseGlobalIE(final IR ir) {
+    return new Enumeration<Instruction>() {
       private Instruction current = ir.lastInstructionInCodeOrder();
 
       @Override
       public boolean hasMoreElements() { return current != null; }
 
       @Override
-      public Instruction nextElement() { return next(); }
-
-      @Override
-      public Instruction next() {
+      public Instruction nextElement() {
         try {
           Instruction res = current;
           current = current.prevInstructionInCodeOrder();
@@ -184,18 +173,15 @@ public abstract class IREnumeration {
    * @param ir the IR to walk over
    * @return a forward enumeration of the basic blocks in ir
    */
-  public static BasicBlockEnumeration forwardBE(final IR ir) {
-    return new BasicBlockEnumeration() {
+  public static Enumeration<BasicBlock> forwardBE(final IR ir) {
+    return new Enumeration<BasicBlock>() {
       private BasicBlock current = ir.firstBasicBlockInCodeOrder();
 
       @Override
       public boolean hasMoreElements() { return current != null; }
 
       @Override
-      public BasicBlock nextElement() { return next(); }
-
-      @Override
-      public BasicBlock next() {
+      public BasicBlock nextElement() {
         try {
           BasicBlock res = current;
           current = current.nextBasicBlockInCodeOrder();
@@ -214,18 +200,15 @@ public abstract class IREnumeration {
    * @param ir the IR to walk over
    * @return a reverse enumeration of the basic blocks in ir
    */
-  public static BasicBlockEnumeration reverseBE(final IR ir) {
-    return new BasicBlockEnumeration() {
+  public static Enumeration<BasicBlock> reverseBE(final IR ir) {
+    return new Enumeration<BasicBlock>() {
       private BasicBlock current = ir.lastBasicBlockInCodeOrder();
 
       @Override
       public boolean hasMoreElements() { return current != null; }
 
       @Override
-      public BasicBlock nextElement() { return next(); }
-
-      @Override
-      public BasicBlock next() {
+      public BasicBlock nextElement() {
         try {
           BasicBlock res = current;
           current = current.prevBasicBlockInCodeOrder();
@@ -239,19 +222,19 @@ public abstract class IREnumeration {
   }
 
   /**
-   * This class implements an {@link InstructionEnumeration} over
+   * This class implements an enumeration of instructions over
    * all instructions for a basic block. This enumeration includes
    * explicit instructions in the IR and implicit phi instructions for
    * heap variables, which are stored only in this lookaside
    * structure.
    * @see org.jikesrvm.compilers.opt.ssa.SSADictionary
    */
-  public static final class AllInstructionsEnum implements InstructionEnumeration {
+  public static final class AllInstructionsEnum implements Enumeration<Instruction> {
     /**
      * An enumeration of the explicit instructions in the IR for a
      * basic block
      */
-    private final InstructionEnumeration explicitInstructions;
+    private final Enumeration<Instruction> explicitInstructions;
 
     /**
      * An enumeration of the implicit instructions in the IR for a
@@ -280,7 +263,7 @@ public abstract class IREnumeration {
       } else {
         implicitInstructions = null;
       }
-      labelInstruction = explicitInstructions.next();
+      labelInstruction = explicitInstructions.nextElement();
     }
 
     /**
@@ -294,13 +277,8 @@ public abstract class IREnumeration {
               explicitInstructions.hasMoreElements());
     }
 
-    /**
-     * Get the next instruction in the enumeration
-     *
-     * @return the next instruction
-     */
     @Override
-    public Instruction next() {
+    public Instruction nextElement() {
       if (labelInstruction != null) {
         Instruction temp = labelInstruction;
         labelInstruction = null;
@@ -308,34 +286,24 @@ public abstract class IREnumeration {
       } else if ((implicitInstructions != null) && implicitInstructions.hasNext()) {
         return implicitInstructions.next();
       } else {
-        return explicitInstructions.next();
+        return explicitInstructions.nextElement();
       }
-    }
-
-    /**
-     * Get the next instruction in the enumeration
-     *
-     * @return the next instruction
-     */
-    @Override
-    public Instruction nextElement() {
-      return next();
     }
   }
 
   /**
-   * This class implements an {@link OperandEnumeration}. It used
+   * This class implements an {@link Enumeration} of {@link Operand}s. It used
    * for holding the definitions of a particular instruction and being
    * used as an enumeration for iterating over. It differs from other
-   * {@link OperandEnumeration} as it iterates over both implicit
+   * enumerations of Operand as it iterates over both implicit
    * and explicit operands.
    * @see org.jikesrvm.compilers.opt.ssa.SSADictionary
    */
-  public static final class AllDefsEnum implements OperandEnumeration {
+  public static final class AllDefsEnum implements Enumeration<Operand> {
     /**
      * Enumeration of non-heap operands defined by the instruction
      */
-    private final OperandEnumeration instructionOperands;
+    private final Enumeration<Operand> instructionOperands;
     /**
      * Array of heap operands defined by the instruction
      */
@@ -386,13 +354,10 @@ public abstract class IREnumeration {
               ((implicitDefs != null) && (implicitDefs.hasMoreElements())));
     }
 
-    /**
-     * Next element in the enumeration
-     */
     @Override
-    public Operand next() {
+    public Operand nextElement() {
       if (instructionOperands.hasMoreElements()) {
-        return instructionOperands.next();
+        return instructionOperands.nextElement();
       } else {
         if ((implicitDefs != null) && implicitDefs.hasMoreElements()) {
           RegisterOperand rop = new RegisterOperand(implicitDefs.nextElement(), TypeReference.Int);
@@ -408,29 +373,21 @@ public abstract class IREnumeration {
         }
       }
     }
-
-    /**
-     * Next element in the enumeration
-     */
-    @Override
-    public Operand nextElement() {
-      return next();
-    }
   }
 
   /**
-   * This class implements an {@link OperandEnumeration}. It used
+   * This class implements an {@link Enumeration} of {@link Operand}. It used
    * for holding the uses of a particular instruction and being used
    * as an enumeration for iterating over. It differs from other
-   * {@link OperandEnumeration} as it iterates over both implicit
+   * enumerations of Operand as it iterates over both implicit
    * and explicit operands.
    * @see org.jikesrvm.compilers.opt.ssa.SSADictionary
    */
-  public static final class AllUsesEnum implements OperandEnumeration {
+  public static final class AllUsesEnum implements Enumeration<Operand> {
     /**
      * Enumeration of non-heap operands defined by the instruction
      */
-    private final OperandEnumeration instructionOperands;
+    private final Enumeration<Operand> instructionOperands;
     /**
      * Array of heap operands defined by the instruction
      */
@@ -481,13 +438,10 @@ public abstract class IREnumeration {
               ((implicitUses != null) && (implicitUses.hasMoreElements())));
     }
 
-    /**
-     * Next element in the enumeration
-     */
     @Override
-    public Operand next() {
+    public Operand nextElement() {
       if (instructionOperands.hasMoreElements()) {
-        return instructionOperands.next();
+        return instructionOperands.nextElement();
       } else {
         if ((implicitUses != null) && implicitUses.hasMoreElements()) {
           RegisterOperand rop = new RegisterOperand(implicitUses.nextElement(), TypeReference.Int);
@@ -502,14 +456,6 @@ public abstract class IREnumeration {
           return result;
         }
       }
-    }
-
-    /**
-     * Next element in the enumeration
-     */
-    @Override
-    public Operand nextElement() {
-      return next();
     }
   }
 

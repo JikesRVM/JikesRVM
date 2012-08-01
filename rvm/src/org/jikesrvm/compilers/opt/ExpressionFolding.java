@@ -36,7 +36,6 @@ import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.New;
 import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.ZeroCheck;
@@ -255,7 +254,7 @@ public class ExpressionFolding extends IRTools {
             break loop_over_inner_instructions;
           }
           if (innerDef == null) {
-            OperandEnumeration defs = inner.getDefs();
+            Enumeration<Operand> defs = inner.getDefs();
             while(defs.hasMoreElements()) {
               Operand def = defs.nextElement();
               if (def.isRegister()) {
@@ -271,7 +270,7 @@ public class ExpressionFolding extends IRTools {
           }
           // 3. check for anti dependence (do we define something that outer uses?)
           if (innerDef != null) {
-            OperandEnumeration uses = outer.getUses();
+            Enumeration<Operand> uses = outer.getUses();
             while(uses.hasMoreElements()) {
               Operand use = uses.nextElement();
               if (use.isRegister() && (use.asRegister().getRegister() == innerDef)) {
@@ -282,11 +281,11 @@ public class ExpressionFolding extends IRTools {
               }
             }
           } else {
-            OperandEnumeration defs = inner.getDefs();
+            Enumeration<Operand> defs = inner.getDefs();
             while(defs.hasMoreElements()) {
               Operand def = defs.nextElement();
               if (def.isRegister()) {
-                OperandEnumeration uses = outer.getUses();
+                Enumeration<Operand> uses = outer.getUses();
                 while(uses.hasMoreElements()) {
                   Operand use = uses.nextElement();
                   if (use.similar(def)) {

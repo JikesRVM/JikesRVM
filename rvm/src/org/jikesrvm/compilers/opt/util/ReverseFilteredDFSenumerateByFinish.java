@@ -12,18 +12,20 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
+import java.util.Enumeration;
+
 
 class ReverseFilteredDFSenumerateByFinish extends ReverseDFSenumerateByFinish {
 
   private final GraphEdgeFilter filter;
 
-  ReverseFilteredDFSenumerateByFinish(Graph net, GraphNodeEnumeration nodes, GraphEdgeFilter filter) {
+  ReverseFilteredDFSenumerateByFinish(Graph net, Enumeration<GraphNode> nodes, GraphEdgeFilter filter) {
     super(net, nodes);
     this.filter = filter;
   }
 
   @Override
-  protected GraphNodeEnumeration getConnected(GraphNode n) {
+  protected Enumeration<GraphNode> getConnected(GraphNode n) {
     return filter.inNodes(n);
   }
 

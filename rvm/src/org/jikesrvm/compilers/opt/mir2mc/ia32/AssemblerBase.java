@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
 import org.jikesrvm.ArchitectureSpecific.Assembler;
@@ -33,7 +35,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -835,8 +836,8 @@ abstract class AssemblerBase extends Assembler
         }
       default: {
         int size = 3; // 2 bytes opcode + 1 byte modr/m
-        for (OperandEnumeration opEnum = inst.getRootOperands(); opEnum.hasMoreElements();) {
-          Operand op = opEnum.next();
+        for (Enumeration<Operand> opEnum = inst.getRootOperands(); opEnum.hasMoreElements();) {
+          Operand op = opEnum.nextElement();
           size += operandCost(op, false);
         }
         return size;

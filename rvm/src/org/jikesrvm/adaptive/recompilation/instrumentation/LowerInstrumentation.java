@@ -13,6 +13,8 @@
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.measurements.instrumentation.Instrumentation;
 import org.jikesrvm.adaptive.util.AOSOptions;
@@ -20,7 +22,6 @@ import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.INSTRUMENTED_EVENT_COUNTER;
@@ -84,9 +85,9 @@ public class LowerInstrumentation extends CompilerPhase {
    */
   static void lowerInstrumentation(IR ir) {
     /*
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks();
          bbe.hasMoreElements(); ) {
-      BasicBlock bb = bbe.next();
+      BasicBlock bb = bbe.nextElement();
       bb.printExtended();
     }
     */
@@ -97,8 +98,8 @@ public class LowerInstrumentation extends CompilerPhase {
     // put them in instrumentedInstructions and expand them later
     // because if we expanded them on the fly we mess up the
     // enumeration.
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
-      BasicBlock bb = bbe.next();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
+      BasicBlock bb = bbe.nextElement();
 
       Instruction i = bb.firstInstruction();
       while (i != null && i != bb.lastInstruction()) {
@@ -124,9 +125,9 @@ public class LowerInstrumentation extends CompilerPhase {
     }
 
     /*
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks();
          bbe.hasMoreElements(); ) {
-      BasicBlock bb = bbe.next();
+      BasicBlock bb = bbe.nextElement();
       bb.printExtended();
     }
     */

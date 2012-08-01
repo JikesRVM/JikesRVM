@@ -37,7 +37,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
@@ -277,14 +276,14 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
               // fix up types: only split live ranges when the type is
               // consistent at all defs
               TypeReference t2 = null;
-              RegisterOperandEnumeration e2 = DefUse.defs(r);
+              Enumeration<RegisterOperand> e2 = DefUse.defs(r);
               if (!e2.hasMoreElements()) {
                 s = null;
               } else {
-                RegisterOperand rop2 = e2.next();
+                RegisterOperand rop2 = e2.nextElement();
                 t2 = rop2.getType();
                 while (e2.hasMoreElements()) {
-                  RegisterOperand nextOp2 = e2.next();
+                  RegisterOperand nextOp2 = e2.nextElement();
                   if (nextOp2.getType() != t2) {
                     s = null;
                   }
@@ -302,14 +301,14 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
               // fix up types: only split live ranges when the type is
               // consistent at all defs
               TypeReference t = null;
-              RegisterOperandEnumeration e = DefUse.defs(r);
+              Enumeration<RegisterOperand> e = DefUse.defs(r);
               if (!e.hasMoreElements()) {
                 s = null;
               } else {
-                RegisterOperand rop = e.next();
+                RegisterOperand rop = e.nextElement();
                 t = rop.getType();
                 while (e.hasMoreElements()) {
-                  RegisterOperand nextOp = e.next();
+                  RegisterOperand nextOp = e.nextElement();
                   if (nextOp.getType() != t) {
                     s = null;
                   }

@@ -16,6 +16,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Goto;
@@ -26,7 +28,6 @@ import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.IfCmp2;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.LookupSwitch;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.TableSwitch;
@@ -62,8 +63,8 @@ public abstract class BranchSimplifier {
   public static boolean simplify(BasicBlock bb, IR ir) {
     boolean didSomething = false;
 
-    for (InstructionEnumeration branches = bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
-      Instruction s = branches.next();
+    for (Enumeration<Instruction> branches = bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
+      Instruction s = branches.nextElement();
       if (Goto.conforms(s)) {
         // nothing to do, but a common case so test first
       } else if (IfCmp.conforms(s)) {
@@ -317,8 +318,8 @@ public abstract class BranchSimplifier {
     // identify the first GOTO instruction in the basic block
     Instruction firstGoto = null;
     Instruction end = bb.lastRealInstruction();
-    for (InstructionEnumeration branches = bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
-      Instruction s = branches.next();
+    for (Enumeration<Instruction> branches = bb.enumerateBranchInstructions(); branches.hasMoreElements();) {
+      Instruction s = branches.nextElement();
       if (Goto.conforms(s)) {
         firstGoto = s;
         break;
@@ -326,10 +327,10 @@ public abstract class BranchSimplifier {
     }
     // remove all instructions after the first GOTO instruction
     if (firstGoto != null) {
-      InstructionEnumeration ie = IREnumeration.forwardIntraBlockIE(firstGoto, end);
-      ie.next();
+      Enumeration<Instruction> ie = IREnumeration.forwardIntraBlockIE(firstGoto, end);
+      ie.nextElement();
       while (ie.hasMoreElements()) {
-        Instruction s = ie.next();
+        Instruction s = ie.nextElement();
         if (GuardResultCarrier.conforms(s)) {
           insertTrueGuard(s, GuardResultCarrier.getGuardResult(s));
         }
