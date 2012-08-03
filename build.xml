@@ -1306,6 +1306,8 @@ Check to make sure all required properties are specified. This includes properti
     <javac destdir="${build.test-classes}"
       debug="true"
       fork="true"
+      source="${rvm.java.version}"
+      target="${rvm.java.version}"
       memoryMaximumSize="500M"
       srcdir="${test.java}"
       includeantruntime="false">
