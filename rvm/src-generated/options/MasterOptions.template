@@ -101,7 +101,7 @@ $$$$ FOREACH OPTION VDATFILE
     */
    public java.util.Iterator<TYPE> getFULL_NAMEs() {
      if (FULL_NAME == null) {
-       return new org.jikesrvm.util.EmptyIterator<TYPE>();
+       return org.jikesrvm.util.EmptyIterator.<TYPE>getInstance();
      } else {
        return FULL_NAME.iterator();
      }

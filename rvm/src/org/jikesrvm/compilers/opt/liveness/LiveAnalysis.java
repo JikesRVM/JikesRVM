@@ -45,12 +45,12 @@ import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
-import org.jikesrvm.compilers.opt.util.EmptyIterator;
 import org.jikesrvm.compilers.opt.util.SortedGraphIterator;
 import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.LocalRegPair;
 import org.jikesrvm.osr.MethodVariables;
 import org.jikesrvm.osr.VariableMap;
+import org.jikesrvm.util.EmptyIterator;
 
 /**
  * This class performs a flow-sensitive iterative live variable analysis.
@@ -339,9 +339,7 @@ public final class LiveAnalysis extends CompilerPhase {
   public Iterator<LiveIntervalElement> iterateLiveIntervals(Register r) {
     ArrayList<LiveIntervalElement> set = registerMap[r.getNumber()];
     if (set == null) {
-      @SuppressWarnings("unchecked") // Can't type-check EmptyIterator.INSTANCE in java
-          Iterator<LiveIntervalElement> empty = (Iterator) EmptyIterator.INSTANCE;
-      return empty;
+      return EmptyIterator.<LiveIntervalElement>getInstance();
     } else {
       return set.iterator();
     }
