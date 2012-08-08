@@ -755,7 +755,7 @@ public abstract class SegregatedFreeListSpace extends Space implements Constants
     /* Consumed blocks */
     block = consumedBlockHead.get(sizeClass);
     if (!block.isZero()) {
-      flushedBlockHead.set(sizeClass, BlockAllocator.getNext(block));
+      consumedBlockHead.set(sizeClass, BlockAllocator.getNext(block));
       lock.release();
       BlockAllocator.setNext(block, Address.zero());
       return block;
