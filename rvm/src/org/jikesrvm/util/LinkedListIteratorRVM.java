@@ -47,7 +47,7 @@ public final class LinkedListIteratorRVM<T> implements ListIterator<T> {
 
   @Override
   public boolean hasPrevious() {
-    return cursor != l.head;
+    return cursor != null && cursor != l.head;
   }
 
   @Override
