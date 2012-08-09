@@ -33,4 +33,6 @@ public class RCBaseConstraints extends StopTheWorldConstraints {
   public boolean needsObjectReferenceWriteBarrier() { return true; }
   @Override
   public int maxNonLOSDefaultAllocBytes() { return MAX_FREELIST_OBJECT_BYTES; }
+  @Override
+  public boolean objectReferenceBulkCopySupported() { return true; }
 }
