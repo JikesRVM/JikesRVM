@@ -589,7 +589,7 @@ public class Runtime {
    * Return the number of processors, always at least one.
    */
   public int availableProcessors() {
-    return RVMThread.numProcessors;
+    return RVMThread.availableProcessors;
   }
 
   /**
