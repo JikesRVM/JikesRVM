@@ -16,7 +16,6 @@ import org.mmtk.plan.Phase;
 import org.mmtk.plan.StopTheWorld;
 import org.mmtk.plan.Trace;
 import org.mmtk.plan.refcount.backuptrace.BTFreeLargeObjectSweeper;
-import org.mmtk.plan.refcount.backuptrace.BTScanLargeObjectSweeper;
 import org.mmtk.plan.refcount.backuptrace.BTSweeper;
 import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.policy.ExplicitLargeObjectSpace;
@@ -127,7 +126,6 @@ public class RCBase extends StopTheWorld {
   public final Trace rootTrace;
   public final Trace backupTrace;
   private final BTSweeper rcSweeper;
-  private final BTScanLargeObjectSweeper loScanSweeper;
   private final BTFreeLargeObjectSweeper loFreeSweeper;
 
   /**
@@ -140,7 +138,6 @@ public class RCBase extends StopTheWorld {
     rootTrace = new Trace(metaDataSpace);
     backupTrace = new Trace(metaDataSpace);
     rcSweeper = new BTSweeper();
-    loScanSweeper = new BTScanLargeObjectSweeper();
     loFreeSweeper = new BTFreeLargeObjectSweeper();
   }
 
@@ -237,7 +234,6 @@ public class RCBase extends StopTheWorld {
       if (CC_BACKUP_TRACE && performCycleCollection) {
         backupTrace.release();
         rcSpace.sweepCells(rcSweeper);
-        rcloSpace.sweep(loScanSweeper);
         rcloSpace.sweep(loFreeSweeper);
       } else {
         rcSpace.release();

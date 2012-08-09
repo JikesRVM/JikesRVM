@@ -60,7 +60,10 @@ public final class BTTraceLocal extends TraceLocal {
   public ObjectReference traceObject(ObjectReference object) {
     if (RCBase.isRCObject(object)) {
       if (RCHeader.testAndMark(object)) {
+        RCHeader.initRC(object);
         processNode(object);
+      } else {
+        RCHeader.incRC(object);
       }
     }
     return object;

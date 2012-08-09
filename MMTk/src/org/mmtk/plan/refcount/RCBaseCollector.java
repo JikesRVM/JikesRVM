@@ -102,6 +102,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
     }
 
     if (phaseId == RCBase.PROCESS_OLDROOTBUFFER) {
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) return;
       ObjectReference current;
       while(!(current = oldRootBuffer.pop()).isNull()) {
         decBuffer.push(current);
@@ -111,14 +112,20 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
 
     if (phaseId == RCBase.PROCESS_NEWROOTBUFFER) {
       ObjectReference current;
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+        while(!(current = newRootBuffer.pop()).isNull()) {
+          if (RCHeader.testAndMark(current)) {
+            RCHeader.initRC(current);
+            backupTrace.processNode(current);
+          } else {
+            RCHeader.incRC(current);
+          }
+        }
+        return;
+      }
       while(!(current = newRootBuffer.pop()).isNull()) {
         RCHeader.incRC(current);
         oldRootBuffer.push(current);
-        if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
-          if (RCHeader.testAndMark(current)) {
-            backupTrace.processNode(current);
-          }
-        }
       }
       oldRootBuffer.flushLocal();
       return;
@@ -126,6 +133,12 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
 
     if (phaseId == RCBase.PROCESS_MODBUFFER) {
       ObjectReference current;
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+        while(!(current = modBuffer.pop()).isNull()) {
+          RCHeader.makeUnlogged(current);
+        }
+        return;
+      }
       while(!(current = modBuffer.pop()).isNull()) {
         RCHeader.makeUnlogged(current);
         VM.scanning.scanObject(getModifiedProcessor(), current);
@@ -134,6 +147,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
     }
 
     if (phaseId == RCBase.PROCESS_DECBUFFER) {
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) return;
       ObjectReference current;
       while(!(current = decBuffer.pop()).isNull()) {
         if (RCHeader.decRC(current) == RCHeader.DEC_KILL) {
@@ -153,6 +167,8 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
     if (phaseId == RCBase.RELEASE) {
       if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
         backupTrace.release();
+        global().oldRootPool.clearDeque(1);
+        global().decPool.clearDeque(1);
       }
       getRootTrace().release();
       if (VM.VERIFY_ASSERTIONS) {

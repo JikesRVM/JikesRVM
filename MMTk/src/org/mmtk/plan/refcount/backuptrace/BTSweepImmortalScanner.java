@@ -14,7 +14,6 @@ package org.mmtk.plan.refcount.backuptrace;
 
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.utility.alloc.LinearScan;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -25,8 +24,6 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public final class BTSweepImmortalScanner extends LinearScan {
 
-  private final BTDecMarkedAndZero sdmAZ = new BTDecMarkedAndZero();
-
   /**
    * Scan an object during sweep.
    *
@@ -36,7 +33,7 @@ public final class BTSweepImmortalScanner extends LinearScan {
   @Inline
   public void scan(ObjectReference object) {
     if (!RCHeader.isMarked(object)) {
-      VM.scanning.scanObject(sdmAZ, object);
+      // do nothing
     } else {
       RCHeader.clearMarked(object);
     }

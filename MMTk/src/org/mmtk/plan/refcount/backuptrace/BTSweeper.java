@@ -14,7 +14,6 @@ package org.mmtk.plan.refcount.backuptrace;
 
 import org.mmtk.plan.refcount.RCHeader;
 import org.mmtk.policy.ExplicitFreeListSpace;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -26,12 +25,9 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public final class BTSweeper extends ExplicitFreeListSpace.Sweeper {
 
-  private final BTDecMarked sdm = new BTDecMarked();
-
   @Override
   public boolean sweepCell(ObjectReference object) {
     if (!RCHeader.isMarked(object)) {
-      VM.scanning.scanObject(sdm, object);
       return true;
     } else {
       RCHeader.clearMarked(object);

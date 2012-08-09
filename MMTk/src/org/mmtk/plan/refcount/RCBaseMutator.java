@@ -159,7 +159,9 @@ public class RCBaseMutator extends StopTheWorldMutator {
       }
       rc.release();
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(modBuffer.isEmpty());
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(decBuffer.isEmpty());
+      if (!(RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection)) {
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(decBuffer.isEmpty());
+      }
       return;
     }
 
