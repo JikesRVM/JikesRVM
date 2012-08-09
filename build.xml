@@ -314,6 +314,7 @@
       </sequential>
     </if>
     <ant antfile="build/components/junit.xml" target="ensure"/>
+    <ant antfile="build/components/hamcrest.xml" target="ensure"/>
     <property file="${components.file}"/>
   </target>
 
@@ -1302,7 +1303,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <delete dir="${build.test-classes}"/>
     <mkdir dir="${build.test-classes}"/>
-
+    
     <javac destdir="${build.test-classes}"
       debug="true"
       fork="true"
@@ -1316,6 +1317,7 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.test-classes}"/>
         <pathelement location="${build.classes}"/>
         <pathelement location="${junit.jar}"/>
+        <pathelement location="${hamcrest.jar}"/>
       </classpath>
     </javac>
   </target>
@@ -1324,13 +1326,14 @@ Check to make sure all required properties are specified. This includes properti
 
     <delete dir="${junit.reports.bootstrap}"/>
     <mkdir dir="${junit.reports.bootstrap}"/>
-
+    
     <junit haltonfailure="yes" printsummary="true" showoutput="true">
       <classpath>
         <pathelement location="${build.vmmagic-stub.classes}"/>
         <pathelement location="${build.test-classes}"/>
         <pathelement location="${build.classes}"/>
         <pathelement location="${junit.jar}"/>
+        <pathelement location="${hamcrest.jar}"/>
       </classpath>
       <batchtest fork="yes" todir="${junit.reports.bootstrap}">
         <formatter type="plain"/>
@@ -1347,7 +1350,7 @@ Check to make sure all required properties are specified. This includes properti
     <mkdir dir="${junit.reports.rvm}"/>
 
     <junit jvm="${dist.base}/rvm" haltonfailure="yes" printsummary="true" showoutput="true" >
-      <jvmarg value="-Xbootclasspath/a:${build.test-classes}:${junit.jar}"/>
+      <jvmarg value="-Xbootclasspath/a:${build.test-classes}:${junit.jar}:${hamcrest.jar}"/>
       <classpath>
         <!-- Technically unnecessary as ${junit.jar} is on the boot classpath,
              but needed to make the <junit> task's sanity checks happy. -->
@@ -2433,6 +2436,7 @@ target.jni-suffix=${target.jni-suffix}
       </conditions>
       <sequential>
         <copy file="${classpath.lib.dir}/classpath.jar" tofile="eclipse/classpath.jar" />
+        <copy file="${hamcrest.jar}" tofile="eclipse/hamcrest.jar" />
         <copy file="${junit.jar}" tofile="eclipse/junit.jar" />
         <property name="classpath.template.name" value="classpath.template" />
       </sequential>
