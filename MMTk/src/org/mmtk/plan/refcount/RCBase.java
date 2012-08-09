@@ -32,7 +32,11 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
- * This class implements the global state of a a simple reference counting collector.
+ * This class implements the global state of a reference counting collector.
+ * See Shahriyar et al for details of and rationale for the optimizations used
+ * here (http://dx.doi.org/10.1145/2258996.2259008).  See Chapter 4 of
+ * Daniel Frampton's PhD thesis for details of and rationale for the cycle
+ * collection strategy used by this collector.
  */
 @Uninterruptible
 public class RCBase extends StopTheWorld {
@@ -61,6 +65,9 @@ public class RCBase extends StopTheWorld {
       Phase.scheduleCollector  (PROCESS_OLDROOTBUFFER),
       Phase.scheduleGlobal     (PROCESS_NEWROOTBUFFER),
       Phase.scheduleCollector  (PROCESS_NEWROOTBUFFER),
+      Phase.scheduleMutator    (PROCESS_MODBUFFER),
+      Phase.scheduleGlobal     (PROCESS_MODBUFFER),
+      Phase.scheduleCollector  (PROCESS_MODBUFFER),
       Phase.scheduleMutator    (PROCESS_DECBUFFER),
       Phase.scheduleGlobal     (PROCESS_DECBUFFER),
       Phase.scheduleCollector  (PROCESS_DECBUFFER),
@@ -78,9 +85,6 @@ public class RCBase extends StopTheWorld {
       Phase.scheduleCollector  (STACK_ROOTS),
       Phase.scheduleCollector  (ROOTS),
       Phase.scheduleGlobal     (ROOTS),
-      Phase.scheduleMutator    (PROCESS_MODBUFFER),
-      Phase.scheduleGlobal     (PROCESS_MODBUFFER),
-      Phase.scheduleCollector  (PROCESS_MODBUFFER),
       Phase.scheduleGlobal     (CLOSURE),
       Phase.scheduleCollector  (CLOSURE));
 
@@ -198,6 +202,7 @@ public class RCBase extends StopTheWorld {
 
     if (phaseId == CLOSURE) {
       rootTrace.prepare();
+      modPool.prepare();
       return;
     }
 

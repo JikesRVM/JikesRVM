@@ -131,19 +131,29 @@ public class RCHeader implements Constants {
   public static final int MARK_BIT = LOG_BIT + 2;
   public static final Word MARK_BIT_MASK = Word.one().lsh(MARK_BIT);
 
+  /** The bit used for newly allocated objects. */
+  public static final int NEW_BIT = MARK_BIT + 1;
+  public static final Word NEW_BIT_MASK = Word.one().lsh(NEW_BIT);
+
   /** Current not using any bits for cycle detection, etc */
-  public static final int BITS_USED = MARK_BIT + 1;
+  public static final int BITS_USED = NEW_BIT + 1;
 
   /* Reference counting increments */
 
   public static final int INCREMENT_SHIFT = BITS_USED;
   public static final Word INCREMENT = Word.one().lsh(INCREMENT_SHIFT);
+  public static final Word DOUBLE_INCREMENT = INCREMENT.lsh(1);
   public static final Word LIVE_THRESHOLD = INCREMENT;
 
   /* Return values from decRC */
 
   public static final int DEC_KILL = 0;
   public static final int DEC_ALIVE = 1;
+
+  /* Return values from incRC */
+
+  public static final int INC_OLD = 0;
+  public static final int INC_NEW = 1;
 
   /* Limited bit thresholds and masks */
 
@@ -198,6 +208,22 @@ public class RCHeader implements Constants {
   }
 
   /**
+   * Has this object been marked as new.
+   */
+  @Inline
+  public static boolean isNew(ObjectReference object) {
+    return isHeaderNew(VM.objectModel.readAvailableBitsWord(object));
+  }
+
+  /**
+   * Has this object been marked as new.
+   */
+  @Inline
+  private static boolean isHeaderNew(Word header) {
+    return header.and(NEW_BIT_MASK).NE(NEW_BIT_MASK);
+  }
+
+  /**
    * Perform any required initialization of the GC portion of the header.
    *
    * @param object the object
@@ -239,19 +265,32 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Increment the reference count of an object.
+   * Increment the reference count of an object.  Return either
+   * <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
    *
-   * @param object The object whose reference count is to be incremented.
+   * @param object The object whose RC is to be incremented.
+   * @return <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
    */
   @Inline
-  public static void incRC(ObjectReference object) {
+  public static int incRC(ObjectReference object) {
     Word oldValue, newValue;
+    int rtn;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RCBase.isRCObject(object));
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
-      if (isStuck(oldValue)) return;
-      newValue = oldValue.plus(INCREMENT);
+      if (isStuck(oldValue)) return INC_OLD;
+      if (isHeaderNew(oldValue)) {
+        newValue = oldValue.plus(DOUBLE_INCREMENT);
+        newValue = newValue.or(NEW_BIT_MASK);
+        rtn = INC_NEW;
+      } else {
+        newValue = oldValue.plus(INCREMENT);
+        rtn = INC_OLD;
+      }
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
+    return rtn;
   }
 
   /**
@@ -286,18 +325,57 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Initialize the reference count of an object.
+   * Initialize the reference count of an object.  Return either
+   * <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
    *
-   * @param object The object whose reference count is to be incremented.
+   * @param object The object whose RC is to be initialized.
+   * @return <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
    */
   @Inline
-  public static void initRC(ObjectReference object) {
+  public static int initRC(ObjectReference object) {
     Word oldValue, newValue;
+    int rtn;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RCBase.isRCObject(object));
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
       newValue = oldValue.and(WRITE_MASK).or(INCREMENT);
+      if (isHeaderNew(oldValue)) {
+        newValue=newValue.or(NEW_BIT_MASK);
+        rtn = INC_NEW;
+      } else {
+        rtn = INC_OLD;
+      }
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
+    return rtn;
+  }
+
+  /**
+   * Retain the reference count of an object.  Return either
+   * <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
+   *
+   * @param object The object whose RC is to be retained.
+   * @return <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
+   */
+  @Inline
+  public static int remainRC(ObjectReference object) {
+    Word oldValue, newValue;
+    int rtn;
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RCBase.isRCObject(object));
+    do {
+      oldValue = VM.objectModel.prepareAvailableBits(object);
+      newValue = oldValue;
+      if (isHeaderNew(oldValue)) {
+        newValue=newValue.or(NEW_BIT_MASK);
+        rtn = INC_NEW;
+      } else {
+        return INC_OLD;
+      }
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
+    return rtn;
   }
 
   /**

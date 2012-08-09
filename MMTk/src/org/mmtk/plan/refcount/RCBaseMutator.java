@@ -15,7 +15,6 @@ package org.mmtk.plan.refcount;
 import org.mmtk.plan.StopTheWorldMutator;
 import org.mmtk.plan.refcount.backuptrace.BTSweepImmortalScanner;
 import org.mmtk.policy.ExplicitFreeListLocal;
-import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
@@ -26,7 +25,11 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements the mutator context for a simple reference counting collector.
+ * This class implements the mutator context for a reference counting collector.
+ * See Shahriyar et al for details of and rationale for the optimizations used
+ * here (http://dx.doi.org/10.1145/2258996.2259008).  See Chapter 4 of
+ * Daniel Frampton's PhD thesis for details of and rationale for the cycle
+ * collection strategy used by this collector.
  */
 @Uninterruptible
 public class RCBaseMutator extends StopTheWorldMutator {
@@ -94,24 +97,16 @@ public class RCBaseMutator extends StopTheWorldMutator {
     switch (allocator) {
     case RCBase.ALLOC_DEFAULT:
     case RCBase.ALLOC_NON_MOVING:
-      modBuffer.push(ref);
     case RCBase.ALLOC_CODE:
-      decBuffer.push(ref);
-      RCHeader.initializeHeader(ref, true);
-      ExplicitFreeListSpace.unsyncSetLiveBit(ref);
       break;
     case RCBase.ALLOC_LOS:
-      modBuffer.push(ref);
     case RCBase.ALLOC_PRIMITIVE_LOS:
     case RCBase.ALLOC_LARGE_CODE:
       decBuffer.push(ref);
-      RCHeader.initializeHeader(ref, true);
       RCBase.rcloSpace.initializeHeader(ref, true);
       return;
     case RCBase.ALLOC_IMMORTAL:
-      modBuffer.push(ref);
       decBuffer.push(ref);
-      RCHeader.initializeHeader(ref, true);
       return;
     default:
       VM.assertions.fail("Allocator not understood by RC");
@@ -159,9 +154,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
       }
       rc.release();
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(modBuffer.isEmpty());
-      if (!(RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection)) {
-        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(decBuffer.isEmpty());
-      }
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(decBuffer.isEmpty());
       return;
     }
 

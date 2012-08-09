@@ -28,12 +28,26 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public final class RCModifiedProcessor extends TransitiveClosure {
 
+  private RCCollector collector;
+
+  public RCModifiedProcessor(RCCollector ctor) {
+    this.collector = ctor;
+  }
+
   @Override
   @Inline
   public void processEdge(ObjectReference source, Address slot) {
     ObjectReference object = slot.loadObjectReference();
     if (RCBase.isRCObject(object)) {
-      RCHeader.incRC(object);
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+        if (RCHeader.remainRC(object) == RCHeader.INC_NEW) {
+          collector.getModBuffer().push(object);
+        }
+      } else {
+        if (RCHeader.incRC(object) == RCHeader.INC_NEW) {
+          collector.getModBuffer().push(object);
+        }
+      }
     }
   }
 }

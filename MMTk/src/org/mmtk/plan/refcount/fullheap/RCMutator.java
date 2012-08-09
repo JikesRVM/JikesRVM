@@ -16,7 +16,11 @@ import org.mmtk.plan.refcount.RCBaseMutator;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements the mutator context for a simple reference counting collector.
+ * This class implements the mutator context for a reference counting collector.
+ * See Shahriyar et al for details of and rationale for the optimizations used
+ * here (http://dx.doi.org/10.1145/2258996.2259008).  See Chapter 4 of
+ * Daniel Frampton's PhD thesis for details of and rationale for the cycle
+ * collection strategy used by this collector.
  */
 @Uninterruptible
 public class RCMutator extends RCBaseMutator {
