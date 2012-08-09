@@ -180,7 +180,7 @@ public class RCBase extends StopTheWorld {
       super.collectionPhase(phaseId);
       if (CC_ENABLED) {
         ccForceFull = Options.fullHeapSystemGC.getValue();
-        performCycleCollection = (collectionAttempt > 1) || emergencyCollection || ccForceFull;
+        performCycleCollection |= (collectionAttempt > 1) || emergencyCollection || ccForceFull;
         if (performCycleCollection && Options.verbose.getValue() > 0) Log.write(" [CC] ");
       }
       return;
@@ -242,6 +242,7 @@ public class RCBase extends StopTheWorld {
       } else {
         rcSpace.release();
       }
+      performCycleCollection =  getPagesAvail() < Options.cycleTriggerThreshold.getPages();
       return;
     }
 
