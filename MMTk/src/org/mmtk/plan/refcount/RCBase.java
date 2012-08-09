@@ -45,7 +45,7 @@ public class RCBase extends StopTheWorld {
   /** Is cycle collection enabled? */
   public static final boolean CC_ENABLED           = true;
   /** Force full cycle collection at each GC? */
-  public static final boolean CC_FORCE_FULL        = false;
+  public static boolean ccForceFull        = false;
   /** Use backup tracing for cycle collection (currently the only option) */
   public static final boolean CC_BACKUP_TRACE      = true;
 
@@ -179,7 +179,8 @@ public class RCBase extends StopTheWorld {
     if (phaseId == SET_COLLECTION_KIND) {
       super.collectionPhase(phaseId);
       if (CC_ENABLED) {
-        performCycleCollection = (collectionAttempt > 1) || emergencyCollection || CC_FORCE_FULL;
+        ccForceFull = Options.fullHeapSystemGC.getValue();
+        performCycleCollection = (collectionAttempt > 1) || emergencyCollection || ccForceFull;
         if (performCycleCollection && Options.verbose.getValue() > 0) Log.write(" [CC] ");
       }
       return;
