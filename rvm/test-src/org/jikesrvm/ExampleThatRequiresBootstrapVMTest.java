@@ -15,20 +15,21 @@ package org.jikesrvm;
 import static org.junit.Assert.*;
 import static org.jikesrvm.junit.runners.VMRequirements.isRunningOnJikesRVM;
 
+import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.junit.runners.RequiresBootstrapVM;
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
-import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
-public class ExampleTest {
+@Category(RequiresBootstrapVM.class)
+public class ExampleThatRequiresBootstrapVMTest {
 
   @Test
   @Category(RequiresJikesRVM.class)
   public void testThatRequiresJikesRVM() {
-    assertTrue(isRunningOnJikesRVM());
+    fail();
   }
 
   @Test
@@ -39,6 +40,6 @@ public class ExampleTest {
 
   @Test
   public void testWithNoRequirements(){
-    assertTrue(true);
+    assertFalse(isRunningOnJikesRVM());
   }
 }
