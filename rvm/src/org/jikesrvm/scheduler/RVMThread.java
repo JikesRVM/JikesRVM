@@ -1561,7 +1561,7 @@ public final class RVMThread extends ThreadContext {
       initializeJNIEnv();
 
       if (traceAcct)
-	VM.sysWriteln("Finishing initializeJniEnv() for the thread");
+        VM.sysWriteln("Finishing initializeJniEnv() for the thread");
 
       if (VM.BuildForAdaptiveSystem) {
         onStackReplacementEvent = new OnStackReplacementEvent();
@@ -2946,7 +2946,7 @@ public final class RVMThread extends ThreadContext {
    */
   @Interruptible
   public static void sleep(long millis, int ns) throws InterruptedException {
-    sleep((long) ns + millis * 1000L * 1000L);
+    sleep(ns + millis * 1000L * 1000L);
   }
 
   /*

@@ -314,7 +314,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
     while (tok.hasMoreElements()) {
       try {
         String path = tok.nextToken();
-	//	VM.sysWriteln("Handle path "+ path);
+        // VM.sysWriteln("Handle path "+ path);
         if (path.endsWith(".jar") || path.endsWith(".zip")) {
           ZipFile zf = zipFileCache.get(path);
           if (zf == null) {
@@ -341,7 +341,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
             if (!multiple) return h.getResult();
           }
         } else {
-	  VM.sysWriteln("Load File:"+path + File.separator + name);
+          VM.sysWriteln("Load File:"+path + File.separator + name);
           File file = new File(path + File.separator + name);
           if (file.exists()) {
             h.process(file);

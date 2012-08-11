@@ -111,7 +111,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   static Class<?> getPrimitiveClass(String name) {
       if (name.equals("int")) return Integer.class;
-      if (name.equals("boolean")) return Boolean.class;       
+      if (name.equals("boolean")) return Boolean.class;
       if (name.equals("byte")) return Byte.class;
       if (name.equals("short")) return Short.class;
       if (name.equals("char")) return Character.class;
@@ -435,7 +435,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     ClassLoader cl = type.getClassLoader();
     return cl == BootstrapClassLoader.getBootstrapClassLoader() ? null : cl;
   }
-  // Package-private to allow ClassLoader access                                                                                                           
+  // Package-private to allow ClassLoader access
   native ClassLoader getClassLoader0();
 
   public Class<?> getComponentType() {
@@ -690,32 +690,30 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
   }
 
 
-  /**                                                                                                                                                      
-   * Returns a map from simple name to enum constant.  This package-private                                                                                
-   * method is used internally by Enum to implement                                                                                                        
-   *     public static <T extends Enum<T>> T valueOf(Class<T>, String)                                                                                     
-   * efficiently.  Note that the map is returned by this method is                                                                                         
-   * created lazily on first use.  Typically it won't ever get created.                                                                                    
+  /**
+   * Returns a map from simple name to enum constant.  This package-private
+   * method is used internally by Enum to implement
+   *     public static <T extends Enum<T>> T valueOf(Class<T>, String)
+   * efficiently.  Note that the map is returned by this method is
+   * created lazily on first use.  Typically it won't ever get created.
    */
   Map<String, T> enumConstantDirectory() {
     System.out.println("EnumContantDirectory is called");
     if (enumConstantDirectory == null) {
       T[] universe = getEnumConstants();
       if (universe == null)
-	throw new IllegalArgumentException(
-					   getName() + " is not an enum type");
+        throw new IllegalArgumentException(
+            getName() + " is not an enum type");
       Map<String, T> m = new HashMap<String, T>(2 * universe.length);
       for (T constant : universe){
-	System.out.println("Putting " + ((Enum)constant).name() + " in the HashMap");
-	m.put(((Enum)constant).name(), constant);
+        System.out.println("Putting " + ((Enum)constant).name() + " in the HashMap");
+        m.put(((Enum)constant).name(), constant);
       }
       enumConstantDirectory = m;
     }
     return enumConstantDirectory;
   }
-  private volatile transient Map<String, T> enumConstantDirectory = null;
-    //      throw new Error("TODO enumConstatnDirectory");
-  
+  private transient volatile Map<String, T> enumConstantDirectory = null;
 
   @Pure
   public boolean isEnum() {

@@ -120,7 +120,7 @@ public abstract class TypeDescriptorParsing implements ClassLoaderConstants {
           return false;         // failure to match identifier start.
         }
         identStart = false;     // on to the next one.
-	VM.sysWriteln("isjavaclassname3");
+        VM.sysWriteln("isjavaclassname3");
         continue;
       }
       if (c == '.' || c == '/') {

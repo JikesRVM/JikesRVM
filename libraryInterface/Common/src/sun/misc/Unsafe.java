@@ -100,14 +100,14 @@ public final class Unsafe {
    }
 
   public byte getByte(Object obj, int offset) {
-    Offset off = longToOffset((long)offset);
+    Offset off = longToOffset(offset);
     return Magic.getByteAtOffset(obj,off);
   }
 
   public byte getByte(Object obj, long offset) {
     Offset off = longToOffset(offset);
     return Magic.getByteAtOffset(obj,off);
-  }  
+  }
 
   public byte getByte(long address) {
     return Address.fromLong(address).loadByte();
@@ -254,7 +254,7 @@ public final class Unsafe {
       Magic.setObjectAtOffset(obj,off,value);
     }
   }
-  
+
   public Object getObject(Object obj, long offset) {
     Offset off = longToOffset(offset);
     Object result = Magic.getObjectAtOffset(obj,off);
@@ -272,10 +272,10 @@ public final class Unsafe {
     return 0;
   }
 
-  /**                                                                                                                                                      
-   * Ensure the given class has been initialized. This is often                                                                                            
-   * needed in conjunction with obtaining the static field base of a                                                                                       
-   * class.                                                                                                                                                
+  /**
+   * Ensure the given class has been initialized. This is often
+   * needed in conjunction with obtaining the static field base of a
+   * class.
    */
   public void ensureClassInitialized(Class c){
   }
@@ -305,7 +305,7 @@ public final class Unsafe {
   public void throwException(Throwable ex) {
     RuntimeEntrypoints.athrow(ex);
   }
-  
+
 
   /*Set the memory*/
   public void setMemory(long address, long bytes, byte value) {
@@ -317,5 +317,5 @@ public final class Unsafe {
   public void copyMemory(long srcAddress, long destAddress, long bytes) {
     Memory.memcopy(Address.fromLong(destAddress), Address.fromLong(srcAddress), (int)bytes);
   }
-    
+
 }

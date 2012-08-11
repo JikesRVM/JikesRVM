@@ -136,7 +136,16 @@ public class VM extends Properties implements Constants, ExitStatus {
     // has placed a pointer to the current RVMThread in a special
     // register.
     if (verboseBoot >= 1) VM.sysWriteln("Setting up current RVMThread");
-    //    ThreadLocalState.boot();
+
+    // TODO get thread local state working and/or
+    // use VM.BuildForOpenJDK when it's been introduced
+    if (VM.BuildForGnuClasspath || VM.BuildForHarmony) {
+      // This line was commented out for OpenJDK which led to a checkstyle
+      // failure because of an unused import. It is better to leave the line
+      // in. Removing and re-adding the import is error-prone as ThreadLocalState
+      // is using ArchitectureSpecific.
+      ThreadLocalState.boot();
+    }
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any interruptible methods are called
@@ -463,9 +472,9 @@ public class VM extends Properties implements Constants, ExitStatus {
     runClassInitializer("java.nio.Bits");
     runClassInitializer("sun.nio.cs.StreamEncoder");
     runClassInitializer("java.util.StringTokenizer");
-    
+
     //    abcdefg();
-    
+
     if (verboseBoot >= 1) VM.sysWriteln("initializing standard streams");
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     FileSystem.initializeStandardStreams();
@@ -476,7 +485,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     ///////////////////////////////////////////////////////////////
     if (verboseBoot >= 1) VM.sysWriteln("VM is now fully booted");
 
-    if (verboseBoot >= 1) 
+    if (verboseBoot >= 1)
       System.out.println("Real hello world");
 
     // Inform interested subsystems that VM is fully booted.
