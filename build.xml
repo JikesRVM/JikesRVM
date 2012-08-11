@@ -1322,7 +1322,7 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="bootstrap-unit-tests" description="Run unit tests the boostrap VM" depends="test-compile">
+  <target name="bootstrap-unit-tests" description="Run unit tests on the boostrap VM" depends="test-compile">
 
     <delete dir="${junit.reports.bootstrap}"/>
     <mkdir dir="${junit.reports.bootstrap}"/>
