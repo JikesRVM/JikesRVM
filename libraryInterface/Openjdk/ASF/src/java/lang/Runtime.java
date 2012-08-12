@@ -283,7 +283,7 @@ public class Runtime {
 
     //    execShutdownSequence();
 
-    //    org.jikesrvm.VM.sysExit(status);
+    org.jikesrvm.VM.sysExit(status);
   }
 
   /**
