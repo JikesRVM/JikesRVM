@@ -2691,6 +2691,8 @@ target.jni-suffix=${target.jni-suffix}
             <include name="**/*.jar" />
           </fileset>
         </copy>
+        <copy file="${hamcrest.jar}" tofile="eclipse/hamcrest.jar" />
+        <copy file="${junit.jar}" tofile="eclipse/junit.jar" />
         <property name="classpath.template.name" value="classpath.openjdk.template" />
       </sequential>
     </if>

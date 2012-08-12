@@ -13,6 +13,7 @@
  -->
 <classpath>
   <classpathentry excluding="**/@OTHER_ARCH@/**|org/jikesrvm/tools/header_gen/GenArch_@OTHER_ARCH@.java" kind="src" path="rvm/src"/>
+  <classpathentry kind="src" path="rvm/test-src"/>
   <classpathentry kind="src" path="MMTk/ext/vm/jikesrvm"/>
   <classpathentry kind="src" path="MMTk/src"/>
   <classpathentry kind="src" path="common/options/src"/>
@@ -34,6 +35,9 @@
   <classpathentry kind="lib" path="eclipse/rt.jar"/>
   <classpathentry kind="lib" path="eclipse/jsse.jar"/>
   <classpathentry kind="lib" path="eclipse/resources.jar"/>
+  
+  <classpathentry kind="lib" path="eclipse/hamcrest.jar"/>
+  <classpathentry kind="lib" path="eclipse/junit.jar"/>
 
   <classpathentry kind="output" path="eclipse/bin"/>
 </classpath>
