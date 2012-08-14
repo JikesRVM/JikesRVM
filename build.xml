@@ -1052,6 +1052,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_GNU_CLASSPATH" value="true" else="false">
       <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
+    <condition property="pp_RVM_WITH_OPENJDK" value="true" else="false">
+      <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+    </condition>
 
     <copy file="${basedir}/rvm/src-generated/vm-configuration/Configuration.template"
           tofile="${generated.config.java}/org/jikesrvm/Configuration.java">
@@ -1080,6 +1083,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_PORTABLE_NATIVE_SYNC_" value="${config.portable-native-sync}"/>
         <filter token="_RVM_WITH_HARMONY_" value="${pp_RVM_WITH_HARMONY}"/>
         <filter token="_RVM_WITH_GNU_CLASSPATH_" value="${pp_RVM_WITH_GNU_CLASSPATH}"/>
+        <filter token="_RVM_WITH_OPENJDK_" value="${pp_RVM_WITH_OPENJDK}"/>
       </filterset>
     </copy>
 

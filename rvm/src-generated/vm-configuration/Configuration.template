@@ -39,6 +39,7 @@ public abstract class Configuration {
 
   public static final boolean BuildForGnuClasspath = @_RVM_WITH_GNU_CLASSPATH_@;
   public static final boolean BuildForHarmony = @_RVM_WITH_HARMONY_@;
+  public static final boolean BuildForOpenJDK = @_RVM_WITH_OPENJDK_@;
 
   public static final boolean LittleEndian = BuildForIA32;
 
