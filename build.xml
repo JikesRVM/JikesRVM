@@ -94,13 +94,13 @@
 
   <!-- Set the class library to use -->
   <!-- <property name="classlib.provider" value="GNU Classpath"/> -->
-  <property name="classlib.provider" value="Openjdk"/>
+  <property name="classlib.provider" value="OpenJDK"/>
   <condition property="harmony.classlib" value="true">
     <equals arg1="${classlib.provider}" arg2="Harmony"/>
   </condition>
 
   <condition property="openjdk.classlib" value="true">
-    <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+    <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
   </condition>
 
   <condition property="classpath.classlib" value="true">
@@ -172,7 +172,7 @@
   </target>
 
   <target name="check-classlibrary-properties">
-    <fail message="Cannot have both Harmony, Openjdk, and Classpath class libraries">
+    <fail message="Cannot have both Harmony, OpenJDK, and Classpath class libraries">
       <condition>
 	<and>
           <isset property="harmony.classlib"/>
@@ -187,7 +187,7 @@
           <or>
             <equals arg1="${classlib.provider}" arg2="Harmony"/>
             <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
-	    <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+	    <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
           </or>
 	</not>
       </condition>
@@ -299,7 +299,7 @@
     </if>
      <if>
        <conditions>
-	 <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+	 <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
        </conditions>
        <sequential>
 	 <ant antfile="build/components/openjdk.xml" target="ensure"/>
@@ -419,7 +419,7 @@ Check to make sure all required properties are specified. This includes properti
     </condition>
 
     <condition property="classlib.filter" value="-DRVM_FOR_OPENJDK=1">
-      <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+      <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
     </condition>
 
     <condition property="gctrace.filter" value="-DRVM_WITH_GCTRACE=1" else="">
@@ -1054,7 +1054,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
     <condition property="pp_RVM_WITH_OPENJDK" value="true" else="false">
-      <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+      <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
     </condition>
 
     <copy file="${basedir}/rvm/src-generated/vm-configuration/Configuration.template"
@@ -1196,12 +1196,12 @@ Check to make sure all required properties are specified. This includes properti
     <!--added by Xi Yang-->
     <if>
       <conditions>
-	<equals arg1="${classlib.provider}" arg2="Openjdk"/>
+	<equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>
-	<property name="classlib.library-interface.cpl.java" location="libraryInterface/Openjdk/EPL/src"/>
-        <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/Openjdk/ASF/src"/>
-        <property name="classlib.library-interface.non-cpl2.java" location="libraryInterface/Openjdk/GPL/src"/>
+	<property name="classlib.library-interface.cpl.java" location="libraryInterface/OpenJDK/EPL/src"/>
+        <property name="classlib.library-interface.non-cpl.java" location="libraryInterface/OpenJDK/ASF/src"/>
+        <property name="classlib.library-interface.non-cpl2.java" location="libraryInterface/OpenJDK/GPL/src"/>
       </sequential>
     </if>      
   </target>
@@ -1311,7 +1311,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <if>
       <conditions>
-	<equals arg1="${classlib.provider}" arg2="Openjdk"/>
+	<equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>       
         <javac destdir="${build.classes}"
@@ -1638,13 +1638,13 @@ Check to make sure all required properties are specified. This includes properti
 
     <if>
       <conditions>
-	<equals arg1="${classlib.provider}" arg2="Openjdk"/>
+	<equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>
 	<concat destfile="${build.base}/Primordials.txt">
 	  <filelist dir="${build.base}" files="ClassesForImage.txt"/>
           <filelist dir="${primordials.dir}"
-                    files="Openjdk.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
+                    files="OpenJDK.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
         </concat>
       </sequential>
     </if> 
@@ -1684,8 +1684,8 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
 
-    <condition property="bootimage.classlib" value="Openjdk">
-      <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+    <condition property="bootimage.classlib" value="OpenJDK">
+      <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
     </condition>
 
     <echo message="Building bootimage. Output redirected to : ${build.base}/BootImageWriterOutput.txt"/>
@@ -1986,7 +1986,7 @@ Check to make sure all required properties are specified. This includes properti
 
     <if>
       <conditions>
-        <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+        <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>
         <exec executable="${c++.exe}" failonerror="true">
@@ -2230,7 +2230,7 @@ target.jni-suffix=${target.jni-suffix}
     </if>
     <if>
       <conditions>
-        <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+        <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>
 
@@ -2691,7 +2691,7 @@ target.jni-suffix=${target.jni-suffix}
     </if>
     <if>
       <conditions>
-        <equals arg1="${classlib.provider}" arg2="Openjdk"/>
+        <equals arg1="${classlib.provider}" arg2="OpenJDK"/>
       </conditions>
       <sequential>
         <copy toDir="eclipse" verbose="true">

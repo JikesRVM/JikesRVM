@@ -94,7 +94,7 @@ Building Options:
      --comp-cache-dir Specify a cache location for component downloads
      --clear-cc       Clear out the component caches
      --harmony        Build with harmony (instead of classpath)
-     --openjdk        Build with Openjdk libraries (instead of classpath)
+     --openjdk        Build with OpenJDK libraries (instead of classpath)
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -663,7 +663,7 @@ if ($ok) {
       $defs .= "-Dclasslib.provider=Harmony ";
     }
     if ($openjdk ne "") {
-	$defs .= "-Dclasslib.provider=Openjdk ";
+	$defs .= "-Dclasslib.provider=OpenJDK ";
     }
     if ($with_perfevent ne "") {
       $defs .= "-Dconfig.include.perfevent=true ";
