@@ -315,6 +315,7 @@
     </if>
     <ant antfile="build/components/junit.xml" target="ensure"/>
     <ant antfile="build/components/hamcrest.xml" target="ensure"/>
+    <ant antfile="build/components/mockito.xml" target="ensure"/>
     <property file="${components.file}"/>
   </target>
 
@@ -1318,6 +1319,7 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.classes}"/>
         <pathelement location="${junit.jar}"/>
         <pathelement location="${hamcrest.jar}"/>
+        <pathelement location="${mockito.jar}"/>
       </classpath>
     </javac>
   </target>
@@ -1334,6 +1336,7 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.classes}"/>
         <pathelement location="${junit.jar}"/>
         <pathelement location="${hamcrest.jar}"/>
+        <pathelement location="${mockito.jar}"/>
       </classpath>
       <batchtest fork="yes" todir="${junit.reports.bootstrap}">
         <formatter type="plain"/>
@@ -2436,8 +2439,9 @@ target.jni-suffix=${target.jni-suffix}
       </conditions>
       <sequential>
         <copy file="${classpath.lib.dir}/classpath.jar" tofile="eclipse/classpath.jar" />
-        <copy file="${hamcrest.jar}" tofile="eclipse/hamcrest.jar" />
         <copy file="${junit.jar}" tofile="eclipse/junit.jar" />
+        <copy file="${hamcrest.jar}" tofile="eclipse/hamcrest.jar" />
+        <copy file="${mockito.jar}" tofile="eclipse/mockito.jar" />
         <property name="classpath.template.name" value="classpath.template" />
       </sequential>
     </if>
