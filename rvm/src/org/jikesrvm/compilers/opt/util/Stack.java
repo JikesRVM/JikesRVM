@@ -66,6 +66,8 @@ public class Stack<T> implements Iterable<T> {
       if (t1 != t2) {
         return false;
       }
+      t1 = i1.next();
+      t2 = i2.next();
     }
     return !i1.hasNext() && !i2.hasNext();
   }
