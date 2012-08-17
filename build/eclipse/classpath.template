@@ -29,8 +29,9 @@
   <classpathentry kind="src" path="eclipse/gen-arch"/>
 
   <classpathentry kind="lib" path="eclipse/classpath.jar"/>
-  <classpathentry kind="lib" path="eclipse/hamcrest.jar"/>
   <classpathentry kind="lib" path="eclipse/junit.jar"/>
+  <classpathentry kind="lib" path="eclipse/hamcrest.jar"/>
+  <classpathentry kind="lib" path="eclipse/mockito.jar"/>
 
   <classpathentry kind="output" path="eclipse/bin"/>
 </classpath>

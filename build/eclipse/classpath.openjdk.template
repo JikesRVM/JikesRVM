@@ -35,9 +35,10 @@
   <classpathentry kind="lib" path="eclipse/rt.jar"/>
   <classpathentry kind="lib" path="eclipse/jsse.jar"/>
   <classpathentry kind="lib" path="eclipse/resources.jar"/>
-  
-  <classpathentry kind="lib" path="eclipse/hamcrest.jar"/>
+
   <classpathentry kind="lib" path="eclipse/junit.jar"/>
+  <classpathentry kind="lib" path="eclipse/hamcrest.jar"/>
+  <classpathentry kind="lib" path="eclipse/mockito.jar"/>
 
   <classpathentry kind="output" path="eclipse/bin"/>
 </classpath>

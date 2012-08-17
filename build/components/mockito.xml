@@ -1,0 +1,51 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="mockito" default="build" basedir=".">
+
+  <import file="base.xml"/>
+  <property file="${components.file}"/>
+
+  <property name="mockito.version" value="1.9.5-rc1"/>
+  <property name="mockito.description" value="Mockito"/>
+
+  <property name="mockito.package.dir" value="${components.dir}/mockito/${mockito.version}"/>
+
+  <target name="init-mockito-properties" depends="prepare-ant-tasks">
+    <condition property="mockito.from-web" value="true">
+      <or>
+        <not>
+          <available file="${mockito.package.dir}/constants.properties"/>
+        </not>
+        <isset property="mockito.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-mockito-properties" if="mockito.from-web">
+    <property name="mockito.web-archive" value="mockito${mockito.version}.jar"/>
+    <mkdir dir="${mockito.package.dir}"/>
+    <cachedGet key="${mockito.web-archive}"
+         src="http://mockito.googlecode.com/files/mockito-all-${mockito.version}.jar"
+         dest="${mockito.package.dir}/${mockito.web-archive}"/>
+    <writeComponentConstants dir="${mockito.package.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="mockito.jar" value="${mockito.package.dir}/${mockito.web-archive}"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="mockito" dir="${mockito.package.dir}"/>
+  </target>
+
+</project>

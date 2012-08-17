@@ -76,9 +76,9 @@
   <classpathentry kind="lib" path="eclipse/yoko-rmi-impl.jar"/>
   <classpathentry kind="lib" path="eclipse/yoko-rmi-spec.jar"/>
 
-  <classpathentry kind="lib" path="eclipse/hamcrest.jar"/>
   <classpathentry kind="lib" path="eclipse/junit.jar"/>
-
+  <classpathentry kind="lib" path="eclipse/hamcrest.jar"/>
+  <classpathentry kind="lib" path="eclipse/mockito.jar"/>
 
   <classpathentry kind="output" path="eclipse/bin"/>
 </classpath>
