@@ -18,8 +18,13 @@ export BASE_ARGS="-X:ic=$RVM_HOME/RVM.code.image -X:id=$RVM_HOME/RVM.data.image 
 
 # This may need to be LIBPATH under AIX or SHLIB_PATH on HP-UX
 case $( uname ) in
-    Darwin ) export DYLD_LIBRARY_PATH=$RVM_HOME:$RVM_HOME/lib/i386:$RVM_HOME/lib/i386/server:$DYLD_LIBRARY_PATH ;;
-    *      ) export LD_LIBRARY_PATH=$RVM_HOME:$LD_LIBRARY_PATH ;;
+    Darwin)
+        export DYLD_LIBRARY_PATH=$RVM_HOME:$RVM_HOME/lib/i386:$RVM_HOME/lib/i386/server:$DYLD_LIBRARY_PATH
+        export DYLD_FORCE_FLAT_NAMESPACE=true
+        ;;
+    *)
+        export LD_LIBRARY_PATH=$RVM_HOME:$LD_LIBRARY_PATH
+        ;;
 esac
 
 WRAP=exec
