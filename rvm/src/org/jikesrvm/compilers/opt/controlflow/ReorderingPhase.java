@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.controlflow;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -23,7 +24,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -106,8 +106,8 @@ public final class ReorderingPhase extends CompilerPhase {
     //     Also count how many blocks there are.
     int numBlocks = 0;
     boolean foundSome = false;
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       numBlocks++;
       foundSome |= bb.getInfrequent();
     }

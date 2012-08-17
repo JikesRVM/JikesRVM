@@ -13,11 +13,11 @@
 package org.jikesrvm.compilers.opt.dfsolver;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.util.Graph;
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
  * Implementation of a graph used in the guts of the dataflow equation
@@ -52,8 +52,8 @@ class DF_Graph implements Graph {
    * @return an enumeration of the nodes in the graph
    */
   @Override
-  public GraphNodeEnumeration enumerateNodes() {
-    return new GraphNodeEnumeration() {
+  public Enumeration<GraphNode> enumerateNodes() {
+    return new Enumeration<GraphNode>() {
       private int i = 0;
 
       @Override
@@ -62,13 +62,8 @@ class DF_Graph implements Graph {
       }
 
       @Override
-      public GraphNode next() {
-        return nodes.get(i++);
-      }
-
-      @Override
       public GraphNode nextElement() {
-        return next();
+        return nodes.get(i++);
       }
     };
   }

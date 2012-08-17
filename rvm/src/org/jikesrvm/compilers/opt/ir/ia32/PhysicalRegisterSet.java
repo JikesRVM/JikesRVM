@@ -20,10 +20,10 @@ import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.util.BitSet;
 import org.jikesrvm.compilers.opt.util.CompoundEnumerator;
-import org.jikesrvm.compilers.opt.util.EmptyEnumerator;
 import org.jikesrvm.compilers.opt.util.ReverseEnumerator;
 import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.ia32.RegisterConstants;
+import org.jikesrvm.util.EmptyEnumeration;
 
 /**
  * This class represents a set of Registers corresponding to the
@@ -582,7 +582,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
       case DOUBLE_REG:
         return enumerateVolatileFPRs();
       case SPECIAL_REG:
-        return EmptyEnumerator.emptyEnumeration();
+        return EmptyEnumeration.emptyEnumeration();
       default:
         throw new OptimizingCompilerException("Unsupported volatile type");
     }
@@ -620,7 +620,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
       case DOUBLE_REG:
         return enumerateNonvolatileFPRs();
       case SPECIAL_REG:
-        return EmptyEnumerator.emptyEnumeration();
+        return EmptyEnumeration.emptyEnumeration();
       default:
         throw new OptimizingCompilerException("Unsupported non-volatile type");
     }

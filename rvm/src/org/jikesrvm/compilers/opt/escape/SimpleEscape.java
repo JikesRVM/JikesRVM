@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.escape;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -35,8 +36,6 @@ import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG_opcode;
@@ -256,8 +255,8 @@ class SimpleEscape extends CompilerPhase {
     // update the method summary database to note whether
     // parameters may escape
     int numParam = 0;
-    for (OperandEnumeration e = ir.getParameters(); e.hasMoreElements(); numParam++) {
-      Register p = ((RegisterOperand) e.next()).getRegister();
+    for (Enumeration<Operand> e = ir.getParameters(); e.hasMoreElements(); numParam++) {
+      Register p = ((RegisterOperand) e.nextElement()).getRegister();
       if (result.isThreadLocal(p)) {
         summ.setParameterMayEscapeThread(numParam, false);
       } else {
@@ -842,8 +841,8 @@ class SimpleEscape extends CompilerPhase {
    */
   private static Iterator<Operand> iterateReturnValues(IR ir) {
     ArrayList<Operand> returnValues = new ArrayList<Operand>();
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (Return.conforms(s)) {
         returnValues.add(Return.getVal(s));
       }

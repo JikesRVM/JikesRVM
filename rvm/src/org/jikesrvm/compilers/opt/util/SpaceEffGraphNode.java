@@ -485,12 +485,12 @@ public class SpaceEffGraphNode implements GraphNode {
   }
 
   @Override
-  public final GraphNodeEnumeration inNodes() {
+  public final Enumeration<GraphNode> inNodes() {
     return new InNodeEnumeration(this);
   }
 
   @Override
-  public final GraphNodeEnumeration outNodes() {
+  public final Enumeration<GraphNode> outNodes() {
     return new OutNodeEnumeration(this);
   }
 
@@ -659,7 +659,7 @@ public class SpaceEffGraphNode implements GraphNode {
     }
   }
 
-  static final class InNodeEnumeration implements GraphNodeEnumeration {
+  static final class InNodeEnumeration implements Enumeration<GraphNode> {
     private SpaceEffGraphEdge _edge;
 
     public InNodeEnumeration(SpaceEffGraphNode n) {
@@ -670,10 +670,7 @@ public class SpaceEffGraphNode implements GraphNode {
     public boolean hasMoreElements() { return _edge != null; }
 
     @Override
-    public GraphNode nextElement() { return next(); }
-
-    @Override
-    public GraphNode next() {
+    public GraphNode nextElement() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextIn;
       return e.fromNode();
@@ -701,7 +698,7 @@ public class SpaceEffGraphNode implements GraphNode {
     }
   }
 
-  static final class OutNodeEnumeration implements GraphNodeEnumeration {
+  static final class OutNodeEnumeration implements Enumeration<GraphNode> {
     private SpaceEffGraphEdge _edge;
 
     public OutNodeEnumeration(SpaceEffGraphNode n) {
@@ -712,10 +709,7 @@ public class SpaceEffGraphNode implements GraphNode {
     public boolean hasMoreElements() { return _edge != null; }
 
     @Override
-    public GraphNode nextElement() { return next(); }
-
-    @Override
-    public GraphNode next() {
+    public GraphNode nextElement() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextOut;
       return e.toNode();

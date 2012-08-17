@@ -12,16 +12,16 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Athrow;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Trap;
 import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
@@ -59,17 +59,17 @@ public class AdjustBranchProbabilities extends CompilerPhase {
    */
   @Override
   public final void perform(IR ir) {
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock target = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock target = e.nextElement();
       if (findInfrequentInstruction(target)) {
         blockLoop:
-        for (BasicBlockEnumeration sources = target.getIn(); sources.hasMoreElements();) {
-          BasicBlock source = sources.next();
+        for (Enumeration<BasicBlock> sources = target.getIn(); sources.hasMoreElements();) {
+          BasicBlock source = sources.nextElement();
           // Found an edge to an infrequent block.
           // Look to see if there is a conditional branch that we need to adjust
           Instruction condBranch = null;
-          for (InstructionEnumeration ie = source.enumerateBranchInstructions(); ie.hasMoreElements();) {
-            Instruction s = ie.next();
+          for (Enumeration<Instruction> ie = source.enumerateBranchInstructions(); ie.hasMoreElements();) {
+            Instruction s = ie.nextElement();
             if (IfCmp.conforms(s) && IfCmp.getBranchProfile(s).takenProbability == 0.5f) {
               if (condBranch == null) {
                 condBranch = s;
@@ -94,8 +94,8 @@ public class AdjustBranchProbabilities extends CompilerPhase {
   }
 
   private boolean findInfrequentInstruction(BasicBlock bb) {
-    for (InstructionEnumeration e2 = bb.forwardRealInstrEnumerator(); e2.hasMoreElements();) {
-      Instruction s = e2.next();
+    for (Enumeration<Instruction> e2 = bb.forwardRealInstrEnumerator(); e2.hasMoreElements();) {
+      Instruction s = e2.nextElement();
       if (Call.conforms(s)) {
         MethodOperand op = Call.getMethod(s);
         if (op != null) {

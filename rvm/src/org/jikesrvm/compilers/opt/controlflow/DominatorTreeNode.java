@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.opt.controlflow;
 import java.util.Enumeration;
 
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.util.TreeNode;
 import org.jikesrvm.util.BitVector;
@@ -188,7 +187,7 @@ public class DominatorTreeNode extends TreeNode {
    * @return an enumeration of the basic blocks in the dominance frontier
    * for this node.
    */
-  BasicBlockEnumeration domFrontierEnumerator(IR ir) {
+  Enumeration<BasicBlock> domFrontierEnumerator(IR ir) {
     return ir.getBasicBlocks(dominanceFrontier);
   }
 

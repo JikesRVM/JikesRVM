@@ -12,11 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 
@@ -83,7 +84,7 @@ final class Diamond {
     if (bb.getNumberOfNormalOut() != 2) return null;
 
     // Identify the two out nodes from bb.
-    BasicBlockEnumeration outNodes = bb.getNormalOut();
+    Enumeration<BasicBlock> outNodes = bb.getNormalOut();
     BasicBlock out1 = outNodes.nextElement();
     BasicBlock out2 = outNodes.nextElement();
     int out1In = out1.getNumberOfIn();

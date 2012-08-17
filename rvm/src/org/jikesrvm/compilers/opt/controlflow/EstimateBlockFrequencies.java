@@ -20,7 +20,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.WeightedBranchTargets;
 
@@ -126,8 +125,8 @@ public class EstimateBlockFrequencies extends CompilerPhase {
     // Compute loop multipliers
     if (lst != null) {
       computeLoopMultipliers(lst.getRoot());
-      for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-        BasicBlock bb = e.next();
+      for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+        BasicBlock bb = e.nextElement();
         bb.setExecutionFrequency(0f);
         bb.clearScratchFlag();
       }
@@ -144,8 +143,8 @@ public class EstimateBlockFrequencies extends CompilerPhase {
    * Set the frequency of each basic block to 1.0f.
    */
   private void setDumbFrequencies(IR ir) {
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       bb.setExecutionFrequency(1f);
     }
   }

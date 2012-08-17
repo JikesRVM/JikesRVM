@@ -21,7 +21,6 @@ import java.util.TreeSet;
 import org.jikesrvm.compilers.opt.util.FilterEnumerator;
 import org.jikesrvm.compilers.opt.util.Graph;
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 import org.jikesrvm.compilers.opt.util.GraphUtilities;
 import org.jikesrvm.compilers.opt.util.ReverseDFSenumerateByFinish;
 
@@ -414,7 +413,7 @@ public abstract class DF_System {
    *    </ul>
    */
   private void numberEquationsTopological() {
-    GraphNodeEnumeration topOrder = GraphUtilities.
+    Enumeration<GraphNode> topOrder = GraphUtilities.
         enumerateTopSort(equations);
     Enumeration<GraphNode> rev = new ReverseDFSenumerateByFinish(equations, topOrder);
     int number = 0;
@@ -435,10 +434,10 @@ public abstract class DF_System {
     int count = 0;
     for (Enumeration<GraphNode> e = equations.enumerateNodes(); e.hasMoreElements();) {
       GraphNode eq = e.nextElement();
-      GraphNodeEnumeration outs = eq.outNodes();
+      Enumeration<GraphNode> outs = eq.outNodes();
       while (outs.hasMoreElements()) {
         count++;
-        outs.next();
+        outs.nextElement();
       }
     }
     System.out.println("graph has " + count + " edges");

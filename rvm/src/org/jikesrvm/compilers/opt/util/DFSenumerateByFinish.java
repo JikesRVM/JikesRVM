@@ -12,6 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+
 
 /**
  * This class implements depth-first search over a Graph,
@@ -20,7 +24,7 @@ package org.jikesrvm.compilers.opt.util;
  * graph nodes to define the graph, but this behavior can be changed
  * by overriding the getConnected method.
  */
-public class DFSenumerateByFinish extends Stack<GraphNode> implements GraphNodeEnumeration {
+public class DFSenumerateByFinish extends Stack<GraphNode> implements Enumeration<GraphNode> {
 
   /**
    *  Construct a depth-first enumerator across all the nodes of a
@@ -40,19 +44,19 @@ public class DFSenumerateByFinish extends Stack<GraphNode> implements GraphNodeE
    * @param net the graph whose nodes to enumerate
    * @param nodes the set of nodes from which to start searching
    */
-  public DFSenumerateByFinish(Graph net, GraphNodeEnumeration nodes) {
+  public DFSenumerateByFinish(Graph net, Enumeration<GraphNode> nodes) {
     e = nodes;
     net.compactNodeNumbering();
-    info = new GraphNodeEnumeration[net.numberOfNodes() + 1];
+    info = new ArrayList<Enumeration<GraphNode>>(net.numberOfNodes() + 1);
     //  info = new java.util.HashMap( net.numberOfNodes() );
     if (e.hasMoreElements()) {
-      theNextElement = e.next();
+      theNextElement = e.nextElement();
     }
   }
 
   /**
    * While a depth-first enumeration is in progress, this field
-   * holds the current root node, i.e. the current botton of the
+   * holds the current root node, i.e. the current bottom of the
    * search stack (assuming stacks grow upward).  This is used
    * primarily when constructing strongly connected components.
    */
@@ -65,7 +69,7 @@ public class DFSenumerateByFinish extends Stack<GraphNode> implements GraphNodeE
    */
   @Override
   public boolean hasMoreElements() {
-    return (!empty() || (theNextElement != null && info[theNextElement.getIndex()] == null));
+    return (!empty() || (theNextElement != null && info.get(theNextElement.getIndex()) == null));
   }
 
   /**
@@ -76,46 +80,34 @@ public class DFSenumerateByFinish extends Stack<GraphNode> implements GraphNodeE
    *  @return the next graph node in finishing time order.
    */
   @Override
-  public GraphNode next() {
+  public GraphNode nextElement() {
     if (empty()) {
       GraphNode v = theNextElement;
       currentRoot = theNextElement;
-      info[v.getIndex()] = getConnected(v);
+      info.set(v.getIndex(), getConnected(v));
       push(v);
     }
     recurse:
     while (!empty()) {
       GraphNode v = peek();
-      GraphNodeEnumeration pendingChildren = info[v.getIndex()];
-      for (GraphNodeEnumeration e = pendingChildren; e.hasMoreElements();) {
-        GraphNode n = e.next();
-        GraphNodeEnumeration nChildren = info[n.getIndex()];
+      Enumeration<GraphNode> pendingChildren = info.get(v.getIndex());
+      for (Enumeration<GraphNode> e = pendingChildren; e.hasMoreElements();) {
+        GraphNode n = e.nextElement();
+        Enumeration<GraphNode> nChildren = info.get(n.getIndex());
         if (nChildren == null) {
           // found a new child: recurse to it.
-          info[n.getIndex()] = getConnected(n);
+          info.set(n.getIndex(), getConnected(n));
           push(n);
           continue recurse;
         }
       }
       // no more children to visit: finished this vertex
-      while (info[theNextElement.getIndex()] != null && e.hasMoreElements()) {
-        theNextElement = e.next();
+      while (info.get(theNextElement.getIndex()) != null && e.hasMoreElements()) {
+        theNextElement = e.nextElement();
       }
       return pop();
     }
     return null;
-  }
-
-  /**
-   *  Wrapper for next() to make the Enumeration interface happy
-   *
-   * @see #next
-   *
-   * @return the next node in finishing time order
-   */
-  @Override
-  public GraphNode nextElement() {
-    return next();
   }
 
   /**
@@ -125,11 +117,11 @@ public class DFSenumerateByFinish extends Stack<GraphNode> implements GraphNodeE
   /**
    * an enumeration of all nodes to search from
    */
-  private final GraphNodeEnumeration e;
+  private final Enumeration<GraphNode> e;
   /**
    * an enumeration of child nodes for each node being searched
    */
-  private final GraphNodeEnumeration[] info;
+  private final List<Enumeration<GraphNode>> info;
 
   /**
    * get the out edges of a given node
@@ -137,7 +129,7 @@ public class DFSenumerateByFinish extends Stack<GraphNode> implements GraphNodeE
    * @param n the node of which to get the out edges
    * @return the out edges
    */
-  protected GraphNodeEnumeration getConnected(GraphNode n) {
+  protected Enumeration<GraphNode> getConnected(GraphNode n) {
     return n.outNodes();
   }
 }

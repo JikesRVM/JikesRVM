@@ -10,15 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package org.jikesrvm.junit.runners;
 
-import org.jikesrvm.compilers.opt.ir.operand.Operand;
+public final class RequiresJikesRVM {
 
-/**
- * Extend java.util.Enumeration to avoid downcasts from object.
- */
-public interface OperandEnumeration extends java.util.Enumeration<Operand> {
-  /** Same as nextElement but avoid the need to downcast from Object */
-  Operand next();
+  private RequiresJikesRVM() { }
 }
-

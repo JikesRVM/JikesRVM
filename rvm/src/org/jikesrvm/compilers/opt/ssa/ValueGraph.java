@@ -35,7 +35,6 @@ import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.PI;
@@ -267,8 +266,8 @@ final class ValueGraph {
    */
   private void processMove(Instruction s) {
     // ignore instructions that define physical registers
-    for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
-      Operand current = e.next();
+    for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements();) {
+      Operand current = e.nextElement();
       if (current instanceof RegisterOperand && ((RegisterOperand) current).getRegister().isPhysical()) return;
     }
 
@@ -595,8 +594,8 @@ final class ValueGraph {
    */
   private void processPrologue(Instruction s) {
     int numArgs = 0;
-    for (OperandEnumeration e = s.getDefs(); e.hasMoreElements(); numArgs++) {
-      Register formal = ((RegisterOperand) e.next()).getRegister();
+    for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements(); numArgs++) {
+      Register formal = ((RegisterOperand) e.nextElement()).getRegister();
       ValueGraphVertex v = findOrCreateVertex(formal);
       v.setLabel(new ValueGraphParamLabel(numArgs), 0);
     }

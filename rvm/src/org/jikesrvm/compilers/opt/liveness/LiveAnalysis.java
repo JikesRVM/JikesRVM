@@ -30,12 +30,10 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.GCIRMap;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
@@ -507,9 +505,9 @@ public final class LiveAnalysis extends CompilerPhase {
 
       // traverse from defs to uses becauses uses happen after
       // (in a backward sense) defs
-      OperandEnumeration defs = inst.getPureDefs();
+      Enumeration<Operand> defs = inst.getPureDefs();
       while (defs.hasMoreElements()) {
-        Operand def = defs.next();
+        Operand def = defs.nextElement();
         if (def instanceof RegisterOperand) {
           RegisterOperand regOp = (RegisterOperand) def;
 
@@ -548,8 +546,8 @@ public final class LiveAnalysis extends CompilerPhase {
 
       // Now process the uses, unless this is a PHI operator
       if (inst.operator() != PHI) {
-        for (OperandEnumeration uses = inst.getUses(); uses.hasMoreElements();) {
-          Operand use = uses.next();
+        for (Enumeration<Operand> uses = inst.getUses(); uses.hasMoreElements();) {
+          Operand use = uses.nextElement();
           if (use instanceof RegisterOperand) {
             RegisterOperand regOp = (RegisterOperand) use;
 
@@ -668,8 +666,8 @@ public final class LiveAnalysis extends CompilerPhase {
       // visit each successor, if it is a regular successor, add
       // it to "currentSet".  If it is a handler block, add it to
       // ExceptionBlockSummary.
-      for (BasicBlockEnumeration bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
-        BasicBlock succ = bbEnum.next();
+      for (Enumeration<BasicBlock> bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
+        BasicBlock succ = bbEnum.nextElement();
 
         // sometimes we may have a CFG edge to a handler, but no longer a
         //   PEI that can make the edge realizable.  Thus, we have two
@@ -783,8 +781,8 @@ public final class LiveAnalysis extends CompilerPhase {
       // During this processing we should NOT include exception-catching
       // blocks, but instead remember them for use at exception-raising
       // statements in this block
-      for (BasicBlockEnumeration bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
-        BasicBlock succ = bbEnum.next();
+      for (Enumeration<BasicBlock> bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
+        BasicBlock succ = bbEnum.nextElement();
         if (succ.isExceptionHandlerBasicBlock()) {
           exceptionBlockSummary.add(bbLiveInfo[succ.getNumber()].getIn());
         } else {
@@ -827,8 +825,8 @@ public final class LiveAnalysis extends CompilerPhase {
         // compute In set for this instruction & GC point info
         // traverse from defs to uses, do "kill" then "gen" (backwards analysis)
         // Def loop
-        for (OperandEnumeration defs = inst.getPureDefs(); defs.hasMoreElements();) {
-          Operand op = defs.next();
+        for (Enumeration<Operand> defs = inst.getPureDefs(); defs.hasMoreElements();) {
+          Operand op = defs.nextElement();
           if (op instanceof RegisterOperand) {
             RegisterOperand regOp = (RegisterOperand) op;
             // Currently, clients of live information do not need to know
@@ -881,8 +879,8 @@ public final class LiveAnalysis extends CompilerPhase {
         }       // is GC instruction, and map not already made
 
         // now process the uses
-        for (OperandEnumeration uses = inst.getUses(); uses.hasMoreElements();) {
-          Operand op = uses.next();
+        for (Enumeration<Operand> uses = inst.getUses(); uses.hasMoreElements();) {
+          Operand op = uses.nextElement();
           if (op instanceof RegisterOperand) {
             RegisterOperand regOp = (RegisterOperand) op;
             // Do we care about this reg?

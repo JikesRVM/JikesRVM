@@ -38,12 +38,9 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.operand.ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -217,12 +214,12 @@ public class LeaveSSA extends CompilerPhase {
   private void performRename(BasicBlock bb, DominatorTree dom, VariableStacks s) {
     if (DEBUG) VM.sysWriteln("performRename: " + bb);
 
-    InstructionEnumeration e = bb.forwardRealInstrEnumerator();
+    Enumeration<Instruction> e = bb.forwardRealInstrEnumerator();
     while (e.hasMoreElements()) {
-      Instruction i = e.next();
-      OperandEnumeration ee = i.getUses();
+      Instruction i = e.nextElement();
+      Enumeration<Operand> ee = i.getUses();
       while (ee.hasMoreElements()) {
-        Operand o = ee.next();
+        Operand o = ee.nextElement();
         if (o instanceof RegisterOperand) {
           Register r1 = ((RegisterOperand) o).getRegister();
           if (r1.isValidation()) continue;
@@ -240,7 +237,7 @@ public class LeaveSSA extends CompilerPhase {
     // record renamings required in children
     e = bb.forwardRealInstrEnumerator();
     while (e.hasMoreElements()) {
-      Instruction i = e.next();
+      Instruction i = e.nextElement();
       if (globalRenameTable.contains(i)) {
         Register original = Move.getVal(i).asRegister().getRegister();
         RegisterOperand rename = Move.getResult(i);
@@ -259,7 +256,7 @@ public class LeaveSSA extends CompilerPhase {
     // pop renamings from this block off stack
     e = bb.forwardRealInstrEnumerator();
     while (e.hasMoreElements()) {
-      Instruction i = e.next();
+      Instruction i = e.nextElement();
       if (globalRenameTable.contains(i)) {
         Register original = Move.getVal(i).asRegister().getRegister();
         s.pop(original);
@@ -268,13 +265,13 @@ public class LeaveSSA extends CompilerPhase {
   }
 
   private boolean usedBelowCopy(BasicBlock bb, Register r) {
-    InstructionEnumeration ie = bb.reverseRealInstrEnumerator();
+    Enumeration<Instruction> ie = bb.reverseRealInstrEnumerator();
     while (ie.hasMoreElements()) {
-      Instruction inst = ie.next();
+      Instruction inst = ie.nextElement();
       if (inst.isBranch()) {
-        OperandEnumeration oe = inst.getUses();
+        Enumeration<Operand> oe = inst.getUses();
         while (oe.hasMoreElements()) {
-          Operand op = oe.next();
+          Operand op = oe.nextElement();
           if (op.isRegister() && op.asRegister().getRegister() == r) {
             return true;
           }
@@ -624,12 +621,12 @@ public class LeaveSSA extends CompilerPhase {
    */
   private void unSSAGuardsInit(IR ir) {
     guardPhis = null;
-    InstructionEnumeration e = ir.forwardInstrEnumerator();
+    Enumeration<Instruction> e = ir.forwardInstrEnumerator();
 
     // visit all instructions, looking for guard phis
 
     while (e.hasMoreElements()) {
-      Instruction inst = e.next();
+      Instruction inst = e.nextElement();
       if (!Phi.conforms(inst)) continue;
       Operand res = Phi.getResult(inst);
       if (!(res instanceof RegisterOperand)) continue;
@@ -698,14 +695,14 @@ public class LeaveSSA extends CompilerPhase {
     for (Register r = ir.regpool.getFirstSymbolicRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
       Register nreg = guardFind(r);
-      RegisterOperandEnumeration uses = DefUse.uses(r);
+      Enumeration<RegisterOperand> uses = DefUse.uses(r);
       while (uses.hasMoreElements()) {
-        RegisterOperand use = uses.next();
+        RegisterOperand use = uses.nextElement();
         use.setRegister(nreg);
       }
-      RegisterOperandEnumeration defs = DefUse.defs(r);
+      Enumeration<RegisterOperand> defs = DefUse.defs(r);
       while (defs.hasMoreElements()) {
-        RegisterOperand def = defs.next();
+        RegisterOperand def = defs.nextElement();
         def.setRegister(nreg);
       }
     }

@@ -21,7 +21,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -121,8 +120,8 @@ public abstract class GenericRegisterRestrictions {
     // 3. Volatile registers used by CALL instructions do not appear in
     // the liveness information.  Handle CALL instructions as a special
     // case.
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction s = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction s = ie.nextElement();
       if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
         for (LiveIntervalElement symb : symbolic) {
           if (contains(symb, s.scratch)) {

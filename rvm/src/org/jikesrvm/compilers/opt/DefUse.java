@@ -21,10 +21,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.vmmagic.pragma.NoInline;
@@ -78,11 +75,11 @@ public final class DefUse {
     for (Instruction instr = ir.firstInstructionInCodeOrder(); instr != null; instr =
         instr.nextInstructionInCodeOrder()) {
 
-      OperandEnumeration defs = instr.getPureDefs();
-      OperandEnumeration uses = instr.getUses();
+      Enumeration<Operand> defs = instr.getPureDefs();
+      Enumeration<Operand> uses = instr.getUses();
 
       while (defs.hasMoreElements()) {
-        Operand op = defs.next();
+        Operand op = defs.nextElement();
         if (op instanceof RegisterOperand) {
           RegisterOperand rop = (RegisterOperand) op;
           recordDef(rop);
@@ -90,7 +87,7 @@ public final class DefUse {
       }         // for ( defs = ... )
 
       while (uses.hasMoreElements()) {
-        Operand op = uses.next();
+        Operand op = uses.nextElement();
         if (op instanceof RegisterOperand) {
           RegisterOperand rop = (RegisterOperand) op;
           recordUse(rop);
@@ -245,14 +242,14 @@ public final class DefUse {
    * Remove an instruction and update register lists.
    */
   public static void removeInstructionAndUpdateDU(Instruction s) {
-    for (OperandEnumeration e = s.getPureDefs(); e.hasMoreElements();) {
-      Operand op = e.next();
+    for (Enumeration<Operand> e = s.getPureDefs(); e.hasMoreElements();) {
+      Operand op = e.nextElement();
       if (op instanceof RegisterOperand) {
         removeDef((RegisterOperand) op);
       }
     }
-    for (OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
-      Operand op = e.next();
+    for (Enumeration<Operand> e = s.getUses(); e.hasMoreElements();) {
+      Operand op = e.nextElement();
       if (op instanceof RegisterOperand) {
         removeUse((RegisterOperand) op);
       }
@@ -265,14 +262,14 @@ public final class DefUse {
    * instruction s
    */
   public static void updateDUForNewInstruction(Instruction s) {
-    for (OperandEnumeration e = s.getPureDefs(); e.hasMoreElements();) {
-      Operand op = e.next();
+    for (Enumeration<Operand> e = s.getPureDefs(); e.hasMoreElements();) {
+      Operand op = e.nextElement();
       if (op instanceof RegisterOperand) {
         recordDef((RegisterOperand) op);
       }
     }
-    for (OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
-      Operand op = e.next();
+    for (Enumeration<Operand> e = s.getUses(); e.hasMoreElements();) {
+      Operand op = e.nextElement();
       if (op instanceof RegisterOperand) {
         recordUse((RegisterOperand) op);
       }
@@ -291,14 +288,14 @@ public final class DefUse {
   /**
    * Enumerate all operands that use a given register.
    */
-  public static RegisterOperandEnumeration uses(Register reg) {
+  public static Enumeration<RegisterOperand> uses(Register reg) {
     return new RegOpListWalker(reg.useList);
   }
 
   /**
    * Enumerate all operands that def a given register.
    */
-  public static RegisterOperandEnumeration defs(Register reg) {
+  public static Enumeration<RegisterOperand> defs(Register reg) {
     return new RegOpListWalker(reg.defList);
   }
 
@@ -315,8 +312,8 @@ public final class DefUse {
    */
   static void printDefs(Register reg) {
     VM.sysWrite("Definitions of " + reg + '\n');
-    for (RegisterOperandEnumeration e = defs(reg); e.hasMoreElements();) {
-      VM.sysWrite("\t" + e.next().instruction + "\n");
+    for (Enumeration<RegisterOperand> e = defs(reg); e.hasMoreElements();) {
+      VM.sysWrite("\t" + e.nextElement().instruction + "\n");
     }
   }
 
@@ -326,8 +323,8 @@ public final class DefUse {
    */
   static void printUses(Register reg) {
     VM.sysWrite("Uses of " + reg + '\n');
-    for (RegisterOperandEnumeration e = uses(reg); e.hasMoreElements();) {
-      VM.sysWrite("\t" + e.next().instruction + "\n");
+    for (Enumeration<RegisterOperand> e = uses(reg); e.hasMoreElements();) {
+      VM.sysWrite("\t" + e.nextElement().instruction + "\n");
     }
   }
 
@@ -412,11 +409,11 @@ public final class DefUse {
     for (BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       int bbNum = bb.getNumber();
       // enumerate the instructions in the basic block
-      for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
-        Instruction inst = e.next();
+      for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+        Instruction inst = e.nextElement();
         // check each Operand in the instruction
-        for (OperandEnumeration ops = inst.getOperands(); ops.hasMoreElements();) {
-          Operand op = ops.next();
+        for (Enumeration<Operand> ops = inst.getOperands(); ops.hasMoreElements();) {
+          Operand op = ops.nextElement();
           if (op instanceof RegisterOperand) {
             Register reg = ((RegisterOperand) op).getRegister();
             if (reg.isPhysical()) {
@@ -465,7 +462,7 @@ public final class DefUse {
   /**
    * Utility class to encapsulate walking a use/def list.
    */
-  private static final class RegOpListWalker implements RegisterOperandEnumeration {
+  private static final class RegOpListWalker implements Enumeration<RegisterOperand> {
 
     private RegisterOperand current;
 
@@ -480,11 +477,6 @@ public final class DefUse {
 
     @Override
     public RegisterOperand nextElement() {
-      return next();
-    }
-
-    @Override
-    public RegisterOperand next() {
       if (current == null) raiseNoSuchElementException();
       RegisterOperand tmp = current;
       current = current.getNext();

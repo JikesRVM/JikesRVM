@@ -30,21 +30,17 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.LocationCarrier;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
 import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
@@ -87,9 +83,9 @@ public class LICM extends CompilerPhase {
     if (DEBUG && ir.hasReachableExceptionHandlers()) {
       VM.sysWrite("] " + ir.method + "\n");
       (new LiveAnalysis(false, false, true, false)).perform(ir);
-      BasicBlockEnumeration e = ir.getBasicBlocks();
+      Enumeration<BasicBlock> e = ir.getBasicBlocks();
       while (e.hasMoreElements()) {
-        BasicBlock b = e.next();
+        BasicBlock b = e.nextElement();
         if (b instanceof ExceptionHandlerBasicBlock) {
           VM.sysWrite("] " + b + ": " + ((ExceptionHandlerBasicBlock) b).getLiveSet() + "\n");
         }
@@ -479,10 +475,10 @@ public class LICM extends CompilerPhase {
    * Schedule me as early as possible,
    * but behind the definitions in e and behind earlyPos
    */
-  private Instruction scheduleScalarDefsEarly(OperandEnumeration e, Instruction earlyPos,
+  private Instruction scheduleScalarDefsEarly(Enumeration<Operand> e, Instruction earlyPos,
                                                   Instruction inst) {
     while (e.hasMoreElements()) {
-      Operand op = e.next();
+      Operand op = e.nextElement();
       Instruction def = definingInstruction(op);
 
       scheduleEarly(def);
@@ -545,10 +541,10 @@ public class LICM extends CompilerPhase {
     }
 
     Register res = ((RegisterOperand) resOp).getRegister();
-    RegisterOperandEnumeration e = DefUse.uses(res);
+    Enumeration<RegisterOperand> e = DefUse.uses(res);
 
     while (e.hasMoreElements()) {
-      Operand op = e.next();
+      Operand op = e.nextElement();
       Instruction use = op.instruction;
       BasicBlock _block = useBlock(use, op);
       lateBlock = commonDominator(_block, lateBlock);
@@ -604,11 +600,11 @@ public class LICM extends CompilerPhase {
       }
     } else if (op instanceof RegisterOperand) {
       Register reg = ((RegisterOperand) op).getRegister();
-      RegisterOperandEnumeration defs = DefUse.defs(reg);
+      Enumeration<RegisterOperand> defs = DefUse.defs(reg);
       if (!defs.hasMoreElements()) {          // params have no def
         return ir.firstInstructionInCodeOrder();
       } else {
-        Instruction def = defs.next().instruction;
+        Instruction def = defs.nextElement().instruction;
         // we are in SSA, so there is at most one definition.
         if (VM.VerifyAssertions) VM._assert(!defs.hasMoreElements());
         //if (defs.hasMoreElements()) {
@@ -708,9 +704,9 @@ public class LICM extends CompilerPhase {
     if (dominator.dominates(_origBlock.getNumber(), to.getNumber())) {
       // moved down, so insert in from
       Instruction last = null;
-      InstructionEnumeration e = to.forwardInstrEnumerator();
+      Enumeration<Instruction> e = to.forwardInstrEnumerator();
       while (e.hasMoreElements()) {
-        cand = e.next();
+        cand = e.nextElement();
         if (DEBUG) VM.sysWrite(cand.toString() + "\n");
         // skip labels, phis, and yieldpoints
         if (!Label.conforms(cand) && !cand.isYieldPoint() && !Phi.conforms(cand)) {
@@ -721,9 +717,9 @@ public class LICM extends CompilerPhase {
       cand = last;
     } else {
       // moved up, so insert at end of block
-      InstructionEnumeration e = to.reverseInstrEnumerator();
+      Enumeration<Instruction> e = to.reverseInstrEnumerator();
       while (e.hasMoreElements()) {
-        cand = e.next();
+        cand = e.nextElement();
         if (DEBUG) VM.sysWrite(cand.toString() + "\n");
         // skip branches and newly placed insts
         if (!BBend.conforms(cand) && !cand.isBranch() && !relocated.contains(cand)) {
@@ -856,9 +852,9 @@ public class LICM extends CompilerPhase {
     DefUse.computeDU(ir);
     ssad.recomputeArrayDU();
     // also number implicit heap phis
-    BasicBlockEnumeration e = ir.getBasicBlocks();
+    Enumeration<BasicBlock> e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
-      BasicBlock b = e.next();
+      BasicBlock b = e.nextElement();
       Iterator<Instruction> pe = ssad.getHeapPhiInstructions(b);
       while (pe.hasNext()) {
         Instruction inst = pe.next();
@@ -872,7 +868,7 @@ public class LICM extends CompilerPhase {
     earlyPos = new Instruction[instructions];
     e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
-      BasicBlock b = e.next();
+      BasicBlock b = e.nextElement();
       Enumeration<Instruction> ie = ssad.getAllInstructions(b);
       while (ie.hasMoreElements()) {
         Instruction inst = ie.nextElement();
@@ -884,7 +880,7 @@ public class LICM extends CompilerPhase {
     if (ir.IRStage == IR.HIR) {
       e = ir.getBasicBlocks();
       while (e.hasMoreElements()) {
-        BasicBlock b = e.next();
+        BasicBlock b = e.nextElement();
 
         if (ir.options.FREQ_FOCUS_EFFORT && b.getInfrequent()) continue;
 
@@ -1146,7 +1142,7 @@ public class LICM extends CompilerPhase {
   }
 
   private void resetLandingPads() {
-    BasicBlockEnumeration e = ir.getBasicBlocks();
-    while (e.hasMoreElements()) e.next().clearLandingPad();
+    Enumeration<BasicBlock> e = ir.getBasicBlocks();
+    while (e.hasMoreElements()) e.nextElement().clearLandingPad();
   }
 }

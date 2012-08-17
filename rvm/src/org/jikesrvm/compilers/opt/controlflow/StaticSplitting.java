@@ -15,16 +15,16 @@ package org.jikesrvm.compilers.opt.controlflow;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 /**
  * Static splitting based on very simple hints left by
@@ -127,8 +127,8 @@ public class StaticSplitting extends CompilerPhase {
    * </ul>
    */
   private void simpleCandidateSearch(IR ir) {
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock cand = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock cand = e.nextElement();
       if (cand.isExceptionHandlerBasicBlock()) continue;
       Instruction candTest = getCandidateTest(cand);
       if (candTest == null) continue;
@@ -180,8 +180,8 @@ public class StaticSplitting extends CompilerPhase {
    */
   private Instruction getCandidateTest(BasicBlock bb) {
     Instruction test = null;
-    for (InstructionEnumeration e = bb.enumerateBranchInstructions(); e.hasMoreElements();) {
-      Instruction branch = e.next();
+    for (Enumeration<Instruction> e = bb.enumerateBranchInstructions(); e.hasMoreElements();) {
+      Instruction branch = e.nextElement();
       if (InlineGuard.conforms(branch)) {
         if (test != null) return null; // found multiple tests!
         test = branch;
@@ -224,8 +224,8 @@ public class StaticSplitting extends CompilerPhase {
    */
   private boolean tooBig(BasicBlock bb, int maxCost) {
     int cost = 0;
-    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (s.isCall()) {
         cost += 3;
       } else if (s.isAllocation()) {
@@ -239,8 +239,8 @@ public class StaticSplitting extends CompilerPhase {
   }
 
   private boolean containsOSRPoint(BasicBlock bb) {
-    for (InstructionEnumeration e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = bb.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (s.operator() == YIELDPOINT_OSR) {
         return true;
       }

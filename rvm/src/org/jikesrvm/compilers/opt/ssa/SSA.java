@@ -18,12 +18,9 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 
 import static org.jikesrvm.compilers.opt.driver.OptConstants.SSA_SYNTH_BCI;
@@ -120,9 +117,9 @@ class SSA {
     RegisterOperand lhs = Move.getResult(c);
     Instruction i = c.nextInstructionInCodeOrder();
     while (!BBend.conforms(i)) {
-      OperandEnumeration os = i.getUses();
+      Enumeration<Operand> os = i.getUses();
       while (os.hasMoreElements()) {
-        Operand op = os.next();
+        Operand op = os.nextElement();
         if (lhs.similar(op)) {
           if (aux == null) {
             aux = ir.regpool.makeTemp(lhs);
@@ -143,8 +140,8 @@ class SSA {
   public static void printInstructions(IR ir) {
     SSADictionary dictionary = ir.HIRInfo.dictionary;
     System.out.println("********* START OF IR DUMP in SSA FOR " + ir.method);
-    for (BasicBlockEnumeration be = ir.forwardBlockEnumerator(); be.hasMoreElements();) {
-      BasicBlock bb = be.next();
+    for (Enumeration<BasicBlock> be = ir.forwardBlockEnumerator(); be.hasMoreElements();) {
+      BasicBlock bb = be.nextElement();
       // print the explicit instructions for basic block bb
       for (Enumeration<Instruction> e = dictionary.getAllInstructions(bb); e.hasMoreElements();) {
         Instruction s = e.nextElement();
@@ -220,8 +217,8 @@ class SSA {
    * @param target the target block that may contain PHIs to update.
    */
   static void purgeBlockFromPHIs(BasicBlock source, BasicBlock target) {
-    for (InstructionEnumeration e = target.forwardRealInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = target.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);
       int dst = 0;
@@ -254,8 +251,8 @@ class SSA {
    * @param B2 the replacement block for B1
    */
   static void replaceBlockInPhis(BasicBlock target, BasicBlock B1, BasicBlock B2) {
-    for (InstructionEnumeration e = target.forwardRealInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = target.forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (s.operator() != PHI) return; // all done (assume PHIs are first!)
       int numPairs = Phi.getNumberOfPreds(s);
       for (int src = 0; src < numPairs; src++) {

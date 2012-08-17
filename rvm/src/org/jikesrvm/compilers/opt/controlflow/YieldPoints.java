@@ -18,11 +18,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -73,8 +74,8 @@ public class YieldPoints extends CompilerPhase {
 
     // (2) If using epilogue yieldpoints scan basic blocks, looking for returns or throws
     if (VM.UseEpilogueYieldPoints) {
-      for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-        BasicBlock block = e.next();
+      for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+        BasicBlock block = e.nextElement();
         if (block.hasReturn() || block.hasAthrowInst()) {
           prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, ir.gc.inlineSequence);
         }

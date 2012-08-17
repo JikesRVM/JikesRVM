@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.instrsched;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 /**
  * Default (IR-order) instruction list.
@@ -27,7 +28,7 @@ class DefaultPriority extends Priority {
   // Underlying enumeration.
   private final BasicBlock bb;
   private Instruction i;
-  private InstructionEnumeration instr;
+  private Enumeration<Instruction> instr;
 
   /**
    * Creates new priority object for a given basic block
@@ -50,12 +51,12 @@ class DefaultPriority extends Priority {
   }
 
   @Override
-  public final Instruction next() {
+  public final Instruction nextElement() {
     if (i != null) {
       Instruction r = i;
       i = null;
       return r;
     }
-    return instr.next();
+    return instr.nextElement();
   }
 }

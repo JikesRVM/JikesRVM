@@ -12,17 +12,17 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST;
 import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_NOTNULL;
@@ -82,8 +82,8 @@ public final class LocalCastOptimization extends CompilerPhase {
   @Override
   public void perform(IR ir) {
     // loop over all basic blocks ...
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       if (bb.isEmpty()) continue;
       container.counter2++;
       if (bb.getInfrequent()) {
@@ -91,8 +91,8 @@ public final class LocalCastOptimization extends CompilerPhase {
         if (ir.options.FREQ_FOCUS_EFFORT) continue;
       }
       // visit each instruction in the basic block
-      for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-        Instruction s = ie.next();
+      for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+        Instruction s = ie.nextElement();
         if (TypeCheck.conforms(s) && (invertNullAndTypeChecks(s) || pushTypeCheckBelowIf(s, ir))) {
           // hack: we may have modified the instructions; start over
           ie = bb.forwardInstrEnumerator();

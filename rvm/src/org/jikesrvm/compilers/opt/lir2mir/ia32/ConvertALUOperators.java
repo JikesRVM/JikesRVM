@@ -20,7 +20,6 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.CondMove;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.ia32.ArchConstants;
 
@@ -50,8 +49,8 @@ public class ConvertALUOperators extends CompilerPhase implements Operators, Arc
     // worry about (and does last minute constant folding on the off
     // chance we've missed an opportunity...)
     // BURS assumes that this has been done
-    for (InstructionEnumeration instrs = ir.forwardInstrEnumerator(); instrs.hasMoreElements();) {
-      Instruction s = instrs.next();
+    for (Enumeration<Instruction> instrs = ir.forwardInstrEnumerator(); instrs.hasMoreElements();) {
+      Instruction s = instrs.nextElement();
       Simplifier.simplify(false, ir.regpool, ir.options, s);
     }
 

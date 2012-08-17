@@ -17,8 +17,6 @@ import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -40,7 +38,7 @@ class BlockCountSpillCost extends SpillCostEstimator {
     for (Enumeration<BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements();) {
       BasicBlock bb = blocks.nextElement();
       float freq = bb.getExecutionFrequency();
-      for (InstructionEnumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
+      for (Enumeration<Instruction> e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
         Instruction s = e.nextElement();
         double factor = freq;
 
@@ -51,7 +49,7 @@ class BlockCountSpillCost extends SpillCostEstimator {
         }
 
         // first deal with non-memory operands
-        for (OperandEnumeration e2 = s.getRootOperands(); e2.hasMoreElements();) {
+        for (Enumeration<Operand> e2 = s.getRootOperands(); e2.hasMoreElements();) {
           Operand op = e2.nextElement();
           if (op.isRegister()) {
             Register r = op.asRegister().getRegister();
@@ -62,7 +60,7 @@ class BlockCountSpillCost extends SpillCostEstimator {
         }
         // now handle memory operands
         factor *= memoryOperandFactor;
-        for (OperandEnumeration e2 = s.getMemoryOperands(); e2.hasMoreElements();) {
+        for (Enumeration<Operand> e2 = s.getMemoryOperands(); e2.hasMoreElements();) {
           MemoryOperand M = (MemoryOperand) e2.nextElement();
           if (M.base != null) {
             Register r = M.base.getRegister();

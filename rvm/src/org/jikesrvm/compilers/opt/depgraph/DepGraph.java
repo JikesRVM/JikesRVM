@@ -34,14 +34,14 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.LocationCarrier;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
@@ -100,9 +100,9 @@ public final class DepGraph extends SpaceEffGraph {
    */
   private void computeHandlerLiveSet() {
     if (ir.getHandlerLivenessComputed() && currentBlock.hasExceptionHandlers()) {
-      BasicBlockEnumeration e = currentBlock.getExceptionalOut();
+      Enumeration<BasicBlock> e = currentBlock.getExceptionalOut();
       while (e.hasMoreElements()) {
-        ExceptionHandlerBasicBlock handlerBlock = (ExceptionHandlerBasicBlock) e.next();
+        ExceptionHandlerBasicBlock handlerBlock = (ExceptionHandlerBasicBlock) e.nextElement();
         handlerLiveSet.add(handlerBlock.getLiveSet());
       }
     }
@@ -144,16 +144,16 @@ public final class DepGraph extends SpaceEffGraph {
         useMask |= PhysicalDefUse.maskTSPUses;
         defMask |= PhysicalDefUse.maskTSPDefs;
       }
-      for (OperandEnumeration uses = p.getUses(); uses.hasMoreElements();) {
-        computeForwardDependencesUse(uses.next(), pnode, lastExceptionNode);
+      for (Enumeration<Operand> uses = p.getUses(); uses.hasMoreElements();) {
+        computeForwardDependencesUse(uses.nextElement(), pnode, lastExceptionNode);
       }
       for (PhysicalDefUse.PDUEnumeration uses = PhysicalDefUse.enumerate(useMask, ir); uses.hasMoreElements();)
       {
         Register r = uses.nextElement();
         computeImplicitForwardDependencesUse(r, pnode);
       }
-      for (OperandEnumeration defs = p.getDefs(); defs.hasMoreElements();) {
-        computeForwardDependencesDef(defs.next(), pnode, lastExceptionNode);
+      for (Enumeration<Operand> defs = p.getDefs(); defs.hasMoreElements();) {
+        computeForwardDependencesDef(defs.nextElement(), pnode, lastExceptionNode);
       }
       for (PhysicalDefUse.PDUEnumeration defs = PhysicalDefUse.enumerate(defMask, ir); defs.hasMoreElements();)
       {
@@ -224,16 +224,16 @@ public final class DepGraph extends SpaceEffGraph {
         useMask |= PhysicalDefUse.maskTSPUses;
         defMask |= PhysicalDefUse.maskTSPDefs;
       }
-      for (OperandEnumeration uses = p.getUses(); uses.hasMoreElements();) {
-        computeBackwardDependencesUse(uses.next(), pnode, lastExceptionNode);
+      for (Enumeration<Operand> uses = p.getUses(); uses.hasMoreElements();) {
+        computeBackwardDependencesUse(uses.nextElement(), pnode, lastExceptionNode);
       }
       for (PhysicalDefUse.PDUEnumeration uses = PhysicalDefUse.enumerate(useMask, ir); uses.hasMoreElements();)
       {
         Register r = uses.nextElement();
         computeImplicitBackwardDependencesUse(r, pnode);
       }
-      for (OperandEnumeration defs = p.getDefs(); defs.hasMoreElements();) {
-        computeBackwardDependencesDef(defs.next(), pnode, lastExceptionNode);
+      for (Enumeration<Operand> defs = p.getDefs(); defs.hasMoreElements();) {
+        computeBackwardDependencesDef(defs.nextElement(), pnode, lastExceptionNode);
       }
       for (PhysicalDefUse.PDUEnumeration defs = PhysicalDefUse.enumerate(defMask, ir); defs.hasMoreElements();)
       {
@@ -520,8 +520,8 @@ public final class DepGraph extends SpaceEffGraph {
    */
   private void clearRegisters(Instruction start, Instruction end) {
     for (Instruction p = start; ; p = p.nextInstructionInCodeOrder()) {
-      for (OperandEnumeration ops = p.getOperands(); ops.hasMoreElements();) {
-        Operand op = ops.next();
+      for (Enumeration<Operand> ops = p.getOperands(); ops.hasMoreElements();) {
+        Operand op = ops.nextElement();
         if (op instanceof RegisterOperand) {
           RegisterOperand rOp = (RegisterOperand) op;
           rOp.getRegister().setdNode(null);

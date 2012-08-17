@@ -10,17 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.jikesrvm.compilers.opt.ir;
+package org.jikesrvm.junit.runners;
 
-import java.util.Enumeration;
+public final class RequiresBootstrapVM {
 
-import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
-
-/**
- * Extend java.util.Enumeration to avoid downcasts from object.
- */
-public interface RegisterOperandEnumeration extends Enumeration<RegisterOperand> {
-  /** Same as nextElement but avoid the need to downcast from Object */
-  RegisterOperand next();
+  private RequiresBootstrapVM() { }
 }
-

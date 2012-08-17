@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.instrsched;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 /**
  * Represents instruction priority. Used by the scheduler to enumerate over
@@ -21,7 +22,7 @@ import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
  *
  * @see Scheduler
  */
-abstract class Priority implements InstructionEnumeration {
+abstract class Priority implements Enumeration<Instruction> {
 
   /**
    * Resets the enumeration to the first instruction in sequence
@@ -42,17 +43,7 @@ abstract class Priority implements InstructionEnumeration {
    * @return the next instruction in sequence
    */
   @Override
-  public final Instruction nextElement() {
-    return next();
-  }
-
-  /**
-   * Returns the next instruction in sequence
-   *
-   * @return the next instruction in sequence
-   */
-  @Override
-  public abstract Instruction next();
+  public abstract Instruction nextElement();
 }
 
 

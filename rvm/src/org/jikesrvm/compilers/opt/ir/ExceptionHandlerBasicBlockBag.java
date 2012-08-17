@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 
 /**
@@ -80,8 +82,8 @@ public final class ExceptionHandlerBasicBlockBag {
    * (transitively) in the EHBBB.
    * @return An enumeration of the exception handler basic blocks in the bag.
    */
-  public BasicBlockEnumeration enumerator() {
-    return new BasicBlockEnumeration() {
+  public Enumeration<BasicBlock> enumerator() {
+    return new Enumeration<BasicBlock>() {
       private int cur_idx = 0;
       private ExceptionHandlerBasicBlockBag cur_bag = null;
 
@@ -98,10 +100,7 @@ public final class ExceptionHandlerBasicBlockBag {
       public boolean hasMoreElements() { return cur_bag != null; }
 
       @Override
-      public BasicBlock nextElement() { return next(); }
-
-      @Override
-      public BasicBlock next() {
+      public BasicBlock nextElement() {
         ExceptionHandlerBasicBlock ans;
         try {
           ans = cur_bag.local[cur_idx++];

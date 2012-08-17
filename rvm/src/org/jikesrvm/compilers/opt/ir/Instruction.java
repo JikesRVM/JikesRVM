@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
@@ -496,7 +498,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   * Clients must NOT assume that specific operands appear in
   * a particular order or at a particular index in the operand array.
   * Doing so results in fragile code and is generally evil.
-  * Virtually all access to operands should be through the OperandEnumerations
+  * Virtually all access to operands should be through the operand enumerations
   * or through accessor functions of the InstructionFormat classes.
   */
 
@@ -660,7 +662,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * @param n the new register
    */
   public void replaceRegister(Register r, Register n) {
-    for (OperandEnumeration u = getUses(); u.hasMoreElements();) {
+    for (Enumeration<Operand> u = getUses(); u.hasMoreElements();) {
       Operand use = u.nextElement();
       if (use.isRegister()) {
         if (use.asRegister().getRegister() == r) {
@@ -668,7 +670,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
         }
       }
     }
-    for (OperandEnumeration d = getDefs(); d.hasMoreElements();) {
+    for (Enumeration<Operand> d = getDefs(); d.hasMoreElements();) {
       Operand def = d.nextElement();
       if (def.isRegister()) {
         if (def.asRegister().getRegister() == r) {
@@ -699,7 +701,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's operands.
    */
-  public OperandEnumeration getOperands() {
+  public Enumeration<Operand> getOperands() {
     // By passing -1 as the last parameter we pretending
     // that treating all operands are uses. Somewhat ugly,
     // but avoids a third OE class.
@@ -711,7 +713,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's operands.
    */
-  public OperandEnumeration getMemoryOperands() {
+  public Enumeration<Operand> getMemoryOperands() {
     return new MOE(this, 0, getNumberOfOperands() - 1);
   }
 
@@ -721,7 +723,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's operands.
    */
-  public OperandEnumeration getRootOperands() {
+  public Enumeration<Operand> getRootOperands() {
     return new ROE(this, 0, getNumberOfOperands() - 1);
   }
 
@@ -730,7 +732,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's defs.
    */
-  public OperandEnumeration getDefs() {
+  public Enumeration<Operand> getDefs() {
     return new OEDefsOnly(this, 0, getNumberOfDefs() - 1);
   }
 
@@ -739,7 +741,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's pure defs.
    */
-  public OperandEnumeration getPureDefs() {
+  public Enumeration<Operand> getPureDefs() {
     return new OEDefsOnly(this, 0, getNumberOfPureDefs() - 1);
   }
 
@@ -748,7 +750,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's pure defs.
    */
-  public OperandEnumeration getPureUses() {
+  public Enumeration<Operand> getPureUses() {
     return new OEDefsOnly(this, getNumberOfDefs(), getNumberOfOperands() - 1);
   }
 
@@ -757,7 +759,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's def/uses.
    */
-  public OperandEnumeration getDefUses() {
+  public Enumeration<Operand> getDefUses() {
     return new OEDefsOnly(this, getNumberOfPureDefs(), getNumberOfDefs() - 1);
   }
 
@@ -767,7 +769,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * @return an enumeration of the instruction's uses.
    */
   @Inline
-  public OperandEnumeration getUses() {
+  public Enumeration<Operand> getUses() {
     int numOps = getNumberOfOperands() - 1;
     int defsEnd = operator.hasVarDefs() ? numOps : operator.getNumberOfPureDefs() - 1;
     return new OE(this, 0, numOps, defsEnd);
@@ -778,7 +780,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's uses.
    */
-  public OperandEnumeration getRootUses() {
+  public Enumeration<Operand> getRootUses() {
     return new ROE(this, getNumberOfPureDefs(), getNumberOfOperands() - 1);
   }
 
@@ -1321,7 +1323,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return the targets of this branch instruction
    */
-  public BasicBlockEnumeration getBranchTargets() {
+  public Enumeration<BasicBlock> getBranchTargets() {
     int n = getNumberOfOperands();
     BasicBlock.ComputedBBEnum e = new BasicBlock.ComputedBBEnum(n);
 
@@ -1598,7 +1600,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   * Implementation: Operand enumeration classes
   */
   /** Shared functionality for operand enumerations */
-  private abstract static class BASE_OE implements OperandEnumeration {
+  private abstract static class BASE_OE implements Enumeration<Operand> {
     protected final Instruction instr;
     protected int i;
     protected final int end;
@@ -1616,10 +1618,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
     public final boolean hasMoreElements() { return nextElem != null; }
 
     @Override
-    public final Operand nextElement() { return next(); }
-
-    @Override
-    public final Operand next() {
+    public final Operand nextElement() {
       Operand temp = nextElem;
       if (temp == null) fail();
       advance();

@@ -12,11 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.controlflow;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.dfsolver.DF_LatticeCell;
 import org.jikesrvm.compilers.opt.dfsolver.DF_System;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
@@ -52,8 +53,8 @@ class DominatorSystem extends DF_System {
    */
   void setupEquations() {
     // loop through each basic block in the IR
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       // add a data-flow equation for this basic block
       // DOM(n) = {n} MEET {pred(n)}
       DF_LatticeCell dom = findOrCreateCell(bb);
@@ -103,8 +104,8 @@ class DominatorSystem extends DF_System {
     if (Dominators.COMPUTE_POST_DOMINATORS) {
       // Add every equation to work list (to be safe)
       // WARNING: an "end node" may be part of a cycle
-      for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-        BasicBlock bb = e.next();
+      for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+        BasicBlock bb = e.nextElement();
         addCellAppearancesToWorkList(getCell(bb));
       }
     } else {
@@ -144,7 +145,7 @@ class DominatorSystem extends DF_System {
        if (Dominators.DEBUG) VM.sysWrite("LOCATION #1 ...\n");
        // Include exit node as an output node
        DF_LatticeCell s[] = new DF_LatticeCell[bb.getNumberOfOut()+1];
-       BasicBlockEnumeration e = bb.getOut();
+       Enumeration<BasicBlock> e = bb.getOut();
        for (int i=0; i<s.length-1; i++ ) {
        BasicBlock p = e.next();
        s[i] = findOrCreateCell(getKey(p));
@@ -159,9 +160,9 @@ class DominatorSystem extends DF_System {
           VM.sysWrite("LOCATION #2 ...\n");
         }
         DF_LatticeCell[] s = new DF_LatticeCell[bb.getNumberOfOut()];
-        BasicBlockEnumeration e = bb.getOut();
+        Enumeration<BasicBlock> e = bb.getOut();
         for (int i = 0; i < s.length; i++) {
-          BasicBlock p = e.next();
+          BasicBlock p = e.nextElement();
           s[i] = findOrCreateCell(getKey(p));
         }
         return s;
@@ -171,9 +172,9 @@ class DominatorSystem extends DF_System {
         System.out.println("LOCATION #3 ...");
       }
       DF_LatticeCell[] s = new DF_LatticeCell[bb.getNumberOfIn()];
-      BasicBlockEnumeration e = bb.getIn();
+      Enumeration<BasicBlock> e = bb.getIn();
       for (int i = 0; i < s.length; i++) {
-        BasicBlock p = e.next();
+        BasicBlock p = e.nextElement();
         s[i] = findOrCreateCell(getKey(p));
       }
       return s;

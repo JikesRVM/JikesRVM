@@ -12,13 +12,14 @@
  */
 package org.jikesrvm.osr;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 /**
  * OSR_AdjustBCIndex is an optimizing phase performed on HIR.
@@ -51,8 +52,8 @@ public class AdjustBCIndexes extends CompilerPhase {
     if (!ir.method.isForOsrSpecialization()) return;
     int offset = ir.method.getOsrPrologueLength();
 
-    for (InstructionEnumeration ie = ir.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction s = ie.next();
+    for (Enumeration<Instruction> ie = ir.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction s = ie.nextElement();
 
       if ((s.position != null) && (s.position.method != ir.method)) {
         // also adjust InlineSequence of the direct callee

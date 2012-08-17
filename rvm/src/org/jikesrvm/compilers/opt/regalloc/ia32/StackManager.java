@@ -26,8 +26,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_TrapIf;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
@@ -815,8 +813,8 @@ public abstract class StackManager extends GenericStackManager {
     Register ESP = ir.regpool.getPhysicalRegisterSet().getESP();
 
     boolean seenReturn = false;
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
 
       if (s.isReturn()) {
         seenReturn = true;
@@ -869,8 +867,8 @@ public abstract class StackManager extends GenericStackManager {
         ESPOffset += 4;
       }
 
-      for (OperandEnumeration ops = s.getOperands(); ops.hasMoreElements();) {
-        Operand op = ops.next();
+      for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
+        Operand op = ops.nextElement();
         if (op instanceof StackLocationOperand) {
           StackLocationOperand sop = (StackLocationOperand) op;
           int offset = sop.getOffset();

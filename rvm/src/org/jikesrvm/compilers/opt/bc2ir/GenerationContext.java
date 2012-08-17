@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,7 +36,6 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.inlining.InlineOracle;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.Empty;
@@ -745,8 +745,8 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
       // May be overly conservative
       // (if enclosed by another catch of Throwable...)
       if (enclosingHandlers != null) {
-        for (BasicBlockEnumeration e = enclosingHandlers.enumerator(); e.hasMoreElements();) {
-          BasicBlock eh = e.next();
+        for (Enumeration<BasicBlock> e = enclosingHandlers.enumerator(); e.hasMoreElements();) {
+          BasicBlock eh = e.nextElement();
           rethrow.insertOut(eh);
         }
       }

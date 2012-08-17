@@ -14,6 +14,8 @@ package org.jikesrvm.compilers.opt.ir;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK;
 
+import java.util.Enumeration;
+
 /**
  * General utilities to summarize an IR
  */
@@ -23,8 +25,8 @@ public final class IRSummary {
    * Does this IR have a bounds check expression?
    */
   public static boolean hasBoundsCheck(IR ir) {
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (s.operator == BOUNDS_CHECK) {
         return true;
       }

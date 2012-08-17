@@ -58,7 +58,6 @@ import org.jikesrvm.compilers.opt.ir.GetStatic;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.PutField;
 import org.jikesrvm.compilers.opt.ir.PutStatic;
@@ -508,8 +507,8 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
     for (Enumeration be = ir.getBasicBlocks(); be.hasMoreElements();) {
       BasicBlock bb = (BasicBlock) be.nextElement();
       if (!ir.options.FREQ_FOCUS_EFFORT || !bb.getInfrequent()) {
-        for (InstructionEnumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
-          Instruction s = e.next();
+        for (Enumeration<Instruction> e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
+          Instruction s = e.nextElement();
           switch (s.operator().opcode) {
             case GETFIELD_opcode: {
               Operand ref = GetField.getRef(s);

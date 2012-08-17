@@ -77,7 +77,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
    * Enumerate the nodes in no particular order
    */
   @Override
-  public GraphNodeEnumeration enumerateNodes() {
+  public Enumeration<GraphNode> enumerateNodes() {
     return new NodeEnumeration(_firstNode);
   }
 
@@ -404,7 +404,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
     }
   }
 
-  private static final class NodeEnumeration implements GraphNodeEnumeration {
+  private static final class NodeEnumeration implements Enumeration<GraphNode> {
     private SpaceEffGraphNode _node;
 
     public NodeEnumeration(SpaceEffGraphNode n) { _node = n; }
@@ -413,10 +413,7 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
     public boolean hasMoreElements() { return _node != null; }
 
     @Override
-    public GraphNode nextElement() { return next(); }
-
-    @Override
-    public GraphNode next() {
+    public GraphNode nextElement() {
       SpaceEffGraphNode n = _node;
       _node = n.getNext();
       return n;

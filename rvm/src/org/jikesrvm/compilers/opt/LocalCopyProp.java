@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,7 +23,6 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -89,8 +89,8 @@ public class LocalCopyProp extends CompilerPhase {
           int numUses = s.getNumberOfPureUses();
           if (numUses > 0) {
             boolean didSomething = false;
-            for (OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
-              Operand use = e.next();
+            for (Enumeration<Operand> e = s.getUses(); e.hasMoreElements();) {
+              Operand use = e.nextElement();
               if (use instanceof RegisterOperand) {
                 RegisterOperand rUse = (RegisterOperand) use;
                 Operand value = info.get(rUse.getRegister());
@@ -130,8 +130,8 @@ public class LocalCopyProp extends CompilerPhase {
             }
           }
 
-          for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
-            Operand def = e.next();
+          for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements();) {
+            Operand def = e.nextElement();
             if (def != null && def.isRegister()) {
               Register r = def.asRegister().getRegister();
               info.remove(r);

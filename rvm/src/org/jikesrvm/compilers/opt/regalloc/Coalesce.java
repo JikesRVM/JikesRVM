@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
+import java.util.Enumeration;
 import java.util.Iterator;
 
 import org.jikesrvm.compilers.opt.DefUse;
@@ -20,7 +21,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.SPLIT;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -66,14 +66,14 @@ class Coalesce {
     live.merge(r1, r2);
 
     // Merge the defs.
-    for (RegisterOperandEnumeration e = DefUse.defs(r2); e.hasMoreElements();) {
+    for (Enumeration<RegisterOperand> e = DefUse.defs(r2); e.hasMoreElements();) {
       RegisterOperand def = e.nextElement();
       DefUse.removeDef(def);
       def.setRegister(r1);
       DefUse.recordDef(def);
     }
     // Merge the uses.
-    for (RegisterOperandEnumeration e = DefUse.uses(r2); e.hasMoreElements();) {
+    for (Enumeration<RegisterOperand> e = DefUse.uses(r2); e.hasMoreElements();) {
       RegisterOperand use = e.nextElement();
       DefUse.removeUse(use);
       use.setRegister(r1);
@@ -101,7 +101,7 @@ class Coalesce {
       Instruction end = (elem.getEnd() == null) ? bb.lastInstruction() : elem.getEnd();
       int low = begin.scratch;
       int high = end.scratch;
-      for (RegisterOperandEnumeration defs = DefUse.defs(r2); defs.hasMoreElements();) {
+      for (Enumeration<RegisterOperand> defs = DefUse.defs(r2); defs.hasMoreElements();) {
         Operand def = defs.nextElement();
         int n = def.instruction.scratch;
         if (n >= low && n < high) {
@@ -118,7 +118,7 @@ class Coalesce {
    * Is there an instruction r1 = split r2 or r2 = split r1??
    */
   private static boolean split(Register r1, Register r2) {
-    for (RegisterOperandEnumeration e = DefUse.defs(r1); e.hasMoreElements();) {
+    for (Enumeration<RegisterOperand> e = DefUse.defs(r1); e.hasMoreElements();) {
       RegisterOperand def = e.nextElement();
       Instruction s = def.instruction;
       if (s.operator == SPLIT) {
@@ -126,7 +126,7 @@ class Coalesce {
         if (rhs.similar(def)) return true;
       }
     }
-    for (RegisterOperandEnumeration e = DefUse.defs(r2); e.hasMoreElements();) {
+    for (Enumeration<RegisterOperand> e = DefUse.defs(r2); e.hasMoreElements();) {
       RegisterOperand def = e.nextElement();
       Instruction s = def.instruction;
       if (s.operator == SPLIT) {

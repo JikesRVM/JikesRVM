@@ -28,7 +28,6 @@ import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.GetField;
@@ -156,7 +155,7 @@ class IndexPropagationSystem extends DF_System {
    * that affects the values of Array SSA variables.
    */
   void setupEquations() {
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock bb = e.nextElement();
       for (SSADictionary.AllInstructionEnumeration e2 = ssa.getAllInstructions(bb); e2.hasMoreElements();) {
         Instruction s = e2.nextElement();

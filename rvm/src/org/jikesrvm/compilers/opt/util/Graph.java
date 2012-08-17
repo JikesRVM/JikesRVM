@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
+import java.util.Enumeration;
+
 
 /**
  * An abstract interface for generic graphs; general graph utilities
@@ -33,7 +35,7 @@ public interface Graph {
    *
    * @return an enumeration of all nodes in the graph
    */
-  GraphNodeEnumeration enumerateNodes();
+  Enumeration<GraphNode> enumerateNodes();
 
   /**
    *  Find out how many nodes are in the graph
