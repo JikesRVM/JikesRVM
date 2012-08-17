@@ -3540,8 +3540,10 @@ JVM_Available(jint fd, jlong *pbytes)
 	  return 0;
 	} else if ((end = lseek(fd, 0, SEEK_END)) == -1) {
 	  return 0;
+#ifndef __MACH__
 	} else if (lseek64(fd, cur, SEEK_SET) == -1) {
 	  return 0;
+#endif
 	}
 	*pbytes = end - cur;
 	//	printf("JVM_Available: fd %d, return %d\n",end - cur);

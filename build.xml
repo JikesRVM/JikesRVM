@@ -223,7 +223,6 @@
 
   <target name="check-openjdk-properties" depends="check-components-properties,check-classlibrary-properties" if="openjdk.classlib">
     <propertycopy name="openjdk.lib.dir" from="${target.name}.openjdk.lib.dir"/>
-    <echo message="openjdk.lib.dir is ${openjdk.lib.dir}}"/>
     <test-file name="openjdk.lib.dir" location="${components.file}"/>
     <property name="config.portable-native-sync" value="false"/>
     <property name="build.extra.rt.jars" value=""/>
@@ -1207,10 +1206,6 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="compile" depends="compile-mmtk,compile-options,prepare-source,prepare-config-source,choose-classlib,do-checkstyle">
-
-    <echo message="#######Compile ${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"/>
-    <echo message="#########scrdir is ${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"/>
-    
     <condition property="exclude-arch" value="IA" else="PPC">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
@@ -1319,11 +1314,11 @@ Check to make sure all required properties are specified. This includes properti
                fork="true"
                memoryMaximumSize="500M"
                debugLevel="lines,source"
-               source="1.5"
-               target="1.5"
+               source="${rvm.java.version}"
+               target="${rvm.java.version}"
                srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}">
-	  
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${generated.arch.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               includeantruntime="false">
           <bootclasspath>
             <pathelement location="${openjdk.lib.dir}/rt.jar"/>
           </bootclasspath>
@@ -1486,7 +1481,6 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="package-openjdk" if="openjdk.classlib">
-    <echo message="###################package-openjdk"/>
     <zip destfile="${build.rt.jar}" duplicate="preserve" basedir="${build.classes}" compress="false">       
       <include name="java/**"/>
       <include name="sun/**"/>
@@ -1609,6 +1603,11 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="primordials.arch" value=",RVM_PPC.txt" else=",RVM_IA32.txt">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
+    <condition property="primordials.openjdk"
+               value="OpenJDK.osx.txt"
+               else="OpenJDK.linux.txt">
+      <os family="mac"/>
+    </condition>
 
     <if>
       <conditions>
@@ -1644,7 +1643,7 @@ Check to make sure all required properties are specified. This includes properti
 	<concat destfile="${build.base}/Primordials.txt">
 	  <filelist dir="${build.base}" files="ClassesForImage.txt"/>
           <filelist dir="${primordials.dir}"
-                    files="OpenJDK.txt,RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
+                    files="${primordials.openjdk},RVM.txt${primordials.opt}${primordials.aos}${primordials.arch}"/>
         </concat>
       </sequential>
     </if> 
@@ -1933,7 +1932,7 @@ Check to make sure all required properties are specified. This includes properti
     </if>
 
     <!-- create rvmdynlib shared library -->
-    <property name="rvmdynlib.dll" value="${target.dll-prefix}rvmdynlib${target.jni-suffix}"/>
+    <property name="rvmdynlib.dll" value="${target.dll-prefix}rvmdynlib${target.dll-ext}"/>
     <exec executable="${c++.exe}" failonerror="true">
       <arg line="${rvm.c++.args}"/>
       <arg value="-o"/>
@@ -2143,24 +2142,47 @@ target.jni-suffix=${target.jni-suffix}
         <include name="BootImageWriterOutput.txt"/>
       </fileset>
     </copy>
-    <copy file="${basedir}/tools/bootImageRunner/rvm.openjdk" tofile="${dist.base}/rvm">
-    </copy>
-    <copy todir="${dist.base}">
-      <fileset dir="${openjdk.lib.dir}">
-	<include name="*.so"/>
-      </fileset>
+    <copy file="${basedir}/tools/bootImageRunner/rvm.openjdk"
+          tofile="${dist.base}/rvm">
     </copy>
     <chmod file="${dist.base}/rvm" perm="ugo+rx"/>
     <copy file="${build.rt.jar}" todir="${dist.base}"/>
     <copy file="${build.vm.jar}" todir="${dist.base}"/>
-
     <mkdir dir="${dist.base}/lib"/>
     <copy todir="${dist.base}/lib">
       <fileset dir="${openjdk.lib.dir}">
       </fileset>      
     </copy>
-
-    <copy file="${dist.base}/lib/i386/server/libjvm.so" todir="${dist.base}/lib/i386/"/>
+    <if>
+      <conditions>
+        <os family="mac"/>
+      </conditions>
+      <sequential>
+        <symlink link="${dist.base}/libjvm.jnilib"
+                 resource="${dist.base}/lib/i386/server/libjvm.dylib"
+                 overwrite="true"/>
+        <symlink link="${dist.base}/librvm.jnilib"
+                 resource="${dist.base}/librvm.dylib"
+                 overwrite="true"/>
+        <symlink link="${dist.base}/librvmdynlib.jnilib"
+                 resource="${dist.base}/librvmdynlib.dylib"
+                 overwrite="true"/>
+      </sequential>
+    </if>
+    <if>
+      <conditions>
+        <os name="Linux"/>
+      </conditions>
+      <sequential>
+        <copy file="${dist.base}/lib/i386/server/libjvm.so" todir="${dist.base}/lib/i386/"/>
+      </sequential>
+    </if>
+    <copy todir="${dist.base}">
+      <fileset dir="${openjdk.lib.dir}/i386">
+	<include name="*${target.dll-ext}"/>
+      </fileset>
+      <globmapper from="*${target.dll-ext}" to="*${target.jni-suffix}"/>
+    </copy>
     <mkdir dir="${dist.base}/include"/>
     <copy todir="${dist.base}/include">
       <fileset dir="${build.native}">

@@ -3,11 +3,46 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
-  <property name="openjdk.url" value="http://yangxi.anu.edu.au/openjdk.tar"/>
+  <condition property="openjdk.basename"
+             value="openjdk6-"
+             else="openjdk">
+    <os family="mac"/>
+  </condition>
+  <condition property="openjdk.version"
+             value="b16-24_apr_2009-r1"
+             else="i386lib">
+    <os family="mac"/>
+  </condition>
+  <condition property="openjdk.suffix"
+             value="tar.bz2"
+             else="tar">
+    <os family="mac"/>
+  </condition>
+  <condition property="openjdk.tar"
+             value="${openjdk.basename}${openjdk.version}.${openjdk.suffix}"
+             else="${openjdk.basename}.${openjdk.suffix}">
+    <os family="mac"/>
+  </condition>
+  <condition property="openjdk.url"
+             value="http://landonf.bikemonkey.org/static/soylatte/bsd-dist/openjdk6_darwin/${openjdk.tar}"
+             else="http://yangxi.anu.edu.au/${openjdk.tar}">
+    <os family="mac"/>
+  </condition>
+  <condition property="openjdk.compression"
+             value="bzip2"
+             else="none">
+    <os family="mac"/>
+  </condition>
   <property name="openjdk.component.dir" location="${components.dir}/openjdk"/>
-  <property name="openjdk.package.dir" value="${openjdk.component.dir}"/>
+  <property name="openjdk.package.dir" value="${openjdk.component.dir}/${openjdk.version}"/>
+  <property name="openjdk.dir" value="${openjdk.package.dir}/openjdk"/>
+  <condition property="openjdk.lib"
+             value="${openjdk.dir}/jre/lib"
+             else="${openjdk.dir}/lib">
+    <os family="mac"/>
+  </condition>
 
-  <setComponentsConfig key="${target.name}.openjdk.lib.dir" value="${openjdk.package.dir}/openjdki386lib/lib"/>
+  <setComponentsConfig key="${target.name}.openjdk.lib.dir" value="${openjdk.lib}"/>
 
   <target name="fetch">
     <if>
@@ -17,17 +52,25 @@
 	</not>
       </conditions>
       <sequential>
-	<mkdir dir="${openjdk.component.dir}"/>	
-	<get src="http://yangxi.anu.edu.au/openjdk.tar" dest="${openjdk.package.dir}/openjdk.tar" verbose="true"/>
-	<untar src="${openjdk.package.dir}/openjdk.tar" dest="${openjdk.package.dir}/"/>
+	<mkdir dir="${openjdk.package.dir}"/>	
+	<cachedGet key="${openjdk.tar}"
+                   src="${openjdk.url}"
+                   dest="${openjdk.package.dir}/${openjdk.tar}"/>
+	<untar compression="${openjdk.compression}"
+               src="${openjdk.package.dir}/${openjdk.tar}"
+               dest="${openjdk.package.dir}"/>
+        <move
+            file="${openjdk.package.dir}/${openjdk.basename}${openjdk.version}"
+            tofile="${openjdk.dir}"/>
       </sequential>
     </if>	
   </target>
-	      
+
   <target name="build" depends="fetch">
-    <echo message="Building openjdk libraries"/>
+    <echo message="Building OpenJDK libraries"/>
   </target>
   <target name="ensure" depends="fetch">
-    <echo message="Ensure openjdk libraries"/>
+    <echo message="Ensure OpenJDK libraries"/>
   </target>
 </project>
+
