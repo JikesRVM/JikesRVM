@@ -2429,6 +2429,14 @@ target.jni-suffix=${target.jni-suffix}
     <copy file="build/eclipse/mmtk-harness-classpath" tofile=".classpath"/>
   </target>
 
+  <macrodef name="copy-testing-jars-for-eclipse-project">
+    <sequential>
+      <copy file="${junit.jar}" tofile="eclipse/junit.jar" />
+      <copy file="${hamcrest.jar}" tofile="eclipse/hamcrest.jar" />
+      <copy file="${mockito.jar}" tofile="eclipse/mockito.jar" />
+    </sequential>
+  </macrodef>
+
   <target name="eclipse-project" depends="prepare-source">
     <property name="eclipse.project.name" value="JikesRVM"/>
     <remove-eclipse-project-files/>
@@ -2439,9 +2447,7 @@ target.jni-suffix=${target.jni-suffix}
       </conditions>
       <sequential>
         <copy file="${classpath.lib.dir}/classpath.jar" tofile="eclipse/classpath.jar" />
-        <copy file="${junit.jar}" tofile="eclipse/junit.jar" />
-        <copy file="${hamcrest.jar}" tofile="eclipse/hamcrest.jar" />
-        <copy file="${mockito.jar}" tofile="eclipse/mockito.jar" />
+        <copy-testing-jars-for-eclipse-project/>
         <property name="classpath.template.name" value="classpath.template" />
       </sequential>
     </if>
@@ -2450,12 +2456,13 @@ target.jni-suffix=${target.jni-suffix}
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
       </conditions>
       <sequential>
-	<copy toDir="eclipse" verbose="true">
-	  <fileset dir="${harmony.lib.dir}">
-	    <include name="**/*.jar" />
-	  </fileset>
-	</copy>
-	<property name="classpath.template.name" value="classpath.harmony.template" />
+        <copy toDir="eclipse" verbose="true">
+          <fileset dir="${harmony.lib.dir}">
+            <include name="**/*.jar" />
+          </fileset>
+        </copy>
+        <copy-testing-jars-for-eclipse-project/>
+        <property name="classpath.template.name" value="classpath.harmony.template" />
       </sequential>
     </if>
     <copy todir="eclipse/gen-base">
