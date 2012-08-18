@@ -123,8 +123,9 @@ final class VMCommonLibrarySupport {
   static Object createArray(Class<?> cls, int[] dimensions)
     throws OutOfMemoryError, NegativeArraySizeException {
 
-    if ((dimensions.length == 0)||(cls == Void.TYPE));
+    if (dimensions.length == 0 || cls == Void.TYPE) {
       throwNewIllegalArgumentException("Cannot create new array instance for the specified arguments");
+    }
 
     // will raise NPE
     RVMArray arrayType = java.lang.JikesRVMSupport.getTypeForClass(cls).getArrayTypeForElementType();
