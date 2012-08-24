@@ -1300,11 +1300,11 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="test-compile" depends="compile">
+  <target name="compile-unit-tests" depends="compile">
 
     <delete dir="${build.test-classes}"/>
     <mkdir dir="${build.test-classes}"/>
-    
+
     <javac destdir="${build.test-classes}"
       debug="true"
       fork="true"
@@ -1324,7 +1324,7 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="bootstrap-unit-tests" description="Run unit tests on the boostrap VM" depends="test-compile">
+  <target name="bootstrap-unit-tests" description="Run unit tests on the boostrap VM" depends="compile-unit-tests">
 
     <delete dir="${junit.reports.bootstrap}"/>
     <mkdir dir="${junit.reports.bootstrap}"/>
