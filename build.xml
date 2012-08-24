@@ -1347,7 +1347,7 @@ Check to make sure all required properties are specified. This includes properti
     </junit>
   </target>
 
-  <target name="rvm-unit-tests" description="Run unit tests on Jikes RVM" depends="runtime">
+  <target name="rvm-unit-tests" description="Run unit tests on Jikes RVM" depends="runtime" if="${require.rvm-unit-tests}">
 
     <delete dir="${junit.reports.rvm}"/>
     <mkdir dir="${junit.reports.rvm}"/>
