@@ -61,7 +61,7 @@ public final class AddressInputStream extends InputStream {
     }
     byte result = location.loadByte(offset);
     offset = offset.plus(1);
-    return result;
+    return result & 0xFF;
   }
   /** Reset to mark */
   @Override
