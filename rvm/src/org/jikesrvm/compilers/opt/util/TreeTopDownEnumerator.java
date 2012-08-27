@@ -42,10 +42,11 @@ final class TreeTopDownEnumerator implements Enumeration<TreeNode> {
   TreeTopDownEnumerator(TreeNode root) {
     list = new ArrayList<TreeNode>();
 
-    // Perform a DFS, saving nodes in preorder
-    DFS(root);
+    if (root != null) {
+      // Perform a DFS, saving nodes in preorder
+      DFS(root);
+    }
 
-    // setup the iterator
     iterator = list.listIterator();
   }
 

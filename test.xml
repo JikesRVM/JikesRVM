@@ -143,6 +143,7 @@
                    output="${driver.scratch.dir}/Build-${test.config.@{tag}.configuration}.txt">
               <property name="config.name" value="${test.config.@{tag}.configuration}"/>
               <property name="require.checkstyle" value="${require.checkstyle}"/>
+              <property name="require.rvm-unit-tests" value="${require.rvm-unit-tests}"/>
             </erant>
             <timer property="${test.config.@{tag}.configuration}.build.time" stop="true"/>
             <property name="${test.config.@{tag}.configuration}.built" value="true"/>

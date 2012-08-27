@@ -80,6 +80,7 @@ public class Tree {
    */
   public final int numberOfNodes() {
     int n = 0;
+    if (root == null) return n;
     for (Enumeration<TreeNode> e = elements(); e.hasMoreElements();) {
       e.nextElement();
       n++;
