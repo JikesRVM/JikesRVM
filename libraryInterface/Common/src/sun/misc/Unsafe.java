@@ -207,7 +207,9 @@ public final class Unsafe {
 
   public void park(boolean isAbsolute,long time) throws Throwable  {
     RVMThread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
-    vmthread.park(isAbsolute, time);
+    if (vmthread != null) {
+      vmthread.park(isAbsolute, time);
+    }
   }
 
   public void throwException(Throwable ex) {
