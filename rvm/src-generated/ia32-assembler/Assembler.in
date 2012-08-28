@@ -1930,7 +1930,6 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   /** software prefetch */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emitPREFETCHNTA_Reg(GPR srcReg) {
-    if (VM.VerifyAssertions) VM._assert(srcReg == EDI);
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x0F);
     setMachineCodes(mi++,(byte) 0x18);

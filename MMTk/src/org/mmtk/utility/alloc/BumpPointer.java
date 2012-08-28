@@ -174,6 +174,7 @@ import org.vmmagic.unboxed.Word;
       return allocSlow(start, end, align, offset);
     fillAlignmentGap(cursor, start);
     cursor = end;
+    end.plus(128).prefetch();
     return start;
   }
 
