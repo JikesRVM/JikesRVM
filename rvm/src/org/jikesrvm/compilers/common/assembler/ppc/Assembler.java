@@ -1714,7 +1714,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   static final int DCBTtemplate = 31 << 26 | 278 << 1;
 
   public final void emitDCBT(int RA, int RB) {
-    int mi = DCBSTtemplate | RA << 16 | RB << 11;
+    int mi = DCBTtemplate | RA << 16 | RB << 11;
     mIP++;
     mc.addInstruction(mi);
   }
