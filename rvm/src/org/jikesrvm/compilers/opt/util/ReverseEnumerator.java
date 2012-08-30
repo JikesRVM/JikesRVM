@@ -12,18 +12,26 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
-/**
- * Reverse the order of an enumeration.
- */
-
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
+/**
+ * An enumerator that provides access to the reverse order of elements for
+ * a given {@link Enumeration}.
+ */
 public final class ReverseEnumerator<T> implements Enumeration<T> {
 
   private final ArrayList<T> vec;
   private int index;
+
+  public ReverseEnumerator(Enumeration<T> e) {
+    vec = new ArrayList<T>();
+    while (e.hasMoreElements()) {
+      vec.add(e.nextElement());
+    }
+    index = vec.size();
+  }
 
   @Override
   public boolean hasMoreElements() {
@@ -40,14 +48,4 @@ public final class ReverseEnumerator<T> implements Enumeration<T> {
     }
   }
 
-  public ReverseEnumerator(Enumeration<T> e) {
-    vec = new ArrayList<T>();
-    while (e.hasMoreElements()) {
-      vec.add(e.nextElement());
-    }
-    index = vec.size();
-  }
 }
-
-
-
