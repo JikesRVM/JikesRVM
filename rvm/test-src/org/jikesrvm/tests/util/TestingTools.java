@@ -22,6 +22,10 @@ import java.util.Vector;
 
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.compilers.opt.inlining.CallSiteTreeNode;
+import org.jikesrvm.compilers.opt.inlining.InlineSequence;
+import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 
 public class TestingTools {
 
@@ -35,28 +39,48 @@ public class TestingTools {
 
   public static <T> Vector<T> asVector(T... elems) {
     Vector<T> v = new Vector<T>(elems.length);
+
     for (int i = 0; i < elems.length; i++)
       v.add(i, elems[i]);
+
     return v;
   }
 
-  public static Byte[] boxed(byte [] bytes){
+  public static Byte[] boxed(byte [] bytes) {
     Byte[] boxedBytes = new Byte[bytes.length];
+
     for (int i=0; i<boxedBytes.length; i++) {
         boxedBytes[i] = bytes[i];
     }
+
     return boxedBytes;
   }
 
-  public static <T> ArrayList<T> toList(Enumeration<T> en){
+  public static <T> ArrayList<T> toList(Enumeration<T> en) {
     return Collections.list(en);
   }
 
-  public static NormalMethod getNormalMethod(String name) throws Exception{
-    Method m = TestingTools.class.getMethod(name);
+  public static NormalMethod getNormalMethod(Class<?> declaringClass, String name, Class<?>... argumentTypes) throws Exception {
+    Method m = declaringClass.getMethod(name, argumentTypes);
     RVMMethod rvmm = JikesRVMSupport.getMethodOf(m);
     return (NormalMethod) rvmm;
   }
 
-  public void dummy(){}
+  private static Instruction setByteCodeIndex(int byteCodeIndex) {
+    Instruction instruction = Call.create(org.jikesrvm.compilers.opt.ir.Operators.CALL, null, null, null, null, 0);
+    instruction.setBytecodeIndex(byteCodeIndex);
+    return instruction;
+  }
+
+  public static InlineSequence createInlineSequence(Class<?> declaringClass, String methodName, Class<?>... argumentTypes) throws Exception {
+    return new InlineSequence(getNormalMethod(declaringClass, methodName));
+  }
+
+  public static InlineSequence createInlineSequence(InlineSequence node ,int ByteCodeIndex, Class<?> declaringClass, String methodName, Class<?>... argumentTypes) throws Exception {
+    return new InlineSequence(getNormalMethod(declaringClass, methodName), node, setByteCodeIndex(ByteCodeIndex));
+  }
+
+  public static CallSiteTreeNode toCode(ArrayList<CallSiteTreeNode> listOfOESTNodes, InlineSequence node) {
+    return listOfOESTNodes.get(listOfOESTNodes.indexOf(node));
+  }
 }
