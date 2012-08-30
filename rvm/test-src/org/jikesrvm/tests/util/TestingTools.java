@@ -22,7 +22,6 @@ import java.util.Vector;
 
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.compilers.opt.inlining.CallSiteTreeNode;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -31,7 +30,8 @@ public class TestingTools {
 
   public static <T> Iterable<T> asIterable(final Iterator<T> it) {
     return new Iterable<T>() {
-       public Iterator<T> iterator() {
+       @Override
+      public Iterator<T> iterator() {
          return it;
        }
     };
@@ -80,7 +80,4 @@ public class TestingTools {
     return new InlineSequence(getNormalMethod(declaringClass, methodName), node, setByteCodeIndex(ByteCodeIndex));
   }
 
-  public static CallSiteTreeNode toCode(ArrayList<CallSiteTreeNode> listOfOESTNodes, InlineSequence node) {
-    return listOfOESTNodes.get(listOfOESTNodes.indexOf(node));
-  }
 }
