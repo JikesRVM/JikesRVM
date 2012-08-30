@@ -86,5 +86,4 @@ public class StackTest {
     it.next();
     assertFalse(it.hasNext());
   }
-
 }
