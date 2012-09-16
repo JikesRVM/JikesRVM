@@ -42,10 +42,6 @@ public final class DepthFirstEnumerator implements Enumeration<GraphNode> {
 
   @Override
   public GraphNode nextElement() {
-    return next();
-  }
-
-  private GraphNode next() {
     if (stack == null) {
       throw new NoSuchElementException("DepthFirstEnumerator");
     }
