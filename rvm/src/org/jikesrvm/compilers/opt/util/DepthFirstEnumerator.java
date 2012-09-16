@@ -13,17 +13,19 @@
 package org.jikesrvm.compilers.opt.util;
 
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 
 public final class DepthFirstEnumerator implements Enumeration<GraphNode> {
-  private Stack<GraphNode> stack;
-  private int mark;
+  private final Stack<GraphNode> stack;
+  private final Set<GraphNode> visited;
 
-  public DepthFirstEnumerator(GraphNode start, int markNumber) {
+  public DepthFirstEnumerator(GraphNode start) {
     stack = new Stack<GraphNode>();
     stack.push(start);
-    mark = markNumber;
+    visited = new HashSet<GraphNode>();
   }
 
   @Override
@@ -33,7 +35,7 @@ public final class DepthFirstEnumerator implements Enumeration<GraphNode> {
     }
 
     for (GraphNode node : stack) {
-      if (node.getScratch() != mark) {
+      if (notVisited(node)) {
         return true;
       }
     }
@@ -47,17 +49,22 @@ public final class DepthFirstEnumerator implements Enumeration<GraphNode> {
     }
     while (!stack.isEmpty()) {
       GraphNode node = stack.pop();
-      if (node.getScratch() != mark) {
+      if (notVisited(node)) {
         for (Enumeration<GraphNode> e = node.outNodes(); e.hasMoreElements();) {
           GraphNode n = e.nextElement();
           if (n != null) {
             stack.push(n);
           }
         }
-        node.setScratch(mark);
+        visited.add(node);
         return node;
       }
     }
     throw new NoSuchElementException("DepthFirstEnumerator");
   }
+
+  private boolean notVisited(GraphNode node) {
+    return !visited.contains(node);
+  }
+
 }
