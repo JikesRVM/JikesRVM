@@ -17,8 +17,8 @@ import java.util.NoSuchElementException;
 
 
 public final class DepthFirstEnumerator implements Enumeration<GraphNode> {
-  Stack<GraphNode> stack;
-  int mark;
+  private Stack<GraphNode> stack;
+  private int mark;
 
   public DepthFirstEnumerator(GraphNode start, int markNumber) {
     stack = new Stack<GraphNode>();
@@ -45,7 +45,7 @@ public final class DepthFirstEnumerator implements Enumeration<GraphNode> {
     return next();
   }
 
-  public GraphNode next() {
+  private GraphNode next() {
     if (stack == null) {
       throw new NoSuchElementException("DepthFirstEnumerator");
     }
