@@ -6515,27 +6515,4 @@ public final class BC2IR
     @Override
     public String toString() { return "<DUMMY>"; }
   }
-
-  /**
-   * ReturnAddress operand. Used to represent the address pushed on
-   * the expression stack by a JSR instruction.
-   */
-  public static final class ReturnAddressOperand extends Operand {
-    final int retIndex;
-
-    ReturnAddressOperand(int ri) { retIndex = ri; }
-
-    @Override
-    public Operand copy() { return this; }
-
-    @Override
-    public boolean similar(Operand op) {
-      return (op instanceof ReturnAddressOperand) && (retIndex == ((ReturnAddressOperand) op).retIndex);
-    }
-
-    @Override
-    public String toString() {
-      return "<return address " + retIndex + ">";
-    }
-  }
 }
