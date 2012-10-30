@@ -1599,6 +1599,17 @@ public final class BC2IR
                   // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
                   push(rhs, fieldType);
                   break;
+                } catch (NullPointerException npe) {
+                  // TODO This is a workaround for RVM-1004.
+                  if (VM.runningVM) {
+                    // Never had an NPE at run-time before RVM-1004, so that's definitively an error.
+                    throw new Error("Unexpected exception", npe);
+                  } else {
+                    // We may get an NPE here (and currently don't know why).
+                    // Ignoring the NPE is safe; we just lose an opportunity for optimization.
+                    System.out.println("Ignoring unexpected NPE when trying " +
+                        "to chase constant field at bootimage build time: " + field);
+                  }
                 } catch (NoSuchFieldException e) {
                   if (VM.runningVM) { // this is unexpected
                     throw new Error("Unexpected exception", e);
