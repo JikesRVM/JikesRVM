@@ -97,6 +97,8 @@ import org.vmmagic.unboxed.Word;
 
   public static final int MINIMUM_DATA_SIZE = (1 << LOG_BLOCK_SIZE) - MAX_DATA_START_OFFSET.toInt();
 
+  private static final int SIZE_OF_TWO_X86_CACHE_LINES_IN_BYTES = 128;
+
   private static final boolean VERBOSE = false;
 
   /****************************************************************************
@@ -174,7 +176,7 @@ import org.vmmagic.unboxed.Word;
       return allocSlow(start, end, align, offset);
     fillAlignmentGap(cursor, start);
     cursor = end;
-    end.plus(128).prefetch();
+    end.plus(SIZE_OF_TWO_X86_CACHE_LINES_IN_BYTES).prefetch();
     return start;
   }
 
