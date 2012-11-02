@@ -673,7 +673,7 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   protected final void SET_EXCEPTION_OBJECT(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForCaughtException();
     StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
-    Operand val = (Operand) CacheOp.getRef(s);
+    Operand val = CacheOp.getRef(s);
     if (val.isRegister()) {
         EMIT(MIR_Move.mutate(s, IA32_MOV, sl, val));
     } else if (val.isIntConstant()) {

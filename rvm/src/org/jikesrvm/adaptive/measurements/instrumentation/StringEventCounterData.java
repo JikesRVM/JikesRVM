@@ -76,7 +76,7 @@ public class StringEventCounterData extends ManagedCounterData implements Report
     if (whole == Long.MAX_VALUE || whole == Long.MIN_VALUE) {
       return Double.toString(whole);
     }
-    double fract = Math.abs(num - (double) whole);
+    double fract = Math.abs(num - whole);
     String res = Long.toString(whole);
     if (fract != 0.0) {
       String f2s = Double.toString(fract + 1.0);

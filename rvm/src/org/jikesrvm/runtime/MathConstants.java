@@ -64,5 +64,5 @@ public class MathConstants {
 
   /** smallest double that can be rounded to an int */
   @Entrypoint
-  static final double minint = (double) Integer.MIN_VALUE;
+  static final double minint = Integer.MIN_VALUE;
 }

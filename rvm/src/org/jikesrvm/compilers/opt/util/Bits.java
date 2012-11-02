@@ -43,7 +43,7 @@ public class Bits {
    */
   public static int PPCMaskUpper16(int value) {
     short s = (short) (value & 0xffff);
-    return ((value - (int) s) >> 16) & 0xffff;
+    return ((value - s) >> 16) & 0xffff;
   }
 
   /**

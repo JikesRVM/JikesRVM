@@ -131,9 +131,9 @@ import org.vmmagic.pragma.*;
     do {
       int ch = (int) -(longValue % radix);
       if (ch > 9)
-        ch -= (10 - (int) 'a');
+        ch -= (10 - 'a');
       else
-        ch += (int) '0';
+        ch += '0';
       buffer [--i] = (byte) ch;
     } while ((longValue /= radix) != 0);
     if (negative) buffer [0] = (byte)'-';

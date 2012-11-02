@@ -668,9 +668,9 @@ public abstract class NormalizeConstants extends IRTools {
 
   public static boolean canBeImmediate(long val, boolean signed) {
     if (signed) {
-      return (val >= (long) LOWER_IMMEDIATE) && (val <= (long) UPPER_IMMEDIATE);
+      return (val >= LOWER_IMMEDIATE) && (val <= UPPER_IMMEDIATE);
     } else {
-      return (val >= 0L) && (val <= (long) UNSIGNED_UPPER_IMMEDIATE);
+      return (val >= 0L) && (val <= UNSIGNED_UPPER_IMMEDIATE);
     }
   }
 

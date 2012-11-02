@@ -46,7 +46,7 @@ public class TimerThread extends SystemThread {
     if (verbose>=1) VM.sysWriteln("TimerThread run routine entered");
     try {
       for (;;) {
-        sysCall.sysNanoSleep(1000L*1000L*(long)VM.interruptQuantum);
+        sysCall.sysNanoSleep(1000L*1000L*VM.interruptQuantum);
 
         if (VM.BuildForAdaptiveSystem) {
           // grab the lock to prevent threads from getting GC'd while we are

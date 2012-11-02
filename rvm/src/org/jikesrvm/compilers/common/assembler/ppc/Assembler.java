@@ -86,7 +86,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
 
   public static int maskUpper16(int val) {
     short s = (short) (val & 0xFFFF);
-    return ((val - (int) s) >>> 16);
+    return ((val - s) >>> 16);
   }
 
   public static boolean fits(Offset val, int bits) {
@@ -259,7 +259,7 @@ public abstract class Assembler extends AbstractAssembler implements BaselineCon
   public final void patchSwitchCase(int sourceMachinecodeIndex) {
     int delta = (mIP - sourceMachinecodeIndex) << 2;
     // correction is number of bytes of source off switch base
-    int correction = (int) mc.getInstruction(sourceMachinecodeIndex);
+    int correction = mc.getInstruction(sourceMachinecodeIndex);
     int offset = delta + correction;
     mc.putInstruction(sourceMachinecodeIndex, offset);
   }

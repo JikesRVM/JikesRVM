@@ -1511,7 +1511,7 @@ public final class BC2IR
           // Set branch probabilities
           SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex - bciAdjustment);
           if (sp == null) {
-            float approxProb = 1.0f / (float) (numpairs + 1); // num targets + default
+            float approxProb = 1.0f / (numpairs + 1); // num targets + default
             LookupSwitch.setDefaultBranchProfile(s, new BranchProfileOperand(approxProb));
             for (int i = 0; i < numpairs; ++i) {
               LookupSwitch.setBranchProfile(s, i, new BranchProfileOperand(approxProb));

@@ -2942,7 +2942,7 @@ public final class RVMThread extends ThreadContext {
    */
   @Interruptible
   public static void sleep(long millis, int ns) throws InterruptedException {
-    sleep((long) ns + millis * 1000L * 1000L);
+    sleep(ns + millis * 1000L * 1000L);
   }
 
   /*

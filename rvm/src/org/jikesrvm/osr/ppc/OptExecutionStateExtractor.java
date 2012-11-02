@@ -27,7 +27,6 @@ import org.jikesrvm.osr.ExecutionState;
 import org.jikesrvm.osr.OSRMapIterator;
 import org.jikesrvm.osr.VariableElement;
 import org.jikesrvm.ppc.ArchConstants;
-import org.jikesrvm.ppc.Registers;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
@@ -65,7 +64,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     byte[] stack = thread.getStack();
 
     // get registers for the caller ( real method )
-    TempRegisters registers = new TempRegisters((Registers)thread.getContextRegisters());
+    TempRegisters registers = new TempRegisters(thread.getContextRegisters());
 
     if (VM.VerifyAssertions) {
       int foocmid = Magic.getIntAtOffset(stack, methFPoff.plus(STACKFRAME_METHOD_ID_OFFSET));
@@ -405,14 +404,14 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
       // frame, we get value from it.
       if (vtype == PHYREG) {
         return ((((long) registers.gprs.get(valueHigh).toInt()) << 32) |
-                (((long) registers.gprs.get(valueLow).toInt()) & 0x0FFFFFFFFL));
+                ((registers.gprs.get(valueLow).toInt()) & 0x0FFFFFFFFL));
 
         // for spilled locals, the value is the spilled position
         // it is on FOO's stackframe.
         // ASSUMING, spill offset is offset to FP in bytes.
       } else if (vtype == SPILL) {
         long lvalue = ((long) Magic.getIntAtOffset(stack, fpOffset.plus(valueHigh))) << 32;
-        return (lvalue | (((long) Magic.getIntAtOffset(stack, fpOffset.plus(valueLow))) & 0x0FFFFFFFFL));
+        return (lvalue | ((Magic.getIntAtOffset(stack, fpOffset.plus(valueLow))) & 0x0FFFFFFFFL));
       }
 
     } else if (VM.BuildFor64Addr) {

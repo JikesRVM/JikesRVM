@@ -71,7 +71,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
       VM.sysWriteln("BASE execStateExtractor starting ...");
     }
 
-    Registers contextRegisters = (Registers)thread.getContextRegisters();
+    Registers contextRegisters = thread.getContextRegisters();
     byte[] stack = thread.getStack();
 
     if (VM.VerifyAssertions) {
@@ -282,7 +282,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
             if (VM.BuildFor32Addr) {
               lvalue =
                   ((((long) registers.gprs.get(loc).toInt()) << 32) |
-                   (((long) registers.gprs.get(loc + 1).toInt()) & 0x0FFFFFFFFL));
+                   ((registers.gprs.get(loc + 1).toInt()) & 0x0FFFFFFFFL));
             } else {
               lvalue = registers.gprs.get(loc).toLong();
             }

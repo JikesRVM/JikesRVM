@@ -192,7 +192,7 @@ public class SharedDeque extends Deque implements Constants {
 
   @Inline
   public final int enqueuedPages() {
-    return (int) (bufsenqueued * PAGES_PER_BUFFER);
+    return bufsenqueued * PAGES_PER_BUFFER;
   }
 
   /****************************************************************************
