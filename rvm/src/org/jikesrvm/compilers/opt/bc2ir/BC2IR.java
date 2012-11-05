@@ -1588,34 +1588,39 @@ public final class BC2IR
             }
 
             // optimization: if the field is final and either
-            // initialized or we're writing the bootimage and in an
-            // RVM bootimage class, then get the value at compile
+            // initialized or we're writing the bootimage and the field
+            // is from a suitable class, then get the value at compile
             // time.
             if (gc.options.SIMPLIFY_CHASE_FINAL_FIELDS && field.isFinal()) {
               RVMClass declaringClass = field.getDeclaringClass();
-              if (declaringClass.isInitialized() || declaringClass.isInBootImage()) {
+
+              boolean initializedClassAtRuntime = VM.runningVM & declaringClass.isInitialized();
+              boolean fieldFromRVMInternalClassInBootImage = declaringClass.isInBootImage() &&
+                  declaringClass.getDescriptor().isRVMDescriptor();
+              // We cannot assume that non-public fields from the host JVM's class library are present in
+              // the class library used by Jikes RVM: only public fields are part of the API.
+              boolean publicFieldInBootImage = declaringClass.isInBootImage() &&
+                  field.isPublic();
+
+              if (initializedClassAtRuntime || fieldFromRVMInternalClassInBootImage ||
+                  publicFieldInBootImage) {
                 try {
                   ConstantOperand rhs = StaticFieldReader.getStaticFieldValue(field);
                   // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
                   push(rhs, fieldType);
                   break;
-                } catch (NullPointerException npe) {
-                  // TODO This is a workaround for RVM-1004.
-                  if (VM.runningVM) {
-                    // Never had an NPE at run-time before RVM-1004, so that's definitively an error.
-                    throw new Error("Unexpected exception", npe);
-                  } else {
-                    // We may get an NPE here (and currently don't know why).
-                    // Ignoring the NPE is safe; we just lose an opportunity for optimization.
-                    System.out.println("Ignoring unexpected NPE when trying " +
-                        "to chase constant field at bootimage build time: " + field);
-                  }
                 } catch (NoSuchFieldException e) {
-                  if (VM.runningVM) { // this is unexpected
+                  if (VM.runningVM) {
                     throw new Error("Unexpected exception", e);
                   } else {
                     // Field not found during bootstrap due to chasing a field
-                    // only valid in the bootstrap JVM
+                    // only valid in the bootstrap JVM.
+
+                    // Although we try to avoid most cases where this could happen, we cannot
+                    // avoid all. For example, a NoSuchFieldException can occur when we're trying
+                    // to optimize a public field from Jikes RVM's class library that's not present
+                    // in the host JVM's class library (example: a field from an internal
+                    // helper class).
                   }
                 }
               }
