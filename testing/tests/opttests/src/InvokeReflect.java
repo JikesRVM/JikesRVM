@@ -28,7 +28,7 @@ class InvokeReflect {
       // invoking methodToRun() in the class specified by arg
       System.out.println("**** START OF EXECUTION of " + arg + "." +
                          methodToRun + " " + signatureToPrintOut + " ****.");
-      Class  klass = Class.forName(arg);
+      Class<?> klass = Class.forName(arg);
       Method method = klass.getDeclaredMethod(methodToRun, noparams);
       Object result = method.invoke(null, (Object[])noparams);
       System.out.println("**** RESULT: " + result);
