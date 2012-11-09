@@ -2707,6 +2707,14 @@ public class BootImageWriter extends BootImageWriterMessages
         // Unknown Class field or value for type
         return false;
       }
+    } else if ((jdkObject instanceof java.lang.String) &&
+        (rvmFieldName.equals("count")) && (rvmFieldType.isIntType())) {
+      // The fields "count" and "offset" are not guaranteed to be present in
+      // the String implementation in the class library (case in point: IcedTea 7).
+      // We don't need to do anything for "offset" (the default value of 0 is correct)
+      // but we need to ensure that "count" has the correct value.
+      bootImage.setFullWord(rvmFieldAddress, ((java.lang.String) jdkObject).length());
+      return true;
     }
     // Class library dependent fields
     if (classLibrary == "harmony") {
