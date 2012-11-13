@@ -433,7 +433,7 @@ class OptTestHarness {
     reflectoidVector = new Vector<Method>(10);
     reflectMethodVector = new Vector<RVMMethod>(10);
     reflectMethodArgsVector = new Vector<Object[]>(10);
-    if (!OptimizingCompiler.isInitialized()) {
+    if (VM.BuildForOptCompiler && !OptimizingCompiler.isInitialized()) {
       OptimizingCompiler.init(options);
     }
     processOptionString(args);
