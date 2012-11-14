@@ -22,96 +22,80 @@ import org.junit.Test;
 
 public class TreeTest {
 
+  private TreeNode root = new TreeNode();
+  private TreeNode n0 = new TreeNode();
+  private TreeNode n1 = new TreeNode();
+
+  private Tree t = newBigTree();
+
+  private Tree newBigTree() {
+    root.addChild(n0);
+    root.addChild(n1);
+    return new Tree(root);
+  }
+
   @Test
   public void testIsEmpty() {
-    Tree t = new Tree();
-    assertTrue(t.isEmpty());
-    assertEquals(0, t.numberOfNodes());
+    Tree t0 = new Tree();
+    assertTrue(t0.isEmpty());
+    assertFalse(t.isEmpty());
   }
 
   @Test
   public void testGetRoot() {
-    TreeNode root = new TreeNode();
-    Tree t = new Tree(root);
     assertSame(root, t.getRoot());
   }
 
   @Test
   public void testSetRoot() {
-    TreeNode root = new TreeNode();
-    Tree t = new Tree();
-    t.setRoot(root);
+    Tree t0 = new Tree();
+    t0.setRoot(root);
     assertSame(root, t.getRoot());
   }
 
   @Test
   public void testElements() {
-    TreeNode root = new TreeNode();
-    TreeNode tn2 = new TreeNode();
-    TreeNode tn3 = new TreeNode();
-    root.addChild(tn2);
-    root.addChild(tn3);
-    Tree t = new Tree(root);
     Enumeration<TreeNode> en = t.elements();
-    assertThat(toList(en), contains(root,tn2,tn3));
+    assertThat(toList(en), contains(root,n0,n1));
     assertFalse(en.hasMoreElements());
   }
 
   @Test
   public void testNumberOfNodes() {
-    TreeNode root = new TreeNode();
-    TreeNode tn2 = new TreeNode();
-    TreeNode tn3 = new TreeNode();
-    root.addChild(tn2);
-    root.addChild(tn3);
-    Tree t = new Tree(root);
     assertEquals(3, t.numberOfNodes());
   }
 
   @Test
-  public void testEmptyTopDownEnumerator(){
-    Tree t = new Tree();
-    Enumeration<TreeNode> en = t.getTopDownEnumerator();
+  public void testEmptyTopDownEnumerator() {
+    Tree t0 = new Tree();
+    Enumeration<TreeNode> en = t0.getTopDownEnumerator();
     assertFalse(en.hasMoreElements());
   }
 
   @Test
-  public void testEmptyBottomUpEnumerator(){
-    Tree t = new Tree();
-    Enumeration<TreeNode> en = t.getBottomUpEnumerator();
+  public void testEmptyBottomUpEnumerator() {
+    Tree t0 = new Tree();
+    Enumeration<TreeNode> en = t0.getBottomUpEnumerator();
     assertFalse(en.hasMoreElements());
   }
 
   @Test
   public void testGetBottomUpEnumerator() {
-    TreeNode root = new TreeNode();
-    TreeNode tn2 = new TreeNode();
-    TreeNode tn3 = new TreeNode();
-    root.addChild(tn2);
-    tn2.addChild(tn3);
-    Tree t = new Tree(root);
     Enumeration<TreeNode> en = t.getBottomUpEnumerator();
     assertTrue(en.hasMoreElements());
-    assertSame(tn3, en.nextElement());
-    assertSame(tn2, en.nextElement());
+    assertSame(n0, en.nextElement());
+    assertSame(n1, en.nextElement());
     assertSame(root, en.nextElement());
     assertFalse(en.hasMoreElements());
   }
 
   @Test
   public void testGetTopDownEnumerator() {
-    TreeNode root = new TreeNode();
-    TreeNode tn2 = new TreeNode();
-    TreeNode tn3 = new TreeNode();
-    root.addChild(tn2);
-    root.addChild(tn3);
-    Tree t = new Tree(root);
     Enumeration<TreeNode> en = t.getTopDownEnumerator();
     assertTrue(en.hasMoreElements());
     assertSame(root, en.nextElement());
-    assertSame(tn2, en.nextElement());
-    assertSame(tn3, en.nextElement());
+    assertSame(n0, en.nextElement());
+    assertSame(n1, en.nextElement());
     assertFalse(en.hasMoreElements());
   }
-
 }

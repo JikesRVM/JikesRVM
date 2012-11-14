@@ -134,7 +134,7 @@ public abstract class CompilerPhase {
     Constructor<CompilerPhase> cons = getClassConstructor();
     if (cons != null) {
       try {
-        return (CompilerPhase) cons.newInstance(initargs);
+        return cons.newInstance(initargs);
       } catch (Exception e) {
         throw new Error("Failed to create phase " + this.getClass() + " with constructor " + cons, e);
       }

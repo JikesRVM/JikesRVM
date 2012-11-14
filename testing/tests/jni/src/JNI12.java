@@ -54,7 +54,7 @@ class JNI12 {
     Object returnObj;
     // Reflected Methods
 
-    Class myClass =JNI12.class;
+    Class<?> myClass =JNI12.class;
 
     Method dummyM = myClass.getMethod("dummyFunc", new Class[0]);
     returnObj = testReflectedMethods(myClass, dummyM);

@@ -142,7 +142,7 @@ public class Defrag  implements Constants {
     int availableLines = cleanLines + availableCleanPagesForDefrag<<(LOG_BYTES_IN_PAGE - LOG_BYTES_IN_LINE);
 
     int requiredLines = 0;
-    short threshold = (short) MAX_CONSV_SPILL_COUNT;
+    short threshold = MAX_CONSV_SPILL_COUNT;
     int limit = (int) (availableLines / Options.defragLineReuseRatio.getValue());
     if (VM.VERIFY_ASSERTIONS && Options.verbose.getValue() > 2) {
       Log.write("[threshold: "); Log.write("cl: "); Log.write(cleanLines);
@@ -151,7 +151,7 @@ public class Defrag  implements Constants {
     }
     int collectors = VM.activePlan.collectorCount();
     for (short index = MAX_CONSV_SPILL_COUNT; index >= TMP_MIN_SPILL_THRESHOLD && limit > requiredLines; index--) {
-      threshold = (short) index;
+      threshold = index;
       int thisBucketMark = 0;
       int thisBucketAvail = 0;
       for (int c = 0; c < collectors; c++) thisBucketMark += spillMarkHistograms[c][threshold];

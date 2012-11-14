@@ -139,7 +139,7 @@ public class CompilerDNA implements Constants {
    * @return an estimate of compile time (in milliseconds)
    */
   public static double estimateCompileTime(int compiler, NormalMethod meth) {
-    double bytes = (double) meth.getBytecodeLength();
+    double bytes = meth.getBytecodeLength();
     double runtimeBaselineRate = RuntimeCompiler.getBaselineRate();
     double compileTime = bytes / runtimeBaselineRate;
     if (compiler != BASELINE) {

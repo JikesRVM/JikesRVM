@@ -34,7 +34,7 @@ final class VMFloat {
   }
 
   static String toString(float f) {
-    return VMDouble.toString((double) f, true);
+    return VMDouble.toString(f, true);
   }
 
   static float parseFloat(String str) {

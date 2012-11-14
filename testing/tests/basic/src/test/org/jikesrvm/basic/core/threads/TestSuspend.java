@@ -12,6 +12,7 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
+@SuppressWarnings("deprecation")
 class TestSuspend extends XThread {
 
   static Thread sleeper;

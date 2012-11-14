@@ -561,7 +561,7 @@ public class LoopUnrolling extends CompilerPhase {
                                   limit.copyD2U(),
                                   (ConditionOperand) cond.copy(),
                                   header.makeJumpTarget(),
-                                  new BranchProfileOperand(1.0f - 1.0f / ((float) (unrollFactor / 2)))));
+                                  new BranchProfileOperand(1.0f - 1.0f / (unrollFactor / 2))));
     tmp.insertBefore(Goto.create(GOTO, guardBlock2.makeJumpTarget()));
 
     // only enter main loop if iterations left

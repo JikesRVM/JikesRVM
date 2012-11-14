@@ -22,7 +22,7 @@ class TypeStack {
   private int top;
   private final byte defv;
 
-  public TypeStack(int depth, byte defv) {
+  TypeStack(int depth, byte defv) {
     byte[] stk = new byte[depth];
     for (int i = 0; i < depth; i++) {
       stk[i] = defv;
@@ -33,8 +33,7 @@ class TypeStack {
     this.defv = defv;
   }
 
-  public TypeStack(TypeStack other) {
-
+  TypeStack(TypeStack other) {
     int ssize = other.stack.length;
     this.stack = new byte[ssize];
     System.arraycopy(other.stack, 0, this.stack, 0, ssize);
@@ -42,14 +41,14 @@ class TypeStack {
     this.defv = other.defv;
   }
 
-  public void push(byte v) {
+  void push(byte v) {
     if (top == stack.length) {
       VM.sysWrite("TypeStack.push(B) : overflow!\n");
     }
     stack[top++] = v;
   }
 
-  public byte pop() {
+  byte pop() {
     if (top <= 0) {
       VM.sysWrite("TypeStack.pop() : underflow!\n");
     }
@@ -60,7 +59,7 @@ class TypeStack {
     return v;
   }
 
-  public void pop(int n) {
+  void pop(int n) {
     int newtop = top - n;
 
     if (newtop < 0) {
@@ -74,22 +73,22 @@ class TypeStack {
     top = newtop;
   }
 
-  public byte peek() {
+  byte peek() {
     return stack[top - 1];
   }
 
-  public byte[] snapshot() {
+  byte[] snapshot() {
     return stack;
   }
 
-  public void clear() {
+  void clear() {
     top = 0;
     for (int i = 0, n = stack.length; i < n; i++) {
       stack[i] = defv;
     }
   }
 
-  public int depth() {
+  int depth() {
     return top;
   }
 }

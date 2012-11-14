@@ -526,10 +526,10 @@ public class Statics implements Constants {
       long result;
       if (VM.LittleEndian) {
         result = (((long) slots[slot + 1]) << BITS_IN_INT); // hi
-        result |= ((long) slots[slot]) & 0xFFFFFFFFL; // lo
+        result |= (slots[slot]) & 0xFFFFFFFFL; // lo
       } else {
         result = (((long) slots[slot]) << BITS_IN_INT);     // hi
-        result |= ((long) slots[slot + 1]) & 0xFFFFFFFFL; // lo
+        result |= (slots[slot + 1]) & 0xFFFFFFFFL; // lo
       }
       return result;
     }

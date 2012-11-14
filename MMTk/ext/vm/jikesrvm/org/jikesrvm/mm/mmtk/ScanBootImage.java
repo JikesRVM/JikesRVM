@@ -258,7 +258,7 @@ public class ScanBootImage implements Constants {
       if (VM.VerifyAssertions) VM._assert((delta & 0x3) == 0);
       if (VM.VerifyAssertions) VM._assert(delta > 0);
 
-      int currentrun = ((int) code[codeIndex]) & 0xff;
+      int currentrun = (code[codeIndex]) & 0xff;
       if ((delta == BYTES_IN_ADDRESS) &&
           (currentrun < MAX_RUN)) {
         currentrun++;
@@ -315,14 +315,14 @@ public class ScanBootImage implements Constants {
    * offset.
  */
   private static int getOffset(byte[] code, int index, int lastOffset) {
-    if (((int) code[index] & RUN_MASK) == RUN_MASK) {
+    if ((code[index] & RUN_MASK) == RUN_MASK) {
       return lastOffset + BYTES_IN_WORD;
     } else {
       if (((index & (CHUNK_BYTES - 1)) == 0) ||
-          (((int) code[index] &LONGENCODING_MASK) == LONGENCODING_MASK)) {
+          ((code[index] &LONGENCODING_MASK) == LONGENCODING_MASK)) {
         return decodeLongEncoding(code, index);
       } else {
-        return lastOffset + (((int) code[index]) & 0xff);
+        return lastOffset + ((code[index]) & 0xff);
       }
     }
   }
@@ -338,10 +338,10 @@ public class ScanBootImage implements Constants {
   @Uninterruptible
   private static Offset decodeLongEncoding(Address cursor) {
     int value;
-    value  = ((int) cursor.loadByte())                                              & 0x000000fc;
-    value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(1))<<BITS_IN_BYTE)     & 0x0000ff00;
-    value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(2))<<(2*BITS_IN_BYTE)) & 0x00ff0000;
-    value |= ((int) cursor.loadByte(Offset.fromIntSignExtend(3))<<(3*BITS_IN_BYTE)) & 0xff000000;
+    value  = (cursor.loadByte())                                              & 0x000000fc;
+    value |= (cursor.loadByte(Offset.fromIntSignExtend(1))<<BITS_IN_BYTE)     & 0x0000ff00;
+    value |= (cursor.loadByte(Offset.fromIntSignExtend(2))<<(2*BITS_IN_BYTE)) & 0x00ff0000;
+    value |= (cursor.loadByte(Offset.fromIntSignExtend(3))<<(3*BITS_IN_BYTE)) & 0xff000000;
     return Offset.fromIntSignExtend(value);
   }
 
@@ -358,10 +358,10 @@ public class ScanBootImage implements Constants {
   @Uninterruptible
   private static int decodeLongEncoding(byte[] code, int index) {
     int value;
-    value  = ((int) code[index])                     & 0x000000fc;
-    value |= ((int) code[index+1]<<BITS_IN_BYTE)     & 0x0000ff00;
-    value |= ((int) code[index+2]<<(2*BITS_IN_BYTE)) & 0x00ff0000;
-    value |= ((int) code[index+3]<<(3*BITS_IN_BYTE)) & 0xff000000;
+    value  = (code[index])                     & 0x000000fc;
+    value |= (code[index+1]<<BITS_IN_BYTE)     & 0x0000ff00;
+    value |= (code[index+2]<<(2*BITS_IN_BYTE)) & 0x00ff0000;
+    value |= (code[index+3]<<(3*BITS_IN_BYTE)) & 0xff000000;
     return value;
   }
 

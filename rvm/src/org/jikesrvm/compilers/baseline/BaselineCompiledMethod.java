@@ -249,16 +249,16 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     int bcIndex = 0;
     Offset instrIndex = Offset.zero();
     for (int i = 0; i < bytecodeMap.length;) {
-      int b0 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
+      int b0 = (bytecodeMap[i++]) & 255;  // unsign-extend
       int deltaBC, deltaIns;
       if (b0 != 255) {
         deltaBC = b0 >> 5;
         deltaIns = b0 & 31;
       } else {
-        int b1 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
-        int b2 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
-        int b3 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
-        int b4 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
+        int b1 = (bytecodeMap[i++]) & 255;  // unsign-extend
+        int b2 = (bytecodeMap[i++]) & 255;  // unsign-extend
+        int b3 = (bytecodeMap[i++]) & 255;  // unsign-extend
+        int b4 = (bytecodeMap[i++]) & 255;  // unsign-extend
         deltaBC = (b1 << 8) | b2;
         deltaIns = (b3 << 8) | b4;
       }

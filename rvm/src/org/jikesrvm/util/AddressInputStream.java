@@ -72,6 +72,6 @@ public final class AddressInputStream extends InputStream {
   @Override
   public long skip(long n) {
     offset = offset.plus((int)n);
-    return (long)((int)n);
+    return ((int)n);
   }
 }

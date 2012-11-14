@@ -378,18 +378,12 @@ public class SpaceEffGraph implements Graph, TopSortInterface {
   // Note that this is different than topological ordering.
   // TODO: figure out how this works and add comments (IP)
   ////////////////////
-  int markNumber;
-
-  final int getNewMark() {
-    return ++markNumber;
-  }
 
   /**
    * Print, to System.out, the basic blocks in depth first order.
    */
   public void printDepthFirst() {
-    markNumber = getNewMark();
-    print(new DepthFirstEnumerator(_firstNode, markNumber));
+    print(new DepthFirstEnumerator(_firstNode));
   }
 
   /**

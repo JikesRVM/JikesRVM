@@ -12,6 +12,7 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
+@SuppressWarnings("deprecation")
 class TestStop {
   public static void main(String[] args) {
     final Worker w = new Worker();

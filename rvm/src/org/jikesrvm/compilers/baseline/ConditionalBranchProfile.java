@@ -28,7 +28,7 @@ public final class ConditionalBranchProfile extends BranchProfile {
    */
   ConditionalBranchProfile(int _bci, int yea, int nea, boolean bw) {
     super(_bci, ((float) yea + (float) nea));
-    taken = (float) yea;
+    taken = yea;
     backwards = bw;
   }
 

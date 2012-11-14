@@ -151,7 +151,7 @@ public final class PartialCallGraph implements Decayable, Reportable {
    * @param weight   the frequency of this calling edge
    */
   public synchronized void incrementEdge(RVMMethod caller, int bcIndex, RVMMethod callee, float weight) {
-    augmentEdge(caller, bcIndex, callee, (double) weight);
+    augmentEdge(caller, bcIndex, callee, weight);
   }
 
   /**

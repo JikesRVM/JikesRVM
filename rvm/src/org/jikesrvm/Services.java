@@ -306,7 +306,7 @@ public class Services implements SizeConstants {
   public static void percentage(int numerator, int denominator, String quantity) {
     print("\t");
     if (denominator > 0) {
-      print((int) ((((double) numerator) * 100.0) / ((double) denominator)));
+      print((int) (((numerator) * 100.0) / (denominator)));
     } else {
       print("0");
     }
@@ -317,7 +317,7 @@ public class Services implements SizeConstants {
   static void percentage(long numerator, long denominator, String quantity) {
     print("\t");
     if (denominator > 0L) {
-      print((int) ((((double) numerator) * 100.0) / ((double) denominator)));
+      print((int) (((numerator) * 100.0) / (denominator)));
     } else {
       print("0");
     }

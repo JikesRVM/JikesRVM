@@ -34,11 +34,12 @@
 
   <target name="compile" depends="init">
     <mkdir dir="${build.classes}"/>
-    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" includeantruntime="false">
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" source="1.6" target="1.6" includeantruntime="false">
       <!-- need extra classpath for vmmagic -->
       <classpath>
         <pathelement path="${test.rvm.dir}/jksvm.jar"/>
       </classpath>
+    	<compilerarg value="-Xlint:deprecation"/>
     </javac>
 
     <jar file="${build.tests.dir}/AgentX.jar" basedir="${build.classes}" includes="**/AgentX.class">

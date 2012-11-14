@@ -837,7 +837,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_BL_opcode:
         case PPC_BL_SYS_opcode: {                     // CALL
-          BranchOperand o = (BranchOperand) MIR_Call.getTarget(p);
+          BranchOperand o = MIR_Call.getTarget(p);
           int targetOffset = resolveBranch(p, o.target, mi);
           machinecodes.set(mi++, inst | (targetOffset & LI_MASK));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -863,7 +863,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
           // condition bit (0..3) in the correct condition field (0..7).
           // 1 <= op <= 7
           int bo_bi = op0 << 2 | op1;
-          BranchOperand o = (BranchOperand) MIR_CondCall.getTarget(p);
+          BranchOperand o = MIR_CondCall.getTarget(p);
           int targetOffset = resolveBranch(p, o.target, mi);
           if (targetOffset == 0) {            // unresolved branch
             if (DEBUG) VM.sysWrite("**** Forward Cond. Branch ****\n");

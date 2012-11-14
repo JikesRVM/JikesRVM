@@ -232,7 +232,7 @@ public final class RVMAnnotation {
         int numValues = input.readUnsignedShort();
         if (numValues == 0) {
           if (type != null) {
-            value = Array.newInstance(type.resolve().getClassForType(), 0);
+            value = Array.newInstance(type.getArrayElementType().resolve().getClassForType(), 0);
           } else {
             value = new Object[0];
           }
@@ -651,9 +651,18 @@ public final class RVMAnnotation {
         value = RVMAnnotation.readValue(meth.getReturnType(), constantPool, input, classLoader);
       } else {
         value = RVMAnnotation.readValue(null, constantPool, input, classLoader);
-        meth = MemberReference.findOrCreate(type, name,
-            Atom.findOrCreateAsciiAtom("()"+TypeReference.findOrCreate(value.getClass()).getName())
-        ).asMethodReference();
+        if (value instanceof Object[] && ((Object[])value).length == 0) {
+            // We blindly guessed Object[] in readValue.
+            // No choice but to force type to be resolved so we actually
+            // create an empty array of the appropriate type.
+            meth = type.resolve().asClass().findDeclaredMethod(name).getMemberRef().asMethodReference();
+            value = Array.newInstance(meth.getReturnType().getArrayElementType().resolve().getClassForType(), 0);
+        } else {
+            // Reading the value lets us make a MemberReference that is likely to be correct.
+            meth = MemberReference.findOrCreate(type, name,
+                    Atom.findOrCreateAsciiAtom("()"+TypeReference.findOrCreate(value.getClass()).getName())
+            ).asMethodReference();
+        }
       }
       return new AnnotationMember(meth, value);
     }

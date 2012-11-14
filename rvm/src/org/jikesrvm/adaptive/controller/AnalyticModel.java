@@ -211,7 +211,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
       return null;
     }
 
-    double millis = (double) (prev.getTimeCompleted() - prev.getTimeInitiated());
+    double millis = prev.getTimeCompleted() - prev.getTimeInitiated();
     double speedup = prev.getExpectedSpeedup();
     double futureTimeForMethod = futureTimeForMethod(hme);
 
@@ -297,7 +297,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    */
   double futureTimeForMethod(HotMethodEvent hme) {
     double numSamples = hme.getNumSamples();
-    double timePerSample = (double) VM.interruptQuantum;
+    double timePerSample = VM.interruptQuantum;
     if (!VM.UseEpilogueYieldPoints) {
       // NOTE: we take two samples per timer interrupt, so we have to
       // adjust here (otherwise we'd give the method twice as much time
@@ -306,7 +306,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
     }
     if (Controller.options.mlCBS()) {
       // multiple method samples per timer interrupt. Divide accordingly.
-      timePerSample /= (double) VM.CBSMethodSamplesPerTick;
+      timePerSample /= VM.CBSMethodSamplesPerTick;
     }
     double timeInMethodSoFar = numSamples * timePerSample;
     return timeInMethodSoFar;

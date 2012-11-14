@@ -127,7 +127,7 @@ public class Block implements Constants {
       }
       mark = markTable.loadByte(Offset.fromIntZeroExtend(offset));
       if (resetMarkState)
-        markTable.store((byte) (mark == markState ? RESET_LINE_MARK_STATE : 0), Offset.fromIntZeroExtend(offset));
+        markTable.store(mark == markState ? RESET_LINE_MARK_STATE : 0, Offset.fromIntZeroExtend(offset));
 
       if (mark == markState)
         markCount++;

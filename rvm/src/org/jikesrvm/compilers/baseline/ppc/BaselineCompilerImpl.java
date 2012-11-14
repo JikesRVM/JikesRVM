@@ -4484,7 +4484,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     } else if (methodName == MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(0, T0);
-    } else if (methodName == MagicNames.dcbt) {
+    } else if (methodName == MagicNames.dcbt || methodName == MagicNames.prefetch) {
       popAddr(T0);    // address
       asm.emitDCBT(0, T0);
     } else if (methodName == MagicNames.dcbtst) {
