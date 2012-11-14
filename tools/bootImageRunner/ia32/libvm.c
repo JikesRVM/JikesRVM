@@ -104,7 +104,7 @@ const char *bootDataFilename = 0;
 const char *bootRMapFilename = 0;
 
 /* Emit trace information? */
-int lib_verbose = 1;
+int lib_verbose = 0;
 
 /* Location of jtoc within virtual machine image. */
 static Address VmToc;

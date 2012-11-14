@@ -85,7 +85,6 @@ public class VM extends Properties implements Constants, ExitStatus {
     init(classPath, bootCompilerArgs);
   }
 
-  private static native void abc();
   /**
    * Prepare VM classes for use by tools.
    */
@@ -105,8 +104,6 @@ public class VM extends Properties implements Constants, ExitStatus {
     runningTool = true;
     init(classpath, null);
   }
-
-  private static native void abcdefg();
 
   /**
    * Begin VM execution.<p>
@@ -313,15 +310,11 @@ public class VM extends Properties implements Constants, ExitStatus {
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     //
 
-    VM.sysWriteln("XXXX");
     DynamicLibrary.boot();
     System.loadLibrary("rvm");
     System.loadLibrary("jvm");
-    VM.sysWriteln("Load java");
     System.loadLibrary("java");
     System.loadLibrary("zip");
-
-    VM.sysWriteln("We try to init java.lang.Thread now");
 
     runClassInitializer("java.lang.Thread");
 
@@ -334,8 +327,6 @@ public class VM extends Properties implements Constants, ExitStatus {
 
     if (verboseBoot >= 1) VM.sysWriteln("Setting up boot thread");
     RVMThread.getCurrentThread().setupBootJavaThread();
-
-    VM.sysWriteln("Start to init libraries");
 
     // Create JNI Environment for boot thread.
     // After this point the boot thread can invoke native methods.
@@ -350,18 +341,15 @@ public class VM extends Properties implements Constants, ExitStatus {
       System.loadLibrary("hyniochar");
     }
 
-    VM.sysWriteln("java.io.File");
     runClassInitializer("java.io.UnixFileSystem");
     runClassInitializer("java.io.FileSystem");
 
     runClassInitializer("java.io.File"); // needed for when we initialize the
     // system/application class loader.
-    VM.sysWriteln("java.lang.String");
     runClassInitializer("java.lang.String");
     if (VM.BuildForGnuClasspath) {
       runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     }
-    VM.sysWriteln("java.net.URL");
     runClassInitializer("java.net.URL"); // needed for URLClassLoader
     runClassInitializer("java.net.URLClassLoader");//Openjdk
     runClassInitializer("sun.misc.URLClassPath");//Openjdk
@@ -651,13 +639,11 @@ public class VM extends Properties implements Constants, ExitStatus {
               new ExceptionInInitializerError(t);
           throw eieio;
         }
-      VM.sysWriteln("abc");
         // <clinit> is no longer needed: reclaim space by removing references to it
         clinit.invalidateCompiledMethod(clinit.getCurrentCompiledMethod());
       } else {
         if (verboseBoot >= 10) VM.sysWriteln("has no clinit method ");
       }
-      VM.sysWriteln("abc");
       cls.setAllFinalStaticJTOCEntries();
     }
   }

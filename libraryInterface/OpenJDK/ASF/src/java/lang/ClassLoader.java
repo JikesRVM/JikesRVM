@@ -498,7 +498,6 @@ public abstract class ClassLoader {
             } catch (IOException e) {
             }
         }
-	VM.sysWriteln("GetResource:"+resName+"->NULL");
         return null;
     }
 

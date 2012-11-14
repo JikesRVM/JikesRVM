@@ -698,7 +698,6 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
    * created lazily on first use.  Typically it won't ever get created.
    */
   Map<String, T> enumConstantDirectory() {
-    System.out.println("EnumContantDirectory is called");
     if (enumConstantDirectory == null) {
       T[] universe = getEnumConstants();
       if (universe == null)
@@ -706,7 +705,6 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
             getName() + " is not an enum type");
       Map<String, T> m = new HashMap<String, T>(2 * universe.length);
       for (T constant : universe){
-        System.out.println("Putting " + ((Enum)constant).name() + " in the HashMap");
         m.put(((Enum)constant).name(), constant);
       }
       enumConstantDirectory = m;

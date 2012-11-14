@@ -202,7 +202,6 @@ public class FileSystem {
    * and java.lang.System.err
    */
   public static void initializeStandardStreams() {
-    VM.sysWriteln("InitializeStandardStreams");
     FileInputStream fdIn = new FileInputStream(FileDescriptor.in);
     FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
     FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);

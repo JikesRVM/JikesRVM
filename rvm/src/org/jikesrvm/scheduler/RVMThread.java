@@ -163,14 +163,13 @@ public final class RVMThread extends ThreadContext {
   protected static final boolean traceBind = false;
 
   /** Trace thread start/stop */
-  protected static final boolean traceAcct = true;
+  protected static final boolean traceAcct = false;
 
   /** Trace execution */
   protected static final boolean trace = false;
 
   /** Trace thread termination */
-  //  private static final boolean traceTermination = false;
-  private static final boolean traceTermination = true;
+  private static final boolean traceTermination = false;
 
   /** Trace adjustments to stack size */
   private static final boolean traceAdjustments = false;
@@ -4451,7 +4450,6 @@ public final class RVMThread extends ThreadContext {
     } else if (VM.fullyBooted) {
       exceptionObject.printStackTrace();
     }
-    exceptionObject.printStackTrace();
     getCurrentThread().terminate();
     if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);

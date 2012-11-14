@@ -660,7 +660,6 @@ public class BootImageWriter extends BootImageWriterMessages
     //
     java.util.HashMap<Object,Class<?>> x = new java.util.HashMap<Object,Class<?>>();
     x.put(x, x.getClass());
-    System.out.println("I am main, x class is"+x.getClass().getName());
     sillyhack = x;
 
     //

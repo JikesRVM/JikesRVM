@@ -1871,7 +1871,6 @@ extern "C" void*
 sysDlopen(char *libname)
 {
     void * libHandler;
-    fprintf(SysErrorFile,"sysDlopen:%s\n",libname);
     do {
         libHandler = dlopen(libname, RTLD_LAZY|RTLD_GLOBAL);
     }
@@ -2377,19 +2376,6 @@ gcspySprintf(char *str, const char *format, char *arg) {
 #endif
 
 ///////////////////////////JVM_Native interfaces///////////////////
-
-extern "C" JNIEXPORT void JNICALL
-java_org_jikesrvm_VM_abc(void)
-{
-  printf("\nHello world, I am abc!\n");
-}
-
-extern "C" JNIEXPORT void JNICALL
-sysDummy(JNIEnv *env, jobject thread)
-{
-  printf("The Version is %d\n",(int)(env->GetVersion()));
-}
-
 
 extern "C"{
 

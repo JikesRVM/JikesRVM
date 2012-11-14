@@ -105,7 +105,6 @@ public class JikesRVMSupport {
    * Thread stuff
    * */
   public static Thread createThread(RVMThread vmdata, String myName) {
-      VM.sysWriteln("Creating Java thread");
       return new Thread(vmdata, myName);
   }
 

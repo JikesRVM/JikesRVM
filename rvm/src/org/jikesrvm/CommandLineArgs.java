@@ -28,7 +28,7 @@ import org.jikesrvm.scheduler.RVMThread;
  * Command line option processing iwth arbitrary prefix support.
  */
 public class CommandLineArgs {
-  private static final boolean DEBUG = true;
+  private static final boolean DEBUG = false;
 
   /**
    * Argument types

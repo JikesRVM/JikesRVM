@@ -73,7 +73,7 @@ uint64_t maximumHeapSize;       /* Declared in bootImageRunner.h */
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
 
-static int DEBUG = 1;                   // have to set this from a debugger
+static int DEBUG = 0;                   // have to set this from a debugger
 static const unsigned BYTES_IN_PAGE = MMTk_Constants_BYTES_IN_PAGE;
 
 static bool strequal(const char *s1, const char *s2);
