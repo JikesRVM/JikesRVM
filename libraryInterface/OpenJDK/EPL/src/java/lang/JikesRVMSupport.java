@@ -19,13 +19,10 @@ import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.RVMField;
 
-import org.jikesrvm.VM;
-
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Offset;
 
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.runtime.Magic;
 
 /**
  * Library support interface of Jikes RVM
@@ -112,7 +109,7 @@ public class JikesRVMSupport {
     if (thread == null)
       return null;
     else
-      return thread.vmThread;    
+      return thread.vmThread;
   }
 
   public static void threadDied(Thread thread) {

@@ -2454,6 +2454,8 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="common/options" includes="**/*.java"/>
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>
       <fileset dir="libraryInterface/GNUClasspath/EPL" includes="**/*.java"/>
+      <fileset dir="libraryInterface/Harmony/EPL" includes="**/*.java"/>
+      <fileset dir="libraryInterface/OpenJDK/EPL" includes="**/*.java"/>
       <fileset dir="tools" includes="**/*.java"/>
     </checkstyle>
 

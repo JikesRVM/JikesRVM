@@ -14,10 +14,7 @@ package java.nio;
 
 //import org.apache.harmony.luni.platform.PlatformAddressFactory;
 
-import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-
 import org.vmmagic.unboxed.Address;
-import org.jikesrvm.VM;
 
 /**
  * Library support interface of Jikes RVM
