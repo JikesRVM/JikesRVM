@@ -42,7 +42,12 @@ public interface ArchEntrypoints {
   RVMField restoreVolatilesInstructionsField =
       (VM.BuildForPowerPC) ?
       EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/OutOfLineMachineCode;", "restoreVolatilesInstructions", ArchCodeArrayName) : null;
-  RVMField registersIPField =
+
+  RVMField trampolineRegistersField =
+        EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;", "trampolineRegisters", "Lorg/jikesrvm/ArchitectureSpecific$Registers;");
+  RVMField hijackedReturnAddressField =
+    EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;", "hijackedReturnAddress", "Lorg/vmmagic/unboxed/Address;");
+   RVMField registersIPField =
       EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/Registers;", "ip", "Lorg/vmmagic/unboxed/Address;");
   RVMField registersFPRsField = EntrypointHelper.getField("Lorg/jikesrvm/" + arch + "/Registers;", "fprs", "[D");
   RVMField registersGPRsField =

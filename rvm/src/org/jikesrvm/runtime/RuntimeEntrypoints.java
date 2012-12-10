@@ -1020,7 +1020,13 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     }
     RVMType exceptionType = Magic.getObjectType(exceptionObject);
     Address fp = exceptionRegisters.getInnermostFramePointer();
+    Address hijackedCalleeFp = RVMThread.getCurrentThread().getHijackedReturnCalleeFp();
+    boolean leapfroggedReturnBarrier = false;
+    if (VM.VerifyAssertions) VM._assert(hijackedCalleeFp.isZero() || hijackedCalleeFp.GE(fp));
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      if (!hijackedCalleeFp.isZero() && hijackedCalleeFp.LE(fp)) {
+      leapfroggedReturnBarrier = true;
+      }
       int compiledMethodId = Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
         CompiledMethod compiledMethod = CompiledMethods.getCompiledMethod(compiledMethodId);
@@ -1033,6 +1039,11 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
           // found an appropriate catch block
           if (VM.TraceExceptionDelivery) {
             VM.sysWriteln("found one; delivering.");
+          }
+          if (leapfroggedReturnBarrier) {
+            RVMThread t = RVMThread.getCurrentThread();
+            if (RVMThread.DEBUG_STACK_TRAMPOLINE) VM.sysWriteln("leapfrogged...");
+            t.deInstallStackTrampoline();
           }
           Address catchBlockStart = compiledMethod.getInstructionAddress(Offset.fromIntSignExtend(catchBlockOffset));
           exceptionDeliverer.deliverException(compiledMethod, catchBlockStart, exceptionObject, exceptionRegisters);
@@ -1051,7 +1062,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
       VM.sysWriteln("RuntimeEntrypoints.deliverException() found no catch block.");
     }
     /* No appropriate catch block found. */
-
+    if (RVMThread.DEBUG_STACK_TRAMPOLINE && leapfroggedReturnBarrier) VM.sysWriteln("Leapfrogged, and unhandled!");
     handleUncaughtException(exceptionObject);
   }
 
@@ -1085,7 +1096,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     // in one of our heaps
     do {
       callee_fp = fp;
-      ip = Magic.getReturnAddress(fp);
+      ip = Magic.getReturnAddressUnchecked(fp);
       fp = Magic.getCallerFramePointer(fp);
     } while (!MemoryManager.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 

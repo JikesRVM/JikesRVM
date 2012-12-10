@@ -1561,13 +1561,49 @@ public class VM extends Properties implements Constants, ExitStatus {
     writeln();
     swUnlock();
   }
-
+  @NoInline
+  public static void sysWriteln(String s1, Address a1,Address a2) {
+    swLock();
+    write(s1);
+    write(a1);
+    write(" ");
+    write(a2);
+    writeln();
+    swUnlock();
+  }
   @NoInline
   public static void sysWrite(String s1, String s2, int i) {
     swLock();
     write(s1);
     write(s2);
     write(i);
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(int i, Address a, RVMMethod m) {
+    swLock();
+    write(i);
+    write(" ");
+    write(a);
+    write(" ");
+    write(m.getDeclaringClass().getDescriptor());
+    write(".");
+    write(m.getName());
+    write(m.getDescriptor());
+    write("\n");
+    swUnlock();
+  }
+
+  @NoInline
+  public static void sysWriteln(int i, Address a, Address b) {
+    swLock();
+    write(i);
+    write(" ");
+    write(a);
+    write(" ");
+    write(b);
+    write("\n");
     swUnlock();
   }
 

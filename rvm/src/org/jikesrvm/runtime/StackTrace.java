@@ -153,7 +153,7 @@ public class StackTrace {
         //VM.sysWriteln("invisible method!");
       }
       stackFrameCount++;
-      ip = Magic.getReturnAddress(fp);
+      ip = Magic.getReturnAddress(fp, stackTraceThread);
       fp = Magic.getCallerFramePointer(fp);
     }
   }

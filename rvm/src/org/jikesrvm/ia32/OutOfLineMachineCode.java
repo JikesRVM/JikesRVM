@@ -22,6 +22,8 @@ import org.jikesrvm.objectmodel.JavaHeaderConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.EntrypointHelper;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -48,6 +50,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     reflectiveMethodInvokerInstructions = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
     threadSwitchInstructions = generateThreadSwitchInstructions();
+    RVMThread.stackTrampolineBridgeInstructions = generateStackTrampolineBridgeInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
   }
 
@@ -485,6 +488,50 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     asm.emitJMP_Reg(T1);                      // return to return address
     return asm.getMachineCodes();
   }
+
+  /**
+   * Machine code to perform a stack trampoline bridge for
+   * implementing a return barrier.
+   *
+   * This code is used to hijack a return and bridge to some
+   * other method (which implements the return barrier) before
+   * falling back to the intended return address.
+   *
+   * The key here is to preserve register and stack state so that
+   * the caller is oblivious of the detour that occurred during
+   * the return.
+   */
+  private static ArchitectureSpecific.CodeArray generateStackTrampolineBridgeInstructions() {
+    if (VM.VerifyAssertions) {
+      VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
+      VM._assert(VM.BuildFor32Addr);
+    }
+    Assembler asm = new ArchitectureSpecific.Assembler(0);
+
+    /* push the hijacked return address (which is held in thread-local state) */
+    asm.emitPUSH_RegDisp(TR, ArchEntrypoints.hijackedReturnAddressField.getOffset());
+
+    /* push the GPRs and fp */
+    for (int i = 0; i < NUM_GPRS; i++) {
+      asm.emitPUSH_Reg(ALL_GPRS[i]);
+    }
+    asm.emitPUSH_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
+
+    /* call the handler */
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.returnBarrierMethod.getOffset()));
+
+    /* pop the fp and GPRs */
+    asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
+    for (int i = NUM_GPRS - 1; i >= 0; i--) {
+      asm.emitPOP_Reg(ALL_GPRS[i]);
+    }
+
+    /* pop the hijacked return address and return */
+    asm.emitRET();
+
+    return asm.getMachineCodes();
+  }
+
 
   /**
    * Machine code to implement "Magic.threadSwitch()".

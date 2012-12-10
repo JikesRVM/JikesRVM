@@ -54,7 +54,7 @@ public abstract class ExecutionStateExtractor implements Constants {
     VM.disableGC();
 
     Address fp = Magic.objectAsAddress(stack).plus(osrFPoff);
-    Address ip = Magic.getReturnAddress(fp);
+    Address ip = Magic.getReturnAddressUnchecked(fp);
     fp = Magic.getCallerFramePointer(fp);
     while (Magic.getCallerFramePointer(fp).NE(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
       int cmid = Magic.getCompiledMethodID(fp);
@@ -71,7 +71,7 @@ public abstract class ExecutionStateExtractor implements Constants {
         }
       }
 
-      ip = Magic.getReturnAddress(fp);
+      ip = Magic.getReturnAddressUnchecked(fp);
       fp = Magic.getCallerFramePointer(fp);
     }
 

@@ -238,6 +238,7 @@ public class Entrypoints {
       getField(org.jikesrvm.scheduler.RVMThread.class,
                "exceptionRegisters",
                org.jikesrvm.ArchitectureSpecific.Registers.class);
+  public static final NormalMethod returnBarrierMethod = getMethod(org.jikesrvm.scheduler.RVMThread.class, "returnBarrier", "()V");
 
   public static final RVMField tracePrevAddressField =
       getField(org.jikesrvm.objectmodel.MiscHeader.class, "prevAddress", org.vmmagic.unboxed.Word.class);

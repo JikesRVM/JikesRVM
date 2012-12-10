@@ -157,12 +157,41 @@ public final class Magic {
   }
 
   /**
-   * Get return address for a frame
+   * Get return address for a frame in a case where the frame is
+   * known not to be a trampoline frame.
+   *
+   * @param fp its frame pointer
+   */
+  @Uninterruptible
+  public static Address getReturnAddressUnchecked(Address fp) {
+    Address ip = getReturnAddressLocation(fp).loadAddress();
+    if (VM.VerifyAssertions) VM._assert(!RVMThread.isTrampolineIP(ip));
+    return ip;
+  }
+
+  /**
+   * Get return address for a frame in the current thread
+   *
    * @param fp its frame pointer
    */
   @Uninterruptible
   public static Address getReturnAddress(Address fp) {
-    return getReturnAddressLocation(fp).loadAddress();
+    return getReturnAddress(fp, RVMThread.getCurrentThread());
+  }
+
+  /**
+   * Get return address for a frame in a specific thread
+   *
+   * @param fp its frame pointer
+   * @param thread the thread whose stack is being examined
+   */
+  @Uninterruptible
+  public static Address getReturnAddress(Address fp, RVMThread thread) {
+    Address ip = getReturnAddressLocation(fp).loadAddress();
+    if (RVMThread.isTrampolineIP(ip))
+      return thread.getTrampolineHijackedReturnAddress();
+    else
+      return ip;
   }
 
   /**
@@ -932,7 +961,6 @@ public final class Magic {
   public static void saveThreadState(Registers registers) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
-
   /**
    * Switch threads.
    * The following registers are saved/restored

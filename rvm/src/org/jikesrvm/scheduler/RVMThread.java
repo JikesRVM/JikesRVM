@@ -22,8 +22,12 @@ import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD;
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
 import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
+import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.Configuration;
 import org.jikesrvm.Services;
@@ -63,6 +67,8 @@ import org.vmmagic.pragma.NoCheckStore;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.Offset;
+
+import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
@@ -146,7 +152,7 @@ import org.jikesrvm.tuningfork.Feedlet;
  */
 @Uninterruptible
 @NonMoving
-public final class RVMThread extends ThreadContext {
+public final class RVMThread extends ThreadContext implements Constants {
   /*
    * debug and statistics
    */
@@ -284,6 +290,27 @@ public final class RVMThread extends ThreadContext {
   public static boolean notRunning(int state) {
     return state == NEW || state == TERMINATED;
   }
+
+  /** Registers used by return barrier trampoline */
+  private Registers trampolineRegisters = new Registers();
+
+  /** Return address of stack frame hijacked by return barrier */
+  private Address hijackedReturnAddress;
+
+  /** Callee frame pointer for stack frame hijacked by return barrier */
+  private Address hijackedReturnCalleeFp = Address.zero();
+
+  /** Caller frame pointer for stack frame hijacked by return barrier */
+  private Address hijackedReturnCallerFp = ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+
+  /** @return the callee frame pointer for the stack frame hijacked by the return barrier */
+  public Address getHijackedReturnCalleeFp() { return hijackedReturnCalleeFp; }
+
+  /** debugging flag for return barrier trampoline */
+  public static final boolean DEBUG_STACK_TRAMPOLINE = false;
+
+  /** pointer to bridge code for return barrier trampoline */
+  public static ArchitectureSpecific.CodeArray stackTrampolineBridgeInstructions;
 
   /**
    * Thread state. Indicates if the thread is running, and if so, what mode of
@@ -2182,7 +2209,7 @@ public final class RVMThread extends ThreadContext {
   @NoInline
   public static void saveThreadState() {
     Address curFP=Magic.getFramePointer();
-    getCurrentThread().contextRegisters.setInnermost(Magic.getReturnAddress(curFP),
+    getCurrentThread().contextRegisters.setInnermost(Magic.getReturnAddressUnchecked(curFP),
                                                      Magic.getCallerFramePointer(curFP));
   }
 
@@ -2418,6 +2445,7 @@ public final class RVMThread extends ThreadContext {
   /**
    * @return The currently executing thread
    */
+  @Uninterruptible
   public static RVMThread getCurrentThread() {
     return ThreadLocalState.getCurrentThread();
   }
@@ -2833,6 +2861,185 @@ public final class RVMThread extends ThreadContext {
   public static void yieldpointFromBackedge() {
     Address fp = Magic.getFramePointer();
     yieldpoint(BACKEDGE, fp);
+  }
+
+  /*
+   * The following code implements return barriers as described by Yuasa
+   *
+   * http://www.yuasa.kuis.kyoto-u.ac.jp/~yuasa/ilc2002/index.html
+   * http://dx.doi.org/10.1109/ISORC.2005.45
+   *
+   * and Kumar et al
+   *
+   * http://dx.doi.org/10.1145/2398857.2384639
+   */
+
+  /**
+   * The return barrier.
+   *
+   * This code is executed when a method returns into a frame that
+   * has been hijacked by the return barrier mechanism.   The return
+   * barrier trampoline will save state, execute this method, and
+   * then upon return from this method will transparently return into
+   * the frame that had been hijacked.
+   *
+   * In this default implementation, the barrier reinstalls itself
+   * in the caller's frame thus incrementally moving the barrier down
+   * the stack.
+   *
+   * The execution of this method is fragile.  It is generally safest
+   * to call some other method from here that does the substantive work
+   * of the barrier.
+   */
+  @Entrypoint
+  @Uninterruptible
+  @Unpreemptible
+  public static void returnBarrier() {
+    /* reinstall the barrier in the caller's frame */
+    if (DEBUG_STACK_TRAMPOLINE) {
+      VM.sysWriteln(getCurrentThread().getId(), " T0: ", getCurrentThread().trampolineRegisters.gprs.get(BaselineConstants.T0.value()).toAddress());
+      VM.sysWriteln(getCurrentThread().getId(), " T1: ", getCurrentThread().trampolineRegisters.gprs.get(BaselineConstants.T1.value()).toAddress());
+      VM.sysWriteln(getCurrentThread().getId(), " nf: ", getCurrentThread().hijackedReturnCallerFp);
+      VM.sysWriteln(getCurrentThread().getId(), " lf: ", getCurrentThread().hijackedReturnCalleeFp);
+      VM.sysWriteln(getCurrentThread().getId(), " fp: ", Magic.getFramePointer());
+      VM.sysWriteln(getCurrentThread().getId(), " np: ", Magic.getCallerFramePointer(Magic.getFramePointer()));
+    }
+    /* reinstall the barrier in the specified frame */
+    getCurrentThread().installStackTrampolineBridge(getCurrentThread().hijackedReturnCallerFp);
+  }
+
+  /**
+   * Install the stack trampoline bridge at a given frame, hijacking
+   * that frame, saving the hijacked return address and callee fp
+   * in thread-local state to allow execution of the hijacked frame
+   * later.
+   *
+   * @param targetFp The frame to be hijacked.
+   */
+  @Uninterruptible
+  public void installStackTrampolineBridge(Address targetFp) {
+    Address trampoline = getStackTrampolineBridgeIP();
+    if (trampoline.isZero()) {
+      VM.sysWriteln("Warning: attempt to install stack trampoline without bridge instructions - nothing done.  See RVMThread.");
+    } else if (trampoline.NE(Magic.getReturnAddressUnchecked(targetFp))) {
+      /* install the trampoline at fp or the next suitable frame after fp */
+      while (true) {
+        if (Magic.getCallerFramePointer(targetFp).EQ(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP)) {
+          /* if we're at the bottom of the stack, then do not install anything */
+          hijackedReturnAddress = Address.zero();
+          hijackedReturnCalleeFp = Address.zero();
+          return;
+        }
+        int cmid = Magic.getCompiledMethodID(targetFp);
+        if (cmid == ArchitectureSpecific.ArchConstants.INVISIBLE_METHOD_ID) {
+          /* skip invisible methods */
+          targetFp = Magic.getCallerFramePointer(targetFp);
+        } else {
+          CompiledMethod calleeCM = CompiledMethods.getCompiledMethod(cmid);
+          if (calleeCM.getCompilerType() == CompiledMethod.TRAP ||
+              calleeCM.getMethod().getDeclaringClass().hasBridgeFromNativeAnnotation()) {
+            /* skip traps and native bridges */
+            targetFp = Magic.getCallerFramePointer(targetFp);
+          } else
+            break;
+        }
+      }
+      hijackedReturnAddress = Magic.getReturnAddressUnchecked(targetFp);
+      hijackedReturnCalleeFp = targetFp;
+      hijackedReturnCallerFp = Magic.getCallerFramePointer(targetFp);
+      if (VM.VerifyAssertions) VM._assert(trampoline.NE(hijackedReturnAddress));
+      if (DEBUG_STACK_TRAMPOLINE) dumpFrame(targetFp);
+      Magic.setReturnAddress(targetFp, trampoline);
+      if (DEBUG_STACK_TRAMPOLINE) {
+        dumpFrame(targetFp);
+        VM.sysWriteln(getId(), " Installing trampoline at: ", targetFp);
+        VM.sysWriteln(getId(), " Trampoline: ", trampoline);
+        VM.sysWriteln(getId(), " Hijacked return address: ", hijackedReturnAddress);
+        VM.sysWriteln(getId(), " Callee fp: ", hijackedReturnCalleeFp);
+        VM.sysWriteln(getId(), " Caller fp: ", hijackedReturnCallerFp);
+        dumpStack(hijackedReturnCalleeFp);
+      }
+    }
+  }
+
+  /**
+   * de-install the stack trampoline (disabling return barriers).
+   */
+  @Uninterruptible
+  public void deInstallStackTrampoline() {
+    if (DEBUG_STACK_TRAMPOLINE) VM.sysWriteln("deinstalling trampoline: ", framePointer);
+    if (!hijackedReturnCalleeFp.isZero()) {
+      if (DEBUG_STACK_TRAMPOLINE) VM.sysWriteln("need to reinstall: ", hijackedReturnAddress);
+      hijackedReturnCalleeFp.plus(STACKFRAME_RETURN_ADDRESS_OFFSET).store(hijackedReturnAddress);
+      hijackedReturnCalleeFp = Address.zero();
+      hijackedReturnCallerFp = ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
+    }
+  }
+
+  /** @return the address of the stack trampoline bridge code */
+  @Inline
+  private Address getStackTrampolineBridgeIP() { return Magic.objectAsAddress(stackTrampolineBridgeInstructions); }
+
+  /** @return the hijacked return address */
+  @Inline
+  public Address getTrampolineHijackedReturnAddress() { return hijackedReturnAddress; }
+
+  /**
+   * Determine whether a given method is the stack trampoline
+   *
+   * @param ip the code to be checked
+   * @return true if the code is the stack trampoline.
+   */
+  @Inline
+  public static boolean isTrampolineIP(Address ip) { return getCurrentThread().getStackTrampolineBridgeIP().EQ(ip); }
+
+  /**
+   * Given a frame that has been hijacked by the stack trampoline,
+   * return the real (hijacked) return address.
+   *
+   * @param hijackedFp a frame that has been hijacked by the stack trampoline
+   * @return the return address for the frame that was hijacked.
+   */
+  @Uninterruptible
+  public static Address getHijackedReturnAddress(Address hijackedFp) {
+    if (VM.VerifyAssertions) VM._assert(isTrampolineIP(Magic.getReturnAddressUnchecked(hijackedFp)));
+    RVMThread t = getCurrentThread();
+      if (!t.hijackedReturnCalleeFp.EQ(hijackedFp)) {
+        for (int tid = 0; tid < nextSlot; tid++) {
+          t = threadBySlot[tid];
+          if (t != null && t.hijackedReturnCalleeFp.EQ(hijackedFp))
+            break;
+        }
+      }
+      return t.hijackedReturnAddress;
+  }
+
+  /**
+   * Dump the specified frame in a format useful for debugging the stack
+   * trampoline
+   *
+   * @param fp The frame to be dumped.
+   */
+  private static void dumpFrame(Address fp) {
+    Address sp = fp.minus(40);
+    VM.sysWriteln("--");
+    Address nextFp = Magic.getCallerFramePointer(fp);
+    while (sp.LE(nextFp)) {
+      VM.sysWrite("["); VM.sysWrite(sp); VM.sysWrite("]");
+      if (sp.EQ(fp) || sp.EQ(nextFp)) VM.sysWrite("* ");
+      else if (sp.EQ(fp.plus(STACKFRAME_RETURN_ADDRESS_OFFSET)) || sp.EQ(nextFp.plus(STACKFRAME_RETURN_ADDRESS_OFFSET))) VM.sysWrite("R ");
+      else if (sp.EQ(fp.plus(STACKFRAME_METHOD_ID_OFFSET)) || sp.EQ(nextFp.plus(STACKFRAME_METHOD_ID_OFFSET))) VM.sysWrite("M ");
+      else VM.sysWrite(" ");
+      VM.sysWriteln(sp.loadInt());
+      sp = sp.plus(4);
+    }
+  }
+
+  /**
+   * @return the caller of the frame in which the trampoline is installed (STACKFRAME_SENTINEL_FP by default)
+   */
+  public Address getNextUnencounteredFrame() {
+    return hijackedReturnCallerFp.EQ(ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP) ? hijackedReturnCallerFp : Magic.getCallerFramePointer(hijackedReturnCallerFp);
   }
 
   /**
@@ -3840,6 +4047,7 @@ public final class RVMThread extends ThreadContext {
   @Unpreemptible("May block due to allocation")
   public static void resizeCurrentStack(int newSize,
       Registers exceptionRegisters) {
+    if (VM.VerifyAssertions) VM._assert(false); // unsupported just now
     if (traceAdjustments)
       VM.sysWrite("Thread: resizeCurrentStack\n");
     if (MemoryManager.gcInProgress()) {
@@ -4898,6 +5106,7 @@ public final class RVMThread extends ThreadContext {
           } else {
 
             int compiledMethodId = Magic.getCompiledMethodID(fp);
+            VM.sysWrite("("); VM.sysWrite(fp); VM.sysWrite(" "); VM.sysWrite(compiledMethodId); VM.sysWrite(")");
             if (compiledMethodId == StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
               showMethod("invisible method", fp);
             } else {

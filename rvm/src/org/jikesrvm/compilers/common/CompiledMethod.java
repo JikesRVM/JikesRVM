@@ -204,6 +204,12 @@ public abstract class CompiledMethod implements SizeConstants {
       Offset offset = ip.diff(Magic.objectAsAddress(instructions));
       int max = (instructions.length() + 1) << ArchitectureSpecific.ArchConstants.LG_INSTRUCTION_WIDTH;
       if (!offset.toWord().LT(Word.fromIntZeroExtend(max))) {
+        if (RVMThread.isTrampolineIP(ip)) {
+          ip = RVMThread.getCurrentThread().getTrampolineHijackedReturnAddress();
+          offset = ip.diff(Magic.objectAsAddress(instructions));
+          if (offset.toWord().LT(Word.fromIntZeroExtend(max)))
+            return offset;
+        }
         Address instructionStart = Magic.objectAsAddress(instructions);
         VM.sysWriteln("\nIn thread ",RVMThread.getCurrentThreadSlot()," getInstructionOffset: ip is not within compiled code for method: ",ip);
         VM.sysWrite("\tsupposed method is ");
