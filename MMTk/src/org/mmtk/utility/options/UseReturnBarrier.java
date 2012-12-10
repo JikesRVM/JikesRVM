@@ -16,9 +16,6 @@ package org.mmtk.utility.options;
  * Should we enable a return barrier?
  */
 public final class UseReturnBarrier extends org.vmutil.options.BooleanOption {
-  /**
-   * Create the option.
-   */
   public UseReturnBarrier() {
     super(Options.set, "Use Return Barrier",
           "Should we enable a return barrier?",

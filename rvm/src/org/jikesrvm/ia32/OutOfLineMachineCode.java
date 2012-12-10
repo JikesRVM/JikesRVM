@@ -492,11 +492,11 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
   /**
    * Machine code to perform a stack trampoline bridge for
    * implementing a return barrier.
-   *
+   * <p>
    * This code is used to hijack a return and bridge to some
    * other method (which implements the return barrier) before
    * falling back to the intended return address.
-   *
+   * <p>
    * The key here is to preserve register and stack state so that
    * the caller is oblivious of the detour that occurred during
    * the return.

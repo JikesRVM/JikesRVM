@@ -1025,7 +1025,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     if (VM.VerifyAssertions) VM._assert(hijackedCalleeFp.isZero() || hijackedCalleeFp.GE(fp));
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       if (!hijackedCalleeFp.isZero() && hijackedCalleeFp.LE(fp)) {
-      leapfroggedReturnBarrier = true;
+        leapfroggedReturnBarrier = true;
       }
       int compiledMethodId = Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {

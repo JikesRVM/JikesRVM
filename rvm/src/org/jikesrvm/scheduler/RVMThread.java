@@ -22,7 +22,8 @@ import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.INVISIBLE_METHOD_ID;
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACK_SIZE_GUARD;
-import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
+import static org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
 import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
@@ -68,7 +69,6 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.Offset;
 
-import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
@@ -2863,30 +2863,29 @@ public final class RVMThread extends ThreadContext implements Constants {
     yieldpoint(BACKEDGE, fp);
   }
 
-  /*
-   * The following code implements return barriers as described by Yuasa
+  /**
+   * The return barrier.
+   * <p>
+   * The following code implements return barriers as described
+   * for Lisp by Yuasa
    *
    * http://www.yuasa.kuis.kyoto-u.ac.jp/~yuasa/ilc2002/index.html
    * http://dx.doi.org/10.1109/ISORC.2005.45
    *
-   * and Kumar et al
+   * and for Jikes RVM by Kumar et al
    *
    * http://dx.doi.org/10.1145/2398857.2384639
-   */
-
-  /**
-   * The return barrier.
-   *
+   * <p>
    * This code is executed when a method returns into a frame that
    * has been hijacked by the return barrier mechanism.   The return
    * barrier trampoline will save state, execute this method, and
    * then upon return from this method will transparently return into
    * the frame that had been hijacked.
-   *
+   * <p>
    * In this default implementation, the barrier reinstalls itself
    * in the caller's frame thus incrementally moving the barrier down
    * the stack.
-   *
+   * <p>
    * The execution of this method is fragile.  It is generally safest
    * to call some other method from here that does the substantive work
    * of the barrier.
@@ -2920,7 +2919,10 @@ public final class RVMThread extends ThreadContext implements Constants {
   public void installStackTrampolineBridge(Address targetFp) {
     Address trampoline = getStackTrampolineBridgeIP();
     if (trampoline.isZero()) {
-      VM.sysWriteln("Warning: attempt to install stack trampoline without bridge instructions - nothing done.  See RVMThread.");
+      if (VM.VerifyAssertions)
+        VM._assert(VM.NOT_REACHED);
+      else
+        VM.sysWriteln("Warning: attempt to install stack trampoline without bridge instructions - nothing done.  See RVMThread.");
     } else if (trampoline.NE(Magic.getReturnAddressUnchecked(targetFp))) {
       /* install the trampoline at fp or the next suitable frame after fp */
       while (true) {
@@ -2988,7 +2990,7 @@ public final class RVMThread extends ThreadContext implements Constants {
    * Determine whether a given method is the stack trampoline
    *
    * @param ip the code to be checked
-   * @return true if the code is the stack trampoline.
+   * @return <code>true</code> if the code is the stack trampoline.
    */
   @Inline
   public static boolean isTrampolineIP(Address ip) { return getCurrentThread().getStackTrampolineBridgeIP().EQ(ip); }
@@ -4047,7 +4049,10 @@ public final class RVMThread extends ThreadContext implements Constants {
   @Unpreemptible("May block due to allocation")
   public static void resizeCurrentStack(int newSize,
       Registers exceptionRegisters) {
-    if (VM.VerifyAssertions) VM._assert(false); // unsupported just now
+    if (!getCurrentThread().hijackedReturnAddress.isZero()) {
+      /* stack resizing currently unsupported with return barrier */
+      VM.sysFail("system error: resizing stack while return barrier enabled (currently unsupported)");
+    }
     if (traceAdjustments)
       VM.sysWrite("Thread: resizeCurrentStack\n");
     if (MemoryManager.gcInProgress()) {
