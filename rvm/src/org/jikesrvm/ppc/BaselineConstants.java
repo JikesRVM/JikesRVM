@@ -36,6 +36,10 @@ public interface BaselineConstants extends Constants, ArchConstants {
   int T5 = FIRST_VOLATILE_GPR + 5;
   int T6 = FIRST_VOLATILE_GPR + 6;
 
+  // HACK: IA32 has been modernized to use Enums; PPC still uses ints.
+  int T0_int = T0;
+  int T1_int = T1;
+
   // Temporary floating-point registers;
   int F0 = FIRST_VOLATILE_FPR;
   int F1 = FIRST_VOLATILE_FPR + 1;

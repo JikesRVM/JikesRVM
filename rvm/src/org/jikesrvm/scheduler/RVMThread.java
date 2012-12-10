@@ -2897,8 +2897,8 @@ public final class RVMThread extends ThreadContext implements Constants {
   public static void returnBarrier() {
     /* reinstall the barrier in the caller's frame */
     if (DEBUG_STACK_TRAMPOLINE) {
-      VM.sysWriteln(getCurrentThread().getId(), " T0: ", getCurrentThread().trampolineRegisters.gprs.get(BaselineConstants.T0.value()).toAddress());
-      VM.sysWriteln(getCurrentThread().getId(), " T1: ", getCurrentThread().trampolineRegisters.gprs.get(BaselineConstants.T1.value()).toAddress());
+      VM.sysWriteln(getCurrentThread().getId(), " T0: ", getCurrentThread().trampolineRegisters.gprs.get(BaselineConstants.T0_int).toAddress());
+      VM.sysWriteln(getCurrentThread().getId(), " T1: ", getCurrentThread().trampolineRegisters.gprs.get(BaselineConstants.T1_int).toAddress());
       VM.sysWriteln(getCurrentThread().getId(), " nf: ", getCurrentThread().hijackedReturnCallerFp);
       VM.sysWriteln(getCurrentThread().getId(), " lf: ", getCurrentThread().hijackedReturnCalleeFp);
       VM.sysWriteln(getCurrentThread().getId(), " fp: ", Magic.getFramePointer());
