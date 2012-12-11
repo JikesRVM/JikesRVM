@@ -15,6 +15,7 @@ package org.mmtk.plan.refcount;
 import org.mmtk.plan.StopTheWorldMutator;
 import org.mmtk.plan.refcount.backuptrace.BTSweepImmortalScanner;
 import org.mmtk.policy.ExplicitFreeListLocal;
+import org.mmtk.policy.ExplicitFreeListSpace;
 import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
@@ -97,16 +98,26 @@ public class RCBaseMutator extends StopTheWorldMutator {
     switch (allocator) {
     case RCBase.ALLOC_DEFAULT:
     case RCBase.ALLOC_NON_MOVING:
+      if (RCBase.BUILD_FOR_GENRC) modBuffer.push(ref);
     case RCBase.ALLOC_CODE:
+      if (RCBase.BUILD_FOR_GENRC) {
+        decBuffer.push(ref);
+        RCHeader.initializeHeader(ref, true);
+        ExplicitFreeListSpace.unsyncSetLiveBit(ref);
+      }
       break;
     case RCBase.ALLOC_LOS:
+      if (RCBase.BUILD_FOR_GENRC) modBuffer.push(ref);
     case RCBase.ALLOC_PRIMITIVE_LOS:
     case RCBase.ALLOC_LARGE_CODE:
       decBuffer.push(ref);
+      if (RCBase.BUILD_FOR_GENRC) RCHeader.initializeHeader(ref, true);
       RCBase.rcloSpace.initializeHeader(ref, true);
       return;
     case RCBase.ALLOC_IMMORTAL:
+      if (RCBase.BUILD_FOR_GENRC) modBuffer.push(ref);
       decBuffer.push(ref);
+      if (RCBase.BUILD_FOR_GENRC) RCHeader.initializeHeader(ref, true);
       return;
     default:
       VM.assertions.fail("Allocator not understood by RC");
@@ -118,7 +129,6 @@ public class RCBaseMutator extends StopTheWorldMutator {
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == RCBase.rcSpace) return rc;
     if (space == RCBase.rcloSpace) return rclos;
-
     return super.getAllocatorFromSpace(space);
   }
 
@@ -154,7 +164,9 @@ public class RCBaseMutator extends StopTheWorldMutator {
       }
       rc.release();
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(modBuffer.isEmpty());
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(decBuffer.isEmpty());
+      if (!RCBase.BUILD_FOR_GENRC) {
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(decBuffer.isEmpty());
+      }
       return;
     }
 

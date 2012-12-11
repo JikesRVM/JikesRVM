@@ -29,4 +29,6 @@ public class GenRCConstraints extends RCBaseConstraints {
   public boolean movesObjects() { return true; }
   @Override
   public int maxNonLOSCopyBytes() { return MAX_FREELIST_OBJECT_BYTES;}
+  @Override
+  public boolean buildForGenRC() { return true; }
 }

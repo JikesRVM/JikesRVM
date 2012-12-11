@@ -57,6 +57,12 @@ public class GenRCCollector extends RCBaseCollector {
       return;
     }
 
+    if (phaseId == RCBase.CLOSURE) {
+      super.collectionPhase(phaseId, primary);
+      rc.flush();
+      return;
+    }
+
     if (phaseId == RCBase.RELEASE) {
       rc.release();
       super.collectionPhase(phaseId, primary);
