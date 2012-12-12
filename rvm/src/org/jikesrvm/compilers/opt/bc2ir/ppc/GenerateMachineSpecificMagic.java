@@ -104,7 +104,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
                                           val,
                                           fp,
                                           new AddressConstantOperand(Offset.fromIntSignExtend(
-                                              STACKFRAME_NEXT_INSTRUCTION_OFFSET)),
+                                              STACKFRAME_RETURN_ADDRESS_OFFSET)),
                                           null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.getReturnAddressLocation) {
@@ -120,7 +120,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
       bc2ir.appendInstruction(Binary.create(REF_ADD,
                                             val,
                                             callerFP.copyRO(),
-                                            new IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+                                            new IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.isync) {
       bc2ir.appendInstruction(Empty.create(READ_CEILING));

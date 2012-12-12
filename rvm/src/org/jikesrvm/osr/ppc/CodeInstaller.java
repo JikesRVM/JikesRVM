@@ -112,7 +112,7 @@ public abstract class CodeInstaller implements BaselineConstants {
     // lwz FP, 0(FP)
     asm.emitLAddr(FP, 0, FP);
     // lwz T0, NEXT_INSTR(FP)
-    asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
     // mov LR, addr
     asm.emitMTLR(S0);
     // bctr

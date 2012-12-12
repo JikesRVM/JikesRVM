@@ -3253,7 +3253,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitMFLR(0);
     asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);                   // save compiled method id
     asm.emitSTAddr(0,
-                   frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET,
+                   frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET,
                    FP); // save LR !!TODO: handle discontiguous stacks when saving return address
 
     // Setup locals.
@@ -3335,7 +3335,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       } else {
         asm.emitLAddr(FP, 0, FP);           // discard current frame
       }
-      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+      asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
       asm.emitMTLR(S0);
       asm.emitBCLR(); // branch always, through link register
     }
@@ -4144,12 +4144,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitSTW(T1, STACKFRAME_METHOD_ID_OFFSET, T0); // *(address+SNIO) := value
     } else if (methodName == MagicNames.getNextInstructionAddress) {
       popAddr(T0);                                  // pop  frame pointer of callee frame
-      asm.emitLAddr(T1, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // load frame pointer of caller frame
+      asm.emitLAddr(T1, STACKFRAME_RETURN_ADDRESS_OFFSET, T0); // load frame pointer of caller frame
       pushAddr(T1);                                  // push frame pointer of caller frame
     } else if (methodName == MagicNames.getReturnAddressLocation) {
       popAddr(T0);                                  // pop  frame pointer of callee frame
       asm.emitLAddr(T1, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
-      asm.emitADDI(T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T1); // get location containing ret addr
+      asm.emitADDI(T2, STACKFRAME_RETURN_ADDRESS_OFFSET, T1); // get location containing ret addr
       pushAddr(T2);                                  // push frame pointer of caller frame
     } else if (methodName == MagicNames.getTocPointer || methodName == MagicNames.getJTOC) {
       pushAddr(JTOC);
@@ -4406,7 +4406,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitBCLR(); // branch to out of line machine code (does not return)
     } else if (methodName == MagicNames.returnToNewStack) {
       peekAddr(FP, 0);                                  // FP := new stackframe
-      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // fetch...
+      asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP); // fetch...
       asm.emitMTLR(S0);                                         // ...return address
       asm.emitBCLR();                                           // return to caller
     } else if (methodName == MagicNames.dynamicBridgeTo) {
@@ -4444,7 +4444,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitLAddr(FP, 0, FP);
 
       // restore link register
-      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+      asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
       asm.emitMTLR(S0);
 
       asm.emitBCCTR(); // branch always, through count register

@@ -84,7 +84,7 @@ import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.util.Bits;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
-import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACK_SIZE_GUARD;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
@@ -270,7 +270,7 @@ public abstract class StackManager extends GenericStackManager {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register temp = phys.getTemp();
     Register FP = phys.getFP();
-    ret.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET + frameSize)));
+    ret.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET + frameSize)));
 
     // 3. Load return address into LR
     ret.insertBefore(MIR_Move.create(PPC_MTSPR, A(phys.getLR()), A(phys.getTemp())));
@@ -471,7 +471,7 @@ public abstract class StackManager extends GenericStackManager {
   *  5    <save used non volatiles>
   *  6    cmpi    TSR S1 0x0                                 # setting TSR for yield point (S1 is now free)
   *  7    lil     S1 CMID                                    # cmid
-  *  8    st      00 STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)  # return addr (00 is now free)
+  *  8    st      00 STACKFRAME_RETURN_ADDRESS_OFFSET(FP)  # return addr (00 is now free)
   *  9    st      S1 STACKFRAME_METHOD_ID_OFFSET(FP)         # cmid
   *  10   tgt     S0, FP                                     # stack overflow check (already bought frame)
   */
@@ -535,7 +535,7 @@ public abstract class StackManager extends GenericStackManager {
     ptr.insertBefore(MIR_Store.create(PPC_STAddr,
                                       A(R0),
                                       A(FP),
-                                      IC(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET))); // 8
+                                      IC(frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET))); // 8
     ptr.insertBefore(MIR_Store.create(PPC_STW, I(S1), A(FP), IC(STACKFRAME_METHOD_ID_OFFSET))); // 9
 
     if (stackOverflow) {
@@ -583,12 +583,12 @@ public abstract class StackManager extends GenericStackManager {
       // R0 is fairly useless (can't be operand 1 of an addi or the base ptr
       // of a load) so, free up S1 for use by briefly saving its contents in the
       // return address slot of my caller's frame
-      ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       Offset offset = Entrypoints.stackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getTR()), IC(Bits.PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1), IC(frameSize)));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET)));
 
       // Mutate the Prologue holder instruction into the trap
       MIR_Trap.mutate(ptr, PPC_TAddr, PowerPCTrapOperand.LESS(), A(FP), A(R0), TrapCodeOperand.StackOverflow());
@@ -607,7 +607,7 @@ public abstract class StackManager extends GenericStackManager {
     // Buy stack frame, save LR, caller's FP
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0), A(phys.getLR())));
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP), IC(-frameSize)));
-    ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(R0), A(FP), IC(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+    ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(R0), A(FP), IC(frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET)));
 
     // Store cmid
     int cmid = ir.compiledMethod.getId();

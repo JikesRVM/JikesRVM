@@ -85,7 +85,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
 
     // get the next bc index
     VM.disableGC();
-    Address rowIP = Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET));
+    Address rowIP = Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(STACKFRAME_RETURN_ADDRESS_OFFSET));
     Offset ipOffset = fooCM.getInstructionOffset(rowIP);
     VM.enableGC();
 
