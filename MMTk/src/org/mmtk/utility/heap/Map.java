@@ -15,6 +15,7 @@ package org.mmtk.utility.heap;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.GenericFreeList;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.options.Options;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Inline;
@@ -109,25 +110,30 @@ public class Map {
   }
 
   /**
-   * Allocate some number of contiguous chunks within a discontiguous region
+   * Allocate some number of contiguous chunks within a discontiguous region.
    *
    * @param descriptor The descriptor for the space to which these chunks will be assigned
    * @param space The space to which these chunks will be assigned
    * @param chunks The number of chunks required
-   * @param head The previous contgiuous set of chunks for this space (to create a linked list of contiguous regions for each space)
-   * @return The address of the assigned memory.  This always succeeds.  If the request fails we fail right here.
+   * @param head The previous contiguous set of chunks for this space (to create a linked list of contiguous regions for each space)
+   * @return The address of the assigned memory.  If the request fails we return Address.zero().
    */
   public static Address allocateContiguousChunks(int descriptor, Space space, int chunks, Address head) {
     lock.acquire();
     int chunk = regionMap.alloc(chunks);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(chunk != 0);
     if (chunk == -1) {
-      Log.write("Unable to allocate virtual address space for space \"");
-      Log.write(space.getName()); Log.write("\" for ");
-      Log.write(chunks); Log.write(" chunks (");
-      Log.write(chunks<<Space.LOG_BYTES_IN_CHUNK); Log.writeln(" bytes)");
-      Space.printVMMap();
-      VM.assertions.fail("exiting");
+      if (Options.verbose.getValue() > 3) {
+        Log.write("Unable to allocate virtual address space for space \"");
+        Log.write(space.getName()); Log.write("\" for ");
+        Log.write(chunks); Log.write(" chunks (");
+        Log.write(chunks<<Space.LOG_BYTES_IN_CHUNK); Log.writeln(" bytes), requesting GC.");
+        if (Options.verbose.getValue() > 7) {
+          Space.printVMMap();
+        }
+      }
+      lock.release();
+      return Address.zero();
     }
     totalAvailableDiscontiguousChunks -= chunks;
     Address rtn = addressForChunkIndex(chunk);

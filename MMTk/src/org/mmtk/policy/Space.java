@@ -450,7 +450,11 @@ public abstract class Space implements Constants {
    * @return The address of the new discontiguous space.
    */
   public Address growDiscontiguousSpace(int chunks) {
-    return headDiscontiguousRegion = Map.allocateContiguousChunks(descriptor, this, chunks, headDiscontiguousRegion);
+    Address newHead = Map.allocateContiguousChunks(descriptor, this, chunks, headDiscontiguousRegion);
+    if (newHead.isZero()) {
+      return Address.zero();
+    }
+    return headDiscontiguousRegion = newHead;
   }
 
   /**
