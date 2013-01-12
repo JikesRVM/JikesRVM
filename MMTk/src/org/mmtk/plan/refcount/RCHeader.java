@@ -281,13 +281,18 @@ public class RCHeader implements Constants {
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
       if (isStuck(oldValue)) return INC_OLD;
-      if (isHeaderNew(oldValue)) {
-        newValue = oldValue.plus(DOUBLE_INCREMENT);
-        newValue = newValue.or(NEW_BIT_MASK);
-        rtn = INC_NEW;
-      } else {
+      if (RCBase.BUILD_FOR_GENRC) {
         newValue = oldValue.plus(INCREMENT);
         rtn = INC_OLD;
+      } else {
+        if (isHeaderNew(oldValue)) {
+          newValue = oldValue.plus(DOUBLE_INCREMENT);
+          newValue = newValue.or(NEW_BIT_MASK);
+          rtn = INC_NEW;
+        } else {
+          newValue = oldValue.plus(INCREMENT);
+          rtn = INC_OLD;
+        }
       }
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
     return rtn;
@@ -341,11 +346,15 @@ public class RCHeader implements Constants {
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
       newValue = oldValue.and(WRITE_MASK).or(INCREMENT);
-      if (isHeaderNew(oldValue)) {
-        newValue=newValue.or(NEW_BIT_MASK);
-        rtn = INC_NEW;
-      } else {
+      if (RCBase.BUILD_FOR_GENRC) {
         rtn = INC_OLD;
+      } else {
+        if (isHeaderNew(oldValue)) {
+          newValue = newValue.or(NEW_BIT_MASK);
+          rtn = INC_NEW;
+        } else {
+          rtn = INC_OLD;
+        }
       }
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
     return rtn;
@@ -368,11 +377,15 @@ public class RCHeader implements Constants {
     do {
       oldValue = VM.objectModel.prepareAvailableBits(object);
       newValue = oldValue;
-      if (isHeaderNew(oldValue)) {
-        newValue=newValue.or(NEW_BIT_MASK);
-        rtn = INC_NEW;
-      } else {
+      if (RCBase.BUILD_FOR_GENRC) {
         return INC_OLD;
+      } else {
+        if (isHeaderNew(oldValue)) {
+          newValue = newValue.or(NEW_BIT_MASK);
+          rtn = INC_NEW;
+        } else {
+          return INC_OLD;
+        }
       }
     } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
     return rtn;

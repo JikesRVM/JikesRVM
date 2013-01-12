@@ -89,7 +89,7 @@ public abstract class OutOfLineMachineCode
     // free registers: 0, S0
     //
     asm.emitMFLR(0);                                         // save...
-    asm.emitSTAddr(0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // ...return address
+    asm.emitSTAddr(0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP); // ...return address
 
     asm.emitMTCTR(T0);                          // CTR := start of method code
 
@@ -149,7 +149,7 @@ public abstract class OutOfLineMachineCode
     // emit method epilog
     //
     asm.emitLAddr(FP, 0, FP);                                    // restore caller's frame
-    asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);   // pick up return address
+    asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);   // pick up return address
     asm.emitMTLR(S0);                                            //
     asm.emitBCLR();                                                // return to caller
 

@@ -69,8 +69,8 @@ final class GenArch_ppc extends GenArch {
     p("static const int Constants_JNI_STACK_TRAP_MASK             = " +
       TrapConstants.JNI_STACK_TRAP_MASK + ";\n");
     p("static const int Constants_JNI_STACK_TRAP             = " + TrapConstants.JNI_STACK_TRAP + ";\n");
-    p("static const int Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET = " +
-      StackframeLayoutConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET + ";\n");
+    p("static const int Constants_STACKFRAME_RETURN_ADDRESS_OFFSET = " +
+      StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET + ";\n");
     p("static const int Constants_STACKFRAME_ALIGNMENT = " +
       StackframeLayoutConstants.STACKFRAME_ALIGNMENT + " ;\n");
   }
@@ -86,8 +86,8 @@ final class GenArch_ppc extends GenArch {
       pln("#define T1 r" + BaselineConstants.T1);
       pln("#define T2 r" + BaselineConstants.T2);
       pln("#define T3 r" + BaselineConstants.T3);
-      pln("#define STACKFRAME_NEXT_INSTRUCTION_OFFSET " +
-          StackframeLayoutConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+      pln("#define STACKFRAME_RETURN_ADDRESS_OFFSET " +
+          StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
     } else {
       pln(".set FP," + BaselineConstants.FP);
       pln(".set JTOC," + BaselineConstants.JTOC);
@@ -97,7 +97,7 @@ final class GenArch_ppc extends GenArch {
       pln(".set T1," + BaselineConstants.T1);
       pln(".set T2," + BaselineConstants.T2);
       pln(".set T3," + BaselineConstants.T3);
-      pln(".set STACKFRAME_NEXT_INSTRUCTION_OFFSET," + StackframeLayoutConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+      pln(".set STACKFRAME_RETURN_ADDRESS_OFFSET," + StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET);
       if (!VM.BuildForAix) {
         pln(".set T4," + (BaselineConstants.T3 + 1));
       }

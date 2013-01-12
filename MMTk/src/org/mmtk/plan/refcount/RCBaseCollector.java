@@ -81,7 +81,8 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
    */
   @Override
   public void collect() {
-    Phase.beginNewPhaseStack(Phase.scheduleComplex(global().collection));
+    if (RCBase.BUILD_FOR_GENRC) Phase.beginNewPhaseStack(Phase.scheduleComplex(global().genRCCollection));
+    else Phase.beginNewPhaseStack(Phase.scheduleComplex(global().refCountCollection));
   }
 
   @Override
@@ -119,27 +120,39 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
       if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
         while(!(current = newRootBuffer.pop()).isNull()) {
           if (RCHeader.testAndMark(current)) {
-            if (RCHeader.initRC(current) == RCHeader.INC_NEW) {
-              modBuffer.push(current);
+            if (RCBase.BUILD_FOR_GENRC) {
+              RCHeader.initRC(current);
+            } else {
+              if (RCHeader.initRC(current) == RCHeader.INC_NEW) {
+                modBuffer.push(current);
+              }
             }
             backupTrace.processNode(current);
           } else {
-            if (RCHeader.incRC(current) == RCHeader.INC_NEW) {
-              modBuffer.push(current);
+            if (RCBase.BUILD_FOR_GENRC) {
+              RCHeader.incRC(current);
+            } else {
+              if (RCHeader.incRC(current) == RCHeader.INC_NEW) {
+                modBuffer.push(current);
+              }
             }
           }
         }
-        modBuffer.flushLocal();
+        if (!RCBase.BUILD_FOR_GENRC) modBuffer.flushLocal();
         return;
       }
       while(!(current = newRootBuffer.pop()).isNull()) {
-        if (RCHeader.incRC(current) == RCHeader.INC_NEW) {
-          modBuffer.push(current);
+        if (RCBase.BUILD_FOR_GENRC) {
+          RCHeader.incRC(current);
+        } else {
+          if (RCHeader.incRC(current) == RCHeader.INC_NEW) {
+            modBuffer.push(current);
+          }
         }
         oldRootBuffer.push(current);
       }
       oldRootBuffer.flushLocal();
-      modBuffer.flushLocal();
+      if (!RCBase.BUILD_FOR_GENRC) modBuffer.flushLocal();
       return;
     }
 
@@ -147,8 +160,10 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
       ObjectReference current;
       while(!(current = modBuffer.pop()).isNull()) {
         RCHeader.makeUnlogged(current);
-        if (Space.isInSpace(RCBase.REF_COUNT, current)) {
-          ExplicitFreeListSpace.testAndSetLiveBit(current);
+        if (!RCBase.BUILD_FOR_GENRC) {
+          if (Space.isInSpace(RCBase.REF_COUNT, current)) {
+            ExplicitFreeListSpace.testAndSetLiveBit(current);
+          }
         }
         VM.scanning.scanObject(getModifiedProcessor(), current);
       }
@@ -158,29 +173,23 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
     if (phaseId == RCBase.PROCESS_DECBUFFER) {
       ObjectReference current;
       if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
-        while(!(current = decBuffer.pop()).isNull()) {
-          if (RCHeader.isNew(current)) {
-            if (Space.isInSpace(RCBase.REF_COUNT, current)) {
-              RCBase.rcSpace.free(current);
-            } else if (Space.isInSpace(RCBase.REF_COUNT_LOS, current)) {
-              RCBase.rcloSpace.free(current);
-            } else if (Space.isInSpace(RCBase.IMMORTAL, current)) {
-              VM.scanning.scanObject(zero, current);
+        if (!RCBase.BUILD_FOR_GENRC) {
+          while(!(current = decBuffer.pop()).isNull()) {
+            if (RCHeader.isNew(current)) {
+              if (Space.isInSpace(RCBase.REF_COUNT, current)) {
+                RCBase.rcSpace.free(current);
+              } else if (Space.isInSpace(RCBase.REF_COUNT_LOS, current)) {
+                RCBase.rcloSpace.free(current);
+              } else if (Space.isInSpace(RCBase.IMMORTAL, current)) {
+                VM.scanning.scanObject(zero, current);
+              }
             }
           }
         }
         return;
       }
       while(!(current = decBuffer.pop()).isNull()) {
-        if (RCHeader.isNew(current)) {
-          if (Space.isInSpace(RCBase.REF_COUNT, current)) {
-            RCBase.rcSpace.free(current);
-          } else if (Space.isInSpace(RCBase.REF_COUNT_LOS, current)) {
-            RCBase.rcloSpace.free(current);
-          } else if (Space.isInSpace(RCBase.IMMORTAL, current)) {
-            VM.scanning.scanObject(zero, current);
-          }
-        } else {
+        if (RCBase.BUILD_FOR_GENRC) {
           if (RCHeader.decRC(current) == RCHeader.DEC_KILL) {
             decBuffer.processChildren(current);
             if (Space.isInSpace(RCBase.REF_COUNT, current)) {
@@ -189,6 +198,27 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
               RCBase.rcloSpace.free(current);
             } else if (Space.isInSpace(RCBase.IMMORTAL, current)) {
               VM.scanning.scanObject(zero, current);
+            }
+          }
+        } else {
+          if (RCHeader.isNew(current)) {
+            if (Space.isInSpace(RCBase.REF_COUNT, current)) {
+              RCBase.rcSpace.free(current);
+            } else if (Space.isInSpace(RCBase.REF_COUNT_LOS, current)) {
+              RCBase.rcloSpace.free(current);
+            } else if (Space.isInSpace(RCBase.IMMORTAL, current)) {
+              VM.scanning.scanObject(zero, current);
+            }
+          } else {
+            if (RCHeader.decRC(current) == RCHeader.DEC_KILL) {
+              decBuffer.processChildren(current);
+              if (Space.isInSpace(RCBase.REF_COUNT, current)) {
+                RCBase.rcSpace.free(current);
+              } else if (Space.isInSpace(RCBase.REF_COUNT_LOS, current)) {
+                RCBase.rcloSpace.free(current);
+              } else if (Space.isInSpace(RCBase.IMMORTAL, current)) {
+                VM.scanning.scanObject(zero, current);
+              }
             }
           }
         }
@@ -200,6 +230,7 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
       if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
         backupTrace.release();
         global().oldRootPool.clearDeque(1);
+        if (RCBase.BUILD_FOR_GENRC) global().decPool.clearDeque(1);
       }
       getRootTrace().release();
       if (VM.VERIFY_ASSERTIONS) {

@@ -149,7 +149,7 @@ public final class FreeListPageResource extends PageResource implements Constant
       pageOffset = allocateContiguousChunks(requiredPages);
       newChunk = true;
     }
-    if (pageOffset == -1) {
+    if (pageOffset == GenericFreeList.FAILURE) {
       unlock();
       return Address.zero();
     } else {

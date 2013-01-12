@@ -174,6 +174,7 @@ public abstract class Plan implements Constants {
     Options.sanityCheck = new SanityCheck();
     Options.debugAddress = new DebugAddress();
     Options.perfEvents = new PerfEvents();
+    Options.useReturnBarrier = new UseReturnBarrier();
     Options.threads = new Threads();
     Options.cycleTriggerThreshold = new CycleTriggerThreshold();
     Map.finalizeStaticSpaceMap();

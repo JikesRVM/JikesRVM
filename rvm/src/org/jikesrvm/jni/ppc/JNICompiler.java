@@ -149,7 +149,7 @@ public abstract class JNICompiler
 
     // save return address in caller frame
     asm.emitMFLR(REGISTER_ZERO);
-    asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
 
     // buy mini frame
     asm.emitSTAddrU(FP, -JNI_SAVE_AREA_SIZE, FP);
@@ -389,7 +389,7 @@ public abstract class JNICompiler
     // C return value is already where caller expected it (T0/T1 or F0)
     // So, just restore the return address to the link register.
 
-    asm.emitLAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitLAddr(REGISTER_ZERO, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
     asm.emitMTLR(REGISTER_ZERO);                           // restore return address
 
     // CHECK EXCEPTION AND BRANCH TO ATHROW CODE OR RETURN NORMALLY
@@ -1311,7 +1311,7 @@ public abstract class JNICompiler
     asm.emitLVAL(S0, INVISIBLE_METHOD_ID);
     asm.emitMFLR(REGISTER_ZERO);
     asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
-    asm.emitSTAddr(REGISTER_ZERO, glueFrameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitSTAddr(REGISTER_ZERO, glueFrameSize + STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
 
     // Attempt to change the vpStatus of the current Processor to IN_JAVA
     //
@@ -1488,7 +1488,7 @@ public abstract class JNICompiler
     // load return address & return to caller
     // T0 & T1 (or F1) should still contain the return value
     //
-    asm.emitLAddr(T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitLAddr(T2, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
     asm.emitMTLR(T2);
     asm.emitBCLR(); // branch always, through link register
 

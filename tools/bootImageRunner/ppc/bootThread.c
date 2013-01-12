@@ -62,9 +62,9 @@
          */
 
 #ifdef RVM_FOR_32_ADDR
-        lwz     S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   /* fetch method entrypoint address*/
+        lwz     S0,STACKFRAME_RETURN_ADDRESS_OFFSET(FP)   /* fetch method entrypoint address*/
 #else
-        ld      S0,STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)   /* fetch method entrypoint address*/
+        ld      S0,STACKFRAME_RETURN_ADDRESS_OFFSET(FP)   /* fetch method entrypoint address*/
 #endif
         mtlr    S0
         blr                       /* branch to it */

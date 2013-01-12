@@ -60,7 +60,7 @@ public abstract class MachineSpecificPowerPC extends MachineSpecific implements 
     int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
     fp = Memory.alignDown(sp.minus(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
     fp.plus(STACKFRAME_FRAME_POINTER_OFFSET).store(STACKFRAME_SENTINEL_FP);
-    fp.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET).store(ip); // need to fix
+    fp.plus(STACKFRAME_RETURN_ADDRESS_OFFSET).store(ip); // need to fix
     fp.plus(STACKFRAME_METHOD_ID_OFFSET).store(INVISIBLE_METHOD_ID);
 
     contextRegisters.gprs.set(FRAME_POINTER, fp.toWord());

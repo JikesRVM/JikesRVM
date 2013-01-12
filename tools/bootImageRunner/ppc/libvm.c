@@ -827,15 +827,15 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     Address   oldFp = GET_GPR(save, FP);
     Address   newFp = oldFp - Constants_STACKFRAME_HEADER_SIZE;
 #ifdef RVM_FOR_LINUX
-    *(Address *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->nip + 4; // +4 so it looks like return address
+    *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->nip + 4; // +4 so it looks like return address
 #endif
 
 #ifdef RVM_FOR_OSX
-    *(int *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->srr0 + 4; // +4 so it looks like return address
+    *(int *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->srr0 + 4; // +4 so it looks like return address
 #endif
 
 #ifdef RVM_FOR_AIX
-    *(Address *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->iar + 4; // +4 so it looks like return address
+    *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->iar + 4; // +4 so it looks like return address
 #endif
     if (noise) fprintf(stderr,"just got into cTrapHandler (6)\n");
     *(int *)(newFp + Constants_STACKFRAME_METHOD_ID_OFFSET)
@@ -1022,9 +1022,9 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
            invoked the method whose prologue caused the stackoverflow.
         */
 #ifdef RVM_FOR_LINUX
-        *(Address *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->link;
+        *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->link;
 #elif defined RVM_FOR_AIX || defined RVM_FOR_OSX
-        *(Address *)(oldFp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = save->lr;
+        *(Address *)(oldFp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = save->lr;
 #endif
     }
 
@@ -1366,7 +1366,7 @@ createVM(void)
     Address  fp = sp - Constants_STACKFRAME_HEADER_SIZE;  // size in bytes
     fp = fp & ~(Constants_STACKFRAME_ALIGNMENT -1);     // align fp
 
-    *(Address *)(fp + Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = ip;
+    *(Address *)(fp + Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) = ip;
     *(int *)(fp + Constants_STACKFRAME_METHOD_ID_OFFSET) = Constants_INVISIBLE_METHOD_ID;
     *(Address *)(fp + Constants_STACKFRAME_FRAME_POINTER_OFFSET) = Constants_STACKFRAME_SENTINEL_FP;
 

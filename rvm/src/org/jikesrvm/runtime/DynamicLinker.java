@@ -95,7 +95,7 @@ public class DynamicLinker implements Constants {
       //
       VM.disableGC();
       Address callingFrame = Magic.getCallerFramePointer(Magic.getFramePointer());
-      Address returnAddress = Magic.getReturnAddress(callingFrame);
+      Address returnAddress = Magic.getReturnAddressUnchecked(callingFrame);
       callingFrame = Magic.getCallerFramePointer(callingFrame);
       int callingCompiledMethodId = Magic.getCompiledMethodID(callingFrame);
       CompiledMethod callingCompiledMethod = CompiledMethods.getCompiledMethod(callingCompiledMethodId);

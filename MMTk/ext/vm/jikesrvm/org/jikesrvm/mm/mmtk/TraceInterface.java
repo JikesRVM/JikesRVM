@@ -134,7 +134,7 @@ import org.vmmagic.unboxed.Word;
     int compiledMethodID = 0;
     Offset ipOffset = Offset.zero();
     Address fp = Magic.getFramePointer();
-    Address ip = Magic.getReturnAddress(fp);
+    Address ip = Magic.getReturnAddressUnchecked(fp);
     fp = Magic.getCallerFramePointer(fp);
     // This code borrows heavily from RVMThread.dumpStack
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
@@ -178,7 +178,7 @@ import org.vmmagic.unboxed.Word;
           }
         }
       }
-      ip = Magic.getReturnAddress(fp);
+      ip = Magic.getReturnAddressUnchecked(fp);
       fp = Magic.getCallerFramePointer(fp);
     }
     if (m != null) {

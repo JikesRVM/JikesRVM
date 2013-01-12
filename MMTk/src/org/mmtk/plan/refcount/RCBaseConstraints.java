@@ -35,4 +35,7 @@ public class RCBaseConstraints extends StopTheWorldConstraints {
   public int maxNonLOSDefaultAllocBytes() { return MAX_FREELIST_OBJECT_BYTES; }
   @Override
   public boolean objectReferenceBulkCopySupported() { return true; }
+
+  /** @return {@code true} if we are building for generational reference counting */
+  public boolean buildForGenRC() { return false; }
 }

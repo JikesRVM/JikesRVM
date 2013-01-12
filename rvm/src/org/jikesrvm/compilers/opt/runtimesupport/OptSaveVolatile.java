@@ -128,7 +128,7 @@ public class OptSaveVolatile {
     int cmid = Magic.getCompiledMethodID(fp);
     OptCompiledMethod cm = (OptCompiledMethod) CompiledMethods.getCompiledMethod(cmid);
     // (2) Get the return address
-    Address ip = Magic.getReturnAddress(Magic.getFramePointer());
+    Address ip = Magic.getReturnAddressUnchecked(Magic.getFramePointer());
     Offset offset = cm.getInstructionOffset(ip);
     VM.enableGC();
     // (3) Call the routine in OptLinker that does all the real work.

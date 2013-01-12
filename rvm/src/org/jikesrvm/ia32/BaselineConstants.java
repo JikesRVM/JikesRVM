@@ -34,6 +34,10 @@ public interface BaselineConstants extends Constants, ArchConstants {
   RegisterConstants.GPR T0 = EAX;  // DO NOT CHANGE THIS ASSIGNMENT
   RegisterConstants.GPR T1 = EDX;
 
+  // HACK: IA32 has been modernized to use Enums; PPC still uses ints.
+  int T0_int = T0.value();
+  int T1_int = T1.value();
+
   // scratch register
   RegisterConstants.GPR S0 = ECX;
   RegisterConstants.GPR S1 = EDI;

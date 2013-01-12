@@ -97,7 +97,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     // get the next machine code offset of the real method
     VM.disableGC();
     Address osrFP = Magic.objectAsAddress(stack).plus(osrFPoff);
-    Address nextIP = Magic.getReturnAddress(osrFP);
+    Address nextIP = Magic.getReturnAddressUnchecked(osrFP);
     Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 

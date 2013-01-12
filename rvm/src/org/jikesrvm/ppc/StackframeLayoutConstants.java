@@ -134,7 +134,7 @@ public interface StackframeLayoutConstants {
   int STACKFRAME_HEADER_SIZE = 3 * BYTES_IN_STACKSLOT;
 
   // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID depending on ABI.
-  int STACKFRAME_NEXT_INSTRUCTION_OFFSET = VM.BuildForPowerOpenABI || VM.BuildForMachOABI ? 2 * BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT;
+  int STACKFRAME_RETURN_ADDRESS_OFFSET = VM.BuildForPowerOpenABI || VM.BuildForMachOABI ? 2 * BYTES_IN_STACKSLOT : BYTES_IN_STACKSLOT;
   int STACKFRAME_METHOD_ID_OFFSET = VM.BuildForPowerOpenABI || VM.BuildForMachOABI ? BYTES_IN_STACKSLOT : 2 * BYTES_IN_STACKSLOT;
 
   /** base of this frame **/

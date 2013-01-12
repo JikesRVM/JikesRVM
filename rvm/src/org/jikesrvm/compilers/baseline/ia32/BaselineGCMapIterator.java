@@ -173,7 +173,7 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     bridgeSpilledParamLocation = Address.zero();
 
     if (currentMethod.getDeclaringClass().hasDynamicBridgeAnnotation()) {
-      Address ip = Magic.getReturnAddress(fp);
+      Address ip = Magic.getReturnAddressUnchecked(fp);
       fp = Magic.getCallerFramePointer(fp);
       int callingCompiledMethodId = Magic.getCompiledMethodID(fp);
       CompiledMethod callingCompiledMethod = CompiledMethods.getCompiledMethod(callingCompiledMethodId);
