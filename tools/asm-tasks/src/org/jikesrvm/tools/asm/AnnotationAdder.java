@@ -500,6 +500,8 @@ public final class AnnotationAdder {
   public static void main(final String[] args) {
     Set<Class<?>> processedClasses = new HashSet<Class<?>>();
 
+    //FIXME This class needs to be updated to support the OpenJDK class library.
+
     classLibrary = args[0];
     RVMClassLoader.init(args[1]);
     destinationDir = args[2] + "/";

@@ -1541,8 +1541,7 @@ Check to make sure all required properties are specified. This includes properti
         <pathelement location="${build.vm.jar}"/>
         <pathelement location="${build.rt.jar}"/>
       </classpath>
-<!--      <arg value="${classlib.provider}"/> -->
-     <arg value="openjdk"/>
+      <arg value="${classlib.provider}"/>
       <arg path="${generated.asm}:${build.rt.jar}:${build.vm.jar}${build.extra.rt.jars}"/>
       <arg path="${generated.asm}"/>
     </java>
