@@ -308,13 +308,11 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       name = name.substring(File.separator.length());
     }
 
-    //    VM.sysWriteln("GetResrouceInternal "+ name);
     StringTokenizer tok = new StringTokenizer(getBootstrapRepositories(), File.pathSeparator);
 
     while (tok.hasMoreElements()) {
       try {
         String path = tok.nextToken();
-        // VM.sysWriteln("Handle path "+ path);
         if (path.endsWith(".jar") || path.endsWith(".zip")) {
           ZipFile zf = zipFileCache.get(path);
           if (zf == null) {

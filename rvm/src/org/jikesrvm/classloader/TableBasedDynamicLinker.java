@@ -73,7 +73,6 @@ public class TableBasedDynamicLinker implements Constants {
   public static int resolveMember(MemberReference ref) throws NoClassDefFoundError {
     RVMMember resolvedMember = ref.resolveMember();
     RVMClass declaringClass = resolvedMember.getDeclaringClass();
-    //    VM.sysWriteln("Resolvingmember" + resolvedMember.toString() +" ||||| "+ declaringClass.toString());
     RuntimeEntrypoints.initializeClassForDynamicLink(declaringClass);
     int offset = resolvedMember.getOffset().toInt();
     if (VM.VerifyAssertions) VM._assert(offset != NEEDS_DYNAMIC_LINK);
