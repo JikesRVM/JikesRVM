@@ -76,16 +76,12 @@ public final class MonotonePageResource extends PageResource
    * pre-defined at initialization time and is dynamically defined to
    * be some set of pages, according to demand and availability.
    *
-   * CURRENTLY UNIMPLEMENTED
-   *
    * @param space The space to which this resource is attached
    * @param metaDataPagesPerRegion The number of pages of meta data
    * that are embedded in each region.
    */
   public MonotonePageResource(Space space, int metaDataPagesPerRegion) {
     super(space);
-    /* unimplemented */
-    this.start = Address.zero();
     this.cursor = Address.zero();
     this.sentinel = Address.zero();
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
@@ -140,9 +136,9 @@ public final class MonotonePageResource extends PageResource
     if (!contiguous && tmp.GT(sentinel)) {
       /* we're out of virtual memory within our discontiguous region, so ask for more */
       int requiredChunks = Space.requiredChunks(requiredPages);
-      start = space.growDiscontiguousSpace(requiredChunks); // Returns zero on failure
-      cursor = start;
-      sentinel = cursor.plus(start.isZero() ? 0 : requiredChunks<<Space.LOG_BYTES_IN_CHUNK);
+      Address chunk = space.growDiscontiguousSpace(requiredChunks); // Returns zero on failure
+      cursor = chunk;
+      sentinel = cursor.plus(chunk.isZero() ? 0 : requiredChunks<<Space.LOG_BYTES_IN_CHUNK);
       rtn = cursor;
       tmp = cursor.plus(bytes);
       newChunk = true;
@@ -251,7 +247,6 @@ public final class MonotonePageResource extends PageResource
    */
   @Inline
   private void releasePages() {
-    Address first = start;
     if (contiguous) {
       // TODO: We will perform unnecessary zeroing if the nursery size has decreased.
       if (zeroConcurrent) {
@@ -263,15 +258,18 @@ public final class MonotonePageResource extends PageResource
         zeroingSentinel = cursor;
       }
       zeroingCursor = start;
-    }
-    do {
-      Extent bytes = cursor.diff(start).toWord().toExtent();
-      releasePages(start, bytes);
       cursor = start;
-    } while (!contiguous && moveToNextChunk());
-    if (!contiguous) {
+    }
+    if (!contiguous  && !cursor.isZero()) {
+      do {
+        Extent bytes = cursor.diff(currentChunk).toWord().toExtent();
+        releasePages(currentChunk, bytes);
+      } while (moveToNextChunk());
+
+      currentChunk = Address.zero();
       sentinel = Address.zero();
-      Map.freeAllChunks(first);
+      cursor = Address.zero();
+      space.releaseAllChunks();
     }
   }
 
@@ -283,11 +281,11 @@ public final class MonotonePageResource extends PageResource
    * end of the linked list.
    */
   private boolean moveToNextChunk() {
-    start = Map.getNextContiguousRegion(start);
-    if (start.isZero())
+    currentChunk = Map.getNextContiguousRegion(currentChunk);
+    if (currentChunk.isZero())
       return false;
     else {
-      cursor = start.plus(Map.getContiguousRegionSize(start));
+      cursor = currentChunk.plus(Map.getContiguousRegionSize(currentChunk));
       return true;
     }
   }

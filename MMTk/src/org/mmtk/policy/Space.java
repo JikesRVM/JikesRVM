@@ -495,6 +495,18 @@ public abstract class Space implements Constants {
   }
 
   /**
+   * @return The address of the head of the discontiguous chunk map.
+   */
+  public Address getHeadDiscontiguousRegion() {
+    return headDiscontiguousRegion;
+  }
+
+  public void releaseAllChunks() {
+    Map.freeAllChunks(headDiscontiguousRegion);
+    headDiscontiguousRegion = Address.zero();
+  }
+
+  /**
    * Release a unit of allocation (a page or pages)
    *
    * @param start The address of the start of the region to be released
