@@ -12,16 +12,19 @@
  */
 package org.mmtk.utility.heap;
 
-import org.mmtk.utility.alloc.EmbeddedMetaData;
-import org.mmtk.utility.options.Options;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.Constants;
+import org.mmtk.utility.alloc.EmbeddedMetaData;
+import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.VM;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class manages the allocation of pages for a space.  When a
@@ -30,8 +33,7 @@ import org.vmmagic.unboxed.*;
  * be satisfied (for either reason) a GC may be triggered.<p>
  */
 @Uninterruptible
-public final class MonotonePageResource extends PageResource
-  implements Constants {
+public final class MonotonePageResource extends PageResource {
 
   /****************************************************************************
    *
@@ -259,22 +261,23 @@ public final class MonotonePageResource extends PageResource
       }
       zeroingCursor = start;
       cursor = start;
-    }
-    if (!contiguous  && !cursor.isZero()) {
-      do {
-        Extent bytes = cursor.diff(currentChunk).toWord().toExtent();
-        releasePages(currentChunk, bytes);
-      } while (moveToNextChunk());
+    } else {/* Not contiguous */
+      if (!cursor.isZero()) {
+        do {
+          Extent bytes = cursor.diff(currentChunk).toWord().toExtent();
+          releasePages(currentChunk, bytes);
+        } while (moveToNextChunk());
 
-      currentChunk = Address.zero();
-      sentinel = Address.zero();
-      cursor = Address.zero();
-      space.releaseAllChunks();
+        currentChunk = Address.zero();
+        sentinel = Address.zero();
+        cursor = Address.zero();
+        space.releaseAllChunks();
+      }
     }
   }
 
   /**
-   * Adjust the start and cursor fields to point to the next chunk
+   * Adjust the currentChunk and cursor fields to point to the next chunk
    * in the linked list of chunks tied down by this page resource.
    *
    * @return {@code true} if we moved to the next chunk; {@code false} if we hit the
