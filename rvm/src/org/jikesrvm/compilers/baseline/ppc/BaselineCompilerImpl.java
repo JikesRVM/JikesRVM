@@ -2101,22 +2101,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType()) {
       Barriers.compileGetstaticBarrier(this, fieldType.getId());
       pushAddr(T0);
-      return;
-    }
-    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
+    } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitLIntX(T1, T0, JTOC);
       pushInt(T1);
     } else { // field is two words (double or long ( or address on PPC64))
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr) {
-        if (fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
-          asm.emitLDX(T1, T0, JTOC);
-          pushAddr(T1);
-          return;
-        }
+      if (VM.BuildFor64Addr && fieldRef.getNumberOfStackSlots() == 1) { // address only 1 stackslot!!!
+        asm.emitLDX(T1, T0, JTOC);
+        pushAddr(T1);
+      } else {
+        asm.emitLFDX(F0, T0, JTOC);
+        pushDouble(F0);
       }
-      asm.emitLFDX(F0, T0, JTOC);
-      pushDouble(F0);
     }
   }
 
@@ -2128,22 +2124,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
       Barriers.compileGetstaticBarrierImm(this, fieldOffset, fieldType.getId());
       pushAddr(T0);
-      return;
-    }
-    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
+    } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitLIntToc(T0, fieldOffset);
       pushInt(T0);
     } else { // field is two words (double or long ( or address on PPC64))
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr) {
-        if (fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
-          asm.emitLAddrToc(T0, fieldOffset);
-          pushAddr(T0);
-          return;
-        }
+      if (VM.BuildFor64Addr && fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
+        asm.emitLAddrToc(T0, fieldOffset);
+        pushAddr(T0);
+      } else {
+        asm.emitLFDtoc(F0, fieldOffset, T0);
+        pushDouble(F0);
       }
-      asm.emitLFDtoc(F0, fieldOffset, T0);
-      pushDouble(F0);
     }
   }
 
@@ -2153,24 +2145,20 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       Barriers.compilePutstaticBarrier(this, fieldRef.getId()); // NOTE: offset is in T0 from emitDynamicLinkingSequence
       discardSlots(1);
-      return;
-    }
-    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
+    } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       popInt(T0);
       asm.emitSTWX(T0, T1, JTOC);
     } else { // field is two words (double or long (or address on PPC64))
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr) {
-        if (fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
-          popAddr(T0);
-          asm.emitSTDX(T0, T1, JTOC);
-          return;
-        }
+      if (VM.BuildFor64Addr && fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
+        popAddr(T0);
+        asm.emitSTDX(T0, T1, JTOC);
+      } else {
+        popDouble(F0);
+        asm.emitSTFDX(F0, T1, JTOC);
       }
-      popDouble(F0);
-      asm.emitSTFDX(F0, T1, JTOC);
     }
-    // The field may be volatile.
+    // JMM: Must assume the field could be volatile.
     asm.emitSYNC();
   }
 
@@ -2181,23 +2169,20 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
       Barriers.compilePutstaticBarrierImm(this, fieldOffset, fieldRef.getId());
       discardSlots(1);
-      return;
-    }
-    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
+    } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       popInt(T0);
       asm.emitSTWtoc(T0, fieldOffset, T1);
     } else { // field is two words (double or long (or address on PPC64))
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr) {
-        if (fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
-          popAddr(T0);
-          asm.emitSTDtoc(T0, fieldOffset, T1);
-          return;
-        }
+      if (VM.BuildFor64Addr && fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
+        popAddr(T0);
+        asm.emitSTDtoc(T0, fieldOffset, T1);
+      } else {
+        popDouble(F0);
+        asm.emitSTFDtoc(F0, fieldOffset, T0);
       }
-      popDouble(F0);
-      asm.emitSTFDtoc(F0, fieldOffset, T0);
     }
+    // JMM:
     if (field.isVolatile()) {
       asm.emitSYNC();
     }
@@ -2212,41 +2197,41 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       Barriers.compileGetfieldBarrier(this, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
-      return;
-    }
-    // T2 = object reference
-    popAddr(T2);
-    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-    if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
-      // 32/64bit reference/word load
-      asm.emitLAddrX(T0, T1, T2);
-      pushAddr(T0);
-    } else if (fieldType.isBooleanType()) {
-      // 8bit unsigned load
-      asm.emitLBZX(T0, T1, T2);
-      pushInt(T0);
-    } else if (fieldType.isByteType()) {
-      // 8bit signed load
-      asm.emitLBZX(T0, T1, T2);
-      asm.emitEXTSB(T0, T0);
-      pushInt(T0);
-    } else if (fieldType.isShortType()) {
-      // 16bit signed load
-      asm.emitLHAX(T0, T1, T2);
-      pushInt(T0);
-    } else if (fieldType.isCharType()) {
-      // 16bit unsigned load
-      asm.emitLHZX(T0, T1, T2);
-      pushInt(T0);
-    } else if (fieldType.isIntType() || fieldType.isFloatType()) {
-      // 32bit load
-      asm.emitLIntX(T0, T1, T2);
-      pushInt(T0);
     } else {
-      // 64bit load
-      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
-      asm.emitLFDX(F0, T1, T2);
-      pushDouble(F0);
+      // T2 = object reference
+      popAddr(T2);
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
+      if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
+        // 32/64bit reference/word load
+        asm.emitLAddrX(T0, T1, T2);
+        pushAddr(T0);
+      } else if (fieldType.isBooleanType()) {
+        // 8bit unsigned load
+        asm.emitLBZX(T0, T1, T2);
+        pushInt(T0);
+      } else if (fieldType.isByteType()) {
+        // 8bit signed load
+        asm.emitLBZX(T0, T1, T2);
+        asm.emitEXTSB(T0, T0);
+        pushInt(T0);
+      } else if (fieldType.isShortType()) {
+        // 16bit signed load
+        asm.emitLHAX(T0, T1, T2);
+        pushInt(T0);
+      } else if (fieldType.isCharType()) {
+        // 16bit unsigned load
+        asm.emitLHZX(T0, T1, T2);
+        pushInt(T0);
+      } else if (fieldType.isIntType() || fieldType.isFloatType()) {
+        // 32bit load
+        asm.emitLIntX(T0, T1, T2);
+        pushInt(T0);
+      } else {
+        // 64bit load
+        if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+        asm.emitLFDX(F0, T1, T2);
+        pushDouble(F0);
+      }
     }
   }
 
@@ -2259,40 +2244,40 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       Barriers.compileGetfieldBarrierImm(this, fieldOffset, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
-      return;
-    }
-    popAddr(T1); // T1 = object reference
-    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
-    if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
-      // 32/64bit reference/word load
-      asm.emitLAddrOffset(T0, T1, fieldOffset);
-      pushAddr(T0);
-    } else if (fieldType.isBooleanType()) {
-      // 8bit unsigned load
-      asm.emitLBZoffset(T0, T1, fieldOffset);
-      pushInt(T0);
-    } else if (fieldType.isByteType()) {
-      // 8bit signed load
-      asm.emitLBZoffset(T0, T1, fieldOffset);
-      asm.emitEXTSB(T0, T0); // sign extend
-      pushInt(T0);
-    } else if (fieldType.isShortType()) {
-      // 16bit signed load
-      asm.emitLHAoffset(T0, T1, fieldOffset);
-      pushInt(T0);
-    } else if (fieldType.isCharType()) {
-      // 16bit unsigned load
-      asm.emitLHZoffset(T0, T1, fieldOffset);
-      pushInt(T0);
-    } else if (fieldType.isIntType() || fieldType.isFloatType()) {
-      // 32bit load
-      asm.emitLIntOffset(T0, T1, fieldOffset);
-      pushInt(T0);
     } else {
-      // 64bit load
-      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
-      asm.emitLFDoffset(F0, T1, fieldOffset);
-      pushDouble(F0);
+      popAddr(T1); // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+      if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
+        // 32/64bit reference/word load
+        asm.emitLAddrOffset(T0, T1, fieldOffset);
+        pushAddr(T0);
+      } else if (fieldType.isBooleanType()) {
+        // 8bit unsigned load
+        asm.emitLBZoffset(T0, T1, fieldOffset);
+        pushInt(T0);
+      } else if (fieldType.isByteType()) {
+        // 8bit signed load
+        asm.emitLBZoffset(T0, T1, fieldOffset);
+        asm.emitEXTSB(T0, T0); // sign extend
+        pushInt(T0);
+      } else if (fieldType.isShortType()) {
+        // 16bit signed load
+        asm.emitLHAoffset(T0, T1, fieldOffset);
+        pushInt(T0);
+      } else if (fieldType.isCharType()) {
+        // 16bit unsigned load
+        asm.emitLHZoffset(T0, T1, fieldOffset);
+        pushInt(T0);
+      } else if (fieldType.isIntType() || fieldType.isFloatType()) {
+        // 32bit load
+        asm.emitLIntOffset(T0, T1, fieldOffset);
+        pushInt(T0);
+      } else {
+        // 64bit load
+        if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+        asm.emitLFDoffset(F0, T1, fieldOffset);
+        pushDouble(F0);
+      }
     }
   }
 
