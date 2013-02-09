@@ -2114,6 +2114,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         pushDouble(F0);
       }
     }
+
+    // JMM: could be volatile (post-barrier when first operation)
+    asm.emitSYNC();
   }
 
   @Override
@@ -2137,10 +2140,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         pushDouble(F0);
       }
     }
+
+    if (field.isVolatile()) {
+      // JMM: post-barrier when first operation
+      asm.emitSYNC();
+    }
   }
 
   @Override
   protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
+    // JMM: could be volatile (pre-barrier when second operation)
+    asm.emitSYNC();
+
     emitDynamicLinkingSequence(T1, fieldRef, true);
     if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       Barriers.compilePutstaticBarrier(this, fieldRef.getId()); // NOTE: offset is in T0 from emitDynamicLinkingSequence
@@ -2158,14 +2169,21 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         asm.emitSTFDX(F0, T1, JTOC);
       }
     }
-    // JMM: Must assume the field could be volatile.
-    asm.emitSYNC();
+
+    // JMM: Could be volatile, post-barrier when first operation
+    asm.emitHWSYNC();
   }
 
   @Override
   protected final void emit_resolved_putstatic(FieldReference fieldRef) {
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
+
+    if (field.isVolatile()) {
+      // JMM: (pre-barrier when second operation)
+      asm.emitSYNC();
+    }
+
     if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
       Barriers.compilePutstaticBarrierImm(this, fieldOffset, fieldRef.getId());
       discardSlots(1);
@@ -2182,9 +2200,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         asm.emitSTFDtoc(F0, fieldOffset, T0);
       }
     }
-    // JMM:
+
     if (field.isVolatile()) {
-      asm.emitSYNC();
+      // JMM: post-barrier when first operation
+      asm.emitHWSYNC();
     }
   }
 
@@ -2233,6 +2252,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         pushDouble(F0);
       }
     }
+
+    // JMM: Could be volatile; post-barrier when first operation
+    asm.emitSYNC();
   }
 
   @Override
@@ -2279,10 +2301,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         pushDouble(F0);
       }
     }
+
+    if (field.isVolatile()) {
+      // JMM: post-barrier when first operation
+      asm.emitSYNC();
+    }
   }
 
   @Override
   protected final void emit_unresolved_putfield(FieldReference fieldRef) {
+    // JMM: could be volatile (pre-barrier when second operation)
+    asm.emitSYNC();
+
     TypeReference fieldType = fieldRef.getFieldContentsType();
     // T2 = field offset from emitDynamicLinkingSequence()
     emitDynamicLinkingSequence(T2, fieldRef, true);
@@ -2354,8 +2384,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTFDX(F0, T1, T2);
     }
-    // The field may be volatile.
-    asm.emitSYNC();
+
+    // JMM: Could be volatile; post-barrier when first operation
+    asm.emitHWSYNC();
   }
 
   @Override
@@ -2363,6 +2394,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     TypeReference fieldType = fieldRef.getFieldContentsType();
+
+    if (field.isVolatile()) {
+      // JMM: pre-barrier when second operation
+      asm.emitSYNC();
+    }
+
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
       if (NEEDS_OBJECT_PUTFIELD_BARRIER && !field.isUntraced()) {
@@ -2431,7 +2468,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitSTFDoffset(F0, T1, fieldOffset);
     }
     if (field.isVolatile()) {
-      asm.emitSYNC();
+      // JMM: post-barrier when first operation
+      asm.emitHWSYNC();
     }
   }
 
