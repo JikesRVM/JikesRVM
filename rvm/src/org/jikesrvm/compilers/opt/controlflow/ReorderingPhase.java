@@ -14,15 +14,16 @@ package org.jikesrvm.compilers.opt.controlflow;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 
+import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.TreeSet;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -34,9 +35,11 @@ import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
  * branch prediction. This code assumes that basic block frequencies have
  * been computed and blocks have been marked infrequent.
  * This pass actually implements two code placement algorithms:
- * (1) A simple 'fluff' removal pass that moves all infrequent basic blocks
+ * <ul>
+ *  <li>(1) A simple 'fluff' removal pass that moves all infrequent basic blocks
  *     to the end of the code order.
- * (2) Pettis and Hansen Algo2.
+ *  <li>(2) Pettis and Hansen Algo2.
+ * </ul>
  */
 public final class ReorderingPhase extends CompilerPhase {
 
@@ -48,18 +51,22 @@ public final class ReorderingPhase extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.REORDER_CODE;
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return DEBUG;
   }
 
+  @Override
   public String getName() {
     return "Code Reordering";
   }
@@ -73,6 +80,7 @@ public final class ReorderingPhase extends CompilerPhase {
    * by reversing the branch condition, however.  That is saved for
    * BranchOptimizations.
    */
+  @Override
   public void perform(IR ir) {
     ir.cfg.entry().clearInfrequent();
     if (ir.options.REORDER_CODE_PH) {
@@ -98,8 +106,8 @@ public final class ReorderingPhase extends CompilerPhase {
     //     Also count how many blocks there are.
     int numBlocks = 0;
     boolean foundSome = false;
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       numBlocks++;
       foundSome |= bb.getInfrequent();
     }
@@ -172,7 +180,7 @@ public final class ReorderingPhase extends CompilerPhase {
     //     (d) Make fallthroughs explict by adding GOTOs
     int numBlocks = 0;
     TreeSet<Edge> edges = new TreeSet<Edge>();
-    HashSet<BasicBlock> chainHeads = new HashSet<BasicBlock>();
+    LinkedHashSet<BasicBlock> chainHeads = new LinkedHashSet<BasicBlock>();
     BasicBlock entry = ir.cfg.entry();
     if (VM.VerifyAssertions) VM._assert(ir.cfg.entry() == ir.cfg.firstInCodeOrder());
 
@@ -227,7 +235,7 @@ public final class ReorderingPhase extends CompilerPhase {
     }
 
     if (DEBUG) VM.sysWriteln("Chains constructed ");
-    HashMap<BasicBlock, ChainInfo> chainInfo = new HashMap<BasicBlock, ChainInfo>();
+    LinkedHashMap<BasicBlock, ChainInfo> chainInfo = new LinkedHashMap<BasicBlock, ChainInfo>();
     for (BasicBlock head : chainHeads) {
       if (DEBUG) dumpChain(head);
       chainInfo.put(head, new ChainInfo(head));
@@ -339,6 +347,7 @@ public final class ReorderingPhase extends CompilerPhase {
       head = h;
     }
 
+    @Override
     public String toString() {
       return "[" + head + "," + placedWeight + "," + inWeight + "] " + outWeights.size();
     }
@@ -355,10 +364,12 @@ public final class ReorderingPhase extends CompilerPhase {
       weight = w;
     }
 
+    @Override
     public String toString() {
       return weight + ": " + source.toString() + " -> " + target.toString();
     }
 
+    @Override
     public int compareTo(Edge that) {
       if (weight < that.weight) {
         return 1;

@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.escape;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -35,8 +36,6 @@ import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG_opcode;
@@ -170,22 +169,27 @@ class SimpleEscape extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.ESCAPE_SIMPLE_IPA;
   }
 
+  @Override
   public final String getName() {
     return "Simple Escape Analysis";
   }
 
+  @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
+  @Override
   public void perform(IR ir) {
     SimpleEscape analyzer = new SimpleEscape();
     analyzer.simpleEscapeAnalysis(ir);
@@ -251,8 +255,8 @@ class SimpleEscape extends CompilerPhase {
     // update the method summary database to note whether
     // parameters may escape
     int numParam = 0;
-    for (OperandEnumeration e = ir.getParameters(); e.hasMoreElements(); numParam++) {
-      Register p = ((RegisterOperand) e.next()).getRegister();
+    for (Enumeration<Operand> e = ir.getParameters(); e.hasMoreElements(); numParam++) {
+      Register p = ((RegisterOperand) e.nextElement()).getRegister();
       if (result.isThreadLocal(p)) {
         summ.setParameterMayEscapeThread(numParam, false);
       } else {
@@ -310,7 +314,7 @@ class SimpleEscape extends CompilerPhase {
 
       if (VM.VerifyAssertions && use.getType() == null) {
         ir.printInstructions();
-        VM._assert(false, "type of " + use + " is null");
+        VM._assert(VM.NOT_REACHED, "type of " + use + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -326,7 +330,7 @@ class SimpleEscape extends CompilerPhase {
 
       if (VM.VerifyAssertions && def.getType() == null) {
         ir.printInstructions();
-        VM._assert(false, "type of " + def + " is null");
+        VM._assert(VM.NOT_REACHED, "type of " + def + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -344,7 +348,7 @@ class SimpleEscape extends CompilerPhase {
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
       if (VM.VerifyAssertions && use.getType() == null) {
         ir.printInstructions();
-        VM._assert(false, "type of " + use + " is null");
+        VM._assert(VM.NOT_REACHED, "type of " + use + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -359,7 +363,7 @@ class SimpleEscape extends CompilerPhase {
     for (RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
       if (VM.VerifyAssertions && def.getType() == null) {
         ir.printInstructions();
-        VM._assert(false, "type of " + def + " is null");
+        VM._assert(VM.NOT_REACHED, "type of " + def + " is null");
       }
 
       // if the type is primitive, just say it escapes
@@ -380,7 +384,7 @@ class SimpleEscape extends CompilerPhase {
    *
    * @param use the use to check
    * @param ir the governing IR
-   * @return true if it may escape, false otherwise
+   * @return {@code true} if it may escape, {@code false} otherwise
    */
   private static boolean checkEscapesThread(RegisterOperand use, IR ir, Set<Register> visited) {
     Instruction inst = use.instruction;
@@ -837,8 +841,8 @@ class SimpleEscape extends CompilerPhase {
    */
   private static Iterator<Operand> iterateReturnValues(IR ir) {
     ArrayList<Operand> returnValues = new ArrayList<Operand>();
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (Return.conforms(s)) {
         returnValues.add(Return.getVal(s));
       }

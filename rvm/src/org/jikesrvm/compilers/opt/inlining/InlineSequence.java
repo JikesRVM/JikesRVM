@@ -28,7 +28,7 @@ public final class InlineSequence {
   public final NormalMethod method;
 
   /**
-   * Caller info.  null if none.
+   * Caller info. {@code null} if none.
    */
   public final InlineSequence caller;
 
@@ -54,16 +54,6 @@ public final class InlineSequence {
    */
   public InlineSequence getCaller() {
     return caller;
-  }
-
-  public boolean equals(Object o) {
-    if (!(o instanceof InlineSequence)) return false;
-    InlineSequence is = (InlineSequence) o;
-    if (method == null) return (is.method == null);
-    if (!method.equals(is.method)) return false;
-    if (bcIndex != is.bcIndex) return false;
-    if (caller == null) return (is.caller == null);
-    return (caller.equals(is.caller));
   }
 
   /**
@@ -110,6 +100,7 @@ public final class InlineSequence {
   /**
    * Returns the string representation of this inline sequence.
    */
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder(" ");
     for (InlineSequence is = this; is != null; is = is.caller) {
@@ -154,18 +145,6 @@ public final class InlineSequence {
     return (caller.containsMethod(m));
   }
 
-  /**
-   * Return a hashcode for this object.
-   *
-   * TODO: Figure out a better hashcode.  Efficiency doesn't matter
-   * for now.
-   *
-   * @return the hashcode for this object.
-   */
-  public int hashCode() {
-    return bcIndex;
-  }
-
   public java.util.Enumeration<InlineSequence> enumerateFromRoot() {
     return new java.util.Enumeration<InlineSequence>() {
       Stack<InlineSequence> stack;
@@ -179,13 +158,50 @@ public final class InlineSequence {
         }
       }
 
+      @Override
       public boolean hasMoreElements() {
         return !stack.isEmpty();
       }
 
+      @Override
       public InlineSequence nextElement() {
         return stack.pop();
       }
     };
   }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + bcIndex;
+    result = prime * result + ((caller == null) ? 0 : caller.hashCode());
+    result = prime * result + ((method == null) ? 0 : method.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    InlineSequence other = (InlineSequence) obj;
+    if (bcIndex != other.bcIndex)
+      return false;
+    if (caller == null) {
+      if (other.caller != null)
+        return false;
+    } else if (!caller.equals(other.caller))
+      return false;
+    if (method == null) {
+      if (other.method != null)
+        return false;
+    } else if (!method.equals(other.method))
+      return false;
+    return true;
+  }
+
 }

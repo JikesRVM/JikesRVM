@@ -22,9 +22,9 @@ import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Support for lowlevel (ie non-JNI) invocation of C functions with
+ * Support for lowlevel (i.e. non-JNI) invocation of C functions with
  * static addresses.
- *
+ * <p>
  * All methods of this class have the following signature:
  * <pre>
  * public abstract <TYPE> NAME(<args to pass to sysNAME via native calling convention>)
@@ -43,7 +43,8 @@ import org.vmmagic.unboxed.Offset;
 public abstract class SysCall {
 
   /**
-   * Actual implementation of the SysCall class
+   * Actual implementation of the SysCall class. The implementation
+   * is generated from the code in this class during the build process.
    */
   public static final SysCall sysCall;
 

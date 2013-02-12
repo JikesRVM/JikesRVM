@@ -43,7 +43,7 @@ import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
 
 /**
- * Abstract visitor class for ASTs.  Provides default implementations
+ * Abstract visitor class for ASTs. Provides default implementations
  * for all composite AST classes.
  */
 public abstract class Visitor {

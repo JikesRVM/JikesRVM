@@ -27,7 +27,7 @@ public final class AddressArray implements RuntimeTable<Address> {
 
   @Interruptible
   public static AddressArray create(int size) {
-    if (VM.runningVM) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     return new AddressArray(size);
   }
 
@@ -41,19 +41,19 @@ public final class AddressArray implements RuntimeTable<Address> {
 
   @Inline
   public Address get(int index) {
-    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && (VM.runningVM || VM.writingImage)) VM._assert(VM.NOT_REACHED);  // should be hijacked
     return data[index];
   }
 
   @Inline
   public void set(int index, Address v) {
-    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && (VM.runningVM || VM.writingImage)) VM._assert(VM.NOT_REACHED);
     data[index] = v;
   }
 
   @Inline
   public int length() {
-    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && (VM.runningVM || VM.writingImage)) VM._assert(VM.NOT_REACHED);
     return data.length;
   }
 

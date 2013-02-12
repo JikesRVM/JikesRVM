@@ -28,17 +28,26 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public final class RCModifiedProcessor extends TransitiveClosure {
 
-  /**
-   * Trace an edge during GC.
-   *
-   * @param source The source of the reference.
-   * @param slot The location containing the object reference.
-   */
+  private RCCollector collector;
+
+  public RCModifiedProcessor(RCCollector ctor) {
+    this.collector = ctor;
+  }
+
+  @Override
   @Inline
   public void processEdge(ObjectReference source, Address slot) {
     ObjectReference object = slot.loadObjectReference();
     if (RCBase.isRCObject(object)) {
-      RCHeader.incRC(object);
+      if (RCBase.CC_BACKUP_TRACE && RCBase.performCycleCollection) {
+        if (RCHeader.remainRC(object) == RCHeader.INC_NEW) {
+          collector.getModBuffer().push(object);
+        }
+      } else {
+        if (RCHeader.incRC(object) == RCHeader.INC_NEW) {
+          collector.getModBuffer().push(object);
+        }
+      }
     }
   }
 }

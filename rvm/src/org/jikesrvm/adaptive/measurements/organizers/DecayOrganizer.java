@@ -40,9 +40,9 @@ public final class DecayOrganizer extends Organizer {
   }
 
   /**
-   * Method that is called when the sampling threshold is reached
-   * We decay the decayable objects and activate the listener again.
+   * Decays the decayable objects.
    */
+  @Override
   void thresholdReached() {
     RuntimeMeasurements.decayDecayableObjects();
   }

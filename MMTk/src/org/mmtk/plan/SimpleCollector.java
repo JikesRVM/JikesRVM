@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class (and its sub-classes) implement <i>per-collector thread</i>
- * behavior and state.
+ * behavior and state.<p>
  *
  * MMTk assumes that the VM instantiates instances of CollectorContext
  * in thread local storage (TLS) for each thread participating in
@@ -47,12 +47,9 @@ public abstract class SimpleCollector extends ParallelCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The unique phase identifier
-   * @param primary Should this thread be used to execute any single-threaded
-   * local operations?
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == Simple.PREPARE) {

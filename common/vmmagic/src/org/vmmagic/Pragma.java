@@ -33,6 +33,6 @@ import java.lang.annotation.Inherited;
  * be enforced by the compiler.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE,ElementType.METHOD})
+@Target({ElementType.TYPE,ElementType.ANNOTATION_TYPE})
 @Inherited
 public @interface Pragma { }

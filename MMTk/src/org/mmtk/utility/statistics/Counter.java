@@ -26,6 +26,9 @@ public abstract class Counter {
    * Instance variables
    */
 
+  /**
+   *
+   */
   private final String name;
   private final boolean start;
   private final boolean mergephases;
@@ -116,7 +119,7 @@ public abstract class Counter {
   /**
    * Print the current total for either the mutator or GC phase
    *
-   * @param mutator True if the total for the mutator phases is to be
+   * @param mutator {@code true} if the total for the mutator phases is to be
    * printed (otherwise the total for the GC phases will be printed).
    */
   abstract void printTotal(boolean mutator);
@@ -124,7 +127,7 @@ public abstract class Counter {
   /**
    * Print the current minimum value for either the mutator or GC phase
    *
-   * @param mutator True if the minimum for the mutator phase is to be
+   * @param mutator {@code true} if the minimum for the mutator phase is to be
    * printed (otherwise the minimum for the GC phase will be printed).
    */
   abstract void printMin(boolean mutator);
@@ -132,7 +135,7 @@ public abstract class Counter {
   /**
    * Print the current maximum value for either the mutator or GC phase
    *
-   * @param mutator True if the maximum for the mutator phase is to be
+   * @param mutator {@code true} if the maximum for the mutator phase is to be
    * printed (otherwise the maximum for the GC phase will be printed).
    */
   abstract void printMax(boolean mutator);
@@ -163,9 +166,9 @@ public abstract class Counter {
   String getColumnSuffix() { return ""; }
 
   /**
-   * Return true if this counter is implicitly started when
+   * Return {@code true} if this counter is implicitly started when
    * <code>startAll()</code> is called.
-   * @return True if this counter is implicitly started when
+   * @return {@code true} if this counter is implicitly started when
    *         <code>startAll()</code> is called.
    */
   boolean getStart() { return start; }

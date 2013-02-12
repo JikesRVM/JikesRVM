@@ -14,7 +14,7 @@ package org.mmtk.harness.exception;
 
 /**
  * An out of memory error originating from within MMTk.
- *
+ * <p>
  * Tests that try to exercise out of memory conditions can catch this exception.
  */
 public class OutOfMemory extends RuntimeException {

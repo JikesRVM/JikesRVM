@@ -40,10 +40,9 @@ public class GenRC extends RCBase {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase
+   * {@inheritDoc}
    */
+  @Override
   public final void collectionPhase(short phaseId) {
    if (phaseId == PREPARE) {
       nurserySpace.prepare(true);
@@ -61,13 +60,7 @@ public class GenRC extends RCBase {
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @return True if a collection is requested by the plan.
-   */
+  @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
     return super.collectionRequired(spaceFull, space) || nurseryFull;
@@ -85,26 +78,19 @@ public class GenRC extends RCBase {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
+  @Override
   public int getPagesAvail() {
     return super.getPagesAvail() >> 1;
   }
 
   /**
    * Return the number of pages reserved for copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for copying.
    */
+  @Override
   public final int getCollectionReserve() {
     return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return True if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(NURSERY, object)) {

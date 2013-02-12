@@ -19,9 +19,9 @@ import org.vmmagic.unboxed.harness.Clock;
 /**
  * Tracing of events in the harness, both for debugging MMTk
  * and the harness itself.
- *
+ * <p>
  * Tracing can be enabled using the command-line trace=<i>ITEM</i> parameter,
- * or by setting Trace.enable(Item.xx) in the code.
+ * or by setting {@code Trace.enable(Item.xx)} in the code.
  */
 public final class Trace {
   /**

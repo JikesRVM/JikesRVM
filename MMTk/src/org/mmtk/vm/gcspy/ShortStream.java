@@ -29,6 +29,10 @@ import org.vmmagic.pragma.*;
    *
    * Instance variables
    */
+
+  /**
+   *
+   */
   private short[] data;         // The stream data
   private short defaultValue;   // The default value for the data items
 
@@ -125,11 +129,7 @@ import org.vmmagic.pragma.*;
    */
   public void increment(int index, short value) { data[index] += value; }
 
-  /**
-   * Send the data and summary for this stream.
-   * @param event The event
-   * @param numTiles The number of tiles to send (which may be less than maxTileNum)
-   */
+  @Override
   public void send(int event, int numTiles) {
     if (DEBUG) {
       Log.write("sending "); Log.write(numTiles); Log.writeln(" int values");

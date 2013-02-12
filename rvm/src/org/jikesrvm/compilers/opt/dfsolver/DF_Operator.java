@@ -13,9 +13,7 @@
 package org.jikesrvm.compilers.opt.dfsolver;
 
 /**
- * DF_Operator.java
- *
- * represents a function for DF_LatticeCell values
+ * Represents a function for DF_LatticeCell values.
  */
 public abstract class DF_Operator {
 

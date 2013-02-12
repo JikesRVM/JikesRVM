@@ -12,36 +12,30 @@
  */
 package org.jikesrvm.compilers.opt.instrsched;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.depgraph.DepGraph;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
+import org.jikesrvm.compilers.opt.util.GraphNode;
 
 /**
- * Instruction Scheduler
- *
- * It is a simple list scheduler
- *
- * This class is declared as "final" which implies that all its methods
- * are "final" too.
- *
+ * This a simple list-based instruction scheduler.
+ * <p>
  * TODO:
- * - Add more priority lists
- *
- * - When scheduling an instruction, verify that its predecessors have
+ * <ul>
+ *   <li>Add more priority lists
+ *   <li>When scheduling an instruction, verify that its predecessors have
  *   already been scheduled.
- *
- * - Change forward propagation of earliest time to computing it from the
+ *   <li>Change forward propagation of earliest time to computing it from the
  *   scheduling time of predecessors + latencies.
- *
- * - Change bubble sort to insertion sort.
+ *   <li>Change bubble sort to insertion sort.
+ * </ul>
  */
 
 final class Scheduler {
@@ -62,9 +56,9 @@ final class Scheduler {
 
   /**
    * A constant signifying post-pass scheduling phase.
+   * <p>
    * WARNING: POSTPASS INSTRUCTION SCHEDULING (AFTER REGISTER ALLOCATION)
    * Cannot be done safely due to failure to update GCMapping information.
-   * --dave.
    */
   public static final int POSTPASS = 2;
 
@@ -134,11 +128,11 @@ final class Scheduler {
     // Create mapping for dependence graph
     i2gn = new DepGraphNode[ir.numberInstructions()];
     // Create scheduling info for each instruction
-    for (InstructionEnumeration instr = ir.forwardInstrEnumerator(); instr.hasMoreElements();) {
-      SchedulingInfo.createInfo(instr.next());
+    for (Enumeration<Instruction> instr = ir.forwardInstrEnumerator(); instr.hasMoreElements();) {
+      SchedulingInfo.createInfo(instr.nextElement());
     }
     // iterate over each basic block
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       bb = e.nextElement();
       if (bb.isEmpty()) {
         continue;
@@ -160,8 +154,8 @@ final class Scheduler {
     }
 
     // Remove scheduling info for each instruction
-    for (InstructionEnumeration instr = ir.forwardInstrEnumerator(); instr.hasMoreElements();) {
-      SchedulingInfo.removeInfo(instr.next());
+    for (Enumeration<Instruction> instr = ir.forwardInstrEnumerator(); instr.hasMoreElements();) {
+      SchedulingInfo.removeInfo(instr.nextElement());
     }
     // Remove mapping for dependence graph
     i2gn = null;
@@ -229,7 +223,7 @@ final class Scheduler {
       return;
     }
     int cp = 0;
-    for (GraphNodeEnumeration succ = n.outNodes(); succ.hasMoreElements();) {
+    for (Enumeration<GraphNode> succ = n.outNodes(); succ.hasMoreElements();) {
       DepGraphNode np = (DepGraphNode) succ.nextElement();
       Instruction j = np.instruction();
       computeCriticalPath(np, depth + 1);
@@ -261,8 +255,8 @@ final class Scheduler {
     if (opc == null) {
       throw new OptimizingCompilerException("Missing operator class " + i.operator());
     }
-    for (GraphNodeEnumeration pred = n.inNodes(); pred.hasMoreElements();) {
-      DepGraphNode np = (DepGraphNode) pred.next();
+    for (Enumeration<GraphNode> pred = n.inNodes(); pred.hasMoreElements();) {
+      DepGraphNode np = (DepGraphNode) pred.nextElement();
       Instruction j = np.instruction();
       int time = SchedulingInfo.getTime(j);
       if (VERBOSE >= 6) {
@@ -382,8 +376,8 @@ final class Scheduler {
     }
     if (VERBOSE >= 4) {
       debug("**** START OF CURRENT BB BEFORE SCHEDULING ****");
-      for (InstructionEnumeration bi = bb.forwardInstrEnumerator(); bi.hasMoreElements();) {
-        debug(bi.next().toString());
+      for (Enumeration<Instruction> bi = bb.forwardInstrEnumerator(); bi.hasMoreElements();) {
+        debug(bi.nextElement().toString());
       }
       debug("**** END   OF CURRENT BB BEFORE SCHEDULING ****");
     }
@@ -403,8 +397,8 @@ final class Scheduler {
     }
     computeCriticalPath(getGraphNode(fi), 0);
     int cp = SchedulingInfo.getCriticalPath(fi);
-    for (InstructionEnumeration ie = bb.forwardRealInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction i = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardRealInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction i = ie.nextElement();
       if (VERBOSE >= 5) {
         debug("Computing critical path for " + i);
       }
@@ -422,7 +416,7 @@ final class Scheduler {
     Priority ilist = new DefaultPriority(bb);
     int maxtime = 0;
     for (ilist.reset(); ilist.hasMoreElements();) {
-      Instruction i = ilist.next();
+      Instruction i = ilist.nextElement();
       if (VERBOSE >= 3) {
         debug("Scheduling " + i + "[" + SchedulingInfo.getInfo(i) + "]");
       }
@@ -449,8 +443,8 @@ final class Scheduler {
     }
     if (VERBOSE >= 4) {
       debug("**** START OF CURRENT BB AFTER SCHEDULING ****");
-      for (InstructionEnumeration bi = bb.forwardInstrEnumerator(); bi.hasMoreElements();) {
-        debug(bi.next().toString());
+      for (Enumeration<Instruction> bi = bb.forwardInstrEnumerator(); bi.hasMoreElements();) {
+        debug(bi.nextElement().toString());
       }
       debug("**** END   OF CURRENT BB AFTER SCHEDULING ****");
     }

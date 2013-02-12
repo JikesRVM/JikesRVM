@@ -32,15 +32,19 @@ public final class RegisterAllocator extends OptimizationPlanCompositeElement {
         new LinearScan()});
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) { return true; }
 
+  @Override
   public String getName() { return "RegAlloc"; }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return options.PRINT_REGALLOC;
   }
 
   private static class RegisterAllocPreparation extends CompilerPhase {
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return true;
     }
@@ -51,10 +55,12 @@ public final class RegisterAllocator extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public final String getName() {
       return "Register Allocation Preparation";
     }
@@ -62,6 +68,7 @@ public final class RegisterAllocator extends OptimizationPlanCompositeElement {
     /**
      * create the stack manager
      */
+    @Override
     public final void perform(org.jikesrvm.compilers.opt.ir.IR ir) {
       ir.stackManager.prepare(ir);
     }

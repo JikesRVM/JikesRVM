@@ -23,10 +23,10 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * An instance of this class provides iteration across the references
  * represented by a frame built by the OPT compiler.
- *
+ * <p>
  * The architecture-specific version of the GC Map iterator.  It inherits
  * its architecture-independent code from OptGenericGCMapIterator.
- * This version is for IA32
+ * This version is for IA32.
  */
 @Uninterruptible
 public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements SizeConstants {
@@ -38,11 +38,12 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
   }
 
   /**
-   * If any non-volatile gprs were saved by the method being processed
+   * If any non-volatile GPRs were saved by the method being processed
    * then update the registerLocations array with the locations where the
    * registers were saved.  Also, check for special methods that also
-   * save the volatile gprs.
+   * save the volatile GPRs.
    */
+  @Override
   protected void updateLocateRegisters() {
 
     //           HIGH MEMORY
@@ -118,13 +119,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
     }
   }
 
-  /**
-   *  Determine the spill location given the frame ptr and spill offset.
-   *  (The location of spills varies among architectures.)
-   *  @param framePtr the frame pointer
-   *  @param offset  the offset for the spill
-   *  @return the resulting spill location
-   */
+  @Override
   public Address getStackLocation(Address framePtr, int offset) {
     return framePtr.minus(offset);
   }
@@ -133,6 +128,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    *  Get address of the first spill location for the given frame ptr
    *  @return the first spill location
    */
+  @Override
   public Address getFirstSpillLoc() {
     return framePtr.minus(-StackframeLayoutConstants.STACKFRAME_BODY_OFFSET);
   }
@@ -141,6 +137,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    *  Get address of the last spill location for the given frame ptr
    *  @return the last spill location
    */
+  @Override
   public Address getLastSpillLoc() {
     if (compiledMethod.isSaveVolatile()) {
       return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);

@@ -25,7 +25,7 @@ public class ImmixConstants {
 
   /* start temporary experimental constants --- should not be allowed to lurk longer than necessary */
   public static final int TMP_MIN_SPILL_THRESHOLD = 2;
-  public static final boolean TMP_PREFER_COPY_ON_NURSERY_GC = true;
+  public static final boolean PREFER_COPY_ON_NURSERY_GC = true;
   /* end temporary experimental constants */
 
   static final byte MAX_LINE_MARK_STATE = 127;

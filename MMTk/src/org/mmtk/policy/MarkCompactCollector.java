@@ -25,13 +25,15 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class implements unsynchronized (local) per-collector-thread elements of a
- * sliding mark-compact collector.
- *
+ * sliding mark-compact collector.<p>
+ *<p>
  * Specifically, this class provides the methods that
- * - Calculate the forwarding pointers for heap objects, in a linear pass over
- *   (part of) the heap
- * - Performs the compaction pass over the heap.
- *
+ * <ul>
+ *  <li>Calculate the forwarding pointers for heap objects, in a linear pass over
+ *   (part of) the heap</li>
+ *  <li>Performs the compaction pass over the heap.</li>
+ * </ul>
+ *<p>
  * Each collector thread maintains a private list of the pages that it compacts.
  * If it runs out of work during the calculateForwardingPointers pass, it requests
  * a new region from the global MarkCompactSpace.  Regions compacted by a collector
@@ -408,13 +410,13 @@ public final class MarkCompactCollector {
 
   /**
    * Perform a linear scan through the objects allocated by this bump pointer,
-   * calculating where each live object will be post collection.
+   * calculating where each live object will be post collection.<p>
    *
    * We maintain two cursors, {@code fromCursor} and {@code toCursor}, and simulate
    * copying live objects from the former to the latter.  Initially, the cursors
    * point to the first region in this collector's local list, and increment in
    * lockstep until the first dead object is encountered.  After that, the to cursor
-   * trails the from cursor.
+   * trails the from cursor.<p>
    *
    * The outer loop advances the 'from' pointer
    */

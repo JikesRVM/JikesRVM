@@ -36,6 +36,10 @@ import org.vmmagic.pragma.*;
    *
    * Class variables
    */
+
+  /**
+   *
+   */
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
@@ -46,6 +50,10 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private boolean fromSpace = true;
 
@@ -129,6 +137,7 @@ import org.vmmagic.pragma.*;
    *
    * @param start The address of the start of the page or pages
    */
+  @Override
   @Inline
   public void release(Address start) {
     if (VM.VERIFY_ASSERTIONS)
@@ -141,11 +150,11 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Trace an object under a copying collection policy.
+   * Trace an object under a copying collection policy.<p>
    *
    * We use a tri-state algorithm to deal with races to forward
    * the object.  The tracer must wait if the object is concurrently
-   * being forwarded by another thread.
+   * being forwarded by another thread.<p>
    *
    * If the object is already forwarded, the copy is returned.
    * Otherwise, the object is forwarded and the copy is returned.
@@ -154,6 +163,7 @@ import org.vmmagic.pragma.*;
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     VM.assertions.fail("CopySpace.traceLocal called without allocator");
@@ -161,11 +171,11 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Trace an object under a copying collection policy.
+   * Trace an object under a copying collection policy.<p>
    *
    * We use a tri-state algorithm to deal with races to forward
    * the object.  The tracer must wait if the object is concurrently
-   * being forwarded by another thread.
+   * being forwarded by another thread.<p>
    *
    * If the object is already forwarded, the copy is returned.
    * Otherwise, the object is forwarded and the copy is returned.
@@ -210,22 +220,17 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Return true if this object is live in this GC
+   * Return {@code true} if this object is live in this GC
    *
    * @param object The object in question
-   * @return True if this object is live in this GC (has it been forwarded?)
+   * @return {@code true} if this object is live in this GC (has it been forwarded?)
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     return ForwardingWord.isForwarded(object);
   }
 
-  /**
-   * Has the object in this space been reached during the current collection.
-   * This is used for GC Tracing.
-   *
-   * @param object The object reference.
-   * @return True if the object is reachable.
-   */
+  @Override
   public boolean isReachable(ObjectReference object) {
     return !fromSpace || ForwardingWord.isForwarded(object);
   }

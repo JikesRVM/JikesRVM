@@ -24,7 +24,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.NULL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.REGISTER_opcode;
 
 /**
- * A few common utilites used for invoking BURS tree-pattern matching
+ * A few common utilities used for invoking BURS tree-pattern matching
  * to do instruction selection.  The interesting code is in the
  * subclasses of this class.
  */
@@ -77,7 +77,7 @@ public abstract class BURS {
   }
 
   /**
-   * append an instruction (in other words emit an MIR instruction)
+   * Appends an instruction, i.e. emits an MIR instruction.
    */
   public final void append(Instruction instruction) {
     lastInstr.BURS_backdoor_linkWithNext(instruction);

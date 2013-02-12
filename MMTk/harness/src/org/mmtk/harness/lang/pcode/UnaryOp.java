@@ -29,6 +29,7 @@ public abstract class UnaryOp extends PseudoOp {
     this.operand = operand.getIndex();
   }
 
+  @Override
   public String toString() {
     return String.format("%s(%s)", super.toString(), Register.nameOf(operand));
   }

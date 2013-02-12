@@ -12,22 +12,23 @@
  */
 package org.jikesrvm.osr;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 /**
  * OSR_AdjustBCIndex is an optimizing phase performed on HIR.
  * It adjust the byte code index of instructions from specialized
  * byte code to its original byte code.
  */
-
 public class AdjustBCIndexes extends CompilerPhase {
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return true;
   }
@@ -38,18 +39,21 @@ public class AdjustBCIndexes extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final String getName() { return "AdjustBytecodeIndexes"; }
 
+  @Override
   public final void perform(IR ir) {
     if (!ir.method.isForOsrSpecialization()) return;
     int offset = ir.method.getOsrPrologueLength();
 
-    for (InstructionEnumeration ie = ir.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction s = ie.next();
+    for (Enumeration<Instruction> ie = ir.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction s = ie.nextElement();
 
       if ((s.position != null) && (s.position.method != ir.method)) {
         // also adjust InlineSequence of the direct callee

@@ -31,10 +31,8 @@ import org.jikesrvm.compilers.opt.ir.GetStatic;
 import org.jikesrvm.compilers.opt.ir.GuardedUnary;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR_opcode;
@@ -99,10 +97,6 @@ import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
 import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
-
-/*
- * This module tracks heap variables needed for Array SSA form.
- */
 
 /**
  * An <code> SSADictionary </code> structure holds lookaside
@@ -616,7 +610,7 @@ public final class SSADictionary {
       }
     }
     // handle each HEAP PHI function.
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock bb = e.nextElement();
       for (Iterator<Instruction> hp = getHeapPhiInstructions(bb); hp.hasNext();) {
         Instruction phi = hp.next();
@@ -1125,10 +1119,10 @@ public final class SSADictionary {
    * @param b the basic block containing s
    */
   private void labelHelper(Instruction s, BasicBlock b) {
-    BasicBlockEnumeration e = b.getIn();
+    Enumeration<BasicBlock> e = b.getIn();
     boolean newHandler = !e.hasMoreElements();
     while (!newHandler && e.hasMoreElements()) {
-      if (!(e.next().isExceptionHandlerEquivalent(b))) newHandler = true;
+      if (!(e.nextElement().isExceptionHandlerEquivalent(b))) newHandler = true;
     }
     if (newHandler) registerDef(s, b, exceptionState);
   }
@@ -1141,10 +1135,10 @@ public final class SSADictionary {
    * @param b the basic block containing s
    */
   private void bbendHelper(Instruction s, BasicBlock b) {
-    BasicBlockEnumeration e = b.getOut();
+    Enumeration<BasicBlock> e = b.getOut();
     boolean newHandler = !e.hasMoreElements();
     while (!newHandler && e.hasMoreElements()) {
-      if (!(e.next().isExceptionHandlerEquivalent(b))) newHandler = true;
+      if (!(e.nextElement().isExceptionHandlerEquivalent(b))) newHandler = true;
     }
     if (newHandler) registerUse(s, exceptionState);
   }
@@ -1437,7 +1431,7 @@ public final class SSADictionary {
    */
   private static Instruction makePhiInstruction(HeapVariable<Object> H, BasicBlock bb) {
     int n = bb.getNumberOfIn();
-    BasicBlockEnumeration in = bb.getIn();
+    Enumeration<BasicBlock> in = bb.getIn();
     HeapOperand<Object> lhs = new HeapOperand<Object>(H);
     Instruction s = Phi.create(PHI, lhs, n);
     lhs.setInstruction(s);
@@ -1445,7 +1439,7 @@ public final class SSADictionary {
       HeapOperand<Object> op = new HeapOperand<Object>(H);
       op.setInstruction(s);
       Phi.setValue(s, i, op);
-      BasicBlock pred = in.next();
+      BasicBlock pred = in.nextElement();
       Phi.setPred(s, i, new BasicBlockOperand(pred));
     }
     return s;
@@ -1484,8 +1478,9 @@ public final class SSADictionary {
      * retrive items from hashtables.
      *
      * @param key the object to compare with
-     * @return true or false as appropriate
+     * @return {@code true} or {@code false} as appropriate
      */
+    @Override
     public boolean equals(Object key) {
       if (!(key instanceof HeapKey)) {
         return false;
@@ -1501,6 +1496,7 @@ public final class SSADictionary {
      *
      * @return the hash code
      */
+    @Override
     public int hashCode() {
       return type.hashCode() + 8192 * number;
     }
@@ -1518,7 +1514,7 @@ public final class SSADictionary {
      * An enumeration of the explicit instructions in the IR for a basic
      * block
      */
-    private final InstructionEnumeration explicitInstructions;
+    private final Enumeration<Instruction> explicitInstructions;
 
     /**
      * An enumeration of the implicit instructions in the IR for a basic
@@ -1541,14 +1537,15 @@ public final class SSADictionary {
     AllInstructionEnumeration(BasicBlock bb, SSADictionary dict) {
       explicitInstructions = bb.forwardInstrEnumerator();
       implicitInstructions = dict.getHeapPhiInstructions(bb);
-      labelInstruction = explicitInstructions.next();
+      labelInstruction = explicitInstructions.nextElement();
     }
 
     /**
      * Are there more elements in the enumeration?
      *
-     * @return true or false
+     * @return {@code true} or {@code false}
      */
+    @Override
     public boolean hasMoreElements() {
       return (implicitInstructions.hasNext() || explicitInstructions.hasMoreElements());
     }
@@ -1558,6 +1555,7 @@ public final class SSADictionary {
      *
      * @return the next instruction
      */
+    @Override
     public Instruction nextElement() {
       if (labelInstruction != null) {
         Instruction temp = labelInstruction;
@@ -1567,7 +1565,7 @@ public final class SSADictionary {
       if (implicitInstructions.hasNext()) {
         return implicitInstructions.next();
       }
-      return explicitInstructions.next();
+      return explicitInstructions.nextElement();
     }
   }
 }

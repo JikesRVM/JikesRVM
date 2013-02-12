@@ -86,7 +86,7 @@ class MethodSummary {
 
   /**
    * Query whether the result of this method may escape from a thread.
-   * @return false iff the parameter <em> must not </em> escape from the
+   * @return {@code false} iff the parameter <em> must not </em> escape from the
    * thread. true otherwise.
    */
   public boolean resultMayEscapeThread() {

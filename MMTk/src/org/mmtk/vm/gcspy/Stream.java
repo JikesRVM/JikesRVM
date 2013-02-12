@@ -58,9 +58,11 @@ import org.vmmagic.unboxed.Address;
   /** The second summary value (if any) */
   protected int summary1;
 
-  private int min; // The minimum value for tiles
+  /** The minimum value for tiles */
+  private int min;
 
-  private int max; // The maximum value for tiles
+  /** The maximum value for tiles */
+  private int max;
 
   /** use summaries? */
   protected boolean summaryEnabled;
@@ -195,7 +197,8 @@ import org.vmmagic.unboxed.Address;
   /**
    * Send the data for this stream.
    * @param event the event.
-   * @param numTiles the number of tiles to send.
+   * @param numTiles the number of tiles to send (which may be less than maxTileNum)
+
    */
   public abstract void send(int event, int numTiles);
 

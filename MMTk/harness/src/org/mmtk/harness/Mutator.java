@@ -36,13 +36,13 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * This class represents a mutator thread that has memory managed by MMTk.
- *
+ * <p>
  * From within the context of this thread it is possible to call the muXXX methods
  * to test MMTk.
- *
- * To get the current Mutator (from a context where this is valid) it is possible to
- * call Mutator.current().
- *
+ * <p>
+ * To get the current <code>Mutator</code> (from a context where this is valid) it
+ * is possible to call <code>Mutator.current().</code>
+ * <p>
  * Note that as soon as the mutator is created it is considered active. This means
  * that a GC can not occur unless you execute commands on the mutator (or muEnd it).
  */
@@ -77,7 +77,7 @@ public abstract class Mutator {
   private boolean outOfMemory;
 
   /** Get the out of memory status
-   * @return True if we're subject to an out-of-memory condition
+   * @return {@code true} if we're subject to an out-of-memory condition
    */
   public boolean isOutOfMemory() {
     return outOfMemory;

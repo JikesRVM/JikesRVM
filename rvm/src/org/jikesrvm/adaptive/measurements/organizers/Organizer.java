@@ -36,7 +36,7 @@ public abstract class Organizer extends SystemThread {
 
   /**
    * The listener associated with this organizer.
-   * May be null if the organizer has no associated listener.
+   * May be {@code null} if the organizer has no associated listener.
    */
   protected Listener listener;
 
@@ -93,7 +93,7 @@ public abstract class Organizer extends SystemThread {
   }
 
   /**
-   * Called to activate the organizer thread (ie schedule it for execution).
+   * Called to activate the organizer thread (i.e. schedule it for execution).
    */
   @Uninterruptible
   public void activate() {

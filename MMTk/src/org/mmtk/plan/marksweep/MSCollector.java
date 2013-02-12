@@ -39,6 +39,10 @@ public class MSCollector extends StopTheWorldCollector {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   protected MSTraceLocal fullTrace = new MSTraceLocal(global().msTrace, null);;
   protected TraceLocal currentTrace = fullTrace;
 
@@ -48,10 +52,7 @@ public class MSCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
   @Inline
   @Override
@@ -87,7 +88,6 @@ public class MSCollector extends StopTheWorldCollector {
     return (MS) VM.activePlan.global();
   }
 
-  /** @return The current trace instance. */
   @Override
   public final TraceLocal getCurrentTrace() {
     return currentTrace;

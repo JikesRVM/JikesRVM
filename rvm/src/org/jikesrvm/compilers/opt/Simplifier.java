@@ -1566,7 +1566,7 @@ public abstract class Simplifier extends IRTools {
           // There will be an INT_ZERO_CHECK
           // guarding this instruction that will result in an
           // ArithmeticException.  We
-          // should probabbly just remove the INT_REM as dead code.
+          // should probably just remove the INT_REM as dead code.
           return DefUseEffect.UNCHANGED;
         }
         if (op1.isIntConstant()) {
@@ -2876,7 +2876,7 @@ public abstract class Simplifier extends IRTools {
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
         int val = op.asIntConstant().value;
-        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC((double) val));
+        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC(val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -2915,7 +2915,7 @@ public abstract class Simplifier extends IRTools {
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
         int val = op.asIntConstant().value;
-        Move.mutate(s, FLOAT_MOVE, Unary.getClearResult(s), FC((float) val));
+        Move.mutate(s, FLOAT_MOVE, Unary.getClearResult(s), FC(val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -2928,7 +2928,7 @@ public abstract class Simplifier extends IRTools {
       if (op.isIntConstant()) {
         // CONSTANT: FOLD
         int val = op.asIntConstant().value;
-        Move.mutate(s, LONG_MOVE, Unary.getClearResult(s), LC((long) val));
+        Move.mutate(s, LONG_MOVE, Unary.getClearResult(s), LC(val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3039,7 +3039,7 @@ public abstract class Simplifier extends IRTools {
       if (op.isFloatConstant()) {
         // CONSTANT: FOLD
         float val = op.asFloatConstant().value;
-        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC((double) val));
+        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC(val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3091,7 +3091,7 @@ public abstract class Simplifier extends IRTools {
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
         long val = op.asLongConstant().value;
-        Move.mutate(s, FLOAT_MOVE, Unary.getClearResult(s), FC((float) val));
+        Move.mutate(s, FLOAT_MOVE, Unary.getClearResult(s), FC(val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }
@@ -3117,7 +3117,7 @@ public abstract class Simplifier extends IRTools {
       if (op.isLongConstant()) {
         // CONSTANT: FOLD
         long val = op.asLongConstant().value;
-        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC((double) val));
+        Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC(val));
         return DefUseEffect.MOVE_FOLDED;
       }
     }

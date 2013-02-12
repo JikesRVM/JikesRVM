@@ -41,6 +41,10 @@ public class Line implements Constants {
  /***************************************************************************
   * Line marking
   */
+
+  /**
+   *
+   */
   static void mark(Address address, final byte markValue) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Block.isUnused(Block.align(address)));
     getMarkAddress(address).store(markValue);
@@ -60,6 +64,10 @@ public class Line implements Constants {
 
   /***************************************************************************
    * Scanning through avail lines
+   */
+
+  /**
+   *
    */
   public static Address getChunkMarkTable(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Chunk.isAligned(chunk));
@@ -116,6 +124,7 @@ public class Line implements Constants {
   }
 
   /* per-line mark bytes */
+
   static final int LOG_BYTES_IN_LINE_STATUS = 0;
   static final int BYTES_IN_LINE_STATUS = 1<<LOG_BYTES_IN_LINE_STATUS;
 

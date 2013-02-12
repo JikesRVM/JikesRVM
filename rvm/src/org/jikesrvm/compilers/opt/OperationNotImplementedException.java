@@ -21,7 +21,7 @@ package org.jikesrvm.compilers.opt;
  * extended to handle the excepting case. If the unsupported operation
  * really is a serious problem, then one should use
  * an OptimzingCompilerException.
- *
+ * <p>
  * We define this to be a non-fatal OptimizingCompilerException.
  */
 public class OperationNotImplementedException extends OptimizingCompilerException {

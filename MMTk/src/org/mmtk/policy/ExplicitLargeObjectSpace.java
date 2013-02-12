@@ -33,6 +33,10 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
    *
    * Instance variables
    */
+
+  /**
+   *
+   */
   private final DoublyLinkedList cells;
 
   /****************************************************************************
@@ -58,7 +62,7 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
    * then the constructor will fail.
    *
    * @param name The name of this space (used when printing error messages etc)
-   * @param zeroed if true, allocations return zeroed memory.
+   * @param zeroed if {@code true}, allocations return zeroed memory.
    * @param vmRequest An object describing the virtual memory requested.
    */
   public ExplicitLargeObjectSpace(String name, boolean zeroed, VMRequest vmRequest) {
@@ -89,6 +93,7 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
    * @param first The first page in the group of pages that were
    * allocated together.
    */
+  @Override
   @Inline
   public void release(Address first) {
     ((FreeListPageResource) pr).releasePages(first);
@@ -99,7 +104,7 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
    *
    * @param object the object ref to the storage to be initialized
    * @param alloc is this initialization occuring due to (initial) allocation
-   * (true) or due to copying (false)?
+   * ({@code true}) or due to copying (<code>false</code>)?
    */
   @Inline
   public void initializeHeader(ObjectReference object, boolean alloc) {
@@ -126,6 +131,7 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     return object;
@@ -133,33 +139,21 @@ public final class ExplicitLargeObjectSpace extends BaseLargeObjectSpace {
 
   /**
    * @param object The object in question
-   * @return True if this object is known to be live (i.e. it is marked)
+   * @return {@code true} if this object is known to be live (i.e. it is marked)
    */
+  @Override
   @Inline
   public boolean isLive(ObjectReference object) {
     return true;
   }
 
-  /**
-   * Return the size of the per-superpage header required by this
-   * system.  In this case it is just the underlying superpage header
-   * size.
-   *
-   * @return The size of the per-superpage header required by this
-   * system.
-   */
+  @Override
   @Inline
   protected int superPageHeaderSize() {
     return DoublyLinkedList.headerSize();
   }
 
-  /**
-   * Return the size of the per-cell header for cells of a given class
-   * size.
-   *
-   * @return The size of the per-cell header for cells of a given class
-   * size.
-   */
+  @Override
   @Inline
   protected int cellHeaderSize() { return 0; }
 

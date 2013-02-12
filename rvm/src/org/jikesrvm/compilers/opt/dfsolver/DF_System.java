@@ -21,7 +21,6 @@ import java.util.TreeSet;
 import org.jikesrvm.compilers.opt.util.FilterEnumerator;
 import org.jikesrvm.compilers.opt.util.Graph;
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 import org.jikesrvm.compilers.opt.util.GraphUtilities;
 import org.jikesrvm.compilers.opt.util.ReverseDFSenumerateByFinish;
 
@@ -105,6 +104,7 @@ public abstract class DF_System {
    * Return a string representation of the system
    * @return a string representation of the system
    */
+  @Override
   public String toString() {
     String result = "EQUATIONS:\n";
     Enumeration<GraphNode> v = equations.enumerateNodes();
@@ -121,6 +121,7 @@ public abstract class DF_System {
   public Enumeration<DF_Equation> getEquations() {
     return new FilterEnumerator<GraphNode, DF_Equation>(equations.enumerateNodes(),
         new FilterEnumerator.Filter<GraphNode, DF_Equation>() {
+          @Override
           public boolean isElement(GraphNode x) {
             return x instanceof DF_Equation;
           }
@@ -358,6 +359,7 @@ public abstract class DF_System {
   }
 
   private static final Comparator<DF_Equation> dfComparator = new Comparator<DF_Equation>() {
+    @Override
     public int compare(DF_Equation o1, DF_Equation o2) {
       DF_Equation eq1 = o1;
       DF_Equation eq2 = o2;
@@ -411,7 +413,7 @@ public abstract class DF_System {
    *    </ul>
    */
   private void numberEquationsTopological() {
-    GraphNodeEnumeration topOrder = GraphUtilities.
+    Enumeration<GraphNode> topOrder = GraphUtilities.
         enumerateTopSort(equations);
     Enumeration<GraphNode> rev = new ReverseDFSenumerateByFinish(equations, topOrder);
     int number = 0;
@@ -432,10 +434,10 @@ public abstract class DF_System {
     int count = 0;
     for (Enumeration<GraphNode> e = equations.enumerateNodes(); e.hasMoreElements();) {
       GraphNode eq = e.nextElement();
-      GraphNodeEnumeration outs = eq.outNodes();
+      Enumeration<GraphNode> outs = eq.outNodes();
       while (outs.hasMoreElements()) {
         count++;
-        outs.next();
+        outs.nextElement();
       }
     }
     System.out.println("graph has " + count + " edges");

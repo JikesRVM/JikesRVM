@@ -28,7 +28,7 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 public class ObjectConstantOperand extends ConstantOperand {
 
   /**
-   * The non-null object value
+   * The non-{@code null} object value
    */
   public final Object value;
 
@@ -57,20 +57,12 @@ public class ObjectConstantOperand extends ConstantOperand {
     movable = !VM.runningVM || !MemoryManager.willNeverMove(v);
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     return new ObjectConstantOperand(value, offset);
   }
 
-  /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
-   * @return type reference for type of object
-   */
+  @Override
   public TypeReference getType() {
     if (VM.runningVM) {
       return java.lang.JikesRVMSupport.getTypeForClass(value.getClass()).getTypeRef();
@@ -89,33 +81,21 @@ public class ObjectConstantOperand extends ConstantOperand {
     }
   }
 
-  /**
-   * Does the operand represent a value of the reference data type?
-   *
-   * @return <code>true</code>
-   */
+  @Override
   public final boolean isRef() {
     return true;
   }
 
   /**
-   * Is the operand a movable {@link ObjectConstantOperand}?
-   *
-   * @return movable
+   * @return {@link #movable}
    */
+  @Override
   public boolean isMovableObjectConstant() {
     return movable;
   }
 
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof ObjectConstantOperand) && value.equals(((ObjectConstantOperand) op).value);
   }
@@ -125,6 +105,7 @@ public class ObjectConstantOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "object \"" + value + "\"";
   }

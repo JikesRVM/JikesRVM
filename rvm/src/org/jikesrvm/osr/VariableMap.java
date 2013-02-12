@@ -18,10 +18,12 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 
 /**
  * VariableMap, non-encoded yet
+ * <pre>
  * VariableMap          ---> LinkedList of VariableMapElement
  * VariableMapElement   ---> (OsrPoint, LinkedList of MethodVariables)
  * MethodVariables      ---> (Method, PC, List of LocalRegTuple)
  * LocalRegTuple   ---> ( LocalNum, regOp, Type ) or ( StackNum, regOp, Type )
+ * </pre>
  * *
  */
 public final class VariableMap {
@@ -61,6 +63,7 @@ public final class VariableMap {
   /**
    * @return string version of this object
    */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("");
 

@@ -76,6 +76,7 @@ final class FieldVector {
     }
   }
 
+  @Override
   public int hashCode() {
     int val = 0;
     for (int i=cnt-1; i >= 0; i--) {
@@ -84,6 +85,7 @@ final class FieldVector {
     return val;
   }
 
+  @Override
   public boolean equals(Object obj) {
     if (obj instanceof FieldVector) {
       FieldVector that = (FieldVector)obj;

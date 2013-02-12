@@ -34,6 +34,7 @@ public class Assignment extends AbstractAST implements Statement {
     this.expr = expr;
   }
 
+  @Override
   public Object accept(Visitor v) {
     return v.visit(this);
   }

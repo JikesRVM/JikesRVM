@@ -25,19 +25,16 @@ public class TestMutator<T> implements Schedulable {
 
 
   /**
-   * Create a test mutator that inserts 'results' into 'resultpool' when it is scheduled,
+   * Create a test mutator that inserts 'items' into 'resultpool' when it is scheduled,
    * with a yield point between every insertion.
    * @param resultPool
-   * @param result
+   * @param items
    */
   TestMutator(Collection<T> resultPool, T... items) {
     this.resultPool = resultPool;
     this.items = items;
   }
 
-  /**
-   * @see org.mmtk.harness.scheduler.Schedulable#execute(org.mmtk.harness.lang.Env)
-   */
   @Override
   public void execute(Env env) {
     for (T item : items) {

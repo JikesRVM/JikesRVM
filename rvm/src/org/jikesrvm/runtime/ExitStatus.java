@@ -13,7 +13,7 @@
 package org.jikesrvm.runtime;
 
 /** Exit status codes for the Jikes RVM virtual machine.
- *
+ * <p>
  * These process exit status codes are used by the virtual machine whenever it
  * must exit with some failure condition.  By default, if all goes well, the
  * virtual machine will exit with status zero.

@@ -26,7 +26,7 @@ import org.vmmagic.pragma.NonMoving;
  * An organizer for method listener information that
  * simply accumulates the samples into a private
  * MethodCountData instance.
- *
+ * <p>
  * This organizer is used to simply gather aggregate sample data and
  * report it.
  */
@@ -39,6 +39,9 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
 
   /**
    * Initialization: set up data structures and sampling objects.
+   * <p>
+   * Uses either timer based sampling or counter based sampling,
+   * depending on {@link Controller#options}.
    */
   @Override
   public void initialize() {
@@ -56,13 +59,11 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
     } else if (Controller.options.mlCBS()) {
       RuntimeMeasurements.installCBSMethodListener(methodListener);
     } else {
-      if (VM.VerifyAssertions) VM._assert(false, "Unexpected value of method_listener_trigger");
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "Unexpected value of method_listener_trigger");
     }
   }
 
-  /**
-   * Method that is called when the sampling threshold is reached
-   */
+  @Override
   void thresholdReached() {
     AOSLogging.logger.organizerThresholdReached();
     int numSamples = ((MethodListener) listener).getNumSamples();
@@ -70,6 +71,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
     data.update(samples, numSamples);
   }
 
+  @Override
   public void report() {
     VM.sysWrite("\nMethod sampler report");
     if (data != null) data.report();
@@ -79,6 +81,7 @@ public final class AccumulatingMethodSampleOrganizer extends Organizer {
     public AsyncReporter() {
       super("Async Profile Reporter");
     }
+    @Override
     public void run() {
       for (;;) {
         RVMThread.doProfileReport.waitAndCloseWithHandshake();

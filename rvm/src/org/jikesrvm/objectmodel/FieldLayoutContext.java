@@ -18,10 +18,10 @@ import org.jikesrvm.runtime.Memory;
 /**
  * State for the field layout engine.  Subtypes of this are closely
  * tied to field layout schemes, and are generally defined in same.
- *
+ * <p>
  * A FieldLayoutContext deals in an abstract offset space, where
  * there is no header, and fields are laid out relative to 0.
- *
+ * <p>
  * This abstract superclass looks after the total object size and
  * alignment.
  */

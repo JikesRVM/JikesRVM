@@ -63,7 +63,7 @@ public class GenMS extends Gen {
    * Instance fields
    */
 
-  /* The trace class for a full-heap collection */
+  /** The trace class for a full-heap collection */
   public final Trace matureTrace = new Trace(metaDataSpace);
 
   /*****************************************************************************
@@ -72,7 +72,7 @@ public class GenMS extends Gen {
    */
 
   /**
-   * Perform a (global) collection phase.
+   * {@inheritDoc}
    */
   @Inline
   @Override
@@ -107,9 +107,6 @@ public class GenMS extends Gen {
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
   @Inline
   @Override
@@ -117,13 +114,7 @@ public class GenMS extends Gen {
     return msSpace.reservedPages() + super.getPagesUsed();
   }
 
-  /**
-   * Return the number of pages available for allocation into the mature
-   * space.
-   *
-   * @return The number of pages available for allocation into the mature
-   * space.
-   */
+  @Override
   public int getMaturePhysicalPagesAvail() {
     return (int) (msSpace.availablePhysicalPages()/MarkSweepSpace.WORST_CASE_FRAGMENTATION);
   }
@@ -134,22 +125,14 @@ public class GenMS extends Gen {
    */
 
   /**
-   * Accessor method to allow the generic generational code in Gen.java
-   * to access the mature space.
-   *
-   * @return The active mature space
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   protected final Space activeMatureSpace() {
     return msSpace;
   }
 
-  /**
-   * @see org.mmtk.plan.Plan#willNeverMove
-   *
-   * @param object Object in question
-   * @return True if the object will never move
-   */
   @Override
   public boolean willNeverMove(ObjectReference object) {
     if (Space.isInSpace(MS, object))
@@ -157,9 +140,7 @@ public class GenMS extends Gen {
     return super.willNeverMove(object);
   }
 
-  /**
-   * Register specialized methods.
-   */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_MATURE, GenMSMatureTraceLocal.class);

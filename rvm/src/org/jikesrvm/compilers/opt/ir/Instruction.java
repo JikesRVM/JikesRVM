@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
@@ -149,18 +151,18 @@ public final class Instruction implements Constants, Operators, OptConstants {
   /**
    * The index of the bytecode that this instruction came from.
    * In combination with the {@link #position}, the bcIndex field
-   * uniquely identifies the source postion of the bytecode that
+   * uniquely identifies the source position of the bytecode that
    * this instruction came from.
    */
   public int bcIndex = UNKNOWN_BCI;
 
   /**
    * A description of the tree of inlined methods that contains the bytecode
-   * that this instruction came from.
+   * that this instruction came from.<p>
    * In combination with the {@link #bcIndex}, the position field
-   * uniquely identifies the source postion of the bytecode that
-   * this instruction came from.
-   * A single postion operator can be shared by many instruction objects.
+   * uniquely identifies the source position of the bytecode that
+   * this instruction came from.<p>
+   * A single position operator can be shared by many instruction objects.
    *
    * @see InlineSequence
    * @see org.jikesrvm.compilers.opt.runtimesupport.OptEncodedCallSiteTree
@@ -169,48 +171,51 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * A scratch word to be used as needed by analyses/optimizations to store
-   * information during an optimization.
-   * Cannot be used to comunicate information between compiler phases since
-   * any phase is allowed to mutate it.
+   * information during an optimization.<p>
+   * Cannot be used to communicate information between compiler phases since
+   * any phase is allowed to mutate it.<p>
    * Cannot safely be assumed to have a particular value at the start of
-   * a phase.
-   * Typical uses:  scratch bits to encode true/false or numbering
-   *                store an index into a lookaside array of other information.
+   * a phase.<p>
+   * Typical uses:
+   * <ul>
+   *   <li>scratch bits to encode true/false or numbering
+   *   <li>store an index into a lookaside array of other information.
+   * </ul>
    */
   public int scratch;
 
   /**
    * A scratch object to be used as needed by analyses/optimizations to store
-   * information during an optimization.
-   * Cannot be used to comunicate information between compiler phases since
-   * any phase is allowed to mutate it.
+   * information during an optimization.<p>
+   * Cannot be used to communicate information between compiler phases since
+   * any phase is allowed to mutate it.<p>
    * Cannot safely be assumed to have a particular value at the start of
-   * a phase.
+   * a phase.<p>
    * To be used when more than one word of information is needed and
-   * lookaside arrays are not desirable.
+   * lookaside arrays are not desirable.<p>
    * Typical uses:  attribute objects or links to shared data
    */
   public Object scratchObject;
 
   /**
-   * The operator for this instruction.
-   * The prefered idiom is to use the {@link #operator()} accessor method
+   * The operator for this instruction.<p>
+   * The preferred idiom is to use the {@link #operator()} accessor method
    * instead of accessing this field directly, but we are still in the process
-   * of updating old code.
-   * The same operator object can be shared by many instruction objects.
+   * of updating old code.<p>
+   * The same operator object can be shared by many instruction objects.<p>
    * TODO: finish conversion and make this field private.
    */
   public Operator operator;
 
   /**
    * The next instruction in the intra-basic-block list of instructions,
-   * will be null if no such instruction exists.
+   * will be {@code null} if no such instruction exists.
    */
   private Instruction next;
 
   /**
    * The previous instruction in the intra-basic-block list of instructions,
-   * will be null if no such instruction exists.
+   * will be {@code null} if no such instruction exists.
    */
   private Instruction prev;
 
@@ -228,7 +233,8 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * INTERNAL IR USE ONLY: create a new instruction with the specified number
-   * of operands.
+   * of operands.<p>
+   *
    * For internal use only -- general clients must use the appropriate
    * InstructionFormat class's create and mutate methods to create
    * instruction objects!!!
@@ -269,6 +275,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return string representation of this instruction.
    */
+  @Override
   public String toString() {
     StringBuilder result = new StringBuilder("    ");
     if (isPEI()) {
@@ -340,7 +347,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * Return the next instruction with respect to the current
    * code linearization order.
    *
-   * @return the next insturction in the code order or
+   * @return the next instruction in the code order or
    *         <code>null</code> if no such instruction exists
    */
   public Instruction nextInstructionInCodeOrder() {
@@ -361,7 +368,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * Return the previous instruction with respect to the current
    * code linearization order.
    *
-   * @return the previous insturction in the code order or
+   * @return the previous instruction in the code order or
    *         <code>null</code> if no such instruction exists
    */
   public Instruction prevInstructionInCodeOrder() {
@@ -438,9 +445,9 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * Get the offset into the machine code array (in bytes) that
-   * corresponds to the first byte after this instruction.
+   * corresponds to the first byte after this instruction.<p>
    * This method only returns a valid value after it has been set as a
-   * side-effect of {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode final assembly}.
+   * side-effect of {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode final assembly}.<p>
    * To get the offset in INSTRUCTIONs you must shift by LG_INSTURUCTION_SIZE.
    *
    * @return the offset (in bytes) of the machinecode instruction
@@ -488,10 +495,10 @@ public final class Instruction implements Constants, Operators, OptConstants {
   * This may change in the future, so please try not to depend on it unless
   * absolutely necessary.
   *
-  * Clients are NOT allowed to assume that specific operands appear in
+  * Clients must NOT assume that specific operands appear in
   * a particular order or at a particular index in the operand array.
   * Doing so results in fragile code and is generally evil.
-  * Virtually all access to operands should be through the OperandEnumerations
+  * Virtually all access to operands should be through the operand enumerations
   * or through accessor functions of the InstructionFormat classes.
   */
 
@@ -523,10 +530,12 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * Returns the number of operands that are defs
-   * (either pure defs or combined def/uses).
+   * (either pure defs or combined def/uses).<p>
+   *
    * By convention, operands are ordered in instructions
    * such that all defs are first, followed by all
    * combined defs/uses, followed by all pure uses.
+   * Note that this may change in the future.
    *
    * @return number of operands that are defs
    */
@@ -543,10 +552,12 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Returns the number of operands that are pure defs.
+   * Returns the number of operands that are pure defs.<p>
+   *
    * By convention, operands are ordered in instructions
    * such that all defs are first, followed by all
    * combined defs/uses, followed by all pure uses.
+   * Note that this may change in the future.
    *
    * @return number of operands that are defs
    */
@@ -566,10 +577,12 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Returns the number of operands that are pure uses.
+   * Returns the number of operands that are pure uses.<p>
+   *
    * By convention, operands are ordered in instructions
    * such that all defs are first, followed by all
    * combined defs/uses, followed by all pure uses.
+   * Note that this may change in the future.
    *
    * @return number of operands that are defs
    */
@@ -596,10 +609,12 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * Returns the number of operands that are uses
-   * (either combined def/uses or pure uses).
+   * (either combined def/uses or pure uses).<p>
+   *
    * By convention, operands are ordered in instructions
    * such that all defs are first, followed by all
    * combined defs/uses, followed by all pure uses.
+   * Note that this may change in the future.
    *
    * @return how many operands are uses
    */
@@ -647,7 +662,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * @param n the new register
    */
   public void replaceRegister(Register r, Register n) {
-    for (OperandEnumeration u = getUses(); u.hasMoreElements();) {
+    for (Enumeration<Operand> u = getUses(); u.hasMoreElements();) {
       Operand use = u.nextElement();
       if (use.isRegister()) {
         if (use.asRegister().getRegister() == r) {
@@ -655,7 +670,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
         }
       }
     }
-    for (OperandEnumeration d = getDefs(); d.hasMoreElements();) {
+    for (Enumeration<Operand> d = getDefs(); d.hasMoreElements();) {
       Operand def = d.nextElement();
       if (def.isRegister()) {
         if (def.asRegister().getRegister() == r) {
@@ -680,12 +695,13 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * Enumerate all "leaf" operands of an instruction.
+   * <p>
    * NOTE: DOES NOT RETURN MEMORY OPERANDS, ONLY
    *       THEIR CONTAINED OPERANDS!!!!!
    *
    * @return an enumeration of the instruction's operands.
    */
-  public OperandEnumeration getOperands() {
+  public Enumeration<Operand> getOperands() {
     // By passing -1 as the last parameter we pretending
     // that treating all operands are uses. Somewhat ugly,
     // but avoids a third OE class.
@@ -697,17 +713,17 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's operands.
    */
-  public OperandEnumeration getMemoryOperands() {
+  public Enumeration<Operand> getMemoryOperands() {
     return new MOE(this, 0, getNumberOfOperands() - 1);
   }
 
   /**
    * Enumerate all the root operands of an instruction
-   * (DOES NOT ENUMERATE CONTAINED OPERANDS OF MEMORY OPERANDS)
+   * (DOES NOT ENUMERATE CONTAINED OPERANDS OF MEMORY OPERANDS).
    *
    * @return an enumeration of the instruction's operands.
    */
-  public OperandEnumeration getRootOperands() {
+  public Enumeration<Operand> getRootOperands() {
     return new ROE(this, 0, getNumberOfOperands() - 1);
   }
 
@@ -716,7 +732,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's defs.
    */
-  public OperandEnumeration getDefs() {
+  public Enumeration<Operand> getDefs() {
     return new OEDefsOnly(this, 0, getNumberOfDefs() - 1);
   }
 
@@ -725,7 +741,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's pure defs.
    */
-  public OperandEnumeration getPureDefs() {
+  public Enumeration<Operand> getPureDefs() {
     return new OEDefsOnly(this, 0, getNumberOfPureDefs() - 1);
   }
 
@@ -734,7 +750,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's pure defs.
    */
-  public OperandEnumeration getPureUses() {
+  public Enumeration<Operand> getPureUses() {
     return new OEDefsOnly(this, getNumberOfDefs(), getNumberOfOperands() - 1);
   }
 
@@ -743,7 +759,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's def/uses.
    */
-  public OperandEnumeration getDefUses() {
+  public Enumeration<Operand> getDefUses() {
     return new OEDefsOnly(this, getNumberOfPureDefs(), getNumberOfDefs() - 1);
   }
 
@@ -753,7 +769,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * @return an enumeration of the instruction's uses.
    */
   @Inline
-  public OperandEnumeration getUses() {
+  public Enumeration<Operand> getUses() {
     int numOps = getNumberOfOperands() - 1;
     int defsEnd = operator.hasVarDefs() ? numOps : operator.getNumberOfPureDefs() - 1;
     return new OE(this, 0, numOps, defsEnd);
@@ -764,7 +780,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return an enumeration of the instruction's uses.
    */
-  public OperandEnumeration getRootUses() {
+  public Enumeration<Operand> getRootUses() {
     return new ROE(this, getNumberOfPureDefs(), getNumberOfOperands() - 1);
   }
 
@@ -1307,7 +1323,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *
    * @return the targets of this branch instruction
    */
-  public BasicBlockEnumeration getBranchTargets() {
+  public Enumeration<BasicBlock> getBranchTargets() {
     int n = getNumberOfOperands();
     BasicBlock.ComputedBBEnum e = new BasicBlock.ComputedBBEnum(n);
 
@@ -1385,7 +1401,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Return true if this instruction is the first instruction in a
+   * Return {@code true} if this instruction is the first instruction in a
    * basic block.  By convention (construction) every basic block starts
    * with a label instruction and a label instruction only appears at
    * the start of a basic block
@@ -1398,7 +1414,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Return true if this instruction is the last instruction in a
+   * Return {@code true} if this instruction is the last instruction in a
    * basic block.  By convention (construction) every basic block ends
    * with a BBEND instruction and a BBEND instruction only appears at the
    * end of a basic block
@@ -1584,7 +1600,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   * Implementation: Operand enumeration classes
   */
   /** Shared functionality for operand enumerations */
-  private abstract static class BASE_OE implements OperandEnumeration {
+  private abstract static class BASE_OE implements Enumeration<Operand> {
     protected final Instruction instr;
     protected int i;
     protected final int end;
@@ -1598,11 +1614,11 @@ public final class Instruction implements Constants, Operators, OptConstants {
       this.nextElem = null;
     }
 
+    @Override
     public final boolean hasMoreElements() { return nextElem != null; }
 
-    public final Operand nextElement() { return next(); }
-
-    public final Operand next() {
+    @Override
+    public final Operand nextElement() {
       Operand temp = nextElem;
       if (temp == null) fail();
       advance();
@@ -1639,6 +1655,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
       advance();
     }
 
+    @Override
     protected void advance() {
       if (deferredMOReg != null) {
         nextElem = deferredMOReg;
@@ -1686,6 +1703,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
       advance();
     }
 
+    @Override
     protected void advance() {
       Operand temp;
       do {
@@ -1711,6 +1729,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
       advance();
     }
 
+    @Override
     protected void advance() {
       Operand temp;
       do {
@@ -1736,6 +1755,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
       advance();
     }
 
+    @Override
     protected void advance() {
       Operand temp;
       do {

@@ -31,6 +31,10 @@ import org.vmmagic.unboxed.*;
    *
    * Class based constants
    */
+
+  /**
+   *
+   */
   private static final Word TRACE_NEW_RECORD = Word.fromIntSignExtend(3);
   private static final Word TRACE_ALLOC_SIZE = Word.fromIntSignExtend(5);
 //  private static final Word TRACE_ALLOC_NAME = Word.fromIntSignExtend(6);

@@ -43,6 +43,7 @@ import org.vmmagic.unboxed.WordArray;
 public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     implements Constants, ArchConstants, OSRConstants, PhysicalRegisterConstants {
 
+  @Override
   public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {
 
     /* perform machine and compiler dependent operations here
@@ -96,7 +97,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     // get the next machine code offset of the real method
     VM.disableGC();
     Address osrFP = Magic.objectAsAddress(stack).plus(osrFPoff);
-    Address nextIP = Magic.getReturnAddress(osrFP);
+    Address nextIP = Magic.getReturnAddressUnchecked(osrFP);
     Offset ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 
@@ -399,7 +400,7 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
     // for LCONST type, the value is the value
     if (vtypeLow == LCONST || vtypeLow == ACONST) {
       if (VM.VerifyAssertions) VM._assert(vtypeHigh == vtypeLow);
-      return ((((long) valueHigh) << 32) | (((long) valueLow) & 0x0FFFFFFFFL));
+      return ((((long) valueHigh) << 32) | ((valueLow) & 0x0FFFFFFFFL));
 
     } else if (VM.BuildFor32Addr) {
       if (VM.VerifyAssertions) VM._assert(vtypeHigh == PHYREG || vtypeHigh == SPILL);
@@ -409,15 +410,15 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
       long lowPart, highPart;
 
       if (vtypeLow == PHYREG) {
-        lowPart = ((long)registers.gprs.get(valueLow).toInt()) & 0x0FFFFFFFFL;
+        lowPart = (registers.gprs.get(valueLow).toInt()) & 0x0FFFFFFFFL;
       } else {
-        lowPart = ((long)Magic.getIntAtOffset(stack, fpOffset.minus(valueLow))) & 0x0FFFFFFFFL;
+        lowPart = (Magic.getIntAtOffset(stack, fpOffset.minus(valueLow))) & 0x0FFFFFFFFL;
       }
 
       if (vtypeHigh == PHYREG) {
-        highPart = ((long)registers.gprs.get(valueHigh).toInt());
+        highPart = (registers.gprs.get(valueHigh).toInt());
       } else {
-        highPart = ((long)Magic.getIntAtOffset(stack, fpOffset.minus(valueHigh)));
+        highPart = (Magic.getIntAtOffset(stack, fpOffset.minus(valueHigh)));
       }
 
       return (highPart << 32) | lowPart;

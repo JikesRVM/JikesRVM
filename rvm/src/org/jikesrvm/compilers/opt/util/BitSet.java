@@ -16,8 +16,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.util.BitVector;
 
 /**
- * BitSet.java
- *
  * A bit set is a set of elements, each of which corresponds to a unique
  * integer from [0,MAX].
  */
@@ -71,6 +69,7 @@ public final class BitSet {
   /**
    * @return a String representation
    */
+  @Override
   public String toString() {
     return vector.toString();
   }

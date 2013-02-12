@@ -17,7 +17,7 @@ import org.jikesrvm.compilers.opt.util.Tree;
 /**
  *  This class represents the set of inlined method calls that are
  * contained within a single method code body.  The tree is consists
- * of nodes each of whioch contains an InlineSequence object
+ * of nodes each of which contains an InlineSequence object
  * representing an inlined method call.  The tree is rooted at the
  * inline sequence object representing the top level method, and the
  * inlined calls appear as children of that root, and so on

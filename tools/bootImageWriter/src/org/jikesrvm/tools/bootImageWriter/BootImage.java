@@ -118,7 +118,7 @@ public class BootImage extends BootImageWriterMessages
 
   /**
    * Use mapped byte buffers? We need to truncate the byte buffer
-   * before writing it to disk. This operation is support on UNIX but
+   * before writing it to disk. This operation is supported on UNIX but
    * not Windows.
    */
   private static final boolean mapByteBuffers = false;
@@ -282,14 +282,7 @@ public class BootImage extends BootImageWriterMessages
     return ObjectModel.allocateCode(this, array, numElements);
   }
 
-  /**
-   * Allocate space in bootimage. Moral equivalent of
-   * memory managers allocating raw storage at runtime.
-   *
-   * @param size the number of bytes to allocate
-   * @param align the alignment requested; must be a power of 2.
-   * @param offset the offset at which the alignment is desired.
-   */
+  @Override
   public Address allocateDataStorage(int size, int align, int offset) {
     size = roundAllocationSize(size);
     Offset unalignedOffset = freeDataOffset;
@@ -315,14 +308,7 @@ public class BootImage extends BootImageWriterMessages
     return size + ((-size) & ((1 << JavaHeader.LOG_MIN_ALIGNMENT) - 1));
   }
 
-  /**
-   * Allocate space in bootimage. Moral equivalent of
-   * memory managers allocating raw storage at runtime.
-   *
-   * @param size the number of bytes to allocate
-   * @param align the alignment requested; must be a power of 2.
-   * @param offset the offset at which the alignment is desired.
-   */
+  @Override
   public Address allocateCodeStorage(int size, int align, int offset) {
     size = roundAllocationSize(size);
     Offset unalignedOffset = freeCodeOffset;
@@ -353,12 +339,7 @@ public class BootImage extends BootImageWriterMessages
     freeCodeOffset = Offset.zero();
   }
 
-  /**
-   * Fill in 1 byte of bootimage.
-   *
-   * @param address address of target
-   * @param value value to write
-   */
+  @Override
   public void setByte(Address address, int value) {
     int idx;
     ByteBuffer data;
@@ -390,23 +371,13 @@ public class BootImage extends BootImageWriterMessages
     }
   }
 
-  /**
-   * Fill in 2 bytes of bootimage.
-   *
-   * @param address address of target
-   * @param value value to write
-   */
+  @Override
   public void setHalfWord(Address address, int value) {
     int idx = address.diff(BOOT_IMAGE_DATA_START).toInt();
     bootImageData.putChar(idx, (char)value);
   }
 
-  /**
-   * Fill in 4 bytes of bootimage, as numeric.
-   *
-   * @param address address of target
-   * @param value value to write
-   */
+  @Override
   public void setFullWord(Address address, int value) {
     int idx;
     ByteBuffer data;
@@ -420,15 +391,7 @@ public class BootImage extends BootImageWriterMessages
     data.putInt(idx, value);
   }
 
-  /**
-   * Fill in 4/8 bytes of bootimage, as object reference.
-   * @param address address of target
-   * @param value value to write
-   * @param objField true if this word is an object field (as opposed
-   * to a static, or tib, or some other metadata)
-   * @param root Does this slot contain a possible reference into the heap?
-   * (objField must also be true)
-   */
+  @Override
   public void setAddressWord(Address address, Word value, boolean objField, boolean root) {
     if (VM.VerifyAssertions) VM._assert(!root || objField);
     if (objField) value = MemoryManager.bootTimeWriteBarrier(value);
@@ -445,7 +408,7 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param address address of target
    * @param objField true if this word is an object field (as opposed
-   * to a static, or tib, or some other metadata)
+   * to a static, or TIB, or some other metadata)
    * @param root Does this slot contain a possible reference into the heap? (objField must also be true)
    * @param genuineNull true if the value is a genuine null and
    * shouldn't be counted as a blanked field
@@ -456,23 +419,12 @@ public class BootImage extends BootImageWriterMessages
       numNulledReferences += 1;
   }
 
-  /**
-   * Fill in 4/8 bytes of bootimage, as null object reference.
-   * @param address address of target
-   * @param objField true if this word is an object field (as opposed
-   * to a static, or tib, or some other metadata)
-   * @param root Does this slot contain a possible reference into the heap? (objField must also be true)
-   */
+  @Override
   public void setNullAddressWord(Address address, boolean objField, boolean root) {
     setNullAddressWord(address, objField, root, true);
   }
 
-  /**
-   * Fill in 8 bytes of bootimage.
-   *
-   * @param address address of target
-   * @param value value to write
-   */
+  @Override
   public void setDoubleWord(Address address, long value) {
     int idx;
     ByteBuffer data;

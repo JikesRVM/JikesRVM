@@ -26,12 +26,11 @@ import org.jikesrvm.runtime.Magic;
  * System Class Loader are officially the same thing.  (What Jikes RVM used to
  * call the "System Class Loader" is officially the "Bootstrap Class
  * Loader".)
- *
+ * <p>
  * We use a two-link chain.  An ordinary user's class is loaded by this class
  * loader.  This class loader first delegates to its parent (the Bootstrap
  * Class Loader) before trying the class itself.
- *
- *
+ * <p>
  *  Renamed the former "system class loader" to the "bootstrap class loader".
  */
 public class ApplicationClassLoader extends URLClassLoader {
@@ -97,6 +96,7 @@ public class ApplicationClassLoader extends URLClassLoader {
    */
   public static final String myName = "SystemAppCL";
 
+  @Override
   public String toString() {
     return myName +
            (createdAtBootImageWritingTime ? "-createdAtBootImageWritingTime" : "") +
@@ -104,6 +104,7 @@ public class ApplicationClassLoader extends URLClassLoader {
            (DBG ? "@" + VM.addressAsHexString(Magic.objectAsAddress(this)) : "");
   }
 
+  @Override
   protected String findLibrary(String libName) {
     return null;
   }

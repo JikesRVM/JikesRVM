@@ -26,10 +26,10 @@ import org.mmtk.harness.lang.type.Type;
 
 /**
  * Parser symbol table.
- *
+ * <p>
  * Implements java-style scoping rules.  Allocates variables to slots in a
  * stack frame linearly and never re-uses slots.
- *
+ * <p>
  * TODO - implement stack maps so that out-of-scope variables don't hold on
  * to unreachable objects.
  */

@@ -18,9 +18,9 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
- * An element in the opt compiler's optimzation plan
+ * An element in the opt compiler's optimization plan
  * that aggregates together other OptimizationPlan elements.
- *
+ * <p>
  * NOTE: Instances of subclasses of this class are
  *       held in OptimizationPlanner.masterPlan
  *       and thus represent global state.
@@ -71,10 +71,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
     }
   }
 
-  /**
-   * This method is called to initialize the optimization plan support
-   *  measuring compilation.
-   */
+  @Override
   public void initializeForMeasureCompilation() {
     // initialize each composite object
     for (OptimizationPlanElement myElement : myElements) {
@@ -96,13 +93,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
     return new OptimizationPlanCompositeElement(name, elems);
   }
 
-  /**
-   * Determine, possibly by consulting the passed options object,
-   * if this optimization plan element should be performed.
-   *
-   * @param options The Options object for the current compilation.
-   * @return true if the plan element should be performed.
-   */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     for (OptimizationPlanElement myElement : myElements) {
       if (myElement.shouldPerform(options)) {
@@ -119,18 +110,13 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
    *
    * @param options the compiler options for the compilation
    * @param before true when invoked before perform, false otherwise.
-   * @return true if the IR should be printed, false otherwise.
+   * @return {@code true} if the IR should be printed, {@code false} otherwise.
    */
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
-  /**
-   * Do the work represented by this element in the optimization plan.
-   * The assumption is that the work will modify the IR in some way.
-   *
-   * @param ir The IR object to work with.
-   */
+  @Override
   public final void perform(IR ir) {
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() || ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
@@ -151,21 +137,12 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
     }
   }
 
-  /**
-   * @return a String which is the name of the phase.
-   */
+  @Override
   public String getName() {
     return myName;
   }
 
-  /**
-   * Generate (to the sysWrite stream) a report of the
-   * time spent performing this element of the optimization plan.
-   *
-   * @param indent Number of spaces to indent report.
-   * @param timeCol Column number of time portion of report.
-   * @param totalTime Total opt compilation time in seconds.
-   */
+  @Override
   public final void reportStats(int indent, int timeCol, double totalTime) {
     double myTime = elapsedTime();
     if (myTime < 0.000001) {
@@ -202,10 +179,7 @@ public class OptimizationPlanCompositeElement extends OptimizationPlanElement {
     VM.sysWriteln();
   }
 
-  /**
-   * Report the elapsed time spent in the PlanElement
-   * @return time spend in the plan (in seconds)
-   */
+  @Override
   public double elapsedTime() {
     double total = 0.0;
     for (OptimizationPlanElement myElement : myElements) {

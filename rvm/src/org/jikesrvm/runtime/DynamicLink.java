@@ -18,8 +18,10 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Place for CompiledMethod.getDynamicLink() to deposit return
- * information.  NB this method is called from within GCMapIterator
- * and has to be uninterruptible (ie contain no new bytecodes),
+ * information.
+ * <p>
+ * NB this method is called from within GCMapIterator
+ * and has to be uninterruptible (i.e. contain no new bytecodes),
  * therefore the fields of this class are non-final).
  */
 @Uninterruptible

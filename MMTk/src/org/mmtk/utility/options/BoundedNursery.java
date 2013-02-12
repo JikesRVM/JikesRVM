@@ -31,6 +31,7 @@ public final class BoundedNursery extends org.vmutil.options.PagesOption {
   /**
    * Nursery can not be empty.
    */
+  @Override
   protected void validate() {
     failIf(value <= 0, "Can not have an empty nursery");
   }

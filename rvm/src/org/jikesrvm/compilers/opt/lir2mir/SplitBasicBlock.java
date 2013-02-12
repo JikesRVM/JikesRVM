@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 
@@ -24,12 +25,15 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
  */
 public final class SplitBasicBlock extends CompilerPhase {
 
+  @Override
   public String getName() { return "SplitBasicBlock"; }
 
+  @Override
   public CompilerPhase newExecution(IR ir) { return this; }
 
+  @Override
   public void perform(IR ir) {
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock bb = e.nextElement();
 
       if (!bb.isEmpty()) {
@@ -43,7 +47,7 @@ public final class SplitBasicBlock extends CompilerPhase {
   /**
    * Splits basic block
    *
-   * @return null if no splitting is done, returns the second block if splitting is done.
+   * @return {@code null} if no splitting is done, returns the second block if splitting is done.
    */
   BasicBlock splitEachBlock(BasicBlock bb, IR ir) {
 

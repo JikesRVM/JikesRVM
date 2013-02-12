@@ -28,9 +28,9 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Returns if the VM is ready for a garbage collection.
+   * Returns {@code true} if the VM is ready for a garbage collection.
    *
-   * @return True if the VM is ready for GC, false otherwise.
+   * @return {@code true} if the VM is ready for GC, {@code false} otherwise.
    */
   public abstract boolean gcEnabled();
 
@@ -62,8 +62,13 @@ import org.vmmagic.pragma.*;
   public abstract Address skipOwnFramesAndDump(ObjectReference typeRef);
 
   /***********************************************************************
-   *
-   * Wrapper methods
+  *
+  * Wrapper methods
+  */
+
+  /**
+   * Update an object's death time.
+   * @param obj the object
    */
   public abstract void updateDeathTime(ObjectReference obj);
   public abstract void setDeathTime(ObjectReference ref, Word time_);

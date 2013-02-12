@@ -41,6 +41,10 @@ public class StickyMSCollector extends MSCollector {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   private StickyMSNurseryTraceLocal nurseryTrace;
 
   /****************************************************************************
@@ -62,11 +66,9 @@ public class StickyMSCollector extends MSCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     boolean collectWholeHeap = global().collectWholeHeap;

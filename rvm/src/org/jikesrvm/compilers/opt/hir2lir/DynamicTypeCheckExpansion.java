@@ -813,7 +813,7 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    * Generate a branching dynamic type check.
    * This routine assumes that the CFG and code order are already
    * correctly established.
-   * This routine must either remove s or mutuate it.
+   * This routine must either remove s or mutate it.
    *
    * @param s          The Instruction that is to be replaced by a
    *                   branching type check

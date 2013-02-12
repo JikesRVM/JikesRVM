@@ -238,6 +238,7 @@ public final class Register {
   /**
    * Returns the string representation of this register.
    */
+  @Override
   public String toString() {
     if (isPhysical()) {
       return PhysicalRegisterSet.getName(number);
@@ -348,6 +349,7 @@ public final class Register {
     return scratch;
   }
 
+  @Override
   public int hashCode() {
     return number;
   }

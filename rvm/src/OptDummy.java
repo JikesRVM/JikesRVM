@@ -11,12 +11,12 @@
  *  regarding copyright ownership.
  */
 
-/*
+/**
  * Dummy class containing enough references to force java compiler
  * to find every class comprising the opt compiler, so everything gets
  * recompiled by just compiling "OptDummy.java".
- * <p/>
- * The minimal set has to be discovered by trial and error. Sorry. --Derek
+ * <p>
+ * The minimal set has to be discovered by trial and error. Sorry.
  */
 class OptDummy {
   static org.jikesrvm.compilers.opt.driver.OptimizingCompiler a;

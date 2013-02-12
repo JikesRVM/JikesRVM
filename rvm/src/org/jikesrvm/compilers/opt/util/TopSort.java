@@ -16,9 +16,7 @@ import java.util.Enumeration;
 
 
 /**
- * Depth First Spanning Tree
- * March 14, 1998
- * Builds topological sort of a graph consisting of SortedGraphNode.
+ * Depth First Spanning Tree, builds topological sort of a graph consisting of SortedGraphNode.
  */
 public final class TopSort extends Stack<SortedGraphNode> {
 

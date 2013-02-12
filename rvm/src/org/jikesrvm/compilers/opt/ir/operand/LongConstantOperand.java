@@ -38,7 +38,7 @@ public final class LongConstantOperand extends ConstantOperand {
   /**
    * Offset in JTOC where this long constant lives. (0 for constants
    * obtained from constant folding)
-   * //KV: is this field still necessary
+   * TODO is this field still necessary?
    */
   public Offset offset;
 
@@ -54,9 +54,9 @@ public final class LongConstantOperand extends ConstantOperand {
 
   /**
    * Constructs a new long constant operand with the specified value and JTOC offset.
-   * //KV: is this method still necessary
+   * TODO is this constructor still necessary?
    * @param v value
-   * @param i offset in the jtoc
+   * @param i offset in the JTOC
    */
   public LongConstantOperand(long v, Offset i) {
     value = v;
@@ -64,19 +64,17 @@ public final class LongConstantOperand extends ConstantOperand {
   }
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
-   * @return TypeReference.Long
+   * @return {@link TypeReference#Long}
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.Long;
   }
 
   /**
-   * Does the operand represent a value of the long data type?
-   *
    * @return <code>true</code>
    */
+  @Override
   public boolean isLong() {
     return true;
   }
@@ -95,23 +93,12 @@ public final class LongConstantOperand extends ConstantOperand {
     return Bits.upper32(value);
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     return new LongConstantOperand(value, offset);
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof LongConstantOperand) && (value == ((LongConstantOperand) op).value);
   }
@@ -121,6 +108,7 @@ public final class LongConstantOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return Long.toString(value) + "L";
   }

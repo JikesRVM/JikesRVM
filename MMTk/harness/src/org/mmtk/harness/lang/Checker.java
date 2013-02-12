@@ -52,7 +52,7 @@ public class Checker extends Visitor {
   /**
    * Visit an expression and return its type.
    * @param expr
-   * @return
+   * @return the expression's type
    */
   private Type getTypeOf(Expression expr) {
     Type type = (Type)expr.accept(this);
@@ -61,11 +61,13 @@ public class Checker extends Visitor {
   }
 
   /**
-   * Visit an expression, and return true if the result type is in the given
-   * list of types.
+   * Visits an expression and checks if the result type of the expression
+   * is in the given list of types.
+   *
    * @param expr
    * @param types
-   * @return
+   * @return {@code true} if the result type is in the given
+   * list of types.
    */
   private boolean checkType(Expression expr, Type...types) {
     Type type = getTypeOf(expr);
@@ -107,6 +109,9 @@ public class Checker extends Visitor {
    */
 
 
+  /**
+   *
+   */
   @Override
   public Object visit(Alloc alloc) {
     Type p1Type = getTypeOf(alloc.getArg(0));
@@ -276,9 +281,11 @@ public class Checker extends Visitor {
 
   /**
    * Checks that
-   * - The expression returned is internally consistent
-   * - The type of the return value is compatible with the
+   * <ul>
+   *   <li>The expression returned is internally consistent
+   *   <li>The type of the return value is compatible with the
    *   declared type of the method
+   * </ul>
    */
   @Override
   public Object visit(Return ret) {
@@ -301,8 +308,10 @@ public class Checker extends Visitor {
 
   /**
    * Check
-   * - Actual parameter expressions
-   * - Actual parameters against method formal parameters
+   * <ul>
+   *   <li>Actual parameter expressions
+   *   <li>Actual parameters against method formal parameters
+   * </ul>
    */
   @Override
   public Object visit(Spawn sp) {

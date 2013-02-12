@@ -16,13 +16,13 @@ package org.vmutil.options;
  * The abstract base class for all options. This class also has
  * the static interfaces to access the options system to set
  * option values.
- *
+ * <p>
  * All options within the system should have a unique name. No
  * two options shall have a name that is the same when a case
  * insensitive comparison between the names with spaces removed
  * is performed. Only basic alphanumeric characters and spaces
  * are allowed.
- *
+ * <p>
  * The VM is required to provide a one way mapping function that
  * takes the name and creates a VM style name, such as mapping
  * "No Finalizer" to noFinalizer. The VM may not remove any letters
@@ -40,7 +40,7 @@ public abstract class Option {
   public static final int FLOAT_OPTION = 8;
   public static final int ADDRESS_OPTION = 9;
 
-  /**
+  /*
    * The possible output formats
    */
   public static final int READABLE = 0;
@@ -128,7 +128,7 @@ public abstract class Option {
   /**
    * This is a validation method that can be implemented by leaf option
    * classes to provide additional validation. This should not be implemented
-   * at other levels within the heirarchy to avoid confusion. The validate
+   * at other levels within the hierarchy to avoid confusion. The validate
    * method works against the current value of the option (post-set).
    */
   protected void validate() {}

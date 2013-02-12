@@ -209,6 +209,7 @@ public class FileSystem {
     System.setOut(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
     System.setErr(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
+      @Override
       public void notifyExit(int value) {
         try {
           System.err.flush();

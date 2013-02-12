@@ -50,6 +50,7 @@ public class UserTypeImpl extends AbstractType implements UserType {
    * @param fieldName Name of the field
    * @param fieldType Type of the field
    */
+  @Override
   public void defineField(String fieldName, Type fieldType) {
     if (fields.containsKey(fieldName)) {
       throw new RuntimeException("Type "+getName()+" already contains a field called "+fieldName);
@@ -72,6 +73,7 @@ public class UserTypeImpl extends AbstractType implements UserType {
   /**
    * @return number of reference fields
    */
+  @Override
   public int referenceFieldCount() {
     return referenceFields;
   }
@@ -79,6 +81,7 @@ public class UserTypeImpl extends AbstractType implements UserType {
   /**
    * @return number of data fields
    */
+  @Override
   public int dataFieldCount() {
     return dataFields;
   }

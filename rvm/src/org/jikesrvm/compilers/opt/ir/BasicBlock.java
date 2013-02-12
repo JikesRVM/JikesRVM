@@ -27,6 +27,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ZERO_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.NULL_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcode;
 
+import java.util.Enumeration;
 import java.util.HashSet;
 
 import org.jikesrvm.VM;
@@ -42,6 +43,7 @@ import org.jikesrvm.compilers.opt.util.SortedGraphNode;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.util.EmptyEnumeration;
 import org.vmmagic.pragma.NoInline;
 
 /**
@@ -202,6 +204,7 @@ public class BasicBlock extends SortedGraphNode {
    * Returns the string representation of this basic block.
    * @return a String that is the name of the block.
    */
+  @Override
   public String toString() {
     int number = getNumber();
     if (isExit()) return "EXIT" + number;
@@ -212,20 +215,21 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * Print a detailed dump of the block to the sysWrite stream
    */
+  @Override
   public final void printExtended() {
     VM.sysWrite("Basic block " + toString() + "\n");
 
     // print in set.
     BasicBlock bb2;
-    BasicBlockEnumeration e2 = getIn();
+    Enumeration<BasicBlock> e2 = getIn();
     VM.sysWrite("\tin: ");
     if (!e2.hasMoreElements()) {
       VM.sysWrite("<none>\n");
     } else {
-      bb2 = e2.next();
+      bb2 = e2.nextElement();
       VM.sysWrite(bb2.toString());
       while (e2.hasMoreElements()) {
-        bb2 = e2.next();
+        bb2 = e2.nextElement();
         VM.sysWrite(", " + bb2.toString());
       }
       VM.sysWrite("\n");
@@ -237,10 +241,10 @@ public class BasicBlock extends SortedGraphNode {
     if (!e2.hasMoreElements()) {
       VM.sysWrite("<none>\n");
     } else {
-      bb2 = e2.next();
+      bb2 = e2.nextElement();
       VM.sysWrite(bb2.toString());
       while (e2.hasMoreElements()) {
-        bb2 = e2.next();
+        bb2 = e2.nextElement();
         VM.sysWrite(", " + bb2.toString());
       }
       VM.sysWrite("\n");
@@ -251,10 +255,10 @@ public class BasicBlock extends SortedGraphNode {
     if (!e2.hasMoreElements()) {
       VM.sysWrite("<none>\n");
     } else {
-      bb2 = e2.next();
+      bb2 = e2.nextElement();
       VM.sysWrite(bb2.toString());
       while (e2.hasMoreElements()) {
-        bb2 = e2.next();
+        bb2 = e2.nextElement();
         VM.sysWrite(", " + bb2.toString());
       }
       VM.sysWrite("\n");
@@ -268,10 +272,10 @@ public class BasicBlock extends SortedGraphNode {
       VM.sysWrite("\tIn scope exception handlers: ");
       e2 = getExceptionHandlers();
       if (e2.hasMoreElements()) {
-        bb2 = e2.next();
+        bb2 = e2.nextElement();
         VM.sysWrite(bb2.toString());
         while (e2.hasMoreElements()) {
-          bb2 = e2.next();
+          bb2 = e2.nextElement();
           VM.sysWrite(", " + bb2.toString());
         }
       } else {
@@ -404,11 +408,11 @@ public class BasicBlock extends SortedGraphNode {
     // so just give up if they aren't equivalent.
     if (exceptionHandlers != other.exceptionHandlers) {
       // Even if not pointer ==, they still may be equivalent
-      BasicBlockEnumeration e1 = getExceptionHandlers();
-      BasicBlockEnumeration e2 = other.getExceptionHandlers();
+      Enumeration<BasicBlock> e1 = getExceptionHandlers();
+      Enumeration<BasicBlock> e2 = other.getExceptionHandlers();
       while (e1.hasMoreElements()) {
         if (!e2.hasMoreElements()) return false;
-        if (e1.next() != e2.next()) return false;
+        if (e1.nextElement() != e2.nextElement()) return false;
       }
       if (e2.hasMoreElements()) return false;
     }
@@ -722,7 +726,7 @@ public class BasicBlock extends SortedGraphNode {
    * Forward enumeration of all the instruction in the block.
    * @return a forward enumeration of the block's instructons.
    */
-  public final InstructionEnumeration forwardInstrEnumerator() {
+  public final Enumeration<Instruction> forwardInstrEnumerator() {
     return IREnumeration.forwardIntraBlockIE(firstInstruction(), lastInstruction());
   }
 
@@ -730,7 +734,7 @@ public class BasicBlock extends SortedGraphNode {
    * Reverse enumeration of all the instruction in the block.
    * @return a reverse enumeration of the block's instructons.
    */
-  public final InstructionEnumeration reverseInstrEnumerator() {
+  public final Enumeration<Instruction> reverseInstrEnumerator() {
     return IREnumeration.reverseIntraBlockIE(lastInstruction(), firstInstruction());
   }
 
@@ -738,7 +742,7 @@ public class BasicBlock extends SortedGraphNode {
    * Forward enumeration of all the real instruction in the block.
    * @return a forward enumeration of the block's real instructons.
    */
-  public final InstructionEnumeration forwardRealInstrEnumerator() {
+  public final Enumeration<Instruction> forwardRealInstrEnumerator() {
     return IREnumeration.forwardIntraBlockIE(firstRealInstruction(), lastRealInstruction());
   }
 
@@ -746,7 +750,7 @@ public class BasicBlock extends SortedGraphNode {
    * Reverse enumeration of all the real instruction in the block.
    * @return a reverse enumeration of the block's real instructons.
    */
-  public final InstructionEnumeration reverseRealInstrEnumerator() {
+  public final Enumeration<Instruction> reverseRealInstrEnumerator() {
     return IREnumeration.reverseIntraBlockIE(lastRealInstruction(), firstRealInstruction());
   }
 
@@ -759,7 +763,7 @@ public class BasicBlock extends SortedGraphNode {
    */
   public int getNumberOfRealInstructions() {
     int count = 0;
-    for (InstructionEnumeration e = forwardRealInstrEnumerator(); e.hasMoreElements(); e.next()) {
+    for (Enumeration<Instruction> e = forwardRealInstrEnumerator(); e.hasMoreElements(); e.nextElement()) {
       count++;
     }
 
@@ -983,7 +987,7 @@ public class BasicBlock extends SortedGraphNode {
    * basic block.
    * @return an forward enumeration of this blocks branch instruction
    */
-  public final InstructionEnumeration enumerateBranchInstructions() {
+  public final Enumeration<Instruction> enumerateBranchInstructions() {
     Instruction start = firstBranchInstruction();
     Instruction end = (start == null) ? null : lastRealInstruction();
     return IREnumeration.forwardIntraBlockIE(start, end);
@@ -1055,10 +1059,10 @@ public class BasicBlock extends SortedGraphNode {
    * @param instr the instruction in question
    * @return an enumeration of the exceptional out edges applicable to instr
    */
-  public final BasicBlockEnumeration getApplicableExceptionalOut(Instruction instr) {
+  public final Enumeration<BasicBlock> getApplicableExceptionalOut(Instruction instr) {
     if (instr.isPEI()) {
       int numPossible = getNumberOfExceptionalOut();
-      if (numPossible == 0) return BasicBlockEnumeration.Empty;
+      if (numPossible == 0) return EmptyEnumeration.<BasicBlock>emptyEnumeration();
       ComputedBBEnum e = new ComputedBBEnum(numPossible);
       switch (instr.getOpcode()) {
         case ATHROW_opcode:
@@ -1091,7 +1095,7 @@ public class BasicBlock extends SortedGraphNode {
       }
       return e;
     } else {
-      return BasicBlockEnumeration.Empty;
+      return EmptyEnumeration.<BasicBlock>emptyEnumeration();
     }
   }
 
@@ -1117,9 +1121,9 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @return an enumeration of all inscope exception handlers
    */
-  public final BasicBlockEnumeration getExceptionHandlers() {
+  public final Enumeration<BasicBlock> getExceptionHandlers() {
     if (exceptionHandlers == null) {
-      return BasicBlockEnumeration.Empty;
+      return EmptyEnumeration.<BasicBlock>emptyEnumeration();
     } else {
       return exceptionHandlers.enumerator();
     }
@@ -1144,22 +1148,22 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @return an enumeration of the reachable exception handlers
    */
-  public final BasicBlockEnumeration getReachableExceptionHandlers() {
+  public final Enumeration<BasicBlock> getReachableExceptionHandlers() {
     if (hasExceptionHandlers()) {
       int count = 0;
-      for (BasicBlockEnumeration inScope = getExceptionHandlers(); inScope.hasMoreElements(); inScope.next()) {
+      for (Enumeration<BasicBlock> inScope = getExceptionHandlers(); inScope.hasMoreElements(); inScope.nextElement()) {
         count++;
       }
 
       ComputedBBEnum ans = new ComputedBBEnum(count);
 
-      for (BasicBlockEnumeration inScope = getExceptionHandlers(); inScope.hasMoreElements();) {
-        BasicBlock cand = inScope.next();
+      for (Enumeration<BasicBlock> inScope = getExceptionHandlers(); inScope.hasMoreElements();) {
+        BasicBlock cand = inScope.nextElement();
         if (pointsOut(cand)) ans.addPossiblyDuplicateElement(cand);
       }
       return ans;
     } else {
-      return BasicBlockEnumeration.Empty;
+      return EmptyEnumeration.<BasicBlock>emptyEnumeration();
     }
   }
 
@@ -1178,20 +1182,23 @@ public class BasicBlock extends SortedGraphNode {
 
   /**
    * Recompute the normal out edges of 'this' based on the
-   * semantics of the branch instructions in the block.
+   * semantics of the branch instructions in the block.<p>
    *
    * WARNING: Use this method with caution.  It does not update the
    * CFG edges correctly if the method contains certain instructions
    * such as throws and returns.  Incorrect liveness info and GC maps
-   * result, causing crashes during GC.  CMVC Defect 171189
+   * result, causing crashes during GC.<p>
+   *
+   * TODO check if warning is still current and if there's info on
+   *  CMVC Defect 171189 anywhere
    */
   public final void recomputeNormalOut(IR ir) {
     deleteNormalOut();
-    for (InstructionEnumeration e = enumerateBranchInstructions(); e.hasMoreElements();) {
-      Instruction branch = e.next();
-      BasicBlockEnumeration targets = branch.getBranchTargets();
+    for (Enumeration<Instruction> e = enumerateBranchInstructions(); e.hasMoreElements();) {
+      Instruction branch = e.nextElement();
+      Enumeration<BasicBlock> targets = branch.getBranchTargets();
       while (targets.hasMoreElements()) {
-        BasicBlock targetBlock = targets.next();
+        BasicBlock targetBlock = targets.nextElement();
         if (targetBlock.isExceptionHandlerBasicBlock()) {
           targetBlock.setExceptionHandlerWithNormalIn();
         }
@@ -1295,8 +1302,8 @@ public class BasicBlock extends SortedGraphNode {
     // potential exception behavior (out.isExceptionHandlerBasicBlock == true)
     // needs to be both left in BB1's out set and transfered to BB2's out set
     // Note this may be overly conservative, but will be correct.
-    for (BasicBlockEnumeration e = getOut(); e.hasMoreElements();) {
-      BasicBlock out = e.next();
+    for (Enumeration<BasicBlock> e = getOut(); e.hasMoreElements();) {
+      BasicBlock out = e.nextElement();
       BB2.insertOut(out);
     }
 
@@ -1380,7 +1387,7 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * For each basic block b which is a "normal" successor of this,
    * make a copy of b, and set up the CFG so that this block has
-   * normal out edges to the copies.
+   * normal out edges to the copies.<p>
    *
    * WARNING: Use this method with caution.  See comment on
    * BasicBlock.recomputeNormalOut()
@@ -1389,8 +1396,8 @@ public class BasicBlock extends SortedGraphNode {
    */
   public final void replicateNormalOut(IR ir) {
     // for each normal out successor (b) of 'this' ....
-    for (BasicBlockEnumeration e = getNormalOut(); e.hasMoreElements();) {
-      BasicBlock b = e.next();
+    for (Enumeration<BasicBlock> e = getNormalOut(); e.hasMoreElements();) {
+      BasicBlock b = e.nextElement();
       replicateThisOut(ir, b);
     }
   }
@@ -1398,7 +1405,7 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * For basic block b which has to be a "normal" successor of this,
    * make a copy of b, and set up the CFG so that this block has
-   * normal out edges to the copy.
+   * normal out edges to the copy.<p>
    *
    * WARNING: Use this method with caution.  See comment on
    * BasicBlock.recomputeNormalOut()
@@ -1413,7 +1420,7 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * For basic block b which has to be a "normal" successor of this,
    * make a copy of b, and set up the CFG so that this block has
-   * normal out edges to the copy.
+   * normal out edges to the copy.<p>
    *
    * WARNING: Use this method with caution.  See comment on
    * BasicBlock.recomputeNormalOut()
@@ -1487,7 +1494,7 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * Change all branches from this to b to branches that go to bCopy instead.
    * This method also handles this.fallThrough, so `this' should still be in
-   * the code order when this method is called.
+   * the code order when this method is called.<p>
    *
    * WARNING: Use this method with caution.  See comment on
    * BasicBlock.recomputeNormalOut()
@@ -1499,8 +1506,8 @@ public class BasicBlock extends SortedGraphNode {
     BranchOperand copyTarget = bCopy.makeJumpTarget();
     BranchOperand bTarget = b.makeJumpTarget();
     // 1. update the branch instructions in 'this' to point to bCopy
-    for (InstructionEnumeration ie = enumerateBranchInstructions(); ie.hasMoreElements();) {
-      Instruction s = ie.next();
+    for (Enumeration<Instruction> ie = enumerateBranchInstructions(); ie.hasMoreElements();) {
+      Instruction s = ie.nextElement();
       s.replaceSimilarOperands(bTarget, copyTarget);
     }
 
@@ -1549,8 +1556,8 @@ public class BasicBlock extends SortedGraphNode {
     temp.setMayThrowUncaughtException(mayThrowUncaughtException());
     temp.setUnsafeToSchedule(isUnsafeToSchedule());
     temp.setExecutionFrequency(getExecutionFrequency() * wf);
-    for (BasicBlockEnumeration e = getOut(); e.hasMoreElements();) {
-      BasicBlock out = e.next();
+    for (Enumeration<BasicBlock> e = getOut(); e.hasMoreElements();) {
+      BasicBlock out = e.nextElement();
       if (out.isExceptionHandlerBasicBlock()) {
         temp.insertOut(out);
       }
@@ -1563,13 +1570,17 @@ public class BasicBlock extends SortedGraphNode {
    * If this block has a single non-Exception successor in the CFG
    * then we may be able to merge the two blocks together.
    * In order for this to be legal, it must be the case that:
-   *  (1) The successor block has no other in edges than the one from this.
-   *  (2) Both blocks have the same exception handlers.
+   * <ol>
+   *  <li>The successor block has no other in edges than the one from this.
+   *  <li>Both blocks have the same exception handlers.
+   * </ol>
    * Merging the blocks is always desirable when
-   *  (a) the successor block is the next block in code order
-   *  (b) the successor block is not the next block in the code order,
+   * <ol>
+   *  <li>the successor block is the next block in code order
+   *  <li>the successor block is not the next block in the code order,
    *      but ends in an unconditional branch (ie it doesn't have a
    *      fallthrough successor in the code order that we could be screwing up).
+   * </ol>
    *
    * @param ir the IR object containing the basic block to be merged
    * @return <code>true</code> if  the block was merged or
@@ -1580,7 +1591,7 @@ public class BasicBlock extends SortedGraphNode {
     BasicBlock succBB = (BasicBlock) next;
     if (succBB == null || !pointsOut(succBB)) {
       // get the successor from the CFG rather than the code order (case (b))
-      succBB = getNormalOut().next();
+      succBB = getNormalOut().nextElement();
       if (succBB.isExit()) return false;
       if (succBB.lastRealInstruction() == null || !succBB.lastRealInstruction().isUnconditionalBranch()) {
         return false;
@@ -1598,10 +1609,10 @@ public class BasicBlock extends SortedGraphNode {
     // Remove them as well.
     // Branch instructions to blocks other than succBB are errors.
     if (VM.VerifyAssertions) {
-      for (InstructionEnumeration e = enumerateBranchInstructions(); e.hasMoreElements();) {
-        BasicBlockEnumeration targets = e.next().getBranchTargets();
+      for (Enumeration<Instruction> e = enumerateBranchInstructions(); e.hasMoreElements();) {
+        Enumeration<BasicBlock> targets = e.nextElement().getBranchTargets();
         while (targets.hasMoreElements()) {
-          BasicBlock target = targets.next();
+          BasicBlock target = targets.nextElement();
           VM._assert(target == succBB);
         }
       }
@@ -1618,7 +1629,7 @@ public class BasicBlock extends SortedGraphNode {
 
     // Add succBB's CFG sucessors to this's CFG out edges
     for (OutEdgeEnum e = succBB.getOut(); e.hasMoreElements();) {
-      BasicBlock out = e.next();
+      BasicBlock out = e.nextElement();
       this.insertOut(out);
     }
 
@@ -1648,9 +1659,9 @@ public class BasicBlock extends SortedGraphNode {
    * @param ir the containing IR object
    */
   final void unfactor(IR ir) {
-    for (InstructionEnumeration e = forwardRealInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
-      BasicBlockEnumeration expOuts = getApplicableExceptionalOut(s);
+    for (Enumeration<Instruction> e = forwardRealInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
+      Enumeration<BasicBlock> expOuts = getApplicableExceptionalOut(s);
       if (expOuts.hasMoreElements() && e.hasMoreElements()) {
         BasicBlock next = splitNodeWithLinksAt(s, ir);
         next.unfactor(ir);
@@ -1668,12 +1679,12 @@ public class BasicBlock extends SortedGraphNode {
     int n = getNumberOfExceptionalOut();
     if (n > 0) {
       ComputedBBEnum handlers = new ComputedBBEnum(n);
-      InstructionEnumeration e = forwardRealInstrEnumerator();
+      Enumeration<Instruction> e = forwardRealInstrEnumerator();
       while (e.hasMoreElements()) {
-        Instruction x = e.next();
-        BasicBlockEnumeration bbs = getApplicableExceptionalOut(x);
+        Instruction x = e.nextElement();
+        Enumeration<BasicBlock> bbs = getApplicableExceptionalOut(x);
         while (bbs.hasMoreElements()) {
-          BasicBlock bb = bbs.next();
+          BasicBlock bb = bbs.nextElement();
           handlers.addPossiblyDuplicateElement(bb);
         }
       }
@@ -1681,7 +1692,7 @@ public class BasicBlock extends SortedGraphNode {
       deleteExceptionalOut();
 
       for (int i = 0; handlers.hasMoreElements(); i++) {
-        ExceptionHandlerBasicBlock b = (ExceptionHandlerBasicBlock) handlers.next();
+        ExceptionHandlerBasicBlock b = (ExceptionHandlerBasicBlock) handlers.nextElement();
         insertOut(b);
       }
     }
@@ -1708,7 +1719,7 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @return an enumeration of the in nodes
    */
-  public final BasicBlockEnumeration getIn() {
+  public final Enumeration<BasicBlock> getIn() {
     return new InEdgeEnum(this);
   }
 
@@ -1717,7 +1728,8 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @return an enumeration of the in nodes
    */
-  public final BasicBlockEnumeration getInNodes() {
+  @Override
+  public final Enumeration<BasicBlock> getInNodes() {
     return new InEdgeEnum(this);
   }
 
@@ -1731,7 +1743,7 @@ public class BasicBlock extends SortedGraphNode {
   public final boolean isIn(BasicBlock bb) {
     InEdgeEnum iee = new InEdgeEnum(this);
     while (iee.hasMoreElements()) {
-      if (iee.next() == bb) {
+      if (iee.nextElement() == bb) {
         return true;
       }
     }
@@ -1752,6 +1764,7 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @return an enumeration of the out nodes
    */
+  @Override
   public final OutEdgeEnum getOutNodes() {
     return new OutEdgeEnum(this);
   }
@@ -1766,7 +1779,7 @@ public class BasicBlock extends SortedGraphNode {
   public final boolean isOut(BasicBlock bb) {
     OutEdgeEnum oee = new OutEdgeEnum(this);
     while (oee.hasMoreElements()) {
-      if (oee.next() == bb) {
+      if (oee.nextElement() == bb) {
         return true;
       }
     }
@@ -1780,7 +1793,7 @@ public class BasicBlock extends SortedGraphNode {
    * @return an enumeration of the out nodes that are not
    *         reachable via as a result of exceptional control flow
    */
-  public final BasicBlockEnumeration getNormalOut() {
+  public final Enumeration<BasicBlock> getNormalOut() {
     return new NormalOutEdgeEnum(this);
   }
 
@@ -1794,7 +1807,7 @@ public class BasicBlock extends SortedGraphNode {
   public final boolean isNormalOut(BasicBlock bb) {
     NormalOutEdgeEnum noee = new NormalOutEdgeEnum(this);
     while (noee.hasMoreElements()) {
-      if (noee.next() == bb) {
+      if (noee.nextElement() == bb) {
         return true;
       }
     }
@@ -1808,11 +1821,11 @@ public class BasicBlock extends SortedGraphNode {
    * @return an enumeration of the out nodes that are
    *         reachable via as a result of exceptional control flow
    */
-  public final BasicBlockEnumeration getExceptionalOut() {
+  public final Enumeration<BasicBlock> getExceptionalOut() {
     if (canThrowExceptions()) {
       return new ExceptionOutEdgeEnum(this);
     } else {
-      return BasicBlockEnumeration.Empty;
+      return EmptyEnumeration.<BasicBlock>emptyEnumeration();
     }
   }
 
@@ -1827,7 +1840,7 @@ public class BasicBlock extends SortedGraphNode {
     if (!canThrowExceptions()) return false;
     ExceptionOutEdgeEnum eoee = new ExceptionOutEdgeEnum(this);
     while (eoee.hasMoreElements()) {
-      if (eoee.next() == bb) {
+      if (eoee.nextElement() == bb) {
         return true;
       }
     }
@@ -1862,8 +1875,8 @@ public class BasicBlock extends SortedGraphNode {
           setOfTargets.add(bb);
         }
       }
-      for (InstructionEnumeration e = enumerateBranchInstructions(); e.hasMoreElements();) {
-        BasicBlockEnumeration targets = e.next().getBranchTargets();
+      for (Enumeration<Instruction> e = enumerateBranchInstructions(); e.hasMoreElements();) {
+        Enumeration<BasicBlock> targets = e.nextElement().getBranchTargets();
         while (targets.hasMoreElements()) {
           setOfTargets.add(targets.nextElement());
         }
@@ -1915,14 +1928,14 @@ public class BasicBlock extends SortedGraphNode {
   * We don't really intend clients to directly instantiate these, but rather to
   * call the appropriate utility function that creates/initializes one of these
   */
-  abstract static class BBEnum implements BasicBlockEnumeration {
+  abstract static class BBEnum implements Enumeration<BasicBlock> {
     protected BasicBlock current;
 
+    @Override
     public final boolean hasMoreElements() { return current != null; }
 
-    public final BasicBlock nextElement() { return next(); }
-
-    public final BasicBlock next() {
+    @Override
+    public final BasicBlock nextElement() {
       if (current == null) fail();
       BasicBlock value = current;
       current = advance();
@@ -1938,7 +1951,7 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   // Arbitrary constructed enumeration of some set of basic blocks
-  static final class ComputedBBEnum implements BasicBlockEnumeration {
+  static final class ComputedBBEnum implements Enumeration<BasicBlock> {
     private BasicBlock[] blocks;
     private int numBlocks;
     private int current;
@@ -1960,11 +1973,11 @@ public class BasicBlock extends SortedGraphNode {
 
     public int totalCount() { return numBlocks; }
 
+    @Override
     public boolean hasMoreElements() { return current < numBlocks; }
 
-    public BasicBlock nextElement() { return next(); }
-
-    public BasicBlock next() {
+    @Override
+    public BasicBlock nextElement() {
       if (current >= numBlocks) fail();
       return blocks[current++];
     }
@@ -1976,16 +1989,16 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   // this class needs to be implemented efficiently, as it is used heavily.
-  static final class InEdgeEnum implements BasicBlockEnumeration {
+  static final class InEdgeEnum implements Enumeration<BasicBlock> {
     private SpaceEffGraphEdge _edge;
 
     public InEdgeEnum(SpaceEffGraphNode n) { _edge = n.firstInEdge(); }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
-    public BasicBlock nextElement() { return next(); }
-
-    public BasicBlock next() {
+    @Override
+    public BasicBlock nextElement() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.getNextIn();
       return (BasicBlock) e.fromNode();
@@ -1993,16 +2006,16 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   // this class needs to be implemented efficiently, as it is used heavily.
-  static final class OutEdgeEnum implements BasicBlockEnumeration {
+  static final class OutEdgeEnum implements Enumeration<BasicBlock> {
     private SpaceEffGraphEdge _edge;
 
     public OutEdgeEnum(SpaceEffGraphNode n) { _edge = n.firstOutEdge(); }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
-    public BasicBlock nextElement() { return next(); }
-
-    public BasicBlock next() {
+    @Override
+    public BasicBlock nextElement() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.getNextOut();
       return (BasicBlock) e.toNode();
@@ -2018,6 +2031,7 @@ public class BasicBlock extends SortedGraphNode {
       current = advance();
     }
 
+    @Override
     protected BasicBlock advance() {
       while (_edge != null) {
         BasicBlock cand = (BasicBlock) _edge.toNode();
@@ -2025,8 +2039,8 @@ public class BasicBlock extends SortedGraphNode {
         if (!cand.isExceptionHandlerBasicBlock()) {
           return cand;
         } else if (cand.isExceptionHandlerWithNormalIn()) {
-          for (InstructionEnumeration e = enumerateBranchInstructions(); e.hasMoreElements();) {
-            BasicBlockEnumeration targets = e.next().getBranchTargets();
+          for (Enumeration<Instruction> e = enumerateBranchInstructions(); e.hasMoreElements();) {
+            Enumeration<BasicBlock> targets = e.nextElement().getBranchTargets();
             while (targets.hasMoreElements()) {
               if (cand == targets.nextElement()) {
                 return cand;
@@ -2048,6 +2062,7 @@ public class BasicBlock extends SortedGraphNode {
       current = advance();
     }
 
+    @Override
     protected BasicBlock advance() {
       while (_edge != null) {
         BasicBlock cand = (BasicBlock) _edge.toNode();

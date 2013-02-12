@@ -90,14 +90,17 @@ public final class InterfaceMethodSignature implements TIBLayoutConstants, SizeC
    */
   public int getId() { return id; }
 
+  @Override
   public String toString() {
     return "{" + name + " " + descriptor + "}";
   }
 
+  @Override
   public int hashCode() {
     return name.hashCode() + descriptor.hashCode();
   }
 
+  @Override
   public boolean equals(Object other) {
     if (other instanceof InterfaceMethodSignature) {
       InterfaceMethodSignature that = (InterfaceMethodSignature) other;

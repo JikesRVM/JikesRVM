@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.ir.BBend;
@@ -38,7 +40,6 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
@@ -103,7 +104,7 @@ import org.vmmagic.unboxed.Offset;
  * Things that are expanded here (immediately before final assembly)
  * should only be those sequences that cannot be expanded earlier
  * due to difficulty in keeping optimizations from interfering with them.
- *
+ * <p>
  * One job of this phase is to handle the expansion of the remains of
  * table switch.  The code looks like a mess (which it is), but there
  * is little choice for relocatable IA32 code that does this.  And the
@@ -278,11 +279,11 @@ public class FinalMIRExpansion extends IRTools {
             boolean foundCmp = false;
             outer:
             while(!Label.conforms(x)) {
-              OperandEnumeration e = x.getUses();
+              Enumeration<Operand> e = x.getUses();
               while(e.hasMoreElements()) {
                 // We can't use an xor to clear the register if that register is
                 // used by the <cmp> or intervening instruction
-                if (e.next().similar(result)) {
+                if (e.nextElement().similar(result)) {
                   break outer;
                 }
               }

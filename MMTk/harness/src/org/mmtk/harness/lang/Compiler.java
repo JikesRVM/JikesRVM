@@ -110,7 +110,7 @@ public final class Compiler extends Visitor {
   /**
    * Visit a node and return its result as a Register
    * @param ast
-   * @return
+   * @return the result as register
    */
   private Register compile(AST ast) {
     return (Register)ast.accept(this);
@@ -195,7 +195,7 @@ public final class Compiler extends Visitor {
   }
 
   /**
-   * Constant value.  push an operand which fetches from the
+   * Constant value. Push an operand which fetches from the
    * global constant pool
    */
   @Override
@@ -351,11 +351,13 @@ public final class Compiler extends Visitor {
 
   /**
    * While statement.  Compiled to:
+   * <pre>
    *   top: condition
    *        if false goto b
    *        body
    *        goto top:
    *   b:
+   * </pre>
    */
   @Override
   public Object visit(WhileStatement w) {

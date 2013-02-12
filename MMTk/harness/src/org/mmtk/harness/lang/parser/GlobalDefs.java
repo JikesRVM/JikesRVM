@@ -20,8 +20,8 @@ import org.mmtk.harness.lang.runtime.WeakReferenceValue;
 import org.mmtk.harness.lang.type.Type;
 
 /**
- * The global definitions passed around by the parser
- *
+ * The global definitions passed around by the parser.
+ * <p>
  * The initializer defines the pre-defined types and intrinsic methods.
  */
 public class GlobalDefs {

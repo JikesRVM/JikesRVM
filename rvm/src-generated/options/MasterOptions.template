@@ -101,7 +101,7 @@ $$$$ FOREACH OPTION VDATFILE
     */
    public java.util.Iterator<TYPE> getFULL_NAMEs() {
      if (FULL_NAME == null) {
-       return new org.jikesrvm.util.EmptyIterator<TYPE>();
+       return org.jikesrvm.util.EmptyIterator.<TYPE>getInstance();
      } else {
        return FULL_NAME.iterator();
      }
@@ -112,7 +112,7 @@ $$$$ END FOREACH
 $$$$ END LOOP
    // End generated support for "Set" options
 
-
+   @Override
    @SuppressWarnings("unchecked")
    public Object clone() throws CloneNotSupportedException {
      MYTYPE clone = (MYTYPE)super.clone();
@@ -345,6 +345,7 @@ $$$$ END LOOP
   }
 
   /** @return a String representing the options values */
+  @Override
   @org.vmmagic.pragma.NoOptCompile
   public String toString() {
     StringBuilder result = new StringBuilder();

@@ -50,7 +50,7 @@ public final class Magic {
     return null;
   }
 
-  /** Get contents of "jtoc" register. */
+  /** Get contents of "JTOC" register. */
   public static Address getTocPointer() {
     if (VM.runningVM && VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -58,7 +58,7 @@ public final class Magic {
     return BootRecord.the_boot_record.tocRegister;
   }
 
-  /** Get contents of "jtoc" register */
+  /** Get contents of "JTOC" register */
   public static Address getJTOC() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
@@ -88,6 +88,7 @@ public final class Magic {
 
   /**
    * Read contents of hardware time base registers.
+   * <p>
    * Note:     we think that 1 "tick" == 4 "machine cycles", but this seems to be
    *           undocumented and may vary across processor implementations.
    * @return number of ticks (epoch undefined)
@@ -156,12 +157,41 @@ public final class Magic {
   }
 
   /**
-   * Get return address for a frame
+   * Get return address for a frame in a case where the frame is
+   * known not to be a trampoline frame.
+   *
+   * @param fp its frame pointer
+   */
+  @Uninterruptible
+  public static Address getReturnAddressUnchecked(Address fp) {
+    Address ip = getReturnAddressLocation(fp).loadAddress();
+    if (VM.VerifyAssertions) VM._assert(!RVMThread.isTrampolineIP(ip));
+    return ip;
+  }
+
+  /**
+   * Get return address for a frame in the current thread
+   *
    * @param fp its frame pointer
    */
   @Uninterruptible
   public static Address getReturnAddress(Address fp) {
-    return getReturnAddressLocation(fp).loadAddress();
+    return getReturnAddress(fp, RVMThread.getCurrentThread());
+  }
+
+  /**
+   * Get return address for a frame in a specific thread
+   *
+   * @param fp its frame pointer
+   * @param thread the thread whose stack is being examined
+   */
+  @Uninterruptible
+  public static Address getReturnAddress(Address fp, RVMThread thread) {
+    Address ip = getReturnAddressLocation(fp).loadAddress();
+    if (RVMThread.isTrampolineIP(ip))
+      return thread.getTrampolineHijackedReturnAddress();
+    else
+      return ip;
   }
 
   /**
@@ -796,7 +826,7 @@ public final class Magic {
 
   /**
    * Cast object.
-   * Note:     for use by gc to avoid checkcast during GC
+   * Note:     for use by GC to avoid checkcast during GC
    * @param object object reference
    * @return object reference as thread (no checking on cast)
    */
@@ -846,7 +876,7 @@ public final class Magic {
 
   /**
    * Recast.
-   * Note:     for use by gc to avoid checkcast during GC
+   * Note:     for use by GC to avoid checkcast during GC
    * @param byte_array an address
    * Returned: byte array (byte[])  object reference
    */
@@ -910,34 +940,36 @@ public final class Magic {
   //---------------------------------------//
 
   /**
-   * Save current thread state.  Stores the values in the hardware registers
-   * into a Registers object, @param registers
-   *
+   * Saves current thread state.  Stores the values in the hardware registers
+   * into a Registers object.
+   * <p>
    * We used to use this to implement thread switching, but we have a
    * threadSwitch magic now that does both of these in a single step as that
    * is less error-prone.  saveThreadState is now only used in the
    * implementation of athrow (RuntimeEntrypoints.athrow).
-   *
+   * <p>
    * The following registers are saved:
-   *        - nonvolatile fpr registers
-   *        - nonvolatile gpr registers
-   *        - FRAME_POINTER register
-   *        - THREAD_ID     "register"
+   * <ul>
+   *  <li>nonvolatile fpr registers
+   *  <li>nonvolatile gpr registers
+   *  <li>FRAME_POINTER register
+   *  <li>THREAD_ID     "register"
+   * </ul>
    * @param registers place to save register values
    */
   // PNT: make a version of this that implicitly uses contextRegisters.
   public static void saveThreadState(Registers registers) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
-
   /**
    * Switch threads.
    * The following registers are saved/restored
-   *        - nonvolatile fpr registers
-   *        - nonvolatile gpr registers
-   *        - FRAME_POINTER "register"
-   *        - THREAD_ID     "register"
-   *
+   * <ul>
+   *  <li>nonvolatile fpr registers
+   *  <li>nonvolatile gpr registers
+   *  <li>FRAME_POINTER register
+   *  <li>THREAD_ID     "register"
+   * </ul>   *
    * @param currentThread thread that is currently running
    * @param restoreRegs   registers from which we should restore
    *                      the saved hardware state of another thread.
@@ -948,10 +980,13 @@ public final class Magic {
 
   /**
    * Resume execution with specified thread exception state.
-   * Restores virtually all registers (details vary by architecutre).
+   * <p>
+   * Restores virtually all registers (details vary by architecture).
    * But, the following are _NOT_ restored
-   *        - JTOC_POINTER
-   *        - THREAD_REGISTER
+   * <ul>
+   *  <li>JTOC_POINTER
+   *  <li>THREAD_REGISTER
+   * </ul>
    * does not return (execution resumes at new IP)
    * @param registers register values to be used
    */
@@ -970,8 +1005,10 @@ public final class Magic {
 
   /**
    * Transfer execution to target of a dynamic bridge method.
+   * <p>
    * The following registers are restored:  non-volatiles, volatiles
-   * Note: this method must only be called from a DynamicBridge method
+   * <p>
+   * Note: this method must only be called from a DynamicBridge method because it
    * never returns (target method returns to caller of dynamic bridge method)
    * @param instructions target method
    */
@@ -979,7 +1016,7 @@ public final class Magic {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
-  /** Call "<clinit>" method with no argument list. */
+  /** Call &lt;clinit&gt; method with no argument list. */
   public static void invokeClassInitializer(CodeArray clinit) throws Exception {
     // Since the real method passes exceptions up. Constructor might throw an arbitrary exception.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler

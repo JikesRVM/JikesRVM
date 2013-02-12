@@ -24,9 +24,6 @@ public class StringType extends AbstractType {
     super("string");
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#initialValue()
-   */
   @Override
   public Value initialValue() {
     return new StringValue("");

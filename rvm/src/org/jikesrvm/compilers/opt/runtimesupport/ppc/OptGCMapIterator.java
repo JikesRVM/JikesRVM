@@ -22,10 +22,10 @@ import org.vmmagic.unboxed.WordArray;
 /**
  * An instance of this class provides iteration across the references
  * represented by a frame built by the OPT compiler.
- *
+ * <p>
  * The architecture-specific version of the GC Map iterator.  It inherits
  * its architecture-independent code from OptGenericGCMapIterator.
- * This version is for the PowerPC
+ * This version is for the PowerPC.
  */
 @Uninterruptible
 public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements ArchConstants {
@@ -36,11 +36,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
     super(registerLocations);
   }
 
-  /**
-   * If any non-volatile gprs were saved by the method being processed
-   * then update the registerLocations array with the locations where the
-   * registers were saved.
-   */
+  @Override
   protected void updateLocateRegisters() {
 
     //  HIGH MEMORY
@@ -98,13 +94,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
     }
   }
 
-  /**
-   *  Determine the stack location given the frame ptr and spill offset.
-   *  (The offset direction varies among architectures.)
-   *  @param framePtr the frame pointer
-   *  @param offset  the offset
-   *  @return the resulting stack location
-   */
+  @Override
   public Address getStackLocation(Address framePtr, int offset) {
     return framePtr.plus(offset);
   }
@@ -113,6 +103,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    *  Get address of the first spill location for the frame ptr.
    *  @return the first spill location
    */
+  @Override
   public Address getFirstSpillLoc() {
     return framePtr.plus(SPILL_DISTANCE_FROM_FP);
   }
@@ -123,6 +114,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
    *  @return the last spill location, if no spills occur, we return the
    *          first spill location
    */
+  @Override
   public Address getLastSpillLoc() {
     if (DEBUG) {
       VM.sysWrite("\n unsigendNVOffset: ");

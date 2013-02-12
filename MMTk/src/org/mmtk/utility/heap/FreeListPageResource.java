@@ -138,6 +138,7 @@ public final class FreeListPageResource extends PageResource implements Constant
    * @return The start of the first page if successful, zero on
    * failure.
    */
+  @Override
   @Inline
   protected Address allocPages(int reservedPages, int requiredPages, boolean zeroed) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(metaDataPagesPerRegion == 0 || requiredPages <= PAGES_IN_CHUNK - metaDataPagesPerRegion);
@@ -148,7 +149,7 @@ public final class FreeListPageResource extends PageResource implements Constant
       pageOffset = allocateContiguousChunks(requiredPages);
       newChunk = true;
     }
-    if (pageOffset == -1) {
+    if (pageOffset == GenericFreeList.FAILURE) {
       unlock();
       return Address.zero();
     } else {
@@ -332,13 +333,14 @@ public final class FreeListPageResource extends PageResource implements Constant
   }
 
   /**
-   * Adjust a page request to include metadata requirements, if any.  In the
-   * case of a free-list allocator, meta-data is pre-allocated, so simply
-   * return the un-adjusted request size.
+   * {@inheritDoc}<p>
+   * In the case of a free-list allocator, meta-data is pre-allocated, so
+   * simply return the un-adjusted request size.
    *
    * @param pages The size of the pending allocation in pages
    * @return The (unadjusted) request size, since metadata is pre-allocated
    */
+  @Override
   public int adjustForMetaData(int pages) { return pages; }
 
   public Address getHighWater() {

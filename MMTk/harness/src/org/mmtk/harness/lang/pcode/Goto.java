@@ -36,6 +36,7 @@ public final class Goto extends NullaryOp {
     this.target = target;
   }
 
+  @Override
   public int getBranchTarget() {
     return target;
   }
@@ -60,6 +61,7 @@ public final class Goto extends NullaryOp {
     return true;
   }
 
+  @Override
   public String toString() {
     return String.format("%s %d", name, target);
   }

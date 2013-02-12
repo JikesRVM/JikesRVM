@@ -56,12 +56,12 @@ import org.vmmagic.unboxed.*;
    *
    * Protected instance methods and fields
    */
-  @Entrypoint
-  protected Address head; // the start of the buffer
 
-  /**
-   * Reset the local buffer (throwing away any local entries).
-   */
+  /** the start of the buffer */
+  @Entrypoint
+  protected Address head;
+
+  @Override
   public void resetLocal() {
     super.resetLocal();
     head = Deque.HEAD_INITIAL_VALUE;

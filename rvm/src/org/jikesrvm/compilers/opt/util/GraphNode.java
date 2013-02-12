@@ -12,12 +12,13 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
+import java.util.Enumeration;
+
 
 /**
  * A generic interface for graph nodes.  All graph utilities should be
  * defined in terms of this interface, and all graph implementations
  * should make sure their nodes implement this interface.
- *
  *
  * @see Graph
  * @see GraphEdge
@@ -31,7 +32,7 @@ public interface GraphNode extends GraphElement {
    * @return an enumeration of all the edges to which edges sourced
    * at this node point.
    */
-  GraphNodeEnumeration outNodes();
+  Enumeration<GraphNode> outNodes();
 
   /**
    * Get an enumeration of all the edges at which edges that point
@@ -39,7 +40,7 @@ public interface GraphNode extends GraphElement {
    * @return an enumeration of all the edges at which edges that
    * point to this node are sourced.
    */
-  GraphNodeEnumeration inNodes();
+  Enumeration<GraphNode> inNodes();
 
   /**
    *  The index of this node in its graph.  In general, this can e

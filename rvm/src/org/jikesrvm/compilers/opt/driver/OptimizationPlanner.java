@@ -163,7 +163,8 @@ public class OptimizationPlanner {
 
   /**
    * Convert the ArrayList to an array of elements.
-   * TODO: this is a bad name (finalize), isn't it?
+   * @param planElementList the array list to convert, must be non-{@code null}
+   * @return list as array
    */
   private static OptimizationPlanElement[] toArray(ArrayList<OptimizationPlanElement> planElementList) {
     OptimizationPlanElement[] p = new OptimizationPlanElement[planElementList.size()];
@@ -189,14 +190,17 @@ public class OptimizationPlanner {
 
         // ir now contains well formed HIR. Optionally do a verification pass.
         new CompilerPhase() {
+          @Override
           public String getName() {
             return "HIR Verification";
           }
+          @Override
           public void perform(IR ir) {
             if (IR.SANITY_CHECK) {
               ir.verify("Initial HIR", true);
             }
           }
+          @Override
           public CompilerPhase newExecution(IR ir) {
             return this;
           }
@@ -209,6 +213,7 @@ public class OptimizationPlanner {
         // Do this after branch optimization, since without merging
         // FallThroughOuts, the IR is quite ugly.
         new IRPrinter("Initial HIR") {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.PRINT_HIGH;
           }
@@ -232,6 +237,7 @@ public class OptimizationPlanner {
         // Assumption: none of these are active at O0.
         new OptimizationPlanCompositeElement("Basic Block Frequency Estimation",
                                                  new Object[]{new BuildLST(), new EstimateBlockFrequencies()}) {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.getOptLevel() >= 1;
           }
@@ -292,6 +298,7 @@ public class OptimizationPlanner {
         // Use the LST to estimate basic block frequency from branch probabilities
         new OptimizationPlanCompositeElement("Basic Block Frequency Estimation",
                                                  new Object[]{new BuildLST(), new EstimateBlockFrequencies()}) {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.getOptLevel() >= 3;
           }
@@ -334,6 +341,7 @@ public class OptimizationPlanner {
             new LoopVersioning(),
             // Leave SSA
             new LeaveSSA()}) {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.getOptLevel() >= 3;
           }
@@ -348,6 +356,7 @@ public class OptimizationPlanner {
                                                               new Simple(3, true, true, false, false),
                                                               new EscapeTransformations(),
                                                               new BranchOptimizations(3, true, true)}) {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.getOptLevel() >= 3;
           }
@@ -365,6 +374,7 @@ public class OptimizationPlanner {
         // Use the LST to estimate basic block frequency from branch probabilities
         new OptimizationPlanCompositeElement("Basic Block Frequency Estimation",
                                                  new Object[]{new BuildLST(), new EstimateBlockFrequencies()}) {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.getOptLevel() >= 3;
           }
@@ -381,6 +391,7 @@ public class OptimizationPlanner {
             new GCP(),
             // Leave SSA
             new LeaveSSA()}) {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.getOptLevel() >= 3;
           }
@@ -397,6 +408,7 @@ public class OptimizationPlanner {
                                                               new LocalConstantProp(),
                                                               new Simple(3, true, true, false, false),
                                                               new BranchOptimizations(3, true, true)}) {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.getOptLevel() >= 3;
           }
@@ -413,6 +425,7 @@ public class OptimizationPlanner {
     composeComponents(p, "Convert HIR to LIR", new Object[]{
         // Optional printing of final HIR
         new IRPrinter("Final HIR") {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.PRINT_FINAL_HIR;
           }
@@ -433,6 +446,7 @@ public class OptimizationPlanner {
         new AdjustBranchProbabilities(),
         // Optional printing of initial LIR
         new IRPrinter("Initial LIR") {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.PRINT_LOW;
           }

@@ -15,7 +15,7 @@ package org.mmtk.utility.options;
 import org.mmtk.plan.Plan;
 
 /**
- * Provide an lower and upper bound on nursery size.
+ * Provide an lower and upper bound on nursery size.<p>
  *
  * This option is not intended to be created directly, but via NurserySize.
  */
@@ -36,6 +36,7 @@ public final class FixedNursery extends org.vmutil.options.PagesOption {
   /**
    * Nursery can not be empty.
    */
+  @Override
   protected void validate() {
     failIf(value <= 0, "Can not have an empty nursery");
     // Update upper bound.

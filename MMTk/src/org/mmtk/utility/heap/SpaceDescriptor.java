@@ -42,6 +42,9 @@ import org.vmmagic.unboxed.*;
    * Class variables
    */
 
+  /**
+   *
+   */
   private static final int TYPE_BITS = 2;
   private static final int TYPE_SHARED = 0;
   private static final int TYPE_CONTIGUOUS = 1;
@@ -116,7 +119,7 @@ import org.vmmagic.unboxed.*;
    * Return true if this descriptor describes a contiguous space
    *
    * @param descriptor
-   * @return True if this descriptor describes a contiguous space
+   * @return {@code true} if this descriptor describes a contiguous space
    */
   @Inline
   public static boolean isContiguous(int descriptor) {
@@ -128,7 +131,7 @@ import org.vmmagic.unboxed.*;
    * is at the top of the virtual address space
    *
    * @param descriptor
-   * @return True if this descriptor describes a contiguous space that
+   * @return {@code true} if this descriptor describes a contiguous space that
    * is at the top of the virtual address space
    */
   @Inline

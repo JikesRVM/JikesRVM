@@ -39,6 +39,7 @@ import org.jikesrvm.VM;
 @Uninterruptible
 @NonMoving
 public class NoYieldpointsMonitor extends Monitor {
+  @Override
   @NoInline
   @NoOptCompile
   public void lockNoHandshake() {
@@ -47,6 +48,7 @@ public class NoYieldpointsMonitor extends Monitor {
   }
 
   // This method is strange
+  @Override
   @Unpreemptible
   @NoInline
   @NoOptCompile
@@ -55,6 +57,7 @@ public class NoYieldpointsMonitor extends Monitor {
     super.lockWithHandshake();
   }
 
+  @Override
   @NoInline
   @NoOptCompile
   public void unlock() {

@@ -23,11 +23,7 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public final class DumpLinearScan extends LinearScan {
-  /**
-   * Scan an object.
-   *
-   * @param object The object to scan
-   */
+  @Override
   @Inline
   public void scan(ObjectReference object) {
     Log.write("[");

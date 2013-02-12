@@ -60,6 +60,7 @@ public final class Options {
   public static StressFactor stressFactor;
   public static Threads threads;
   public static TraceRate traceRate;
+  public static UseReturnBarrier useReturnBarrier;
   public static VariableSizeHeap variableSizeHeap;
   public static VerboseFragmentationStats verboseFragmentationStats;
   public static Verbose verbose;

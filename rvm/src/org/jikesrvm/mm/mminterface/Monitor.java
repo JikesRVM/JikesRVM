@@ -32,6 +32,7 @@ public class Monitor implements Constants, Callbacks.ExitMonitor {
    *
    * @param value The exit value
    */
+  @Override
   public void notifyExit(int value) {
     Selected.Plan.get().notifyExit(value);
   }

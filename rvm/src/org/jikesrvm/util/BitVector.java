@@ -15,9 +15,7 @@ package org.jikesrvm.util;
 import java.io.Serializable;
 
 /**
- * BitVector.java
- *
- * implements a bit vector
+ * Implements a bit vector.
  */
 public final class BitVector implements Serializable {
   /** Support for serialization */
@@ -201,6 +199,7 @@ public final class BitVector implements Serializable {
   /**
    * Gets the hashcode.
    */
+  @Override
   public int hashCode() {
     int h = 1234;
     for (int i = bits.length; --i >= 0;) {
@@ -233,6 +232,7 @@ public final class BitVector implements Serializable {
    * @param obj the object to compare with
    * @return true if the objects are the same; false otherwise.
    */
+  @Override
   public boolean equals(Object obj) {
     if ((obj != null) && (obj instanceof BitVector)) {
       if (this == obj) { // should help alias analysis
@@ -266,6 +266,7 @@ public final class BitVector implements Serializable {
   /**
    * Converts the BitVector to a String.
    */
+  @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder();
     boolean needSeparator = false;

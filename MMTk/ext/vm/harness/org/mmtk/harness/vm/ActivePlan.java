@@ -54,23 +54,18 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
   /** The global constraints */
   public static PlanConstraints constraints;
 
-  /** @return The active Plan instance. */
   @Override
   public Plan global() { return plan; };
 
-  /** @return The active PlanConstraints instance. */
   @Override
   public PlanConstraints constraints() { return constraints; };
 
-  /** @return The active <code>CollectorContext</code> instance. */
   @Override
   public CollectorContext collector() { return Scheduler.currentCollector(); };
 
-  /** @return The active <code>MutatorContext</code> instance. */
   @Override
   public MutatorContext mutator() { return Mutator.current().getContext(); }
 
-  /** @return The active <code>MutatorContext</code> instance. */
   @Override
   public Log log() { return Scheduler.currentLog(); }
 
@@ -80,18 +75,9 @@ public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   private BlockingQueue<Mutator> mutators = null;
 
-  /** Reset the mutator iterator */
   @Override
   public void resetMutatorIterator() { mutators = null; }
 
-  /**
-   * Return the next <code>MutatorContext</code> in a
-   * synchronized iteration of all mutators.
-   *
-   * @return The next <code>MutatorContext</code> in a
-   *  synchronized iteration of all mutators, or
-   *  <code>null</code> when all mutators have been done.
-   */
   @Override
   public MutatorContext getNextMutator() {
     synchronized(ActivePlan.class) {

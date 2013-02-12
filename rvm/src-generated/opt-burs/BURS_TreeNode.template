@@ -111,6 +111,7 @@ public class BURS_TreeNode implements BURS_Definitions {
     opcode = Opcode;
   }
 
+  @Override
   public String toString() {
     String node;
     node = OperatorNames.operatorName[getOpcode()];

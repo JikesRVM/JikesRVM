@@ -44,7 +44,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    * considered by the cost-benefit model, given the previous compiler.
    *
    * @param prevCompiler The compiler compiler that was used to
-   *                     comile cmpMethod
+   *                     compile cmpMethod
    * @param cmpMethod The compiled method being considered
    */
   abstract RecompilationChoice[] getViableRecompilationChoices(int prevCompiler, CompiledMethod cmpMethod);
@@ -60,6 +60,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    *  set up the optimization plans, so this must be run after the
    *  command line options are available.
    */
+  @Override
   void init() {
     // Do the common initialization first
     super.init();
@@ -83,6 +84,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    * @param hme       the HotMethodRecompilationEvent
    * @return the controller plan to be used or NULL, if no
    *                   compilation is to be performed.  */
+  @Override
   ControllerPlan considerHotMethod(CompiledMethod cmpMethod, HotMethodEvent hme) {
     // Compiler used for the previous compilation
     int prevCompiler = getPreviousCompiler(cmpMethod);
@@ -209,7 +211,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
       return null;
     }
 
-    double millis = (double) (prev.getTimeCompleted() - prev.getTimeInitiated());
+    double millis = prev.getTimeCompleted() - prev.getTimeInitiated();
     double speedup = prev.getExpectedSpeedup();
     double futureTimeForMethod = futureTimeForMethod(hme);
 
@@ -242,6 +244,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    * at the same opt level, assuming there would be some "boost" after
    * performing inlining.
    */
+  @Override
   void considerHotCallEdge(CompiledMethod cmpMethod, AINewHotEdgeEvent event) {
 
     // Compiler used for the previous compilation
@@ -254,7 +257,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
     if (!considerForRecompilation(event, plan)) return;
     double prevCompileTime = cmpMethod.getCompilationTime();
 
-    // Use the model to caclulate expected cost of (1) doing nothing
+    // Use the model to calculate expected cost of (1) doing nothing
     // and (2) recompiling at the same opt level with the FDO boost
     double futureTimeForMethod = futureTimeForMethod(event);
     double futureTimeForFDOMethod = prevCompileTime + (futureTimeForMethod / event.getBoostFactor());
@@ -294,7 +297,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
    */
   double futureTimeForMethod(HotMethodEvent hme) {
     double numSamples = hme.getNumSamples();
-    double timePerSample = (double) VM.interruptQuantum;
+    double timePerSample = VM.interruptQuantum;
     if (!VM.UseEpilogueYieldPoints) {
       // NOTE: we take two samples per timer interrupt, so we have to
       // adjust here (otherwise we'd give the method twice as much time
@@ -303,7 +306,7 @@ abstract class AnalyticModel extends RecompilationStrategy {
     }
     if (Controller.options.mlCBS()) {
       // multiple method samples per timer interrupt. Divide accordingly.
-      timePerSample /= (double) VM.CBSMethodSamplesPerTick;
+      timePerSample /= VM.CBSMethodSamplesPerTick;
     }
     double timeInMethodSoFar = numSamples * timePerSample;
     return timeInMethodSoFar;

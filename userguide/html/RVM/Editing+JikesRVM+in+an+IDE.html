@@ -17,79 +17,19 @@
                     </h1>
 
                     <div class="page-metadata">
-                        <p>This page last changed on Nov 11, 2011 by <font color="#0050B2">rgarner</font>.</p>
+                        <p>This page last changed on Sep 27, 2012 by <font color="#0050B2">dgrove</font>.</p>
                     </div>
                 </div>
 
                 <div id="content" class="view">
                     <div id="main-content" class="wiki-content group">
-                    <p>One goal of the JikesRVM project over recent years has been the ability to develop JikesRVM in a development environment such as Eclipse.  This has been possible for the MMTk component since 2005, and as of early 2007 (release 2.9.0) it is possible to work with the majority of the JikesRVM codebase in Eclipse and similar environments.  With Jikes RVM release 2.9.1, setting up your Eclipse environment to work with Jikes RVM became even easier.</p>
-
-<h2 id="EditingJikesRVMinanIDE-EditingJikesRVMinEclipse">Editing JikesRVM in Eclipse</h2>
-
-<p>These instructions assume you are working with Jikes RVM version <strong>2.9.1</strong> or later.</p>
-<ol>
-	<li>Create a JikesRVM source tree either via Mercurial checkout or untar-ing a distribution.
-<div class="panel" style="border-width: 1px;"><div class="panelContent">
-<p>$ hg clone <a href="http://jikesrvm.hg.sourceforge.net:8000/hgroot/jikesrvm/jikesrvm" class="external-link" rel="nofollow">http://jikesrvm.hg.sourceforge.net:8000/hgroot/jikesrvm/jikesrvm</a></p>
-</div></div></li>
-	<li>Create the machine-generated files and eclipse metadata:
-	<ul>
-		<li>If you have a <strong>recent version</strong> of Jikes RVM (<strong>3.0 onwards</strong>):
-<div class="panel" style="border-width: 1px;"><div class="panelContent">
-<p>$ cd jikesrvm<br />
-$ bin/buildit --eclipse localhost</p>
-</div></div>
-<em>Note that if you will not or cannot build on your local machine</em>, substitute localhost for the name of a host you can build on (buildit will perform the build remotely and then copy the requisite files back).</li>
-		<li>If you are working on an <strong>older version</strong> (<strong>2.9.1 - 2.9.3</strong>), you can follow this procedure:
-<div class="panel" style="border-width: 1px;"><div class="panelContent">
-<p>$ cd jikesrvm<br />
-$ ant -Dhost.name=ia32-linux -Dconfig.name=development<br />
-$ ant -Dhost.name=ia32-linux -Dconfig.name=development eclipse-project</p>
-</div></div>
-If you will not or cannot build on your local machine:
-		<ol>
-			<li>copy your tree to build build host somehow</li>
-			<li>perform the above ant tasks</li>
-			<li>copy the following generated files and directories back to the machine you will edit on:
-			<ul>
-				<li>jikesrvm/.project</li>
-				<li>jikesrvm/.classpath</li>
-				<li>jikesrvm/eclipse</li>
-			</ul>
-			</li>
-		</ol>
-		</li>
-	</ul>
-	</li>
-	<li>Import the newly created Eclipse project into your Eclipse workspace.
-	<ol>
-		<li>From Eclipse, select File--&gt;Import</li>
-		<li>Select &quot;Existing Projects Into Workspace&quot;<br />
-<img class="confluence-embedded-image" src="attachments/76400/5373966.jpg" data-image-src="attachments/76400/5373966.jpg"></li>
-		<li>Browse to find the top-level directory.</li>
-		<li>Select the project (in this case JikesRVM ia32-linux development)<br />
-<img class="confluence-embedded-image" src="attachments/76400/121372677.jpg" data-image-src="attachments/76400/121372677.jpg"></li>
-		<li>Hit Finish</li>
-	</ol>
-	</li>
-</ol>
-
-
-<h2 id="EditingJikesRVMinanIDE-EditingJikesRVMinNetBeans">Editing JikesRVM in NetBeans</h2>
-
-<ol>
-	<li>Follow the instructions for Eclipse including building the eclipse project with ant</li>
-	<li>Install the <a href="http://www.netbeans.org/kb/articles/import-eclipse.html" class="external-link" rel="nofollow">Eclipse project importer</a></li>
-	<li>Select File-<span style="text-decoration: line-through;">&gt;Import Project</span>-&gt;Eclipse Project
-	<ol>
-		<li>Choose to import project <a href="http://www.netbeans.org/kb/articles/eclipse-dependencies.html" class="external-link" rel="nofollow">ignoring project dependencies</a></li>
-		<li>Select the  top-level directory you created with the JikesRVM in as the project to import</li>
-		<li>Select a new folder as the destination (workspace) for the import</li>
-		<li>Hit Finish</li>
-	</ol>
-	</li>
-</ol>
+                    <p>One goal of the JikesRVM project over recent years has been the ability to develop JikesRVM in a development environment such as Eclipse.  This has been possible for the MMTk component since 2005, and as of early 2007 (release 2.9.0) it is possible to work with the majority of the JikesRVM codebase in Eclipse and similar environments.  With Jikes RVM release 2.9.1, setting up your Eclipse environment to work with Jikes RVM became even easier.</p><h2 id="EditingJikesRVMinanIDE-EditingJikesRVMinEclipse">Editing JikesRVM in Eclipse</h2><p>These instructions assume you are working with Jikes RVM version <strong>2.9.1</strong> or later.</p><ol><li><p>Create a JikesRVM source tree either via Mercurial checkout or untar-ing a distribution.</p><div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>$ hg clone <a href="http://hg.code.sourceforge.net/p/jikesrvm/code" class="external-link" rel="nofollow">http://hg.code.sourceforge.net/p/jikesrvm/code</a></p>
+</div></div></li><li>Create the machine-generated files and eclipse metadata:<ul><li><p>If you have a <strong>recent version</strong> of Jikes RVM (<strong>3.0 onwards</strong>):</p><div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>$ cd jikesrvm<br /> $ bin/buildit --eclipse localhost</p>
+</div></div><p><em>Note that if you will not or cannot build on your local machine</em>, substitute localhost for the name of a host you can build on (buildit will perform the build remotely and then copy the requisite files back).</p></li><li><p>If you are working on an <strong>older version</strong> (<strong>2.9.1 - 2.9.3</strong>), you can follow this procedure:</p><div class="panel" style="border-width: 1px;"><div class="panelContent">
+<p>$ cd jikesrvm<br /> $ ant -Dhost.name=ia32-linux -Dconfig.name=development<br /> $ ant -Dhost.name=ia32-linux -Dconfig.name=development eclipse-project</p>
+</div></div><p>If you will not or cannot build on your local machine:</p><ol><li>copy your tree to build build host somehow</li><li>perform the above ant tasks</li><li>copy the following generated files and directories back to the machine you will edit on:<ul><li>jikesrvm/.project</li><li>jikesrvm/.classpath</li><li>jikesrvm/eclipse</li></ul></li></ol></li></ul></li><li>Import the newly created Eclipse project into your Eclipse workspace.<ol><li>From Eclipse, select File--&gt;Import</li><li>Select &quot;Existing Projects Into Workspace&quot;<br /><img class="confluence-embedded-image" src="attachments/76400/5373966.jpg" data-image-src="attachments/76400/5373966.jpg" title="ImportWizard1.jpg"></li><li>Browse to find the top-level directory.</li><li>Select the project (in this case JikesRVM ia32-linux development)<br /><img class="confluence-embedded-image" src="attachments/76400/121372677.jpg" data-image-src="attachments/76400/121372677.jpg" title="ImportWizard2.jpg"></li><li>Hit Finish</li></ol></li></ol><h3 id="EditingJikesRVMinanIDE-SetupforeasiercompliancewiththeCheckstylerules">Setup for easier compliance with the Checkstyle rules</h3><p>If you consider <a href="http://docs.codehaus.org/display/RVM/Contributions">contributing</a> changes back to the RVM, it is helpful to configure your IDE to comply with the Jikes RVM <a href="Coding%2BStyle.html">coding style</a>. The coding style forbids the use of tabs and requires that no line ends with whitespace.</p><p>If you have a separate workspace for your work with Jikes RVM, you can set up Eclipse for correct tab usage by configuring the text editors. Go to Window -&gt; Preferences and then to General -&gt; Editors -&gt; Text editors (Eclipse 3.6) or Window -&gt; Preferences -&gt; General -&gt; Editors -&gt; Text Editors (Eclipse 3.5 and earlier). Check &quot;Insert spaces for tabs&quot;. Make sure that &quot;Displayed tab width&quot; is set to 2. This setting affects the non-Java editors (e.g. XML editor for the ant files for the build).</p><p>To set the tab width for Java code, you need to setup the Java code style. We currently do not provide a style template, so you will have to define your own. Go to the project properties (e.g. via Project -&gt; Properties) and select Java Code Style -&gt; Formatter. Check the box &quot;Enable project specific settings&quot; and create a new profile for Jikes RVM. Edit the new profile. In the edit dialog, choose the tab &quot;Indentation&quot;. Set the tab policy to &quot;Spaces only&quot; and set both indentation size and tab size to 2. Also make sure that the box &quot;Empty lines&quot; at the bottom of the &quot;Indentation&quot; tab is not checked.</p><p>To ensure that you do not introduce whitespace at the end of lines you can configure Eclipse's Save actions in the project properties at Java Editor -&gt; Save Actions. Check the box &quot;Enable project specific settings&quot; and the box &quot;Perform the selected actions on save&quot; as well as &quot;Additional actions&quot;. Press &quot;Configure&quot; and check the box &quot;Remove trailing whitespace&quot; in the &quot;Code Organizing&quot; tab.</p><h2 id="EditingJikesRVMinanIDE-EditingJikesRVMinNetBeans">Editing JikesRVM in NetBeans</h2><ol><li>Follow the instructions for Eclipse including building the eclipse project with ant</li><li>Install the <a href="http://www.netbeans.org/kb/articles/import-eclipse.html" class="external-link" rel="nofollow">Eclipse project importer</a></li><li>Select File -&gt; Import Project -&gt; Eclipse Project<br /><ol><li>Choose to import project <a href="http://www.netbeans.org/kb/articles/eclipse-dependencies.html" class="external-link" rel="nofollow">ignoring project dependencies</a></li><li>Select the top-level directory you created with the JikesRVM in as the project to import</li><li>Select a new folder as the destination (workspace) for the import</li><li>Hit Finish</li></ol></li></ol>
                     </div>
 
                                         <div class="pageSection group">
@@ -107,10 +47,10 @@ If you will not or cannot build on your local machine:
                                                     </div>
                     </div>
                     
-                 
+                                                      
                 </div>             </div> 
             <div id="footer" style="background: url(http://docs.codehaus.org/images/border/border_bottom.gif) repeat-x;">
-                <p><small>Document generated by Confluence on Feb 17, 2012 10:24</small></p>
+                <p><small>Document generated by Confluence on Feb 12, 2013 09:32</small></p>
             </div>
         </div>     </body>
 </html>

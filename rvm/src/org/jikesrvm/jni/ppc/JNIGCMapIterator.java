@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.WordArray;
  * Threads JNIEnvironment.  It will update register location addresses
  * for the non-votatile registers to point to the register save area
  * in the transition frame.
- *
+ * <p>
  * If GC happens, the saved non-volatile regs may get modified (ex. a ref
  * to a live object that gets moved), and a restore flag in the frame is
  * set to cause the returning Native code to restore those registers from
@@ -81,6 +81,7 @@ public abstract class JNIGCMapIterator extends GCMapIterator
   // Taken:    thread
   // Returned: nothing
   //
+  @Override
   public void newStackWalk(RVMThread thread) {
     super.newStackWalk(thread);   // sets this.thread
     JNIEnvironment env = this.thread.getJNIEnv();
@@ -93,6 +94,7 @@ public abstract class JNIGCMapIterator extends GCMapIterator
     }
   }
 
+  @Override
   public void setupIterator(CompiledMethod compiledMethod, Offset instructionOffset, Address framePtr) {
     this.framePtr = framePtr;
     Address callers_fp = this.framePtr.loadAddress();
@@ -109,6 +111,7 @@ public abstract class JNIGCMapIterator extends GCMapIterator
   // When at the end of the current frame, update register locations to point
   // to the non-volatile registers saved in the JNI transition frame.
   //
+  @Override
   public Address getNextReferenceAddress() {
     if (jniNextRef > jniFramePtr) {
       Address ref_address = Magic.objectAsAddress(jniRefs).plus(jniNextRef);
@@ -140,14 +143,18 @@ public abstract class JNIGCMapIterator extends GCMapIterator
     return Address.zero();  // no more refs to report
   }
 
+  @Override
   public Address getNextReturnAddressAddress() {
     return Address.zero();
   }
 
+  @Override
   public void reset() {}
 
+  @Override
   public void cleanupPointers() {}
 
+  @Override
   public int getType() {
     return CompiledMethod.JNI;
   }

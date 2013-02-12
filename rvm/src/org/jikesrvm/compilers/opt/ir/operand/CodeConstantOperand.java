@@ -18,16 +18,21 @@ import org.jikesrvm.classloader.TypeReference;
 
 /**
  * Represents a constant code operand, found for example, from an
- * TIBConstantOperand. NB we don't use an object constant operand
- * because: 1) code doesn't form part of the object literals 2) we
- * need to support replacement
+ * TIBConstantOperand.<p>
+ *
+ * NB we don't use an object constant operand
+ * because
+ * <ol>
+ *   <li>code doesn't form part of the object literals
+ *   <li>we need to support replacement
+ * </ol>
  *
  * @see Operand
  */
 public final class CodeConstantOperand extends ConstantOperand {
 
   /**
-   * The non-null method for the code represent
+   * The non-{@code null} method for the code represent
    */
   public final RVMMethod value;
 
@@ -41,41 +46,28 @@ public final class CodeConstantOperand extends ConstantOperand {
     value = v;
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     return new CodeConstantOperand(value);
   }
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
-   * @return TypeReference.JavaLangObjectArray
+   * @return {@link TypeReference#CodeArray}
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.CodeArray;
   }
 
   /**
-   * Does the operand represent a value of the reference data type?
-   *
    * @return <code>true</code>
    */
+  @Override
   public boolean isRef() {
     return true;
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof CodeConstantOperand) && value == ((CodeConstantOperand) op).value;
   }
@@ -85,6 +77,7 @@ public final class CodeConstantOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "code \"" + value + "\"";
   }

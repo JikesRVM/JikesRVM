@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
@@ -64,7 +65,7 @@ final class OptExceptionTable extends ExceptionTable {
         }
 
         BasicBlock followonBB;
-        BasicBlockEnumeration reachBBe, e;
+        Enumeration<BasicBlock> reachBBe, e;
         boolean joinedBlocks;
 
         // First make sure at least one of the exception handlers
@@ -155,8 +156,8 @@ final class OptExceptionTable extends ExceptionTable {
     for (BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); bblock != null; bblock =
         bblock.nextBasicBlockInCodeOrder()) {
       if (bblock.hasExceptionHandlers()) {
-        for (BasicBlockEnumeration e = bblock.getExceptionHandlers(); e.hasMoreElements();) {
-          ExceptionHandlerBasicBlock ebb = (ExceptionHandlerBasicBlock) e.next();
+        for (Enumeration<BasicBlock> e = bblock.getExceptionHandlers(); e.hasMoreElements();) {
+          ExceptionHandlerBasicBlock ebb = (ExceptionHandlerBasicBlock) e.nextElement();
           tSize += ebb.getNumberOfExceptionTableEntries();
         }
       }

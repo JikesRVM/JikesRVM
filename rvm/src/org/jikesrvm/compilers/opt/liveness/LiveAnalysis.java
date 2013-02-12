@@ -30,12 +30,10 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.GCIRMap;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
@@ -45,21 +43,64 @@ import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
-import org.jikesrvm.compilers.opt.util.EmptyIterator;
 import org.jikesrvm.compilers.opt.util.SortedGraphIterator;
 import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.LocalRegPair;
 import org.jikesrvm.osr.MethodVariables;
 import org.jikesrvm.osr.VariableMap;
+import org.jikesrvm.util.EmptyIterator;
 
 /**
  * This class performs a flow-sensitive iterative live variable analysis.
  * The result of this analysis is live ranges for each basic block.
- * (@see BasicBlock)
- * This class can also optionally construct GC maps. These GC maps
- * are later used to create the final gc map (see OptReferenceMap.java).
+ * (@see BasicBlock)<p>
  *
- * The bottom of the file contains comments regarding imprecise exceptions.
+ * This class can also optionally construct GC maps. These GC maps
+ * are later used to create the final gc map (see OptReferenceMap.java).<p>
+ *
+ * Previously we used to be concerned that we didn't lose any
+ * precision due to imprecise modeling of exceptions.
+ * However, the troublesome situation cannot occur in Java. The rest of the
+ * comment for this class explains why that situation cannot occur.<p>
+ *
+ * The Java SPEC forces the compiler to declare a variable as uninitialized
+ * in those case that would be problematic. Consider the following
+ * ***ILLEGAL*** example:
+ *
+ * <pre>
+ * static void main(String arg[]) {
+ *   Object x;
+ *
+ *   try {
+ *     foo();
+ *     x = null;
+ *     bar();
+ *   }
+ *   catch (FooException e) {
+ *   }
+ *
+ *   catch (BarException e) {
+ *     Object a = x;
+ *   }
+ * }
+ * </pre>
+ *
+ * <p>
+ * Here x is live in the Bar catch block, but not above the assignment
+ * in the try block.  We only kill off values coming from
+ * catch blocks if they are in the first PEI region (above the call
+ * to foo).  Thus, our analysis will conservatively record that x
+ * is live above the assignment.<p>
+ *
+ * However, the Java SPEC requires compilers to state that x is uninitialized
+ * here, even though it isn't.  Thus, this scenario cannot occur.
+ * Basically, every variable used in a catch block needs to be defined
+ * before the TRY statement.  (The SPEC doesn't explicitly state this, but
+ * on page 398 (Sec 16.2.13) it says that every variable used in a *finally*
+ * block needs to be defined before the TRY statement, which is even more
+ * restrictive.<p>
+ *
+ * Bottomline: losing precision is not a concern!
  */
 public final class LiveAnalysis extends CompilerPhase {
   // Real Instance Variables
@@ -112,6 +153,7 @@ public final class LiveAnalysis extends CompilerPhase {
   /** Even more debugging info */
   private static final boolean VERBOSE = false;
 
+  @Override
   public String getName() {
     return "Live Analysis";
   }
@@ -186,6 +228,7 @@ public final class LiveAnalysis extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -197,6 +240,7 @@ public final class LiveAnalysis extends CompilerPhase {
    *
    * @param ir the ir
    */
+  @Override
   public void perform(IR ir) {
 
     // Debugging information
@@ -293,9 +337,7 @@ public final class LiveAnalysis extends CompilerPhase {
   public Iterator<LiveIntervalElement> iterateLiveIntervals(Register r) {
     ArrayList<LiveIntervalElement> set = registerMap[r.getNumber()];
     if (set == null) {
-      @SuppressWarnings("unchecked") // Can't type-check EmptyIterator.INSTANCE in java
-          Iterator<LiveIntervalElement> empty = (Iterator) EmptyIterator.INSTANCE;
-      return empty;
+      return EmptyIterator.<LiveIntervalElement>getInstance();
     } else {
       return set.iterator();
     }
@@ -463,9 +505,9 @@ public final class LiveAnalysis extends CompilerPhase {
 
       // traverse from defs to uses becauses uses happen after
       // (in a backward sense) defs
-      OperandEnumeration defs = inst.getPureDefs();
+      Enumeration<Operand> defs = inst.getPureDefs();
       while (defs.hasMoreElements()) {
-        Operand def = defs.next();
+        Operand def = defs.nextElement();
         if (def instanceof RegisterOperand) {
           RegisterOperand regOp = (RegisterOperand) def;
 
@@ -504,8 +546,8 @@ public final class LiveAnalysis extends CompilerPhase {
 
       // Now process the uses, unless this is a PHI operator
       if (inst.operator() != PHI) {
-        for (OperandEnumeration uses = inst.getUses(); uses.hasMoreElements();) {
-          Operand use = uses.next();
+        for (Enumeration<Operand> uses = inst.getUses(); uses.hasMoreElements();) {
+          Operand use = uses.nextElement();
           if (use instanceof RegisterOperand) {
             RegisterOperand regOp = (RegisterOperand) use;
 
@@ -624,8 +666,8 @@ public final class LiveAnalysis extends CompilerPhase {
       // visit each successor, if it is a regular successor, add
       // it to "currentSet".  If it is a handler block, add it to
       // ExceptionBlockSummary.
-      for (BasicBlockEnumeration bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
-        BasicBlock succ = bbEnum.next();
+      for (Enumeration<BasicBlock> bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
+        BasicBlock succ = bbEnum.nextElement();
 
         // sometimes we may have a CFG edge to a handler, but no longer a
         //   PEI that can make the edge realizable.  Thus, we have two
@@ -692,17 +734,19 @@ public final class LiveAnalysis extends CompilerPhase {
   /**
    *  This method performs the last phase of the analysis, local propagation.
    *  It uses the results from the fixed point analysis to determine the
-   *  local live information within a basic block.
+   *  local live information within a basic block.<p>
    *
    *  It walks the IR and, using the live information computed for each
    *  basic block, i.e., the results of the iterative solution, makes a single
    *  pass backward walk through the basic block, GENing and KILLing
    *  local information.  This produces the set of live variables at each
-   *  instruction.
+   *  instruction.<p>
    *
    *  This information is saved into two data structures:
-   *       - at all GC points, live references are recorded
-   *       - at all instructions, live range information is recorded
+   *  <ul>
+   *    <li>at all GC points, live references are recorded
+   *    <li>at all instructions, live range information is recorded
+   *  </ul>
    *
    *  @param ir the IR
    */
@@ -737,8 +781,8 @@ public final class LiveAnalysis extends CompilerPhase {
       // During this processing we should NOT include exception-catching
       // blocks, but instead remember them for use at exception-raising
       // statements in this block
-      for (BasicBlockEnumeration bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
-        BasicBlock succ = bbEnum.next();
+      for (Enumeration<BasicBlock> bbEnum = block.getOut(); bbEnum.hasMoreElements();) {
+        BasicBlock succ = bbEnum.nextElement();
         if (succ.isExceptionHandlerBasicBlock()) {
           exceptionBlockSummary.add(bbLiveInfo[succ.getNumber()].getIn());
         } else {
@@ -781,8 +825,8 @@ public final class LiveAnalysis extends CompilerPhase {
         // compute In set for this instruction & GC point info
         // traverse from defs to uses, do "kill" then "gen" (backwards analysis)
         // Def loop
-        for (OperandEnumeration defs = inst.getPureDefs(); defs.hasMoreElements();) {
-          Operand op = defs.next();
+        for (Enumeration<Operand> defs = inst.getPureDefs(); defs.hasMoreElements();) {
+          Operand op = defs.nextElement();
           if (op instanceof RegisterOperand) {
             RegisterOperand regOp = (RegisterOperand) op;
             // Currently, clients of live information do not need to know
@@ -835,8 +879,8 @@ public final class LiveAnalysis extends CompilerPhase {
         }       // is GC instruction, and map not already made
 
         // now process the uses
-        for (OperandEnumeration uses = inst.getUses(); uses.hasMoreElements();) {
-          Operand op = uses.next();
+        for (Enumeration<Operand> uses = inst.getUses(); uses.hasMoreElements();) {
+          Operand op = uses.nextElement();
           if (op instanceof RegisterOperand) {
             RegisterOperand regOp = (RegisterOperand) op;
             // Do we care about this reg?
@@ -1134,6 +1178,7 @@ public final class LiveAnalysis extends CompilerPhase {
      * creates a string representation of this object
      * @return string representation of this object
      */
+    @Override
     public String toString() {
       StringBuilder buf = new StringBuilder("");
       buf.append(" Gen: ").append(gen).append("\n");
@@ -1249,42 +1294,3 @@ public final class LiveAnalysis extends CompilerPhase {
     osrMap.insertFirst(inst, mvarList);
   }
 }
-
-// Previously we used to be concerned that we didn't lose any
-// precision due to imprecise modeling of exceptions.
-// However, the troublesome situation cannot occur in Java
-// because the Java SPEC forces the compiler to declare a variable
-// as uninitialized.
-//
-// Conside the following ***ILLEGAL*** example:
-//
-//  static void main(String arg[]) {
-//    Object x;
-//    try {
-//      foo();
-//      x = null;
-//      bar();
-//    }
-//    catch (FooException e) {
-//    }
-//
-//    catch (BarException e) {
-//      Object a = x;
-//    }
-//  }
-//
-//  Here x is live in the Bar catch block, but not above the assignment
-//  in the try block.  Recall that we only kill off values coming from
-//  catch blocks if they are in the first PEI region (above the call
-//  to foo).  Thus, our analysis will conservatively record that x
-//  is live above the assignment.
-//
-//  However, the Java SPEC requires compilers to state that x is uninitialized
-//  here, even though it isn't.  Thus, this scenario cannot occur.
-//  Basically, every variable used in a catch block needs to be defined
-//  before the TRY statement.  (The SPEC doesn't explicitly state this, but
-//  on page 398 (Sec 16.2.13) it says that
-//     every variable used in a *finally* block needs to be defined
-//  before the TRY statement, which is even more restrictive.
-//  Bottomline: losing precision is not a concern!
-

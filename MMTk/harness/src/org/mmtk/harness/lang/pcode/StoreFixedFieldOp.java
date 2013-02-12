@@ -49,6 +49,7 @@ public final class StoreFixedFieldOp extends BinaryOp {
     assert fieldType == Type.OBJECT || fieldType == Type.INT;
   }
 
+  @Override
   public String toString() {
     return String.format("%s.%s <- %s",
         Register.nameOf(op1),fieldName,Register.nameOf(op2));

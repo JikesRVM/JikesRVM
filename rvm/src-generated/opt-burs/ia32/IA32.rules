@@ -433,6 +433,11 @@ stm:	SET_CAUGHT_EXCEPTION(r)
 EMIT_INSTRUCTION
 SET_EXCEPTION_OBJECT(P(p));
 
+stm: SET_CAUGHT_EXCEPTION(INT_CONSTANT)
+20
+EMIT_INSTRUCTION
+SET_EXCEPTION_OBJECT(P(p));
+
 ##################################
 # Trap operations
 ##################################

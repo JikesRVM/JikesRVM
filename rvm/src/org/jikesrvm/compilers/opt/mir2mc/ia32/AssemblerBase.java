@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
 import org.jikesrvm.ArchitectureSpecific.Assembler;
@@ -33,7 +35,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -55,7 +56,7 @@ import org.vmmagic.unboxed.Offset;
  * Assembler; it handles basic impedance-matching functionality
  * such as determining which addressing mode is suitable for a given
  * IA32MemoryOperand.  This class also provides some boilerplate
- * methods that do not depend on how instructions sould actually be
+ * methods that do not depend on how instructions should actually be
  * assembled, like the top-level generateCode driver.  This class is
  * not meant to be used in isolation, but rather to provide support
  * from the Assembler.
@@ -128,6 +129,7 @@ abstract class AssemblerBase extends Assembler
    * hot code code space? The default answer for opt compiled code is yes
    * (otherwise why are we opt compiling it?).
    */
+  @Override
   protected boolean isHotCode() { return true; }
 
   /**
@@ -288,7 +290,7 @@ abstract class AssemblerBase extends Assembler
   }
 
   MM getMM_Reg(Operand op) {
-    VM._assert(false, "MM registers not currently supported in the opt compiler");
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "MM registers not currently supported in the opt compiler");
     return null;
   }
 
@@ -319,7 +321,7 @@ abstract class AssemblerBase extends Assembler
 
   /**
    * Given a memory operand, return the 3 bit IA32 ISA encoding
-   * of its index regsiter.  This function translates the optimizing
+   * of its index register.  This function translates the optimizing
    * compiler register operand representing the index of the given
    * memory operand into the 3 bit IA32 ISA encoding that
    * can be passed to the Assembler.  This function assumes its
@@ -506,7 +508,7 @@ abstract class AssemblerBase extends Assembler
    *  Return the label representing the target of the given branch
    * operand.  These labels are used to represent branch targets
    * that have not yet been assembled, and so cannot be given
-   * concrete machine code offsets.  All instructions are nunbered
+   * concrete machine code offsets.  All instructions are numbered
    * just prior to assembly, and these numbers are used as labels.
    * This method also returns 0 (not a valid label) for int
    * constants to simplify generation of branches (the branch
@@ -567,7 +569,7 @@ abstract class AssemblerBase extends Assembler
    * name means operate upon byte data.
    *
    * @param inst the instruction being queried
-   * @return true if inst operates upon byte data
+   * @return {@code true} if inst operates upon byte data
    */
   boolean isByte(Instruction inst) {
     for(Operator opr : byteSizeOperators){
@@ -625,7 +627,7 @@ abstract class AssemblerBase extends Assembler
    * this convention.
    *
    * @param inst the instruction being queried
-   * @return true if inst operates upon quad data
+   * @return {@code true} if inst operates upon quad data
    */
   boolean isQuad(Instruction inst) {
     for(Operator opr : quadSizeOperators){
@@ -650,7 +652,7 @@ abstract class AssemblerBase extends Assembler
    * target is less than 127 bytes
    * @param start the branch instruction
    * @param target the value of the mcOffset of the target label
-   * @return true if the relative offset will be less than 127, false otherwise
+   * @return {@code true} if the relative offset will be less than 127, false otherwise
    */
   protected boolean targetIsClose(Instruction start, int target) {
     Instruction inst = start.nextInstructionInCodeOrder();
@@ -834,8 +836,8 @@ abstract class AssemblerBase extends Assembler
         }
       default: {
         int size = 3; // 2 bytes opcode + 1 byte modr/m
-        for (OperandEnumeration opEnum = inst.getRootOperands(); opEnum.hasMoreElements();) {
-          Operand op = opEnum.next();
+        for (Enumeration<Operand> opEnum = inst.getRootOperands(); opEnum.hasMoreElements();) {
+          Operand op = opEnum.nextElement();
           size += operandCost(op, false);
         }
         return size;
@@ -922,7 +924,7 @@ abstract class AssemblerBase extends Assembler
     if (isImm(MIR_CondBranch.getTarget(inst))) {
       emitJCC_Cond_Imm(cond, getImm(MIR_CondBranch.getTarget(inst)));
     } else {
-      if (VM.VerifyAssertions && !isLabel(MIR_CondBranch.getTarget(inst))) VM._assert(false, inst.toString());
+      if (VM.VerifyAssertions && !isLabel(MIR_CondBranch.getTarget(inst))) VM._assert(VM.NOT_REACHED, inst.toString());
       int sourceLabel = -inst.getmcOffset();
       int targetLabel = getLabel(MIR_CondBranch.getTarget(inst));
       int delta = targetLabel - sourceLabel;
@@ -983,7 +985,7 @@ abstract class AssemblerBase extends Assembler
     } else if (isRegInd(MIR_Branch.getTarget(inst))) {
       emitJMP_RegInd(getBase(MIR_Branch.getTarget(inst)));
     } else {
-      if (VM.VerifyAssertions) VM._assert(false, inst.toString());
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, inst.toString());
     }
   }
 

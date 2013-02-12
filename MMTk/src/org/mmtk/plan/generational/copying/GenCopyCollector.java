@@ -75,15 +75,9 @@ public class GenCopyCollector extends GenCollector {
    */
 
   /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   *
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
@@ -101,14 +95,11 @@ public class GenCopyCollector extends GenCollector {
   }
 
   /**
-   * Perform any post-copy actions.  In this case we clear any bits used
-   * for this object's GC metadata.
+   * {@inheritDoc}<p>
    *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator to allocate from
+   * In this case we clear any bits used for this object's GC metadata.
    */
+  @Override
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -128,12 +119,9 @@ public class GenCopyCollector extends GenCollector {
    */
 
   /**
-   * Execute a per-collector collection phase.
-   *
-   * @param phaseId The phase to execute.
-   * @param primary True if this thread should peform local single-threaded
-   * actions.
+   * {@inheritDoc}
    */
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
       if (phaseId == GenCopy.PREPARE) {
@@ -168,5 +156,6 @@ public class GenCopyCollector extends GenCollector {
     mature.show();
   }
 
+  @Override
   public final TraceLocal getFullHeapTrace() { return matureTrace; }
 }

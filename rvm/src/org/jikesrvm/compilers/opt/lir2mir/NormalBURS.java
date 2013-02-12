@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_Debug;
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_STATE;
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_TreeNode;
@@ -22,7 +24,6 @@ import org.jikesrvm.compilers.opt.depgraph.DepGraphEdge;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_COMBINE;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_COND_MOVE;
@@ -106,9 +107,9 @@ final class NormalBURS extends BURS {
       Instruction instr = n.instruction();
       // cur_parent = current parent node for var length IR instructions
       // loop for USES of an instruction
-      for (OperandEnumeration uses = instr.getUses(); uses.hasMoreElements();) {
+      for (Enumeration<Operand> uses = instr.getUses(); uses.hasMoreElements();) {
         // Create tree edge for next use.
-        Operand op = uses.next();
+        Operand op = uses.nextElement();
         if (op == null) continue;
 
         // Set child = BURS_TreeNode for operand op
@@ -439,7 +440,7 @@ final class NormalBURS extends BURS {
   }
 
   /**
-   * Return true if node n must be a root of a BURS tree
+   * Return {@code true} if node n must be a root of a BURS tree
    * based only on its register true dependencies.
    * If the node might later have to be marked as a tree
    * root, then include in a set of problem nodes.
@@ -500,7 +501,7 @@ final class NormalBURS extends BURS {
         return out.toNode();
       }
     }
-    if (VM.VerifyAssertions) VM._assert(false);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
   }
 

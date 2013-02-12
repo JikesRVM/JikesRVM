@@ -48,6 +48,10 @@ import org.vmmagic.unboxed.Word;
    *
    * Class variables
    */
+
+  /**
+   *
+   */
   private static byte[][] allocCallMethods;
 
   static {
@@ -74,10 +78,9 @@ import org.vmmagic.unboxed.Word;
    */
 
   /**
-   * Returns if the VM is ready for a garbage collection.
-   *
-   * @return True if the RVM is ready for GC, false otherwise.
+   * {@inheritDoc}
    */
+  @Override
   public boolean gcEnabled() {
     return RVMThread.gcEnabled();
   }
@@ -87,7 +90,7 @@ import org.vmmagic.unboxed.Word;
    * used for allocation/tracing.
    *
    * @param name The method name to test as an array of bytes
-   * @return True if the method is a "real" method, false otherwise.
+   * @return {@code true} if the method is a "real" method, {@code false} otherwise.
    */
   private boolean isAllocCall(byte[] name) {
     for (int i = 0; i < allocCallMethods.length; i++) {
@@ -108,17 +111,7 @@ import org.vmmagic.unboxed.Word;
     return false;
   }
 
-  /**
-   * This adjusts the offset into an object to reflect what it would look like
-   * if the fields were laid out in memory space immediately after the object
-   * pointer.
-   *
-   * @param isScalar If this is a pointer store to a scalar object
-   * @param src The address of the source object
-   * @param slot The address within <code>src</code> into which
-   * the update will be stored
-   * @return The easy to understand offset of the slot
-   */
+  @Override
   public Offset adjustSlotOffset(boolean isScalar,
                                               ObjectReference src,
                                               Address slot) {
@@ -131,15 +124,7 @@ import org.vmmagic.unboxed.Word;
       return offset;
   }
 
-  /**
-   * This skips over the frames added by the tracing algorithm, outputs
-   * information identifying the method the containts the "new" call triggering
-   * the allocation, and returns the address of the first non-trace, non-alloc
-   * stack frame.
-   *
-   * @param typeRef The type reference (tib) of the object just allocated
-   * @return The frame pointer address for the method that allocated the object
-   */
+  @Override
   @NoInline
   @Interruptible // This can't be uninterruptible --- it is an IO routine
   public Address skipOwnFramesAndDump(ObjectReference typeRef) {
@@ -149,7 +134,7 @@ import org.vmmagic.unboxed.Word;
     int compiledMethodID = 0;
     Offset ipOffset = Offset.zero();
     Address fp = Magic.getFramePointer();
-    Address ip = Magic.getReturnAddress(fp);
+    Address ip = Magic.getReturnAddressUnchecked(fp);
     fp = Magic.getCallerFramePointer(fp);
     // This code borrows heavily from RVMThread.dumpStack
     while (Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
@@ -193,7 +178,7 @@ import org.vmmagic.unboxed.Word;
           }
         }
       }
-      ip = Magic.getReturnAddress(fp);
+      ip = Magic.getReturnAddressUnchecked(fp);
       fp = Magic.getCallerFramePointer(fp);
     }
     if (m != null) {
@@ -228,61 +213,76 @@ import org.vmmagic.unboxed.Word;
    * Wrapper methods
    */
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   @Inline
   public void updateDeathTime(ObjectReference obj) {
     MiscHeader.updateDeathTime(obj.toObject());
   }
 
+  @Override
   @Inline
   public void setDeathTime(ObjectReference ref, Word time_) {
     MiscHeader.setDeathTime(ref.toObject(), time_);
   }
 
+  @Override
   @Inline
   public void setLink(ObjectReference ref, ObjectReference link) {
     MiscHeader.setLink(ref.toObject(), link);
   }
 
+  @Override
   @Inline
   public void updateTime(Word time_) {
     MiscHeader.updateTime(time_);
   }
 
+  @Override
   @Inline
   public Word getOID(ObjectReference ref) {
     return MiscHeader.getOID(ref.toObject());
   }
 
+  @Override
   @Inline
   public Word getDeathTime(ObjectReference ref) {
     return MiscHeader.getDeathTime(ref.toObject());
   }
 
+  @Override
   @Inline
   public ObjectReference getLink(ObjectReference ref) {
     return MiscHeader.getLink(ref.toObject());
   }
 
+  @Override
   @Inline
   public Address getBootImageLink() {
     return MiscHeader.getBootImageLink();
   }
 
+  @Override
   @Inline
   public Word getOID() {
     return MiscHeader.getOID();
   }
 
+  @Override
   @Inline
   public void setOID(Word oid) {
     MiscHeader.setOID(oid);
   }
 
+  @Override
   @Inline
   public int getHeaderSize() {
     return MiscHeader.getHeaderSize();
   }
 
+  @Override
   @Inline
   public int getHeaderEndOffset() {
     return ObjectModel.getHeaderEndOffset();

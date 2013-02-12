@@ -28,6 +28,7 @@ public class IRPrinter extends CompilerPhase {
     msg = m;
   }
 
+  @Override
   public final String getName() {
     return "IR_Printer: " + msg;
   }
@@ -36,6 +37,7 @@ public class IRPrinter extends CompilerPhase {
    * Print an IR
    * @param ir the IR to print
    */
+  @Override
   public final void perform(IR ir) {
     if (ir.options.getOptLevel() < ir.options.PRINT_IR_LEVEL) {
       return;
@@ -51,6 +53,7 @@ public class IRPrinter extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }

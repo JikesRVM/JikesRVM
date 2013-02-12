@@ -78,7 +78,7 @@ public final class InvocationCounts {
 
   /**
    * Create the compilation plan according to the default set
-   * of <optimization plan, options> pairs
+   * of {@literal <optimization plan, options>} pairs
    */
   public static CompilationPlan createCompilationPlan(NormalMethod method) {
     return new CompilationPlan(method, _optPlan, null, _options);
@@ -89,7 +89,7 @@ public final class InvocationCounts {
   }
 
   /**
-   *  Initialize the recompilation strategy.
+   *  Initialize the recompilation strategy.<p>
    *
    *  Note: This uses the command line options to set up the
    *  optimization plans, so this must be run after the command line

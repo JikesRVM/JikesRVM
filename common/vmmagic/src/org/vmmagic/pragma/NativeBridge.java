@@ -21,10 +21,12 @@ import org.vmmagic.Pragma;
 /**
  * Methods of a class that implements this interface are treated specially
  * by the compilers:
- *  -They are only called from C or C++ program
- *  -The compiler will generate the necessary prolog to insert a glue stack
- *   frame to map from the native stack/register convention to RVM's convention
- *  -It is an error to call these methods from Java
+ * <ul>
+ *  <li>They are only called from C or C++ program</li>
+ *  <li>The compiler will generate the necessary prolog to insert a glue stack
+ *   frame to map from the native stack/register convention to RVM's convention</li>
+ *  <li>It is an error to call these methods from Java</li>
+ * </ul>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

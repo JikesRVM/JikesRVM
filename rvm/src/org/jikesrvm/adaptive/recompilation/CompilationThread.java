@@ -23,9 +23,9 @@ import org.vmmagic.pragma.NonMoving;
  *  queue of compilation plans.  Whenever the queue is nonempty, this
  *  thread will pick the highest priority compilation plan from the queue
  *  and invoke the OPT compiler to perform the plan.
- *
+ *  <p>
  *  No intelligence is contained in this class.  All policy decisions are
- *  made by the controllerThread.
+ *  made by the ControllerThread.
  */
 @NonMoving
 public final class CompilationThread extends SystemThread {
@@ -38,7 +38,7 @@ public final class CompilationThread extends SystemThread {
   }
 
   /**
-   * This is the main loop of the compilation thread. It's job is to
+   * This is the main loop of the compilation thread. Its job is to
    * remove controller plans from the compilation queue and perform
    * them.
    */

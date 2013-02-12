@@ -23,31 +23,19 @@ public class SynchronizedCounter extends org.mmtk.vm.SynchronizedCounter {
   /** The current value of the counter */
   private int value;
 
-  /**
-   * Reset the counter to 0, returning its previous value.
-   *
-   * @return The value of the counter, prior to reset.
-   */
+  @Override
   public synchronized int reset() {
     int old = value;
     value = 0;
     return old;
   }
 
-  /**
-   * Adds 1 to the counter.
-   *
-   * @return the value before the add
-   */
+  @Override
   public synchronized int increment() {
     return value++;
   }
 
-  /**
-   * Peek at the counter
-   *
-   * @return The current value of the counter.
-   */
+  @Override
   public int peek() {
     return value;
   }

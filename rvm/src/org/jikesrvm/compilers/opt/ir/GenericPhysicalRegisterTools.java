@@ -19,8 +19,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
  * This abstract class provides a set of useful architecture-independent
- * methods for
- * manipulating physical registers for an IR.
+ * methods for manipulating physical registers for an IR.
  */
 public abstract class GenericPhysicalRegisterTools extends IRTools {
 

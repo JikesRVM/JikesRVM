@@ -18,7 +18,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * An option that is a selection of several strings. The mapping
  * between strings and integers is determined using indexes into
  * a string array.
- *
+ * <p>
  * Enumerations are case sensitive.
  */
 public class EnumOption extends Option {

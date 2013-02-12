@@ -26,8 +26,10 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public class CMSConstraints extends ConcurrentConstraints {
+  @Override
   public int gcHeaderBits() { return MarkSweepSpace.LOCAL_GC_BITS_REQUIRED; }
 
+  @Override
   public int gcHeaderWords() { return MarkSweepSpace.GC_HEADER_WORDS_REQUIRED; }
 
   @Override

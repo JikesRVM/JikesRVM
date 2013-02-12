@@ -15,19 +15,17 @@ package org.jikesrvm.compilers.opt.util;
 import java.util.Enumeration;
 
 
-//
-// List of Graph Edges.
-
-//
 class SpaceEffGraphEdgeList implements Enumeration<SpaceEffGraphEdgeList> {
   SpaceEffGraphEdge _edge;
   SpaceEffGraphEdgeList _next;
   SpaceEffGraphEdgeList _prev;
 
+  @Override
   public boolean hasMoreElements() {
     return _next != null;
   }
 
+  @Override
   public SpaceEffGraphEdgeList nextElement() {
     SpaceEffGraphEdgeList tmp = _next;
     _next = _next._next;

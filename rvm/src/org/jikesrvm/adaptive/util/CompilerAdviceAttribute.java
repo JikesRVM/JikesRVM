@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 
 /**
  * Defines an attribute for compiler advice, and maintains a map
- * allowing attributes to be retrived by method and bytecode offset.
+ * allowing attributes to be retrieved by method and bytecode offset.
  * <p>
  * Each attribute encodes an compiler site and the advice for that
  * site:
@@ -145,6 +145,7 @@ public class CompilerAdviceAttribute {
    *
    * @return The state of this instance expressed as a string
    */
+  @Override
   public String toString() {
     return ("Compiler advice: " +
             className +
@@ -211,6 +212,7 @@ public class CompilerAdviceAttribute {
     return hasAdvice;
   }
 
+  @Override
   public boolean equals(Object obj) {
     if (super.equals(obj)) {
       return true;
@@ -225,6 +227,7 @@ public class CompilerAdviceAttribute {
     return false;
   }
 
+  @Override
   public int hashCode() {
     return className.hashCode() ^ methodName.hashCode() ^ methodSig.hashCode();
   }

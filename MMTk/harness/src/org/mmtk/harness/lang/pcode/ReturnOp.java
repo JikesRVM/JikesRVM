@@ -34,7 +34,7 @@ public final class ReturnOp extends NullaryOp {
     this.operand = operand.getIndex();
   }
 
-  /** A return op with no return value, ie from a void method */
+  /** A return op with no return value, ie. from a void method */
   public ReturnOp(AST source) {
     super(source,"return");
     this.operand = NO_SUCH_SLOT;
@@ -58,19 +58,18 @@ public final class ReturnOp extends NullaryOp {
     return frame.get(operand);
   }
 
-  /** Is this a branch-like instruction */
   @Override
   public boolean affectsControlFlow() {
     return true;
   }
 
-  /** Is this a return instruction */
   @Override
   public boolean isReturn() {
     return true;
   }
 
   /** Format this instruction for printing */
+  @Override
   public String toString() {
     return "return " + (operand != NO_SUCH_SLOT ? "t"+operand : "");
   }

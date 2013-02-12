@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt.ssa;
 /**
  * This module defines parameters to the SSA construction process.
  * This is used to pass information between compiler phases.
+ * <p>
  * IMPORTANT: Phases that change the SSA state MUST update the SSA
  *            actual options held by the IR object.
  */
@@ -146,7 +147,7 @@ public class SSAOptions {
 
   /**
    * Given a desired set of SSA Options, does this set of SSA Options
-   * describe enough information to satisfy the desiree?
+   * describe enough information to satisfy the desire?
    *
    * @param d the desired SSA options
    */

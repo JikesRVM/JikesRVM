@@ -44,6 +44,9 @@ public class StickyMSMutator extends MSMutator {
    * Instance fields
    */
 
+  /**
+   *
+   */
   private ObjectReferenceDeque modBuffer;
 
   /****************************************************************************
@@ -65,21 +68,13 @@ public class StickyMSMutator extends MSMutator {
    */
 
   /**
-   * A new reference is about to be created.  Take appropriate write
-   * barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Override
   @Inline
   public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
@@ -89,26 +84,12 @@ public class StickyMSMutator extends MSMutator {
   }
 
   /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the mutated source address range and
    * will scan that address range at GC time.
-   *
-   * @param src The source of the values to copied
-   * @param srcOffset The offset of the first source address, in
-   * bytes, relative to <code>src</code> (in principle, this could be
-   * negative).
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The offset of the first destination address, in
-   * bytes relative to <code>tgt</code> (in principle, this could be
-   * negative).
-   * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
    */
+  @Override
   @Inline
   public final boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
       ObjectReference dst, Offset dstOffset, int bytes) {
@@ -117,23 +98,7 @@ public class StickyMSMutator extends MSMutator {
     return false;
   }
 
-  /**
-   * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is
-   * created, we must then take appropriate write barrier actions.<p>
-   *
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param old The old reference to be swapped out
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
-   * @return True if the swap was successful.
-   */
+  @Override
   @Inline
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot,
                                                ObjectReference old, ObjectReference tgt, Word metaDataA,
@@ -160,9 +125,7 @@ public class StickyMSMutator extends MSMutator {
     modBuffer.push(src);
   }
 
-  /**
-   * Flush per-mutator remembered sets into the global remset pool.
-   */
+  @Override
   public final void flushRememberedSets() {
     modBuffer.flushLocal();
     assertRemsetFlushed();
@@ -188,11 +151,9 @@ public class StickyMSMutator extends MSMutator {
    */
 
   /**
-   * Perform a per-mutator collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == StickyMS.PREPARE) {
@@ -218,10 +179,6 @@ public class StickyMSMutator extends MSMutator {
   }
 
 
-  /**
-   * Flush mutator context, in response to a requestMutatorFlush.
-   * Also called by the default implementation of deinitMutator.
-   */
   @Override
   public void flush() {
     super.flush();

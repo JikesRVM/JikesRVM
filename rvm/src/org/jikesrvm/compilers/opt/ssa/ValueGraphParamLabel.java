@@ -22,6 +22,7 @@ final class ValueGraphParamLabel {
     paramNum = pn;
   }
 
+  @Override
   public String toString() {
     return "formal" + paramNum;
   }

@@ -24,20 +24,24 @@ public class LoadDoubleConst extends PseudoBytecode {
     this.dbits = bits;
   }
 
+  @Override
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_LoadDoubleConst);
     long2bytes(codes, 2, dbits);
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     return +2;
   }
 
+  @Override
   public String toString() {
     return "LoadDouble 0x" + Long.toHexString(dbits) + " : " + Double.longBitsToDouble(dbits);
   }

@@ -60,10 +60,12 @@ public final class PowerPCTrapOperand extends Operand {
     return new PowerPCTrapOperand(ALWAYS);
   }
 
+  @Override
   public Operand copy() {
     return new PowerPCTrapOperand(value);
   }
 
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof PowerPCTrapOperand) && (((PowerPCTrapOperand) op).value == value);
   }
@@ -111,8 +113,8 @@ public final class PowerPCTrapOperand extends Operand {
   }
 
   /**
-   * this could be used if you want to flip the order of the operands
-   * you will notice that there are some differences
+   * This could be used if you want to flip the order of the operands.
+   * You will notice that there are some differences.
    */
   PowerPCTrapOperand flipOperands() {
     switch (value) {
@@ -158,7 +160,7 @@ public final class PowerPCTrapOperand extends Operand {
   }
 
   /**
-   * translate from ConditionOperand: used by BURS
+   * Translate from ConditionOperand: used by BURS.
    */
   public void translate(ConditionOperand c) {
     switch (c.value) {
@@ -198,6 +200,7 @@ public final class PowerPCTrapOperand extends Operand {
   /**
    * Returns the string representation of this operand.
    */
+  @Override
   public String toString() {
     String result = "ppc trap ";
     switch (value) {

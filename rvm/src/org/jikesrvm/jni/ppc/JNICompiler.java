@@ -52,28 +52,33 @@ public abstract class JNICompiler
    * for all future calls. <p>
    * <pre>
    * The stub performs the following tasks in the prologue:
-   *   -Allocate the glue frame
-   *   -Save the TR and JTOC registers in the JNI Environment for reentering Java later
-   *   -Shuffle the parameters in the registers to conform to the OS calling convention
-   *   -Save the nonvolatile registers in a known space in the frame to be used
+   * <ol>
+   *  <li>Allocate the glue frame
+   *  <li>Save the TR and JTOC registers in the JNI Environment for reentering Java later
+   *  <li>Shuffle the parameters in the registers to conform to the OS calling convention
+   *  <li>Save the nonvolatile registers in a known space in the frame to be used
    *    for the GC stack map
-   *   -Push a new JREF frame on the JNIRefs stack
-   *   -Supply the first JNI argument:  the JNI environment pointer
-   *   -Supply the second JNI argument:  class object if static, "this" if virtual
-   *   -Setup the TOC (AIX only) and IP to the corresponding native code
-   *
+   *  <li>Push a new JREF frame on the JNIRefs stack
+   *  <li>Supply the first JNI argument:  the JNI environment pointer
+   *  <li>Supply the second JNI argument:  class object if static, "this" if virtual
+   *  <li>Setup the TOC (AIX only) and IP to the corresponding native code
+   * </ol>
+   * <p>
    * The stub performs the following tasks in the epilogue:
-   *   -Restore TR and JTOC registers saved in JNI Environment
-   *   -Restore the nonvolatile registers if GC has occurred
-   *   -Pop the JREF frame off the JNIRefs stack
-   *   -Check for pending exception and deliver to Java caller if present
-   *   -Process the return value from native:  push onto caller's Java stack
-   *
+   * <ol>
+   *  <li>Restore TR and JTOC registers saved in JNI Environment
+   *  <li>Restore the nonvolatile registers if GC has occurred
+   *  <li>Pop the JREF frame off the JNIRefs stack
+   *  <li>Check for pending exception and deliver to Java caller if present
+   *  <li>Process the return value from native:  push onto caller's Java stack
+   * </ol>
+   * <p>
    * Within the stackframe, we have two frames.
    * The "main" frame exactly follows the OS native ABI and is therefore
    * different for PowerOpenABI, SVR4ABI, and MachOABI.
    * The "mini-frame" is identical on all platforms and is stores RVM-specific fields.
    * The picture below shows the frames for PowerOpenABI.
+   * <pre>
    *
    *   | fp       | <- native frame
    *   | cr       |
@@ -118,7 +123,7 @@ public abstract class JNICompiler
    *   |----------|
    *   |          |
    * </pre>
-   *
+   * <p>
    * Runtime.unwindNativeStackFrame will return a pointer to the mini-frame
    * because none of our stack walkers need to do anything with the main frame.
    */
@@ -144,7 +149,7 @@ public abstract class JNICompiler
 
     // save return address in caller frame
     asm.emitMFLR(REGISTER_ZERO);
-    asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
 
     // buy mini frame
     asm.emitSTAddrU(FP, -JNI_SAVE_AREA_SIZE, FP);
@@ -384,7 +389,7 @@ public abstract class JNICompiler
     // C return value is already where caller expected it (T0/T1 or F0)
     // So, just restore the return address to the link register.
 
-    asm.emitLAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitLAddr(REGISTER_ZERO, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
     asm.emitMTLR(REGISTER_ZERO);                           // restore return address
 
     // CHECK EXCEPTION AND BRANCH TO ATHROW CODE OR RETURN NORMALLY
@@ -425,9 +430,13 @@ public abstract class JNICompiler
   /**
    * Map the arguments from RVM convention to OS convention,
    * and replace all references with indexes into JNIRefs array.
+   * <p>
    * Assumption on entry:
-   * -KLUDGE_TI_REG, THREAD_REGISTER and S1 are available for use as scratch register
-   * -the frame has been created, FP points to the new callee frame
+   * <ul>
+   *   <li>KLUDGE_TI_REG, THREAD_REGISTER and S1 are available for use as scratch register
+   *   <li>the frame has been created, FP points to the new callee frame
+   * </ul>
+   * <p>
    * Also update the JNIRefs array
    */
   private static void storeParameters(Assembler asm, int frameSize, RVMMethod method, RVMClass klass) {
@@ -1302,7 +1311,7 @@ public abstract class JNICompiler
     asm.emitLVAL(S0, INVISIBLE_METHOD_ID);
     asm.emitMFLR(REGISTER_ZERO);
     asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);
-    asm.emitSTAddr(REGISTER_ZERO, glueFrameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitSTAddr(REGISTER_ZERO, glueFrameSize + STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
 
     // Attempt to change the vpStatus of the current Processor to IN_JAVA
     //
@@ -1479,7 +1488,7 @@ public abstract class JNICompiler
     // load return address & return to caller
     // T0 & T1 (or F1) should still contain the return value
     //
-    asm.emitLAddr(T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitLAddr(T2, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
     asm.emitMTLR(T2);
     asm.emitBCLR(); // branch always, through link register
 

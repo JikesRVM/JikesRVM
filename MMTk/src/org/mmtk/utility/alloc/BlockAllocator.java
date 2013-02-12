@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.*;
  * This class implements "block" data structures of various sizes.<p>
  *
  * Blocks are a non-shared (thread-local) coarse-grained unit of
- * storage. Blocks are available in power-of-two sizes.
+ * storage. Blocks are available in power-of-two sizes.<p>
  *
  * Virtual memory space is taken from a VM resource, and pages
  * consumed by blocks are accounted for by a memory resource.
@@ -35,6 +35,10 @@ public final class BlockAllocator implements Constants {
    *
    * Class variables
    */
+
+  /**
+  *
+  */
 
   // block freelist
   public static final int LOG_MIN_BLOCK = 12; // 4K bytes

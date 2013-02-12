@@ -53,11 +53,12 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
   @Entrypoint
   private static int[][] data;
 
+  @Override
   public void notifyExit(int value) { dumpCounts(); }
 
   /**
    * Attempt to use edge counts from an input file.  If the source
-   * file is not null, then clear any existing counts and read in new
+   * file is not {@code null}, then clear any existing counts and read in new
    * counts from the file provided.
    *
    * @param inputFileName The name of the edge count file (possibly null)
@@ -157,6 +158,7 @@ public final class EdgeCounts implements Callbacks.ExitMonitor {
       int[] cur = null;
       int curIdx = 0;
       for (String s = in.readLine(); s != null; s = in.readLine()) {
+        s = s.replaceAll("\\{urls[^\\}]*\\}", ""); // strip classloader cruft we can't parse
         StringTokenizer parser = new StringTokenizer(s, " \t\n\r\f,{}");
         String firstToken = parser.nextToken();
         if (firstToken.equals("M")) {

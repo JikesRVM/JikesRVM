@@ -28,6 +28,7 @@ final class SanityLinearScan extends LinearScan {
     this.sanityChecker = sanityChecker;
   }
 
+  @Override
   public void scan(ObjectReference object) {
     sanityChecker.scanProcessObject(object);
   }

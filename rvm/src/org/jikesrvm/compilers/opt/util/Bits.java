@@ -17,9 +17,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Bits.java
- *
- * utilities for manipulating values at the bit-level.
+ * Utilities for manipulating values at the bit-level.
  */
 public class Bits {
 
@@ -45,7 +43,7 @@ public class Bits {
    */
   public static int PPCMaskUpper16(int value) {
     short s = (short) (value & 0xffff);
-    return ((value - (int) s) >> 16) & 0xffff;
+    return ((value - s) >> 16) & 0xffff;
   }
 
   /**

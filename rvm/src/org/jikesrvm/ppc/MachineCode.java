@@ -18,8 +18,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 
-/*
- * A block of machine code in the running virtual machine image.
+/**
+ * A block of machine code in the running virtual machine image.<p>
  *
  * Machine code is an array of "instructions", declared formally as integers,
  * produced by Compiler, typically by translating the bytecodes

@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.ObjectReference;
 @Uninterruptible
 public abstract class Debug {
   /**
-   * Global switch for debugging - if false the other methods of this
+   * Global switch for debugging - if {@code false} the other methods of this
    * class are never called.
    * @return Whether debugging is enabled
    */

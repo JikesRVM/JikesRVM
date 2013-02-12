@@ -124,7 +124,7 @@ public abstract class Registers implements RegisterConstants {
    * update the machine state as if the stackframe were unwound.
    */
   public final void unwindStackFrame() {
-    ip = Magic.getReturnAddress(fp);
+    ip = Magic.getReturnAddress(fp, RVMThread.getCurrentThread());
     fp = Magic.getCallerFramePointer(fp);
   }
 

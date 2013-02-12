@@ -45,6 +45,9 @@ import org.vmmagic.unboxed.*;
    * Instance fields
    */
 
+  /**
+   *
+   */
   private static final boolean DEBUG = false;
 
   private static final boolean LOS_TOSPACE = true;    // gather from tospace
@@ -61,15 +64,9 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Allocate space (for an object)
-   *
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @param allocator The allocator number to be used for this allocation
-   * @param site Allocation site
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == SSGCspy.ALLOC_GCSPY)
@@ -78,14 +75,7 @@ import org.vmmagic.unboxed.*;
       return super.alloc(bytes, align, offset, allocator, site);
   }
 
-  /**
-   * Perform post-allocation actions. For many allocators none are required.
-   *
-   * @param object The newly allocated object
-   * @param typeRef The type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
-   */
+  @Override
   @Inline
   public void postAlloc(ObjectReference object, ObjectReference typeRef,
                         int bytes, int allocator) {
@@ -95,15 +85,7 @@ import org.vmmagic.unboxed.*;
       super.postAlloc(object, typeRef, bytes, allocator);
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == SSGCspy.gcspySpace) return gcspy;
     return super.getAllocatorFromSpace(space);
@@ -130,6 +112,7 @@ import org.vmmagic.unboxed.*;
    * <li>all large objects allocated by the mutator
    * </ul>
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     if (DEBUG) { Log.write("--Phase Mutator."); Log.writeln(Phase.getName(phaseId)); }

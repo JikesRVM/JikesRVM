@@ -1,0 +1,51 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="hamcrest" default="build" basedir=".">
+
+  <import file="base.xml"/>
+  <property file="${components.file}"/>
+
+  <property name="hamcrest.version" value="1.3.0RC2"/>
+  <property name="hamcrest.description" value="hamcrest"/>
+
+  <property name="hamcrest.package.dir" value="${components.dir}/hamcrest/${hamcrest.version}"/>
+
+  <target name="init-hamcrest-properties" depends="prepare-ant-tasks">
+    <condition property="hamcrest.from-web" value="true">
+      <or>
+        <not>
+          <available file="${hamcrest.package.dir}/constants.properties"/>
+        </not>
+        <isset property="hamcrest.force-download"/>
+      </or>
+    </condition>
+  </target>
+
+  <target name="fetch" depends="init-hamcrest-properties" if="hamcrest.from-web">
+    <property name="hamcrest.web-archive" value="hamcrest-all-${hamcrest.version}.jar"/>
+    <mkdir dir="${hamcrest.package.dir}"/>
+    <cachedGet key="${hamcrest.web-archive}"
+         src="http://hamcrest.googlecode.com/files/${hamcrest.web-archive}"
+         dest="${hamcrest.package.dir}/${hamcrest.web-archive}"/>
+    <writeComponentConstants dir="${hamcrest.package.dir}"/>
+  </target>
+
+  <target name="build" depends="fetch">
+    <setComponentsConfig key="hamcrest.jar" value="${hamcrest.package.dir}/hamcrest-all-${hamcrest.version}.jar"/>
+  </target>
+
+  <target name="ensure" depends="prepare-ant-tasks">
+    <ensureUptodate name="hamcrest" dir="${hamcrest.package.dir}"/>
+  </target>
+
+</project>

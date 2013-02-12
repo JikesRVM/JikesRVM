@@ -17,21 +17,25 @@ import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 @Uninterruptible
 public class RCHeader implements Constants {
+
   /* Requirements */
   public static final int LOCAL_GC_BITS_REQUIRED = 0;
-  public static final int GLOBAL_GC_BITS_REQUIRED = 2;
-  public static final int GC_HEADER_WORDS_REQUIRED = 1;
+  public static final int GLOBAL_GC_BITS_REQUIRED = 8;
+  public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
   /****************************************************************************
    * Object Logging (applies to *all* objects)
    */
 
   /* Mask bits to signify the start/finish of logging an object */
+
+  /**
+   *
+   */
   public static final int      LOG_BIT  = 0;
   public static final Word       LOGGED = Word.zero();                          //...00000
   public static final Word    UNLOGGED  = Word.one();                           //...00001
@@ -39,7 +43,7 @@ public class RCHeader implements Constants {
   public static final Word LOGGING_MASK = LOGGED.or(UNLOGGED).or(BEING_LOGGED); //...00011
 
   /**
-   * Return true if <code>object</code> is yet to be logged (for
+   * Return <code>true</code> if <code>object</code> is yet to be logged (for
    * coalescing RC).
    *
    * @param object The object in question
@@ -111,45 +115,59 @@ public class RCHeader implements Constants {
   @Inline
   @Uninterruptible
   public static void makeUnlogged(ObjectReference object) {
-    Word value = VM.objectModel.readAvailableBitsWord(object);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(value.and(LOGGING_MASK).EQ(LOGGED));
-    VM.objectModel.writeAvailableBitsWord(object, value.or(UNLOGGED));
+    Word oldValue, newValue;
+    do {
+      oldValue = VM.objectModel.prepareAvailableBits(object);
+      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(oldValue.and(LOGGING_MASK).EQ(LOGGED));
+      newValue = oldValue.or(UNLOGGED);
+    } while(!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
   }
 
   /************************************************************************
    * RC header word
    */
 
-  /* Header offset */
-  public static final Offset RC_HEADER_OFFSET = VM.objectModel.GC_HEADER_OFFSET();
-
-  /* Reserved to allow alignment hole filling to work */
-  public static final int RESERVED_ALIGN_BIT = 0;
-
-  /* The mark bit used for backup tracing. */
-  public static final int MARK_BIT = 1;
+  /** The mark bit used for backup tracing. */
+  public static final int MARK_BIT = LOG_BIT + 2;
   public static final Word MARK_BIT_MASK = Word.one().lsh(MARK_BIT);
 
-  /* Current not using any bits for cycle detection, etc */
-  public static final int BITS_USED = 2;
+  /** The bit used for newly allocated objects. */
+  public static final int NEW_BIT = MARK_BIT + 1;
+  public static final Word NEW_BIT_MASK = Word.one().lsh(NEW_BIT);
+
+  /** Current not using any bits for cycle detection, etc */
+  public static final int BITS_USED = NEW_BIT + 1;
 
   /* Reference counting increments */
+
   public static final int INCREMENT_SHIFT = BITS_USED;
   public static final Word INCREMENT = Word.one().lsh(INCREMENT_SHIFT);
-  public static final int AVAILABLE_BITS = BITS_IN_ADDRESS - BITS_USED;
-  public static final Word INCREMENT_LIMIT = Word.one().lsh(BITS_IN_ADDRESS-1).not();
+  public static final Word DOUBLE_INCREMENT = INCREMENT.lsh(1);
   public static final Word LIVE_THRESHOLD = INCREMENT;
 
   /* Return values from decRC */
+
   public static final int DEC_KILL = 0;
   public static final int DEC_ALIVE = 1;
+
+  /* Return values from incRC */
+
+  public static final int INC_OLD = 0;
+  public static final int INC_NEW = 1;
+
+  /* Limited bit thresholds and masks */
+
+  public static final Word refSticky = Word.one().lsh(BITS_IN_BYTE - BITS_USED).minus(Word.one()).lsh(INCREMENT_SHIFT);
+  public static final int refStickyValue = refSticky.rshl(INCREMENT_SHIFT).toInt();
+  public static final Word WRITE_MASK = refSticky.not();
+  public static final Word READ_MASK = refSticky;
 
   /**
    * Has this object been marked by the most recent backup trace.
    */
   @Inline
   public static boolean isMarked(ObjectReference object) {
-    return isHeaderMarked(object.toAddress().loadWord(RC_HEADER_OFFSET));
+    return isHeaderMarked(VM.objectModel.readAvailableBitsWord(object));
   }
 
   /**
@@ -159,13 +177,10 @@ public class RCHeader implements Constants {
   public static void clearMarked(ObjectReference object) {
     Word oldValue, newValue;
     do {
-      oldValue = object.toAddress().prepareWord(RC_HEADER_OFFSET);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isHeaderMarked(oldValue));
       newValue = oldValue.and(MARK_BIT_MASK.not());
-    } while (!object.toAddress().attempt(oldValue, newValue, RC_HEADER_OFFSET));
-    /*
-    Word header = object.toAddress().loadWord(RC_HEADER_OFFSET);
-    object.toAddress().store(header.and(MARK_BIT_MASK.not()), RC_HEADER_OFFSET);*/
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
   }
 
   /**
@@ -177,71 +192,110 @@ public class RCHeader implements Constants {
   }
 
   /**
-   * Attempt to atomically mark this object. Return true if the mark was performed.
+   * Attempt to atomically mark this object. Return <code>true</code> if the mark was performed.
    */
   @Inline
   public static boolean testAndMark(ObjectReference object) {
     Word oldValue, newValue;
     do {
-      oldValue = object.toAddress().prepareWord(RC_HEADER_OFFSET);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
       if (isHeaderMarked(oldValue)) {
         return false;
       }
       newValue = oldValue.or(MARK_BIT_MASK);
-    } while (!object.toAddress().attempt(oldValue, newValue, RC_HEADER_OFFSET));
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
     return true;
+  }
+
+  /**
+   * Has this object been marked as new.
+   */
+  @Inline
+  public static boolean isNew(ObjectReference object) {
+    return isHeaderNew(VM.objectModel.readAvailableBitsWord(object));
+  }
+
+  /**
+   * Has this object been marked as new.
+   */
+  @Inline
+  private static boolean isHeaderNew(Word header) {
+    return header.and(NEW_BIT_MASK).NE(NEW_BIT_MASK);
   }
 
   /**
    * Perform any required initialization of the GC portion of the header.
    *
    * @param object the object
-   * @param initialInc start with a reference count of 1 (0 if false)
+   * @param initialInc start with a reference count of 1 (0 if <code>false</code>)
    */
   @Inline
   public static void initializeHeader(ObjectReference object, boolean initialInc) {
-    Word initialValue =  (initialInc) ? INCREMENT : Word.zero();
-    object.toAddress().store(initialValue, RC_HEADER_OFFSET);
+    Word existingValue = VM.objectModel.readAvailableBitsWord(object);
+    Word initialValue = existingValue.and(WRITE_MASK).or((initialInc)? INCREMENT : Word.zero());
+    VM.objectModel.writeAvailableBitsWord(object, initialValue);
   }
 
   /**
-   * Return true if given object is live
+   * Return <code>true</code> if given object is live
    *
    * @param object The object whose liveness is to be tested
-   * @return True if the object is alive
+   * @return <code>true</code> if the object is alive
    */
   @Inline
   @Uninterruptible
   public static boolean isLiveRC(ObjectReference object) {
-    return object.toAddress().loadWord(RC_HEADER_OFFSET).GE(LIVE_THRESHOLD);
+    Word value = VM.objectModel.readAvailableBitsWord(object);
+    if (isStuck(value)) return true;
+    return value.and(READ_MASK).GE(LIVE_THRESHOLD);
   }
 
   /**
    * Return the reference count for the object.
    *
    * @param object The object whose liveness is to be tested
-   * @return True if the object is alive
+   * @return <code>true</code> if the object is alive
    */
   @Inline
   @Uninterruptible
   public static int getRC(ObjectReference object) {
-    return object.toAddress().loadWord(RC_HEADER_OFFSET).rshl(INCREMENT_SHIFT).toInt();
+    Word value = VM.objectModel.readAvailableBitsWord(object);
+    if (isStuck(value)) return refStickyValue;
+    return value.and(READ_MASK).rshl(INCREMENT_SHIFT).toInt();
   }
 
   /**
-   * Increment the reference count of an object.
+   * Increment the reference count of an object.  Return either
+   * <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
    *
-   * @param object The object whose reference count is to be incremented.
+   * @param object The object whose RC is to be incremented.
+   * @return <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
    */
   @Inline
-  public static void incRC(ObjectReference object) {
+  public static int incRC(ObjectReference object) {
     Word oldValue, newValue;
+    int rtn;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RCBase.isRCObject(object));
     do {
-      oldValue = object.toAddress().prepareWord(RC_HEADER_OFFSET);
-      newValue = oldValue.plus(INCREMENT);
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(newValue.LE(INCREMENT_LIMIT));
-    } while (!object.toAddress().attempt(oldValue, newValue, RC_HEADER_OFFSET));
+      oldValue = VM.objectModel.prepareAvailableBits(object);
+      if (isStuck(oldValue)) return INC_OLD;
+      if (RCBase.BUILD_FOR_GENRC) {
+        newValue = oldValue.plus(INCREMENT);
+        rtn = INC_OLD;
+      } else {
+        if (isHeaderNew(oldValue)) {
+          newValue = oldValue.plus(DOUBLE_INCREMENT);
+          newValue = newValue.or(NEW_BIT_MASK);
+          rtn = INC_NEW;
+        } else {
+          newValue = oldValue.plus(INCREMENT);
+          rtn = INC_OLD;
+        }
+      }
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
+    return rtn;
   }
 
   /**
@@ -263,14 +317,85 @@ public class RCHeader implements Constants {
       VM.assertions._assert(isLiveRC(object));
     }
     do {
-      oldValue = object.toAddress().prepareWord(RC_HEADER_OFFSET);
+      oldValue = VM.objectModel.prepareAvailableBits(object);
+      if (isStuck(oldValue)) return DEC_ALIVE;
       newValue = oldValue.minus(INCREMENT);
-      if (newValue.LT(LIVE_THRESHOLD)) {
+      if (newValue.and(READ_MASK).LT(LIVE_THRESHOLD)) {
         rtn = DEC_KILL;
       } else {
         rtn = DEC_ALIVE;
       }
-    } while (!object.toAddress().attempt(oldValue, newValue, RC_HEADER_OFFSET));
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
     return rtn;
+  }
+
+  /**
+   * Initialize the reference count of an object.  Return either
+   * <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
+   *
+   * @param object The object whose RC is to be initialized.
+   * @return <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
+   */
+  @Inline
+  public static int initRC(ObjectReference object) {
+    Word oldValue, newValue;
+    int rtn;
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RCBase.isRCObject(object));
+    do {
+      oldValue = VM.objectModel.prepareAvailableBits(object);
+      newValue = oldValue.and(WRITE_MASK).or(INCREMENT);
+      if (RCBase.BUILD_FOR_GENRC) {
+        rtn = INC_OLD;
+      } else {
+        if (isHeaderNew(oldValue)) {
+          newValue = newValue.or(NEW_BIT_MASK);
+          rtn = INC_NEW;
+        } else {
+          rtn = INC_OLD;
+        }
+      }
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
+    return rtn;
+  }
+
+  /**
+   * Retain the reference count of an object.  Return either
+   * <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
+   *
+   * @param object The object whose RC is to be retained.
+   * @return <code>INC_OLD</code> if the object is not new,
+   * <code>INC_NEW</code> if the object is new.
+   */
+  @Inline
+  public static int remainRC(ObjectReference object) {
+    Word oldValue, newValue;
+    int rtn;
+    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(RCBase.isRCObject(object));
+    do {
+      oldValue = VM.objectModel.prepareAvailableBits(object);
+      newValue = oldValue;
+      if (RCBase.BUILD_FOR_GENRC) {
+        return INC_OLD;
+      } else {
+        if (isHeaderNew(oldValue)) {
+          newValue = newValue.or(NEW_BIT_MASK);
+          rtn = INC_NEW;
+        } else {
+          return INC_OLD;
+        }
+      }
+    } while (!VM.objectModel.attemptAvailableBits(object, oldValue, newValue));
+    return rtn;
+  }
+
+  /**
+   * Has this object been stuck
+   */
+  @Inline
+  private static boolean isStuck(Word value) {
+    return value.and(refSticky).EQ(refSticky);
   }
 }

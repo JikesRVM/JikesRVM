@@ -44,7 +44,7 @@ public abstract class PostThreadSwitch implements BaselineConstants {
 
     Address bridgeaddr = Magic.objectAsAddress(bridge);
 
-    Offset offset = myThread.fooFPOffset.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+    Offset offset = myThread.fooFPOffset.plus(STACKFRAME_RETURN_ADDRESS_OFFSET);
     Magic.objectAsAddress(myThread.getStack()).store(bridgeaddr, offset);
 
     myThread.fooFPOffset = Offset.zero();

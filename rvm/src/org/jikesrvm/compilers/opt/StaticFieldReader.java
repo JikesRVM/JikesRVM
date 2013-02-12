@@ -340,7 +340,7 @@ public abstract class StaticFieldReader implements SizeConstants {
         } else if (unboxed instanceof Offset) {
           return ((Offset) unboxed).toWord().toAddress();
         } else {
-          if (VM.VerifyAssertions) VM._assert(false);
+          if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           return Address.zero();
         }
       } catch (IllegalAccessException e) {
@@ -352,10 +352,10 @@ public abstract class StaticFieldReader implements SizeConstants {
   }
 
   /**
-   * Does a static field null contain null?
+   * Does a static field null contain {@code null}?
    *
    * @param field a static field
-   * @return true if the field contains null, false otherwise
+   * @return {@code true} if the field contains {@code null}, {@code false} otherwise
    */
   public static boolean isStaticFieldNull(RVMField field) throws NoSuchFieldException {
     return getObjectStaticFieldValue(field) == null;

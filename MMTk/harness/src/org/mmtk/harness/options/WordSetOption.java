@@ -22,6 +22,7 @@ import org.vmutil.options.OptionSet;
 
 /**
  * A set-valued option, eg opt=v1,v2,v3
+ * <p>
  * The values of the set are Words
  */
 public class WordSetOption extends Option {

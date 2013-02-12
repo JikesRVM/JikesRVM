@@ -22,10 +22,11 @@ import com.ibm.tuningfork.tracegen.chunk.EventChunk;
 
 /**
  * A Queue of EventChunks.
+ * <p>
  * Unlike ChunkQueue, this queue is designed to be used in uninterruptible contexts.
  * It assumes that all EventChunks are NonMoving and externally kept alive for the GC;
  * therefore it can mark its head and tail fields as Untraced.
- *
+ * <p>
  * TODO: consider implementing a non-blocking queue instead of using spin locks.
  */
 @Uninterruptible

@@ -13,12 +13,10 @@
 package org.jikesrvm.compilers.opt.ir.operand;
 
 import java.util.Arrays;
-/*
+/**
  * An OsrTypeInfoOperand object keeps type information of locals
  * and stacks at a byte code index.
  */
-
-
 public final class OsrTypeInfoOperand extends Operand {
 
   /**
@@ -35,23 +33,12 @@ public final class OsrTypeInfoOperand extends Operand {
     this.stackTypeCodes = stcodes;
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     return new OsrTypeInfoOperand(localTypeCodes, stackTypeCodes);
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     boolean result = true;
 
@@ -73,6 +60,7 @@ public final class OsrTypeInfoOperand extends Operand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("OsrTypeInfo(");
     for (int i = 0, n = localTypeCodes.length; i < n; i++) {

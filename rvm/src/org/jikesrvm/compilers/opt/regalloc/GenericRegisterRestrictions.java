@@ -21,7 +21,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -30,8 +29,8 @@ import org.jikesrvm.compilers.opt.util.BitSet;
 /**
  * An instance of this class provides a mapping from symbolic register to
  * a set of restricted registers.
- *
- * Each architcture will subclass this in a class
+ * <p>
+ * Each architecture will subclass this in a class
  * RegisterRestrictions.
  */
 public abstract class GenericRegisterRestrictions {
@@ -83,7 +82,7 @@ public abstract class GenericRegisterRestrictions {
 
   /**
    * Record all the register restrictions dictated by live ranges on a
-   * particular basic block.
+   * particular basic block.<p>
    *
    * PRECONDITION: the instructions in each basic block are numbered in
    * increasing order before calling this.  The number for each
@@ -121,8 +120,8 @@ public abstract class GenericRegisterRestrictions {
     // 3. Volatile registers used by CALL instructions do not appear in
     // the liveness information.  Handle CALL instructions as a special
     // case.
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction s = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction s = ie.nextElement();
       if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
         for (LiveIntervalElement symb : symbolic) {
           if (contains(symb, s.scratch)) {
@@ -161,7 +160,7 @@ public abstract class GenericRegisterRestrictions {
   public void addArchRestrictions(BasicBlock bb, ArrayList<LiveIntervalElement> symbolics) {}
 
   /**
-   * Does a live range R contain an instruction with number n?
+   * Does a live range R contain an instruction with number n?<p>
    *
    * PRECONDITION: the instructions in each basic block are numbered in
    * increasing order before calling this.  The number for each
@@ -181,7 +180,7 @@ public abstract class GenericRegisterRestrictions {
   }
 
   /**
-   * Do two live ranges overlap?
+   * Do two live ranges overlap?<p>
    *
    * PRECONDITION: the instructions in each basic block are numbered in
    * increasing order before calling this.  The number for each
@@ -257,7 +256,7 @@ public abstract class GenericRegisterRestrictions {
 
   /**
    * Return the set of restricted physical register for a given symbolic
-   * register. Return null if no restrictions.
+   * register. Return {@code null} if no restrictions.
    */
   final RestrictedRegisterSet getRestrictions(Register symb) {
     return hash.get(symb);
@@ -266,8 +265,8 @@ public abstract class GenericRegisterRestrictions {
   /**
    * Is it forbidden to assign symbolic register symb to any volatile
    * register?
-   * @return true :yes, all volatiles are forbidden
-   *         false :maybe, maybe not
+   * @return {@code true}: yes, all volatiles are forbidden.
+   *         {@code false} :maybe, maybe not
    */
   public final boolean allVolatilesForbidden(Register symb) {
     if (VM.VerifyAssertions) {

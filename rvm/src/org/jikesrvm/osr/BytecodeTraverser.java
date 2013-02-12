@@ -29,30 +29,32 @@ import org.jikesrvm.osr.bytecodes.InvokeStatic;
 /**
  * BytecodeTraverser does depth first search on a bytecode
  * array, determines the type information of locals and stacks at
- * insteresting point.
- *
+ * Interesting point.
+ * <p>
  * This class only intends to provide type information for on-stack
  * replacement, which needs to know the type of a value.  This class
  * can only tells basic type information such as : REFERENCE, LONG,
  * DOUBLE, FLOAT, INT, and ReturnAddress.  Not like GCMap which tells
  * GC a value is REFERENCE or NON-REFERENCE we also want to know it
  * is INT or DOUBLE, and takes two words value or one word.
- *
+ * <p>
  * The produced type information has to be adjusted by consulting
  * GC maps because two different types may merge at one program point
  * (REF and non-REF types). Bytecode verifier will make the type info
  * undefined in that case. But this class won't know. So the caller
  * should check the GC map to validate a REF type variable.
- *
+ * <p>
  * More or less, this class needs to do the same work as a bytecode
  * verifier, which tells the type and size of each locals and stacks.
  * The JSR/RET instructions pose the difficulty to our case. However,
  * we can assume the bytecode is verified. We use following assumptions:
- *   1. After JSR, the stack was not changed, only local variable
+ * <ol>
+ *   <li> After JSR, the stack was not changed, only local variable
  *      type needs to merge with FINALLY clause.
- *   2. We need program-point specific stack type, but only need
+ *   <li> We need program-point specific stack type, but only need
  *      the summary of local types. Thus, after analysis, local
  *      types are same for all PCs.
+ * </ol>
  */
 public class BytecodeTraverser implements BytecodeConstants, ClassLoaderConstants, OSRConstants {
 

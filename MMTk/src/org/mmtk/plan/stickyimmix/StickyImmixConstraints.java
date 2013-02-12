@@ -30,19 +30,15 @@ public class StickyImmixConstraints extends ImmixConstraints {
   @Override
   public int numSpecializedScans() { return 3; }
 
-  /** @return True if this plan requires a write barrier */
   @Override
   public boolean needsObjectReferenceWriteBarrier() { return true; }
 
-  /** @return True if this Plan requires a header bit for object logging */
   @Override
   public boolean needsLogBitInHeader() { return true; }
 
-  /** @return Size (in bytes) beyond which new regular objects must be allocated to the LOS */
   @Override
   public int maxNonLOSDefaultAllocBytes() { return MAX_IMMIX_OBJECT_BYTES; }
 
-  /** @return Size (in bytes) beyond which copied objects must be copied to the LOS */
   @Override
   public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES; }
 

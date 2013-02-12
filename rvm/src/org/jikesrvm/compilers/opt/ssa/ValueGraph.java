@@ -35,7 +35,6 @@ import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.PI;
@@ -67,13 +66,13 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
  * This class implements the value graph used in global value numbering
  * a la Alpern, Wegman and Zadeck.  See Muchnick p.348 for a nice
  * discussion.
- *
+ * <p>
  * From Muchnick, "the <em>value graph</em> of a procedure is a
  * labeled directed graph whose nodes are labeled with operators,
  * function symbols, or constants, and whose edges represent
  * generating assignments and point from an operator or function to
  * its operands; the edges are labeled with natural numbers that
- * indicate the operand postion that each operand has with repsect to
+ * indicate the operand position that each operand has with respect to
  * the given operator or function."
  */
 final class ValueGraph {
@@ -127,7 +126,7 @@ final class ValueGraph {
               if (v2.getName() instanceof Register &&
                   v2.getLabel() instanceof Register &&
                   v2.getLabel() != v2.getName()) {
-                VM._assert(false);
+                VM._assert(VM.NOT_REACHED);
               }
             }
             v.copyVertex(v2);
@@ -176,6 +175,7 @@ final class ValueGraph {
    *
    * @return a String representation of the value graph.
    */
+  @Override
   public String toString() {
     // print the nodes
     StringBuilder s = new StringBuilder("VALUE GRAPH: \n");
@@ -266,8 +266,8 @@ final class ValueGraph {
    */
   private void processMove(Instruction s) {
     // ignore instructions that define physical registers
-    for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
-      Operand current = e.next();
+    for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements();) {
+      Operand current = e.nextElement();
       if (current instanceof RegisterOperand && ((RegisterOperand) current).getRegister().isPhysical()) return;
     }
 
@@ -594,8 +594,8 @@ final class ValueGraph {
    */
   private void processPrologue(Instruction s) {
     int numArgs = 0;
-    for (OperandEnumeration e = s.getDefs(); e.hasMoreElements(); numArgs++) {
-      Register formal = ((RegisterOperand) e.next()).getRegister();
+    for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements(); numArgs++) {
+      Register formal = ((RegisterOperand) e.nextElement()).getRegister();
       ValueGraphVertex v = findOrCreateVertex(formal);
       v.setLabel(new ValueGraphParamLabel(numArgs), 0);
     }
@@ -777,7 +777,7 @@ final class ValueGraph {
   /**
    * Bypass MOVE instructions that def an operand: return the first def
    * in the chain that is not the result of a MOVE instruction.
-   *
+   * <p>
    * Note: treat PI instructions like MOVES
    *
    * @param op the RegisterOperand

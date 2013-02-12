@@ -103,9 +103,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
     this.data = new Object[size];
   }
 
-  /**
-   * Return the backing array (for boot image writing)
-   */
+  @Override
   public Object[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     return data;
@@ -134,6 +132,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
    * @param index The index of the entry to get
    * @return The value of that entry
    */
+  @Override
   @Intrinsic
   public Object get(int index) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -146,6 +145,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
    * @param index The index of the entry to set
    * @param value The value to set the entry to.
    */
+  @Override
   @Intrinsic
   @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   public void set(int index, Object value) {
@@ -156,6 +156,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
   /**
    * Return the length of the TIB
    */
+  @Override
   @Intrinsic
   public int length() {
     return data.length;
@@ -365,7 +366,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
   /**
    * Does this slot in the TIB hold a TIB entry?
    * @param slot the TIB slot
-   * @return true if this the array element TIB
+   * @return {@code true} if this the array element TIB
    */
   public boolean slotContainsTib(int slot) {
     if (slot == TIB_ARRAY_ELEMENT_TIB_INDEX && getType().isArrayType()) {
@@ -378,7 +379,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
   /**
    * Does this slot in the TIB hold code?
    * @param slot the TIB slot
-   * @return true if slot is one that holds a code array reference
+   * @return {@code true} if slot is one that holds a code array reference
    */
   public boolean slotContainsCode(int slot) {
     if (VM.VerifyAssertions) {

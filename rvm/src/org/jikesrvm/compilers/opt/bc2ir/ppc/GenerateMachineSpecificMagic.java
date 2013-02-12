@@ -104,7 +104,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
                                           val,
                                           fp,
                                           new AddressConstantOperand(Offset.fromIntSignExtend(
-                                              STACKFRAME_NEXT_INSTRUCTION_OFFSET)),
+                                              STACKFRAME_RETURN_ADDRESS_OFFSET)),
                                           null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.getReturnAddressLocation) {
@@ -120,7 +120,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
       bc2ir.appendInstruction(Binary.create(REF_ADD,
                                             val,
                                             callerFP.copyRO(),
-                                            new IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+                                            new IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.isync) {
       bc2ir.appendInstruction(Empty.create(READ_CEILING));
@@ -129,17 +129,17 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
     } else if (methodName == MagicNames.pause) {
       // IA-specific
     } else if (methodName == MagicNames.dcbst) {
-      bc2ir.appendInstruction(CacheOp.create(DCBST, bc2ir.popInt()));
-    } else if (methodName == MagicNames.dcbt) {
-      bc2ir.appendInstruction(CacheOp.create(DCBT, bc2ir.popInt()));
+      bc2ir.appendInstruction(CacheOp.create(DCBST, bc2ir.popAddress()));
+    } else if (methodName == MagicNames.dcbt || methodName == MagicNames.prefetch) {
+      bc2ir.appendInstruction(CacheOp.create(DCBT, bc2ir.popAddress()));
     } else if (methodName == MagicNames.dcbtst) {
-      bc2ir.appendInstruction(CacheOp.create(DCBTST, bc2ir.popInt()));
+      bc2ir.appendInstruction(CacheOp.create(DCBTST, bc2ir.popAddress()));
     } else if (methodName == MagicNames.dcbz) {
-      bc2ir.appendInstruction(CacheOp.create(DCBZ, bc2ir.popInt()));
+      bc2ir.appendInstruction(CacheOp.create(DCBZ, bc2ir.popAddress()));
     } else if (methodName == MagicNames.dcbzl) {
-      bc2ir.appendInstruction(CacheOp.create(DCBZL, bc2ir.popInt()));
+      bc2ir.appendInstruction(CacheOp.create(DCBZL, bc2ir.popAddress()));
     } else if (methodName == MagicNames.icbi) {
-      bc2ir.appendInstruction(CacheOp.create(ICBI, bc2ir.popInt()));
+      bc2ir.appendInstruction(CacheOp.create(ICBI, bc2ir.popAddress()));
     } else {
       // Distinguish between magics that we know we don't implement
       // (and never plan to implement) and those (usually new ones)

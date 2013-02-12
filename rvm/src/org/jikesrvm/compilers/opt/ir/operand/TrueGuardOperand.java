@@ -15,40 +15,28 @@ package org.jikesrvm.compilers.opt.ir.operand;
 import org.jikesrvm.classloader.TypeReference;
 
 /**
- * This operand represents a "true" guard.
- * Eg non-nullness of the result of an allocation or
- * boundcheck eliminate via analysis of the loop induction variables.
+ * This operand represents a "true" guard, e.g. non-nullness
+ * of the result of an allocation or
+ * boundcheck eliminated via analysis of the loop induction variables.
  *
  * @see Operand
  */
 public final class TrueGuardOperand extends ConstantOperand {
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
    * @return TypeReference.VALIDATION_TYPE
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.VALIDATION_TYPE;
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     return new TrueGuardOperand();
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     return op instanceof TrueGuardOperand;
   }
@@ -58,6 +46,7 @@ public final class TrueGuardOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "<TRUEGUARD>";
   }

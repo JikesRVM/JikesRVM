@@ -48,6 +48,7 @@ public final class ClassLoadingDependencyManager implements ClassLoadingListener
   ////////////////////////
   // Entrypoints from RVMClass
   ////////////////////////
+  @Override
   public synchronized void classInitialized(RVMClass c, boolean writingBootImage) {
     // Process any dependencies on methods not being overridden.
     if (!writingBootImage) {

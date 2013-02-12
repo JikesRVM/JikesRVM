@@ -13,7 +13,6 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
@@ -32,6 +31,7 @@ import org.jikesrvm.classloader.TypeReference;
 public class EntrypointHelper {
   /**
    * Get description of virtual machine component (field or method).
+   * <p>
    * Note: This is method is intended for use only by VM classes that need
    * to address their own fields and methods in the runtime virtual machine
    * image.  It should not be used for general purpose class loading.
@@ -71,7 +71,7 @@ public class EntrypointHelper {
                 " desc=" +
                 memberDescriptor +
                 "\n");
-    VM._assert(Constants.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null; // placate jikes
   }
 

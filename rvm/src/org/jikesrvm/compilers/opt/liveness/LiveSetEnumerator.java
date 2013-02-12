@@ -39,14 +39,18 @@ public class LiveSetEnumerator implements Enumeration<RegisterOperand> {
    * Are there any more elements?
    * @return whether there are any more elements?
    */
+  @Override
   public boolean hasMoreElements() {
     return current != null;
   }
 
   /**
-   * Returns the next element, if one exists, otherwise throws an exception
-   * @return the next element, if one exists, otherwise throws an exception
+   * Returns the next element, if one exists, otherwise throws an exception.
+   *
+   * @return the next element
+   * @throws NoSuchElementException if no next element exists
    */
+  @Override
   public RegisterOperand nextElement() {
     if (current != null) {
       LiveSetElement ret = current;

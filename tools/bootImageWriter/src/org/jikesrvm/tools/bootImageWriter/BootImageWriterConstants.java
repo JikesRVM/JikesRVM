@@ -39,7 +39,7 @@ public interface BootImageWriterConstants extends Constants {
 
   /**
    * Starting index for objects in TypeDictionary.
-   * = 1, since slot 0 is reserved for null
+   * = 1, since slot 0 is reserved for {@code null}
    */
   int FIRST_TYPE_DICTIONARY_INDEX = 1;
 }

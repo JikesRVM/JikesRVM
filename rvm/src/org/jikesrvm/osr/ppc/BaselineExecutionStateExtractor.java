@@ -39,13 +39,10 @@ import org.vmmagic.unboxed.WordArray;
  * BaselineExecutionStateExtractor retrieves the runtime state from a suspended
  * thread whose top method was compiled by a baseline compiler.
  */
-
 public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtractor
     implements Constants, OSRConstants, BaselineConstants, PhysicalRegisterConstants {
 
-  /**
-   * Implements ExecutionStateExtractor.extractState.
-   */
+  @Override
   public ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset methFPoff, int cmid) {
 
     /* performs architecture and compiler dependent operations here
@@ -74,7 +71,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
       VM.sysWriteln("BASE execStateExtractor starting ...");
     }
 
-    Registers contextRegisters = (Registers)thread.getContextRegisters();
+    Registers contextRegisters = thread.getContextRegisters();
     byte[] stack = thread.getStack();
 
     if (VM.VerifyAssertions) {
@@ -88,7 +85,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
 
     // get the next bc index
     VM.disableGC();
-    Address rowIP = Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(STACKFRAME_NEXT_INSTRUCTION_OFFSET));
+    Address rowIP = Magic.objectAsAddress(stack).loadAddress(methFPoff.plus(STACKFRAME_RETURN_ADDRESS_OFFSET));
     Offset ipOffset = fooCM.getInstructionOffset(rowIP);
     VM.enableGC();
 
@@ -254,7 +251,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
     if (kind == LOCAL) {
       start = 0;
     } else {
-      VM._assert(false); //implement me for stack
+      VM._assert(VM.NOT_REACHED); //implement me for stack
     }
     int size = types.length;
     for (int i = start; i < size; i++) {
@@ -285,7 +282,7 @@ public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtr
             if (VM.BuildFor32Addr) {
               lvalue =
                   ((((long) registers.gprs.get(loc).toInt()) << 32) |
-                   (((long) registers.gprs.get(loc + 1).toInt()) & 0x0FFFFFFFFL));
+                   ((registers.gprs.get(loc + 1).toInt()) & 0x0FFFFFFFFL));
             } else {
               lvalue = registers.gprs.get(loc).toLong();
             }

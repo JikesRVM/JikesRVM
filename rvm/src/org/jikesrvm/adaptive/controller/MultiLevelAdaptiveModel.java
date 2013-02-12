@@ -55,6 +55,7 @@ class MultiLevelAdaptiveModel extends AnalyticModel {
    * because sets of choices are precomputed and stored in a table so
    * they do not need to be recomputed to answer queries.
    */
+  @Override
   void populateRecompilationChoices() {
     int maxOptLevel = Controller.options.DERIVED_MAX_OPT_LEVEL;
     int maxCompiler = CompilerDNA.getCompilerConstant(maxOptLevel);
@@ -74,14 +75,7 @@ class MultiLevelAdaptiveModel extends AnalyticModel {
     createViableOptionLookupTable(maxCompiler);
   }
 
-  /**
-   * Compute the set of optimization choices that should be
-   * considered by the cost-benefit model.
-   *
-   * @param prevCompiler The compiler compiler that was used to
-   *                     compile cmpMethod
-   * @param cmpMethod The compiled method being considered
-   */
+  @Override
   RecompilationChoice[] getViableRecompilationChoices(int prevCompiler, CompiledMethod cmpMethod) {
     if (Controller.controllerThread.earlyRestrictOptLevels()) {
       return earlyViableChoices;

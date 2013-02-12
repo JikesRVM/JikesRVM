@@ -23,7 +23,7 @@ import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
 /**
- * Information associated with artifical stackframe inserted by hardware
+ * Information associated with artificial stackframe inserted by hardware
  * trap handler.
  */
 final class HardwareTrapCompiledMethod extends CompiledMethod {
@@ -32,15 +32,18 @@ final class HardwareTrapCompiledMethod extends CompiledMethod {
     super(id, m);
   }
 
+  @Override
   @Uninterruptible
   public int getCompilerType() {
     return TRAP;
   }
 
+  @Override
   public String getCompilerName() {
     return "<hardware trap>";
   }
 
+  @Override
   @Uninterruptible
   public ExceptionDeliverer getExceptionDeliverer() {
     // this method should never get called, because exception delivery begins
@@ -51,11 +54,13 @@ final class HardwareTrapCompiledMethod extends CompiledMethod {
     return null;
   }
 
+  @Override
   @Unpreemptible
   public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     return -1;
   }
 
+  @Override
   @Uninterruptible
   public void getDynamicLink(DynamicLink dynamicLink, Offset instructionOffset) {
     // this method should never get called, because exception delivery begins
@@ -65,24 +70,22 @@ final class HardwareTrapCompiledMethod extends CompiledMethod {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
+  @Override
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
     return false;
   }
 
+  @Override
   public void printStackTrace(Offset instructionOffset, org.jikesrvm.PrintLN out) {
     out.println("\tat <hardware trap>");
   }
 
-  /**
-   * Set the stack browser to the innermost logical stack frame of this method
-   */
+  @Override
   public void set(StackBrowser browser, Offset instr) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  /**
-   * Advance the StackBrowser up one internal stack frame, if possible
-   */
+  @Override
   public boolean up(StackBrowser browser) {
     return false;
   }

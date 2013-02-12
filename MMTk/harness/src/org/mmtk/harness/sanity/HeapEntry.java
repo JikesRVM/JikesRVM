@@ -135,9 +135,6 @@ public class HeapEntry implements Comparable<HeapEntry> {
     return 1;
   }
 
-  /**
-   * @see java.lang.Object#toString()
-   */
   @Override
   public String toString() {
     String result = String.format("Heap entry: id=%s, ",id,ObjectModel.getString(object));

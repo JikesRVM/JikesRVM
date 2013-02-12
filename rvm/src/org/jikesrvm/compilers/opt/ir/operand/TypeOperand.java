@@ -59,11 +59,7 @@ public final class TypeOperand extends Operand {
     typeRef = tr;
   }
 
-  /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
-   * @return TypeReference.Type
-   */
+  @Override
   public TypeReference getType() {
     return TypeReference.Type;
   }
@@ -85,23 +81,12 @@ public final class TypeOperand extends Operand {
       return typeRef.peekType();
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     return new TypeOperand(type, typeRef);
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     if (op instanceof TypeOperand) {
       TypeOperand that = (TypeOperand) op;
@@ -116,6 +101,7 @@ public final class TypeOperand extends Operand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     if (type != null) {
       return type.toString();

@@ -14,6 +14,7 @@ package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,11 +32,9 @@ import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.GETSTATIC;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
@@ -61,20 +60,18 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
- *  InstrumentationSamplingFramework
- *
- *  Transforms the method so that instrumention is sampled, rather
+ *  Transforms the method so that instrumentation is sampled, rather
  *  than executed exhaustively.  Includes both the full-duplication
  *  and no-duplication variations.  See Arnold-Ryder PLDI 2001, and
  *  the section 4.1 of Arnold's PhD thesis.
- *
+ *  <p>
  *  NOTE: This implementation uses yieldpoints to denote where checks
  *  should be placed (to transfer control into instrumented code).  It
  *  is currently assumed that these are on method entries and
  *  backedges.  When optimized yieldpoint placement exists either a)
  *  it should be turned off when using this phase, or b) this phase
  *  should detect its own check locations.
- *
+ *  <p>
  *  To avoid the complexity of duplicating exception handler maps,
  *  exception handler blocks are split and a check at the top of the
  *  handler.  Thus exceptions from both the checking and duplicated
@@ -106,14 +103,17 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.ADAPTIVE_INSTRUMENTATION_SAMPLING;
   }
 
+  @Override
   public String getName() { return "InstrumentationSamplingFramework"; }
 
   /**
@@ -121,6 +121,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public void perform(IR ir) {
 
     DEBUG = ir.options.DEBUG_INSTRU_SAMPLING;
@@ -365,8 +366,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         }
 
         // Step 2, Make all of bb's predecessors point to the check instead
-        for (BasicBlockEnumeration preds = bb.getIn(); preds.hasMoreElements();) {
-          BasicBlock pred = preds.next();
+        for (Enumeration<BasicBlock> preds = bb.getIn(); preds.hasMoreElements();) {
+          BasicBlock pred = preds.nextElement();
           pred.redirectOuts(bb, checkBB, ir);
         }
 
@@ -619,8 +620,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * @param bb The basic block in which to look
    * @return The first instruction in bb that has operator operator.  */
   private static Instruction getFirstInstWithOperator(Operator operator, BasicBlock bb) {
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction i = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction i = ie.nextElement();
 
       if (i.operator() == operator) {
         return i;
@@ -636,8 +637,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * @return The first instruction in bb that has a yield point
    */
   public static Instruction getFirstInstWithYieldPoint(BasicBlock bb) {
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction i = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction i = ie.nextElement();
 
       if (isYieldpoint(i)) {
         return i;
@@ -663,15 +664,15 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   /**
    * Go through all blocks in duplicated code and adjust the edges as
    * follows:
-   *
-   * 1) All edges (in duplicated code) that go into a block with a
+   * <ol>
+   *   <li>All edges (in duplicated code) that go into a block with a
    * yieldpoint must jump to back to the original code.  This is
    * actually already satisfied because we appended goto's to all
    * duplicated bb's (the goto's go back to orig code)
-   *
-   * 2) All edges that do NOT go into a yieldpoint block must stay
+   *   <li>All edges that do NOT go into a yieldpoint block must stay
    * (either fallthrough or jump to a block in) in the duplicated
    * code.
+   * </ol>
    *
    * @param ir the governing IR */
   private static void adjustPointersInDuplicatedCode(IR ir, HashMap<BasicBlock, BasicBlock> origToDupMap) {
@@ -680,8 +681,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     for (BasicBlock dupBlock : origToDupMap.values()) {
 
       // Look at the successors of duplicated Block.
-      for (BasicBlockEnumeration out = dupBlock.getNormalOut(); out.hasMoreElements();) {
-        BasicBlock origSucc = out.next();
+      for (Enumeration<BasicBlock> out = dupBlock.getNormalOut(); out.hasMoreElements();) {
+        BasicBlock origSucc = out.nextElement();
 
         BasicBlock dupSucc = origToDupMap.get(origSucc);
 
@@ -711,8 +712,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   }
 
   /**
-   * Remove instrumentation from the orignal version of all duplicated
-   * basic blocks.
+   * Remove instrumentation from the original version of all duplicated
+   * basic blocks.<p>
    *
    * The yieldpoints can also be removed from either the original or
    * the duplicated code.  If you remove them from the original, it
@@ -729,8 +730,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
 
       // Remove all instrumentation instructions.  They already have
       // been transfered to the duplicated code.
-      for (InstructionEnumeration ie = origBlock.forwardInstrEnumerator(); ie.hasMoreElements();) {
-        Instruction i = ie.next();
+      for (Enumeration<Instruction> ie = origBlock.forwardInstrEnumerator(); ie.hasMoreElements();) {
+        Instruction i = ie.nextElement();
         if (isInstrumentationInstruction(i) || (isYieldpoint(i) && ir.options.ADAPTIVE_REMOVE_YP_FROM_CHECKING)) {
 
           if (DEBUG) VM.sysWrite("Removing " + i + "\n");
@@ -746,7 +747,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * block.  This 1) helps eliminate the artificially large live
    * ranges that might have been created (assuming the reg allocator
    * isn't too smart) and 2) it prevents BURS from crashing.
-   *
+   * <p>
    * PRECONDITION:  the spansBasicBlock bit must be correct by calling
    *                DefUse.recomputeSpansBasicBlock(IR);
    */
@@ -769,8 +770,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     clearScratchObjects(bb, ir);
 
     // For each instruction in the block
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction inst = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction inst = ie.nextElement();
 
       // Look at each register operand
       int numOperands = inst.getNumberOfOperands();
@@ -803,8 +804,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    */
   private static void clearScratchObjects(BasicBlock bb, IR ir) {
     // For each instruction in the block
-    for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction inst = ie.next();
+    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+      Instruction inst = ie.nextElement();
 
       // Look at each register operand
       int numOperands = inst.getNumberOfOperands();
@@ -828,7 +829,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   /**
    * The given register a) does not span multiple basic block, and b)
    * is used in a basic block that is being duplicated.   It is
-   * therefore safe to replace all occurences of the register with a
+   * therefore safe to replace all occurrences of the register with a
    * new register.  This method returns the duplicated
    * register that is associated with the given register.  If a
    * duplicated register does not exist, it is created and recorded.
@@ -855,11 +856,11 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     cbsReg = ir.regpool.makeTempInt();
 
     ArrayList<Instruction> instrumentationOperations = new ArrayList<Instruction>();
-    for (BasicBlockEnumeration allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
-      BasicBlock bb = allBB.next();
+    for (Enumeration<BasicBlock> allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
+      BasicBlock bb = allBB.nextElement();
 
-      for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-        Instruction i = ie.next();
+      for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+        Instruction i = ie.nextElement();
 
         // If it's an instrumentation operation, remember the instruction
         if (isInstrumentationInstruction(i)) {
@@ -878,10 +879,11 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   /**
    * Take an instrumentation operation (an instruction) and guard it
    * with a counter-based check.
-   *
-   * 1) split the basic block before and after the i
+   * <ol>
+   *   <li>split the basic block before and after the i
    *    to get A -> B -> C
-   * 2) Add check to A, making it go to B if it succeeds, otherwise C
+   *   <li>Add check to A, making it go to B if it succeeds, otherwise C
+   * </ol>
    */
   private void conditionalizeInstrumentationOperation(IR ir, Instruction i, BasicBlock bb) {
 
@@ -928,8 +930,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    */
   public static void dumpCFG(IR ir) {
 
-    for (BasicBlockEnumeration allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
-      BasicBlock curBB = allBB.next();
+    for (Enumeration<BasicBlock> allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
+      BasicBlock curBB = allBB.nextElement();
       curBB.printExtended();
     }
   }

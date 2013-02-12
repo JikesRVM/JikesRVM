@@ -73,15 +73,9 @@ public class GenMSMutator extends GenMutator {
    */
 
   /**
-   * Allocate memory for an object.
-   *
-   * @param bytes The number of bytes required for the object.
-   * @param align Required alignment for the object.
-   * @param offset Offset associated with the alignment.
-   * @param allocator The allocator associated with this request.
-   * @param site Allocation site
-   * @return The low address of the allocated memory.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public final Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == GenMS.ALLOC_MATURE) {
@@ -90,15 +84,7 @@ public class GenMSMutator extends GenMutator {
     return super.alloc(bytes, align, offset, allocator, site);
   }
 
-  /**
-   * Perform post-allocation actions.  For many allocators none are
-   * required.
-   *
-   * @param ref The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
-   */
+  @Override
   @Inline
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -109,15 +95,7 @@ public class GenMSMutator extends GenMutator {
     }
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == GenMS.msSpace) return mature;
     return super.getAllocatorFromSpace(space);
@@ -129,11 +107,9 @@ public class GenMSMutator extends GenMutator {
    */
 
   /**
-   * Perform a per-mutator collection phase.
-   *
-   * @param phaseId Collection phase to perform
-   * @param primary Is this thread to do the one-off thread-local tasks
+   * {@inheritDoc}
    */
+  @Override
   @NoInline
   public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
@@ -153,10 +129,6 @@ public class GenMSMutator extends GenMutator {
     super.collectionPhase(phaseId, primary);
   }
 
-  /**
-   * Flush mutator context, in response to a requestMutatorFlush.
-   * Also called by the default implementation of deinitMutator.
-   */
   @Override
   public void flush() {
     super.flush();

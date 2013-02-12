@@ -80,6 +80,3 @@ public final class SpecializedMethodPool {
     specializedMethods = temp;
   }
 }
-
-
-

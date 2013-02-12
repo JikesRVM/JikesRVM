@@ -28,7 +28,9 @@ public final class LoadFieldOp extends BinaryOp {
 
   /**
    * Create an instruction for the operation
+   * <pre>
    *   resultTemp <- object.<fieldType>[index]
+   * </pre>
    *
    * @param source     Source file location (parser Token)
    * @param resultTemp Result destination
@@ -64,6 +66,7 @@ public final class LoadFieldOp extends BinaryOp {
     return frame.get(op2).getIntValue();
   }
 
+  @Override
   public String toString() {
     return String.format("%s <- %s.%s[%s]", Register.nameOf(getResult()),
         Register.nameOf(op1), fieldType == Type.OBJECT ? "object" : "int",  op2);

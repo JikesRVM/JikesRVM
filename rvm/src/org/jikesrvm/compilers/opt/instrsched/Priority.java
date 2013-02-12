@@ -12,16 +12,17 @@
  */
 package org.jikesrvm.compilers.opt.instrsched;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 /**
- * Instruction priority representation
- * Used by the scheduler to enumerate over instructions
+ * Represents instruction priority. Used by the scheduler to enumerate over
+ * instructions.
  *
  * @see Scheduler
  */
-abstract class Priority implements InstructionEnumeration {
+abstract class Priority implements Enumeration<Instruction> {
 
   /**
    * Resets the enumeration to the first instruction in sequence
@@ -29,10 +30,11 @@ abstract class Priority implements InstructionEnumeration {
   public abstract void reset();
 
   /**
-   * Returns true if there are more instructions, false otherwise
+   * Returns {@code true} if there are more instructions, false otherwise
    *
-   * @return true if there are more instructions, false otherwise
+   * @return {@code true} if there are more instructions, false otherwise
    */
+  @Override
   public abstract boolean hasMoreElements();
 
   /**
@@ -40,16 +42,8 @@ abstract class Priority implements InstructionEnumeration {
    *
    * @return the next instruction in sequence
    */
-  public final Instruction nextElement() {
-    return next();
-  }
-
-  /**
-   * Returns the next instruction in sequence
-   *
-   * @return the next instruction in sequence
-   */
-  public abstract Instruction next();
+  @Override
+  public abstract Instruction nextElement();
 }
 
 

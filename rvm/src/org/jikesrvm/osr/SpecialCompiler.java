@@ -62,20 +62,26 @@ public class SpecialCompiler {
     return newCM;
   }
 
-  /* Compiles the method with the baseline compiler.
-  * 1. generate  prologue (PSEUDO_bytecode) from the state.
-  * 2. make up new byte code with prologue.
-  * 3. set method's bytecode to the specilizaed byte code.
-  * 4. call BaselineCompilerImpl.compile,
-  *    the 'compile' method is customized to process pseudo instructions,
-  *    and it will reset the byte code to the original one, and adjust
-  *    the map from bytecode to the generated machine code. then the
-  *    reference map can be generated corrected relying on the original
-  *    bytecode.
-  * NOTE: this is different from optCompile which resets the
+  /**
+   * Compiles the method with the baseline compiler.
+   * <ol>
+   *   <li>generate  prologue (PSEUDO_bytecode) from the state.
+   *   <li>make up new byte code with prologue.
+   *   <li>set method's bytecode to the specilizaed byte code.
+   *   <li>call BaselineCompilerImpl.compile,
+   *    the 'compile' method is customized to process pseudo instructions,
+   *    and it will reset the byte code to the original one, and adjust
+   *    the map from bytecode to the generated machine code. then the
+   *    reference map can be generated corrected relying on the original
+   *    bytecode.
+   * </ol>
+   * <p>
+   * NOTE: this is different from optCompile which resets the
   *    bytecode after compilation. I believe this minimizes the
   *    work to change both compilers.
-  */
+   * @param state
+   * @return a BaselineCompiledMethod
+   */
   public static CompiledMethod baselineCompile(ExecutionState state) {
     NormalMethod method = state.getMethod();
 
@@ -117,12 +123,14 @@ public class SpecialCompiler {
   }
 
   /**
-   *     1. generate prologue PSEUDO_bytecode from the state.
-   *     2. make new bytecodes with prologue.
-   *     3. set method's bytecode to specialized one.
-   *     4. adjust exception map, line number map.
-   *     5. compile the method.
-   *     6. restore bytecode, exception, linenumber map to the original one.
+   * <ol>
+   *   <li>generate prologue PSEUDO_bytecode from the state.
+   *   <li>make new bytecodes with prologue.
+   *   <li>set method's bytecode to specialized one.
+   *   <li>adjust exception map, line number map.
+   *   <li>compile the method.
+   *   <li>restore bytecode, exception, linenumber map to the original one.
+   * </ol>
    */
   public static CompiledMethod optCompile(ExecutionState state) {
 

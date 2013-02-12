@@ -28,6 +28,10 @@ import org.vmmagic.pragma.*;
   /****************************************************************************
    * Constants
    */
+
+  /**
+   *
+   */
   public static final byte UNMAPPED = 0;
   public static final byte MAPPED = 1;
   public static final byte PROTECTED = 2; // mapped but not accessible
@@ -40,6 +44,10 @@ import org.vmmagic.pragma.*;
 
   /****************************************************************************
    * Class variables
+   */
+
+  /**
+   *
    */
   public static final Lock lock = VM.newLock("Mmapper");
   private static byte[] mapped;
@@ -191,10 +199,10 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Return true if the given address has been mmapped
+   * Return {@code true} if the given address has been mmapped
    *
    * @param addr The address in question.
-   * @return true if the given address has been mmapped
+   * @return {@code true} if the given address has been mmapped
    */
   @Uninterruptible
   public static boolean addressIsMapped(Address addr) {
@@ -203,10 +211,10 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Return true if the given object has been mmapped
+   * Return {@code true} if the given object has been mmapped
    *
    * @param object The object in question.
-   * @return true if the given object has been mmapped
+   * @return {@code true} if the given object has been mmapped
    */
   @Uninterruptible
   public static boolean objectIsMapped(ObjectReference object) {

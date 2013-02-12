@@ -668,9 +668,9 @@ public abstract class NormalizeConstants extends IRTools {
 
   public static boolean canBeImmediate(long val, boolean signed) {
     if (signed) {
-      return (val >= (long) LOWER_IMMEDIATE) && (val <= (long) UPPER_IMMEDIATE);
+      return (val >= LOWER_IMMEDIATE) && (val <= UPPER_IMMEDIATE);
     } else {
-      return (val >= 0L) && (val <= (long) UNSIGNED_UPPER_IMMEDIATE);
+      return (val >= 0L) && (val <= UNSIGNED_UPPER_IMMEDIATE);
     }
   }
 
@@ -690,7 +690,7 @@ public abstract class NormalizeConstants extends IRTools {
         return rop.copyD2U();
       }
     } else if (addr instanceof ConstantOperand) {
-      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); //must not happen
     }
     // Operand was OK as is.
     return addr;
@@ -706,7 +706,7 @@ public abstract class NormalizeConstants extends IRTools {
         return new IntConstantOperand(((AddressConstantOperand) addr).value.toInt());
       }
     } else if (addr instanceof ConstantOperand) {
-      if (VM.VerifyAssertions) VM._assert(false); //must not happen, because is 64-bit unsafe
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); //must not happen, because is 64-bit unsafe
     }
     // Operand was OK as is.
     return addr;
@@ -722,7 +722,7 @@ public abstract class NormalizeConstants extends IRTools {
         return new IntConstantOperand((int) ((LongConstantOperand) addr).value);
       }
     } else if (addr instanceof ConstantOperand) {
-      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); //must not happen
     }
 
     // Operand was OK as is.
@@ -770,7 +770,7 @@ public abstract class NormalizeConstants extends IRTools {
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
       return rop.copyD2U();
     } else if (addr instanceof ConstantOperand) {
-      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); //must not happen
     }
     // Operand was OK as is.
     return addr;
@@ -782,7 +782,7 @@ public abstract class NormalizeConstants extends IRTools {
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
       return rop.copyD2U();
     } else if (addr instanceof ConstantOperand) {
-      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); //must not happen
     }
     // Operand was OK as is.
     return addr;
@@ -794,7 +794,7 @@ public abstract class NormalizeConstants extends IRTools {
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
       return rop.copyD2U();
     } else if (addr instanceof ConstantOperand) {
-      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); //must not happen
     }
     // Operand was OK as is.
     return addr;
@@ -806,7 +806,7 @@ public abstract class NormalizeConstants extends IRTools {
       s.insertBefore(Move.create(REF_MOVE, rop, addr));
       return rop.copyD2U();
     } else if (addr instanceof ConstantOperand) {
-      if (VM.VerifyAssertions) VM._assert(false); //must not happen
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); //must not happen
     }
     // Operand was OK as is.
     return addr;

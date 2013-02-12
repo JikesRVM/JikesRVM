@@ -24,9 +24,10 @@ final class SchedulingInfo {
   int etime;
   int cp;
 
-  // Creates new scheduling info object.
-  // For internal use only.
-  // Other classes should invoke createInfo().
+  /**
+   * For internal use only. Clients should
+   * invoke {@link #createInfo(Instruction)}.
+   */
   private SchedulingInfo() {
     alt = -1;
     time = -1;
@@ -159,6 +160,7 @@ final class SchedulingInfo {
    *
    * @return string representation of scheduling info
    */
+  @Override
   public String toString() {
     return "time=" + time + "; alt=" + alt + "; eTime=" + etime + "; cp=" + cp;
   }

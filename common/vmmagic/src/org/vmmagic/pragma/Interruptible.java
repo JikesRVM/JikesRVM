@@ -27,12 +27,12 @@ import org.vmmagic.Pragma;
  * thread scheduling, for example memory allocation. The {@link Unpreemptible}
  * annotation doesn't disallow operations that can cause garbage collection or
  * scheduling, but instructs the JVM to avoid inserting such operations during a
- * block of code.
+ * block of code.<p>
  *
  * In the internals of a VM most code wants to be {@link Uninterruptible}.
  * However, code involved in scheduling and locking will cause context switches,
  * and creating exception objects may trigger garbage collection, this code is
- * therefore {@link Unpreemptible}.
+ * therefore {@link Unpreemptible}.<p>
  *
  * This pragma is used to declare that a particular method is interruptible. It
  * is used to override the class-wide pragma {@link Uninterruptible}.

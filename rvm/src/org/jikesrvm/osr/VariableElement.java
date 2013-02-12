@@ -21,7 +21,6 @@ import org.vmmagic.unboxed.Word;
  * (local or stack element).  It is used to generate prologue to
  * recover the runtime state.  It refers to VM architecture.
  */
-
 public class VariableElement implements OSRConstants {
 
   //////////////////////////////////
@@ -105,7 +104,7 @@ public class VariableElement implements OSRConstants {
     this.kind = what_kind;
     this.num = (char)which_num;
     this.tcode = type;
-    this.value = (long) ibits & 0x0FFFFFFFFL;
+    this.value = ibits & 0x0FFFFFFFFL;
     this.ref = null;
   }
 
@@ -148,7 +147,7 @@ public class VariableElement implements OSRConstants {
     this.num = (char)which_num;
     this.tcode = type;
     if (VM.BuildFor32Addr) {
-      this.value = ((long) word.toInt()) & 0x0FFFFFFFFL;
+      this.value = (word.toInt()) & 0x0FFFFFFFFL;
     } else {
       this.value = word.toLong();
     }
@@ -201,6 +200,7 @@ public class VariableElement implements OSRConstants {
   }
 
   /* to string */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("(");
 

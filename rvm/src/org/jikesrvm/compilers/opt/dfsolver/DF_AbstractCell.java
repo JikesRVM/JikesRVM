@@ -12,15 +12,13 @@
  */
 package org.jikesrvm.compilers.opt.dfsolver;
 
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
- * DF_LatticeCell.java
- *
  * Represents a single lattice cell in a dataflow system.
  */
 public abstract class DF_AbstractCell implements DF_LatticeCell {
@@ -50,71 +48,52 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
     defs = new HashSet<DF_Equation>(capacity);
   }
 
-  /**
-   * Returns an enumeration of the equations in which this
-   * lattice cell is used.
-   * @return an enumeration of the equations in which this
-   * lattice cell is used
-   */
+  @Override
   public Iterator<DF_Equation> getUses() {
     return uses.iterator();
   }
 
-  /**
-   * Return an enumeration of the equations in which this
-   * lattice cell is defined.
-   * @return an enumeration of the equations in which this
-   * lattice cell is defined
-   */
+  @Override
   public Iterator<DF_Equation> getDefs() {
     return defs.iterator();
   }
 
-  /**
-   * Return a string representation of the cell
-   * @return a string representation of the cell
-   */
+  @Override
   public abstract String toString();
 
-  /**
-   * Note that this variable appears on the RHS of an equation.
-   *
-   * @param eq the equation
-   */
+  @Override
   public void addUse(DF_Equation eq) {
     uses.add(eq);
   }
 
-  /**
-   * Note that this variable appears on the LHS of an equation.
-   *
-   * @param eq the equation
-   */
+  @Override
   public void addDef(DF_Equation eq) {
     defs.add(eq);
   }
 
-  public GraphNodeEnumeration inNodes() {
-    return new GraphNodeEnumeration() {
+  @Override
+  public Enumeration<GraphNode> inNodes() {
+    return new Enumeration<GraphNode>() {
       private final Iterator<DF_Equation> i = defs.iterator();
 
+      @Override
       public boolean hasMoreElements() { return i.hasNext(); }
 
-      public GraphNode next() { return i.next(); }
-
-      public GraphNode nextElement() { return next(); }
+      @Override
+      public GraphNode nextElement() { return i.next(); }
     };
   }
 
-  public GraphNodeEnumeration outNodes() {
-    return new GraphNodeEnumeration() {
+  @Override
+  public Enumeration<GraphNode> outNodes() {
+    return new Enumeration<GraphNode>() {
       private final Iterator<DF_Equation> i = uses.iterator();
 
+      @Override
       public boolean hasMoreElements() { return i.hasNext(); }
 
-      public GraphNode next() { return i.next(); }
-
-      public GraphNode nextElement() { return next(); }
+      @Override
+      public GraphNode nextElement() { return i.next(); }
     };
   }
 
@@ -126,23 +105,24 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
   /**
    * Implementation of GraphNode interface.
    */
+  @Override
   public void setIndex(int i) {
     index = i;
   }
 
-  /**
-   * Implementation of GraphNode interface.
-   */
+  @Override
   public int getIndex() {
     return index;
   }
 
   private int scratch;
 
+  @Override
   public int getScratch() {
     return scratch;
   }
 
+  @Override
   public int setScratch(int o) {
     return (scratch = o);
   }

@@ -12,13 +12,14 @@
  */
 package org.jikesrvm.compilers.opt.instrsched;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 
 /**
- * Default (IR-order) instruction list
- * Used by the scheduler to enumerate over instructions
+ * Default (IR-order) instruction list.
+ * Used by the scheduler to enumerate over instructions.
  *
  * @see Priority
  * @see Scheduler
@@ -27,7 +28,7 @@ class DefaultPriority extends Priority {
   // Underlying enumeration.
   private final BasicBlock bb;
   private Instruction i;
-  private InstructionEnumeration instr;
+  private Enumeration<Instruction> instr;
 
   /**
    * Creates new priority object for a given basic block
@@ -38,34 +39,24 @@ class DefaultPriority extends Priority {
     this.bb = bb;
   }
 
-  /**
-   * Resets the enumeration to the first instruction in sequence
-   */
+  @Override
   public final void reset() {
     i = bb.firstInstruction();
     instr = bb.forwardRealInstrEnumerator();
   }
 
-  /**
-   * Returns true if there are more instructions, false otherwise
-   *
-   * @return true if there are more instructions, false otherwise
-   */
+  @Override
   public final boolean hasMoreElements() {
     return i != null || instr.hasMoreElements();
   }
 
-  /**
-   * Returns the next instruction in sequence
-   *
-   * @return the next instruction in sequence
-   */
-  public final Instruction next() {
+  @Override
+  public final Instruction nextElement() {
     if (i != null) {
       Instruction r = i;
       i = null;
       return r;
     }
-    return instr.next();
+    return instr.nextElement();
   }
 }

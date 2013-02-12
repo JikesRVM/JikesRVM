@@ -69,15 +69,7 @@ public class GenMSCollector extends GenCollector {
    */
 
   /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   *
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @param allocator The allocator to use.
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
   @Inline
   @Override
@@ -100,13 +92,6 @@ public class GenMSCollector extends GenCollector {
     }
   }
 
-  /**
-   * Perform any post-copy actions.
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   */
   @Inline
   @Override
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
@@ -125,11 +110,9 @@ public class GenMSCollector extends GenCollector {
    */
 
   /**
-   * Perform a (local) collection phase.
-   *
-   * @param phaseId Collection phase to perform
-   * @param primary Is this thread to do the one-off thread-local tasks
+   * {@inheritDoc}
    */
+  @Override
   @NoInline
   public void collectionPhase(short phaseId, boolean primary) {
     if (global().traceFullHeap()) {
@@ -158,6 +141,7 @@ public class GenMSCollector extends GenCollector {
     super.collectionPhase(phaseId, primary);
   }
 
+  @Override
   @Inline
   public final TraceLocal getFullHeapTrace() {
     return matureTrace;

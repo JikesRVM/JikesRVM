@@ -37,21 +37,21 @@ public final class NurseryZeroing extends org.vmutil.options.EnumOption {
   }
 
   /**
-   * @return True if a non temporal zeroing approach is to be used.
+   * @return {@code true} if a non temporal zeroing approach is to be used.
    */
   public boolean getNonTemporal() {
     return getValue() != TEMPORAL;
   }
 
   /**
-   * @return True if a concurrent zeroing approach is to be used.
+   * @return {@code true} if a concurrent zeroing approach is to be used.
    */
   public boolean getConcurrent() {
     return getValue() == CONCURRENT || getValue() == ADAPTIVE;
   }
 
   /**
-   * @return True if a concurrent zeroing approach is to be used.
+   * @return {@code true} if a concurrent zeroing approach is to be used.
    */
   public boolean getAdaptive() {
     return getValue() == ADAPTIVE;

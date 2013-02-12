@@ -27,7 +27,7 @@ public final class FieldReference extends MemberReference implements SizeConstan
   private final TypeReference fieldContentsType;
 
   /**
-   * The RVMField that this field reference resolved to (null if not yet resolved).
+   * The RVMField that this field reference resolved to ({@code null} if not yet resolved).
    */
   private RVMField resolvedMember;
 

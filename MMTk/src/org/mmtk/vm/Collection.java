@@ -68,7 +68,7 @@ import org.vmmagic.pragma.*;
   };
 
   /**
-   * Spawn a thread the execute the supplied collector context.
+   * Spawn a thread to execute the supplied collector context.
    */
   @Interruptible
   public abstract void spawnCollectorContext(CollectorContext context);
@@ -106,7 +106,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Stop all mutator threads. This is current intended to be run by a single thread.
-   *
+   * <p>
    * Fixpoint until there are no threads that we haven't blocked. Fixpoint is needed to
    * catch the (unlikely) case that a thread spawns another thread while we are waiting.
    */

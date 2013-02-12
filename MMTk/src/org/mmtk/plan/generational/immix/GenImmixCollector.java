@@ -51,6 +51,10 @@ public class GenImmixCollector extends GenCollector {
    *
    * Instance fields
    */
+
+  /**
+   *
+   */
   private final GenImmixMatureTraceLocal matureTrace = new GenImmixMatureTraceLocal(global().matureTrace, this);
   private final GenImmixMatureDefragTraceLocal defragTrace = new GenImmixMatureDefragTraceLocal(global().matureTrace, this);
 
@@ -65,16 +69,9 @@ public class GenImmixCollector extends GenCollector {
    */
 
   /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   *
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @param allocator The allocator to use.
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
                                  int align, int offset, int allocator) {
@@ -100,13 +97,7 @@ public class GenImmixCollector extends GenCollector {
     }
   }
 
-  /**
-   * Perform any post-copy actions.
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   */
+  @Override
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -129,11 +120,9 @@ public class GenImmixCollector extends GenCollector {
    */
 
   /**
-   * Perform a (local) collection phase.
-   *
-   * @param phaseId Collection phase to perform
-   * @param primary Is this thread to do the one-off thread-local tasks
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     TraceLocal trace = GenImmix.immixSpace.inImmixDefragCollection() ? defragTrace : matureTrace;
@@ -169,6 +158,7 @@ public class GenImmixCollector extends GenCollector {
     super.collectionPhase(phaseId, primary);
   }
 
+  @Override
   @Inline
   public final TraceLocal getFullHeapTrace() {
     return GenImmix.immixSpace.inImmixDefragCollection() ? defragTrace : matureTrace;

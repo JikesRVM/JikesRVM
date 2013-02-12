@@ -36,48 +36,29 @@ class RecompileOptChoice extends RecompilationChoice {
 
   /**
    * Constructor
+   * @param level the opt level associated with this choice
    */
   RecompileOptChoice(int level) {
     thisChoiceOptLevel = level;
     thisChoiceCompiler = CompilerDNA.getCompilerConstant(level);
   }
 
-  /**
-   * What is the cost of executing this plan?
-   *
-   * @param meth The method being considered for recompilation.
-   * @return The expected cost of exeuting this recompilation choice
-   */
+  @Override
   double getCost(NormalMethod meth) {
     return CompilerDNA.estimateCompileTime(getCompiler(), meth);
   }
 
-  /**
-   * What is the benefit of executing this plan, given the estimated
-   * future time for the method if nothing changes?
-   *
-   * @param prevCompiler The previous compiler
-   * @param futureTimeForMethod The expected future execution time of
-   *        the method if left running with the previous compiler.
-   * @return The expected future execution time if this choice were selected
-   */
+  @Override
   double getFutureExecutionTime(int prevCompiler, double futureTimeForMethod) {
     double rtFactor = CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
     return futureTimeForMethod / rtFactor;
   }
 
   /**
-   * Return a controller plan that will start this recompilation
-   * choice in action.  In this case, simply create a plan to
-   * recompile at level "optLevel"
-   *
-   * @param cmpMethod The method in question
-   * @param prevCompiler The previous compiler
-   * @param prevTimeForMethod The estimated future time had nothing been done
-   * @param bestActionTime The estimated total time implementing this choice
-   * @param expectedCompilationTime The expected time for recompiling
-   * @return The controller plan implementing this recompilation choice
+   * {@inheritDoc}
+   * In this case, simply create a plan to recompile at level {@link #thisChoiceOptLevel}.
    */
+  @Override
   ControllerPlan makeControllerPlan(CompiledMethod cmpMethod, int prevCompiler, double prevTimeForMethod,
                                        double bestActionTime, double expectedCompilationTime) {
     double speedup = CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
@@ -95,19 +76,23 @@ class RecompileOptChoice extends RecompilationChoice {
   /**
    * How should this choice be displayed?
    */
+  @Override
   public String toString() {
     return "O" + getOptLevel();
   }
 
   /**
    * Which opt-level is associated with this choice?
+   * @return the opt-level for this choice
    */
   int getOptLevel() {
     return thisChoiceOptLevel;
   }
 
   /**
-   * Which "compiler" (@see CompilerDNA) is associated with this choice?
+   * Which "compiler" is associated with this choice?
+   * @return the integer representing the compiler for this choice
+   * @see CompilerDNA#getCompilerConstant(int)
    */
   int getCompiler() {
     return thisChoiceCompiler;

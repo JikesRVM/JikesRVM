@@ -26,7 +26,7 @@ import org.jikesrvm.classloader.NormalMethod;
  */
 public class Entrypoints {
   // The usual causes for getField/Method() to fail are:
-  //  1. you mispelled the class name, member name, or member signature
+  //  1. you misspelled the class name, member name, or member signature
   //  2. the class containing the specified member didn't get compiled
   //
 
@@ -238,6 +238,7 @@ public class Entrypoints {
       getField(org.jikesrvm.scheduler.RVMThread.class,
                "exceptionRegisters",
                org.jikesrvm.ArchitectureSpecific.Registers.class);
+  public static final NormalMethod returnBarrierMethod = getMethod(org.jikesrvm.scheduler.RVMThread.class, "returnBarrier", "()V");
 
   public static final RVMField tracePrevAddressField =
       getField(org.jikesrvm.objectmodel.MiscHeader.class, "prevAddress", org.vmmagic.unboxed.Word.class);

@@ -52,6 +52,10 @@ public class ImmixCollector extends StopTheWorldCollector {
   /****************************************************************************
    * Instance fields
    */
+
+   /**
+    *
+    */
    protected ImmixTraceLocal fastTrace;
    protected ImmixDefragTraceLocal defragTrace;
    protected CollectorLocal immix;
@@ -79,16 +83,10 @@ public class ImmixCollector extends StopTheWorldCollector {
   * Collection-time allocation
   */
 
- /**
-  * Allocate space for copying an object (this method <i>does not</i>
-  * copy the object, it only allocates space)
-  *
-  * @param original A reference to the original object
-  * @param bytes The size of the space to be allocated (in bytes)
-  * @param align The requested alignment.
-  * @param offset The alignment offset.
-  * @return The address of the first byte of the allocated region
-  */
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
@@ -99,13 +97,7 @@ public class ImmixCollector extends StopTheWorldCollector {
     return copy.alloc(bytes, align, offset);
   }
 
- /**
-  * Perform any post-copy actions.
-  *
-  * @param object The newly allocated object
-  * @param typeRef the type reference for the instance being created
-  * @param bytes The size of the space to be allocated (in bytes)
-  */
+  @Override
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -124,11 +116,9 @@ public class ImmixCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
 
@@ -168,6 +158,7 @@ public class ImmixCollector extends StopTheWorldCollector {
   }
 
   /** @return The current fastTrace instance. */
+  @Override
   @Inline
   public final TraceLocal getCurrentTrace() {
     return currentTrace;

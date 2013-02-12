@@ -76,10 +76,10 @@ public class HeaderByte {
   }
 
   /**
-   * Return true if the specified object needs to be logged.
+   * Return {@code true} if the specified object needs to be logged.
    *
    * @param object The object in question
-   * @return True if the object in question needs to be logged (remembered).
+   * @return {@code true} if the object in question needs to be logged (remembered).
    */
   public static boolean isUnlogged(ObjectReference object) {
     byte value = VM.objectModel.readAvailableByte(object);

@@ -26,7 +26,17 @@ public final class BinaryOperation extends BinaryOp {
   /** The operator */
   public final Operator op;
 
-  /** The operation resultTemp <- op1 `op` op2 */
+  /**
+   * Constructs an operation that computes
+   * <pre>
+   *   resultTemp <- op1 op op2
+   * </pre>
+   * @param source
+   * @param resultTemp
+   * @param op1
+   * @param op2
+   * @param op
+   */
   public BinaryOperation(AST source, Register resultTemp, Register op1, Register op2, Operator op) {
     super(source, op.toString(),resultTemp, op1, op2);
     this.op = op;

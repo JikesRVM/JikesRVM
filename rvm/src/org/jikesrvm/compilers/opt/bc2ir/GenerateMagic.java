@@ -634,7 +634,7 @@ public class GenerateMagic implements TIBLayoutConstants  {
         bc2ir.pushDual(op0.copyD2U());
       } else {
         if (VM.VerifyAssertions)
-          VM._assert(false,"SQRT only handles Double or Float operands");
+          VM._assert(VM.NOT_REACHED,"SQRT only handles Double or Float operands");
       }
     } else if (methodName == MagicNames.getObjectType) {
       Operand val = bc2ir.popRef();

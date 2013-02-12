@@ -14,9 +14,6 @@ package org.mmtk.harness.options;
 
 import org.mmtk.harness.Harness;
 
-/**
- * Number of collector threads.
- */
 public final class Trace extends EnumSetOption {
   /**
    * Create the option.
@@ -47,6 +44,7 @@ public final class Trace extends EnumSetOption {
   /**
    * Only accept non-negative values.
    */
+  @Override
   protected void validate() {
   }
 }

@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ssa;
 
 /**
- * utility class: represents a pair of value numbers.
+ * Represents a pair of value numbers.
  */
 class ValueNumberPair implements Comparable<ValueNumberPair> {
   /** the value number of an array pointer */
@@ -33,6 +33,7 @@ class ValueNumberPair implements Comparable<ValueNumberPair> {
     this.v2 = p.v2;
   }
 
+  @Override
   public boolean equals(Object o) {
     if (!(o instanceof ValueNumberPair)) {
       return false;
@@ -41,15 +42,18 @@ class ValueNumberPair implements Comparable<ValueNumberPair> {
     return (v1 == p.v1) && (v2 == p.v2);
   }
 
+  @Override
   public int hashCode() {
     return v1 << 16 | v2;
   }
 
+  @Override
   public String toString() {
     return "<" + v1 + "," + v2 + ">";
   }
 
   // total order over ValueNumberPairs
+  @Override
   public int compareTo(ValueNumberPair p) {
     if (v1 > p.v1) {
       return 1;

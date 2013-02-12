@@ -55,7 +55,7 @@ public final class AddressConstantOperand extends ConstantOperand {
    * Constructs a new address constant operand with the specified offset value.
    *
    * @param v value
-   * TODO: make a separte OffsetConstantOperand
+   * TODO: make a separate OffsetConstantOperand
    */
   public AddressConstantOperand(Extent v) {
     this(v.toWord().toAddress());
@@ -65,55 +65,44 @@ public final class AddressConstantOperand extends ConstantOperand {
    * Constructs a new address constant operand with the specified offset value.
    *
    * @param v value
-   * TODO: make a separte OffsetConstantOperand
+   * TODO: make a separate OffsetConstantOperand
    */
   public AddressConstantOperand(Word v) {
     this(v.toAddress());
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     return new AddressConstantOperand(value);
   }
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
-   * @return TypeReference.Address
+   * @return {@link TypeReference#Address}
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.Address;
   }
 
   /**
-   * Does the operand represent a value of the address data type?
-   *
    * @return <code>true</code>
    */
+  @Override
   public boolean isAddress() {
     return true;
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     return equals(op);
   }
 
+  @Override
   public boolean equals(Object o) {
     return (o instanceof AddressConstantOperand) && (value.EQ(((AddressConstantOperand) o).value));
   }
 
+  @Override
   public int hashCode() {
     return value.toWord().rshl(SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();
   }
@@ -123,6 +112,7 @@ public final class AddressConstantOperand extends ConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "Addr " + VM.addressAsHexString(value);
   }

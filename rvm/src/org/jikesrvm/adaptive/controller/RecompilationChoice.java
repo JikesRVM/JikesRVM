@@ -24,10 +24,10 @@ abstract class RecompilationChoice {
   //--- Interface ---
 
   /**
-   * What is the cost of selecting this recompilation choice
+   * What is the cost of selecting this recompilation choice?
    *
    * @param meth The method being considered for recompilation.
-   * @return The expected cost of exeuting this recompilation choice
+   * @return The expected cost of executing this recompilation choice
    */
   abstract double getCost(NormalMethod meth);
 
@@ -44,7 +44,7 @@ abstract class RecompilationChoice {
 
   /**
    * Return a controller plan that will start this recompilation choice
-   * in action
+   * in action.
    *
    * @param cmpMethod The method in question
    * @param prevCompiler The previous compiler

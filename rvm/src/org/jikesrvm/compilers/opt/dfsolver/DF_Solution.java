@@ -15,8 +15,6 @@ package org.jikesrvm.compilers.opt.dfsolver;
 import java.util.HashMap;
 
 /**
- * DF_Solution.java
- *
  * Represents the solution to a system of Data Flow equations.
  * Namely, a function mapping Objects to DF_LatticeCells
  */
@@ -28,6 +26,7 @@ public class DF_Solution extends HashMap<Object, DF_LatticeCell> {
    * Return a string representation of the dataflow solution
    * @return a string representation of the dataflow solution
    */
+  @Override
   public String toString() {
     String result = "";
     for (DF_LatticeCell cell : values()) {

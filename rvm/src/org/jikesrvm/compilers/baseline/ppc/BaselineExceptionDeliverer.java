@@ -35,6 +35,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
   /**
    * Pass control to a catch block.
    */
+  @Override
   @Unpreemptible("Unwind stack possibly from unpreemptible code")
   public void deliverException(CompiledMethod compiledMethod, Address catchBlockInstructionAddress,
                                Throwable exceptionObject, ArchitectureSpecific.Registers registers) {
@@ -67,6 +68,7 @@ public abstract class BaselineExceptionDeliverer extends ExceptionDeliverer impl
   /**
    * Unwind a stackframe.
    */
+  @Override
   @Unpreemptible("Unwind stack possibly from unpreemptible code")
   public void unwindStackFrame(CompiledMethod compiledMethod, ArchitectureSpecific.Registers registers) {
     NormalMethod method = (NormalMethod) compiledMethod.getMethod();

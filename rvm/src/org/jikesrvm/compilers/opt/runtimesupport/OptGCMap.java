@@ -37,10 +37,12 @@ import org.vmmagic.pragma.Uninterruptible;
  * </ul>
  *
  *  Note: This file contains two types of methods
- *         1) methods called during compilation to create the GC maps
+ *  <ul>
+ *    <li>1) methods called during compilation to create the GC maps
  *            these methods are virtual
- *         2) methods called at GC time (no allocation allowed!)
+ *    <li>2) methods called at GC time (no allocation allowed!)
  *            these methods are static
+ *  </ul>
  */
 @Uninterruptible
 public final class OptGCMap implements OptGCMapIteratorConstants {
@@ -129,7 +131,7 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
           if (VM.VerifyAssertions && realRegNumber > LAST_GCMAP_REG) {
             System.out.println(elem);
             System.out.println(LAST_GCMAP_REG);
-            VM._assert(false, "reg > last GC Map Reg!!");
+            VM._assert(VM.NOT_REACHED, "reg > last GC Map Reg!!");
           }
 
           // get the bit position for this register number
@@ -331,7 +333,7 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
   private void addSpillLocation(int spill) {
     // make sure the value doesn't overflow the maximum spill location
     if (VM.VerifyAssertions && ((spill < 0) || (spill > 32767))) {
-      VM._assert(false, "Unexpected spill passed:" + spill);
+      VM._assert(VM.NOT_REACHED, "Unexpected spill passed:" + spill);
     }
     // get the next entry (with the NEXT bit set) ...
     int entry = getNextMapEntry();

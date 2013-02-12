@@ -47,9 +47,9 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
   /**
    * Is the specified object reachable?
    *
-   * @param object The object.
    * @return <code>true</code> if the object is reachable.
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     return GenRC.isRCObject(object) && RCHeader.isLiveRC(object) ||
           (!Space.isInSpace(GenRC.NURSERY, object) && super.isLive(object));
@@ -57,10 +57,8 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
 
   /**
    * When we trace a non-root object we do nothing.
-   *
-   * @param object The object to be traced.
-   * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     return traceObject(object, false);
@@ -68,10 +66,8 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
 
   /**
    * When we trace a root object we remember it.
-   *
-   * @param object The object to be traced.
-   * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object, boolean root) {
     if (object.isNull()) return object;
@@ -91,17 +87,7 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
     return object;
   }
 
-  /**
-   * Ensure that the referenced object will not move from this point through
-   * to the end of the collection. This can involve forwarding the object
-   * if necessary.
-   *
-   * <i>Non-copying collectors do nothing, copying collectors must
-   * override this method in each of their trace classes.</i>
-   *
-   * @param object The object that must not move during the collection.
-   * @return True If the object will not move during collection
-   */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
     return !(Space.isInSpace(GenRC.NURSERY, object));

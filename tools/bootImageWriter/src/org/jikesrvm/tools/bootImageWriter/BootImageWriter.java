@@ -176,17 +176,17 @@ public class BootImageWriter extends BootImageWriterMessages
     Field[]  jdkInstanceFields;
 
     /**
-     *  Fields that are the one-to-one match of rvm staticFields
+     *  Fields that are the one-to-one match of RVM staticFields
      */
     Field[]  jdkStaticFields;
 
     /**
-     *  Rvm type associated with this Field info
+     *  RVM type associated with this Field info
      */
     RVMType rvmType;
 
     /**
-     *  Jdk type associated with this Field info
+     *  JDK type associated with this Field info
      */
     final Class<?> jdkType;
 
@@ -206,7 +206,7 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   private static class Key {
     /**
-     * Jdk type
+     * JDK type
      */
     final Class<?> jdkType;
 
@@ -240,6 +240,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * comparator defers to another comparator.
    */
   private static final class IdenticalComparator implements Comparator<BootImageMap.Entry> {
+    @Override
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       return 0;
     }
@@ -250,6 +251,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * reference ID.
    */
   private static final class TypeReferenceComparator implements Comparator<BootImageMap.Entry> {
+    @Override
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
@@ -262,6 +264,7 @@ public class BootImageWriter extends BootImageWriterMessages
    * classes.
    */
   private static final class ClassNameComparator implements Comparator<BootImageMap.Entry> {
+    @Override
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       return -a.jdkObject.getClass().toString().compareTo(b.jdkObject.getClass().toString());
     }
@@ -276,6 +279,7 @@ public class BootImageWriter extends BootImageWriterMessages
     ObjectSizeComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
       this.identicalSizeComparator = identicalSizeComparator;
     }
+    @Override
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
@@ -306,6 +310,7 @@ public class BootImageWriter extends BootImageWriterMessages
     NumberOfReferencesComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
       this.identicalSizeComparator = identicalSizeComparator;
     }
+    @Override
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
@@ -336,6 +341,7 @@ public class BootImageWriter extends BootImageWriterMessages
     NumberOfNonFinalReferencesComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
       this.identicalSizeComparator = identicalSizeComparator;
     }
+    @Override
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
@@ -366,6 +372,7 @@ public class BootImageWriter extends BootImageWriterMessages
     NonFinalReferenceDensityComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
       this.identicalSizeComparator = identicalSizeComparator;
     }
+    @Override
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
@@ -397,6 +404,7 @@ public class BootImageWriter extends BootImageWriterMessages
     ReferenceDensityComparator(Comparator<BootImageMap.Entry> identicalSizeComparator) {
       this.identicalSizeComparator = identicalSizeComparator;
     }
+    @Override
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
@@ -529,13 +537,13 @@ public class BootImageWriter extends BootImageWriterMessages
       traceNulledWord(": field not in host jdk");
     }
 
-    /* Report a field that is an instance field in the host JDK but a static
+    /** Report a field that is an instance field in the host JDK but a static
        field in ours.  */
     public void traceFieldNotStaticInHostJdk() {
       traceNulledWord(": field not static in host jdk");
     }
 
-    /* Report a field that is a different type  in the host JDK.  */
+    /** Report a field that is a different type  in the host JDK.  */
     public void traceFieldDifferentTypeInHostJdk() {
       traceNulledWord(": field different type in host jdk");
     }
@@ -1051,7 +1059,9 @@ public class BootImageWriter extends BootImageWriterMessages
       if (!newBootRecordImageAddress.EQ(bootRecordImageAddress)) {
         VM.sysWriteln("bootRecordImageOffset = ", bootRecordImageAddress);
         VM.sysWriteln("newBootRecordImageOffset = ", newBootRecordImageAddress);
-        VM._assert(newBootRecordImageAddress.EQ(bootRecordImageAddress));
+        if (VM.VerifyAssertions) {
+          VM._assert(newBootRecordImageAddress.EQ(bootRecordImageAddress));
+        }
       }
       // Make sure pending entries are fully written out
       processPendingEntries();
@@ -1138,15 +1148,18 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   private static class TypeComparator<T> implements Comparator<T> {
 
+    @Override
     public int compare(T a, T b) {
+      if (a == null && b == null) return 0;
       if (a == null) return 1;
       if (b == null) return -1;
       if ((a instanceof RVMType) && (b instanceof RVMType)) {
         RVMType typeA = (RVMType) a;
         RVMType typeB = (RVMType) b;
         DemographicInformation infoA = demographicData.get(typeA);
-        if (infoA == null) return 1;
         DemographicInformation infoB = demographicData.get(typeB);
+        if (infoA == null && infoB == null) return 0;
+        if (infoA == null) return 1;
         if (infoB == null) return -1;
 
         if (infoA.size > infoB.size) return -1;
@@ -1267,15 +1280,18 @@ public class BootImageWriter extends BootImageWriterMessages
   }
 
   /**
-   * Create (in host jdk address space) the rvm objects that will be
+   * Create (in host JDK address space) the RVM objects that will be
    * needed at run time to execute enough of the virtual machine
-   * to dynamically load and compile the remainder of itself.
+   * to dynamically load and compile the remainder of itself.<p>
    *
-   * Side effect: rvm objects are created in host jdk address space
-   *              Statics is populated
-   *              "bootImageTypes" dictionary is populated with name/type pairs
+   * Side effects:
+   * <ul>
+   *   <li>RVM objects are created in host JDK address space
+   *   <li>Statics is populated
+   *   <li>"bootImageTypes" dictionary is populated with name/type pairs
+   * </ul>
    *
-   * @param typeNames names of rvm classes whose static fields will contain
+   * @param typeNames names of RVM classes whose static fields will contain
    *                  the objects comprising the virtual machine bootimage
    */
   public static void createBootImageObjects(Vector<String> typeNames,
@@ -1552,18 +1568,18 @@ public class BootImageWriter extends BootImageWriterMessages
       }
 
       //
-      // Tell rvm where to find itself at execution time.
+      // Tell RVM where to find itself at execution time.
       // This may not be the same place it was at build time, ie. if image is
       // moved to another machine with different directory structure.
       //
       BootstrapClassLoader.setBootstrapRepositories(bootImageRepositoriesAtExecutionTime);
 
       //
-      // Finally, populate jtoc with static field values.
+      // Finally, populate JTOC with static field values.
       // This is equivalent to the RVMClass.initialize() phase that would have
       // executed each class's static constructors at run time.  We simulate
-      // this by copying statics created in the host rvm into the appropriate
-      // slots of the jtoc.
+      // this by copying statics created in the host RVM into the appropriate
+      // slots of the JTOC.
       //
       if (verbose >= 1) say("populating jtoc with static fields");
       if (profile) startTime = System.currentTimeMillis();
@@ -2691,6 +2707,14 @@ public class BootImageWriter extends BootImageWriterMessages
         // Unknown Class field or value for type
         return false;
       }
+    } else if ((jdkObject instanceof java.lang.String) &&
+        (rvmFieldName.equals("count")) && (rvmFieldType.isIntType())) {
+      // The fields "count" and "offset" are not guaranteed to be present in
+      // the String implementation in the class library (case in point: IcedTea 7).
+      // We don't need to do anything for "offset" (the default value of 0 is correct)
+      // but we need to ensure that "count" has the correct value.
+      bootImage.setFullWord(rvmFieldAddress, ((java.lang.String) jdkObject).length());
+      return true;
     }
     // Class library dependent fields
     if (classLibrary == "harmony") {
@@ -2960,7 +2984,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
   /**
    * Traverse an object (and, recursively, any of its fields or elements that
-   * are references) in host jdk address space.
+   * are references) in host JDK address space.
    *
    * @param jdkObject object to be traversed
    * @return offset of copied object within image, in bytes
@@ -3115,7 +3139,7 @@ public class BootImageWriter extends BootImageWriterMessages
     }
 
   /**
-   * Begin recording objects referenced by rvm classes during
+   * Begin recording objects referenced by RVM classes during
    * loading/resolution/instantiation.  These references will be converted
    * to bootimage addresses when those objects are copied into bootimage.
    */
@@ -3124,14 +3148,14 @@ public class BootImageWriter extends BootImageWriterMessages
   }
 
   /**
-   * Stop recording objects referenced by rvm classes during
+   * Stop recording objects referenced by RVM classes during
    * loading/resolution/instantiation.
    */
   private static void disableObjectAddressRemapper() {
     Magic.setObjectAddressRemapper(null);
 
-    // Remove bootimage writer's remapper object that was present when jtoc
-    // was populated with jdk objects. It's not part of the bootimage and we
+    // Remove bootimage writer's remapper object that was present when JTOC
+    // was populated with JDK objects. It's not part of the bootimage and we
     // don't want to see warning messages about it when the bootimage is
     // written.
 
@@ -3140,10 +3164,10 @@ public class BootImageWriter extends BootImageWriterMessages
   }
 
   /**
-   * Obtain rvm type corresponding to host jdk type.
+   * Obtain RVM type corresponding to host JDK type.
    *
-   * @param jdkType jdk type
-   * @return rvm type (null --> type does not appear in list of classes
+   * @param jdkType JDK type
+   * @return RVM type ({@code null} --> type does not appear in list of classes
    *         comprising bootimage)
    */
   private static RVMType getRvmType(Class<?> jdkType) {
@@ -3151,10 +3175,10 @@ public class BootImageWriter extends BootImageWriterMessages
   }
 
   /**
-   * Obtain host jdk type corresponding to target rvm type.
+   * Obtain host JDK type corresponding to target RVM type.
    *
-   * @param rvmType rvm type
-   * @return jdk type (null --> type does not exist in host namespace)
+   * @param rvmType RVM type
+   * @return JDK type ({@code null} --> type does not exist in host namespace)
    */
   private static Class<?> getJdkType(RVMType rvmType) {
     Throwable x;
@@ -3180,7 +3204,7 @@ public class BootImageWriter extends BootImageWriterMessages
 }
 
   /**
-   * Obtain accessor via which a field value may be fetched from host jdk
+   * Obtain accessor via which a field value may be fetched from host JDK
    * address space.
    *
    * @param jdkType class whose field is sought
@@ -3201,10 +3225,10 @@ public class BootImageWriter extends BootImageWriterMessages
   }
 
   /**
-   * Figure out name of static rvm field whose value lives in specified jtoc
+   * Figure out name of static RVM field whose value lives in specified JTOC
    * slot.
    *
-   * @param jtocSlot jtoc slot number
+   * @param jtocSlot JTOC slot number
    * @return field name
    */
   private static RVMField getRvmStaticField(Offset jtocOff) {
@@ -3460,6 +3484,7 @@ public class BootImageWriter extends BootImageWriterMessages
       out.println();
 
       SortedSet<BootImageMap.Entry> set = new TreeSet<BootImageMap.Entry>(new Comparator<BootImageMap.Entry>() {
+        @Override
         public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
           return Integer.valueOf(a.imageAddress.toInt()).compareTo(b.imageAddress.toInt());
         }

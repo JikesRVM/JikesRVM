@@ -16,7 +16,7 @@ import org.mmtk.utility.Log;
 import org.mmtk.utility.statistics.Xml;
 
 public class Config {
-  /* The name of the active plan */
+  /** The name of the active plan */
   private final String ACTIVE_PLAN;
 
   /** Mark bit in the header or on the side ? */

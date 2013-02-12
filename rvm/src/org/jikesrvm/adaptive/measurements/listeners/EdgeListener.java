@@ -29,9 +29,9 @@ import org.vmmagic.unboxed.Offset;
  * that computes a call graph edge from the call stack.
  * After a parameterized number of edges are collected,
  * it notifies its organizer that the threshold is reached.
- *
+ * <p>
  * Defines update's interface.
- *
+ * <p>
  * EdgeListener communicates with an organizer through a
  * integer array, buffer.  Each time this listener is called,
  * it places a triple of integers in buffer that correspond to
@@ -109,6 +109,7 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
    * This method is called when a call stack edge needs to be
    * sampled.  Expect the sfp argument to point to the stack frame that
    * contains the target of the edge to be sampled.
+   * <p>
    * NOTE: This method is uninterruptible, therefore we don't need to disable
    *       thread switching during stackframe inspection.
    *
@@ -117,6 +118,7 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
+  @Override
   public final void update(Address sfp, int whereFrom) {
     if (DEBUG) {
       VM.sysWrite("EdgeListener.update(", sfp, ",", whereFrom);
@@ -206,13 +208,12 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
   }
 
   /**
-   *  report() noop
+   *  No-op.
    */
+  @Override
   public final void report() {}
 
-  /**
-   * Reset (in preparation of starting a new sampling window)
-   */
+  @Override
   public void reset() {
     if (DEBUG) VM.sysWrite("EdgeListener.reset(): enter\n");
     samplesTaken = 0;

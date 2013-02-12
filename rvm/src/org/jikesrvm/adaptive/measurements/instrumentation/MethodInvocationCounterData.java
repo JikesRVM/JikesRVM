@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 /**
  * An instance of this class is used to store method counters.  It is
  * initialized at startup, and instrumentation phase
- * InsertMethodInvocationCounter.java inserts instrumentation that
+ * InsertMethodInvocationCounter inserts instrumentation that
  * writes into this data.
  */
 public final class MethodInvocationCounterData extends ManagedCounterData implements Reportable {
@@ -32,17 +32,18 @@ public final class MethodInvocationCounterData extends ManagedCounterData implem
   }
 
   /**
-   *  Part of Reportable interface.  Called on system exit
+   *  Called on system exit
    */
+  @Override
   public void report() {
     super.report(new MethodNameFunction());
   }
 
-  /**
-   *  Part of Reportable interface
-   **/
+  @Override
   public void reset() {
-    VM._assert(false, "TODO: implement reset for BasicBlockCounterDatabase");
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED, "TODO: implement reset for BasicBlockCounterDatabase");
+    }
   }
 
 }

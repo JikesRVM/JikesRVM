@@ -5,6 +5,42 @@ Jikes RVM NEWS -- History of significant changes
 This file contains the release notes since Jikes RVM 2.0.0, released
 on October 14, 2001,
 
+* Jikes RVM 3.1.3 (February 12, 2013)
+
+** Improvement
+    * [RVM-962] - Initial pass over the source code to remove duplicated comments
+    * [RVM-965] - Consolidate EmptyIterator implementations
+    * [RVM-970] - This patch creates an environment to perform unit-tests both in the boostrap VM and Jikes RVM. Added a working example (ExampleTest).
+    * [RVM-973] - Initial pass over the source code for cosmetic comment changes
+    * [RVM-974] - Cleanup assertions in the RVM (add missing VM.VerifyAssertions, use VM.NOT_REACHED instead of false)
+    * [RVM-975] - Updated JUnit to 4.10
+    * [RVM-976] - Remove *Enumeration classes that were made useless by generics
+    * [RVM-980] - Custom Test Runner to Distinguish Testing VM
+    * [RVM-981] - Added Mockito to components
+    * [RVM-984] - Don't run unit tests on the built RVM image by default
+    * [RVM-1012] - Add memory barriers to implement JMM volatile semantics in PPC baseline compiler
+    * [RVM-1014] - Move static nested classes out of BC2IR
+
+** Bug
+    * [RVM-916] - Rule missing in set_caught_exception (BURS)
+    * [RVM-954] - @Target of @Pragma meta-annotation incorrect
+    * [RVM-963] - Pettis-Hansen code reordering causes boot image compilation to be non-deterministic
+    * [RVM-967] - Sticky Immix incorrectly tries to forward mature objects
+    * [RVM-969] - "Comparison method violates its general contract" when building on OpenJDK 7
+    * [RVM-972] - .hgignore ignores build//components/
+    * [RVM-978] - parallel sweep wrong
+    * [RVM-987] - Add a null check for the thread object to sun.misc.Unsafe.park(...)
+    * [RVM-990] - Assertion failures in RCHeader makeUnlogged() when running unit tests on BaseBaseGenRC
+    * [RVM-1000] - Strings from IcedTea 1.7 don't have count and offset fields
+    * [RVM-1003] -  fop (DaCapo 9.12) fails with NPE for input size small
+    * [RVM-1004] - NPE while opt-compiling LogManager.checkAccess during bootimage writing
+
+** Test
+    * [RVM-971] - Unit Tests for org.jikesrvm.util
+    * [RVM-982] - Added JUnit Test and fix for org.jikesrvm.compilers/opt/util/Stack.java
+    * [RVM-983] - Added JUnit Test for org/jikesrvm/compilers/opt/util/Tree.java and fixes for the bugs found
+    * [RVM-992] - Add remaining unit tests from the Google Summer of Code unit testing project
+
 * Jikes RVM 3.1.2  (February 24, 2012)
 
 Please note, Jikes RVM now requires the host JVM to be Java 6 or better. 

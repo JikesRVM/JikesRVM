@@ -16,6 +16,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
 import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.controlflow.DominatorTree;
@@ -24,7 +26,6 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Goto;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
@@ -48,18 +49,20 @@ import org.jikesrvm.compilers.opt.ir.Move;
  * NOTE: the check for exactly one in edge is used to rule out
  *       situations like the following:
  * <pre>
- [5~ *      if (C) goto L2              // cb2
+ *      if (C) goto L2              // cb2
  *      x = x + 1;
  *  L2: x = x + 1;
  *      if (C) goto L3.            // cb1
  * </pre>
+ * Consider redundant branch elimination for cb1.
  * Here L2 (the target of cb2) dominates cb1, but it
  * is not correct to eliminate cb1 because it is also
- * reachable (but not dominated) from the continutation
+ * reachable (but not dominated) from the continuation
  * block of cb2!
  */
 public final class RedundantBranchElimination extends OptimizationPlanCompositeElement {
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA_REDUNDANT_BRANCH_ELIMINATION;
   }
@@ -81,6 +84,7 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
 
   private static final class EnsureSSA extends CompilerPhase {
 
+    @Override
     public String getName() {
       return "Ensure SSA";
     }
@@ -89,11 +93,13 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
       return true;
     }
 
+    @Override
     public void perform(IR ir) {
       ir.desiredSSAOptions = new SSAOptions();
       new EnterSSA().perform(ir);
     }
 
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
@@ -102,8 +108,10 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
   private static final class RBE extends CompilerPhase {
     private static final boolean DEBUG = false;
 
+    @Override
     public String getName() { return "RBE Transform"; }
 
+    @Override
     public boolean printingEnabled(OptOptions options, boolean before) {
       return false && DEBUG;
     }
@@ -114,6 +122,7 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
@@ -124,12 +133,13 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
      *
      * @param ir   The IR on which to apply the phase
      */
+    @Override
     public void perform(IR ir) {
       // (1) Remove redundant conditional branches and locally fix the PHIs
       GlobalValueNumberState gvns = ir.HIRInfo.valueNumbers;
       DominatorTree dt = ir.HIRInfo.dominatorTree;
-      for (BasicBlockEnumeration bbs = ir.getBasicBlocks(); bbs.hasMoreElements();) {
-        BasicBlock candBB = bbs.next();
+      for (Enumeration<BasicBlock> bbs = ir.getBasicBlocks(); bbs.hasMoreElements();) {
+        BasicBlock candBB = bbs.nextElement();
         Instruction candTest = candBB.firstBranchInstruction();
         if (candTest == null) continue;
         if (!(IfCmp.conforms(candTest) || InlineGuard.conforms(candTest))) continue;
@@ -176,8 +186,8 @@ public final class RedundantBranchElimination extends OptimizationPlanCompositeE
         // save it now before removeFromCFGAndCodeOrder nulls it out!!!
         BasicBlock nextNode = (BasicBlock) node.getNext();
         if (!node.dfsVisited()) {
-          for (BasicBlockEnumeration e = node.getOut(); e.hasMoreElements();) {
-            BasicBlock target = e.next();
+          for (Enumeration<BasicBlock> e = node.getOut(); e.hasMoreElements();) {
+            BasicBlock target = e.nextElement();
             if (target != node && !target.isExit() && target.dfsVisited()) {
               SSA.purgeBlockFromPHIs(node, target);
             }

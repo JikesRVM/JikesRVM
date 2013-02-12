@@ -18,10 +18,11 @@ import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 
 /**
  * Enumerator for a list of live intervals stored on a basic block.
- *
+ * <p>
  * Note: This is fragile.  Use with care iff you know what you're doing.
+ * <p>
  * TODO: redesign the way live info is stored on the IR to be a bit more
- * robust.  eg., don't use scratch fields.
+ * robust.  e.g., don't use scratch fields.
  */
 public class LiveIntervalEnumeration implements Enumeration<LiveIntervalElement> {
   private LiveIntervalElement currentElement;
@@ -33,10 +34,12 @@ public class LiveIntervalEnumeration implements Enumeration<LiveIntervalElement>
     this.currentElement = first;
   }
 
+  @Override
   public boolean hasMoreElements() {
     return currentElement != null;
   }
 
+  @Override
   public LiveIntervalElement nextElement() {
     LiveIntervalElement result = currentElement;
     currentElement = currentElement.getNext();

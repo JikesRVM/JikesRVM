@@ -24,20 +24,24 @@ public class LoadFloatConst extends PseudoBytecode {
     this.fbits = bits;
   }
 
+  @Override
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_LoadFloatConst);
     int2bytes(codes, 2, fbits);
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     return +1;
   }
 
+  @Override
   public String toString() {
     return "LoadFloat " + Float.intBitsToFloat(fbits);
   }

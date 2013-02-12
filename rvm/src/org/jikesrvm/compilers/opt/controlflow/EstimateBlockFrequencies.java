@@ -20,7 +20,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.WeightedBranchTargets;
 
@@ -68,6 +67,7 @@ public class EstimateBlockFrequencies extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -77,8 +77,10 @@ public class EstimateBlockFrequencies extends CompilerPhase {
    */
   private BasicBlock[] topOrder;
 
+  @Override
   public String getName() { return "Estimate Block Frequencies"; }
 
+  @Override
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
@@ -87,11 +89,17 @@ public class EstimateBlockFrequencies extends CompilerPhase {
 
   /**
    * Compute relative basic block frequencies for the argument IR based on the
-   * branch probability information on each conditional and multiway branch.
-   * Assumptions: (1) LST is valid
-   *              (2) basic block numbering is dense (compact has been called).
+   * branch probability information on each conditional and multiway branch.<p>
+   *
+   * Assumptions:
+   * <ol>
+   *   <li>LST is valid
+   *   <li>basic block numbering is dense (compact has been called)
+   * </ol>
+   *
    * @param _ir the IR on which to apply the phase
    */
+  @Override
   public void perform(IR _ir) {
     // Prepare
     ir = _ir;
@@ -117,8 +125,8 @@ public class EstimateBlockFrequencies extends CompilerPhase {
     // Compute loop multipliers
     if (lst != null) {
       computeLoopMultipliers(lst.getRoot());
-      for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-        BasicBlock bb = e.next();
+      for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+        BasicBlock bb = e.nextElement();
         bb.setExecutionFrequency(0f);
         bb.clearScratchFlag();
       }
@@ -135,19 +143,24 @@ public class EstimateBlockFrequencies extends CompilerPhase {
    * Set the frequency of each basic block to 1.0f.
    */
   private void setDumbFrequencies(IR ir) {
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = e.next();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
       bb.setExecutionFrequency(1f);
     }
   }
 
   /**
-   * Compute which blocks are infrequent.
-   * Algorithm: let f = INFREQUENT_THRESHOLD.
-   * Start with S = {all basic blocks}.
-   * Sort the blocks by frequency.  Starting with the most frequent
-   * blocks, remove blocks from S until the sum of block frequencies in S
-   * <= f.  Then blocks in S are infrequent.
+   * Compute which blocks are infrequent.<p>
+   *
+   * Algorithm:
+   * <ol>
+   *   <li>let f = INFREQUENT_THRESHOLD.
+   *   <li>Start with S = {all basic blocks}.
+   *   <li>Sort the blocks by frequency.  Starting with the most frequent
+   *       blocks, remove blocks from S until the sum of block frequencies in S
+   *       <= f.  Then blocks in S are infrequent.
+   * </ol>
+   * </pre>
    *
    * @param ir the governing IR.
    */

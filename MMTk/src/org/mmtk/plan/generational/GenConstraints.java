@@ -28,39 +28,30 @@ import org.vmmagic.pragma.*;
 @Uninterruptible
 public class GenConstraints extends StopTheWorldConstraints {
 
-  /** @return True if this plan is generational. */
   @Override
   public boolean generational() { return true; }
 
-  /** @return True if this plan moves objects. */
   @Override
   public boolean movesObjects() { return true; }
 
-  /** @return The number of header bits that are required. */
   @Override
   public int gcHeaderBits() { return CopySpace.LOCAL_GC_BITS_REQUIRED; }
 
-  /** @return The number of header words that are required. */
   @Override
   public int gcHeaderWords() { return CopySpace.GC_HEADER_WORDS_REQUIRED; }
 
-  /** @return True if this plan requires a write barrier */
   @Override
   public boolean needsObjectReferenceWriteBarrier() { return true; }
 
-  /** @return True if this plan requires a static barrier */
   @Override
   public boolean needsObjectReferenceNonHeapWriteBarrier() { return Gen.USE_NON_HEAP_OBJECT_REFERENCE_WRITE_BARRIER; }
 
-  /** @return True if this Plan can perform bulk object arraycopy barriers. */
   @Override
   public boolean objectReferenceBulkCopySupported() { return true; }
 
-  /** @return The specialized scan methods required */
   @Override
   public int numSpecializedScans() { return 2; }
 
-  /** @return True if this Plan requires a header bit for object logging */
   @Override
   public boolean needsLogBitInHeader() { return Gen.USE_OBJECT_BARRIER; }
 

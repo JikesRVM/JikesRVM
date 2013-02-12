@@ -26,13 +26,21 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implements the mutator context for a simple reference counting collector.
+ * This class implements the mutator context for a reference counting collector.
+ * See Shahriyar et al for details of and rationale for the optimizations used
+ * here (http://dx.doi.org/10.1145/2258996.2259008).  See Chapter 4 of
+ * Daniel Frampton's PhD thesis for details of and rationale for the cycle
+ * collection strategy used by this collector.
  */
 @Uninterruptible
 public class RCBaseMutator extends StopTheWorldMutator {
 
   /************************************************************************
    * Instance fields
+   */
+
+  /**
+   *
    */
   private final ExplicitFreeListLocal rc;
   private final LargeObjectLocal rclos;
@@ -62,15 +70,9 @@ public class RCBaseMutator extends StopTheWorldMutator {
    */
 
   /**
-   * Allocate memory for an object.
-   *
-   * @param bytes The number of bytes required for the object.
-   * @param align Required alignment for the object.
-   * @param offset Offset associated with the alignment.
-   * @param allocator The allocator associated with this request.
-   * @param site Allocation site
-   * @return The address of the newly allocated memory.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     switch (allocator) {
@@ -90,38 +92,32 @@ public class RCBaseMutator extends StopTheWorldMutator {
     }
   }
 
-  /**
-   * Perform post-allocation actions.  For many allocators none are
-   * required.
-   *
-   * @param ref The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
-   */
+  @Override
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef, int bytes, int allocator) {
     switch (allocator) {
     case RCBase.ALLOC_DEFAULT:
     case RCBase.ALLOC_NON_MOVING:
-      modBuffer.push(ref);
+      if (RCBase.BUILD_FOR_GENRC) modBuffer.push(ref);
     case RCBase.ALLOC_CODE:
-      decBuffer.push(ref);
-      RCHeader.initializeHeader(ref, true);
-      ExplicitFreeListSpace.unsyncSetLiveBit(ref);
+      if (RCBase.BUILD_FOR_GENRC) {
+        decBuffer.push(ref);
+        RCHeader.initializeHeader(ref, true);
+        ExplicitFreeListSpace.unsyncSetLiveBit(ref);
+      }
       break;
     case RCBase.ALLOC_LOS:
-      modBuffer.push(ref);
+      if (RCBase.BUILD_FOR_GENRC) modBuffer.push(ref);
     case RCBase.ALLOC_PRIMITIVE_LOS:
     case RCBase.ALLOC_LARGE_CODE:
       decBuffer.push(ref);
-      RCHeader.initializeHeader(ref, true);
+      if (RCBase.BUILD_FOR_GENRC) RCHeader.initializeHeader(ref, true);
       RCBase.rcloSpace.initializeHeader(ref, true);
       return;
     case RCBase.ALLOC_IMMORTAL:
-      modBuffer.push(ref);
+      if (RCBase.BUILD_FOR_GENRC) modBuffer.push(ref);
       decBuffer.push(ref);
-      RCHeader.initializeHeader(ref, true);
+      if (RCBase.BUILD_FOR_GENRC) RCHeader.initializeHeader(ref, true);
       return;
     default:
       VM.assertions.fail("Allocator not understood by RC");
@@ -129,19 +125,10 @@ public class RCBaseMutator extends StopTheWorldMutator {
     }
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == RCBase.rcSpace) return rc;
     if (space == RCBase.rcloSpace) return rclos;
-
     return super.getAllocatorFromSpace(space);
   }
 
@@ -150,12 +137,11 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * Collection
    */
 
+
   /**
-   * Perform a per-mutator collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary perform any single-threaded local activities.
+   * {@inheritDoc}
    */
+  @Override
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == RCBase.PREPARE) {
       rc.prepare();
@@ -178,29 +164,23 @@ public class RCBaseMutator extends StopTheWorldMutator {
       }
       rc.release();
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(modBuffer.isEmpty());
-      if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(decBuffer.isEmpty());
+      if (!RCBase.BUILD_FOR_GENRC) {
+        if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(decBuffer.isEmpty());
+      }
       return;
     }
 
     super.collectionPhase(phaseId, primary);
   }
 
-  /**
-   * Flush per-mutator remembered sets into the global remset pool.
-   */
+  @Override
   public final void flushRememberedSets() {
     decBuffer.flushLocal();
     modBuffer.flushLocal();
     assertRemsetsFlushed();
   }
 
-  /**
-   * Assert that the remsets have been flushed.  This is critical to
-   * correctness.  We need to maintain the invariant that remset entries
-   * do not accrue during GC.  If the host JVM generates barrier entires
-   * it is its own responsibility to ensure that they are flushed before
-   * returning to MMTk.
-   */
+  @Override
   public final void assertRemsetsFlushed() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(decBuffer.isFlushed());
@@ -208,10 +188,6 @@ public class RCBaseMutator extends StopTheWorldMutator {
     }
   }
 
-  /**
-   * Flush mutator context, in response to a requestMutatorFlush.
-   * Also called by the default implementation of deinitMutator.
-   */
   @Override
   public void flush() {
     super.flush();
@@ -224,19 +200,9 @@ public class RCBaseMutator extends StopTheWorldMutator {
    */
 
   /**
-   * A new reference is about to be created. Take appropriate write
-   * barrier actions.<p>
-   *
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occurred
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void objectReferenceWrite(ObjectReference src, Address slot,
                            ObjectReference tgt, Word metaDataA,
@@ -247,23 +213,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
     VM.barriers.objectReferenceWrite(src,tgt,metaDataA, metaDataB, mode);
   }
 
-  /**
-   * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is
-   * created, we must then take appropriate write barrier actions.<p>
-   *
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param old The old reference to be swapped out
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
-   * @return True if the swap was successful.
-   */
+  @Override
   @Inline
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot,
                                                ObjectReference old, ObjectReference tgt, Word metaDataA,
@@ -275,10 +225,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
   }
 
   /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
+   * {@inheritDoc}
    *
    * @param src The source of the values to be copied
    * @param srcOffset The offset of the first source address, in
@@ -292,6 +239,7 @@ public class RCBaseMutator extends StopTheWorldMutator {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
+  @Override
   @Inline
   public boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset,
                               ObjectReference dst, Offset dstOffset, int bytes) {

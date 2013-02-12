@@ -75,6 +75,7 @@ public final class SpecializedMethod {
     return smid;
   }
 
+  @Override
   public String toString() {
     return "Specialized " + method + "  (Context: " + context + ")";
   }

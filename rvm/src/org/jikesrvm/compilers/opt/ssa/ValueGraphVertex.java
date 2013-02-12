@@ -110,6 +110,7 @@ final class ValueGraphVertex extends SpaceEffGraphNode {
     return arity;
   }
 
+  @Override
   public String toString() {
     StringBuilder s = new StringBuilder("Vertex: " + name + " " + label);
     s.append(" Targets: ");
@@ -123,6 +124,3 @@ final class ValueGraphVertex extends SpaceEffGraphNode {
     return s.toString();
   }
 }
-
-
-

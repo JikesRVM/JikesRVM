@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * Abstract GCspy driver for MMTk collectors.
+ * Abstract GCspy driver for MMTk collectors.<p>
  *
  * This class implements for the MMTk a base driver for a GCspy space.
  * All drivers for GCspy spaces should inherit from this class.
@@ -39,6 +39,7 @@ public abstract class AbstractDriver {
    */
 
   // Controls used for tile presentation
+
   /** The tile is used */
   protected static final byte CONTROL_USED            =  1;
   /** The tile is a background tile */
@@ -327,7 +328,7 @@ public abstract class AbstractDriver {
    * to increment their <code>refFromImmortal</code> Stream.
    *
    * @param addr The Address
-   * @return true if the given Address is in this subspace. Always false here.
+   * @return {@code true} if the given Address is in this subspace. Always {@code false} here.
    */
   public boolean handleReferenceFromImmortalSpace(Address addr) {
     return false;
@@ -358,7 +359,7 @@ public abstract class AbstractDriver {
   /**
    * Is a tile used?
    * @param val the control value.
-   * @return true if the tile is used
+   * @return {@code true} if the tile is used
    */
   protected static boolean controlIsUsed(byte val) {
     return (val & CONTROL_USED) != 0;
@@ -367,7 +368,7 @@ public abstract class AbstractDriver {
   /**
    * Is a tile a background pseudo-tile?
    * @param val the control value.
-   * @return true if the tile is a background tile
+   * @return {@code true} if the tile is a background tile
    */
   protected static boolean controlIsBackground(byte val) {
     return (val & CONTROL_BACKGROUND) != 0;
@@ -376,7 +377,7 @@ public abstract class AbstractDriver {
   /**
    * Is a tile unused?
    * @param val the control value.
-   * @return true if the tile is unused
+   * @return {@code true} if the tile is unused
    */
   protected static boolean controlIsUnused(byte val) {
     return (val & CONTROL_UNUSED) != 0;
@@ -385,7 +386,7 @@ public abstract class AbstractDriver {
   /**
    * Is this a separator?
    * @param val the control value.
-   * @return true if this is a separator
+   * @return {@code true} if this is a separator
    */
   protected static boolean controlIsSeparator(byte val) {
     return (val & CONTROL_SEPARATOR) != 0;

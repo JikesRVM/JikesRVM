@@ -21,9 +21,6 @@ import org.vmmagic.unboxed.Word;
  */
 public class WordComparator implements Comparator<Word> {
 
-  /**
-   * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-   */
   @Override
   public int compare(Word arg0, Word arg1) {
     return arg0.LT(arg1) ? -1 : (arg0.EQ(arg1) ? 0 : 1);

@@ -15,13 +15,13 @@ package org.jikesrvm.compilers.opt.ssa;
 import static org.jikesrvm.compilers.opt.ir.Operators.PI;
 
 import java.lang.reflect.Constructor;
+import java.util.Enumeration;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
 import org.jikesrvm.compilers.opt.ir.GuardedUnary;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -29,7 +29,6 @@ import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.Operator;
@@ -38,7 +37,6 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
 /**
- *
  * This pass inserts PI nodes (Effectively copies)
  * on branch edges, to introduce new names for analysis
  */
@@ -46,8 +44,10 @@ public final class PiNodes extends CompilerPhase {
 
   /**
    * Should we insert PI nodes for array references after bounds-checks
-   * and null-checks?  TODO: if this is false, then null-check elimination
-   * will be ineffective.  TODO: prove that null-check elimination is
+   * and null-checks?
+   * <p>TODO: if this is false, then null-check elimination
+   * will be ineffective.
+   * <p>TODO: prove that null-check elimination is
    * sound before turning this on again.
    */
   static final boolean CHECK_REF_PI = false;
@@ -67,8 +67,8 @@ public final class PiNodes extends CompilerPhase {
    * Should this phase be performed?
    * Only perform this when we are doing an SSA-based optimization
    * that can benefit from PI nodes.
-   * @param options controlling compiler options
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA_GLOBAL_BOUNDS_CHECK || typeChecks;
   }
@@ -83,6 +83,7 @@ public final class PiNodes extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -91,6 +92,7 @@ public final class PiNodes extends CompilerPhase {
    * A String representation of this phase
    * @return a string representation
    */
+  @Override
   public String getName() {
     return "Pi Nodes " + insertion;
   }
@@ -100,6 +102,7 @@ public final class PiNodes extends CompilerPhase {
    * @param options controlling compiler options
    * @param before control for the query
    */
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -126,10 +129,7 @@ public final class PiNodes extends CompilerPhase {
     this.typeChecks = typeChecks;
   }
 
-  /**
-   * Perform the transformation.
-   * @param ir the IR to optimize
-   */
+  @Override
   public void perform(IR ir) {
     if (insertion) {
       if (!typeChecks) {
@@ -154,9 +154,9 @@ public final class PiNodes extends CompilerPhase {
    *  @param ir the governing IR
    */
   private void insertPiIfNodes(IR ir) {
-    InstructionEnumeration e = ir.forwardInstrEnumerator();
+    Enumeration<Instruction> e = ir.forwardInstrEnumerator();
     while(e.hasMoreElements()) {
-      Instruction instr = e.next();
+      Instruction instr = e.nextElement();
       // TODO: what other compareops generate useful assertions?
       if (IfCmp.conforms(instr) || InlineGuard.conforms(instr)) {
 
@@ -166,10 +166,10 @@ public final class PiNodes extends CompilerPhase {
           continue;
         }
         // insert new basic blocks on each edge out of thisbb
-        BasicBlockEnumeration outBB = thisbb.getNormalOut();
-        BasicBlock out1 = outBB.next();
+        Enumeration<BasicBlock> outBB = thisbb.getNormalOut();
+        BasicBlock out1 = outBB.nextElement();
         BasicBlock new1 = IRTools.makeBlockOnEdge(thisbb, out1, ir);
-        BasicBlock out2 = outBB.next();
+        BasicBlock out2 = outBB.nextElement();
         BasicBlock new2 = IRTools.makeBlockOnEdge(thisbb, out2, ir);
 
         // For these types of IfCmp's, the Pi Node is not actually
@@ -362,8 +362,8 @@ public final class PiNodes extends CompilerPhase {
    * @param ir the governing IR
    */
   static void cleanUp(IR ir) {
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
       if (s.operator == PI) {
         RegisterOperand result = GuardedUnary.getResult(s);
         Operator mv = IRTools.getMoveOp(result.getType());

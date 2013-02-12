@@ -31,6 +31,10 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
    *
    * Instance variables
    */
+
+  /**
+   *
+   */
   private final ObjectReferenceDeque values;
 
   /****************************************************************************
@@ -48,12 +52,7 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
     values = new ObjectReferenceDeque(name, queue);
   }
 
-  /**
-   * Trace an edge during GC.
-   *
-   * @param source The source of the reference.
-   * @param slot The location containing the object reference.
-   */
+  @Override
   @Inline
   public final void processEdge(ObjectReference source, Address slot) {
     ObjectReference object = VM.activePlan.global().loadObjectReference(slot);
@@ -98,7 +97,7 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
   }
 
   /**
-   * Retrives an object.
+   * Retrieves an object.
    *
    * @return The object retrieved.
    */
@@ -120,7 +119,7 @@ public abstract class ObjectReferenceBuffer extends TransitiveClosure implements
   }
 
   /**
-   * Return true if this buffer is locally empty
+   * Return {@code true} if this buffer is locally empty
    */
   public final boolean isFlushed() {
     return values.isFlushed();

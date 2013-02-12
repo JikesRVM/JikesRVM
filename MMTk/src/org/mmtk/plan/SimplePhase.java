@@ -20,7 +20,6 @@ import org.vmmagic.pragma.*;
 
 /**
  * Phases of a garbage collection.
- *
  */
 @Uninterruptible
 public final class SimplePhase extends Phase
@@ -49,9 +48,7 @@ public final class SimplePhase extends Phase
     super(name, timer);
   }
 
-  /**
-   * Display a phase for debugging purposes.
-   */
+  @Override
   protected void logPhase() {
     Log.write("SimplePhase(");
     Log.write(name);

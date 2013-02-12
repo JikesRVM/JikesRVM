@@ -90,6 +90,7 @@ Building Options:
      --build-arg      Specify an additional argument for the ant build
      --bc-arg         Specify arguments for the bootimage compiler
      --checkstyle     Perform source code style checks.
+     --test-image     Run unit tests on the built RVM image and fail the build if the tests fail
  -p, --profile        Perform a profiled build (including creation of a profile)	
      --comp-cache-dir Specify a cache location for component downloads
      --clear-cc       Clear out the component caches
@@ -145,6 +146,7 @@ GetOptions(
   "nuke" => \$nuke,
   "c|cross-to=s" => \$target,
   "checkstyle" => \$checkstyle,
+  "test-image" => \$test_image,
   "p|profile" => \$profile,
   "u|user=s" => \$cmd_user,
   "build-user=s" => \$cmd_hostUser,
@@ -438,6 +440,11 @@ if ($test_list ne "") {
 #
 # Configuration 
 #
+
+# Read out test-run properties that affect the build config (e.g. for checkstyle and
+# unit tests on the images) and add them to the build arguments.
+#
+# Those properties would be ignored otherwise because buildit always skips builds in test-runs.
 if ($test_set && !$checkstyle) {
   $checkstyle = `grep ^require.checkstyle=true\$ $localRoot/build/test-runs/$test_set.properties`;
   chomp($checkstyle);
@@ -445,6 +452,14 @@ if ($test_set && !$checkstyle) {
     $checkstyle = 1;
   }
 }
+if ($test_set && !$test_image) {
+  $test_image = `grep ^require.rvm-unit-tests=true\$ $localRoot/build/test-runs/$test_set.properties`;
+  chomp($test_image);
+  if ($test_image ne "") {
+    $test_image = 1;
+  }
+}
+
 $implicitconfigs = ($#gcs == -1 && $compiler eq "");
 if ($#gcs == -1 && $test_set && $compiler eq "") {
   my $rawconfigs = `grep \"^test.configs=.*$\" $localRoot/build/test-runs/$test_set.properties`;
@@ -653,7 +668,10 @@ if ($ok) {
     }
     if ($checkstyle ne "") {
       $defs .= "-Drequire.checkstyle=true ";
-    } 
+    }
+    if ($test_image ne "") {
+      $defs .= "-Drequire.rvm-unit-tests=true ";
+    }
     if ($x87 ne "") {
       $defs .= "-Dtarget.arch.sse2=none ";
     }

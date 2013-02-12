@@ -17,7 +17,7 @@ import org.vmmagic.pragma.RawStorage;
 import org.vmmagic.unboxed.harness.ArchitecturalWord;
 
 /**
- * To be commented
+ * TODO To be commented
  */
 @Unboxed
 @RawStorage(lengthInWords = true, length = 1)
@@ -101,6 +101,7 @@ public final class Offset {
     return EQ(max());
   }
 
+  @Override
   public String toString() {
     return toWord().toString();
   }

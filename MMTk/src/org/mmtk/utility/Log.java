@@ -30,7 +30,7 @@ public class Log implements Constants {
 
   /**
    * characters in the write buffer for the caller's message.  This
-   * does not include characters reserved for the overflow message.
+   * does not include characters reserved for the overflow message.<p>
    *
    * This needs to be large because Jikes RVM's implementation of Lock.java
    * logs a lot of information when there is potential GC deadlock.
@@ -133,7 +133,7 @@ public class Log implements Constants {
 
   /**
    * writes a long, in decimal.  The value is not padded and no
-   * thousands seperator is logged.  If the value is negative a
+   * thousands separator is logged.  If the value is negative a
    * leading minus sign (-) is logged.
    *
    *
@@ -170,7 +170,7 @@ public class Log implements Constants {
   /**
    * writes a <code>double</code>.  Two digits after the decimal point
    * are always logged.  The value is not padded and no thousands
-   * seperator is used.  If the value is negative a leading
+   * separator is used.  If the value is negative a leading
    * hyphen-minus (-) is logged.  The decimal point is a full stop
    * (.).
    *
@@ -181,7 +181,7 @@ public class Log implements Constants {
   /**
    * writes a <code>double</code>.  The number of digits after the
    * decimal point is determined by <code>postDecimalDigits</code>.
-   * The value is not padded and not thousands seperator is used. If
+   * The value is not padded and not thousands separator is used. If
    * the value is negative a leading hyphen-minus (-) is logged.  The
    * decimal point is a full stop (.) and is logged even if
    * <postDecimcalDigits</code> is zero. If <code>d</code> is greater
@@ -295,7 +295,7 @@ public class Log implements Constants {
   }
 
   /**
-   * writes an address, in hexademical. It is zero-padded.
+   * writes an address, in hexadecimal. It is zero-padded.
    *
    * @param a the address to be logged
    */
@@ -304,7 +304,7 @@ public class Log implements Constants {
   }
 
   /**
-   * writes a string followed by an address, in hexademical.
+   * writes a string followed by an address, in hexadecimal.
    * @see #write(String)
    * @see #write(Address)
    *
@@ -330,7 +330,7 @@ public class Log implements Constants {
   }
 
   /**
-   * writes an object reference, in hexademical. It is zero-padded.
+   * writes an object reference, in hexadecimal. It is zero-padded.
    *
    * @param o the object reference to be logged
    */
@@ -339,7 +339,7 @@ public class Log implements Constants {
   }
 
   /**
-   * writes an offset, in hexademical. It is zero-padded.
+   * writes an offset, in hexadecimal. It is zero-padded.
    *
    * @param o the offset to be logged
    */
@@ -348,7 +348,7 @@ public class Log implements Constants {
   }
 
   /**
-   * writes an extent, in hexademical. It is zero-padded.
+   * writes an extent, in hexadecimal. It is zero-padded.
    *
    * @param e the extent to be logged
    */
@@ -448,7 +448,7 @@ public class Log implements Constants {
   public static void writeln(Word w) { writeln(w, true); }
 
   /**
-   * writes an address, in hexademical, and a new-line, then flushes
+   * writes an address, in hexadecimal, and a new-line, then flushes
    * the buffer.
    * @see #write(Address)
    *
@@ -457,7 +457,7 @@ public class Log implements Constants {
   public static void writeln(Address a) { writeln(a, true); }
 
   /**
-   * writes an object reference, in hexademical, and a new-line, then
+   * writes an object reference, in hexadecimal, and a new-line, then
    * flushes the buffer.
    * @see #write(ObjectReference)
    *
@@ -466,7 +466,7 @@ public class Log implements Constants {
   public static void writeln(ObjectReference o) { writeln(o, true); }
 
   /**
-   * writes an offset, in hexademical, and a new-line, then flushes the buffer.
+   * writes an offset, in hexadecimal, and a new-line, then flushes the buffer.
    * @see #write(Offset)
    *
    * @param o the offset to be logged
@@ -474,7 +474,7 @@ public class Log implements Constants {
   public static void writeln(Offset o) { writeln(o, true); }
 
   /**
-   * writes an extent, in hexademical, and a new-line, then flushes the buffer.
+   * writes an extent, in hexadecimal, and a new-line, then flushes the buffer.
    * @see #write(Extent)
    *
    * @param e the extent to be logged
@@ -626,7 +626,7 @@ public class Log implements Constants {
 
 
   /**
-   * writes an address, in hexademical, and a new-line, then optionally
+   * writes an address, in hexadecimal, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Address)
    *
@@ -639,7 +639,7 @@ public class Log implements Constants {
   }
 
   /**
-   * writes an object reference, in hexademical, and a new-line, then
+   * writes an object reference, in hexadecimal, and a new-line, then
    * optionally flushes the buffer.
    * @see #write(ObjectReference)
    *
@@ -652,7 +652,7 @@ public class Log implements Constants {
   }
 
   /**
-   * writes an offset, in hexademical, and a new-line, then optionally
+   * writes an offset, in hexadecimal, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Offset)
    *
@@ -665,7 +665,7 @@ public class Log implements Constants {
   }
 
   /**
-   * writes an extent, in hexademical, and a new-line, then optionally
+   * writes an extent, in hexadecimal, and a new-line, then optionally
    * flushes the buffer.
    * @see #write(Extent)
    *

@@ -24,6 +24,7 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public final class BTFreeLargeObjectSweeper extends ExplicitLargeObjectSpace.Sweeper {
 
+  @Override
   public boolean sweepLargeObject(ObjectReference object) {
     if (!RCHeader.isMarked(object)) {
       // Free the object

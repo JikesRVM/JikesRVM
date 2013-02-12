@@ -734,7 +734,7 @@ public class JavaHeader implements JavaHeaderConstants {
   }
 
   /**
-   * Return the desired aligment of the alignment point returned by
+   * Return the desired alignment of the alignment point returned by
    * getOffsetForAlignment in instances of the argument RVMArray.
    * @param t RVMArray instance being created
    */
@@ -743,7 +743,7 @@ public class JavaHeader implements JavaHeaderConstants {
   }
 
   /**
-   * Return the desired aligment of the alignment point returned by
+   * Return the desired alignment of the alignment point returned by
    * getOffsetForAlignment in instances of the argument RVMArray.
    * @param t RVMArray instance being copied
    * @param obj the object being copied

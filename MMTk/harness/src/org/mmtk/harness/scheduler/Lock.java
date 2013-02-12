@@ -17,10 +17,13 @@ public abstract class Lock extends org.mmtk.vm.Lock {
   /** The name of this lock */
   protected String name;
 
+  @Override
   public abstract void release();
 
+  @Override
   public abstract void check(int w);
 
+  @Override
   public abstract void acquire();
 
   /** The current holder of the lock */
@@ -30,11 +33,7 @@ public abstract class Lock extends org.mmtk.vm.Lock {
     this.name = name;
   }
 
-  /**
-   * Set the name of this lock instance
-   *
-   * @param str The name of the lock (for error output).
-   */
+  @Override
   public void setName(String str) {
     this.name = str;
   }

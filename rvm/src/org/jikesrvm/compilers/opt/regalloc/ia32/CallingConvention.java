@@ -28,7 +28,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Prologue;
@@ -46,13 +45,15 @@ import org.jikesrvm.runtime.Entrypoints;
 /**
  * This class contains IA32 calling conventions
  * The two public methods are:
- *  (1) expandCallingConventions(IR) which is called by the
+ * <ol>
+ *  <li>expandCallingConventions(IR) which is called by the
  *  register allocator immediately before allocation to make manifest the
  *  use of registers by the calling convention.
- *  (2) expandSysCall(Instruction, IR) which is called to expand
+ *  <li>expandSysCall(Instruction, IR) which is called to expand
  *  a SYSCALL HIR instruction into the appropriate sequence of
  *  LIR instructions.
- *
+ * </ol>
+ * <p>
  * TODO: Much of this code could still be factored out as
  * architecture-independent.
  */
@@ -254,7 +255,7 @@ public abstract class CallingConvention extends IRTools
 
   /**
    * Explicitly copy parameters to a call into the appropriate physical
-   * registers as defined by the calling convention.
+   * registers as defined by the calling convention.<p>
    *
    * Note: Assumes that ESP points to the word before the slot where the
    * first parameter should be stored.
@@ -343,11 +344,11 @@ public abstract class CallingConvention extends IRTools
   /**
    * Save and restore all nonvolatile registers around a syscall.
    * We do this in case the sys call does not respect our
-   * register conventions.
+   * register conventions.<p>
    *
    * We save/restore all nonvolatiles and the PR, whether
    * or not this routine uses them.  This may be a tad inefficient, but if
-   * you're making a system call, you probably don't care.
+   * you're making a system call, you probably don't care.<p>
    *
    * Side effect: changes the operator of the call instruction to
    * IA32_CALL.
@@ -363,7 +364,7 @@ public abstract class CallingConvention extends IRTools
   /**
    * Save all nonvolatile registers before a syscall.
    * We do this in case the sys call does not respect our
-   * register conventions.
+   * register conventions.<p>
    *
    * We save/restore all nonvolatiles and the PR, whether
    * or not this routine uses them.  This may be a tad inefficient, but if
@@ -395,7 +396,7 @@ public abstract class CallingConvention extends IRTools
   /**
    * Restore all nonvolatile registers after a syscall.
    * We do this in case the sys call does not respect our
-   * register conventions.
+   * register conventions.<p>
    *
    * We save/restore all nonvolatiles and the PR, whether
    * or not this routine uses them.  This may be a tad inefficient, but if
@@ -428,13 +429,14 @@ public abstract class CallingConvention extends IRTools
    * Explicitly copy parameters to a system call into the appropriate physical
    * registers as defined by the calling convention.  Note that for a system
    * call (ie., a call to C), the order of parameters on the stack is
-   * <em> reversed </em> compared to the normal RVM calling convention
+   * <em> reversed </em> compared to the normal RVM calling convention<p>
+   *
+   * Note: Assumes that ESP points to the word before the slot where the
+   * first parameter should be stored.<p>
    *
    * TODO: much of this code is exactly the same as in expandParametersToCall().
    *       factor out the common code.
    *
-   * Note: Assumes that ESP points to the word before the slot where the
-   * first parameter should be stored.
    */
   private static int expandParametersToSysCall(Instruction call, IR ir) {
     int nGPRParams = 0;
@@ -474,10 +476,10 @@ public abstract class CallingConvention extends IRTools
 
   /**
    * We have to save/restore the non-volatile registers around syscalls,
-   * to protect ourselves from malicious C compilers and Linux kernels.
+   * to protect ourselves from malicious C compilers and Linux kernels.<p>
    *
    * Although the register allocator is not yet ready to insert these
-   * spills, allocate space on the stack in preparation.
+   * spills, allocate space on the stack in preparation.<p>
    *
    * For now, we naively save/restore all nonvolatiles.
    */
@@ -492,7 +494,7 @@ public abstract class CallingConvention extends IRTools
 
   /**
    * Calling convention to implement calls to native (C) routines
-   * using the Linux linkage conventions.
+   * using the Linux linkage conventions.<p>
    */
   public static void expandSysCall(Instruction s, IR ir) {
     Operand ip = Call.getClearAddress(s);
@@ -541,7 +543,7 @@ public abstract class CallingConvention extends IRTools
   private static int countFPRParamsInPrologue(Instruction p) {
     int result = 0;
     // walk over the parameters
-    for (OperandEnumeration e = p.getDefs(); e.hasMoreElements();) {
+    for (Enumeration<Operand> e = p.getDefs(); e.hasMoreElements();) {
       Operand param = e.nextElement();
       if (param.isRegister()) {
         RegisterOperand symb = (RegisterOperand) param;
@@ -579,7 +581,7 @@ public abstract class CallingConvention extends IRTools
     ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight, FPRRegisterParams);
 
     // deal with each parameter
-    for (OperandEnumeration e = p.getDefs(); e.hasMoreElements();) {
+    for (Enumeration<Operand> e = p.getDefs(); e.hasMoreElements();) {
       RegisterOperand symbOp = (RegisterOperand) e.nextElement();
       TypeReference rType = symbOp.getType();
       if (rType.isFloatType() || rType.isDoubleType()) {
@@ -645,7 +647,7 @@ public abstract class CallingConvention extends IRTools
     }
 
     if (VM.VerifyAssertions && paramByteOffset != 8) {
-      VM._assert(false, "pb = " + paramByteOffset + "; expected 8");
+      VM._assert(VM.NOT_REACHED, "pb = " + paramByteOffset + "; expected 8");
     }
 
     // Now that we've made the calling convention explicit in the prologue,

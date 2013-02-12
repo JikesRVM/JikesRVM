@@ -34,6 +34,7 @@ public final class InvokeeThreadLocalContext implements SpecializationContext {
    * Find or create a specialized method in this context.
    * @param source
    */
+  @Override
   public SpecializedMethod findOrCreateSpecializedVersion(NormalMethod source) {
     // first check if the specialization database contains
     // a specialized version from this context.
@@ -68,6 +69,7 @@ public final class InvokeeThreadLocalContext implements SpecializationContext {
    * the opt compiler with the INVOKEE_THREAD_LOCAL option.
    * @param source
    */
+  @Override
   public CompiledMethod specialCompile(NormalMethod source) {
     CompilationPlan plan = new CompilationPlan(source, optimizationPlan, null, options);
     return OptimizingCompiler.compile(plan);

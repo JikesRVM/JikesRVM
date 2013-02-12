@@ -33,7 +33,9 @@ public final class LoadFixedFieldOp extends UnaryOp {
 
   /**
    * Create an instruction for the operation
+   * <pre>
    *   resultTemp <- object.<fieldType>[index]
+   * </pre>
    *
    * @param source     Source file location (parser Token)
    * @param resultTemp Result destination
@@ -59,6 +61,7 @@ public final class LoadFixedFieldOp extends UnaryOp {
     return frame.get(operand).getObjectValue();
   }
 
+  @Override
   public String toString() {
     return String.format("%s <- %s.%s", Register.nameOf(getResult()),
         Register.nameOf(operand),fieldName);

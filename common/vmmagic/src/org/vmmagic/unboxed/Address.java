@@ -19,7 +19,7 @@ import org.vmmagic.pragma.RawStorage;
  * <b>Stub</b> implementation of an Address type, intended only to
  * allow the core of MMTk to be compiled.  This <b>must</b> be
  * replaced with a concrete implementation appropriate to a specific
- * VM.
+ * VM.<p>
  *
  * The address type is used by the runtime system and collector to
  * denote machine addresses.  We use a separate type instead of the
@@ -262,12 +262,12 @@ public final class Address {
    */
 
   /**
-   * Return true if this <code>Address</code> instance is <i>less
+   * Return {@code true} if this <code>Address</code> instance is <i>less
    * than</i> <code>addr2</code>.
    *
    * @param addr2 the <code>Address</code> to be compared to this
    *          <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>less
+   * @return {@code true} if this <code>Address</code> instance is <i>less
    * than</i> <code>addr2</code>.
    */
   public boolean LT(Address addr2) {
@@ -275,12 +275,12 @@ public final class Address {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>less
+   * Return {@code true} if this <code>Address</code> instance is <i>less
    * than or equal to</i> <code>addr2</code>.
    *
    * @param addr2 the <code>Address</code> to be compared to this
    *          <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>less
+   * @return {@code true} if this <code>Address</code> instance is <i>less
    * than or equal to</i> <code>addr2</code>.
    */
   public boolean LE(Address addr2) {
@@ -288,12 +288,12 @@ public final class Address {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>greater
+   * Return {@code true} if this <code>Address</code> instance is <i>greater
    * than</i> <code>addr2</code>.
    *
    * @param addr2 the <code>Address</code> to be compared to this
    *          <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>greater
+   * @return {@code true} if this <code>Address</code> instance is <i>greater
    * than</i> <code>addr2</code>.
    */
   public boolean GT(Address addr2) {
@@ -301,12 +301,12 @@ public final class Address {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>greater
+   * Return {@code true} if this <code>Address</code> instance is <i>greater
    * than or equal to</i> <code>addr2</code>.
    *
    * @param addr2 the <code>Address</code> to be compared to this
    *          <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>greater
+   * @return {@code true} if this <code>Address</code> instance is <i>greater
    * than or equal to</i> <code>addr2</code>.
    */
   public boolean GE(Address addr2) {
@@ -314,12 +314,12 @@ public final class Address {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>equal
+   * Return {@code true} if this <code>Address</code> instance is <i>equal
    * to</i> <code>addr2</code>.
    *
    * @param addr2 the <code>Address</code> to be compared to this
    *          <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>equal
+   * @return {@code true} if this <code>Address</code> instance is <i>equal
    * to</i> <code>addr2</code>.
    */
   public boolean EQ(Address addr2) {
@@ -327,12 +327,12 @@ public final class Address {
   }
 
   /**
-   * Return true if this <code>Address</code> instance is <i>not equal
+   * Return {@code true} if this <code>Address</code> instance is <i>not equal
    * to</i> <code>addr2</code>.
    *
    * @param addr2 the <code>Address</code> to be compared to this
    *          <code>Address</code>.
-   * @return true if this <code>Address</code> instance is <i>not
+   * @return {@code true} if this <code>Address</code> instance is <i>not
    * equal to</i> <code>addr2</code>.
    */
   public boolean NE(Address addr2) {
@@ -446,7 +446,7 @@ public final class Address {
    * @return the read value
    */
   public float loadFloat() {
-    return (float) 0;
+    return 0;
   }
 
   /**
@@ -457,7 +457,7 @@ public final class Address {
    * @return the read value
    */
   public float loadFloat(Offset offset) {
-    return (float) 0;
+    return 0;
   }
 
   /**
@@ -872,7 +872,7 @@ public final class Address {
    *
    * @param old the old value.
    * @param value the new value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(int old, int value) {
     return false;
@@ -885,7 +885,7 @@ public final class Address {
    * @param old the old value.
    * @param value the new value.
    * @param offset the offset to the value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(int old, int value, Offset offset) {
     return false;
@@ -897,7 +897,7 @@ public final class Address {
    *
    * @param old the old value.
    * @param value the new value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(Word old, Word value) {
     return false;
@@ -910,7 +910,7 @@ public final class Address {
    * @param old the old value.
    * @param value the new value.
    * @param offset the offset to the value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(Word old, Word value, Offset offset) {
     return false;
@@ -922,7 +922,7 @@ public final class Address {
    *
    * @param old the old value.
    * @param value the new value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(ObjectReference old, ObjectReference value) {
     return false;
@@ -935,7 +935,7 @@ public final class Address {
    * @param old the old value.
    * @param value the new value.
    * @param offset the offset to the value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(ObjectReference old, ObjectReference value,
       Offset offset) {
@@ -948,7 +948,7 @@ public final class Address {
    *
    * @param old the old value.
    * @param value the new value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(Address old, Address value) {
     return false;
@@ -961,7 +961,7 @@ public final class Address {
    * @param old the old value.
    * @param value the new value.
    * @param offset the offset to the value.
-   * @return true if the attempt was successful.
+   * @return {@code true} if the attempt was successful.
    */
   public boolean attempt(Address old, Address value, Offset offset) {
     return false;

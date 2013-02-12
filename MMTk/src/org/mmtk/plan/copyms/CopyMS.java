@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * This class implements the global state of a full-heap collector
  * with a copying nursery and mark-sweep mature space.  Unlike a full
  * generational collector, there is no write barrier, no remembered set, and
- * every collection is full-heap.
+ * every collection is full-heap.<p>
  *
  * All plans make a clear distinction between <i>global</i> and
  * <i>thread-local</i> activities, and divides global and local state
@@ -37,7 +37,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * appropriate sub-class), and a 1:1 mapping of PlanLocal to "kernel
  * threads" (aka CPUs).  Thus instance
  * methods of PlanLocal allow fast, unsychronized access to functions such as
- * allocation and collection.
+ * allocation and collection.<p>
  *
  * The global instance defines and manages static resources
  * (such as memory and virtual memory resources).  This mapping of threads to
@@ -54,6 +54,10 @@ public class CopyMS extends StopTheWorld {
   /****************************************************************************
    * Class variables
    */
+
+  /**
+   *
+   */
   public static final CopySpace nurserySpace = new CopySpace("nursery", false, VMRequest.create(0.15f, true));
   public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
 
@@ -69,6 +73,9 @@ public class CopyMS extends StopTheWorld {
    * Instance variables
    */
 
+  /**
+   *
+   */
   public final Trace trace;
 
   /**
@@ -84,10 +91,9 @@ public class CopyMS extends StopTheWorld {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase to execute.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
@@ -113,13 +119,7 @@ public class CopyMS extends StopTheWorld {
     super.collectionPhase(phaseId);
   }
 
-  /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @return True if a collection is requested by the plan.
-   */
+  @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     boolean nurseryFull = nurserySpace.reservedPages() > Options.nurserySize.getMaxNursery();
 
@@ -132,12 +132,9 @@ public class CopyMS extends StopTheWorld {
    */
 
   /**
-   * Return the number of pages reserved for use given the pending
-   * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
+   * {@inheritDoc}
    */
+  @Override
   public int getPagesUsed() {
     return super.getPagesUsed() +
       msSpace.reservedPages() +
@@ -147,10 +144,8 @@ public class CopyMS extends StopTheWorld {
   /**
    * Return the number of pages reserved for collection.
    * For mark sweep this is a fixed fraction of total pages.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, including space reserved for collection.
    */
+  @Override
   public int getCollectionReserve() {
     return nurserySpace.reservedPages() + super.getCollectionReserve();
   }
@@ -159,18 +154,12 @@ public class CopyMS extends StopTheWorld {
    * @return The number of pages available for allocation, <i>assuming
    * all future allocation is to the nursery</i>.
    */
+  @Override
   public final int getPagesAvail() {
     return (getTotalPages() - getPagesReserved()) >> 1;
   }
 
-  /**
-   * Return the expected reference count. For non-reference counting
-   * collectors this becomes a true/false relationship.
-   *
-   * @param object The object to check.
-   * @param sanityRootRC The number of root references to the object.
-   * @return The expected (root excluded) reference count.
-   */
+  @Override
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
     Space space = Space.getSpaceForObject(object);
 
@@ -182,9 +171,7 @@ public class CopyMS extends StopTheWorld {
     return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
   }
 
-  /**
-   * Register specialized methods.
-   */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_COPYMS, CopyMSTraceLocal.class);

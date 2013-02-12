@@ -33,7 +33,7 @@ public final class ObjectReference {
   }
 
   /**
-   * @return a null reference
+   * @return a {@code null} reference
    */
   public static ObjectReference nullReference() {
     return new ObjectReference(ArchitecturalWord.fromLong(0));
@@ -67,7 +67,7 @@ public final class ObjectReference {
   }
 
   /**
-   * @return Is this a null reference?
+   * @return Is this a {@code null} reference?
    */
   public boolean isNull() {
     return value.isZero();

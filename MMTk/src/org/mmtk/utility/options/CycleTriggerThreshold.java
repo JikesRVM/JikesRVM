@@ -22,6 +22,6 @@ public final class CycleTriggerThreshold extends org.vmutil.options.PagesOption 
   public CycleTriggerThreshold() {
     super(Options.set, "Cycle Trigger Threshold",
         "Trigger cycle detection if the space available falls below this threshold",
-        512);
+        1024);
   }
 }

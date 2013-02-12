@@ -67,9 +67,7 @@ public final class PartialCallGraph implements Decayable, Reportable {
     totalEdgeWeights = initialWeight;
   }
 
-  /**
-   * Reset data
-   */
+  @Override
   public synchronized void reset() {
     callGraph.clear();
     totalEdgeWeights = seedWeight;
@@ -84,6 +82,7 @@ public final class PartialCallGraph implements Decayable, Reportable {
    * Visit the WeightedCallTargets for every call site send them the
    * decay message.
    */
+  @Override
   public synchronized void decay() {
     double rate = Controller.options.DCG_DECAY_RATE;
     // if we are dumping dynamic call graph, don't decay the graph
@@ -110,6 +109,7 @@ public final class PartialCallGraph implements Decayable, Reportable {
       final int fBcIndex = bcIndex;
       final PartialCallGraph pg = this;
       unresolvedTargets.visitTargets(new UnResolvedWeightedCallTargets.Visitor() {
+        @Override
         public void visit(MethodReference calleeRef, double weight) {
           RVMMethod callee = calleeRef.getResolvedMember();
           if (callee != null) {
@@ -151,13 +151,13 @@ public final class PartialCallGraph implements Decayable, Reportable {
    * @param weight   the frequency of this calling edge
    */
   public synchronized void incrementEdge(RVMMethod caller, int bcIndex, RVMMethod callee, float weight) {
-    augmentEdge(caller, bcIndex, callee, (double) weight);
+    augmentEdge(caller, bcIndex, callee, weight);
   }
 
   /**
    * For the calling edge we read from a profile, we may not have
    * the methods loaded in yet. Therefore, we will record the method
-   * reference infomation first, the next time we resolved the method,
+   * reference information first, the next time we resolved the method,
    * we will promote it into the regular call graph.
    * Increment the edge represented by the input parameters,
    * creating it if it is not already in the call graph.
@@ -211,6 +211,7 @@ public final class PartialCallGraph implements Decayable, Reportable {
   /**
    * Dump out set of edges in sorted order.
    */
+  @Override
   public synchronized void report() {
     System.out.println("Partial Call Graph");
     System.out.println("  Number of callsites " + callGraph.size() + ", total weight: " + totalEdgeWeights);
@@ -222,6 +223,7 @@ public final class PartialCallGraph implements Decayable, Reportable {
     for (final CallSite cs : tmp) {
       WeightedCallTargets ct = callGraph.get(cs);
       ct.visitTargets(new WeightedCallTargets.Visitor() {
+        @Override
         public void visit(RVMMethod callee, double weight) {
           System.out.println(weight + " <" + cs.getMethod() + ", " + cs.getBytecodeIndex() + ", " + callee + ">");
         }
@@ -255,6 +257,7 @@ public final class PartialCallGraph implements Decayable, Reportable {
     for (final CallSite cs : tmp) {
       WeightedCallTargets ct = callGraph.get(cs);
       ct.visitTargets(new WeightedCallTargets.Visitor() {
+        @Override
         public void visit(RVMMethod callee, double weight) {
           CodeArray callerArray = cs.getMethod().getCurrentEntryCodeArray();
           CodeArray calleeArray = callee.getCurrentEntryCodeArray();
@@ -285,6 +288,7 @@ public final class PartialCallGraph implements Decayable, Reportable {
    * Used to compare two call sites by total weight.
    */
   private final class OrderByTotalWeight implements Comparator<CallSite> {
+    @Override
     public int compare(CallSite o1, CallSite o2) {
       if (o1.equals(o2)) return 0;
       double w1 = callGraph.get(o1).totalWeight();

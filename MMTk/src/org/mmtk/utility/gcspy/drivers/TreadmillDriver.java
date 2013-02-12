@@ -97,9 +97,9 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Get the name of this driver type.
    * @return The name, "MMTk TreadmillDriver" for this driver.
    */
+  @Override
   protected String getDriverName() {
     return "MMTk TreadmillDriver";
   }
@@ -182,6 +182,7 @@ import org.vmmagic.pragma.*;
   /**
    * Reset the tile stats for all streams, including values used for summaries
    */
+  @Override
   public void resetData() {
     super.resetData();
 
@@ -196,6 +197,7 @@ import org.vmmagic.pragma.*;
     totalRefFromImmortal = 0;
   }
 
+
   /**
    * Update the tile statistics
    * In this case, we are accounting for super-page objects, rather than
@@ -203,6 +205,7 @@ import org.vmmagic.pragma.*;
    *
    * @param addr The address of the superpage
    */
+  @Override
   public void scan(Address addr) {
 
     int index = subspace.getIndex(addr);
@@ -231,6 +234,7 @@ import org.vmmagic.pragma.*;
    * @param event The event, either BEFORE_COLLECTION, SEMISPACE_COPIED
    * or AFTER_COLLECTION
    */
+  @Override
   public void transmit(int event) {
     if (!isConnected(event))
       return;
@@ -280,7 +284,7 @@ import org.vmmagic.pragma.*;
    * Handle a root address
    *
    * @param addr Root Address
-   * @return true if the given Address is in this subspace.
+   * @return {@code true} if the given Address is in this subspace.
    */
   public boolean handleRoot(Address addr) {
     if(subspace.addressInRange(addr)) {
@@ -297,7 +301,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Reset the roots Stream. <br>
-   * The roots Stream has to be reset seperately because we do not
+   * The roots Stream has to be reset separately because we do not
    * gather data in the usual way using <code>scan()</code>.
    */
   public void resetRootsStream() {
@@ -309,8 +313,9 @@ import org.vmmagic.pragma.*;
    * Handle a direct reference from the immortal space.
    *
    * @param addr The Address
-   * @return true if the given Address is in this subspace.
+   * @return {@code true} if the given Address is in this subspace.
    */
+  @Override
   public boolean handleReferenceFromImmortalSpace(Address addr) {
     if(subspace.addressInRange(addr)) {
       // increment tile

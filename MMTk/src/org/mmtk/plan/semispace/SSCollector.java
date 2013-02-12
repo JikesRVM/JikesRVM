@@ -45,6 +45,9 @@ public class SSCollector extends StopTheWorldCollector {
    * Instance fields
    */
 
+  /**
+   *
+   */
   protected final SSTraceLocal trace;
   protected final CopyLocal ss;
   protected final LargeObjectLocal los;
@@ -77,15 +80,9 @@ public class SSCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   *
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
@@ -101,13 +98,7 @@ public class SSCollector extends StopTheWorldCollector {
     }
   }
 
-  /**
-   * Perform any post-copy actions.
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   */
+  @Override
   @Inline
   public void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -122,11 +113,9 @@ public class SSCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == SS.PREPARE) {
@@ -159,11 +148,11 @@ public class SSCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Return true if the given reference is to an object that is within
+   * Return {@code true} if the given reference is to an object that is within
    * one of the semi-spaces.
    *
    * @param object The object in question
-   * @return True if the given reference is to an object that is within
+   * @return {@code true} if the given reference is to an object that is within
    * one of the semi-spaces.
    */
   public static boolean isSemiSpaceObject(ObjectReference object) {
@@ -181,7 +170,7 @@ public class SSCollector extends StopTheWorldCollector {
     return (SS) VM.activePlan.global();
   }
 
-  /** @return the current trace object. */
+  @Override
   public TraceLocal getCurrentTrace() {
     return trace;
   }

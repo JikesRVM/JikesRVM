@@ -53,6 +53,10 @@ public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace>
    *
    * Instance variables
    */
+
+  /**
+   *
+   */
   protected final AddressArray currentBlock;
 
   /****************************************************************************
@@ -87,7 +91,7 @@ public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace>
    * forced out of line to reduce pressure on the compilation of the
    * core alloc routine.<p>
    *
-   * Precondition: None
+   * Precondition: None<p>
    *
    * Postconditions: A new cell has been allocated (not zeroed), and
    * the block containing the cell has been placed on the appropriate
@@ -99,6 +103,7 @@ public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace>
    * @param align The requested alignment.
    * @return The address of the first word or zero on failure.
    */
+  @Override
   @NoInline
   public final Address allocSlowOnce(int bytes, int align, int offset) {
     // Did a collection occur and provide a free cell?

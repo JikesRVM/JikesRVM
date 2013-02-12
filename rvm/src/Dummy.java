@@ -18,9 +18,9 @@ import org.jikesrvm.scheduler.Lock;
 
 /**
  * Dummy class containing enough references to force java compiler
- * to find every class comprising the vm, so everything gets recompiled
+ * to find every class comprising the VM, so everything gets recompiled
  * by just compiling "Dummy.java".
- * <p/>
+ * <p>
  * The minimal set has to be discovered by trial and error. Sorry.
  */
 class Dummy {

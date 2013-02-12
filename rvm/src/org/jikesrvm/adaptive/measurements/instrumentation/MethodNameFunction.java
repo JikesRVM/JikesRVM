@@ -16,19 +16,15 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 
 /**
- * MethodNameFunction.java
- *
- *
  * This class takes a compiled method id and returns a string
  * representation of the method name.
- *
  **/
-
 class MethodNameFunction implements CounterNameFunction {
 
   /**
    * @param key the compiled method id of a method
    */
+  @Override
   public String getName(int key) {
     CompiledMethod cm = CompiledMethods.getCompiledMethod(key);
     if (cm == null) {

@@ -42,6 +42,10 @@ public abstract class ConcurrentCollector extends SimpleCollector {
    * Collection
    */
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   @Unpreemptible
   public void run() {
     while(true) {
@@ -66,6 +70,7 @@ public abstract class ConcurrentCollector extends SimpleCollector {
     } while (continueCollecting);
   }
 
+  @Override
   public void collect() {
     if (!Phase.isPhaseStackEmpty()) {
       Phase.continuePhaseStack();
@@ -74,12 +79,7 @@ public abstract class ConcurrentCollector extends SimpleCollector {
     }
   }
 
-  /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
-   */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == Concurrent.FLUSH_COLLECTOR) {

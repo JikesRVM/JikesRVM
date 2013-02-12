@@ -73,6 +73,7 @@ public class Timer extends LongCounter {
    *
    * @return The current value for this timer
    */
+  @Override
   @Inline
   protected final long getCurrentValue() {
     return VM.statistics.nanoTime();
@@ -104,6 +105,7 @@ public class Timer extends LongCounter {
    *
    * @param value The value to be printed
    */
+  @Override
   final void printValue(long value) {
     printMillis(value);
   }

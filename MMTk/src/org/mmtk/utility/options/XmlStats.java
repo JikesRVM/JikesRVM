@@ -13,7 +13,7 @@
 package org.mmtk.utility.options;
 
 /**
- * Display statistics and options in XML rather than himan-readable
+ * Display statistics and options in XML rather than human-readable
  * format.
  */
 public final class XmlStats extends org.vmutil.options.BooleanOption {

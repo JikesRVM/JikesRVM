@@ -19,7 +19,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
  * This interface defines the functionality necessary to be a
  * InstrumentedEventCounterManager.  The goal of this interface is
  * to provide a mechanism for instrumentation phases to performing
- * counting of events, but to keep the implemntation of the counters
+ * counting of events, but to keep the implementation of the counters
  * completely hidden.
  */
 public abstract class InstrumentedEventCounterManager {

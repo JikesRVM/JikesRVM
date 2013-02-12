@@ -31,11 +31,11 @@ import org.vmmagic.unboxed.Address;
  */
 public abstract class BURS_Common_Helpers extends PhysicalRegisterTools {
 
-  /** Infinte cost for a rule */
+  /** Infinite cost for a rule */
   protected static final int INFINITE = 0x7fff;
 
   /**
-   * The burs object
+   * The BURS object
    */
   protected final BURS burs;
 

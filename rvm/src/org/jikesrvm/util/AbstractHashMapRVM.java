@@ -19,7 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
 /**
- * Common super class for all VM hash maps
+ * Common super class for all VM hash maps.
  */
 abstract class AbstractHashMapRVM<K, V> {
 
@@ -33,7 +33,7 @@ abstract class AbstractHashMapRVM<K, V> {
 
     /**
      * Change the next bucket after this bucket, possibly constructing a new
-     * abstract bucket
+     * abstract bucket.
      */
     abstract AbstractBucket<K, V> setNext(AbstractBucket<K, V> n);
 
@@ -176,6 +176,7 @@ abstract class AbstractHashMapRVM<K, V> {
    */
   public final Iterable<V> values() {
     return new Iterable<V>() {
+      @Override
       public Iterator<V> iterator() {
         return AbstractHashMapRVM.this.valueIterator();
       }
@@ -188,6 +189,7 @@ abstract class AbstractHashMapRVM<K, V> {
    */
   public final Iterable<K> keys() {
     return new Iterable<K>() {
+      @Override
       public Iterator<K> iterator() {
         return AbstractHashMapRVM.this.keyIterator();
       }
@@ -226,6 +228,7 @@ abstract class AbstractHashMapRVM<K, V> {
   }
 
   private final class KeyIterator extends BucketIterator implements Iterator<K> {
+    @Override
     public K next() {
       AbstractBucket<K, V> cur = nextBucket();
       return cur.getKey();
@@ -233,6 +236,7 @@ abstract class AbstractHashMapRVM<K, V> {
   }
 
   private final class ValueIterator extends BucketIterator implements Iterator<V> {
+    @Override
     public V next() {
       AbstractBucket<K, V> cur = nextBucket();
       return cur.getValue();

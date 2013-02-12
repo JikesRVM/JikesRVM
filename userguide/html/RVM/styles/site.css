@@ -204,7 +204,6 @@ pre {
 
 #main-content {
     padding-bottom: 8px;
-    border-bottom: 1px solid #ddd;
 }
 
 .child-display {
@@ -1896,6 +1895,14 @@ li.hidden {
     visibility: hidden;
 }
 
+#splitter-sidebar {
+    display: none;
+}
+
+.vsplitbar {
+    display: none;
+}
+
 #main {
     text-align: left;
     background-color: #fff;
@@ -2482,11 +2489,6 @@ form.aui .welcome-message h3 {
     clear: none;
 }
 
-/* TODO This fixes AJS-563. Remove once we upgrade to AUI 3.2.2 or higher */
-.aui-tabs ul.tabs-menu li.menu-item strong {
-    cursor: pointer;
-}
-
 /*CONFDEV-2008: Remove Help tips*/
 .description.description-checkbox {
     margin: -12px 0 10px 275px;
@@ -2507,6 +2509,24 @@ form.aui .welcome-message h3 {
     color: #808080;
 }
 
+.hidden {
+    display: none;
+}
+
+.encourage-initial-action-message {
+    color: #999;
+}
+
+.columnLayout {
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.columnLayout .cell {
+    display: table-cell;
+    padding-right: 1em;
+}
 
 /**
  * These are the styles for all rendered wiki content.
@@ -2651,6 +2671,11 @@ a.not-permitted {
     border-collapse: collapse;
 }
 
+.wiki-content th.confluenceTh > *:last-child,
+.wiki-content td.confluenceTd > *:last-child {
+    margin-bottom: 0;
+}
+
 /**
  * Images
  */
@@ -2749,8 +2774,7 @@ a.not-permitted {
     margin-bottom: 0;
 }
 
-.wiki-content li,
-.wiki-content li > p {
+.wiki-content li {
     margin: 0;
     padding: 0;
 }
@@ -2812,11 +2836,8 @@ table.bordered-layout, table.bordered-layout td.layout-cell {
  * AUI Overrides
  * see /includes/css/aui-overrides.css
  */
-
-.wiki-content #recent-updates.aui-tabs .tabs-menu .menu-item a {
-    text-decoration: none;
-}
-.wiki-content .header, .wiki-content .footer, .wiki-content .cell {
+.wiki-content .header, .wiki-content .footer,
+.wiki-content .cell {
     margin: 8px 0;
     box-sizing: border-box;
     -moz-border-radius: 5px;
@@ -2825,7 +2846,7 @@ table.bordered-layout, table.bordered-layout td.layout-cell {
     word-wrap: break-word;
 }
 
-.contentLayout > .header > *:first-child, .contentLayout > .footer > *:first-child, .columnLayout > .cell > *:first-child {
+.contentLayout .innerCell > *:first-child {
     margin-top: 0;
 }
 
@@ -2837,10 +2858,11 @@ table.bordered-layout, table.bordered-layout td.layout-cell {
 
 .wiki-content .cell {
     display: table-cell;
-    padding: 0 0 0 10px;
+    padding: 0 10px;
 }
 
-.wiki-content .cell:first-child {
+.view .wiki-content .cell:first-child,
+.content-preview .wiki-content .cell:first-child {
     padding: 0;
 }
 
@@ -2849,11 +2871,11 @@ table.bordered-layout, table.bordered-layout td.layout-cell {
 }
 
 .wiki-content .columnLayout .cell.aside {
-    width: 30%;
+    width: 29.9%;
 }
 
 .wiki-content .columnLayout .cell.sidebars {
-    width: 20%;
+    width: 19.9%;
 }
 
 /* CONFDEV-6137 Welcome to the world of browser hacks
@@ -2862,34 +2884,95 @@ table.bordered-layout, table.bordered-layout td.layout-cell {
    than table layout which is not supported in compat mode.
    These styles are only applied to IE8 compat mode */
 .wiki-content .columnLayout,
-.wiki-content .cell {
+.wiki-content .cell,
+.wiki-content .header, 
+.wiki-content .footer {
     *display: block;
     *float: left;
     *width: 100%;
+}
+
+
+/* CONFDEV-7754 - Workaround for some unwanted onDemand styling.
+   Remove once JSTDEV-1730 is fixed. See CONFDEV-7799.
+   Will have a side-effect of breaking any footers in themes that
+   do not use the default font-family or font-size.
+   #main selector is to prevent this rule applying within the RTE iframe.
+   */
+#main .wiki-content .footer p, #main .wiki-content .footer a {
+    font-family: Arial, Helvetica, FreeSans, sans-serif;
+    font-size: 10pt;
+}
+
+/* CONFDEV-7754 / CONFDEV-7799 / JSTDEV-1730 - As above.
+   #main selector is to prevent this rule applying within the RTE iframe.
+ */
+.fixedwidth #main .wiki-content .footer p, .fixedwidth #main .wiki-content .footer a {
+    font-size: 14px;
+}
+
+/* Necessary until both JSTDEV-1730 and CONFDEV-7799 are resolved.
+   May want to consider leaving this here anyway to prevent accidental overrides.
+*/
+#main .wiki-content .footer .heatmap .label {
+    font-size: inherit;
 }
 
 .wiki-content .columnLayout {
     *clear: both;
 }
 
-.wiki-content .cell {
+.wiki-content .cell,
+.mceContentBody.wiki-content .cell,
+.twoColumns .cell,
+.threeColumns .cell,
+.twoColumns .large,
+.mceContentBody.wiki-content .header,
+.mceContentBody.wiki-content .footer,
+.threeColumns .large {
+    *border: 0;
+    *margin: 0;
+    *padding: 0;
+    *overflow: hidden;
+}
+
+.wiki-content .innerCell {
+    *border: 2px dashed #ccc;
     *margin: 8px 4px;
+    *padding: 4px 8px;
+}
+
+/* CONFDEV-6745 fixing editor height when page layouts are involved */
+#page-diffs .columnLayout {
+    max-height: 200px;
+    overflow: auto;
+}
+
+.view-information #page-diffs .columnLayout {
+    max-height: none;
+}
+
+
+.wiki-content .innerCell {
+    outline: 0px;
+    overflow: auto;
+    overflow-y: hidden;
 }
 
 .twoColumns .cell {
-    *width: 47.5%;
+    *width: 49.9%;
 }
 
 .threeColumns .cell {
-    *width: 31.1%;
+    *width: 33.3%;
 }
 
 .twoColumns .large {
-    *width: 65.5%;
+    *width: 69.9%;
 }
 
 .threeColumns .large {
-    *width: 53.5%;
+    *width: 59.9%;
 }
 
 div.aside + div.large,
@@ -2898,6 +2981,12 @@ div.large + div.sidebars,
 .twoColumns div.cell + div.cell,
 .threeColumns div.cell + div.cell + div.cell {
    *float: right;
+}
+
+/* CONF-23497 - Work around rendering issue in Webkit and IE9. Works fine for IE8 and Firefox. */
+li[style*='text-align: center'],
+li[style*='text-align: right'] {
+    list-style-position: inside;
 }
 table.confluenceTable th.confluenceTh,
 table.confluenceTable td.confluenceTd {
@@ -3493,10 +3582,23 @@ table.sectionMacro > tbody > tr > td {
     border: none;
 }
 
+table.sectionMacro > tbody > tr > td + td,
+table.sectionMacroWithBorder > tbody > tr > td + td { 
+    padding-left: 14px;
+}
+
 table.sectionMacroWithBorder > tbody > tr > td {
     border-style: dashed;
     border-width: 1px;
     border-color: #ccc;
+    padding-right: 14px;
+}
+
+table.sectionMacroWithBorder > tbody > tr > td:last-child {
+    border-style: dashed;
+    border-width: 1px;
+    border-color: #ccc;
+    padding-right: 0px;
 }
 
 #tab-navigation {
@@ -4367,9 +4469,13 @@ body.login #full-height-container {
 
 #login-container {
     margin: 0 auto;
+    min-height: 120px;
     width: 500px;
     padding: 20px 30px;
-    background: #fff;
+    background-color: #fff;
+    background-image: url(../../images/logo/confluence_128_bg.png);
+    background-position: bottom right;
+    background-repeat: no-repeat;
 }
 
 body.login #header, body.login #websudo {
@@ -4383,7 +4489,8 @@ body.login .clear {
 
 body.login #main {
     overflow: hidden;
-    padding: 10% 0 12%;
+    padding: 10% 0 0.5% 0;
+    min-height: 0;
     margin: 0;
     border: 0;
     -moz-border-radius: 0;
@@ -4468,10 +4575,6 @@ body.login #main {
 
 #login-container p.success-message {
     color: green;
-}
-
-body.signup #main {
-    padding: 5% 0 7%;
 }
 
 #login-container .captcha-image {
@@ -4791,6 +4894,11 @@ a.calendarhead:hover {
 
 .permissionSuperTab {
     background: #003366;
+    color: #ffffff;
+}
+
+.comment-header .author .author-lozenge {
+    background-color: #336699;
     color: #ffffff;
 }
 

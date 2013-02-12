@@ -25,15 +25,15 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
 
 /**
  * This class codifies the cost/benefit properties of the various compilers
- * used in the adaptive optimization system.
+ * used in the adaptive optimization system.<p>
  *
  * The DNA tells the AOS two important kinds of averages for each optimization
  * level: the cost of compiling at an optimization level (as measured in
  * bytecode/milliseconds) and the expected speedup of the resulting code
- * (relative to the first compiler).
+ * (relative to the first compiler).<p>
  *
  * There is an AOS command-line option to set the compiler DNA.  The method
- * {@link CompilerDNA#readDNA} contains a comment on the expected format.
+ * {@link CompilerDNA#readDNA} contains a comment on the expected format.<p>
  *
  * This DNA was gathered on July 9, 2008 using revision r14679 + the bugfix in r14688.
  * The PowerPC data was gathered on piccolo.watson.ibm.com (JS21, machine type 8884; ppc64-aix).
@@ -139,7 +139,7 @@ public class CompilerDNA implements Constants {
    * @return an estimate of compile time (in milliseconds)
    */
   public static double estimateCompileTime(int compiler, NormalMethod meth) {
-    double bytes = (double) meth.getBytecodeLength();
+    double bytes = meth.getBytecodeLength();
     double runtimeBaselineRate = RuntimeCompiler.getBaselineRate();
     double compileTime = bytes / runtimeBaselineRate;
     if (compiler != BASELINE) {

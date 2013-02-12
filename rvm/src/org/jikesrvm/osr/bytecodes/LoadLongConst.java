@@ -24,20 +24,24 @@ public class LoadLongConst extends PseudoBytecode {
     this.lbits = bits;
   }
 
+  @Override
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_LoadLongConst);
     long2bytes(codes, 2, lbits);
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     return 2;
   }
 
+  @Override
   public String toString() {
     return "LoadLong " + lbits;
   }

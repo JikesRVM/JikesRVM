@@ -63,6 +63,7 @@ public abstract class PseudoOp {
     return frame.get(getResult());
   }
 
+  @Override
   public String toString() {
     if (hasResult) {
       return String.format("%s <- %s", Register.nameOf(resultTemp), name);
@@ -74,6 +75,7 @@ public abstract class PseudoOp {
    * Instruction types
    */
 
+  /** Is this a branch-like instruction */
   public boolean affectsControlFlow() {
     return false;
   }
@@ -90,6 +92,7 @@ public abstract class PseudoOp {
     return false;
   }
 
+  /** Is this a return instruction */
   public boolean isReturn() {
     return false;
   }

@@ -19,7 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
 /**
- * Common super class for all VM hash sets
+ * Common super class for all VM hash sets.
  */
 abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
 
@@ -150,6 +150,7 @@ abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
     numElems = 0;
   }
 
+  @Override
   public Iterator<T> iterator() {
     return new SetIterator();
   }
@@ -170,6 +171,7 @@ abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
     private AbstractBucket<T> next = null;
     private int numVisited = 0;
 
+    @Override
     public T next() {
       if (!hasNext()) {
         throw new NoSuchElementException();
@@ -184,10 +186,12 @@ abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
       return ans.getKey();
     }
 
+    @Override
     public boolean hasNext() {
       return numVisited < numElems;
     }
 
+    @Override
     public void remove() {
       throw new UnsupportedOperationException();
     }

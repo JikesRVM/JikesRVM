@@ -14,8 +14,6 @@ package org.jikesrvm.compilers.opt.util;
 
 import java.util.Enumeration;
 
-/**
- */
 public class CompoundEnumerator<T> implements Enumeration<T> {
   private final Enumeration<T> first;
   private final Enumeration<T> second;
@@ -25,10 +23,12 @@ public class CompoundEnumerator<T> implements Enumeration<T> {
     this.second = second;
   }
 
+  @Override
   public boolean hasMoreElements() {
     return first.hasMoreElements() || second.hasMoreElements();
   }
 
+  @Override
   public T nextElement() {
     if (first.hasMoreElements()) {
       return first.nextElement();

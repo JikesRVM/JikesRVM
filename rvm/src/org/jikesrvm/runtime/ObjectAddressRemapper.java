@@ -16,9 +16,9 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Facility for remapping object addresses across virtual machine address
- * spaces.  Used by boot image writer to map local (jdk) objects into remote
- * (boot image) addresses.  Used by debugger to map local (jdk) objects into
- * remote (debugee vm) addresses.
+ * spaces.  Used by boot image writer to map local (JDK) objects into remote
+ * (boot image) addresses.  Used by debugger to map local (JDK) objects into
+ * remote (debugee VM) addresses.
  *
  * See also Magic.setObjectAddressRemapper()
  */

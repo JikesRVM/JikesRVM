@@ -22,14 +22,14 @@ import org.vmmagic.pragma.*;
  * re-written as it makes the assumption that the implementation
  * language (Java) and the language being implemented are the same.
  * This is true in the case of Jikes RVM, but it is not true for any
- * VM implementing a language other than Java.
+ * VM implementing a language other than Java.<p>
  *
  * Each instance of this class is a doubly-linked list, in which
  * each item or node is a piece of memory.  The first two words of each node
  * contains the forward and backward links.  The third word contains
- * the treadmill.  The remaining portion is the payload.
+ * the treadmill.  The remaining portion is the payload.<p>
  *
- * The treadmill object itself must not be moved.
+ * The treadmill object itself must not be moved.<p>
  *
  * Access to the instances may be synchronized depending on the constructor argument.
  */
@@ -39,6 +39,10 @@ public final class Treadmill implements Constants {
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private DoublyLinkedList fromSpace;
   private DoublyLinkedList toSpace;
@@ -51,7 +55,9 @@ public final class Treadmill implements Constants {
    */
 
   /**
-   * Constructor
+   * @param granularity
+   * @param shared <code>true</code> if the created instance will be shared between threads. If it is shared, accesses will be synchronized using locks.
+   *
    */
   public Treadmill(int granularity, boolean shared) {
     fromSpace = new DoublyLinkedList(granularity, shared);
@@ -143,6 +149,9 @@ public final class Treadmill implements Constants {
    * Misc header manipulation
    */
 
+  /**
+   *
+   */
   @Inline
   public static int headerSize() {
     return DoublyLinkedList.headerSize();

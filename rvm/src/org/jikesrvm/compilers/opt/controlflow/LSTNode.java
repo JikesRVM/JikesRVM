@@ -76,6 +76,7 @@ public class LSTNode extends SpaceEffGraphNode {
     return loop;
   }
 
+  @Override
   public String toString() {
     String tab = "";
     for (int i = 0; i < depth; i++) {
@@ -84,14 +85,18 @@ public class LSTNode extends SpaceEffGraphNode {
     return tab + header + " " + loop + " " + loopExits + "\n";
   }
 
-  public LSTNode getParent() { return (LSTNode) inNodes().next(); }
+  public LSTNode getParent() {
+    return (LSTNode) inNodes().nextElement();
+  }
 
   public Enumeration<LSTNode> getChildren() {
     return new Enumeration<LSTNode>() {
       private SpaceEffGraphEdge _edge = _outEdgeStart;
 
+      @Override
       public boolean hasMoreElements() { return _edge != null; }
 
+      @Override
       public LSTNode nextElement() {
         SpaceEffGraphEdge e = _edge;
         _edge = e.getNextOut();
@@ -119,6 +124,7 @@ public class LSTNode extends SpaceEffGraphNode {
       probability = p;
     }
 
+    @Override
     public String toString() {
       return source + "->" + target + " prob = " + probability;
     }

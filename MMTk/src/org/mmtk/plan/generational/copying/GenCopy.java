@@ -50,7 +50,7 @@ import org.vmmagic.pragma.*;
  * (such as memory and virtual memory resources) which are "global"
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
- * performance proprties of this plan.
+ * performance properties of this plan.
  */
 @Uninterruptible public class GenCopy extends Gen {
 
@@ -60,7 +60,11 @@ import org.vmmagic.pragma.*;
    */
 
   // GC state
-  static boolean hi = false; // True if copying to "higher" semispace
+
+  /**
+   * <code>true</code> if copying to "higher" semispace
+   */
+  static boolean hi = false;
 
   /**
    * The low half of the copying mature space.  We allocate into this space
@@ -81,6 +85,10 @@ import org.vmmagic.pragma.*;
    *
    * Instance fields
    */
+
+  /**
+   *
+   */
   final Trace matureTrace;
 
   /**
@@ -92,9 +100,7 @@ import org.vmmagic.pragma.*;
     matureTrace = new Trace(metaDataSpace);
   }
 
-  /**
-   * @return Does the mature space do copying ?
-   */
+  @Override
   protected boolean copyMature() {
     return true;
   }
@@ -130,10 +136,9 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Perform a phase of the currently active collection.
-   *
-   * @param phaseId Collection phase to process
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (traceFullHeap()) {
@@ -167,10 +172,8 @@ import org.vmmagic.pragma.*;
   /**
    * Return the number of pages reserved for use given the pending
    * allocation.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
+  @Override
   @Inline
   public int getPagesUsed() {
     return toSpace().reservedPages() + super.getPagesUsed();
@@ -181,19 +184,14 @@ import org.vmmagic.pragma.*;
    *
    * @return the number of pages reserved for copying.
    */
+  @Override
   public final int getCollectionReserve() {
     // we must account for the number of pages required for copying,
     // which equals the number of semi-space pages reserved
     return toSpace().reservedPages() + super.getCollectionReserve();
   }
 
-  /**
-   * Return the number of pages available for allocation into the mature
-   * space.
-   *
-   * @return The number of pages available for allocation into the mature
-   * space.
-   */
+  @Override
   public int getMaturePhysicalPagesAvail() {
     return toSpace().availablePhysicalPages() >> 1;
   }
@@ -205,14 +203,13 @@ import org.vmmagic.pragma.*;
   /**
    * @return The mature space we are currently allocating into
    */
+  @Override
   @Inline
   public Space activeMatureSpace() {
     return toSpace();
   }
 
-  /**
-   * Register specialized methods.
-   */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     TransitiveClosure.registerSpecializedScan(SCAN_MATURE, GenCopyMatureTraceLocal.class);

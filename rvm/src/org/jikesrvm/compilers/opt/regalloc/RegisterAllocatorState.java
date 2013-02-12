@@ -20,8 +20,10 @@ import org.jikesrvm.compilers.opt.ir.Register;
 /**
  * The register allocator currently caches a bunch of state in the IR;
  * This class provides accessors to this state.
- * TODO: Consider caching the state in a lookaside structure.
- * TODO: Currently, the physical registers are STATIC! fix this.
+ * <ul>
+ *   <li>TODO: Consider caching the state in a lookaside structure.
+ *   <li>TODO: Currently, the physical registers are STATIC! fix this.
+ * <ul>
  */
 public class RegisterAllocatorState {
 
@@ -76,7 +78,7 @@ public class RegisterAllocatorState {
 
   /**
    * Record that register A and register B are associated with each other
-   * in a bijection.
+   * in a bijection.<p>
    *
    * The register allocator uses this state to indicate that a symbolic
    * register is presently allocated to a physical register.

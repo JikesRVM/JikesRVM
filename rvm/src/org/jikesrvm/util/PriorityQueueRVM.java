@@ -163,6 +163,7 @@ public class PriorityQueueRVM {
    *  Prints the contents of the queue
    *  @return the queue contents
    */
+  @Override
   public synchronized String toString() {
     final StringBuilder sb = new StringBuilder(" --> ");
     sb.append("Dumping Queue with ");
@@ -192,6 +193,7 @@ public class PriorityQueueRVM {
      */
     public Object data;
 
+    @Override
     public String toString() {
       return data + " ... [" + priority + "]";
     }

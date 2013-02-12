@@ -19,21 +19,22 @@ import org.mmtk.vm.VM;
 
 /**
  * Rendezvous of all collector threads in the Java threading model.
- *
- * Each rendezvous is mediated by a separate Rendezvous object, 'current'.  The
- * first thread to arrive will find this static field null, and create the
+ * <p>
+ * Each rendezvous is mediated by a separate Rendezvous object, {@code current}.  The
+ * first thread to arrive will find this static field {@code null}, and create the
  * current Rendezvous object.  Subsequent threads will rendezvous on the existing object.
- *
- * The last thread to arrive clears the 'current' field, ready for the next
+ * <p>
+ * The last thread to arrive clears the {@code current} field, ready for the next
  * rendezvous to start.
  */
 final class Rendezvous {
 
   /**
-   * The current active rendezvous.  If this is null, the most recent rendezvous
+   * The current active rendezvous.  If this is {@code null}, the most recent rendezvous
    * (if any) has reached its quota, and the next thread to arrive will start
    * a new rendezvous.
    */
+  // TODO is the JavaDoc comment correct?
   //private static Rendezvous current = null;
   private static final Map<String,Rendezvous> current = new HashMap<String,Rendezvous>();
 
@@ -88,7 +89,6 @@ final class Rendezvous {
   /**
    * Rendezvous with all other processors, returning the rank
    * (that is, the order this processor arrived at the barrier).
-   * @param expected TODO
    */
   private synchronized int rendezvous() {
     int rank = ++currentRank;

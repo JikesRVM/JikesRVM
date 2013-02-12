@@ -74,7 +74,7 @@ import org.vmmagic.unboxed.Word;
  * +----------+------------+------------+------+------+------+------+------+
  *                         ^ JHOFF             ^objref
  * </pre>
- *
+ * <p>
  * Assumptions:
  * <ul>
  * <li> Each portion of the header (JavaHeader, GCHeader, MiscHeader)
@@ -98,11 +98,11 @@ import org.vmmagic.unboxed.Word;
  * we can catch with a unix signal handler.<p>
  *
  * Note that on AIX we are forced to perform explicit null checks on
- * scalar field accesses as we are unable to protect low memory.
+ * scalar field accesses as we are unable to protect low memory.<p>
  *
  * Note the key invariant that all elements of the header are
  * available at the same offset from an objref for both arrays and
- * scalar objects.
+ * scalar objects.<p>
  *
  * Note that this model allows for arbitrary growth of the GC header
  * to the left of the object.  A possible TODO item is to modify the
@@ -110,7 +110,7 @@ import org.vmmagic.unboxed.Word;
  * moveObject, bytesUsed, bytesRequiredWhenCopied, etc. to tell this
  * class how many GC header bytes have been allocated. As these calls
  * would be constant within the constant of the call the optimising
- * compiler should be able to allow this at minimal cost.
+ * compiler should be able to allow this at minimal cost.<p>
  *
  * Another possible TODO item is to include support for linear
  * scanning, where it is possible to move from one object to the next
@@ -652,7 +652,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
   }
 
   /**
-   * Return the desired aligment of the alignment point returned by
+   * Return the desired alignment of the alignment point returned by
    * getOffsetForAlignment in instances of the argument RVMClass.
    * @param t RVMClass instance being copied
    * @param obj the object being copied
@@ -662,7 +662,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
   }
 
   /**
-   * Return the desired aligment of the alignment point returned by
+   * Return the desired alignment of the alignment point returned by
    * getOffsetForAlignment in instances of the argument RVMArray.
    * @param t RVMArray instance being created
    */
@@ -671,7 +671,7 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
   }
 
   /**
-   * Return the desired aligment of the alignment point returned by
+   * Return the desired alignment of the alignment point returned by
    * getOffsetForAlignment in instances of the argument RVMArray.
    * @param t RVMArray instance being copied
    * @param obj the object being copied

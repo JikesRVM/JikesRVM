@@ -21,19 +21,23 @@ import org.jikesrvm.compilers.opt.ir.IR;
  * A compiler phase that drives final MIR expansion.
  */
 final class FinalMIRExpansionDriver extends CompilerPhase {
+  @Override
   public String getName() {
     return "Final MIR Expansion";
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return !before && options.PRINT_FINAL_MIR;
   }
 
   // this class has no instance fields.
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public void perform(IR ir) {
     if (IR.SANITY_CHECK) {
       ir.verify("right before Final MIR Expansion", true);

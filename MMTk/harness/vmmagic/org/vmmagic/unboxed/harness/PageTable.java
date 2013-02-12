@@ -29,7 +29,7 @@ final class PageTable {
   /**
    * Internal: get a page by page number, performing appropriate
    * checking and synchronization
-   * @param page
+   * @param p
    * @return
    */
   synchronized MemoryPage getPage(Address p) {

@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
+import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.regalloc.GenericRegisterPreferences;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -30,11 +30,15 @@ public abstract class RegisterPreferences extends GenericRegisterPreferences imp
   /**
    * If the following is set, we use a heuristic optimization as follows:
    * weight a
+   * <pre>
    *                    MOVE symbolic = symbolic
+   * </pre>
    * TWICE as much as either of:
+   * <pre>
    *                    MOVE symbolic = physical,
    *                    MOVE physical = symbolic.
-   *
+   * </pre>
+   * <p>
    * Rationale: At this point (before register allocation), the second
    * class of moves appear only due to calling conventions, parameters,
    * and return values.  We posit that the dynamic frequency of these
@@ -45,8 +49,9 @@ public abstract class RegisterPreferences extends GenericRegisterPreferences imp
   /**
    * Set up register preferences based on instructions in an IR.
    */
+  @Override
   public void initialize(IR ir) {
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       switch (s.operator.opcode) {
         case PPC_MOVE_opcode:

@@ -15,7 +15,7 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
-  <property name="junit.version" value="4.2"/>
+  <property name="junit.version" value="4.10"/>
   <property name="junit.description" value="jUnit"/>
 
   <property name="junit.package.dir" value="${components.dir}/junit/${junit.version}"/>

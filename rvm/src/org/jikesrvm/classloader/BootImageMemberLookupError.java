@@ -22,7 +22,7 @@ public class BootImageMemberLookupError extends Error {
   final Member jdkMember;
   BootImageMemberLookupError(RVMMember rvmMember, Member jdkMember, Object o, Throwable t) {
     super(t);
-    if (VM.runningVM) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);
     }
     this.rvmMember = rvmMember;
@@ -30,6 +30,7 @@ public class BootImageMemberLookupError extends Error {
     this.o = o;
   }
 
+  @Override
   public String getMessage() {
     return "Unable to find (RVM): " + rvmMember + " in JDK by reflection (" +
     jdkMember + ") for object "+ (o != null ? o.getClass().toString() : "") + " : " + o;

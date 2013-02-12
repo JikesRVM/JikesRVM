@@ -46,7 +46,6 @@ import org.jikesrvm.compilers.opt.controlflow.LTDominators;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BBend;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
 import org.jikesrvm.compilers.opt.ir.Goto;
@@ -58,7 +57,6 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Phi;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
@@ -76,36 +74,37 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  * loops that conform to being regular {@link
  * AnnotatedLSTNode}s. The optimisations performs the following
  * operations:
- *
+ * <ul>
+ * <li>
  * 1) Determine the bound and null checks to be eliminated. These are
  * the ones that operate on the loop iterator. If no bound checks can
  * be eliminated, stop optimising this loop.
- *
+ * <li>
  * 2) Determine the registers defined in the loop.
- *
+ * <li>
  * 3) Generate phi nodes that define the original register defined by
  * the loop and use two newly created registers.
- *
+ * <li>
  * 4) Create a version of the original loop that uses the first of the
  * newly created registers instead of the original registers.
- *
+ * <li>
  * 5) Create a second version, this time with the result of the
  * eliminated checks set to true.
- *
+ * <li>
  * 6) Work out what the maximum value for all the bounds checks are
  * and create branches to optimal or suboptimal loops
- *
+ * <li>
  * 7) Fix up the phi node predecessors
- *
+ * <li>
  * 8) Remove the unoptimized loop if its redundant
- *
+ * <li>
  * 9) Replace register definitions in the original loop with phi
  * instructions
- *
+ * <li>
  * 10) Compact node numbering so that CFG number of nodes reflects
  * that some basic blocks may have been deleted
- *
- *
+ * </ul>
+ * <p>
  * Example:
  * <listing>
  *   for (int t1=0; t1 &lt; 100; t1++) {
@@ -340,7 +339,7 @@ public final class LoopVersioning extends CompilerPhase {
   }
 
   /**
-   * Should the optimisation be performed
+   * Should loop versioning be performed?
    */
   @Override
   public boolean shouldPerform(OptOptions options) {
@@ -348,8 +347,6 @@ public final class LoopVersioning extends CompilerPhase {
   }
 
   /**
-   * The main entry point
-   *
    * @param _ir the IR to process
    */
   @Override
@@ -584,12 +581,12 @@ public final class LoopVersioning extends CompilerPhase {
   private void getListOfChecksToEliminate(AnnotatedLSTNode loop, ArrayList<Instruction> instrToEliminate) {
     ArrayList<Instruction> nullChecks = new ArrayList<Instruction>();
     ArrayList<Instruction> oddBoundChecks = new ArrayList<Instruction>();
-    BasicBlockEnumeration blocks = loop.getBasicBlocks();
+    Enumeration<BasicBlock> blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(ir, block);
       while (instructions.hasMoreElements()) {
-        Instruction instruction = instructions.next();
+        Instruction instruction = instructions.nextElement();
         if (NullCheck.conforms(instruction)) {
           if (loop.isInvariant(NullCheck.getRef(instruction))) {
             instrToEliminate.add(instruction);
@@ -632,17 +629,17 @@ public final class LoopVersioning extends CompilerPhase {
   private void getRegistersDefinedInLoop(AnnotatedLSTNode loop, ArrayList<Register> registers,
                                          ArrayList<TypeReference> types,
                                          ArrayList<Instruction> definingInstructions) {
-    BasicBlockEnumeration blocks = loop.getBasicBlocks();
+    Enumeration<BasicBlock> blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       // can value escape
       final boolean escapes = (block == loop.exit) || (ir.HIRInfo.dominatorTree.dominates(block, loop.exit));
       IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(ir, block);
       while (instructions.hasMoreElements()) {
-        Instruction instruction = instructions.next();
-        OperandEnumeration operands = instruction.getDefs();
+        Instruction instruction = instructions.nextElement();
+        Enumeration<Operand> operands = instruction.getDefs();
         while (operands.hasMoreElements()) {
-          Operand operand = operands.next();
+          Operand operand = operands.nextElement();
           if (operand.isRegister()) {
             registers.add(operand.asRegister().getRegister());
             types.add(operand.asRegister().getType());
@@ -724,9 +721,9 @@ public final class LoopVersioning extends CompilerPhase {
     ir.cfg.linkInCodeOrder(ir.cfg.lastInCodeOrder(), new_pred);
     originalToCloneBBMap.put(loop.predecessor, new_pred);
     // Create copy blocks
-    BasicBlockEnumeration blocks = loop.getBasicBlocks();
+    Enumeration<BasicBlock> blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       block.killFallThrough(); // get rid of fall through edges to aid recomputeNormalOuts
       // Create copy and register mapping
       BasicBlock copy = block.copyWithoutLinks(ir);
@@ -736,10 +733,10 @@ public final class LoopVersioning extends CompilerPhase {
       // Alter register definitions and uses in copy
       IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(ir, copy);
       while (instructions.hasMoreElements()) {
-        Instruction instruction = instructions.next();
-        OperandEnumeration operands = instruction.getDefs();
+        Instruction instruction = instructions.nextElement();
+        Enumeration<Operand> operands = instruction.getDefs();
         while (operands.hasMoreElements()) {
-          Operand operand = operands.next();
+          Operand operand = operands.nextElement();
           if (operand.isRegister()) {
             Register register = operand.asRegister().getRegister();
             if (regMap.containsKey(register)) {
@@ -750,7 +747,7 @@ public final class LoopVersioning extends CompilerPhase {
         }
         operands = instruction.getUses();
         while (operands.hasMoreElements()) {
-          Operand operand = operands.next();
+          Operand operand = operands.nextElement();
           if (operand instanceof RegisterOperand) {
             Register register = operand.asRegister().getRegister();
             if (regMap.containsKey(register)) {
@@ -766,7 +763,7 @@ public final class LoopVersioning extends CompilerPhase {
     // loop blocks
     blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       BasicBlock copy = originalToCloneBBMap.get(block);
       Enumeration<BasicBlock> outs = block.getOutNodes();
       while (outs.hasMoreElements()) {
@@ -779,11 +776,11 @@ public final class LoopVersioning extends CompilerPhase {
     // Fix up phis
     blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       BasicBlock copy = originalToCloneBBMap.get(block);
       IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(ir, copy);
       while (instructions.hasMoreElements()) {
-        Instruction instruction = instructions.next();
+        Instruction instruction = instructions.nextElement();
         if (Phi.conforms(instruction)) {
           for (int i = 0; i < Phi.getNumberOfValues(instruction); i++) {
             BasicBlock phi_predecessor = Phi.getPred(instruction, i).block;
@@ -827,9 +824,9 @@ public final class LoopVersioning extends CompilerPhase {
     originalToCloneBBMap.put(loop.predecessor, new_pred);
 
     // Create copy blocks
-    BasicBlockEnumeration blocks = loop.getBasicBlocks();
+    Enumeration<BasicBlock> blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       // N.B. fall through will have been killed by unoptimized loop
       // Create copy and register mapping
       BasicBlock copy = block.copyWithoutLinks(ir);
@@ -841,7 +838,7 @@ public final class LoopVersioning extends CompilerPhase {
       IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(ir, copy);
       loop_over_created_instructions:
       while (instructions.hasMoreElements()) {
-        Instruction instruction = instructions.next();
+        Instruction instruction = instructions.nextElement();
         if (BoundsCheck.conforms(instruction)) {
           for (Instruction anInstrToEliminate : instrToEliminate) {
             if (instruction.similar(anInstrToEliminate)) {
@@ -857,9 +854,9 @@ public final class LoopVersioning extends CompilerPhase {
             }
           }
         }
-        OperandEnumeration operands = instruction.getDefs();
+        Enumeration<Operand> operands = instruction.getDefs();
         while (operands.hasMoreElements()) {
-          Operand operand = operands.next();
+          Operand operand = operands.nextElement();
           if (operand instanceof RegisterOperand) {
             Register register = operand.asRegister().getRegister();
             if (regMap.containsKey(register)) {
@@ -870,7 +867,7 @@ public final class LoopVersioning extends CompilerPhase {
         }
         operands = instruction.getUses();
         while (operands.hasMoreElements()) {
-          Operand operand = operands.next();
+          Operand operand = operands.nextElement();
           if (operand.isRegister()) {
             Register register = operand.asRegister().getRegister();
             if (regMap.containsKey(register)) {
@@ -885,7 +882,7 @@ public final class LoopVersioning extends CompilerPhase {
     new_pred.redirectOuts(loop.header, originalToCloneBBMap.get(loop.header), ir);
     blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       BasicBlock copy = originalToCloneBBMap.get(block);
       Enumeration<BasicBlock> outs = block.getOutNodes();
       while (outs.hasMoreElements()) {
@@ -898,11 +895,11 @@ public final class LoopVersioning extends CompilerPhase {
     // Fix up phis
     blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       BasicBlock copy = originalToCloneBBMap.get(block);
       IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(ir, copy);
       while (instructions.hasMoreElements()) {
-        Instruction instruction = instructions.next();
+        Instruction instruction = instructions.nextElement();
         if (Phi.conforms(instruction)) {
           for (int i = 0; i < Phi.getNumberOfValues(instruction); i++) {
             BasicBlock phi_predecessor = Phi.getPred(instruction, i).block;
@@ -1350,7 +1347,7 @@ public final class LoopVersioning extends CompilerPhase {
       if (val1.isConstant()) {
         return val1.asIntConstant().value + getConstantAdjustedArrayLengthDistance(val2);
       } else {
-        VM._assert(val2.isConstant());
+        if (VM.VerifyAssertions) VM._assert(val2.isConstant());
         return getConstantAdjustedArrayLengthDistance(val1) + val2.asIntConstant().value;
       }
     } else if (opInstr.operator.opcode == INT_SUB_opcode) {
@@ -1359,7 +1356,7 @@ public final class LoopVersioning extends CompilerPhase {
       if (val1.isConstant()) {
         return val1.asIntConstant().value - getConstantAdjustedArrayLengthDistance(val2);
       } else {
-        VM._assert(val2.isConstant());
+        if (VM.VerifyAssertions) VM._assert(val2.isConstant());
         return getConstantAdjustedArrayLengthDistance(val1) - val2.asIntConstant().value;
       }
     } else {
@@ -1377,13 +1374,13 @@ public final class LoopVersioning extends CompilerPhase {
                                   HashMap<Register, Register> optimalRegMap) {
     // Remove instructions from loop header and exit, remove other
     // loop body blocks
-    BasicBlockEnumeration blocks = loop.getBasicBlocks();
+    Enumeration<BasicBlock> blocks = loop.getBasicBlocks();
     while (blocks.hasMoreElements()) {
-      BasicBlock block = blocks.next();
+      BasicBlock block = blocks.nextElement();
       if ((block == loop.header) || (block == loop.exit)) {
         IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(ir, block);
         while (instructions.hasMoreElements()) {
-          Instruction instruction = instructions.next();
+          Instruction instruction = instructions.nextElement();
           if (!BBend.conforms(instruction) && !Label.conforms(instruction)) {
             instruction.remove();
           }
@@ -1493,13 +1490,13 @@ public final class LoopVersioning extends CompilerPhase {
    */
   private void removeUnoptimizedLoop(AnnotatedLSTNode loop,
                                      HashMap<BasicBlock, BasicBlock> unoptimizedLoopMap) {
-    BasicBlockEnumeration blocks = loop.getBasicBlocks();
+    Enumeration<BasicBlock> blocks = loop.getBasicBlocks();
     report("removing unoptimized loop");
     BasicBlock block = unoptimizedLoopMap.get(loop.predecessor);
     report("removing block " + block);
     ir.cfg.removeFromCFGAndCodeOrder(block);
     while (blocks.hasMoreElements()) {
-      block = unoptimizedLoopMap.get(blocks.next());
+      block = unoptimizedLoopMap.get(blocks.nextElement());
       if (!loop.contains(block)) {
         report("removing block " + block);
         ir.cfg.removeFromCFGAndCodeOrder(block);

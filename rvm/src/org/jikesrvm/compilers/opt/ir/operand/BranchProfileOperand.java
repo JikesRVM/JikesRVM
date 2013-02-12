@@ -54,6 +54,7 @@ public final class BranchProfileOperand extends Operand {
    *
    * @return a copy of this operand
    */
+  @Override
   public Operand copy() {
     return new BranchProfileOperand(takenProbability);
   }
@@ -66,14 +67,7 @@ public final class BranchProfileOperand extends Operand {
     return this;
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof BranchProfileOperand) &&
            (takenProbability == ((BranchProfileOperand) op).takenProbability);
@@ -84,6 +78,7 @@ public final class BranchProfileOperand extends Operand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "Probability: " + takenProbability;
   }

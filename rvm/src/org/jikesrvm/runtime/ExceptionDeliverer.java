@@ -31,9 +31,9 @@ import org.vmmagic.unboxed.Address;
  * We must do this because some of the parameters to these methods are raw
  * machine addresses. They are not recognized by the garbage collector as
  * Object references and so would not be correctly fixed up in the event of
- * object motion during gc. As a
+ * object motion during GC. As a
  * consequence, implementors of these methods must not cause object allocations
- * to take place (ie. by calling "new" either directly or indirectly).
+ * to take place (i.e. by calling "new" either directly or indirectly).
  */
 public abstract class ExceptionDeliverer {
   /**
@@ -71,9 +71,11 @@ public abstract class ExceptionDeliverer {
    * <ul>
    * <li> 1. for a synchronized method, call ObjectModel.genericUnlock(),
    *     passing it the appropriate "lock" object
-   *       - for non-static methods, the lock is the method's
+   *     <ul>
+   *       <li>for non-static methods, the lock is the method's
    *         first argument ("this")
-   *       - for static methods, the lock is the method's java.lang.Class
+   *       <li>for static methods, the lock is the method's java.lang.Class
+   *     </ul>
    *
    * <li> 2. restore the non-volatile registers (including fp) that were saved
    *     in the method's prologue, by copying them from the method's stackframe

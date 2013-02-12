@@ -12,13 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.dfsolver;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
- * DF_Equation.java
- *
- * represents a single Data Flow equation
+ * Represents a single Data Flow equation.
  */
 public class DF_Equation implements GraphNode {
 
@@ -26,7 +25,7 @@ public class DF_Equation implements GraphNode {
    * Evaluate this equation, setting a new value for the
    * left-hand side.
    *
-   * @return true if the lhs value changed. false otherwise
+   * @return {@code true} if the lhs value changed. {@code false} otherwise
    */
   boolean evaluate() {
     return operator.evaluate(operands);
@@ -42,7 +41,7 @@ public class DF_Equation implements GraphNode {
   }
 
   /**
-   * Return the operandsin this equation.
+   * Return the operands in this equation.
    * @return the operands in this equation.
    */
   public DF_LatticeCell[] getOperands() {
@@ -75,6 +74,7 @@ public class DF_Equation implements GraphNode {
    * Return a string representation of this object
    * @return a string representation of this object
    */
+  @Override
   public String toString() {
     if (operands[0] == null) {
       return ("NULL LHS");
@@ -190,13 +190,12 @@ public class DF_Equation implements GraphNode {
   /**
    * Implementation of GraphNode interface.
    */
+  @Override
   public void setIndex(int i) {
     index = i;
   }
 
-  /**
-   * Implementation of GraphNode interface.
-   */
+  @Override
   public int getIndex() {
     return index;
   }
@@ -207,22 +206,21 @@ public class DF_Equation implements GraphNode {
    * @return an enumeration of the equations which use the result of this
    * equation.
    */
-  public GraphNodeEnumeration outNodes() {
-    return new GraphNodeEnumeration() {
+  @Override
+  public Enumeration<GraphNode> outNodes() {
+    return new Enumeration<GraphNode>() {
       private GraphNode elt = getLHS();
 
+      @Override
       public boolean hasMoreElements() {
         return elt != null;
       }
 
-      public GraphNode next() {
+      @Override
+      public GraphNode nextElement() {
         GraphNode x = elt;
         elt = null;
         return x;
-      }
-
-      public GraphNode nextElement() {
-        return next();
       }
     };
   }
@@ -233,30 +231,31 @@ public class DF_Equation implements GraphNode {
    * @return an enumeration of the equations upon whose results this
    * equation depends
    */
-  public GraphNodeEnumeration inNodes() {
-    return new GraphNodeEnumeration() {
+  @Override
+  public Enumeration<GraphNode> inNodes() {
+    return new Enumeration<GraphNode>() {
       private int i = 1;
 
+      @Override
       public boolean hasMoreElements() {
         return (i < operands.length);
       }
 
-      public GraphNode next() {
-        return operands[i++];
-      }
-
+      @Override
       public GraphNode nextElement() {
-        return next();
+        return operands[i++];
       }
     };
   }
 
   private int scratch;
 
+  @Override
   public int getScratch() {
     return scratch;
   }
 
+  @Override
   public int setScratch(int o) {
     return (scratch = o);
   }

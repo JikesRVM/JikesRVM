@@ -27,7 +27,8 @@ public class PrintStatement extends AbstractAST implements Statement {
 
   /**
    * Constructor
-   * @param slot Stack frame slot of the variable
+   * @param t
+   * @param exprs
    */
   public PrintStatement(Token t, List<Expression> exprs) {
     super(t);

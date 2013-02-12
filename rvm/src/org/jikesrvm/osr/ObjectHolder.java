@@ -25,7 +25,6 @@ import org.vmmagic.unboxed.Offset;
  * ObjectHolder helps the specialized prologue to load reference
  * get around of GC problem
  */
-
 @Uninterruptible
 public class ObjectHolder implements SizeConstants {
 

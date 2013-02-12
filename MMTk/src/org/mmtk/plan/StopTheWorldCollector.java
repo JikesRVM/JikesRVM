@@ -17,7 +17,7 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class (and its sub-classes) implement <i>per-collector thread</i>
- * behavior and state.
+ * behavior and state.<p>
  *
  * MMTk assumes that the VM instantiates instances of CollectorContext
  * in thread local storage (TLS) for each thread participating in
@@ -35,6 +35,7 @@ public abstract class StopTheWorldCollector extends SimpleCollector {
    */
 
   /** Perform garbage collection */
+  @Override
   public void collect() {
     Phase.beginNewPhaseStack(Phase.scheduleComplex(global().collection));
   }

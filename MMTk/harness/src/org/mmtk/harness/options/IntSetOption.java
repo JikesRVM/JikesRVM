@@ -20,6 +20,7 @@ import org.vmutil.options.OptionSet;
 
 /**
  * A set-valued option, eg opt=v1,v2,v3
+ * <p>
  * The values of the set are integers
  */
 public class IntSetOption extends Option {
@@ -34,8 +35,7 @@ public class IntSetOption extends Option {
    * @param set The option set this option belongs to.
    * @param name The space separated name for the option.
    * @param description The purpose of the option.
-   * @param values A mapping of int to string for the enum.
-   * @param defaultValue The default value of the option.
+   * @param defaultValues
    */
   protected IntSetOption(OptionSet set, String name, String description, int[] defaultValues) {
     super(set, INT_SET_OPTION, name, description);

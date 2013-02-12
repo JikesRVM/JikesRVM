@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import java.util.Enumeration;
 import java.util.HashMap;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.controlflow.BranchOptimizations;
@@ -21,7 +22,6 @@ import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.ConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -34,14 +34,17 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  */
 public class LocalConstantProp extends CompilerPhase {
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.LOCAL_CONSTANT_PROP;
   }
 
+  @Override
   public final String getName() {
     return "Local ConstantProp";
   }
 
+  @Override
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
@@ -54,6 +57,7 @@ public class LocalConstantProp extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -63,6 +67,7 @@ public class LocalConstantProp extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public void perform(IR ir) {
     // info is a mapping from Register to ConstantOperand.
     HashMap<Register, ConstantOperand> info = new HashMap<Register, ConstantOperand>();
@@ -105,8 +110,8 @@ public class LocalConstantProp extends CompilerPhase {
           }
 
           /* KILL: Remove bindings for all registers defined by this instruction */
-          for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
-            Operand def = e.next();
+          for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements();) {
+            Operand def = e.nextElement();
             if (def != null) {
               /* Don't bother special casing the case where we are defining another constant; GEN will handle that */
               /* Don't attempt to remove redundant assignments; let dead code elimination handle that */

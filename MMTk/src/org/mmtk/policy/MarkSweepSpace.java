@@ -41,6 +41,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    *
    * Class variables
    */
+
   /**
    * Select between using mark bits in a side bitmap, or mark bits
    * in the headers of object (or other sub-class scheme), and a single
@@ -69,6 +70,10 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private byte markState = 1;
   private byte allocState = 0;
@@ -114,14 +119,13 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   /**
    * Should SegregatedFreeListSpace manage a side bitmap to keep track of live objects?
    */
+  @Override
   @Inline
   protected boolean maintainSideBitmap() {
     return !HEADER_MARK_BITS;
   }
 
-  /**
-   * Do we need to preserve free lists as we move blocks around.
-   */
+  @Override
   @Inline
   protected boolean preserveFreeList() {
     return !LAZY_SWEEP;
@@ -144,6 +148,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * @return The address of the first pre-zeroed cell in the free list
    * for this block, or zero if there are no available cells.
    */
+  @Override
   protected Address advanceToBlock(Address block, int sizeClass) {
     if (HEADER_MARK_BITS) {
       if (inMSCollection) markBlock(block);
@@ -157,12 +162,12 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   }
 
   /**
-   * Notify that a new block has been installed. This is to ensure that
-   * appropriate collection state can be initialized for the block
+   * {@inheritDoc}<p>
    *
-   * @param block The new block
-   * @param sizeClass The block's sizeclass.
+   * This is to ensure that appropriate collection state can be initialized
+   * for the block.
    */
+  @Override
   protected void notifyNewBlock(Address block, int sizeClass) {
     if (HEADER_MARK_BITS) {
       if (inMSCollection) markBlock(block);
@@ -216,6 +221,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    *
    * @param start The address of the start of the page or pages
    */
+  @Override
   @Inline
   public void release(Address start) {
     ((FreeListPageResource) pr).releasePages(start);
@@ -228,6 +234,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * @param object The object to query
    * @return True if the cell should be reclaimed
    */
+  @Override
   @Inline
   protected boolean isCellLive(ObjectReference object) {
     if (!HEADER_MARK_BITS) {
@@ -254,6 +261,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (HEADER_MARK_BITS) {
@@ -270,10 +278,9 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
   }
 
   /**
-   *
-   * @param object The object in question
-   * @return True if this object is known to be live (i.e. it is marked)
+   * @return {@code true} if this object is known to be live (i.e. it is marked)
    */
+  @Override
   @Inline
   public boolean isLive(ObjectReference object) {
     if (HEADER_MARK_BITS) {
@@ -377,7 +384,7 @@ public final class MarkSweepSpace extends SegregatedFreeListSpace implements Con
    * Return true if the mark count for an object has the given value.
    *
    * @param object The object whose mark bit is to be tested
-   * @return True if the mark bit for the object is set.
+   * @return <code>true</code> if the mark bit for the object is set.
    */
   @Inline
   private boolean testMarkState(ObjectReference object) {

@@ -21,8 +21,11 @@ import org.jikesrvm.SizeConstants;
 public interface RegisterConstants extends SizeConstants {
   // Machine instructions.
   //
-  int LG_INSTRUCTION_WIDTH = 2;                      // log2 of instruction width in bytes, powerPC
-  int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH; // instruction width in bytes, powerPC
+
+  /** log2 of instruction width in bytes, powerPC */
+  int LG_INSTRUCTION_WIDTH = 2;
+  /** instruction width in bytes, powerPC */
+  int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
 
   // OS register convention (for mapping parameters in JNI calls)
   // These constants encode conventions for AIX, OSX, and Linux.
@@ -42,9 +45,10 @@ public interface RegisterConstants extends SizeConstants {
 
   // Jikes RVM's general purpose register usage (32 or 64 bits wide based on VM.BuildFor64Addr).
   //
-  int REGISTER_ZERO = 0; // special instruction semantics on this register
-
-  int FRAME_POINTER = 1; // same as AIX/OSX/Linux
+  /** special instruction semantics on this register */
+  int REGISTER_ZERO = 0;
+  /** same as AIX/OSX/Linux */
+  int FRAME_POINTER = 1;
   int FIRST_VOLATILE_GPR = FIRST_OS_PARAMETER_GPR;
   //                                            ...
   int LAST_VOLATILE_GPR = LAST_OS_PARAMETER_GPR;
@@ -65,11 +69,13 @@ public interface RegisterConstants extends SizeConstants {
   int NUM_GPRS = 32;
 
   // Floating point register usage. (FPR's are 64 bits wide).
-  //
-  int FIRST_SCRATCH_FPR = 0; // AIX/OSX/Linux is 0
-  int LAST_SCRATCH_FPR = 0; // AIX/OSX/Linux is 0
+
+  /** AIX/OSX/Linux is 0 */
+  int FIRST_SCRATCH_FPR = 0;
+  /** AIX/OSX/Linux is 0 */
+  int LAST_SCRATCH_FPR = 0;
   int FIRST_VOLATILE_FPR = FIRST_OS_VOLATILE_FPR;
-  //                                            ...
+  //
   int LAST_VOLATILE_FPR = LAST_OS_VOLATILE_FPR;
   int FIRST_NONVOLATILE_FPR = FIRST_OS_NONVOLATILE_FPR;
   //                                            ...
@@ -83,7 +89,7 @@ public interface RegisterConstants extends SizeConstants {
   // TODO: fill table
   int NUM_CRS = 8;
 
-  // special registers (user visible)
+  /** number of special registers (user visible) */
   int NUM_SPECIALS = 8;
 
   // Register mnemonics (for use by debugger/machine code printers).

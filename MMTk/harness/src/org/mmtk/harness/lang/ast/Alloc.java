@@ -30,12 +30,12 @@ public class Alloc extends AbstractAST implements Expression {
 
   /**
    * During semantic analysis, we decide what kind of allocation request this is,
-   * and set this flag to show which.  null indicates that analysis hasn't yet happened.
+   * and set this flag to show which. {@code null} indicates that analysis hasn't yet happened.
    */
   private Boolean typedAlloc = null;
 
   /**
-   * The result type - only available if typedAlloc == true
+   * The result type - only available if {@code typedAlloc == true}
    */
   private UserType type = null;
 
@@ -44,9 +44,7 @@ public class Alloc extends AbstractAST implements Expression {
    *
    * @param t The parser token for this node
    * @param site A unique site ID
-   * @param refCount Integer expression - number of reference fields
-   * @param dataCount Integer expression - number of data fields
-   * @param doubleAlign Boolean expression - whether to 8-byte align
+   * @param args
    */
   public Alloc(Token t, int site, List<Expression> args) {
     super(t);
@@ -54,7 +52,6 @@ public class Alloc extends AbstractAST implements Expression {
     this.args = args;
   }
 
-  /** @see org.mmtk.harness.lang.ast.AbstractAST#accept(org.mmtk.harness.lang.Visitor) */
   @Override
   public Object accept(Visitor v) {
     return v.visit(this);

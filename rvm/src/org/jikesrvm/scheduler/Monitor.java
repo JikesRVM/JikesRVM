@@ -399,7 +399,7 @@ public class Monitor {
   }
   /**
    * Send a broadcast after first acquiring the lock.  Release the lock
-   * after sending the broadacst.  In most cases where you want to send
+   * after sending the broadcast.  In most cases where you want to send
    * a broadcast but you don't need to acquire the lock to set the
    * condition that the other thread(s) are waiting on, you want to call
    * this method instead of <code>broadcast</code>.

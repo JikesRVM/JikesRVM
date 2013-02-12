@@ -23,6 +23,7 @@ public class CompiledMethodProxy extends CompiledMethod {
     this.table = table;
   }
 
+  @Override
   public boolean isResolved() {
     return false;
   }

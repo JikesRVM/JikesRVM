@@ -39,10 +39,12 @@ import org.vmmagic.pragma.NonMoving;
  * the adaptive optimization system.  It communicates with the runtime
  * measurements subsystem to instruct and gather profiling information.
  * It also talks to the compilation threads to generate
- *     a) instrumented executables;
- *     b) optimized executables;
- *     c) static information about a method; or
- *     d) all of the above.
+ * <ul>
+ *   <li>instrumented executables;
+ *   <li>optimized executables;
+ *   <li>static information about a method; or
+ *   <li>all of the above.
+ * <ul>
  */
 @NonMoving
 public final class ControllerThread extends SystemThread {
@@ -69,6 +71,7 @@ public final class ControllerThread extends SystemThread {
    * This method is the entry point to the controller, it is called when
    * the controllerThread is created.
    */
+  @Override
   public void run() {
     // save this object so others can access it, if needed
     Controller.controllerThread = this;

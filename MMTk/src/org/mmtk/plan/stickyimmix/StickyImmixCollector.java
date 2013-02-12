@@ -45,6 +45,10 @@ public class StickyImmixCollector extends ImmixCollector {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   private StickyImmixNurseryTraceLocal nurseryTrace;
   private final ImmixAllocator nurseryCopy;
 
@@ -70,11 +74,9 @@ public class StickyImmixCollector extends ImmixCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     boolean collectWholeHeap = global().collectWholeHeap;
@@ -85,7 +87,7 @@ public class StickyImmixCollector extends ImmixCollector {
 
     if (!collectWholeHeap) {
       if (phaseId == StickyImmix.PREPARE) {
-        currentTrace = (TraceLocal) nurseryTrace;
+        currentTrace = nurseryTrace;
         immix.prepare(false);
         nurseryTrace.prepare();
         nurseryCopy.reset();

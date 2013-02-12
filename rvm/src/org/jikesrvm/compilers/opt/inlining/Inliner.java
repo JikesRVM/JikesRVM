@@ -36,7 +36,6 @@ import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlockBag;
@@ -57,7 +56,6 @@ import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 
 /**
  * This class contains the high level logic for executing an inlining decision.
- *
  *
  * @see InlineDecision
  * @see GenerationContext
@@ -125,7 +123,7 @@ public class Inliner {
 
   /**
    * Return a generation context that represents the
-   * execution of inlDec in the context <parent,ebag> for
+   * execution of inlDec in the context <code>&lt;parent,ebag&gt;</code> for
    * the call instruction callSite.
    * <p> PRECONDITION: inlDec.isYes()
    * <p> POSTCONDITIONS:
@@ -231,8 +229,8 @@ public class Inliner {
         // be in a basic block yet (when execute is invoked from
         // BC2IR.maybeInlineMethod).
         if (ebag != null) {
-          for (BasicBlockEnumeration e = ebag.enumerator(); e.hasMoreElements();) {
-            BasicBlock handler = e.next();
+          for (Enumeration<BasicBlock> e = ebag.enumerator(); e.hasMoreElements();) {
+            BasicBlock handler = e.nextElement();
             testFailed.insertOut(handler);
           }
         }
@@ -431,7 +429,7 @@ public class Inliner {
         }
         container.cfg.linkInCodeOrder(children[i].cfg.lastInCodeOrder(), testFailed);
       }
-      //Step 6: finsh by linking container.prologue & testFailed
+      //Step 6: finish by linking container.prologue & testFailed
       container.prologue.insertOut(testFailed);
       container.cfg.linkInCodeOrder(container.prologue, testFailed);
       return container;

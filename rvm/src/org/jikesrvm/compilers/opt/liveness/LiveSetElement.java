@@ -17,8 +17,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 
-/*
- *
+/**
  * A simple class that holds an element in a LiveSet.
  */
 final class LiveSetElement {
@@ -95,6 +94,7 @@ final class LiveSetElement {
    * Returns a string version of this element
    * @return a string version of this element
    */
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("");
     buf.append(regOp);

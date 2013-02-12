@@ -18,6 +18,7 @@ import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
 import org.jikesrvm.compilers.opt.bc2ir.IRGenOptions;
+import org.jikesrvm.compilers.opt.bc2ir.ReturnAddressOperand;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -729,7 +730,7 @@ public abstract class Operand {
         }
       } else {
         // op2 is not a register
-        if (op2 instanceof BC2IR.ReturnAddressOperand || op2 == BC2IR.DUMMY) {
+        if (op2 instanceof ReturnAddressOperand || op2 == BC2IR.DUMMY) {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Operands are incompatibale values\n");
           }
@@ -857,7 +858,7 @@ public abstract class Operand {
          *
          * -- Robin Garner 1 Feb 7
          */
-        if (op2 instanceof BC2IR.ReturnAddressOperand || op2 == BC2IR.DUMMY) {
+        if (op2 instanceof ReturnAddressOperand || op2 == BC2IR.DUMMY) {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Incompatabily typed operands");
           }
@@ -996,7 +997,7 @@ public abstract class Operand {
           }
         }
       } else {
-        if (op2 instanceof BC2IR.ReturnAddressOperand || op2 == BC2IR.DUMMY) {
+        if (op2 instanceof ReturnAddressOperand || op2 == BC2IR.DUMMY) {
           if (IRGenOptions.DBG_OPERAND_LATTICE) {
             VM.sysWrite("Incompatibly typed operands");
           }

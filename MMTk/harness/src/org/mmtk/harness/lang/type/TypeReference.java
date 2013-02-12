@@ -89,7 +89,8 @@ public class TypeReference implements UserType {
   }
 
   /**
-   * We don't create references to non-object types
+   * We don't create references to non-object types.
+   * @return true
    */
   @Override
   public boolean isObject() {

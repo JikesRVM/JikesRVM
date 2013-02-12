@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.opt.util;
 
 /**
  * Interface to allow building top-sort, by calling TopSort.buildTopSort()
- * 5/25/1999
  */
 public interface TopSortInterface {
 

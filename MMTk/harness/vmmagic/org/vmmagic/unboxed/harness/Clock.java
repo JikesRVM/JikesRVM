@@ -14,14 +14,12 @@ package org.vmmagic.unboxed.harness;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-/************************************************************************************
- *
- *                A 'clock' that counts memory accesses
- *
+/**
+ * A 'clock' that counts memory accesses
  */
 public class Clock {
 
-  /** Set to 'true' to enable the clock - it's expensive */
+  /** Set to {@code true} to enable the clock - it's expensive */
   public static final boolean ENABLE_CLOCK = false;
 
   /** The clock */

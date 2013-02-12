@@ -14,11 +14,12 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * BC_IntStore : istore_<?>, istore
- *
+ * BC_IntStore : {@code istore_<?>}, {@code istore}
+ * <pre>
  *      Local number            Instruction
- *      [0, 3]                  istore_<i>
+ *      [0, 3]                  istore_&lt;i&gt;
  *      other                   istore, wide istore
+ * </pre>
  */
 public class IntStore extends PseudoBytecode {
   private int bsize;
@@ -36,18 +37,22 @@ public class IntStore extends PseudoBytecode {
     }
   }
 
+  @Override
   public byte[] getBytes() {
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     return -1;
   }
 
+  @Override
   public String toString() {
     return "istore " + lnum;
   }

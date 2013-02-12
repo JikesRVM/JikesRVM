@@ -32,20 +32,15 @@ public final class StringConstantOperand extends ObjectConstantOperand {
     super(v, i);
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     return new StringConstantOperand((String) value, offset);
   }
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
-   * @return TypeReference.JavaLangString
+   * @return {@link TypeReference#JavaLangString}
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.JavaLangString;
   }
@@ -55,6 +50,7 @@ public final class StringConstantOperand extends ObjectConstantOperand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return "string \"" + value + "\"";
   }

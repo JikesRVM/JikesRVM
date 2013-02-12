@@ -48,11 +48,9 @@ public class CMSCollector extends ConcurrentCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == CMS.PREPARE) {
@@ -75,9 +73,7 @@ public class CMSCollector extends ConcurrentCollector {
     super.collectionPhase(phaseId, primary);
   }
 
-  /**
-   * Has all work been completed?
-   */
+  @Override
   protected boolean concurrentTraceComplete() {
     if (!global().msTrace.hasWork()) {
       return true;
@@ -97,6 +93,7 @@ public class CMSCollector extends ConcurrentCollector {
   }
 
   /** @return The current trace instance. */
+  @Override
   public final TraceLocal getCurrentTrace() {
     return trace;
   }

@@ -12,14 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
-import org.jikesrvm.compilers.opt.CompilerPhase;
-import org.jikesrvm.compilers.opt.Options;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
  * This class splits live ranges for certain special cases before register
  * allocation.
- *
+ * <p>
  * On PPC, this phase is currently a No-op.
  */
 class MIRSplitRanges extends CompilerPhase {
@@ -27,7 +25,7 @@ class MIRSplitRanges extends CompilerPhase {
   /**
    * Should this phase be performed?
    * @param options controlling compiler options
-   * @return true or false
+   * @return {@code true} or {@code false}
    */
   public final boolean shouldPerform(Options options) {
     return false;

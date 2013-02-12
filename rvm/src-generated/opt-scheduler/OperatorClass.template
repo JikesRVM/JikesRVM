@@ -307,6 +307,7 @@ $$$$ END FOREACH
    /**
     * Returns the string representation of this operator class.
     */
+   @Override
    public String toString() {
       StringBuffer sb = new StringBuffer("Size=");
       sb.append(masks.length).append('\n');

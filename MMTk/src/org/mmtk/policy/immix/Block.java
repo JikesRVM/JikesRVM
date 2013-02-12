@@ -44,6 +44,10 @@ public class Block implements Constants {
   /***************************************************************************
    * Block marking
    */
+
+  /**
+   *
+   */
   public static boolean isUnused(final Address address) {
     return getBlockMarkState(address) == UNALLOCATED_BLOCK_STATE;
   }
@@ -100,6 +104,10 @@ public class Block implements Constants {
   /***************************************************************************
    * Sweeping
    */
+
+  /**
+   *
+   */
   static short sweepOneBlock(Address block, int[] markHistogram, final byte markState, final boolean resetMarkState) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(block));
 
@@ -119,7 +127,7 @@ public class Block implements Constants {
       }
       mark = markTable.loadByte(Offset.fromIntZeroExtend(offset));
       if (resetMarkState)
-        markTable.store((byte) (mark == markState ? RESET_LINE_MARK_STATE : 0), Offset.fromIntZeroExtend(offset));
+        markTable.store(mark == markState ? RESET_LINE_MARK_STATE : 0, Offset.fromIntZeroExtend(offset));
 
       if (mark == markState)
         markCount++;
@@ -148,6 +156,10 @@ public class Block implements Constants {
 
   /****************************************************************************
    * Block defrag state
+   */
+
+  /**
+   *
    */
   public static boolean isDefragSource(Address address) {
     return getDefragStateAddress(address).loadShort() == BLOCK_IS_DEFRAG_SOURCE;

@@ -17,20 +17,20 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 
 /**
  * Pre-pass Instruction Scheduling Phase
- *
- * This class is declared as "final" which implies that all its methods
- * are "final" too.
  */
 public final class PrePassScheduler extends CompilerPhase {
 
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.L2M_SCHEDULE_PREPASS;
   }
 
+  @Override
   public String getName() {
     return "InstrSched (pre-pass)";
   }
 
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return !before &&          // old interface only printed afterwards
            options.PRINT_SCHEDULE_PRE;
@@ -42,6 +42,7 @@ public final class PrePassScheduler extends CompilerPhase {
    *
    * @param ir the IR in question
    */
+  @Override
   public void perform(org.jikesrvm.compilers.opt.ir.IR ir) {
     new Scheduler(Scheduler.PREPASS).perform(ir);
   }

@@ -60,6 +60,7 @@ public class ControllerCollectorContext extends CollectorContext {
   /**
    * Main execution loop.
    */
+  @Override
   @Unpreemptible
   public void run() {
     while(true) {

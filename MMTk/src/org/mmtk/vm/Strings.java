@@ -41,7 +41,7 @@ import org.vmmagic.pragma.Uninterruptible;
    *
    * @param src the source string
    * @param dst the destination array
-   * @param dstBegin the start offset in the desination array
+   * @param dstBegin the start offset in the destination array
    * @param dstEnd the index after the last character in the
    * destination to copy to
    * @return the number of characters copied.

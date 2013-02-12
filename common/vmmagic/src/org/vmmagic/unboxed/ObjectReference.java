@@ -41,7 +41,7 @@ public final class ObjectReference {
   }
 
   /**
-   * Return a null reference
+   * Return a {@code null} reference
    */
   public static ObjectReference nullReference() {
     return null;

@@ -19,7 +19,7 @@ import org.vmmagic.pragma.*;
 
 /**
  * This class (and its sub-classes) implement <i>per-mutator thread</i>
- * behavior and state.
+ * behavior and state.<p>
  *
  * MMTk assumes that the VM instantiates instances of MutatorContext
  * in thread local storage (TLS) for each application thread. Accesses
@@ -39,11 +39,8 @@ public abstract class SimpleMutator extends MutatorContext {
   /**
    * Perform a per-mutator collection phase.   This is executed by
    * one collector thread on behalf of a mutator thread.
-   *
-   * @param phaseId The unique phase identifier
-   * @param primary Should this thread be used to execute any single-threaded
-   * local operations?
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == Simple.PREPARE_STACKS) {

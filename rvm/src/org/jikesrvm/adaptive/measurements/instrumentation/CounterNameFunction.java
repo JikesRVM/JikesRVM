@@ -13,14 +13,10 @@
 package org.jikesrvm.adaptive.measurements.instrumentation;
 
 /**
- * CounterNameFunction.java
- *
- *
  * This interface defines a function that takes an integer and
  * returns a string corresponding to that integer.
  *
  **/
-
 interface CounterNameFunction {
 
   String getName(int key);

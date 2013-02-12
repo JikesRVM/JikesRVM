@@ -41,10 +41,11 @@ final class TreeBottomUpEnumerator implements Enumeration<TreeNode> {
   TreeBottomUpEnumerator(TreeNode root) {
     list = new ArrayList<TreeNode>();
 
-    // Perform a DFS, saving nodes in postorder
-    DFS(root);
+    if (root!=null) {
+      // Perform a DFS, saving nodes in postorder
+      DFS(root);
+    }
 
-    // setup the iterator
     iterator = list.listIterator();
   }
 
@@ -52,14 +53,16 @@ final class TreeBottomUpEnumerator implements Enumeration<TreeNode> {
    * any elements left?
    * @return whether there are any elements left
    */
+  @Override
   public boolean hasMoreElements() {
     return iterator.hasNext();
   }
 
   /**
    * returns the next element in the list iterator
-   * @return the next element in the list iterator or null
+   * @return the next element in the list iterator or {@code null}
    */
+  @Override
   public TreeNode nextElement() {
     return iterator.next();
   }
@@ -77,6 +80,3 @@ final class TreeBottomUpEnumerator implements Enumeration<TreeNode> {
     list.add(node);
   }
 }
-
-
-

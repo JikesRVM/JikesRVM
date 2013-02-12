@@ -21,15 +21,17 @@ import org.jikesrvm.compilers.opt.ir.IR;
  */
 public final class ConvertBCtoHIR extends CompilerPhase {
 
+  @Override
   public String getName() {
     return "Generate HIR";
   }
 
   /**
-   * Generate HIR for ir.method into ir
+   * Generate HIR for ir.method into IR
    *
    * @param ir The IR to generate HIR into
    */
+  @Override
   public void perform(IR ir) {
     // Generate the cfg into gc
     GenerationContext gc = new GenerationContext(ir.method, ir.params, ir.compiledMethod, ir.options, ir.inlinePlan);
@@ -47,6 +49,7 @@ public final class ConvertBCtoHIR extends CompilerPhase {
   }
 
   // This phase contains no instance fields.
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }

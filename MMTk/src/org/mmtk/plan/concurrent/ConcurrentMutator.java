@@ -34,6 +34,10 @@ public abstract class ConcurrentMutator extends SimpleMutator {
   /****************************************************************************
    * Instance fields
    */
+
+  /**
+   *
+   */
   public static boolean newMutatorBarrierActive = false;
   protected volatile boolean barrierActive = false;
 
@@ -48,10 +52,8 @@ public abstract class ConcurrentMutator extends SimpleMutator {
 
   /**
    * Perform a per-mutator collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Perform any single-threaded activities using this thread.
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == Concurrent.SET_BARRIER_ACTIVE) {
@@ -78,18 +80,10 @@ public abstract class ConcurrentMutator extends SimpleMutator {
   */
 
   /**
-   * A new reference is about to be created. Take appropriate write
-   * barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * <b>In this case we employ a Yuasa style snapshot barrier.</b>
    *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occurred
    */
   @Inline
   @Override
@@ -98,23 +92,6 @@ public abstract class ConcurrentMutator extends SimpleMutator {
     VM.barriers.objectReferenceWrite(src, tgt, metaDataA, metaDataB, mode);
   }
 
-  /**
-   * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is
-   * created, we must then take appropriate write barrier actions.<p>
-   *
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param old The old reference to be swapped out
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occurred
-   * @return True if the swap was successful.
-   */
   @Inline
   @Override
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old,
@@ -125,10 +102,7 @@ public abstract class ConcurrentMutator extends SimpleMutator {
   }
 
   /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
+   * {@inheritDoc}
    *
    * @param src The source of the values to be copied
    * @param srcOffset The offset of the first source address, in
@@ -139,8 +113,6 @@ public abstract class ConcurrentMutator extends SimpleMutator {
    * bytes relative to <code>tgt</code> (in principle, this could be
    * negative).
    * @param bytes The size of the region being copied, in bytes.
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
    */
   @Inline
   @Override
@@ -155,13 +127,6 @@ public abstract class ConcurrentMutator extends SimpleMutator {
     return false;
   }
 
-  /**
-   * Read a reference type. In a concurrent collector this may
-   * involve adding the referent to the marking queue.
-   *
-   * @param ref The referent being read.
-   * @return The new referent.
-   */
   @Inline
   @Override
   public ObjectReference javaLangReferenceReadBarrier(ObjectReference ref) {

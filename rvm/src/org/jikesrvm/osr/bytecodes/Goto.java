@@ -26,10 +26,12 @@ public class Goto extends PseudoBytecode {
     adjustFields();
   }
 
+  @Override
   public byte[] getBytes() {
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
@@ -38,6 +40,7 @@ public class Goto extends PseudoBytecode {
     return this.offset;
   }
 
+  @Override
   public int stackChanges() {
     return 0;
   }
@@ -62,6 +65,7 @@ public class Goto extends PseudoBytecode {
     }
   }
 
+  @Override
   public String toString() {
     return "goto " + this.offset;
   }

@@ -23,7 +23,7 @@ public final class MagicNotImplementedException extends OperationNotImplementedE
 
   /**
    * A very few magics, we have no intention of ever implementing
-   * in the opt compiler.  Supress warning messages for them
+   * in the opt compiler.  Suppress warning messages for them
    * to avoid confusing users with "expected" error messages
    */
   public final boolean isExpected;

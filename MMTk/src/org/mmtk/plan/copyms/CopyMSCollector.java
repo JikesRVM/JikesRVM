@@ -42,6 +42,9 @@ public class CopyMSCollector extends StopTheWorldCollector {
    * Instance fields
    */
 
+  /**
+   *
+   */
   private MarkSweepLocal mature;
   private CopyMSTraceLocal trace;
 
@@ -67,15 +70,9 @@ public class CopyMSCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Allocate space for copying an object (this method <i>does not</i>
-   * copy the object, it only allocates space)
-   *
-   * @param original A reference to the original object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param align The requested alignment.
-   * @param offset The alignment offset.
-   * @return The address of the first byte of the allocated region
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public final Address allocCopy(ObjectReference original, int bytes,
       int align, int offset, int allocator) {
@@ -91,13 +88,7 @@ public class CopyMSCollector extends StopTheWorldCollector {
     }
   }
 
-  /**
-   * Perform any post-copy actions.
-   *
-   * @param object The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   */
+  @Override
   @Inline
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -113,11 +104,9 @@ public class CopyMSCollector extends StopTheWorldCollector {
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Use this thread for single-threaded local activities.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public final void collectionPhase(short phaseId, boolean primary) {
     if (phaseId == CopyMS.PREPARE) {
@@ -154,6 +143,7 @@ public class CopyMSCollector extends StopTheWorldCollector {
   }
 
   /** @return The current trace instance. */
+  @Override
   public final TraceLocal getCurrentTrace() { return trace; }
 
 }

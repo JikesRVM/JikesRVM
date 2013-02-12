@@ -17,12 +17,9 @@ import org.jikesrvm.adaptive.util.AOSOptions;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
- *  CounterBasedSampling.java
- *
  *  Contains necessary infrastructure to perform counter-based
  *  sampling used with the instrumentation sampling code (PLDI'01)
  *  (see InstrumentationSamplingFramework)
- *
  * */
 @Uninterruptible
 public final class CounterBasedSampling implements Constants {

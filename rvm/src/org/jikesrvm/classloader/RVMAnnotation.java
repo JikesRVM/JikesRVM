@@ -232,7 +232,7 @@ public final class RVMAnnotation {
         int numValues = input.readUnsignedShort();
         if (numValues == 0) {
           if (type != null) {
-            value = Array.newInstance(type.resolve().getClassForType(), 0);
+            value = Array.newInstance(type.getArrayElementType().resolve().getClassForType(), 0);
           } else {
             value = new Object[0];
           }
@@ -397,10 +397,12 @@ public final class RVMAnnotation {
   /*
    * Hash map support
    */
+  @Override
   public int hashCode() {
     return type.hashCode();
   }
 
+  @Override
   public boolean equals(Object o) {
     if (o instanceof RVMAnnotation) {
       RVMAnnotation that = (RVMAnnotation)o;
@@ -426,6 +428,7 @@ public final class RVMAnnotation {
    * Return a string representation of the annotation of the form
    * "@type(name1=val1, ...nameN=valN)"
    */
+  @Override
   public String toString() {
     RVMClass annotationInterface = type.resolve().asClass();
     RVMMethod[] annotationMethods = annotationInterface.getDeclaredMethods();
@@ -575,6 +578,7 @@ public final class RVMAnnotation {
     }
 
     /** Entry point to factory */
+    @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
       if (method.getName().equals("annotationType")) {
         return type.resolve().getClassForType();
@@ -647,9 +651,18 @@ public final class RVMAnnotation {
         value = RVMAnnotation.readValue(meth.getReturnType(), constantPool, input, classLoader);
       } else {
         value = RVMAnnotation.readValue(null, constantPool, input, classLoader);
-        meth = MemberReference.findOrCreate(type, name,
-            Atom.findOrCreateAsciiAtom("()"+TypeReference.findOrCreate(value.getClass()).getName())
-        ).asMethodReference();
+        if (value instanceof Object[] && ((Object[])value).length == 0) {
+            // We blindly guessed Object[] in readValue.
+            // No choice but to force type to be resolved so we actually
+            // create an empty array of the appropriate type.
+            meth = type.resolve().asClass().findDeclaredMethod(name).getMemberRef().asMethodReference();
+            value = Array.newInstance(meth.getReturnType().getArrayElementType().resolve().getClassForType(), 0);
+        } else {
+            // Reading the value lets us make a MemberReference that is likely to be correct.
+            meth = MemberReference.findOrCreate(type, name,
+                    Atom.findOrCreateAsciiAtom("()"+TypeReference.findOrCreate(value.getClass()).getName())
+            ).asMethodReference();
+        }
       }
       return new AnnotationMember(meth, value);
     }
@@ -673,6 +686,7 @@ public final class RVMAnnotation {
     /**
      * Are two members equivalent?
      */
+    @Override
     public boolean equals(Object o) {
       if (o instanceof AnnotationMember) {
         AnnotationMember that = (AnnotationMember)o;
@@ -685,6 +699,7 @@ public final class RVMAnnotation {
     /**
      * Compute hashCode from meth
      */
+    @Override
     public int hashCode() {
       return meth.hashCode();
     }
@@ -692,6 +707,7 @@ public final class RVMAnnotation {
     /**
      * Ordering for sorted annotation members
      */
+    @Override
     public int compareTo(AnnotationMember am) {
       if (am.meth != this.meth) {
         return am.getName().toString().compareTo(this.getName().toString());

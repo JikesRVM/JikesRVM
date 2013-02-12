@@ -29,7 +29,7 @@ import org.jikesrvm.compilers.opt.specialization.SpecializationDatabase;
  * role of this class is simply to take a CompilationPlan
  * and execute it.
  *
- * Currently, this class is invoked from four clients:
+ * <p> Currently, this class is invoked from four clients:
  * <ul>
  *  <li> (1) Command line: ExecuteOptCode
  *  <li> (2) BootImageWriting: BootImageCompiler.compile (optimizing version)
@@ -86,6 +86,7 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
   /*
    * callback when application is about to start.
    */
+  @Override
   public void notifyStartup() {
     if (VM.TraceOnStackReplacement) {
       VM.sysWriteln("Compiler got notified of app ready to begin");

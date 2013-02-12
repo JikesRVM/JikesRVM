@@ -147,7 +147,7 @@ public abstract class MutatorContext implements Constants {
    */
 
   /**
-   * Run-time check of the allocator to use for a given allocation
+   * Run-time check of the allocator to use for a given allocation<p>
    *
    * At the moment this method assumes that allocators will use the simple
    * (worst) method of aligning to determine if the object is a large object
@@ -1144,7 +1144,7 @@ public abstract class MutatorContext implements Constants {
    * @param dst The destination array
    * @param dstOffset The starting destination offset
    * @param bytes The number of bytes to be copied
-   * @return True if the update was performed by the barrier, false if
+   * @return <code>true</code> if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
   public boolean objectReferenceBulkCopy(ObjectReference src, Offset srcOffset, ObjectReference dst, Offset dstOffset, int bytes) {
@@ -1236,7 +1236,7 @@ public abstract class MutatorContext implements Constants {
   /**
    * Assert that the remsets have been flushed.  This is critical to
    * correctness.  We need to maintain the invariant that remset entries
-   * do not accrue during GC.  If the host JVM generates barrier entires
+   * do not accrue during GC.  If the host JVM generates barrier entries
    * it is its own responsibility to ensure that they are flushed before
    * returning to MMTk.
    */

@@ -50,6 +50,7 @@ public final class DominatorsPhase extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -59,7 +60,9 @@ public final class DominatorsPhase extends CompilerPhase {
    * phase, so always return true.  The parent composite phase will
    * dictate.
    * @param options controlling compiler options
+   * @return {@code true}
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return true;
   }
@@ -68,6 +71,7 @@ public final class DominatorsPhase extends CompilerPhase {
    * Return a string representation of this phase
    * @return "Dominators + LpStrTree"
    */
+  @Override
   public String getName() {
     return "Dominators + LpStrTree";
   }
@@ -76,8 +80,9 @@ public final class DominatorsPhase extends CompilerPhase {
    * Should the IR be printed before and/or after this phase?
    * @param options controlling compiler options
    * @param before query control
-   * @return true or false
+   * @return {@code false}
    */
+  @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -85,6 +90,7 @@ public final class DominatorsPhase extends CompilerPhase {
   /**
    * Main driver for the dominator calculation.
    */
+  @Override
   public void perform(IR ir) {
     try {
       // reset flags in case an exception is thrown inside "perform"

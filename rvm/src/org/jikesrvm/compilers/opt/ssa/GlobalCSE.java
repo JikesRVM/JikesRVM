@@ -31,7 +31,6 @@ import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.TreeNode;
@@ -75,6 +74,7 @@ public final class GlobalCSE extends CompilerPhase {
    * Redefine shouldPerform so that none of the subphases will occur
    * unless we pass through this test.
    */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return options.SSA_GCSE;
   }
@@ -88,6 +88,7 @@ public final class GlobalCSE extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
@@ -95,6 +96,7 @@ public final class GlobalCSE extends CompilerPhase {
   /**
    * Returns the name of the phase
    */
+  @Override
   public String getName() {
     return "Global CSE";
   }
@@ -102,6 +104,7 @@ public final class GlobalCSE extends CompilerPhase {
   /**
    * Perform the GlobalCSE compiler phase
    */
+  @Override
   public void perform(IR ir) {
     // conditions to leave early
     if (ir.hasReachableExceptionHandlers() || GCP.tooBig(ir)) {
@@ -186,9 +189,9 @@ public final class GlobalCSE extends CompilerPhase {
         RegisterOperand formerDef = getResult(former);
         Register reg = result.getRegister();
         formerDef.getRegister().setSpansBasicBlock();
-        RegisterOperandEnumeration uses = DefUse.uses(reg);
+        Enumeration<RegisterOperand> uses = DefUse.uses(reg);
         while (uses.hasMoreElements()) {
-          RegisterOperand use = uses.next();
+          RegisterOperand use = uses.nextElement();
           DefUse.transferUse(use, formerDef);
         }
         if (verbose) {

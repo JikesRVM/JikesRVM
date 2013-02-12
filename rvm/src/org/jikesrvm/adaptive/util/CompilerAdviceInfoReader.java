@@ -52,11 +52,11 @@ import org.jikesrvm.classloader.Atom;
 class CompilerAdviceInfoReader {
 
   /**
-   * Read annoations from a specified file. Reads all annotations at
+   * Read annotations from a specified file. Reads all annotations at
    * once and returns a collection of compiler advice attributes.
    *
-   * @param file The annoation file to be read
-   * @return A list of compileration advice attributes
+   * @param file The annotation file to be read
+   * @return A list of compiler advice attributes
    */
   public static List<CompilerAdviceAttribute> readCompilerAdviceFile(String file) {
     List<CompilerAdviceAttribute> compilerAdviceInfo = new ArrayList<CompilerAdviceAttribute>();

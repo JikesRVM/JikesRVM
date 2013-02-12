@@ -28,13 +28,13 @@ import org.vmmagic.pragma.Entrypoint;
  * site will load the appropriate value from the offset table and
  * check to see if the value is valid. If it is, then no dynamic linking
  * is required.  If the value is invalid, then resolveDynamicLink
- * is invoked to perfrom any required dynamic class loading.
+ * is invoked to perform any required dynamic class loading.
  * After member resolution and class loading completes, we can
  * store the offset value in the offset table.
  * Thus when resolve method returns, execution can be restarted
  * by reloading/indexing the offset table. <p>
  *
- * <p> NOTE: We believe that only use of invokespecial that could possibly
+ * NOTE: We believe that only use of invokespecial that could possibly
  * require dynamic linking is that of invoking an object initializer.
  */
 public class TableBasedDynamicLinker implements Constants {

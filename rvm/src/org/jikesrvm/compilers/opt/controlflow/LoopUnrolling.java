@@ -32,7 +32,6 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.Simple;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.Goto;
@@ -43,9 +42,7 @@ import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Label;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ConstantOperand;
@@ -55,9 +52,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.GraphNode;
 import org.jikesrvm.util.BitVector;
 
-/*
- * Loop unrolling
- */
 public class LoopUnrolling extends CompilerPhase {
 
   static final boolean DEBUG = false;
@@ -66,6 +60,7 @@ public class LoopUnrolling extends CompilerPhase {
   /**
    * Returns the name of the phase.
    */
+  @Override
   public String getName() {
     return "Loop Unrolling";
   }
@@ -80,17 +75,22 @@ public class LoopUnrolling extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
+  /**
+   * This phase is disabled by default.
+   * <p>
+   * It will run only on O3 but O2 is the default maximum optimization level.
+   */
+  @Override
   public boolean shouldPerform(OptOptions options) {
     return ((options.getOptLevel() >= 3) && (options.CONTROL_UNROLL_LOG >= 1) && (!options.SSA_LOOP_VERSIONING));
   }
 
-  /**
-   * This is the method that actually does the work of the phase.
-   */
+  @Override
   public void perform(IR ir) {
     unrollFactor = (1 << ir.options.CONTROL_UNROLL_LOG);
 
@@ -169,10 +169,10 @@ public class LoopUnrolling extends CompilerPhase {
     }
 
     // determine loop structure by looking at its blocks
-    BasicBlockEnumeration loopBlocks = ir.getBasicBlocks(nloop);
+    Enumeration<BasicBlock> loopBlocks = ir.getBasicBlocks(nloop);
     int blocks = 0;
     while (loopBlocks.hasMoreElements()) {
-      BasicBlock b = loopBlocks.next();
+      BasicBlock b = loopBlocks.nextElement();
       blocks++;
 
       // check for size
@@ -184,10 +184,10 @@ public class LoopUnrolling extends CompilerPhase {
 
       // look at the in edges. We want the header to be the only
       // block with out of loop incoming edges.
-      BasicBlockEnumeration e = b.getIn();
+      Enumeration<BasicBlock> e = b.getIn();
       if (b != header) {
         while (e.hasMoreElements()) {
-          BasicBlock o = e.next();
+          BasicBlock o = e.nextElement();
           if (!CFGTransformations.inLoop(o, nloop)) {
             report("2 interior pointers.\n");
             return true;
@@ -201,7 +201,7 @@ public class LoopUnrolling extends CompilerPhase {
         int inEdges = 0;
         while (e.hasMoreElements()) {
           inEdges++;
-          BasicBlock o = e.next();
+          BasicBlock o = e.nextElement();
           if (!CFGTransformations.inLoop(o, nloop)) {
             if (predBlock == null) {
               predBlock = o;
@@ -223,7 +223,7 @@ public class LoopUnrolling extends CompilerPhase {
       // look at the out edges to find loop exits
       e = b.getOut();
       while (e.hasMoreElements()) {
-        BasicBlock out = e.next();
+        BasicBlock out = e.nextElement();
         if (!CFGTransformations.inLoop(out, nloop)) {
           if (exitBlock == null) {
             exitBlock = b;
@@ -247,7 +247,7 @@ public class LoopUnrolling extends CompilerPhase {
 
     // exitBlock must exit (skip over pads in critical edges)
     while (exitBlock.getNumberOfOut() == 1 && exitBlock.getNumberOfIn() == 1) {
-      exitBlock = exitBlock.getIn().next();
+      exitBlock = exitBlock.getIn().nextElement();
     }
 
     if (exitBlock == header && blocks > 1) {
@@ -323,9 +323,9 @@ public class LoopUnrolling extends CompilerPhase {
     }
 
     Instruction iterator = null;
-    OperandEnumeration defs = new RealDefs(rop1);
+    Enumeration<Operand> defs = new RealDefs(rop1);
     while (defs.hasMoreElements()) {
-      Operand def = defs.next();
+      Operand def = defs.nextElement();
       Instruction inst = def.instruction;
       BasicBlock block = inst.getBasicBlock();
       //VM.sysWrite (""+block+": "+inst+"\n");
@@ -383,7 +383,7 @@ public class LoopUnrolling extends CompilerPhase {
     RegisterOperand outerGuard;
     BasicBlock outer = predBlock;
     while (outer.getNumberOfOut() == 1 && outer.getNumberOfIn() == 1) {
-      outer = outer.getIn().next();
+      outer = outer.getIn().nextElement();
     }
     if (outer.getNumberOfIn() > 0 && outer.getNumberOfOut() < 2) {
       report("23 no suitable outer guard found.\n");
@@ -561,7 +561,7 @@ public class LoopUnrolling extends CompilerPhase {
                                   limit.copyD2U(),
                                   (ConditionOperand) cond.copy(),
                                   header.makeJumpTarget(),
-                                  new BranchProfileOperand(1.0f - 1.0f / ((float) (unrollFactor / 2)))));
+                                  new BranchProfileOperand(1.0f - 1.0f / (unrollFactor / 2))));
     tmp.insertBefore(Goto.create(GOTO, guardBlock2.makeJumpTarget()));
 
     // only enter main loop if iterations left
@@ -611,7 +611,7 @@ public class LoopUnrolling extends CompilerPhase {
   private void naiveUnroller(LSTNode t, IR ir) {
     BitVector nloop = t.loop;
     BasicBlock seqStart = null;
-    BasicBlockEnumeration bs;
+    Enumeration<BasicBlock> bs;
 
     if (t.loop.populationCount() > MAX_BLOCKS_FOR_NAIVE_UNROLLING) {
       report("1 is too big\n");
@@ -628,7 +628,7 @@ public class LoopUnrolling extends CompilerPhase {
       int i = 0;
       bs = ir.getBasicBlocks(nloop);
       while (bs.hasMoreElements()) {
-        BasicBlock b = bs.next();
+        BasicBlock b = bs.nextElement();
         if (VM.VerifyAssertions) {
           VM._assert(!(b instanceof ExceptionHandlerBasicBlock));
         }
@@ -662,9 +662,9 @@ public class LoopUnrolling extends CompilerPhase {
       currentBlock = seqLast;
       for (int j = 0; j < bodyBlocks; ++j) {
         currentBlock.recomputeNormalOut(ir);
-        BasicBlockEnumeration be = currentBlock.getOut();
+        Enumeration<BasicBlock> be = currentBlock.getOut();
         while (be.hasMoreElements()) {
-          BasicBlock out = be.next();
+          BasicBlock out = be.nextElement();
           if (out != t.header && CFGTransformations.inLoop(out, nloop)) {
             BasicBlock outCopy = (BasicBlock) out.scratchObject;
             currentBlock.redirectOuts(out, outCopy, ir);
@@ -677,9 +677,9 @@ public class LoopUnrolling extends CompilerPhase {
       if (i != 1) {
         // redirect the branches to the header in the (i-1)th copy
         for (int j = 0; j < bodyBlocks; ++j) {
-          BasicBlockEnumeration be = currentBlock.getOut();
+          Enumeration<BasicBlock> be = currentBlock.getOut();
           while (be.hasMoreElements()) {
-            BasicBlock out = be.next();
+            BasicBlock out = be.nextElement();
             if (out == t.header) {
               BasicBlock headerCopy;
               headerCopy = (BasicBlock) t.header.scratchObject;
@@ -697,9 +697,9 @@ public class LoopUnrolling extends CompilerPhase {
     // and make them point to the first header copy
 
     for (int j = 0; j < bodyBlocks; ++j) {
-      BasicBlockEnumeration be = body[j].getOut();
+      Enumeration<BasicBlock> be = body[j].getOut();
       while (be.hasMoreElements()) {
-        BasicBlock out = be.next();
+        BasicBlock out = be.nextElement();
         if (out == t.header) {
           body[j].redirectOuts(t.header, firstHeaderCopy, ir);
         }
@@ -726,9 +726,9 @@ public class LoopUnrolling extends CompilerPhase {
     // version should have benefits for global code placement.
     currentBlock = seqLast;
     for (int j = 0; j < bodyBlocks; ++j) {
-      BasicBlockEnumeration be = currentBlock.getOut();
+      Enumeration<BasicBlock> be = currentBlock.getOut();
       while (be.hasMoreElements()) {
-        BasicBlock out = be.next();
+        BasicBlock out = be.nextElement();
         if (out == t.header) {
           currentBlock.redirectOuts(t.header, firstHeaderCopy, ir);
         }
@@ -753,9 +753,9 @@ public class LoopUnrolling extends CompilerPhase {
     while (true) {
       if (!(use instanceof RegisterOperand)) return use;
       RegisterOperand rop = (RegisterOperand) use;
-      RegisterOperandEnumeration defs = DefUse.defs(rop.getRegister());
+      Enumeration<RegisterOperand> defs = DefUse.defs(rop.getRegister());
       if (!defs.hasMoreElements()) {return use;}
-      Instruction def = defs.next().instruction;
+      Instruction def = defs.nextElement().instruction;
       if (!Move.conforms(def)) return use;
       if (defs.hasMoreElements()) {return use;}
 
@@ -768,9 +768,9 @@ public class LoopUnrolling extends CompilerPhase {
 
   private static Instruction definingInstruction(Operand op) {
     if (!(op instanceof RegisterOperand)) return op.instruction;
-    RegisterOperandEnumeration defs = DefUse.defs(((RegisterOperand) op).getRegister());
+    Enumeration<RegisterOperand> defs = DefUse.defs(((RegisterOperand) op).getRegister());
     if (!defs.hasMoreElements()) {return op.instruction;}
-    Instruction def = defs.next().instruction;
+    Instruction def = defs.nextElement().instruction;
     if (defs.hasMoreElements()) {return op.instruction;}
     return def;
   }
@@ -782,10 +782,10 @@ public class LoopUnrolling extends CompilerPhase {
       return true;
     } else if (op instanceof RegisterOperand) {
       Register reg = ((RegisterOperand) op).getRegister();
-      RegisterOperandEnumeration defs = DefUse.defs(reg);
+      Enumeration<RegisterOperand> defs = DefUse.defs(reg);
       // if no definitions of this register (very strange) give up
       if (!defs.hasMoreElements()) return false;
-      Instruction inst = defs.next().instruction;
+      Instruction inst = defs.nextElement().instruction;
       // if multiple definitions of a register give up as follow may
       // fail to give the correct invariant
       return !defs.hasMoreElements() && !CFGTransformations.inLoop(inst.getBasicBlock(), nloop);
@@ -803,9 +803,9 @@ public class LoopUnrolling extends CompilerPhase {
     if (op instanceof RegisterOperand) {
       boolean invariant = true;
       Register reg = ((RegisterOperand) op).getRegister();
-      RegisterOperandEnumeration defs = DefUse.defs(reg);
+      Enumeration<RegisterOperand> defs = DefUse.defs(reg);
       while (defs.hasMoreElements()) {
-        Instruction inst = defs.next().instruction;
+        Instruction inst = defs.nextElement().instruction;
         VM.sysWrite(">> " + inst.getBasicBlock() + ": " + inst + "\n");
         if (CFGTransformations.inLoop(inst.getBasicBlock(), nloop)) {
           if (Move.conforms(inst)) {
@@ -828,10 +828,10 @@ public class LoopUnrolling extends CompilerPhase {
   private static void _printDefs(Operand op) {
     if (op instanceof RegisterOperand) {
       Register reg = ((RegisterOperand) op).getRegister();
-      RegisterOperandEnumeration defs = DefUse.defs(reg);
+      Enumeration<RegisterOperand> defs = DefUse.defs(reg);
       defs = DefUse.defs(reg);
       while (defs.hasMoreElements()) {
-        Instruction inst = defs.next().instruction;
+        Instruction inst = defs.nextElement().instruction;
         if (Move.conforms(inst)) {
           inst = definingInstruction(follow(Move.getVal(inst)));
         }
@@ -843,10 +843,10 @@ public class LoopUnrolling extends CompilerPhase {
   }
 
   static void linkToLST(IR ir) {
-    BasicBlockEnumeration e = ir.getBasicBlocks();
+    Enumeration<BasicBlock> e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
-      e.next().scratchObject = null;
-      e.next().scratch = 0;
+      e.nextElement().scratchObject = null;
+      e.nextElement().scratch = 0;
     }
     LSTGraph lstg = ir.HIRInfo.loopStructureTree;
     if (lstg != null) markHeaders((LSTNode) lstg.firstNode());
@@ -874,17 +874,17 @@ public class LoopUnrolling extends CompilerPhase {
     loop.clear(header.getNumber());
     loop.clear(exitBlock.getNumber());
     int bodyBlocks = 0;
-    BasicBlockEnumeration bs = ir.getBasicBlocks(loop);
+    Enumeration<BasicBlock> bs = ir.getBasicBlocks(loop);
     while (bs.hasMoreElements()) {
       bodyBlocks++;
-      bs.next();
+      bs.nextElement();
     }
     BasicBlock[] body = new BasicBlock[bodyBlocks];
     {
       int i = 0;
       bs = ir.getBasicBlocks(loop);
       while (bs.hasMoreElements()) {
-        body[i++] = bs.next();
+        body[i++] = bs.nextElement();
       }
     }
 
@@ -931,9 +931,9 @@ public class LoopUnrolling extends CompilerPhase {
       BasicBlock cb = seqLast;
       for (int j = 0; j < blocks; ++j) {
         cb.recomputeNormalOut(ir);
-        BasicBlockEnumeration be = cb.getOut();
+        Enumeration<BasicBlock> be = cb.getOut();
         while (be.hasMoreElements()) {
-          BasicBlock out = be.next();
+          BasicBlock out = be.nextElement();
           if (CFGTransformations.inLoop(out, nloop)) {
             cb.redirectOuts(out, (BasicBlock) out.scratchObject, ir);
           }
@@ -964,8 +964,8 @@ public class LoopUnrolling extends CompilerPhase {
     }
   }
 
-  static final class RealDefs implements OperandEnumeration {
-    private RegisterOperandEnumeration defs = null;
+  static final class RealDefs implements Enumeration<Operand> {
+    private Enumeration<RegisterOperand> defs = null;
     private Operand use;
     private RealDefs others = null;
 
@@ -989,17 +989,23 @@ public class LoopUnrolling extends CompilerPhase {
       theVisit = visit;
     }
 
-    public Operand next() {
+    @Override
+    public boolean hasMoreElements() {
+      return use != null || (others != null && others.hasMoreElements()) || (defs != null && defs.hasMoreElements());
+    }
+
+    @Override
+    public Operand nextElement() {
       Operand res = use;
       if (res != null) {
         use = null;
         return res;
       }
       if (others != null && others.hasMoreElements()) {
-        return others.next();
+        return others.nextElement();
       }
 
-      res = defs.next();
+      res = defs.nextElement();
       Instruction inst = res.instruction;
       if (!(Move.conforms(inst)) || inst.scratch == theVisit) {
         return res;
@@ -1008,20 +1014,11 @@ public class LoopUnrolling extends CompilerPhase {
 
       others = new RealDefs(Move.getVal(inst), theVisit);
       if (!(others.hasMoreElements())) return res;
-      return others.next();
-    }
-
-    public boolean hasMoreElements() {
-
-      return use != null || (others != null && others.hasMoreElements()) || (defs != null && defs.hasMoreElements());
-    }
-
-    public Operand nextElement() {
-      return next();
+      return others.nextElement();
     }
 
     public Operand nextClear() {
-      Operand res = next();
+      Operand res = nextElement();
       res.instruction = null;
       return res;
     }

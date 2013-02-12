@@ -29,6 +29,10 @@ import org.vmmagic.pragma.*;
    *
    * Public instance methods
    */
+
+  /**
+   *
+   */
   public final String name;
 
   /**
@@ -57,7 +61,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Insert an address into the address queue, force this out of line
-   * ("OOL"), in some circumstnaces it is too expensive to have the
+   * ("OOL"), in some circumstances it is too expensive to have the
    * insert inlined, so this call is made.
    *
    * @param addr the address to be inserted into the address queue
@@ -81,7 +85,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Push an address onto the address queue, force this out of line
-   * ("OOL"), in some circumstnaces it is too expensive to have the
+   * ("OOL"), in some circumstances it is too expensive to have the
    * push inlined, so this call is made.
    *
    * @param addr the address to be pushed onto the address queue

@@ -12,7 +12,7 @@
  -->
 <project name="SPECjvm98" default="test" basedir=".">
 
-  <condition property="test.time.limit" value="7200" else="600">
+  <condition property="test.time.limit" value="8000" else="600">
     <equals arg1="${test.mode}" arg2="performance"/>
   </condition>
   <condition property="test.max.heapsize" value="512" else="200">

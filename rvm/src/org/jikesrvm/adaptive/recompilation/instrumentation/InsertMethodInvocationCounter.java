@@ -27,7 +27,7 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
  * basic block of the method.  It uses a
  * InstrumentedEventCounterManager to obtain the space to put the
  * counters.
- *
+ * <p>
  * Note: one counter data, (MethodInvocationCounterData) is shared
  * across all methods, and is initialized at boot time.  This is
  * unlike other kinds of instrumentation (such as basic block
@@ -42,14 +42,17 @@ public class InsertMethodInvocationCounter extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return Controller.options.INSERT_METHOD_COUNTERS_OPT;
   }
 
+  @Override
   public final String getName() { return "InsertMethodInvocationCounters"; }
 
   /**
@@ -57,6 +60,7 @@ public class InsertMethodInvocationCounter extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
     // Don't insert counters in uninterruptible or
     // save volatile methods, or when instrumentation is disabled

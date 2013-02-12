@@ -39,6 +39,10 @@ public abstract class ParallelCollector extends CollectorContext {
    * Collection.
    */
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   @Unpreemptible
   public void run() {
     while(true) {
@@ -53,7 +57,7 @@ public abstract class ParallelCollector extends CollectorContext {
   }
 
   /**
-   * Perform a (local) collection phase.
+   * Perform a (local, i.e.per-collector) collection phase.
    *
    * @param phaseId The unique phase identifier
    * @param primary Should this thread be used to execute any single-threaded
@@ -79,33 +83,17 @@ public abstract class ParallelCollector extends CollectorContext {
     group.park(this);
   }
 
-  /**
-   * The number of parallel workers currently executing with this collector
-   * context. This can be queried from anywhere within a collector context
-   * to determine how best to perform load-balancing.
-   *
-   * @return The number of parallel workers.
-   */
+  @Override
   public int parallelWorkerCount() {
     return group.activeWorkerCount();
   }
 
-  /**
-   * The ordinal of the current worker. This is in the range of 0 to the result
-   * of parallelWorkerCount() exclusive.
-   *
-   * @return The ordinal of this collector context, starting from 0.
-   */
+  @Override
   public int parallelWorkerOrdinal() {
     return workerOrdinal;
   }
 
-  /**
-   * Get the executing context to rendezvous with other contexts working
-   * in parallel.
-   *
-   * @return The order this context reached the rendezvous, starting from 0.
-   */
+  @Override
   public int rendezvous() {
     return group.rendezvous();
   }

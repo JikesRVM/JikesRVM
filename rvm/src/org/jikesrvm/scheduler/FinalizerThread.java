@@ -20,13 +20,15 @@ import org.vmmagic.pragma.NonMoving;
 
 /**
  * Finalizer thread.
- *
+ * <p>
  * This thread is created by RVMThread.boot() at runtime startup.
  * Its "run" method does the following:
- *    1. yield to the gcwaitqueue, until scheduled by g.c.
- *    2. For all objects on finalize Q, run the finalize() method
- *    3. Go to 1
- *
+ * <ul>
+ *   <li>1. yield to the gcwaitqueue, until scheduled by GC.
+ *   <li> 2. For all objects on finalize queue, run the finalize() method
+ *   <li> 3. Go to 1
+ * </ul>
+ * <p>
  * This thread comes out of wait state via notify from the garbage collector
  */
 @NonMoving

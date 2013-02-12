@@ -36,6 +36,10 @@ import org.vmmagic.pragma.*;
    *
    * Class variables
    */
+
+  /**
+   *
+   */
   public static final int LOCAL_GC_BITS_REQUIRED = 1;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_WORDS_REQUIRED = 1;
@@ -93,10 +97,9 @@ import org.vmmagic.pragma.*;
 
 
   /**
-   * Release an allocated page or pages.  In this case we do nothing
-   * because we only release pages enmasse.
+   * {@inheritDoc}<p>
    *
-   * @param start The address of the start of the page or pages
+   * In this case we do nothing ecause we only release pages enmasse.
    */
   @Override
   @Inline
@@ -175,24 +178,11 @@ import org.vmmagic.pragma.*;
     return getForwardingPointer(object);
   }
 
-  /**
-   * Is this object live?
-   *
-   * @param object The object
-   * @return True if the object is live
-   */
   @Override
   public boolean isLive(ObjectReference object) {
     return isMarked(object);
   }
 
-  /**
-   * Has the object in this space been reached during the current collection.
-   * This is used for GC Tracing.
-   *
-   * @param object The object reference.
-   * @return True if the object is reachable.
-   */
   @Override
   public boolean isReachable(ObjectReference object) {
     return isMarked(object);
@@ -239,9 +229,10 @@ import org.vmmagic.pragma.*;
 
   /**
    * Used to mark boot image objects during a parallel scan of objects
-   * during GC Returns true if marking was done.
+   * during GC.
    *
    * @param object The object to be marked
+   * @return {@code true} if marking was done.
    */
   @Inline
   public static boolean testAndMark(ObjectReference object) {

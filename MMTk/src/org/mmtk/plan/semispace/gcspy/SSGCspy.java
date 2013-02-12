@@ -47,9 +47,10 @@ import org.vmmagic.pragma.*;
  * and therefore "static" members of Plan.  This mapping of threads to
  * instances is crucial to understanding the correctness and
  * performance proprties of this plan.
- *
+ * <p>
  * FIXME This seems to have changed
  * The order of phases and GCspy actions is important here. It is:
+ * <pre>
  *   PREPARE phase
  *      SSGCspyMutator.gcspyGatherData(SSGCspy.BEFORE_COLLECTION); // safepoint
  *      SSMutator.PREPARE // FIXME DOES NOT ss.rebind(SS.toSpace());
@@ -76,10 +77,10 @@ import org.vmmagic.pragma.*;
  *      SS.RELEASE
  *      gcspySpace.release();
  *      SSGCspy.gcspyGatherData(); // safepoint
- *
+ *</pre>
  * Note that SSMutator has changed the point at which it rebinds toSpace
  * from PREPARE (2.4.6) to after RELEASE (3.x.x).
- *
+ *<pre>
  --Phase Collector.initiate
  --Phase Mutator.initiate-mutator
  --Phase Mutator.prepare-mutator
@@ -109,6 +110,7 @@ import org.vmmagic.pragma.*;
      SSGCspy.gcspyGatherData, event=2
  --Phase Collector.complete
  --Phase Plan.complete
+ </pre>
  */
 @Uninterruptible public class SSGCspy extends SS implements GCspyPlan {
 
@@ -178,6 +180,7 @@ import org.vmmagic.pragma.*;
    * @param wait Whether to wait
    * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
+  @Override
   @Interruptible
   public final void startGCspyServer(int port, boolean wait) {
     GCspy.server.init("SemiSpaceServerInterpreter", port, true/*verbose*/);
@@ -249,10 +252,9 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId Collection phase
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (DEBUG) { Log.write("--Phase Plan."); Log.writeln(Phase.getName(phaseId)); }
@@ -315,10 +317,8 @@ import org.vmmagic.pragma.*;
    * Return the number of pages reserved for use given the pending
    * allocation.  This is <i>exclusive of</i> space reserved for
    * copying.
-   *
-   * @return The number of pages reserved given the pending
-   * allocation, excluding space reserved for copying.
    */
+  @Override
   public final int getPagesUsed() {
     return super.getPagesUsed() + gcspySpace.reservedPages();
   }
@@ -341,9 +341,7 @@ import org.vmmagic.pragma.*;
     Log.flush();
   }
 
-  /**
-   * Register specialized methods.
-   */
+  @Override
   @Interruptible
   protected void registerSpecializedMethods() {
     super.registerSpecializedMethods();

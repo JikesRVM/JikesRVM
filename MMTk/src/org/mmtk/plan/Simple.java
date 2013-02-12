@@ -185,15 +185,15 @@ public abstract class Simple extends Plan implements Constants {
    */
 
   /**
-   * Perform a (global) collection phase.
-   *
-   * @param phaseId The unique of the phase to perform.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void collectionPhase(short phaseId) {
     if (phaseId == SET_COLLECTION_KIND) {
-      collectionAttempt = Allocator.determineCollectionAttempts();
-      emergencyCollection = !Plan.isInternalTriggeredCollection() && lastCollectionWasExhaustive() && collectionAttempt > 1;
+      collectionAttempt = Plan.isUserTriggeredCollection() ? 1 : Allocator.determineCollectionAttempts();
+      emergencyCollection = !Plan.isInternalTriggeredCollection() &&
+          lastCollectionWasExhaustive() && collectionAttempt > 1;
       if (emergencyCollection) {
         if (Options.verbose.getValue() >= 1) Log.write("[Emergency]");
         forceFullHeapCollection();
@@ -279,11 +279,10 @@ public abstract class Simple extends Plan implements Constants {
   }
 
   /**
-   * Replace a scheduled phase. Used for example to replace a placeholder.
-   *
-   * @param oldScheduledPhase The scheduled phase to replace.
-   * @param newScheduledPhase The new scheduled phase.
+   * {@inheritDoc}
+   * Used for example to replace a placeholder.
    */
+  @Override
   public void replacePhase(int oldScheduledPhase, int newScheduledPhase) {
     ComplexPhase cp = (ComplexPhase)Phase.getPhase(collection);
     cp.replacePhase(oldScheduledPhase, newScheduledPhase);

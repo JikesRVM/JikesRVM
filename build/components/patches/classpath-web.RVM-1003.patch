@@ -1,0 +1,12 @@
+--- gnu/xml/transform/SAXSerializer.java  2005-07-02 21:32:16.000000000 +0100
++++ gnu/xml/transform/SAXSerializer.java  2012-10-08 16:10:18.000000000 +0100
+@@ -200,7 +200,8 @@
+
+   public String getValue(String qName)
+   {
+-    return attrs.getNamedItem(qName).getNodeValue();
++    Attr attr = (Attr) attrs.getNamedItem(qName);
++    return (attr == null) ? null :  attr.getNodeValue();
+   }
+
+   void serialize(Node node, ContentHandler ch, LexicalHandler lh)

@@ -39,7 +39,7 @@ import org.vmmagic.unboxed.*;
    * Class variables
    */
 
-  /* Type of lifetime analysis to be used */
+  /** Type of lifetime analysis to be used */
   public static final boolean MERLIN_ANALYSIS = true;
 
   /* include the notion of build-time allocation to our list of allocators */
@@ -138,7 +138,7 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Add the information in the bootImage to the trace.  This should be
-   * called before any allocations and pointer updates have occured.
+   * called before any allocations and pointer updates have occurred.
    *
    * @param bootStart The address at which the bootimage starts
    */

@@ -13,6 +13,8 @@
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.measurements.instrumentation.Instrumentation;
 import org.jikesrvm.adaptive.util.AOSOptions;
@@ -20,7 +22,6 @@ import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.INSTRUMENTED_EVENT_COUNTER;
@@ -41,10 +42,12 @@ public class LowerInstrumentation extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     AOSOptions opts = Controller.options;
     return opts
@@ -57,6 +60,7 @@ public class LowerInstrumentation extends CompilerPhase {
                                                                                                         .INSERT_YIELDPOINT_COUNTERS;
   }
 
+  @Override
   public final String getName() { return "LowerInstrumentation"; }
 
   /**
@@ -65,11 +69,12 @@ public class LowerInstrumentation extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
     // Convert all instrumentation instructions into actual counter code
     lowerInstrumentation(ir);
 
-    // TODO: For efficiency, should proably call Simple, or
+    // TODO: For efficiency, should probably call Simple, or
     // branch optimizations or something.
   }
 
@@ -80,9 +85,9 @@ public class LowerInstrumentation extends CompilerPhase {
    */
   static void lowerInstrumentation(IR ir) {
     /*
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks();
          bbe.hasMoreElements(); ) {
-      BasicBlock bb = bbe.next();
+      BasicBlock bb = bbe.nextElement();
       bb.printExtended();
     }
     */
@@ -93,8 +98,8 @@ public class LowerInstrumentation extends CompilerPhase {
     // put them in instrumentedInstructions and expand them later
     // because if we expanded them on the fly we mess up the
     // enumeration.
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
-      BasicBlock bb = bbe.next();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
+      BasicBlock bb = bbe.nextElement();
 
       Instruction i = bb.firstInstruction();
       while (i != null && i != bb.lastInstruction()) {
@@ -113,16 +118,16 @@ public class LowerInstrumentation extends CompilerPhase {
       // actual counting code.  For now, we'll hard code the counter
       // manager.  Ideally it should be stored in the instruction,
       // (to allow multiple counter managers.  It would also make this
-      // code independant of the adaptive system..)
+      // code independent of the adaptive system..)
       InstrumentedEventCounterManager counterManager = Instrumentation.eventCounterManager;
 
       counterManager.mutateOptEventCounterInstruction(i, ir);
     }
 
     /*
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks();
          bbe.hasMoreElements(); ) {
-      BasicBlock bb = bbe.next();
+      BasicBlock bb = bbe.nextElement();
       bb.printExtended();
     }
     */

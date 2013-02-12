@@ -33,9 +33,6 @@ public class WeakReferenceValue extends ReferenceValue {
     super(ref,Semantics.WEAK);
   }
 
-  /**
-   * @see org.mmtk.harness.lang.runtime.Value#type()
-   */
   @Override
   public Type type() {
     return Type.WEAKREF;

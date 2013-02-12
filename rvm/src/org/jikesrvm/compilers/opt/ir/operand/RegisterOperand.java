@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
  * A symbolic or physical register.
  * A wrapper around an Register that may contain program-point specific
  * information about the value denoted by the Register.
- *
+ * <p>
  * TODO: This class is due for a refactor into subclasses
  * to split out the symbolic &amp; physical registers and to create
  * special behavior for symbolic registers used as phi operands and
@@ -153,7 +153,8 @@ public final class RegisterOperand extends Operand {
   }
 
   /**
-   * Returns a copy of this register operand as a register operand
+   * Returns a copy of this register operand as a register operand.<p>
+   *
    * NOTE: preserves the flags, info and scratchObject.  Preserving is
    * required in all cases as several phases also depend on scratch
    * and/or scratchObject being copied
@@ -218,96 +219,41 @@ public final class RegisterOperand extends Operand {
     this.setType(rhs.type); // setting type this way will force checking of precision
   }
 
-  /**
-   * Does the operand represent a value of an int-like data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is int-like as defined by {@link TypeReference#isIntLikeType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isIntLike() {
     return type.isIntLikeType();
   }
 
-  /**
-   * Does the operand represent a value of an int data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is int-like as defined by {@link TypeReference#isIntLikeType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isInt() {
     return type.isIntType();
   }
 
-  /**
-   * Does the operand represent a value of the long data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is a long as defined by {@link TypeReference#isLongType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isLong() {
     return type.isLongType();
   }
 
-  /**
-   * Does the operand represent a value of the float data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is a float as defined by {@link TypeReference#isFloatType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isFloat() {
     return type.isFloatType();
   }
 
-  /**
-   * Does the operand represent a value of the double data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is a double as defined by {@link TypeReference#isDoubleType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isDouble() {
     return type.isDoubleType();
   }
 
-  /**
-   * Does the operand represent a value of the reference data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is a reference as defined by {@link TypeReference#isReferenceType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isRef() {
     return type.isReferenceType();
   }
 
-  /**
-   * Does the operand represent an address like data type?
-   *
-   * @return <code>true</code> if the data type of <code>this</code>
-   *         is an address as defined by {@link TypeReference#isWordLikeType}
-   *         or <code>false</code> if it is not.
-   */
   @Override
   public boolean isAddress() {
     return type.isWordLikeType();
   }
 
-  /**
-   * Does the operand definitely represent <code>null</code>?
-   *
-   * @return <code>true</code> if the operand definitely represents
-   *         <code>null</code> or <code>false</code> if it does not.
-   */
   @Override
   public boolean isDefinitelyNull() {
     return type == TypeReference.NULL_TYPE;
@@ -360,7 +306,7 @@ public final class RegisterOperand extends Operand {
 
   private void verifyPreciseType() {
     if (!VM.VerifyAssertions) {
-      VM._assert(false); // this call should always be guarded
+      VM.sysFail("Calls to verifyPreciseType must always be guarded by if \"(VM.VerifyAssertions)\"!");
     } else {
       if (isPreciseType() && type != null &&
           type.isClassType() && type.isResolved()) {

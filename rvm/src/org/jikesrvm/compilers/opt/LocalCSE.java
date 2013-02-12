@@ -14,6 +14,8 @@ package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.Binary;
@@ -33,7 +35,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.InstructionFormat;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
@@ -91,20 +92,24 @@ public class LocalCSE extends CompilerPhase {
    * Get a constructor object for this compiler phase
    * @return compiler phase constructor
    */
+  @Override
   public Constructor<CompilerPhase> getClassConstructor() {
     return constructor;
   }
 
+  @Override
   public final void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
     VM.sysWrite("% Infrequent BBs");
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.LOCAL_CSE;
   }
 
+  @Override
   public final String getName() {
     return "Local CSE";
   }
@@ -114,6 +119,7 @@ public class LocalCSE extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public final void perform(IR ir) {
     // iterate over each basic block
     for (BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
@@ -649,9 +655,9 @@ public class LocalCSE extends CompilerPhase {
     public void eliminate(Instruction s) {
       int i = 0;
       // first kill all registers that this instruction defs
-      for (OperandEnumeration defs = s.getDefs(); defs.hasMoreElements();) {
+      for (Enumeration<Operand> defs = s.getDefs(); defs.hasMoreElements();) {
         // first KILL any registers this instruction DEFS
-        Operand def = defs.next();
+        Operand def = defs.nextElement();
         if (def instanceof RegisterOperand) {
           eliminate((RegisterOperand) def);
         }
@@ -753,6 +759,7 @@ public class LocalCSE extends CompilerPhase {
      *    <li> for loads and stores: if the 2 operands and the location match
      *  </ul>
      */
+    @Override
     public boolean equals(Object o) {
       if (!(o instanceof AvailableExpression)) {
         return false;
@@ -819,6 +826,7 @@ public class LocalCSE extends CompilerPhase {
     /**
      * Unused hashcode method
      */
+    @Override
     public int hashCode() {
       return opr.hashCode();
     }

@@ -17,7 +17,7 @@ import org.mmtk.harness.lang.parser.Token;
 import org.mmtk.harness.lang.type.Type;
 
 /**
- * A literal type name, used as an argument to (eg) the alloc function.
+ * A literal type name, used as an argument to (e.g.) the alloc function.
  */
 public class TypeLiteral extends AbstractAST implements Expression {
 

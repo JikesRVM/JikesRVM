@@ -30,9 +30,7 @@ class SimpleSpillCost extends SpillCostEstimator {
     calculate(ir);
   }
 
-  /**
-   * Calculate the estimated cost for each register.
-   */
+  @Override
   void calculate(IR ir) {
     final double moveFactor = ir.options.REGALLOC_SIMPLE_SPILL_COST_MOVE_FACTOR;
     final double memoryOperandFactor = ir.options.REGALLOC_SIMPLE_SPILL_COST_MEMORY_OPERAND_FACTOR;
@@ -80,8 +78,10 @@ class SimpleSpillCost extends SpillCostEstimator {
   }
 
   /**
-   * Does instruction s have a memory operand of an inconvenient size?
-   * NOTE: This is pretty intel-specific.  Refactor to arch/ tree.
+   * Does instruction s have a memory operand of an inconvenient size?<p>
+   *
+   * NOTE: This is pretty intel-specific.
+   * TODO Refactor to arch/ tree.
    */
   static boolean hasBadSizeMemoryOperand(Instruction s) {
     for (Enumeration<Operand> e = s.getMemoryOperands(); e.hasMoreElements();) {

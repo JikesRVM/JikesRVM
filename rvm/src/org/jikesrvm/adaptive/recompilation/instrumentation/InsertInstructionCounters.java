@@ -13,6 +13,8 @@
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.database.AOSDatabase;
 import org.jikesrvm.adaptive.measurements.instrumentation.Instrumentation;
@@ -20,7 +22,6 @@ import org.jikesrvm.adaptive.measurements.instrumentation.StringEventCounterData
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
@@ -29,10 +30,10 @@ import org.jikesrvm.compilers.opt.ir.Prologue;
 
 /**
  * The following OPT phase inserts counters on all instructions in the
- * IR.  It maintians one counter for each operand type, so it output
+ * IR.  It maintains one counter for each operand type, so it output
  * how many loads were executed, how many int_add's etc.  This is
  * useful for debugging and assessing the accuracy of optimizations.
- *
+ * <p>
  * Note: The counters are added at the end of HIR, so the counts will
  * NOT reflect any changes to the code that occur after HIR.
  */
@@ -44,14 +45,17 @@ public class InsertInstructionCounters extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return Controller.options.INSERT_INSTRUCTION_COUNTERS;
   }
 
+  @Override
   public final String getName() { return "InsertInstructionCounters"; }
 
   /**
@@ -60,6 +64,7 @@ public class InsertInstructionCounters extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
 
     // Don't insert counters in uninterruptible methods,
@@ -76,8 +81,8 @@ public class InsertInstructionCounters extends CompilerPhase {
     // Create a vector of basic blocks up front because the blocks
     // are modified as we iterate below.
     ArrayList<BasicBlock> bbList = new ArrayList<BasicBlock>();
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
-      BasicBlock bb = bbe.next();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
+      BasicBlock bb = bbe.nextElement();
       bbList.add(bb);
     }
 

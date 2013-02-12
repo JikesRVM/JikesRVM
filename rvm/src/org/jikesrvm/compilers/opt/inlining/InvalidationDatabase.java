@@ -57,13 +57,17 @@ public final class InvalidationDatabase {
   /////////////////////
   // (1) Dependency on a particular RVMMethod not being overridden.
   /////////////////////
+
   /**
-   * Return an iteration of CMID's (compiled method ids)
-   * that are dependent on the argument RVMMethod not being overridden.
-   * return null if no dependent methods.
+   * Returns an iteration of CMID's (compiled method ids) that are dependent
+   * on the argument RVMMethod not being overridden. If there are no dependent
+   * methods, {@code null} will be returned.<p>
    *
-   * <p> NOTE: returns null instead of EmptyIterator.EMPTY as part of
-   * a delicate * dance to avoid recursive classloading. --dave.
+   * NOTE: {@code null} is used instead of {@code EmptyIterator.getInstance}
+   * as part of delicate dance to avoid recursive classloading.
+   *
+   * @param m a method that can be overridden
+   * @return an iterator of CMIDs or {@code null}
    */
   public Iterator<Integer> invalidatedByOverriddenMethod(RVMMethod m) {
     MethodSet s = nonOverriddenHash.get(m);
@@ -100,13 +104,17 @@ public final class InvalidationDatabase {
   /////////////////////
   // (2) Dependency on a particular RVMClass not having any subclasses.
   /////////////////////
+
   /**
-   * Return an iteration of CMID's of CompiledMethods that are dependent
-   * on the argument RVMClass not having any subclasses.
-   * return null if no dependent methods.
+   * Returns an iteration of CMID's (compiled method ids) that are dependent
+   * on the argument RVMMethod not having any subclasses. If there are no
+   * dependent methods, {@code null} will be returned.<p>
    *
-   * <p> NOTE: returns null instead of EmptyIterator.EMPTY as part of
-   * a delicate dance to avoid recursive classloading. --dave.
+   * NOTE: {@code null} is used instead of {@code EmptyIterator.getInstance}
+   * as part of delicate dance to avoid recursive classloading.
+   *
+   * @param m a method that can be overridden
+   * @return an iterator of CMIDs or {@code null}
    */
   public Iterator<Integer> invalidatedBySubclass(RVMClass m) {
     MethodSet s = noSubclassHash.get(m);

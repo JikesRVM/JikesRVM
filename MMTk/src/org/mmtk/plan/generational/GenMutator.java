@@ -45,6 +45,10 @@ import org.vmmagic.unboxed.*;
    *
    * Instance fields
    */
+
+  /**
+   *
+   */
   protected final CopyLocal nursery = new CopyLocal(Gen.nurserySpace);
 
   private final ObjectReferenceDeque modbuf;    /* remember modified scalars */
@@ -57,7 +61,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Constructor
+   * Constructor<p>
    *
    * Note that each mutator is a producer of remsets, while each
    * collector is a consumer.  The <code>GenCollector</code> class
@@ -76,15 +80,9 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Allocate memory for an object.
-   *
-   * @param bytes The number of bytes required for the object.
-   * @param align Required alignment for the object.
-   * @param offset Offset associated with the alignment.
-   * @param allocator The allocator associated with this request.
-   * @param site Allocation site
-   * @return The low address of the allocated memory.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == Gen.ALLOC_NURSERY) {
@@ -94,15 +92,7 @@ import org.vmmagic.unboxed.*;
     return super.alloc(bytes, align, offset, allocator, site);
   }
 
-  /**
-   * Perform post-allocation actions.  For many allocators none are
-   * required.
-   *
-   * @param ref The newly allocated object
-   * @param typeRef the type reference for the instance being created
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param allocator The allocator number to be used for this allocation
-   */
+  @Override
   @Inline
   public void postAlloc(ObjectReference ref, ObjectReference typeRef,
       int bytes, int allocator) {
@@ -111,15 +101,7 @@ import org.vmmagic.unboxed.*;
     }
   }
 
-  /**
-   * Return the allocator instance associated with a space
-   * <code>space</code>, for this plan instance.
-   *
-   * @param space The space for which the allocator instance is desired.
-   * @return The allocator instance associated with this plan instance
-   * which is allocating into <code>space</code>, or <code>null</code>
-   * if no appropriate allocator can be established.
-   */
+  @Override
   public Allocator getAllocatorFromSpace(Space space) {
     if (space == Gen.nurserySpace) return nursery;
     return super.getAllocatorFromSpace(space);
@@ -159,21 +141,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * A new reference is about to be created.  Take appropriate write
-   * barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The mode of the store (eg putfield, putstatic etc)
    */
+  @Override
   @Inline
   public final void objectReferenceWrite(ObjectReference src, Address slot,
       ObjectReference tgt, Word metaDataA,
@@ -201,19 +175,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * A new reference is about to be created in a location that is not
-   * a regular heap object.  Take appropriate write barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
-   *
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
    */
+  @Override
   @Inline
   public final void objectReferenceNonHeapWrite(Address slot, ObjectReference tgt,
       Word metaDataA, Word metaDataB) {
@@ -222,24 +190,13 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Attempt to atomically exchange the value in the given slot
-   * with the passed replacement value. If a new reference is
-   * created, we must then take appropriate write barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
    * non-nursery space.
-   *
-   * @param src The object into which the new reference will be stored
-   * @param slot The address into which the new reference will be
-   * stored.
-   * @param old The old reference to be swapped out
-   * @param tgt The target of the new reference
-   * @param metaDataA A value that assists the host VM in creating a store
-   * @param metaDataB A value that assists the host VM in creating a store
-   * @param mode The context in which the store occured
-   * @return True if the swap was successful.
    */
+  @Override
   @Inline
   public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt,
       Word metaDataA, Word metaDataB, int mode) {
@@ -250,21 +207,10 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * A number of references are about to be copied from object
-   * <code>src</code> to object <code>dst</code> (as in an array
-   * copy).  Thus, <code>dst</code> is the mutated object.  Take
-   * appropriate write barrier actions.<p>
+   * {@inheritDoc}<p>
    *
    * In this case, we remember the mutated source address range and
    * will scan that address range at GC time.
-   *
-   * @param src The source of the values to be copied
-   * @param srcOffset The starting source offset
-   * @param dst The mutated object, i.e. the destination of the copy.
-   * @param dstOffset The starting destination offset
-   * @param bytes The number of bytes to copy
-   * @return True if the update was performed by the barrier, false if
-   * left to the caller (always false in this case).
    */
   @Inline
   @Override
@@ -276,9 +222,7 @@ import org.vmmagic.unboxed.*;
     return false;
   }
 
-  /**
-   * Flush per-mutator remembered sets into the global remset pool.
-   */
+  @Override
   public final void flushRememberedSets() {
     modbuf.flushLocal();
     remset.flushLocal();
@@ -286,13 +230,7 @@ import org.vmmagic.unboxed.*;
     assertRemsetsFlushed();
   }
 
-  /**
-   * Assert that the remsets have been flushed.  This is critical to
-   * correctness.  We need to maintain the invariant that remset entries
-   * do not accrue during GC.  If the host JVM generates barrier entires
-   * it is its own responsibility to ensure that they are flushed before
-   * returning to MMTk.
-   */
+  @Override
   public final void assertRemsetsFlushed() {
     if (VM.VERIFY_ASSERTIONS) {
       VM.assertions._assert(modbuf.isFlushed());
@@ -307,8 +245,9 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Perform a per-mutator collection phase.
+   * {@inheritDoc}
    */
+  @Override
   @NoInline
   public void collectionPhase(short phaseId, boolean primary) {
 

@@ -42,7 +42,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   private boolean hasCounters;
 
   /**
-   * The lock acquistion offset for synchronized methods.  For
+   * The lock acquisition offset for synchronized methods.  For
    * synchronized methods, the offset (in the method prologue) after
    * which the monitor has been obtained.  At, or before, this point,
    * the method does not own the lock.  Used by deliverException to
@@ -101,8 +101,8 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   /**
    * Location of local general purpose variable.  These Locations are
    * positioned at the top of the stackslot that contains the value
-   * before accessing, substract size of value you want to access.
-   * e.g. to load int: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT
+   * before accessing, substract size of value you want to access.<p>
+   * e.g. to load int: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_INT<br>
    * e.g. to load long: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_LONG
    */
   @Uninterruptible
@@ -113,8 +113,8 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   /**
    * Location of local floating point variable.  These Locations are
    * positioned at the top of the stackslot that contains the value
-   * before accessing, substract size of value you want to access.
-   * e.g. to load float: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_FLOAT
+   * before accessing, substract size of value you want to access.<p>
+   * e.g. to load float: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_FLOAT<br>
    * e.g. to load double: load at BaselineCompilerImpl.locationToOffset(location) - BYTES_IN_DOUBLE
    */
   @Uninterruptible
@@ -168,12 +168,14 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   }
 
   /** @return BASELINE */
+  @Override
   @Uninterruptible
   public int getCompilerType() {
     return BASELINE;
   }
 
   /** @return "baseline compiler" */
+  @Override
   public String getCompilerName() {
     return "baseline compiler";
   }
@@ -181,6 +183,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   /**
    * Get the exception deliverer for this kind of compiled method
    */
+  @Override
   @Uninterruptible
   public ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
@@ -192,6 +195,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    * @param exceptionType the type of the thrown exception
    * @return the machine code offset of the catch block.
    */
+  @Override
   @Unpreemptible
   public int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType) {
     if (eTable == null) {
@@ -201,31 +205,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     }
   }
 
-  /**
-   * Fetch symbolic reference to a method that's called by one of
-   * this method's instructions.
-   * @param dynamicLink place to put return information
-   * @param instructionOffset offset of machine instruction from start of
-   * this method, in bytes
-   *
-   * Notes:
-   * <ul>
-   * <li> The "instructionOffset" must point to the instruction i
-   * <em> following </em> the call
-   * instruction whose target method is sought.
-   * This allows us to properly handle the case where
-   * the only address we have to work with is a return address
-   * (ie. from a stackframe)
-   * on a machine architecture with variable length instructions.
-   * In such situations we'd have no idea how far to back up the
-   * instruction pointer
-   * to point to the "call site".
-   *
-   * <li> The implementation must not cause any allocations,
-   * because it executes with
-   * gc disabled when called by GCMapIterator.
-   * <ul>
-   */
+  @Override
   @Uninterruptible
   public void getDynamicLink(DynamicLink dynamicLink, Offset instructionOffset) {
     int bytecodeIndex = findBytecodeIndexForInstruction(instructionOffset);
@@ -235,6 +215,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
   /**
    * @return The line number, a positive integer.  Zero means unable to find.
    */
+  @Override
   @Uninterruptible
   public int findLineNumberForInstruction(Offset instructionOffset) {
     int bci = findBytecodeIndexForInstruction(instructionOffset);
@@ -242,12 +223,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     return ((NormalMethod) method).getLineNumberForBCIndex(bci);
   }
 
-  /**
-   * Return whether or not the instruction offset corresponds to an uninterruptible context.
-   *
-   * @param instructionOffset of addr from start of instructions in bytes
-   * @return true if the IP is within an Uninterruptible method, false otherwise.
-   */
+  @Override
   public boolean isWithinUninterruptibleCode(Offset instructionOffset) {
     return method.isUninterruptible();
   }
@@ -256,11 +232,11 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
    * Find bytecode index corresponding to one of this method's
    * machine instructions.
    *
-   * @param instructionOffset instruction offset to map to a bytecode index
+   * @param instructionOffset instruction offset to map to a bytecode index.<br>
    * Note: This method expects the offset to refer to the machine
    * instruction immediately FOLLOWING the bytecode in question.  just
    * like findLineNumberForInstruction. See CompiledMethod for
-   * rationale
+   * rationale.<br>
    * NOTE: instructionIndex is in units of instructions, not bytes
    * (different from all the other methods in this interface!!)
    * @return the bytecode index for the machine instruction, -1 if not
@@ -273,16 +249,16 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     int bcIndex = 0;
     Offset instrIndex = Offset.zero();
     for (int i = 0; i < bytecodeMap.length;) {
-      int b0 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
+      int b0 = (bytecodeMap[i++]) & 255;  // unsign-extend
       int deltaBC, deltaIns;
       if (b0 != 255) {
         deltaBC = b0 >> 5;
         deltaIns = b0 & 31;
       } else {
-        int b1 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
-        int b2 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
-        int b3 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
-        int b4 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
+        int b1 = (bytecodeMap[i++]) & 255;  // unsign-extend
+        int b2 = (bytecodeMap[i++]) & 255;  // unsign-extend
+        int b3 = (bytecodeMap[i++]) & 255;  // unsign-extend
+        int b4 = (bytecodeMap[i++]) & 255;  // unsign-extend
         deltaBC = (b1 << 8) | b2;
         deltaIns = (b3 << 8) | b4;
       }
@@ -296,9 +272,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     return candidateIndex;
   }
 
-  /**
-   * Set the stack browser to the innermost logical stack frame of this method
-   */
+  @Override
   public void set(StackBrowser browser, Offset instr) {
     browser.setMethod(method);
     browser.setCompiledMethod(this);
@@ -312,18 +286,12 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     }
   }
 
-  /**
-   * Advance the StackBrowser up one internal stack frame, if possible
-   */
+  @Override
   public boolean up(StackBrowser browser) {
     return false;
   }
 
-  /**
-   * Print this compiled method's portion of a stack trace
-   * @param instructionOffset of machine instruction from start of method
-   * @param out the PrintLN to print the stack trace to.
-   */
+  @Override
   public void printStackTrace(Offset instructionOffset, PrintLN out) {
     out.print("\tat ");
     out.print(method.getDeclaringClass()); // RVMClass
@@ -432,11 +400,7 @@ public final class BaselineCompiledMethod extends CompiledMethod implements Base
     }
   }
 
-  /**
-   * Return the number of bytes used to encode the compiler-specific mapping
-   * information for this compiled method.
-   * Used to gather stats on the space costs of mapping schemes.
-   */
+  @Override
   public int size() {
     TypeReference TYPE = TypeReference.findOrCreate(BaselineCompiledMethod.class);
     int size = TYPE.peekType().asClass().getInstanceSize();

@@ -22,6 +22,8 @@ import org.jikesrvm.objectmodel.JavaHeaderConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.EntrypointHelper;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -37,13 +39,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * <p>These code blocks can be shared by all compilers. They can be branched to
  * via a jtoc offset (obtained from Entrypoints.XXXInstructionsField).
- *
- * <p> 17 Mar 1999 Derek Lieber (adapted from powerPC version in 2000
- * by somebody)
- *
- * <p> 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers
- * could inline these methods if they wanted.  We do not believe this would
- * be very easy since they return assuming the return address is on the stack.)
  */
 public abstract class OutOfLineMachineCode implements BaselineConstants {
   //-----------//
@@ -55,6 +50,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     reflectiveMethodInvokerInstructions = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
     threadSwitchInstructions = generateThreadSwitchInstructions();
+    RVMThread.stackTrampolineBridgeInstructions = generateStackTrampolineBridgeInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
   }
 
@@ -177,7 +173,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
   /**
    * Machine code for reflective method invocation.
-   *
+   * <pre>
    * VM compiled with NUM_PARAMETERS_GPRS == 0
    *   Registers taken at runtime:
    *     none
@@ -219,6 +215,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    * Side effects at runtime:
    *   artificial stackframe created and destroyed
    *   volatile, and scratch registers destroyed
+   * </pre>
    */
   private static ArchitectureSpecific.CodeArray generateReflectiveMethodInvokerInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(100);
@@ -441,7 +438,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
   /**
    * Machine code to implement "Magic.saveThreadState()".
-   *
+   * <pre>
    *  Registers taken at runtime:
    *    T0 == address of Registers object
    *
@@ -451,6 +448,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *  Side effects at runtime:
    *    S0, T1 destroyed
    *    Thread state stored into Registers object
+   * </pre>
    */
   private static ArchitectureSpecific.CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) {
@@ -492,8 +490,52 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
   }
 
   /**
+   * Machine code to perform a stack trampoline bridge for
+   * implementing a return barrier.
+   * <p>
+   * This code is used to hijack a return and bridge to some
+   * other method (which implements the return barrier) before
+   * falling back to the intended return address.
+   * <p>
+   * The key here is to preserve register and stack state so that
+   * the caller is oblivious of the detour that occurred during
+   * the return.
+   */
+  private static ArchitectureSpecific.CodeArray generateStackTrampolineBridgeInstructions() {
+    if (VM.VerifyAssertions) {
+      VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
+      VM._assert(VM.BuildFor32Addr);
+    }
+    Assembler asm = new ArchitectureSpecific.Assembler(0);
+
+    /* push the hijacked return address (which is held in thread-local state) */
+    asm.emitPUSH_RegDisp(TR, ArchEntrypoints.hijackedReturnAddressField.getOffset());
+
+    /* push the GPRs and fp */
+    for (int i = 0; i < NUM_GPRS; i++) {
+      asm.emitPUSH_Reg(ALL_GPRS[i]);
+    }
+    asm.emitPUSH_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
+
+    /* call the handler */
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.returnBarrierMethod.getOffset()));
+
+    /* pop the fp and GPRs */
+    asm.emitPOP_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset());
+    for (int i = NUM_GPRS - 1; i >= 0; i--) {
+      asm.emitPOP_Reg(ALL_GPRS[i]);
+    }
+
+    /* pop the hijacked return address and return */
+    asm.emitRET();
+
+    return asm.getMachineCodes();
+  }
+
+
+  /**
    * Machine code to implement "Magic.threadSwitch()".
-   *
+   * <pre>
    * NOTE: Currently not functional for PNT: left as a guide for possible reimplementation.
    *
    *  Parameters taken at runtime:
@@ -508,6 +550,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *    saves current Thread's nonvolatile hardware state in its Registers object
    *    restores new thread's Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's Registers ip field
+   * </pre>
    */
   private static ArchitectureSpecific.CodeArray generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) {
@@ -591,7 +634,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
   /**
    * Machine code to implement "Magic.restoreHardwareExceptionState()".
-   *
+   * <pre>
    *  Registers taken at runtime:
    *    T0 == address of Registers object
    *
@@ -601,6 +644,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *  Side effects at runtime:
    *    all registers are restored except THREAD_REGISTER and EFLAGS;
    *    execution resumes at "registers.ip"
+   * </pre>
    */
   private static ArchitectureSpecific.CodeArray generateRestoreHardwareExceptionStateInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(0);

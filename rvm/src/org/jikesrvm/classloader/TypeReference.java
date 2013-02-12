@@ -360,7 +360,7 @@ public final class TypeReference {
   }
 
   /**
-   * Get the cannonical type reference given its id. The unused id of 0 will return null.
+   * Get the canonical type reference given its id. The unused id of 0 will return null.
    * @param id the type references id
    * @return the type reference
    */
@@ -405,7 +405,7 @@ public final class TypeReference {
       } else if (this == CodeArray) {
         return Code;
       } else {
-        if (VM.VerifyAssertions) VM._assert(false, "Unexpected case of Magic arrays!");
+        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "Unexpected case of Magic arrays!");
         return null;
       }
     } else {
@@ -424,7 +424,7 @@ public final class TypeReference {
   /**
    * Return the dimensionality of the type.
    * By convention, class types have dimensionality 0,
-   * primitves -1, and arrays the number of [ in their descriptor.
+   * primitives -1, and arrays the number of [ in their descriptor.
    */
   public int getDimensionality() {
     if (isArrayType()) {
@@ -723,7 +723,7 @@ public final class TypeReference {
   }
 
   /**
-   * Do this and that definitely refer to the same type?
+   * Do {@code this} and that definitely refer to the same type?
    */
   public boolean definitelySame(TypeReference that) {
     if (VM.VerifyAssertions) VM._assert(that != null);

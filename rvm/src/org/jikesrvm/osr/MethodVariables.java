@@ -20,13 +20,13 @@ import org.jikesrvm.classloader.MemberReference;
  */
 public final class MethodVariables {
 
-  /* which method */
+  /** which method */
   public int methId;
 
-  /* which program point */
+  /** which program point */
   public int bcIndex;
 
-  /* a list of variables */
+  /** a list of variables */
   public LinkedList<LocalRegPair> tupleList;
 
   public MethodVariables(int mid, int pc, LinkedList<LocalRegPair> tupleList) {
@@ -39,6 +39,7 @@ public final class MethodVariables {
     return tupleList;
   }
 
+  @Override
   public String toString() {
     StringBuilder buf = new StringBuilder("");
 

@@ -34,14 +34,14 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SET_CAUGHT_EXCEPTION;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.LocationCarrier;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
@@ -52,34 +52,13 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
 
 /**
  * Dependence Graph for a single basic block in the program.
- *
- * <p> June 1998 extensions by Vivek Sarkar:
- * <ul>
- * <li> 1. Fix direction of register anti dependences
- * <li> 2. Add conservative memory dependences (suitable for low opt level)
- * </ul>
- *
- * <p>Jul 1998, Harini Srinivasan:
- * made node list doubly linked list. Changes reflected in
- * depgraph construction. No calls to getDepGraphNode().
- *
- * <p> Dec 1998-March 1999, Mauricio Serrano:
- * several modifications to the memory efficiency of the graph.
- * added edges for calls.
- *
- * <p> 2000-2001, Dave Grove:
- * <ul>
- * <li> add support to handle implicit def/uses of physical registers correctly
- * <li> large scale refactor and cleanup
- * <li> more precise treatment of exceptions, control and acquire/release
- * </ul>
  */
 public final class DepGraph extends SpaceEffGraph {
 
   /**
    * Set of variables that are live on entry to at least one catch block that
    * is reachable via a PEI in currentBlock.
-   * This is an approximatation of the more precise set, but can be done in
+   * This is an approximation of the more precise set, but can be done in
    * linear time; doing the most precise thing (computing the set for
    * every PEI and using each individual set to create the necessary
    * dependences) is quadratic, and probably doesn't help very much anyways.
@@ -92,7 +71,7 @@ public final class DepGraph extends SpaceEffGraph {
   private final BasicBlock currentBlock;
 
   /**
-   * The ir we are processing
+   * The IR we are processing
    */
   private final IR ir;
 
@@ -121,9 +100,9 @@ public final class DepGraph extends SpaceEffGraph {
    */
   private void computeHandlerLiveSet() {
     if (ir.getHandlerLivenessComputed() && currentBlock.hasExceptionHandlers()) {
-      BasicBlockEnumeration e = currentBlock.getExceptionalOut();
+      Enumeration<BasicBlock> e = currentBlock.getExceptionalOut();
       while (e.hasMoreElements()) {
-        ExceptionHandlerBasicBlock handlerBlock = (ExceptionHandlerBasicBlock) e.next();
+        ExceptionHandlerBasicBlock handlerBlock = (ExceptionHandlerBasicBlock) e.nextElement();
         handlerLiveSet.add(handlerBlock.getLiveSet());
       }
     }
@@ -165,16 +144,16 @@ public final class DepGraph extends SpaceEffGraph {
         useMask |= PhysicalDefUse.maskTSPUses;
         defMask |= PhysicalDefUse.maskTSPDefs;
       }
-      for (OperandEnumeration uses = p.getUses(); uses.hasMoreElements();) {
-        computeForwardDependencesUse(uses.next(), pnode, lastExceptionNode);
+      for (Enumeration<Operand> uses = p.getUses(); uses.hasMoreElements();) {
+        computeForwardDependencesUse(uses.nextElement(), pnode, lastExceptionNode);
       }
       for (PhysicalDefUse.PDUEnumeration uses = PhysicalDefUse.enumerate(useMask, ir); uses.hasMoreElements();)
       {
         Register r = uses.nextElement();
         computeImplicitForwardDependencesUse(r, pnode);
       }
-      for (OperandEnumeration defs = p.getDefs(); defs.hasMoreElements();) {
-        computeForwardDependencesDef(defs.next(), pnode, lastExceptionNode);
+      for (Enumeration<Operand> defs = p.getDefs(); defs.hasMoreElements();) {
+        computeForwardDependencesDef(defs.nextElement(), pnode, lastExceptionNode);
       }
       for (PhysicalDefUse.PDUEnumeration defs = PhysicalDefUse.enumerate(defMask, ir); defs.hasMoreElements();)
       {
@@ -245,16 +224,16 @@ public final class DepGraph extends SpaceEffGraph {
         useMask |= PhysicalDefUse.maskTSPUses;
         defMask |= PhysicalDefUse.maskTSPDefs;
       }
-      for (OperandEnumeration uses = p.getUses(); uses.hasMoreElements();) {
-        computeBackwardDependencesUse(uses.next(), pnode, lastExceptionNode);
+      for (Enumeration<Operand> uses = p.getUses(); uses.hasMoreElements();) {
+        computeBackwardDependencesUse(uses.nextElement(), pnode, lastExceptionNode);
       }
       for (PhysicalDefUse.PDUEnumeration uses = PhysicalDefUse.enumerate(useMask, ir); uses.hasMoreElements();)
       {
         Register r = uses.nextElement();
         computeImplicitBackwardDependencesUse(r, pnode);
       }
-      for (OperandEnumeration defs = p.getDefs(); defs.hasMoreElements();) {
-        computeBackwardDependencesDef(defs.next(), pnode, lastExceptionNode);
+      for (Enumeration<Operand> defs = p.getDefs(); defs.hasMoreElements();) {
+        computeBackwardDependencesDef(defs.nextElement(), pnode, lastExceptionNode);
       }
       for (PhysicalDefUse.PDUEnumeration defs = PhysicalDefUse.enumerate(defMask, ir); defs.hasMoreElements();)
       {
@@ -541,8 +520,8 @@ public final class DepGraph extends SpaceEffGraph {
    */
   private void clearRegisters(Instruction start, Instruction end) {
     for (Instruction p = start; ; p = p.nextInstructionInCodeOrder()) {
-      for (OperandEnumeration ops = p.getOperands(); ops.hasMoreElements();) {
-        Operand op = ops.next();
+      for (Enumeration<Operand> ops = p.getOperands(); ops.hasMoreElements();) {
+        Operand op = ops.nextElement();
         if (op instanceof RegisterOperand) {
           RegisterOperand rOp = (RegisterOperand) op;
           rOp.getRegister().setdNode(null);

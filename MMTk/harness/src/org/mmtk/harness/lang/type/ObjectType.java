@@ -24,25 +24,16 @@ public class ObjectType extends AbstractType {
     super("object");
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#initialValue()
-   */
   @Override
   public Value initialValue() {
     return ObjectValue.NULL;
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.AbstractType#isObject()
-   */
   @Override
   public boolean isObject() {
     return true;
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.AbstractType#isCompatibleWith(org.mmtk.harness.lang.type.Type)
-   */
   @Override
   public boolean isCompatibleWith(Type rhs) {
     if (rhs == this) {

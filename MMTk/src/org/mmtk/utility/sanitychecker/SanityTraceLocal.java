@@ -40,13 +40,9 @@ public final class SanityTraceLocal extends TraceLocal {
    */
 
   /**
-   * This method is the core method during the trace of the object graph.
-   * The role of this method is to:
-   *
-   * @param object The object to be traced.
-   * @param root Is this object a root?
-   * @return The new reference to the same object instance.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object, boolean root) {
     sanityChecker.processObject(this, object, root);
@@ -54,11 +50,12 @@ public final class SanityTraceLocal extends TraceLocal {
   }
 
   /**
-   * Will this object move from this point on, during the current trace ?
+   * Will this object move from this point on, during the current trace?
    *
    * @param object The object to query.
-   * @return True if the object will not move.
+   * @return {@code true} if the object will not move.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     // We never move objects!
     return true;

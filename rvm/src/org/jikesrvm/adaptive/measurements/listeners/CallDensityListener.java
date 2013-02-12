@@ -18,7 +18,7 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A simple listener to accumulate counts of total events
- * and the fraction of those events that occured at loop backedges.
+ * and the fraction of those events that occurred at loop backedges.
  * In effect, this provides a mechanism for estimating the
  * call density of the program.  If most yieldpoints are being taken at
  * backedges, then call density is low.
@@ -29,12 +29,7 @@ public final class CallDensityListener extends NullListener {
   private double numSamples = 0;
   private double numBackedgeSamples = 0;
 
-  /**
-   * This method is called when its time to record that a
-   * yield point has occurred.
-   * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
-   *             EPILOGUE?
-   */
+  @Override
   public void update(int whereFrom) {
     numSamples++;
     if (whereFrom == RVMThread.BACKEDGE) numBackedgeSamples++;
@@ -44,11 +39,13 @@ public final class CallDensityListener extends NullListener {
     return 1 - (numBackedgeSamples / numSamples);
   }
 
+  @Override
   public void reset() {
     numSamples = 0;
     numBackedgeSamples = 0;
   }
 
+  @Override
   public void report() {
     VM.sysWriteln("The call density of the program is ", callDensity());
   }

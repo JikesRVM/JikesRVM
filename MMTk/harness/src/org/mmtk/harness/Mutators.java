@@ -37,7 +37,6 @@ public final class Mutators {
   /**
    * Complete the registration of a mutator, by inserting the initialized
    * object in the allocated slot.
-   * @param id
    * @param m
    */
   static synchronized void set(Mutator m) {
@@ -47,7 +46,7 @@ public final class Mutators {
   /**
    * Return the collection of valid mutators, as a blocking queue
    * (so that it's synchronized - don't call 'take' on an empty queue ...)
-   * @return The non-null mutators
+   * @return The non-{@code null} mutators
    */
   public static synchronized BlockingQueue<Mutator> getAll() {
     BlockingQueue<Mutator> result = new ArrayBlockingQueue<Mutator>(mutators.size()+1);

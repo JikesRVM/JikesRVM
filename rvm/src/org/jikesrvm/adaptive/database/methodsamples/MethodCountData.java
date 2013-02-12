@@ -113,6 +113,7 @@ public final class MethodCountData implements Reportable {
    *  Print the counted (nonzero) methods.
    *  To get a sorted list, pipe the output through sort -n -r.
    */
+  @Override
   public synchronized void report() {
     RVMThread.dumpLock.lockNoHandshake();
     VM.sysWrite("Method counts: A total of " + totalCountsTaken + " samples\n");
@@ -148,6 +149,7 @@ public final class MethodCountData implements Reportable {
   /**
    * Reset (clear) the method counts
    */
+  @Override
   public synchronized void reset() {
     initialize();
   }

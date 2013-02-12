@@ -86,9 +86,6 @@ public class Env extends Mutator {
     return stack;
   }
 
-  /**
-   * Compute the thread roots for this mutator.
-   */
   @Override
   public void computeThreadRoots(TraceLocal trace) {
     int localCount = 0;
@@ -98,9 +95,6 @@ public class Env extends Mutator {
     Trace.trace(Item.ROOTS, "Locals: %d", localCount);
   }
 
-  /**
-   * @see org.mmtk.harness.Mutator#getRoots()
-   */
   @Override
   public Collection<ObjectValue> getRoots() {
     List<ObjectValue> roots = new ArrayList<ObjectValue>();
@@ -110,9 +104,6 @@ public class Env extends Mutator {
     return roots;
   }
 
-  /**
-   * Print the thread roots and add them to a stack for processing.
-   */
   @Override
   public Collection<ObjectReference> dumpThreadRoots(int width) {
     int frameId = 0;
@@ -126,10 +117,6 @@ public class Env extends Mutator {
     return roots;
   }
 
-
-  /**
-   * @see org.mmtk.harness.Mutator#gcSafePoint()
-   */
   @Override
   public boolean gcSafePoint() {
     if (gcEverySafepoint) {
@@ -139,9 +126,6 @@ public class Env extends Mutator {
   }
 
 
-  /**
-   * @see org.mmtk.harness.Mutator#end()
-   */
   @Override
   public void end() {
     if (!(expectedThrowable == null)) fail(("Expected exception of class " + expectedThrowable + " not found"));

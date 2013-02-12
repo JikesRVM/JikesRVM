@@ -26,8 +26,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_TrapIf;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
@@ -85,7 +83,6 @@ import org.vmmagic.unboxed.Offset;
  * Class to manage the allocation of the "compiler-specific" portion of
  * the stackframe.  This class holds only the architecture-specific
  * functions.
- * <p>
  */
 public abstract class StackManager extends GenericStackManager {
 
@@ -109,12 +106,7 @@ public abstract class StackManager extends GenericStackManager {
    */
   private static boolean FLOAT_ESP = false;
 
-  /**
-   * Return the size of the fixed portion of the stack.
-   * (in other words, the difference between the framepointer and
-   * the stackpointer after the prologue of the method completes).
-   * @return size in bytes of the fixed portion of the stackframe
-   */
+  @Override
   public final int getFrameFixedSize() {
     return frameSize - WORDSIZE;
   }
@@ -159,13 +151,7 @@ public abstract class StackManager extends GenericStackManager {
     }
   }
 
-  /**
-   * Allocate a new spill location and grow the
-   * frame size to reflect the new layout.
-   *
-   * @param type the type to spill
-   * @return the spill location
-   */
+  @Override
   public final int allocateNewSpillLocation(int type) {
 
     // increment by the spill size
@@ -177,16 +163,7 @@ public abstract class StackManager extends GenericStackManager {
     return spillPointer;
   }
 
-  /**
-   * Insert a spill of a physical register before instruction s.
-   *
-   * @param s the instruction before which the spill should occur
-   * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
-   * @param location the spill location, as an offset from the frame
-   * pointer
-   */
+  @Override
   public final void insertSpillBefore(Instruction s, Register r, byte type, int location) {
 
     Operator move = getMoveOperator(type);
@@ -207,16 +184,7 @@ public abstract class StackManager extends GenericStackManager {
     s.insertBefore(MIR_Move.create(move, spill, rOp));
   }
 
-  /**
-   * Insert a load of a physical register from a spill location before
-   * instruction s.
-   *
-   * @param s the instruction before which the spill should occur
-   * @param r the register (should be physical) to spill
-   * @param type one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, or
-   *                    CONDITION_VALUE
-   * @param location the spill location
-   */
+  @Override
   public final void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
     Operator move = getMoveOperator(type);
     byte size = getSizeOfType(type);
@@ -236,17 +204,7 @@ public abstract class StackManager extends GenericStackManager {
     s.insertBefore(MIR_Move.create(move, rOp, spill));
   }
 
-  /**
-   * Compute the number of stack words needed to hold nonvolatile
-   * registers.
-   *
-   * Side effects:
-   * <ul>
-   * <li> updates the OptCompiler structure
-   * <li> updates the <code>frameSize</code> field of this object
-   * <li> updates the <code>frameRequired</code> field of this object
-   * </ul>
-   */
+  @Override
   public void computeNonVolatileArea() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
@@ -328,10 +286,7 @@ public abstract class StackManager extends GenericStackManager {
     }
   }
 
-  /**
-   * Clean up some junk that's left in the IR after register allocation,
-   * and add epilogue code.
-   */
+  @Override
   public void cleanUpAndInsertEpilogue() {
 
     Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
@@ -369,7 +324,8 @@ public abstract class StackManager extends GenericStackManager {
 
   /**
    * Insert an explicit stack overflow check in the prologue <em>after</em>
-   * buying the stack frame.
+   * buying the stack frame.<p>
+   *
    * SIDE EFFECT: mutates the plg into a trap instruction.  We need to
    * mutate so that the trap instruction is in the GC map data structures.
    *
@@ -461,6 +417,7 @@ public abstract class StackManager extends GenericStackManager {
    *    <li> Save any used non-volatile registers
    *    </ul>
    */
+  @Override
   public void insertNormalPrologue() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register ESP = phys.getESP();
@@ -666,14 +623,7 @@ public abstract class StackManager extends GenericStackManager {
     ret.insertBefore(MIR_Nullary.create(IA32_POP, fpHome));
   }
 
-  /**
-   * In instruction s, replace all appearances of a symbolic register
-   * operand with uses of the appropriate spill location, as cached by the
-   * register allocator.
-   *
-   * @param s the instruction to mutate.
-   * @param symb the symbolic register operand to replace
-   */
+  @Override
   public void replaceOperandWithSpillLocation(Instruction s, RegisterOperand symb) {
 
     // Get the spill location previously assigned to the symbolic
@@ -747,10 +697,7 @@ public abstract class StackManager extends GenericStackManager {
     return true;
   }
 
-  /**
-   * Given symbolic register r in instruction s, do we need to ensure that
-   * r is in a scratch register is s (as opposed to a memory operand)
-   */
+  @Override
   public boolean needScratch(Register r, Instruction s) {
     // We never need a scratch register for a floating point value in an
     // FMOV instruction.
@@ -866,8 +813,8 @@ public abstract class StackManager extends GenericStackManager {
     Register ESP = ir.regpool.getPhysicalRegisterSet().getESP();
 
     boolean seenReturn = false;
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
-      Instruction s = e.next();
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+      Instruction s = e.nextElement();
 
       if (s.isReturn()) {
         seenReturn = true;
@@ -920,8 +867,8 @@ public abstract class StackManager extends GenericStackManager {
         ESPOffset += 4;
       }
 
-      for (OperandEnumeration ops = s.getOperands(); ops.hasMoreElements();) {
-        Operand op = ops.next();
+      for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
+        Operand op = ops.nextElement();
         if (op instanceof StackLocationOperand) {
           StackLocationOperand sop = (StackLocationOperand) op;
           int offset = sop.getOffset();
@@ -955,11 +902,11 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * @param fpOffset offset in bytes from the top of the stack frame
-   * @return offset in bytes from the stack pointer.
-   *
    * PRECONDITION: The final frameSize is calculated before calling this
    * routine.
+   *
+   * @param fpOffset offset in bytes from the top of the stack frame
+   * @return offset in bytes from the stack pointer.
    */
   private int FPOffset2SPOffset(int fpOffset) {
     // Note that SP = FP - frameSize + WORDSIZE;
@@ -968,23 +915,7 @@ public abstract class StackManager extends GenericStackManager {
     return frameSize + fpOffset - WORDSIZE;
   }
 
-  /**
-   * Walk over the currently available scratch registers.
-   *
-   * <p>For any scratch register r which is def'ed by instruction s,
-   * spill r before s and remove r from the pool of available scratch
-   * registers.
-   *
-   * <p>For any scratch register r which is used by instruction s,
-   * restore r before s and remove r from the pool of available scratch
-   * registers.
-   *
-   * <p>For any scratch register r which has current contents symb, and
-   * symb is spilled to location M, and s defs M: the old value of symb is
-   * dead.  Mark this.
-   *
-   * <p>Invalidate any scratch register assignments that are illegal in s.
-   */
+  @Override
   public void restoreScratchRegistersBefore(Instruction s) {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
       ScratchRegister scratch = i.next();
@@ -1068,6 +999,7 @@ public abstract class StackManager extends GenericStackManager {
    * Initialize some architecture-specific state needed for register
    * allocation.
    */
+  @Override
   public void initForArch(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
@@ -1077,9 +1009,7 @@ public abstract class StackManager extends GenericStackManager {
     phys.getFPR(7).reserveRegister();
   }
 
-  /**
-   * Is a particular instruction a system call?
-   */
+  @Override
   public boolean isSysCall(Instruction s) {
     return s.operator == IA32_SYSCALL;
   }

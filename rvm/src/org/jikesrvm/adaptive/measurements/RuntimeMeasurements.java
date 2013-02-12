@@ -27,19 +27,19 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * RuntimeMeasurements manages listeners, decayable objects, and
- * reportable objects.
+ * reportable objects.<p>
  *
  * A listener is installed by an organizer, and activated at thread
  * switch time by Thread.  Depending on the update method that the
  * listener supports, it can be either a method, context, or a null
  * listener.  Currently we have different registries for different
  * listeners.  An alternative design is to have one register with where
- * entries are tagged.
+ * entries are tagged.<p>
  *
  * A decayable object implements the Decayable interface.
  * Anyone can register a decayable object,
  * The DecayOrganizer periodically decays all objects that have
- * been registers.
+ * been registers.<p>
  *
  * A reportable object implements the Reportable interface, and
  * is typically registered and used by the instrumentation subsystem.
@@ -168,12 +168,12 @@ public abstract class RuntimeMeasurements {
   private static MethodListener[] cbsMethodListeners = new MethodListener[0];
 
   /**
-   * context listeners that tigger on CBS call yieldpoints
+   * context listeners that trigger on CBS call yieldpoints
    */
   private static ContextListener[] cbsContextListeners = new ContextListener[0];
 
   /**
-   * Install a method listener on cbs ticks
+   * Install a method listener on CBS ticks
    * @param s method listener to be installed
    */
   public static synchronized void installCBSMethodListener(MethodListener s) {
@@ -187,7 +187,7 @@ public abstract class RuntimeMeasurements {
   }
 
   /**
-   * Install a context listener on cbs ticks
+   * Install a context listener on CBS ticks
    * @param s context listener to be installed
    */
   public static synchronized void installCBSContextListener(ContextListener s) {

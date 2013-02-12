@@ -26,22 +26,22 @@ public abstract class CodeArray {
   private final byte[] data;
 
   public CodeArray(int size) {
-    if (VM.runningVM) VM._assert(false);  // should be unreachable
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be unreachable
     data = new byte[size];
   }
 
   public byte get(int index) {
-    if (VM.runningVM) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     return data[index];
   }
 
   public void set(int index, byte v) {
-    if (VM.runningVM) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     data[index] = v;
   }
 
   public int length() {
-    if (VM.runningVM) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     return data.length;
   }
 
@@ -55,7 +55,7 @@ public abstract class CodeArray {
   /**
    * A helper class to contain the 'real' methods of CodeArray.
    * Because Jikes RVM believes that CodeArray is really a Code[]
-   * (ie, an array of primitives), we cannot define non-hijacked methods
+   * (i.e., an array of primitives), we cannot define non-hijacked methods
    * on the 'class' CodeArray.
    */
   public static class Factory {

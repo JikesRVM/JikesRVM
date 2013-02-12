@@ -22,7 +22,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.unboxed.Address;
 
 /**
- * Correlate objects in host jdk with corresponding objects in target rvm
+ * Correlate objects in host JDK with corresponding objects in target RVM
  * bootimage.
  */
 public class BootImageMap extends BootImageWriterMessages
@@ -93,8 +93,8 @@ public class BootImageMap extends BootImageWriterMessages
     /**
      * Indicates whether some other key is "equal to" this one.
      * @param that the object with which to compare
-     * @return true if this key is the same as the that argument;
-     *         false otherwise
+     * @return {@code true} if this key is the same as the that argument;
+     *         {@code false} otherwise
      */
     @Override
     public boolean equals(Object obj) {
@@ -245,7 +245,7 @@ public class BootImageMap extends BootImageWriterMessages
   }
 
   /**
-   * Find or create map entry for a jdk/rvm object pair.
+   * Find or create map entry for a JDK/RVM object pair.
    * @param jdkObject JDK object
    * @return map entry for the given object
    */
@@ -269,9 +269,9 @@ public class BootImageMap extends BootImageWriterMessages
   }
 
   /**
-   * Get jdk object corresponding to an object id.
+   * Get JDK object corresponding to an object id.
    * @param objectId object id
-   * @return jdk object
+   * @return JDK object
    */
   public static Object getObject(int objectId) {
     return objectIdToEntry.get(objectId).jdkObject;
@@ -280,7 +280,7 @@ public class BootImageMap extends BootImageWriterMessages
   /**
    * Get bootimage offset of an object.
    * @param jdkObject JDK object
-   * @return offset of corresponding rvm object within bootimage, in bytes
+   * @return offset of corresponding RVM object within bootimage, in bytes
    */
   public static Address getImageAddress(Object jdkObject, boolean fatalIfNotFound) {
     BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);

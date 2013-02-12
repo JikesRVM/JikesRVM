@@ -28,7 +28,6 @@ import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Attempt;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.GetField;
@@ -87,6 +86,7 @@ class IndexPropagationSystem extends DF_System {
    * @param o the heap variable
    * @return a new lattice cell corresponding to this heap variable
    */
+  @Override
   protected DF_LatticeCell makeCell(Object o) {
     if (!(o instanceof HeapVariable)) {
       throw new OptimizingCompilerException("IndexPropagation:makeCell");
@@ -104,6 +104,7 @@ class IndexPropagationSystem extends DF_System {
   /**
    * Initialize the lattice variables.
    */
+  @Override
   protected void initializeLatticeCells() {
     // initially all lattice cells are set to TOP
     // set the lattice cells that are exposed on entry to BOTTOM
@@ -127,6 +128,7 @@ class IndexPropagationSystem extends DF_System {
   /**
    * Initialize the work list for the dataflow equation system.
    */
+  @Override
   protected void initializeWorkList() {
     // add all equations to the work list that contain a non-TOP
     // variable
@@ -153,7 +155,7 @@ class IndexPropagationSystem extends DF_System {
    * that affects the values of Array SSA variables.
    */
   void setupEquations() {
-    for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock bb = e.nextElement();
       for (SSADictionary.AllInstructionEnumeration e2 = ssa.getAllInstructions(bb); e2.hasMoreElements();) {
         Instruction s = e2.nextElement();
@@ -476,6 +478,7 @@ class IndexPropagationSystem extends DF_System {
     /**
      * @return "MEET"
      */
+    @Override
     public String toString() { return "MEET"; }
 
     /**
@@ -483,6 +486,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands the operands of the dataflow equation
      * @return true iff the value of the lhs changes
      */
+    @Override
     public boolean evaluate(DF_LatticeCell[] operands) {
       DF_LatticeCell lhs = operands[0];
       if (lhs instanceof ObjectCell) {
@@ -650,6 +654,7 @@ class IndexPropagationSystem extends DF_System {
     /**
      * @return a String representation
      */
+    @Override
     public String toString() { return "UPDATE-DEF<" + valueNumber + ">"; }
 
     /**
@@ -665,6 +670,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
+    @Override
     public boolean evaluate(DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell) operands[0];
 
@@ -715,6 +721,7 @@ class IndexPropagationSystem extends DF_System {
     /**
      * @return "UPDATE-USE"
      */
+    @Override
     public String toString() { return "UPDATE-USE<" + valueNumber + ">"; }
 
     /**
@@ -730,6 +737,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
+    @Override
     public boolean evaluate(DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell) operands[0];
 
@@ -777,6 +785,7 @@ class IndexPropagationSystem extends DF_System {
     /**
      * @return "UPDATE-DEF"
      */
+    @Override
     public String toString() { return "UPDATE-DEF<" + v + ">"; }
 
     /**
@@ -793,6 +802,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
+    @Override
     public boolean evaluate(DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell) operands[0];
 
@@ -846,6 +856,7 @@ class IndexPropagationSystem extends DF_System {
     /**
      * @return "UPDATE-USE"
      */
+    @Override
     public String toString() { return "UPDATE-USE<" + v + ">"; }
 
     /**
@@ -862,6 +873,7 @@ class IndexPropagationSystem extends DF_System {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
+    @Override
     public boolean evaluate(DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell) operands[0];
 

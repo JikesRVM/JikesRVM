@@ -42,6 +42,10 @@ public abstract class PageResource implements Constants {
    *
    * Class variables
    */
+
+  /**
+   *
+   */
   protected static final boolean ZERO_ON_RELEASE = false; // debugging
 
   private static final Lock classLock;
@@ -54,12 +58,18 @@ public abstract class PageResource implements Constants {
    */
 
   // page budgeting
+
+  /**
+   *
+   */
   protected int reserved;
   protected int committed;
 
   protected final boolean contiguous;
   protected final Space space;
-  protected Address start; // only for contiguous
+
+  /** only for contiguous spaces */
+  protected Address start;
 
   // locking
   private final Lock lock;
@@ -110,6 +120,9 @@ public abstract class PageResource implements Constants {
 
   /**
    * Return the number of available physical pages for this resource.
+   * This includes all pages currently unused by this resource's page
+   * cursor. If the resource is using discontiguous space it also includes
+   * currently unassigned discontiguous space.<p>
    *
    * Note: This just considers physical pages (ie virtual memory pages
    * allocated for use by this resource). This calculation is orthogonal

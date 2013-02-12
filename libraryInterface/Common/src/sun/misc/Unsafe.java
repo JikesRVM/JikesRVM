@@ -26,7 +26,10 @@ import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 public final class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
-  private static final Unsafe theUnsafe = unsafe; // alias to match name that DL's FJ framework appears to expect from class libs.
+
+  /** alias to match name that DL's FJ framework appears to expect from class libs */
+  @SuppressWarnings("unused")
+  private static final Unsafe theUnsafe = unsafe;
 
   private Unsafe() {}
 
@@ -204,7 +207,9 @@ public final class Unsafe {
 
   public void park(boolean isAbsolute,long time) throws Throwable  {
     RVMThread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
-    vmthread.park(isAbsolute, time);
+    if (vmthread != null) {
+      vmthread.park(isAbsolute, time);
+    }
   }
 
   public void throwException(Throwable ex) {

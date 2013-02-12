@@ -364,28 +364,17 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     spTopOffset = startLocalOffset - BYTES_IN_STACKSLOT - (stackHeights[biStart] * BYTES_IN_STACKSLOT);
   }
 
-  /**
-   * Emit the prologue for the method
-   */
   @Override
   protected final void emit_prologue() {
     spTopOffset = emptyStackOffset;
     genPrologue();
   }
 
-  /**
-   * Emit the code for a threadswitch tests (aka a yieldpoint).
-   * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?
-   */
   @Override
   protected final void emit_threadSwitchTest(int whereFrom) {
     genThreadSwitchTest(whereFrom);
   }
 
-  /**
-   * Emit the code to implement the spcified magic.
-   * @param magicMethod desired magic
-   */
   @Override
   protected final boolean emit_Magic(MethodReference magicMethod) {
     return generateInlineCode(magicMethod);
@@ -480,7 +469,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
   /**
    * Emit the code to push a long value
-   * contained in 'reg' onto the expression stack.
+   * contained in 'reg' onto the expression stack.<p>
+   *
    * NOTE: in 32 bit mode, reg is actually a FP register and
    * we are treating the long value as if it were an FP value to do this in
    * one instruction!!!
@@ -604,7 +594,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 
   /**
    * Emit the code to pop a long value
-   * from the expression stack into the register 'reg'.
+   * from the expression stack into the register 'reg'.<p>
+   *
    * NOTE: in 32 bit mode, reg is actually a FP register and
    * we are treating the long value as if it were an FP value to do this in
    * one instruction!!!
@@ -680,29 +671,18 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * Loading constants
   */
 
-  /**
-   * Emit code to load the null constant.
-   */
   @Override
   protected final void emit_aconst_null() {
     asm.emitLVAL(T0, 0);
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to load an int constant.
-   * @param val the int constant to load
-   */
   @Override
   protected final void emit_iconst(int val) {
     asm.emitLVAL(T0, val);
     pushInt(T0);
   }
 
-  /**
-   * Emit code to load a long constant
-   * @param val the lower 32 bits of long constant (upper32 are 0).
-   */
   @Override
   protected final void emit_lconst(int val) {
     if (val == 0) {
@@ -714,57 +694,36 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLongAsDouble(F0);
   }
 
-  /**
-   * Emit code to load 0.0f
-   */
   @Override
   protected final void emit_fconst_0() {
     asm.emitLFStoc(F0, Entrypoints.zeroFloatField.getOffset(), T0);
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to load 1.0f
-   */
   @Override
   protected final void emit_fconst_1() {
     asm.emitLFStoc(F0, Entrypoints.oneFloatField.getOffset(), T0);
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to load 2.0f
-   */
   @Override
   protected final void emit_fconst_2() {
     asm.emitLFStoc(F0, Entrypoints.twoFloatField.getOffset(), T0);
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to load 0.0d
-   */
   @Override
   protected final void emit_dconst_0() {
     asm.emitLFStoc(F0, Entrypoints.zeroFloatField.getOffset(), T0);
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to load 1.0d
-   */
   @Override
   protected final void emit_dconst_1() {
     asm.emitLFStoc(F0, Entrypoints.oneFloatField.getOffset(), T0);
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to load a 32 bit constant
-   * (which may be a reference and thus really 64 bits on 64 bit platform!)
-   * @param offset JTOC offset of the constant
-   * @param type the type of the constant
-   */
   @Override
   protected final void emit_ldc(Offset offset, byte type) {
     if (Statics.isReference(Statics.offsetAsSlot(offset))) {
@@ -776,11 +735,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to load a 64 bit constant
-   * @param offset JTOC offset of the constant
-   * @param type the type of the constant
-   */
   @Override
   protected final void emit_ldc2(Offset offset, byte type) {
     asm.emitLFDtoc(F0, offset, T0);
@@ -791,10 +745,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * loading local variables
   */
 
-  /**
-   * Emit code to load an int local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_iload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
@@ -803,10 +753,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
 
-  /**
-   * Emit code to load a long local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_lload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
@@ -815,10 +761,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
 
-  /**
-   * Emit code to local a float local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_fload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
@@ -827,10 +769,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     spTopOffset -= BYTES_IN_STACKSLOT;
   }
 
-  /**
-   * Emit code to load a double local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_dload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
@@ -839,10 +777,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     spTopOffset -= 2 * BYTES_IN_STACKSLOT;
   }
 
-  /**
-   * Emit code to load a reference local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_aload(int index) {
     short dstLoc = getTopOfStackLocationForPush();
@@ -855,10 +789,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * storing local variables
    */
 
-  /**
-   * Emit code to store an int to a local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_istore(int index) {
     short srcLoc = getSingleStackLocation(0);
@@ -866,20 +796,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     discardSlot();
   }
 
-  /**
-   * Emit code to store a long to a local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_lstore(int index) {
     copyByLocation(LONG_TYPE, getDoubleStackLocation(0), LONG_TYPE, getGeneralLocalLocation(index));
     discardSlots(2);
   }
 
-  /**
-   * Emit code to store a float to a local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_fstore(int index) {
     short srcLoc = getSingleStackLocation(0);
@@ -887,10 +809,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     discardSlot();
   }
 
-  /**
-   * Emit code to store an double  to a local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_dstore(int index) {
     short srcLoc = getDoubleStackLocation(0);
@@ -898,10 +816,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     discardSlots(2);
   }
 
-  /**
-   * Emit code to store a reference to a local variable
-   * @param index the local index to load
-   */
   @Override
   protected final void emit_astore(int index) {
     short srcLoc = getSingleStackLocation(0);
@@ -913,9 +827,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * array loads
   */
 
-  /**
-   * Emit code to load from an int array
-   */
   @Override
   protected final void emit_iaload() {
     genBoundsCheck();
@@ -924,9 +835,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T2);
   }
 
-  /**
-   * Emit code to load from a long array
-   */
   @Override
   protected final void emit_laload() {
     genBoundsCheck();
@@ -935,9 +843,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLongAsDouble(F0);
   }
 
-  /**
-   * Emit code to load from a float array
-   */
   @Override
   protected final void emit_faload() {
     genBoundsCheck();
@@ -948,9 +853,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
 //    pushFloat(F0);
   }
 
-  /**
-   * Emit code to load from a double array
-   */
   @Override
   protected final void emit_daload() {
     genBoundsCheck();
@@ -959,9 +861,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to load from a reference array
-   */
   @Override
   protected final void emit_aaload() {
     genBoundsCheck();
@@ -975,9 +874,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to load from a byte/boolean array
-   */
   @Override
   protected final void emit_baload() {
     genBoundsCheck();
@@ -986,9 +882,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T2);
   }
 
-  /**
-   * Emit code to load from a char array
-   */
   @Override
   protected final void emit_caload() {
     genBoundsCheck();
@@ -997,9 +890,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T2);
   }
 
-  /**
-   * Emit code to load from a short array
-   */
   @Override
   protected final void emit_saload() {
     genBoundsCheck();
@@ -1012,9 +902,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * array stores
    */
 
-  /**
-   * Emit code to store to an int array
-   */
   @Override
   protected final void emit_iastore() {
     if (NEEDS_INT_ASTORE_BARRIER) {
@@ -1028,9 +915,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to store to a long array
-   */
   @Override
   protected final void emit_lastore() {
     if (NEEDS_LONG_ASTORE_BARRIER) {
@@ -1044,9 +928,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to store to a float array
-   */
   @Override
   protected final void emit_fastore() {
     if (NEEDS_FLOAT_ASTORE_BARRIER) {
@@ -1060,9 +941,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to store to a double array
-   */
   @Override
   protected final void emit_dastore() {
     if (NEEDS_DOUBLE_ASTORE_BARRIER) {
@@ -1076,9 +954,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to store to a reference array
-   */
   @Override
   protected final void emit_aastore() {
     if (doesCheckStore) {
@@ -1088,9 +963,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to store to a byte/boolean array
-   */
   @Override
   protected final void emit_bastore() {
     if (NEEDS_BYTE_ASTORE_BARRIER) {
@@ -1103,9 +975,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to store to a char array
-   */
   @Override
   protected final void emit_castore() {
     if (NEEDS_CHAR_ASTORE_BARRIER) {
@@ -1119,9 +988,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to store to a short array
-   */
   @Override
   protected final void emit_sastore() {
     if (NEEDS_SHORT_ASTORE_BARRIER) {
@@ -1139,34 +1005,22 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * expression stack manipulation
   */
 
-  /**
-   * Emit code to implement the pop bytecode
-   */
   @Override
   protected final void emit_pop() {
     discardSlot();
   }
 
-  /**
-   * Emit code to implement the pop2 bytecode
-   */
   @Override
   protected final void emit_pop2() {
     discardSlots(2);
   }
 
-  /**
-   * Emit code to implement the dup bytecode
-   */
   @Override
   protected final void emit_dup() {
     peekAddr(T0, 0);
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to implement the dup_x1 bytecode
-   */
   @Override
   protected final void emit_dup_x1() {
     popAddr(T0);
@@ -1176,9 +1030,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to implement the dup_x2 bytecode
-   */
   @Override
   protected final void emit_dup_x2() {
     popAddr(T0);
@@ -1190,9 +1041,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to implement the dup2 bytecode
-   */
   @Override
   protected final void emit_dup2() {
     peekAddr(T0, 0);
@@ -1201,9 +1049,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to implement the dup2_x1 bytecode
-   */
   @Override
   protected final void emit_dup2_x1() {
     popAddr(T0);
@@ -1216,9 +1061,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to implement the dup2_x2 bytecode
-   */
   @Override
   protected final void emit_dup2_x2() {
     popAddr(T0);
@@ -1233,9 +1075,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to implement the swap bytecode
-   */
   @Override
   protected final void emit_swap() {
     popAddr(T0);
@@ -1248,9 +1087,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * int ALU
   */
 
-  /**
-   * Emit code to implement the iadd bytecode
-   */
   @Override
   protected final void emit_iadd() {
     popInt(T0);
@@ -1259,9 +1095,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T2);
   }
 
-  /**
-   * Emit code to implement the isub bytecode
-   */
   @Override
   protected final void emit_isub() {
     popInt(T0);
@@ -1270,9 +1103,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T2);
   }
 
-  /**
-   * Emit code to implement the imul bytecode
-   */
   @Override
   protected final void emit_imul() {
     popInt(T1);
@@ -1281,9 +1111,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T1);
   }
 
-  /**
-   * Emit code to implement the idiv bytecode
-   */
   @Override
   protected final void emit_idiv() {
     popInt(T1);
@@ -1293,9 +1120,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the irem bytecode
-   */
   @Override
   protected final void emit_irem() {
     popInt(T1);
@@ -1307,9 +1131,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T1);
   }
 
-  /**
-   * Emit code to implement the ineg bytecode
-   */
   @Override
   protected final void emit_ineg() {
     popInt(T0);
@@ -1317,9 +1138,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the ishl bytecode
-   */
   @Override
   protected final void emit_ishl() {
     popInt(T1);
@@ -1329,9 +1147,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the ishr bytecode
-   */
   @Override
   protected final void emit_ishr() {
     popInt(T1);
@@ -1341,9 +1156,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the iushr bytecode
-   */
   @Override
   protected final void emit_iushr() {
     popInt(T1);
@@ -1353,9 +1165,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the iand bytecode
-   */
   @Override
   protected final void emit_iand() {
     popInt(T1);
@@ -1364,9 +1173,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T2);
   }
 
-  /**
-   * Emit code to implement the ior bytecode
-   */
   @Override
   protected final void emit_ior() {
     popInt(T1);
@@ -1375,9 +1181,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T2);
   }
 
-  /**
-   * Emit code to implement the ixor bytecode
-   */
   @Override
   protected final void emit_ixor() {
     popInt(T1);
@@ -1386,11 +1189,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T2);
   }
 
-  /**
-   * Emit code to implement the iinc bytecode
-   * @param index index of local
-   * @param val value to increment it by
-   */
   @Override
   protected final void emit_iinc(int index, int val) {
     short loc = getGeneralLocalLocation(index);
@@ -1407,9 +1205,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * long ALU
   */
 
-  /**
-   * Emit code to implement the ladd bytecode
-   */
   @Override
   protected final void emit_ladd() {
     popLong(T2, T0);
@@ -1421,9 +1216,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T1, T0);
   }
 
-  /**
-   * Emit code to implement the lsub bytecode
-   */
   @Override
   protected final void emit_lsub() {
     popLong(T2, T0);
@@ -1435,9 +1227,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T1, T0);
   }
 
-  /**
-   * Emit code to implement the lmul bytecode
-   */
   @Override
   protected final void emit_lmul() {
     popLong(T2, T3);
@@ -1455,9 +1244,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T0, T1);
   }
 
-  /**
-   * Emit code to implement the ldiv bytecode
-   */
   @Override
   protected final void emit_ldiv() {
     popLong(T2, T3);
@@ -1474,9 +1260,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T0, T1);
   }
 
-  /**
-   * Emit code to implement the lrem bytecode
-   */
   @Override
   protected final void emit_lrem() {
     popLong(T2, T3);
@@ -1495,9 +1278,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T0, T1);
   }
 
-  /**
-   * Emit code to implement the lneg bytecode
-   */
   @Override
   protected final void emit_lneg() {
     popLong(T1, T0);
@@ -1510,9 +1290,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T1, T0);
   }
 
-  /**
-   * Emit code to implement the lshsl bytecode
-   */
   @Override
   protected final void emit_lshl() {
     popInt(T0);                    // T0 is n
@@ -1539,9 +1316,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to implement the lshr bytecode
-   */
   @Override
   protected final void emit_lshr() {
     popInt(T0);                    // T0 is n
@@ -1568,9 +1342,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to implement the lushr bytecode
-   */
   @Override
   protected final void emit_lushr() {
     popInt(T0);                    // T0 is n
@@ -1597,9 +1368,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to implement the land bytecode
-   */
   @Override
   protected final void emit_land() {
     popLong(T2, T0);
@@ -1611,9 +1379,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T1, T0);
   }
 
-  /**
-   * Emit code to implement the lor bytecode
-   */
   @Override
   protected final void emit_lor() {
     popLong(T2, T0);
@@ -1625,9 +1390,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T1, T0);
   }
 
-  /**
-   * Emit code to implement the lxor bytecode
-   */
   @Override
   protected final void emit_lxor() {
     popLong(T2, T0);
@@ -1643,9 +1405,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * float ALU
   */
 
-  /**
-   * Emit code to implement the fadd bytecode
-   */
   @Override
   protected final void emit_fadd() {
     popFloat(F0);
@@ -1654,9 +1413,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to implement the fsub bytecode
-   */
   @Override
   protected final void emit_fsub() {
     popFloat(F0);
@@ -1665,9 +1421,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to implement the fmul bytecode
-   */
   @Override
   protected final void emit_fmul() {
     popFloat(F0);
@@ -1676,9 +1429,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to implement the fdiv bytecode
-   */
   @Override
   protected final void emit_fdiv() {
     popFloat(F0);
@@ -1687,9 +1437,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to implement the frem bytecode
-   */
   @Override
   protected final void emit_frem() {
     popFloat(F1);
@@ -1698,9 +1445,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to implement the fneg bytecode
-   */
   @Override
   protected final void emit_fneg() {
     popFloat(F0);
@@ -1712,9 +1456,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * double ALU
   */
 
-  /**
-   * Emit code to implement the dadd bytecode
-   */
   @Override
   protected final void emit_dadd() {
     popDouble(F0);
@@ -1723,9 +1464,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to implement the dsub bytecode
-   */
   @Override
   protected final void emit_dsub() {
     popDouble(F0);
@@ -1734,9 +1472,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to implement the dmul bytecode
-   */
   @Override
   protected final void emit_dmul() {
     popDouble(F0);
@@ -1745,9 +1480,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to implement the ddiv bytecode
-   */
   @Override
   protected final void emit_ddiv() {
     popDouble(F0);
@@ -1756,9 +1488,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to implement the drem bytecode
-   */
   @Override
   protected final void emit_drem() {
     popDouble(F1);                 //F1 is b
@@ -1767,9 +1496,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to implement the dneg bytecode
-   */
   @Override
   protected final void emit_dneg() {
     popDouble(F0);
@@ -1781,9 +1507,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * conversion ops
   */
 
-  /**
-   * Emit code to implement the i2l bytecode
-   */
   @Override
   protected final void emit_i2l() {
     if (VM.BuildFor64Addr) {
@@ -1796,9 +1519,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to implement the i2f bytecode
-   */
   @Override
   protected final void emit_i2f() {
     if (VM.BuildFor64Addr) {
@@ -1826,9 +1546,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to implement the i2d bytecode
-   */
   @Override
   protected final void emit_i2d() {
     if (VM.BuildFor64Addr) {
@@ -1854,17 +1571,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     }
   }
 
-  /**
-   * Emit code to implement the l2i bytecode
-   */
   @Override
   protected final void emit_l2i() {
     discardSlot();
   }
 
-  /**
-   * Emit code to implement the l2f bytecode
-   */
   @Override
   protected final void emit_l2f() {
     popLong(T0, VM.BuildFor64Addr ? T0 : T1);
@@ -1872,9 +1583,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to implement the l2d bytecode
-   */
   @Override
   protected final void emit_l2d() {
     popLong(T0, VM.BuildFor64Addr ? T0 : T1);
@@ -1882,9 +1590,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to implement the f2i bytecode
-   */
   @Override
   protected final void emit_f2i() {
     popFloat(F0);
@@ -1907,9 +1612,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     fr2.resolve(asm);
   }
 
-  /**
-   * Emit code to implement the f2l bytecode
-   */
   @Override
   protected final void emit_f2l() {
     popFloat(F0);
@@ -1917,18 +1619,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T0, VM.BuildFor64Addr ? T0 : T1);
   }
 
-  /**
-   * Emit code to implement the f2d bytecode
-   */
   @Override
   protected final void emit_f2d() {
     popFloat(F0);
     pushDouble(F0);
   }
 
-  /**
-   * Emit code to implement the d2i bytecode
-   */
   @Override
   protected final void emit_d2i() {
     popDouble(F0);
@@ -1936,9 +1632,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLowDoubleAsInt(F0);
   }
 
-  /**
-   * Emit code to implement the d2l bytecode
-   */
   @Override
   protected final void emit_d2l() {
     popDouble(F0);
@@ -1946,9 +1639,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushLong(T0, VM.BuildFor64Addr ? T0 : T1);
   }
 
-  /**
-   * Emit code to implement the d2f bytecode
-   */
   @Override
   protected final void emit_d2f() {
     popDouble(F0);
@@ -1956,25 +1646,19 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushFloat(F0);
   }
 
-  /**
-   * Emit code to implement the i2b bytecode
-   */
+  @Override
   protected final void emit_i2b() {
     popByteAsInt(T0);
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the i2c bytecode
-   */
+  @Override
   protected final void emit_i2c() {
     popCharAsInt(T0);
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the i2s bytecode
-   */
+  @Override
   protected final void emit_i2s() {
     popShortAsInt(T0);
     pushInt(T0);
@@ -1984,9 +1668,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * comparison ops
   */
 
-  /**
-   * Emit code to implement the lcmp bytecode
-   */
+  @Override
   protected final void emit_lcmp() {
     popLong(T3, T2);
     popLong(T1, T0);
@@ -2025,9 +1707,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the fcmpl bytecode
-   */
+  @Override
   protected final void emit_fcmpl() {
     popFloat(F1);
     popFloat(F0);
@@ -2046,9 +1726,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the fcmpg bytecode
-   */
+  @Override
   protected final void emit_fcmpg() {
     popFloat(F1);
     popFloat(F0);
@@ -2067,9 +1745,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the dcmpl bytecode
-   */
+  @Override
   protected final void emit_dcmpl() {
     popDouble(F1);
     popDouble(F0);
@@ -2088,9 +1764,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the dcmpg bytecode
-   */
+  @Override
   protected final void emit_dcmpg() {
     popDouble(F1);
     popDouble(F0);
@@ -2113,70 +1787,49 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * branching
   */
 
-  /**
-   * Emit code to implement the ifeg bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_ifeq(int bTarget) {
     popInt(T0);
     asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
     genCondBranch(EQ, bTarget);
   }
 
-  /**
-   * Emit code to implement the ifne bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_ifne(int bTarget) {
     popInt(T0);
     asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
     genCondBranch(NE, bTarget);
   }
 
-  /**
-   * Emit code to implement the iflt bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_iflt(int bTarget) {
     popInt(T0);
     asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
     genCondBranch(LT, bTarget);
   }
 
-  /**
-   * Emit code to implement the ifge bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_ifge(int bTarget) {
     popInt(T0);
     asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
     genCondBranch(GE, bTarget);
   }
 
-  /**
-   * Emit code to implement the ifgt bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_ifgt(int bTarget) {
     popInt(T0);
     asm.emitADDICr(T0, T0, 0); // compares T0 to 0 and sets CR0
     genCondBranch(GT, bTarget);
   }
 
-  /**
-   * Emit code to implement the ifle bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_ifle(int bTarget) {
     popInt(T0);
     asm.emitADDICr(0, T0, 0); // T0 to 0 and sets CR0
     genCondBranch(LE, bTarget);
   }
 
-  /**
-   * Emit code to implement the if_icmpeq bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_if_icmpeq(int bTarget) {
     popInt(T1);
     popInt(T0);
@@ -2184,10 +1837,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(EQ, bTarget);
   }
 
-  /**
-   * Emit code to implement the if_icmpne bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_if_icmpne(int bTarget) {
     popInt(T1);
     popInt(T0);
@@ -2195,10 +1845,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(NE, bTarget);
   }
 
-  /**
-   * Emit code to implement the if_icmplt bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_if_icmplt(int bTarget) {
     popInt(T1);
     popInt(T0);
@@ -2206,10 +1853,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(LT, bTarget);
   }
 
-  /**
-   * Emit code to implement the if_icmpge bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_if_icmpge(int bTarget) {
     popInt(T1);
     popInt(T0);
@@ -2217,10 +1861,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(GE, bTarget);
   }
 
-  /**
-   * Emit code to implement the if_icmpgt bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_if_icmpgt(int bTarget) {
     popInt(T1);
     popInt(T0);
@@ -2228,10 +1869,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(GT, bTarget);
   }
 
-  /**
-   * Emit code to implement the if_icmple bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_if_icmple(int bTarget) {
     popInt(T1);
     popInt(T0);
@@ -2239,10 +1877,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(LE, bTarget);
   }
 
-  /**
-   * Emit code to implement the if_acmpeq bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_if_acmpeq(int bTarget) {
     popAddr(T1);
     popAddr(T0);
@@ -2250,10 +1885,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(EQ, bTarget);
   }
 
-  /**
-   * Emit code to implement the if_acmpne bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_if_acmpne(int bTarget) {
     popAddr(T1);
     popAddr(T0);
@@ -2261,10 +1893,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(NE, bTarget);
   }
 
-  /**
-   * Emit code to implement the ifnull bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_ifnull(int bTarget) {
     popAddr(T0);
     asm.emitLVAL(T1, 0);
@@ -2272,10 +1901,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(EQ, bTarget);
   }
 
-  /**
-   * Emit code to implement the ifnonnull bytecode
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_ifnonnull(int bTarget) {
     popAddr(T0);
     asm.emitLVAL(T1, 0);
@@ -2283,19 +1909,13 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genCondBranch(NE, bTarget);
   }
 
-  /**
-   * Emit code to implement the goto and gotow bytecodes
-   * @param bTarget target bytecode of the branch
-   */
+  @Override
   protected final void emit_goto(int bTarget) {
     int mTarget = bytecodeMap[bTarget];
     asm.emitB(mTarget, bTarget);
   }
 
-  /**
-   * Emit code to implement the jsr and jsrw bytecode
-   * @param bTarget target bytecode of the jsr
-   */
+  @Override
   protected final void emit_jsr(int bTarget) {
     ForwardReference fr = asm.emitForwardBL();
     fr.resolve(asm); // get PC into LR...
@@ -2309,10 +1929,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     if (VM.VerifyAssertions) VM._assert((done - start) == delta);
   }
 
-  /**
-   * Emit code to implement the ret bytecode
-   * @param index local variable containing the return address
-   */
+  @Override
   protected final void emit_ret(int index) {
     short location = getGeneralLocalLocation(index);
 
@@ -2324,12 +1941,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitBCLR();
   }
 
-  /**
-   * Emit code to implement the tableswitch bytecode
-   * @param defaultval bcIndex of the default target
-   * @param low low value of switch
-   * @param high high value of switch
-   */
+  @Override
   protected final void emit_tableswitch(int defaultval, int low, int high) {
     int bTarget = biStart + defaultval;
     int mTarget = bytecodeMap[bTarget];
@@ -2386,11 +1998,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitBCCTR();
   }
 
-  /**
-   * Emit code to implement the lookupswitch bytecode
-   * @param defaultval bcIndex of the default target
-   * @param npairs number of pairs in the lookup switch
-   */
+  @Override
   protected final void emit_lookupswitch(int defaultval, int npairs) {
     if (options.PROFILE_EDGE_COUNTERS) {
       // Load counter array for this method
@@ -2437,54 +2045,42 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * returns (from function; NOT ret)
   */
 
-  /**
-   * Emit code to implement the ireturn bytecode
-   */
+  @Override
   protected final void emit_ireturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
     peekInt(T0, 0);
     genEpilogue();
   }
 
-  /**
-   * Emit code to implement the lreturn bytecode
-   */
+  @Override
   protected final void emit_lreturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
     peekLong(T0, VM.BuildFor64Addr ? T0 : T1, 0);
     genEpilogue();
   }
 
-  /**
-   * Emit code to implement the freturn bytecode
-   */
+  @Override
   protected final void emit_freturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
     peekFloat(F0, 0);
     genEpilogue();
   }
 
-  /**
-   * Emit code to implement the dreturn bytecode
-   */
+  @Override
   protected final void emit_dreturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
     peekDouble(F0, 0);
     genEpilogue();
   }
 
-  /**
-   * Emit code to implement the areturn bytecode
-   */
+  @Override
   protected final void emit_areturn() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
     peekAddr(T0, 0);
     genEpilogue();
   }
 
-  /**
-   * Emit code to implement the return bytecode
-   */
+  @Override
   protected final void emit_return() {
     if (method.isSynchronized()) genSynchronizedMethodEpilogue();
     if (method.isObjectInitializer() && method.getDeclaringClass().declaresFinalInstanceField()) {
@@ -2498,39 +2094,32 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   * field access
   */
 
-  /**
-   * Emit code to implement a dynamically linked getstatic
-   * @param fieldRef the referenced field
-   */
+  @Override
   protected final void emit_unresolved_getstatic(FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
     TypeReference fieldType = fieldRef.getFieldContentsType();
     if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType()) {
       Barriers.compileGetstaticBarrier(this, fieldType.getId());
       pushAddr(T0);
-      return;
-    }
-    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
+    } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitLIntX(T1, T0, JTOC);
       pushInt(T1);
     } else { // field is two words (double or long ( or address on PPC64))
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr) {
-        if (fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
-          asm.emitLDX(T1, T0, JTOC);
-          pushAddr(T1);
-          return;
-        }
+      if (VM.BuildFor64Addr && fieldRef.getNumberOfStackSlots() == 1) { // address only 1 stackslot!!!
+        asm.emitLDX(T1, T0, JTOC);
+        pushAddr(T1);
+      } else {
+        asm.emitLFDX(F0, T0, JTOC);
+        pushDouble(F0);
       }
-      asm.emitLFDX(F0, T0, JTOC);
-      pushDouble(F0);
     }
+
+    // JMM: could be volatile (post-barrier when first operation)
+    asm.emitSYNC();
   }
 
-  /**
-   * Emit code to implement a getstatic
-   * @param fieldRef the referenced field
-   */
+  @Override
   protected final void emit_resolved_getstatic(FieldReference fieldRef) {
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
@@ -2538,91 +2127,87 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     if (NEEDS_OBJECT_GETSTATIC_BARRIER && fieldType.isReferenceType() && !field.isUntraced()) {
       Barriers.compileGetstaticBarrierImm(this, fieldOffset, fieldType.getId());
       pushAddr(T0);
-      return;
-    }
-    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
+    } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
       asm.emitLIntToc(T0, fieldOffset);
       pushInt(T0);
     } else { // field is two words (double or long ( or address on PPC64))
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr) {
-        if (fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
-          asm.emitLAddrToc(T0, fieldOffset);
-          pushAddr(T0);
-          return;
-        }
+      if (VM.BuildFor64Addr && fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
+        asm.emitLAddrToc(T0, fieldOffset);
+        pushAddr(T0);
+      } else {
+        asm.emitLFDtoc(F0, fieldOffset, T0);
+        pushDouble(F0);
       }
-      asm.emitLFDtoc(F0, fieldOffset, T0);
-      pushDouble(F0);
     }
-  }
 
-  /**
-   * Emit code to implement a dynamically linked putstatic
-   * @param fieldRef the referenced field
-   */
-  protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
-    emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      Barriers.compilePutstaticBarrier(this, fieldRef.getId()); // NOTE: offset is in T0 from emitDynamicLinkingSequence
-      discardSlots(1);
-      return;
-    }
-    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
-      popInt(T0);
-      asm.emitSTWX(T0, T1, JTOC);
-    } else { // field is two words (double or long (or address on PPC64))
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr) {
-        if (fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
-          popAddr(T0);
-          asm.emitSTDX(T0, T1, JTOC);
-          return;
-        }
-      }
-      popDouble(F0);
-      asm.emitSTFDX(F0, T1, JTOC);
-    }
-    // The field may be volatile.
-    asm.emitSYNC();
-  }
-
-  /**
-   * Emit code to implement a putstatic
-   * @param fieldRef the referenced field
-   */
-  protected final void emit_resolved_putstatic(FieldReference fieldRef) {
-    RVMField field = fieldRef.peekResolvedField();
-    Offset fieldOffset = field.getOffset();
-    if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
-      Barriers.compilePutstaticBarrierImm(this, fieldOffset, fieldRef.getId());
-      discardSlots(1);
-      return;
-    }
-    if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
-      popInt(T0);
-      asm.emitSTWtoc(T0, fieldOffset, T1);
-    } else { // field is two words (double or long (or address on PPC64))
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
-      if (VM.BuildFor64Addr) {
-        if (fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
-          popAddr(T0);
-          asm.emitSTDtoc(T0, fieldOffset, T1);
-          return;
-        }
-      }
-      popDouble(F0);
-      asm.emitSTFDtoc(F0, fieldOffset, T0);
-    }
     if (field.isVolatile()) {
+      // JMM: post-barrier when first operation
       asm.emitSYNC();
     }
   }
 
-  /**
-   * Emit code to implement a dynamically linked getfield
-   * @param fieldRef the referenced field
-   */
+  @Override
+  protected final void emit_unresolved_putstatic(FieldReference fieldRef) {
+    // JMM: could be volatile (pre-barrier when second operation)
+    asm.emitSYNC();
+
+    emitDynamicLinkingSequence(T1, fieldRef, true);
+    if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+      Barriers.compilePutstaticBarrier(this, fieldRef.getId()); // NOTE: offset is in T0 from emitDynamicLinkingSequence
+      discardSlots(1);
+    } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
+      popInt(T0);
+      asm.emitSTWX(T0, T1, JTOC);
+    } else { // field is two words (double or long (or address on PPC64))
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+      if (VM.BuildFor64Addr && fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
+        popAddr(T0);
+        asm.emitSTDX(T0, T1, JTOC);
+      } else {
+        popDouble(F0);
+        asm.emitSTFDX(F0, T1, JTOC);
+      }
+    }
+
+    // JMM: Could be volatile, post-barrier when first operation
+    asm.emitHWSYNC();
+  }
+
+  @Override
+  protected final void emit_resolved_putstatic(FieldReference fieldRef) {
+    RVMField field = fieldRef.peekResolvedField();
+    Offset fieldOffset = field.getOffset();
+
+    if (field.isVolatile()) {
+      // JMM: (pre-barrier when second operation)
+      asm.emitSYNC();
+    }
+
+    if (NEEDS_OBJECT_PUTSTATIC_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType() && !field.isUntraced()) {
+      Barriers.compilePutstaticBarrierImm(this, fieldOffset, fieldRef.getId());
+      discardSlots(1);
+    } else if (fieldRef.getSize() <= BYTES_IN_INT) { // field is one word
+      popInt(T0);
+      asm.emitSTWtoc(T0, fieldOffset, T1);
+    } else { // field is two words (double or long (or address on PPC64))
+      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
+      if (VM.BuildFor64Addr && fieldRef.getNumberOfStackSlots() == 1) {    //address only 1 stackslot!!!
+        popAddr(T0);
+        asm.emitSTDtoc(T0, fieldOffset, T1);
+      } else {
+        popDouble(F0);
+        asm.emitSTFDtoc(F0, fieldOffset, T0);
+      }
+    }
+
+    if (field.isVolatile()) {
+      // JMM: post-barrier when first operation
+      asm.emitHWSYNC();
+    }
+  }
+
+  @Override
   protected final void emit_unresolved_getfield(FieldReference fieldRef) {
     TypeReference fieldType = fieldRef.getFieldContentsType();
     // T1 = field offset from emitDynamicLinkingSequence()
@@ -2631,48 +2216,48 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       Barriers.compileGetfieldBarrier(this, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
-      return;
-    }
-    // T2 = object reference
-    popAddr(T2);
-    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
-    if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
-      // 32/64bit reference/word load
-      asm.emitLAddrX(T0, T1, T2);
-      pushAddr(T0);
-    } else if (fieldType.isBooleanType()) {
-      // 8bit unsigned load
-      asm.emitLBZX(T0, T1, T2);
-      pushInt(T0);
-    } else if (fieldType.isByteType()) {
-      // 8bit signed load
-      asm.emitLBZX(T0, T1, T2);
-      asm.emitEXTSB(T0, T0);
-      pushInt(T0);
-    } else if (fieldType.isShortType()) {
-      // 16bit signed load
-      asm.emitLHAX(T0, T1, T2);
-      pushInt(T0);
-    } else if (fieldType.isCharType()) {
-      // 16bit unsigned load
-      asm.emitLHZX(T0, T1, T2);
-      pushInt(T0);
-    } else if (fieldType.isIntType() || fieldType.isFloatType()) {
-      // 32bit load
-      asm.emitLIntX(T0, T1, T2);
-      pushInt(T0);
     } else {
-      // 64bit load
-      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
-      asm.emitLFDX(F0, T1, T2);
-      pushDouble(F0);
+      // T2 = object reference
+      popAddr(T2);
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
+      if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
+        // 32/64bit reference/word load
+        asm.emitLAddrX(T0, T1, T2);
+        pushAddr(T0);
+      } else if (fieldType.isBooleanType()) {
+        // 8bit unsigned load
+        asm.emitLBZX(T0, T1, T2);
+        pushInt(T0);
+      } else if (fieldType.isByteType()) {
+        // 8bit signed load
+        asm.emitLBZX(T0, T1, T2);
+        asm.emitEXTSB(T0, T0);
+        pushInt(T0);
+      } else if (fieldType.isShortType()) {
+        // 16bit signed load
+        asm.emitLHAX(T0, T1, T2);
+        pushInt(T0);
+      } else if (fieldType.isCharType()) {
+        // 16bit unsigned load
+        asm.emitLHZX(T0, T1, T2);
+        pushInt(T0);
+      } else if (fieldType.isIntType() || fieldType.isFloatType()) {
+        // 32bit load
+        asm.emitLIntX(T0, T1, T2);
+        pushInt(T0);
+      } else {
+        // 64bit load
+        if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+        asm.emitLFDX(F0, T1, T2);
+        pushDouble(F0);
+      }
     }
+
+    // JMM: Could be volatile; post-barrier when first operation
+    asm.emitSYNC();
   }
 
-  /**
-   * Emit code to implement a getfield
-   * @param fieldRef the referenced field
-   */
+  @Override
   protected final void emit_resolved_getfield(FieldReference fieldRef) {
     RVMField field = fieldRef.peekResolvedField();
     TypeReference fieldType = fieldRef.getFieldContentsType();
@@ -2681,48 +2266,53 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       Barriers.compileGetfieldBarrierImm(this, fieldOffset, fieldType.getId());
       discardSlots(1);
       pushAddr(T0);
-      return;
-    }
-    popAddr(T1); // T1 = object reference
-    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
-    if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
-      // 32/64bit reference/word load
-      asm.emitLAddrOffset(T0, T1, fieldOffset);
-      pushAddr(T0);
-    } else if (fieldType.isBooleanType()) {
-      // 8bit unsigned load
-      asm.emitLBZoffset(T0, T1, fieldOffset);
-      pushInt(T0);
-    } else if (fieldType.isByteType()) {
-      // 8bit signed load
-      asm.emitLBZoffset(T0, T1, fieldOffset);
-      asm.emitEXTSB(T0, T0); // sign extend
-      pushInt(T0);
-    } else if (fieldType.isShortType()) {
-      // 16bit signed load
-      asm.emitLHAoffset(T0, T1, fieldOffset);
-      pushInt(T0);
-    } else if (fieldType.isCharType()) {
-      // 16bit unsigned load
-      asm.emitLHZoffset(T0, T1, fieldOffset);
-      pushInt(T0);
-    } else if (fieldType.isIntType() || fieldType.isFloatType()) {
-      // 32bit load
-      asm.emitLIntOffset(T0, T1, fieldOffset);
-      pushInt(T0);
     } else {
-      // 64bit load
-      if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
-      asm.emitLFDoffset(F0, T1, fieldOffset);
-      pushDouble(F0);
+      popAddr(T1); // T1 = object reference
+      if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
+      if (fieldType.isReferenceType() || fieldType.isWordLikeType()) {
+        // 32/64bit reference/word load
+        asm.emitLAddrOffset(T0, T1, fieldOffset);
+        pushAddr(T0);
+      } else if (fieldType.isBooleanType()) {
+        // 8bit unsigned load
+        asm.emitLBZoffset(T0, T1, fieldOffset);
+        pushInt(T0);
+      } else if (fieldType.isByteType()) {
+        // 8bit signed load
+        asm.emitLBZoffset(T0, T1, fieldOffset);
+        asm.emitEXTSB(T0, T0); // sign extend
+        pushInt(T0);
+      } else if (fieldType.isShortType()) {
+        // 16bit signed load
+        asm.emitLHAoffset(T0, T1, fieldOffset);
+        pushInt(T0);
+      } else if (fieldType.isCharType()) {
+        // 16bit unsigned load
+        asm.emitLHZoffset(T0, T1, fieldOffset);
+        pushInt(T0);
+      } else if (fieldType.isIntType() || fieldType.isFloatType()) {
+        // 32bit load
+        asm.emitLIntOffset(T0, T1, fieldOffset);
+        pushInt(T0);
+      } else {
+        // 64bit load
+        if (VM.VerifyAssertions) VM._assert(fieldType.isLongType() || fieldType.isDoubleType());
+        asm.emitLFDoffset(F0, T1, fieldOffset);
+        pushDouble(F0);
+      }
+    }
+
+    if (field.isVolatile()) {
+      // JMM: post-barrier when first operation
+      asm.emitSYNC();
     }
   }
 
-  /**
-   * Emit code to implement a dynamically linked putfield
-   * @param fieldRef the referenced field
-   */
+  @Override
   protected final void emit_unresolved_putfield(FieldReference fieldRef) {
+    // JMM: could be volatile (pre-barrier when second operation)
+    asm.emitSYNC();
+
     TypeReference fieldType = fieldRef.getFieldContentsType();
     // T2 = field offset from emitDynamicLinkingSequence()
     emitDynamicLinkingSequence(T2, fieldRef, true);
@@ -2794,18 +2384,22 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);
       asm.emitSTFDX(F0, T1, T2);
     }
-    // The field may be volatile.
-    asm.emitSYNC();
+
+    // JMM: Could be volatile; post-barrier when first operation
+    asm.emitHWSYNC();
   }
 
-  /**
-   * Emit code to implement a putfield
-   * @param fieldRef the referenced field
-   */
+  @Override
   protected final void emit_resolved_putfield(FieldReference fieldRef) {
     RVMField field = fieldRef.peekResolvedField();
     Offset fieldOffset = field.getOffset();
     TypeReference fieldType = fieldRef.getFieldContentsType();
+
+    if (field.isVolatile()) {
+      // JMM: pre-barrier when second operation
+      asm.emitSYNC();
+    }
+
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
       if (NEEDS_OBJECT_PUTFIELD_BARRIER && !field.isUntraced()) {
@@ -2874,7 +2468,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitSTFDoffset(F0, T1, fieldOffset);
     }
     if (field.isVolatile()) {
-      asm.emitSYNC();
+      // JMM: post-barrier when first operation
+      asm.emitHWSYNC();
     }
   }
 
@@ -2882,10 +2477,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * method invocation
    */
 
-  /**
-   * Emit code to implement a dynamically linked invokevirtual
-   * @param methodRef the referenced method
-   */
+  @Override
   protected final void emit_unresolved_invokevirtual(MethodReference methodRef) {
     int objectIndex = methodRef.getParameterWords(); // +1 for "this" parameter, -1 to load it
     emitDynamicLinkingSequence(T2, methodRef, true); // leaves method offset in T2
@@ -2898,10 +2490,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
-  /**
-   * Emit code to implement invokevirtual
-   * @param methodRef the referenced method
-   */
+  @Override
   protected final void emit_resolved_invokevirtual(MethodReference methodRef) {
     int objectIndex = methodRef.getParameterWords(); // +1 for "this" parameter, -1 to load it
     peekAddr(T0, objectIndex);
@@ -2914,11 +2503,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
-  /**
-   * Emit code to implement a dynamically linked <code>invokespecial</code>
-   * @param methodRef The referenced method
-   * @param target    The method to invoke
-   */
+  @Override
   protected final void emit_resolved_invokespecial(MethodReference methodRef, RVMMethod target) {
     if (target.isObjectInitializer()) { // invoke via method's jtoc slot
       asm.emitLAddrToc(T0, target.getOffset());
@@ -2933,10 +2518,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
-  /**
-   * Emit code to implement invokespecial
-   * @param methodRef the referenced method
-   */
+  @Override
   protected final void emit_unresolved_invokespecial(MethodReference methodRef) {
     // must be a static method; if it was a super then declaring class _must_ be resolved
     emitDynamicLinkingSequence(T2, methodRef, true); // leaves method offset in T2
@@ -2947,10 +2529,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genPopParametersAndPushReturnValue(true, methodRef);
   }
 
-  /**
-   * Emit code to implement a dynamically linked invokestatic
-   * @param methodRef the referenced method
-   */
+  @Override
   protected final void emit_unresolved_invokestatic(MethodReference methodRef) {
     emitDynamicLinkingSequence(T2, methodRef, true);                  // leaves method offset in T2
     asm.emitLAddrX(T0, T2, JTOC); // method offset left in T2 by emitDynamicLinkingSequence
@@ -2960,10 +2539,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genPopParametersAndPushReturnValue(false, methodRef);
   }
 
-  /**
-   * Emit code to implement invokestatic
-   * @param methodRef the referenced method
-   */
+  @Override
   protected final void emit_resolved_invokestatic(MethodReference methodRef) {
     Offset methodOffset = methodRef.peekResolvedMethod().getOffset();
     asm.emitLAddrToc(T0, methodOffset);
@@ -2973,10 +2549,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     genPopParametersAndPushReturnValue(false, methodRef);
   }
 
-  /**
-   * Emit code to implement the invokeinterface bytecode
-   * @param methodRef the referenced method
-   */
+  @Override
   protected final void emit_invokeinterface(MethodReference methodRef) {
     int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
     RVMMethod resolvedMethod = null;
@@ -3086,10 +2659,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * other object model functions
    */
 
-  /**
-   * Emit code to allocate a scalar object
-   * @param typeRef the RVMClass to instantiate
-   */
+  @Override
   protected final void emit_resolved_new(RVMClass typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     Offset tibOffset = typeRef.getTibOffset();
@@ -3110,10 +2680,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to dynamically link and allocate a scalar object
-   * @param typeRef the type reference to dynamically link & instantiate
-   */
+  @Override
   protected final void emit_unresolved_new(TypeReference typeRef) {
     int site = MemoryManager.getAllocationSite(true);
     asm.emitLAddrToc(T0, Entrypoints.unresolvedNewScalarMethod.getOffset());
@@ -3124,10 +2691,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to allocate an array
-   * @param array the RVMArray to instantiate
-   */
+  @Override
   protected final void emit_resolved_newarray(RVMArray array) {
     int width = array.getLogElementSize();
     Offset tibOffset = array.getTibOffset();
@@ -3150,10 +2714,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pokeAddr(T0, 0);
   }
 
-  /**
-   * Emit code to dynamically link and allocate an array
-   * @param typeRef the type reference to dynamically link & instantiate
-   */
+  @Override
   protected final void emit_unresolved_newarray(TypeReference typeRef) {
     int site = MemoryManager.getAllocationSite(true);
     asm.emitLAddrToc(T0, Entrypoints.unresolvedNewArrayMethod.getOffset());
@@ -3165,11 +2726,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pokeAddr(T0, 0);
   }
 
-  /**
-   * Emit code to allocate a multi-dimensional array
-   * @param typeRef the RVMArray to instantiate
-   * @param dimensions the number of dimensions
-   */
+  @Override
   protected final void emit_multianewarray(TypeReference typeRef, int dimensions) {
     asm.emitLAddrToc(T0, ArchEntrypoints.newArrayArrayMethod.getOffset());
     asm.emitMTCTR(T0);
@@ -3183,18 +2740,14 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushAddr(T0);
   }
 
-  /**
-   * Emit code to implement the arraylength bytecode
-   */
+  @Override
   protected final void emit_arraylength() {
     popAddr(T0);
     asm.emitLIntOffset(T1, T0, ObjectModel.getArrayLengthOffset());
     pushInt(T1);
   }
 
-  /**
-   * Emit code to implement the athrow bytecode
-   */
+  @Override
   protected final void emit_athrow() {
     asm.emitLAddrToc(T0, Entrypoints.athrowMethod.getOffset());
     asm.emitMTCTR(T0);
@@ -3202,10 +2755,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitBCCTRL();
   }
 
-  /**
-   * Emit code to implement the checkcast bytecode
-   * @param typeRef   The LHS type
-   */
+  @Override
   protected final void emit_checkcast(TypeReference typeRef) {
     asm.emitLAddrToc(T0, Entrypoints.checkcastMethod.getOffset());
     asm.emitMTCTR(T0);
@@ -3214,10 +2764,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitBCCTRL();               // but obj remains on stack afterwords
   }
 
-  /**
-   * Emit code to implement the checkcast bytecode
-   * @param type the LHS type
-   */
   @Override
   protected final void emit_checkcast_resolvedInterface(RVMClass type) {
     int interfaceIndex = type.getDoesImplementIndex();
@@ -3254,10 +2800,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     isNull.resolve(asm);
   }
 
-  /**
-   * Emit code to implement the checkcast bytecode
-   * @param type   The LHS type
-   */
+  @Override
   protected final void emit_checkcast_resolvedClass(RVMClass type) {
     int LHSDepth = type.getTypeDepth();
     int LHSId = type.getId();
@@ -3292,10 +2835,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     isNull.resolve(asm);
   }
 
-  /**
-   * Emit code to implement the checkcast bytecode
-   * @param type the LHS type
-   */
+  @Override
   protected final void emit_checkcast_final(RVMType type) {
     peekAddr(T0, 0);            // load the object being checked
     asm.emitCMPAddrI(T0, 0);    // check for null
@@ -3310,10 +2850,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     isNull.resolve(asm);
   }
 
-  /**
-   * Emit code to implement the instanceof bytecode
-   * @param typeRef the LHS type
-   */
+  @Override
   protected final void emit_instanceof(TypeReference typeRef) {
     asm.emitLAddrToc(T0, Entrypoints.instanceOfMethod.getOffset());
     asm.emitMTCTR(T0);
@@ -3323,10 +2860,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pokeInt(T0, 0);
   }
 
-  /**
-   * Emit code to implement the instanceof bytecode
-   * @param type     The LHS type
-   */
+  @Override
   protected final void emit_instanceof_resolvedInterface(RVMClass type) {
     int interfaceIndex = type.getDoesImplementIndex();
     int interfaceMask = type.getDoesImplementBitMask();
@@ -3373,10 +2907,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the instanceof bytecode
-   * @param type     The LHS type
-   */
+  @Override
   protected final void emit_instanceof_resolvedClass(RVMClass type) {
     int LHSDepth = type.getTypeDepth();
     int LHSId = type.getId();
@@ -3422,10 +2953,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the instanceof bytecode
-   * @param type     The LHS type
-   */
+  @Override
   protected final void emit_instanceof_final(RVMType type) {
     popAddr(T0);                // load object from stack
     asm.emitCMPAddrI(T0, 0);    // check for null
@@ -3449,9 +2977,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     pushInt(T0);
   }
 
-  /**
-   * Emit code to implement the monitorenter bytecode
-   */
+  @Override
   protected final void emit_monitorenter() {
     peekAddr(T0, 0);
     asm.emitNullCheck(T0);
@@ -3461,9 +2987,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     discardSlot();
   }
 
-  /**
-   * Emit code to implement the monitorexit bytecode
-   */
+  @Override
   protected final void emit_monitorexit() {
     peekAddr(T0, 0);
     asm.emitLAddrOffset(S0, JTOC, Entrypoints.unlockMethod.getOffset());
@@ -3752,7 +3276,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitMFLR(0);
     asm.emitSTW(S0, STACKFRAME_METHOD_ID_OFFSET, FP);                   // save compiled method id
     asm.emitSTAddr(0,
-                   frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET,
+                   frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET,
                    FP); // save LR !!TODO: handle discontiguous stacks when saving return address
 
     // Setup locals.
@@ -3834,7 +3358,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       } else {
         asm.emitLAddr(FP, 0, FP);           // discard current frame
       }
-      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+      asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
       asm.emitMTLR(S0);
       asm.emitBCLR(); // branch always, through link register
     }
@@ -4170,7 +3694,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
   /**
    * Emit code to invoke a compiled method (with known jtoc offset).
    * Treat it like a resolved invoke static, but take care of
-   * this object in the case.
+   * this object in the case.<p>
    *
    * I havenot thought about GCMaps for invoke_compiledmethod
    * TODO: Figure out what the above GCMaps comment means and fix it!
@@ -4199,7 +3723,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    *  implemented in java bytecodes. These instructions are generated whenever
    *  we encounter an "invokestatic" bytecode that calls a method with a
    *  signature of the form "static native Magic.xxx(...)".
-   *  23 Jan 1998 Derek Lieber
    *
    * NOTE: when adding a new "methodName" to "generate()", be sure to also
    * consider how it affects the values on the stack and update
@@ -4207,7 +3730,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    * If no call is actually generated, the map will reflect the status of the
    * locals (including parameters) at the time of the call but nothing on the
    * operand stack for the call site will be mapped.
-   *  7 Jul 1998 Janice Shepherd
    */
 
   /** Generate inline code sequence for specified method.
@@ -4645,12 +4167,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitSTW(T1, STACKFRAME_METHOD_ID_OFFSET, T0); // *(address+SNIO) := value
     } else if (methodName == MagicNames.getNextInstructionAddress) {
       popAddr(T0);                                  // pop  frame pointer of callee frame
-      asm.emitLAddr(T1, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // load frame pointer of caller frame
+      asm.emitLAddr(T1, STACKFRAME_RETURN_ADDRESS_OFFSET, T0); // load frame pointer of caller frame
       pushAddr(T1);                                  // push frame pointer of caller frame
     } else if (methodName == MagicNames.getReturnAddressLocation) {
       popAddr(T0);                                  // pop  frame pointer of callee frame
       asm.emitLAddr(T1, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
-      asm.emitADDI(T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T1); // get location containing ret addr
+      asm.emitADDI(T2, STACKFRAME_RETURN_ADDRESS_OFFSET, T1); // get location containing ret addr
       pushAddr(T2);                                  // push frame pointer of caller frame
     } else if (methodName == MagicNames.getTocPointer || methodName == MagicNames.getJTOC) {
       pushAddr(JTOC);
@@ -4907,7 +4429,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitBCLR(); // branch to out of line machine code (does not return)
     } else if (methodName == MagicNames.returnToNewStack) {
       peekAddr(FP, 0);                                  // FP := new stackframe
-      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); // fetch...
+      asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP); // fetch...
       asm.emitMTLR(S0);                                         // ...return address
       asm.emitBCLR();                                           // return to caller
     } else if (methodName == MagicNames.dynamicBridgeTo) {
@@ -4945,7 +4467,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitLAddr(FP, 0, FP);
 
       // restore link register
-      asm.emitLAddr(S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+      asm.emitLAddr(S0, STACKFRAME_RETURN_ADDRESS_OFFSET, FP);
       asm.emitMTLR(S0);
 
       asm.emitBCCTR(); // branch always, through count register
@@ -4985,7 +4507,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     } else if (methodName == MagicNames.dcbst) {
       popAddr(T0);    // address
       asm.emitDCBST(0, T0);
-    } else if (methodName == MagicNames.dcbt) {
+    } else if (methodName == MagicNames.dcbt || methodName == MagicNames.prefetch) {
       popAddr(T0);    // address
       asm.emitDCBT(0, T0);
     } else if (methodName == MagicNames.dcbtst) {

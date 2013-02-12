@@ -18,11 +18,12 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -30,9 +31,11 @@ import org.jikesrvm.compilers.opt.ir.Operator;
 
 /**
  * This class inserts yield points in
- *  1) a method's prologue
- *  2) loop headers
- *  3) (optionally) method exits (epilogue, athrow)
+ * <ul>
+ *  <li>1) a method's prologue
+ *  <li>2) loop headers
+ *  <li>3) (optionally) method exits (epilogue, athrow)
+ * </ul>
  */
 public class YieldPoints extends CompilerPhase {
 
@@ -40,6 +43,7 @@ public class YieldPoints extends CompilerPhase {
    * Return the name of this phase
    * @return "Yield Point Insertion"
    */
+  @Override
   public final String getName() {
     return "Yield Point Insertion";
   }
@@ -47,6 +51,7 @@ public class YieldPoints extends CompilerPhase {
   /**
    * This phase contains no per-compilation instance fields.
    */
+  @Override
   public final CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -54,8 +59,8 @@ public class YieldPoints extends CompilerPhase {
   /**
    * Insert yield points in method prologues, loop heads, and method exits
    *
-   * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
     if (!ir.method.isInterruptible()) {
       return;   // don't insert yieldpoints in Uninterruptible code.
@@ -63,14 +68,14 @@ public class YieldPoints extends CompilerPhase {
 
     // (1) Insert prologue yieldpoint unconditionally.
     //     As part of prologue/epilogue insertion we'll remove
-    //     the yieldpoints in trival methods that otherwise wouldn't need
+    //     the yieldpoints in trivial methods that otherwise wouldn't need
     //     a stackframe.
     prependYield(ir.cfg.entry(), YIELDPOINT_PROLOGUE, 0, ir.gc.inlineSequence);
 
     // (2) If using epilogue yieldpoints scan basic blocks, looking for returns or throws
     if (VM.UseEpilogueYieldPoints) {
-      for (BasicBlockEnumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-        BasicBlock block = e.next();
+      for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+        BasicBlock block = e.nextElement();
         if (block.hasReturn() || block.hasAthrowInst()) {
           prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, ir.gc.inlineSequence);
         }

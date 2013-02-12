@@ -30,6 +30,9 @@ public class BooleanCounter extends Counter {
    * Instance variables
    */
 
+  /**
+   *
+   */
   private final boolean[] state;
 
   protected int total = 0;
@@ -53,7 +56,7 @@ public class BooleanCounter extends Counter {
    * Constructor
    *
    * @param name The name to be associated with this counter
-   * @param start True if this counter is to be implicitly started
+   * @param start {@code true} if this counter is to be implicitly started
    * when <code>startAll()</code> is called (otherwise the counter
    * must be explicitly started).
    */
@@ -82,7 +85,7 @@ public class BooleanCounter extends Counter {
    */
 
   /**
-   * Set the boolean to true for this phase, increment the total.
+   * Set the boolean to {@code true} for this phase, increment the total.
    */
   public void set() {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Stats.phase == Stats.MAX_PHASES -1 || !state[Stats.phase]);
@@ -96,17 +99,16 @@ public class BooleanCounter extends Counter {
    */
 
   /**
-   * Start this counter
+   * {@inheritDoc}
    */
+  @Override
   protected void start() {
     if (!Stats.gatheringStats) return;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!running);
     running = true;
   }
 
-  /**
-   * Stop this counter
-   */
+  @Override
   protected void stop() {
     if (!Stats.gatheringStats) return;
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(running);
@@ -120,14 +122,16 @@ public class BooleanCounter extends Counter {
    *
    * @param oldPhase The last phase
    */
+  @Override
   void phaseChange(int oldPhase) {}
 
   /**
-   * Print the value of this counter for the given phase.  Print '0'
-   * for false, '1' for true.
+   * {@inheritDoc}
+   * Print '0' for {@code false}, '1' for {@code true}.
    *
    * @param phase The phase to be printed
    */
+  @Override
   protected final void printCount(int phase) {
     if (VM.VERIFY_ASSERTIONS && mergePhases())
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert((phase | 1) == (phase + 1));
@@ -138,8 +142,9 @@ public class BooleanCounter extends Counter {
   }
 
   /**
-   * Print the current total number of 'true' phases for this counter
+   * Print the current total number of {@code true} phases for this counter
    */
+  @Override
   protected final void printTotal() {
     int total = 0;
     for (int p = 0; p <= Stats.phase; p++) {
@@ -148,13 +153,7 @@ public class BooleanCounter extends Counter {
     printValue(total);
   }
 
-  /**
-   * Print the current total number of 'true' phases for either the
-   * mutator or GC phase
-   *
-   * @param mutator True if the total for the mutator phases is to be
-   * printed (otherwise the total for the GC phases will be printed).
-   */
+  @Override
   protected final void printTotal(boolean mutator) {
     int total = 0;
     for (int p = (mutator) ? 0 : 1; p <= Stats.phase; p += 2) {
@@ -164,21 +163,17 @@ public class BooleanCounter extends Counter {
   }
 
   /**
-   * Print the current minimum value for either the mutator or GC
-   * phase. <b>Do nothing in this case.</b>
-   *
-   * @param mutator True if the minimum for the mutator phase is to be
-   * printed (otherwise the minimum for the GC phase will be printed).
+   * {@inheritDoc}
+   * <b>Do nothing in this case.</b>
    */
+  @Override
   protected final void printMin(boolean mutator) {}
 
   /**
-   * Print the current maximum value for either the mutator or GC
-   * phase. <b>Do nothing in this case.</b>
-   *
-   * @param mutator True if the maximum for the mutator phase is to be
-   * printed (otherwise the maximum for the GC phase will be printed).
+   * {@inheritDoc}
+   * <b>Do nothing in this case.</b>
    */
+  @Override
   protected final void printMax(boolean mutator) {}
 
   /**
@@ -190,9 +185,7 @@ public class BooleanCounter extends Counter {
     Log.write(value);
   }
 
-  /**
-   * Print statistics for the most recent phase
-   */
+  @Override
   public void printLast() {
     if (Stats.phase > 0) printCount(Stats.phase - 1);
   }

@@ -505,7 +505,7 @@ public class ClassFileReader implements Constants, ClassLoaderConstants {
       case CP_STRING:
         return BYTES_IN_ADDRESS;
       default:
-        VM._assert(NOT_REACHED);
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
         return 0;
     }
   }

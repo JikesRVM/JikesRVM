@@ -38,16 +38,18 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  * An  utf8-encoded byte string.
- *
+ * <p>
  * Atom's are interned (canonicalized)
  * so they may be compared for equality using the "==" operator.
- *
+ * <p>
  * Atoms are used to represent names, descriptors, and string literals
  * appearing in a class's constant pool.
- *
+ * <p>
  * There is almost always a zero-length Atom, since any class which
  * contains statements like:
+ * <pre>
  *          return "";
+ * </pre>
  * will have one in its constant pool.
  */
 public final class Atom {
@@ -223,6 +225,7 @@ public final class Atom {
    * Return printable representation of "this" atom.
    * Does not correctly handle UTF8 translation.
    */
+  @Override
   @Pure
   public String toString() {
     return StringUtilities.asciiBytesToString(val);
@@ -482,7 +485,7 @@ public final class Atom {
         return TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i, toUnicodeStringInternal()));
       default:
         if (VM.VerifyAssertions) {
-          VM._assert(false,
+          VM._assert(VM.NOT_REACHED,
                      "Need a valid method descriptor; got \"" +
                      this +
                      "\"; can't parse the character '" +
@@ -568,7 +571,7 @@ public final class Atom {
 
         default:
           if (VM.VerifyAssertions) {
-            VM._assert(false,
+            VM._assert(VM.NOT_REACHED,
                        "The class descriptor \"" +
                        this +
                        "\" contains the illegal" +
@@ -877,6 +880,7 @@ public final class Atom {
    * Return the hashCode of an atom, this equals the unicode string encoding of
    * the atom
    */
+  @Override
   public int hashCode() {
     try {
       if (unicodeStringOrJTOCoffset != null) {
@@ -894,6 +898,7 @@ public final class Atom {
    * This method is used to maintain atoms in internal hash tables and shouldn't
    * be used externally.
    */
+  @Override
   @Pure
   public boolean equals(Object other) {
     // quick test as atoms are generally canonical

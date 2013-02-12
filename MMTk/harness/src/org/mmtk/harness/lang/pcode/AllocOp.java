@@ -23,10 +23,13 @@ import org.mmtk.harness.vm.ObjectModel;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
- * Object allocation operation.  3 operands:
- * - # data words
- * - # reference words
- * - alignment
+ * Object allocation operation. 3 operands:
+ * <ul>
+ *   <li># data words
+ *   <li># reference words
+ *   <li>alignment
+ * </ul>
+ * <p>
  * Always produces a result.
  */
 public final class AllocOp extends TernaryOp {

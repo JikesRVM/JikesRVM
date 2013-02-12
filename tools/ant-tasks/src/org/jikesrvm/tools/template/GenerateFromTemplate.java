@@ -35,6 +35,7 @@ import java.util.Vector;
 /**
  * Generates output files given a template.  Run from command line.
  *
+ * <pre>
  * Command line format:
  *    java GenerateFromTemplate [-debug] <input> <output> {<var>=<value>}
  *
@@ -168,6 +169,7 @@ import java.util.Vector;
  * On substitution, <FOREACH var>.<field name> is substituted by a value
  * of the field named <field name> in the current record of the FOREACH file.
  * A special field INDEX will contain the current record number.
+ * </pre>
  */
 public class GenerateFromTemplate {
 

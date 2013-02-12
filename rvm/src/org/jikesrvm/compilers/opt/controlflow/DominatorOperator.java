@@ -32,8 +32,9 @@ class DominatorOperator extends DF_Operator {
    * Evaluate an equation with the MEET operation
    * @param operands the lhs(operands[0]) and rhs(operands[1])
    *       of the equation.
-   * @return true if the value of the lhs changes. false otherwise
+   * @return {@code true} if the value of the lhs changes. {@code false} otherwise
    */
+  @Override
   public boolean evaluate(DF_LatticeCell[] operands) {
     DominatorCell lhs = (DominatorCell) operands[0];
     IR ir = lhs.ir;
@@ -57,6 +58,7 @@ class DominatorOperator extends DF_Operator {
    * Return a String representation of the operator
    * @return "MEET"
    */
+  @Override
   public String toString() {
     return "MEET";
   }

@@ -18,7 +18,6 @@ import org.vmmagic.pragma.RawStorage;
 import org.vmmagic.unboxed.harness.ArchitecturalWord;
 
 /**
- * (Mistakes in) comments by Robin Garner
  * @see Address
  */
 @Unboxed
@@ -308,7 +307,7 @@ public final class Word {
 
   /**
    * Logical right-shift a word. Shifts of a size greater than the Word are undefined and
-   * have an architecture and compiler specific behaviour {@see #lsh(int)}.
+   * have an architecture and compiler specific behaviour (see {@link #lsh(int)}).
    *
    * @param amt the amount to shift by
    * @return new Word shifted by the given amount
@@ -319,7 +318,7 @@ public final class Word {
 
   /**
    * Arithmetic right-shift a word. Shifts of a size greater than the Word are undefined and
-   * have an architecture and compiler specific behaviour {@see #lsh(int)}.
+   * have an architecture and compiler specific behaviour (see {@link #lsh(int)}).
    * Arithmetic right-shift a word.  Equivalent to the integer <code>&gt;&gt;</code> operator
    *
    * @param amt the amount to shift by

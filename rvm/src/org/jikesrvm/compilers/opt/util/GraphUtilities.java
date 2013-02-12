@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
+import java.util.Enumeration;
+
 
 /**
  * This class implements miscellaneous utilities for graphs.
@@ -20,29 +22,29 @@ public class GraphUtilities {
 
   /**
    * Return an enumeration of the nodes, or a subset of the nodes, in an
-   * acyclic graph in topological order .
+   * acyclic graph in topological order. <p>
    *
    * Note: if G is cyclic, results are undefined
    */
-  public static GraphNodeEnumeration enumerateTopSort(Graph G) {
+  public static Enumeration<GraphNode> enumerateTopSort(Graph G) {
     return enumerateTopSort(G, G.enumerateNodes());
   }
 
-  public static GraphNodeEnumeration enumerateTopSort(Graph G, GraphNodeEnumeration ie) {
+  public static Enumeration<GraphNode> enumerateTopSort(Graph G, Enumeration<GraphNode> ie) {
     return enumerateTopSortInternal(G, new DFSenumerateByFinish(G, ie));
   }
 
-  public static GraphNodeEnumeration enumerateTopSort(Graph G, GraphNodeEnumeration ie,
+  public static Enumeration<GraphNode> enumerateTopSort(Graph G, Enumeration<GraphNode> ie,
                                                           GraphEdgeFilter f) {
     return enumerateTopSortInternal(G, new FilteredDFSenumerateByFinish(G, ie, f));
   }
 
-  private static GraphNodeEnumeration enumerateTopSortInternal(Graph G, GraphNodeEnumeration e) {
+  private static Enumeration<GraphNode> enumerateTopSortInternal(Graph G, Enumeration<GraphNode> e) {
     final GraphNode[] elts = new GraphNode[G.numberOfNodes()];
 
     int i = 0;
     while (e.hasMoreElements()) {
-      elts[i++] = e.next();
+      elts[i++] = e.nextElement();
     }
 
     final int i1 = i;
@@ -50,11 +52,13 @@ public class GraphUtilities {
     return new GraphNodeEnumerator() {
       private int top = i1;
 
+      @Override
       public boolean hasMoreElements() {
         return top > 0;
       }
 
-      public GraphNode next() {
+      @Override
+      public GraphNode nextElement() {
         return elts[--top];
       }
     };

@@ -17,16 +17,12 @@ import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 
 /**
- * Color.java
- *
  * Cut-down implementation of java.awt.Color sufficient to provide
  * the server side (Stream) with colours
  */
 @Uninterruptible public class Color {
 
-  /**
-   * Some gcspy standard colours (taken from gcspy_color_db.c).
-   */
+  /*Some gcspy standard colours (taken from gcspy_color_db.c). */
   public static final Color Black     = new Color(0, 0, 0);
   public static final Color Blue      = new Color(0, 0, 255);
   public static final Color Cyan      = new Color(0, 255, 255);

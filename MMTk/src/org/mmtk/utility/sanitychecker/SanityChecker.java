@@ -59,6 +59,10 @@ public final class SanityChecker implements Constants {
   /****************************************************************************
    * Constants
    */
+
+  /**
+   *
+   */
   public SanityChecker() {
     sanityTable = new SanityDataTable(Plan.sanitySpace, LOG_SANITY_DATA_SIZE);
     checkTrace = new Trace(Plan.sanitySpace);
@@ -70,7 +74,7 @@ public final class SanityChecker implements Constants {
    * Perform any sanity checking collection phases.
    *
    * @param phaseId The id to proces
-   * @return True if the phase was handled.
+   * @return {@code true} if the phase was handled.
    */
   @NoInline
   public boolean collectionPhase(int phaseId) {
@@ -214,7 +218,7 @@ public final class SanityChecker implements Constants {
    * visit to the object.
    *
    * @param object The object to mark.
-   * @param root True If the object is a root.
+   * @param root {@code true} If the object is a root.
    */
   public void processObject(TraceLocal trace, ObjectReference object, boolean root) {
     SanityChecker.referenceCount++;

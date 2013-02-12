@@ -52,6 +52,7 @@ public final class VM {
   /*
    * VM-specific constant values
    */
+
   /** <code>true</code> if assertions should be verified */
   public static final boolean VERIFY_ASSERTIONS;
   /** The lowest address in virtual memory known to MMTk */

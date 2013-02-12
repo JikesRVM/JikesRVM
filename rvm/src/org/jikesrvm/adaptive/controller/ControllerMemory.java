@@ -152,10 +152,8 @@ public final class ControllerMemory implements Constants {
    *
    * @param method   The method to look for
    * @return the list of controller plans for this method if one exists,
-   *         otherwise, null
+   *         otherwise, {@code null}
    */
-  @SuppressWarnings("unchecked")
-  // until HashMapRVM becomes generic
   private static synchronized LinkedList<ControllerPlan> findPlan(RVMMethod method) {
     return table.get(method);
   }
@@ -163,7 +161,7 @@ public final class ControllerMemory implements Constants {
   /**
    *  Find the plan for the compiled method that is passed
    *  @param cmpMethod the compiled method of interest
-   *  @return the matching plan or null if none exists.
+   *  @return the matching plan or {@code null} if none exists.
    */
   public static synchronized ControllerPlan findMatchingPlan(CompiledMethod cmpMethod) {
     RVMMethod method = cmpMethod.getMethod();
@@ -189,8 +187,9 @@ public final class ControllerMemory implements Constants {
    *  Determine if the passed method should be considered as a candidate
    *  for _initial_ AOS recompilation.
    *  A method should not be reconsider for initial AOS recompilation if
-   *  a plan already exists for the method whose status is IN_PROGRESS,
-   *  COMPLETED, OUTDATED, or ABORTED because of compilation error.
+   *  a plan already exists for the method whose status is {@link ControllerPlan#IN_PROGRESS},
+   *  {@link ControllerPlan#COMPLETED}, {@link ControllerPlan#OUTDATED},
+   *  or {@link ControllerPlan#ABORTED_COMPILATION_ERROR} because of compilation error.
    *
    *  @param method the method of interest
    *  @return whether the method should be considered or not
@@ -219,7 +218,7 @@ public final class ControllerMemory implements Constants {
   }
 
   /**
-   * Return true if there is a plan with the given status for the given method
+   * Return {@code true} if there is a plan with the given status for the given method
    *
    * @param method the method of interest
    * @param status the status of interest
@@ -241,7 +240,7 @@ public final class ControllerMemory implements Constants {
   }
 
   /**
-   * Return true iff there is a plan to transition from Base to Opt for a
+   * Return {@code true} iff there is a plan to transition from Base to Opt for a
    * given CMID.
    */
   public static synchronized boolean requestedOSR(int cmid) {
@@ -257,7 +256,7 @@ public final class ControllerMemory implements Constants {
   }
 
   /**
-   * Return true if there is a completed plan with the given opt level for
+   * Return {@code true} if there is a completed plan with the given opt level for
    * the given method
    *
    * @param method the method of interest
@@ -287,7 +286,7 @@ public final class ControllerMemory implements Constants {
    *
    * @param  method   The method to look for
    * @return The last controller plan for this method if it exists,
-   *         otherwise, null
+   *         otherwise, {@code null}
    */
   public static synchronized ControllerPlan findLatestPlan(RVMMethod method) {
     LinkedList<ControllerPlan> planList = findPlan(method);

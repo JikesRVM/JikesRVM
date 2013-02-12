@@ -25,7 +25,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.BoundsCheck;
 import org.jikesrvm.compilers.opt.ir.GuardResultCarrier;
@@ -41,7 +40,6 @@ import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Phi;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.ResultCarrier;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
@@ -352,6 +350,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   /**
    * Converts the annotated loop to a concise string
    */
+  @Override
   public String toString() {
     String ifCmpString = "??";
     if ((ifCmpInstr != null) && (IfCmp.conforms(ifCmpInstr))) {
@@ -433,11 +432,11 @@ public final class AnnotatedLSTNode extends LSTNode {
                 loop.toString() +
                 "\n");
 
-    BasicBlockEnumeration loopBlocks = getBasicBlocks();
+    Enumeration<BasicBlock> loopBlocks = getBasicBlocks();
     // loop_over_basic_blocks:
     while (loopBlocks.hasMoreElements()) {
       // The current basic block
-      BasicBlock curLoopBB = loopBlocks.next();
+      BasicBlock curLoopBB = loopBlocks.nextElement();
       dumpBlock(curLoopBB);
     }
     VM.sysWrite("*********   END OF SSA LOOP DUMP in AnnotatedLSTNode FOR " + ir.method + "\n");
@@ -459,7 +458,7 @@ public final class AnnotatedLSTNode extends LSTNode {
     // Print the instructions
     IREnumeration.AllInstructionsEnum instructions = new IREnumeration.AllInstructionsEnum(ir, block);
     while (instructions.hasMoreElements()) {
-      Instruction instr = instructions.next();
+      Instruction instr = instructions.nextElement();
       dumpInstruction(ir, instr);
     }
   }
@@ -494,14 +493,14 @@ public final class AnnotatedLSTNode extends LSTNode {
       IREnumeration.AllUsesEnum uses = new IREnumeration.AllUsesEnum(ir, instr);
       sb.append(instr.operator).append("\n\t     defs: ");
       while (defs.hasMoreElements()) {
-        sb.append(defs.next().toString());
+        sb.append(defs.nextElement().toString());
         if (defs.hasMoreElements()) {
           sb.append(", ");
         }
       }
       sb.append("\n\t     uses: ");
       while (uses.hasMoreElements()) {
-        sb.append(uses.next().toString());
+        sb.append(uses.nextElement().toString());
         if (uses.hasMoreElements()) {
           sb.append(", ");
         }
@@ -560,7 +559,7 @@ public final class AnnotatedLSTNode extends LSTNode {
         if (val1.isConstant()) {
           return val1.asIntConstant().value + getFixedDistanceFromPhiIterator(val2);
         } else {
-          VM._assert(val2.isConstant());
+          if (VM.VerifyAssertions) VM._assert(val2.isConstant());
           return getFixedDistanceFromPhiIterator(val1) + val2.asIntConstant().value;
         }
       } else if (opInstr.operator.opcode == INT_SUB_opcode) {
@@ -569,7 +568,7 @@ public final class AnnotatedLSTNode extends LSTNode {
         if (val1.isConstant()) {
           return val1.asIntConstant().value - getFixedDistanceFromPhiIterator(val2);
         } else {
-          VM._assert(val2.isConstant());
+          if (VM.VerifyAssertions) VM._assert(val2.isConstant());
           return getFixedDistanceFromPhiIterator(val1) - val2.asIntConstant().value;
         }
       }
@@ -822,14 +821,14 @@ public final class AnnotatedLSTNode extends LSTNode {
       }
       // Get definitions of register
       RegisterOperand rop = use.asRegister();
-      RegisterOperandEnumeration defs = DefUse.defs(rop.getRegister());
+      Enumeration<RegisterOperand> defs = DefUse.defs(rop.getRegister());
       // Does register have definitions?
       if (!defs.hasMoreElements()) {
         // No - Register musn't be defined in this block
         break;
       }
       // Get the 1st instruction that defines the register
-      use = defs.next();
+      use = defs.nextElement();
       Instruction def = use.instruction;
       // Was the instruction that defined this register a move?
       if (!Move.conforms(def)) {
@@ -857,13 +856,13 @@ public final class AnnotatedLSTNode extends LSTNode {
     // Is operand a register?
     if (op instanceof RegisterOperand) {
       // Yes - check the definitions out
-      RegisterOperandEnumeration defs = DefUse.defs(((RegisterOperand) op).getRegister());
+      Enumeration<RegisterOperand> defs = DefUse.defs(((RegisterOperand) op).getRegister());
       // Does this register have any defintions?
       if (!defs.hasMoreElements()) {
         // No - must have been defined in previous block so just return register
       } else {
         // Get the instruction that defines the register
-        result = defs.next().instruction;
+        result = defs.nextElement().instruction;
         // Check to see if there are any more definitions
         if (defs.hasMoreElements()) {
           // Multiple definitions of register, just return register to be safe
@@ -877,7 +876,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   /**
    * Is the a particular block in this loop?
    *
-   * @return true => block is in the loop, false => block not in loop
+   * @return {@code true} iff block is in the loop
    */
   public boolean isInLoop(BasicBlock block) {
     return CFGTransformations.inLoop(block, loop);
@@ -897,9 +896,9 @@ public final class AnnotatedLSTNode extends LSTNode {
       bbs.add(block);
     }
     blocksLeftToVisit.clear(block.getNumber());
-    BasicBlockEnumeration successors = block.getNormalOut();
+    Enumeration<BasicBlock> successors = block.getNormalOut();
     while (successors.hasMoreElements()) {
-      block = successors.next();
+      block = successors.nextElement();
       if (blocksLeftToVisit.get(block.getNumber())) {
         getBasicBlocks(block, bbs, blocksLeftToVisit);
       }
@@ -913,7 +912,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    *
    * @return Blocks in loop with header first and exit last
    */
-  public BasicBlockEnumeration getBasicBlocks() {
+  public Enumeration<BasicBlock> getBasicBlocks() {
     BitVector blocksLeftToVisit = new BitVector(loop);
     BBEnum bbs = getBasicBlocks(header, new BBEnum(), blocksLeftToVisit);
     if (exit != null) {
@@ -930,11 +929,11 @@ public final class AnnotatedLSTNode extends LSTNode {
    */
   private void checkOutEdgesAreInLoop(BasicBlock block) throws NonRegularLoopException {
     // The blocks (copy of) that are branched to from this block
-    BasicBlockEnumeration block_outEdges = block.getOut();
+    Enumeration<BasicBlock> block_outEdges = block.getOut();
     // Check that the blocks that we branch into are all inside the loop
     // loop_over_loop_body_block_out_edges:
     while (block_outEdges.hasMoreElements()) {
-      BasicBlock curEdgeBB = block_outEdges.next();
+      BasicBlock curEdgeBB = block_outEdges.nextElement();
       // Is this block in the loop?
       if ((!isInLoop(curEdgeBB)) && (block != exit)) {
         // Block wasn't in the loop
@@ -952,11 +951,11 @@ public final class AnnotatedLSTNode extends LSTNode {
    */
   private void checkInEdgesAreInLoop(BasicBlock block) throws NonRegularLoopException {
     // The blocks (copy of) that branch to this block
-    BasicBlockEnumeration block_inEdges = block.getIn();
+    Enumeration<BasicBlock> block_inEdges = block.getIn();
     // Check that the blocks that branch into this one are all inside the loop too
     // loop_over_loop_body_block_in_edges:
     while (block_inEdges.hasMoreElements()) {
-      BasicBlock curEdgeBB = block_inEdges.next();
+      BasicBlock curEdgeBB = block_inEdges.nextElement();
       // Is this block in the loop?
       if ((!isInLoop(curEdgeBB)) && (block != header)) {
         // Block wasn't in the loop
@@ -980,13 +979,13 @@ public final class AnnotatedLSTNode extends LSTNode {
     try {
       processHeader();
       // Get the basic blocks that constitute the loop
-      BasicBlockEnumeration loopBlocks = getBasicBlocks();
+      Enumeration<BasicBlock> loopBlocks = getBasicBlocks();
 
       // Loop over all blocks within this loop and calculate iterator.. information
       // loop_over_basic_blocks:
       while (loopBlocks.hasMoreElements()) {
         // The current basic block
-        BasicBlock curLoopBB = loopBlocks.next();
+        BasicBlock curLoopBB = loopBlocks.nextElement();
 
         // Is this block the loop header?
         if (curLoopBB == header) {
@@ -1012,11 +1011,11 @@ public final class AnnotatedLSTNode extends LSTNode {
    */
   private void processHeader() throws NonRegularLoopException {
     // The blocks (copy of) that branch to this block
-    BasicBlockEnumeration head_inEdges = header.getIn();
+    Enumeration<BasicBlock> head_inEdges = header.getIn();
     // Loop over blocks that branch to this one
     // loop_over_header_in_edges:
     while (head_inEdges.hasMoreElements()) {
-      BasicBlock curEdgeBB = head_inEdges.next();
+      BasicBlock curEdgeBB = head_inEdges.nextElement();
       // Is this block in the loop?
       if (isInLoop(curEdgeBB)) {
         // Yes - must be the exit block
@@ -1054,11 +1053,11 @@ public final class AnnotatedLSTNode extends LSTNode {
       checkInEdgesAreInLoop(exit);
     }
     // Check the exit block leaves the loop
-    BasicBlockEnumeration exitBlock_outEdges = exit.getOut();
+    Enumeration<BasicBlock> exitBlock_outEdges = exit.getOut();
     boolean exits = false;
     // check_exit_block_exits:
     while (exitBlock_outEdges.hasMoreElements()) {
-      BasicBlock curExitBlockOutEdgeBB = exitBlock_outEdges.next();
+      BasicBlock curExitBlockOutEdgeBB = exitBlock_outEdges.nextElement();
       if (isInLoop(curExitBlockOutEdgeBB)) {
         // An in loop out edge from the exit block
       } else {
@@ -1125,11 +1124,11 @@ public final class AnnotatedLSTNode extends LSTNode {
           throw new NonRegularLoopException("Target of exit block branch isn't the loop header.");
         }
         // Calculate stride value
-        RegisterOperandEnumeration iteratorDefs =
+        Enumeration<RegisterOperand> iteratorDefs =
             DefUse.defs(((RegisterOperand) carriedLoopIterator).getRegister());
         // Loop over definitions of the iterator operand ignoring moves
         while (iteratorDefs.hasMoreElements()) {
-          Operand curDef = follow(iteratorDefs.next());
+          Operand curDef = follow(iteratorDefs.nextElement());
           // Is this definition within the loop?
           if (isInLoop(curDef.instruction.getBasicBlock())) {
             // Yes - have we already got an iterator instruction
@@ -1246,11 +1245,11 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * This class implements {@link BasicBlockEnumeration}. It is
+   * This class implements an enumeration of {@link BasicBlock}s. It is
    * used for iterating over basic blocks in a fashion determined by
    * the order in which basic blocks are added.
    */
-  static final class BBEnum implements BasicBlockEnumeration {
+  static final class BBEnum implements Enumeration<BasicBlock> {
     /**
      * ArrayList holding basic blocks
      */
@@ -1279,6 +1278,7 @@ public final class AnnotatedLSTNode extends LSTNode {
      * Is the iterator at the end of the vector
      * @return whether there are more elements in the vector
      */
+    @Override
     public boolean hasMoreElements() {
       return currentBlock < blocks.size();
     }
@@ -1287,17 +1287,8 @@ public final class AnnotatedLSTNode extends LSTNode {
      * Get the next element from the vector and move the current block along
      * @return next element
      */
+    @Override
     public BasicBlock nextElement() {
-      BasicBlock result = blocks.get(currentBlock);
-      currentBlock++;
-      return result;
-    }
-
-    /**
-     * Get the next element from the vector and return without requiring a cast
-     * @return next element
-     */
-    public BasicBlock next() {
       BasicBlock result = blocks.get(currentBlock);
       currentBlock++;
       return result;
@@ -1307,6 +1298,7 @@ public final class AnnotatedLSTNode extends LSTNode {
      * String representation of the object
      * @return string representing the object
      */
+    @Override
     public String toString() {
       return blocks.toString();
     }

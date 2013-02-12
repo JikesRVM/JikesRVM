@@ -30,17 +30,17 @@ public abstract class Reference<T> {
 
   /**
    * The underlying object.  This field is a Address so it will not
-   * be automatically kept alive by the garbage collector.
+   * be automatically kept alive by the garbage collector.<p>
    *
    * Set and maintained by the ReferenceProcessor class.
    */
   private Address _referent;
 
   /**
-   * Link to the next entry on the queue.  If this is null, this
+   * Link to the next entry on the queue.  If this is {@code null}, this
    * reference is not enqueued.  Otherwise it points to the next
    * reference.  The last reference on a queue will point to itself
-   * (not to null, that value is used to mark a not enqueued
+   * (not to {@code null}, that value is used to mark a not enqueued
    * reference). This field and its semantics is defined by the
    * default implementation of java.lang.ref.ReferenceQueue in the GNU
    * classpath release.
@@ -125,6 +125,7 @@ public abstract class Reference<T> {
    * injecting it for now to avoid a warning message during the build
    * that users might find confusing. We think the problem is actually
    * not a 'real' problem...
+   * FIXME update comment
    */
   public boolean enqueue() {
     if (nextOnQueue == null && queue != null) {

@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * Each instance of this class corresponds to one raw page space.
+ * Each instance of this class corresponds to one raw page space.<p>
  *
  * This class provides access to raw memory for managing internal meta
  * data.
@@ -57,13 +57,14 @@ public final class RawPageSpace extends Space implements Constants {
    * @param first The first page in the group of pages that were
    * allocated together.
    */
+  @Override
   @Inline
   public void release(Address first) {
     ((FreeListPageResource) pr).releasePages(first);
   }
 
   /**
-   * Trace an object.
+   * Trace an object.<p>
    *
    * This makes no sense for a raw page space and should never be
    * called.
@@ -71,12 +72,14 @@ public final class RawPageSpace extends Space implements Constants {
    * @param object The object to be traced.
    * @return <code>zero</code>: calling this is an error.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(false);
     return ObjectReference.nullReference();
   }
 
+  @Override
   public boolean isLive(ObjectReference object) {
     return true;
   }

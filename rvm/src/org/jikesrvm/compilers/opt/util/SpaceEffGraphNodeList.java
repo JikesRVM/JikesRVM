@@ -17,8 +17,8 @@ import java.util.Enumeration;
 
 /**
  * List of Graph nodes.
- *
- * comments: should a doubly linked list implement Enumeration?
+ * <p>
+ * TODO should a doubly linked list implement Enumeration?
  */
 class SpaceEffGraphNodeList implements Enumeration<SpaceEffGraphNodeList> {
   SpaceEffGraphNode _node;
@@ -31,11 +31,13 @@ class SpaceEffGraphNodeList implements Enumeration<SpaceEffGraphNodeList> {
     _prev = null;
   }
 
+  @Override
   public boolean hasMoreElements() {
     return _next != null;
   }
 
   // return the next GraphNodeList element.
+  @Override
   public SpaceEffGraphNodeList nextElement() {
     SpaceEffGraphNodeList tmp = _next;
     _next = _next._next;

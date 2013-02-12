@@ -42,7 +42,7 @@ public final class BranchProfiles implements BytecodeConstants {
       }
       if (low >= high) {
         // search failed
-        if (VM.VerifyAssertions) { VM._assert(false); }
+        if (VM.VerifyAssertions) { VM._assert(VM.NOT_REACHED); }
         return null;
       }
       if (bci > bcIndex) {

@@ -47,7 +47,7 @@ public abstract class ObjectModel {
   public abstract Address copyTo(ObjectReference from, ObjectReference to, Address region);
 
   /**
-   * Return the reference that an object will be refered to after it is copied
+   * Return the reference that an object will be referred to after it is copied
    * to the specified region. Used in delayed-copy collectors such as compacting
    * collectors.
    *

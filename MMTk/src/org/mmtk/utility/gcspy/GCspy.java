@@ -34,6 +34,9 @@ import org.vmmagic.pragma.*;
    * Class variables
    */
 
+  /**
+   *
+   */
   public static final Util util = VM.newGCspyUtil();
   public static final ServerInterpreter server = VM.newGCspyServerInterpreter();
 
@@ -42,6 +45,9 @@ import org.vmmagic.pragma.*;
    * Initialization
    */
 
+  /**
+   *
+   */
   @Interruptible
   public static void createOptions() {
     Options.gcspyPort = new GCspyPort();

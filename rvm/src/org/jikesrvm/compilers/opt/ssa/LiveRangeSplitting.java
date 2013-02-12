@@ -37,7 +37,6 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
@@ -62,6 +61,7 @@ import org.jikesrvm.util.BitVector;
  */
 public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.SSA_LIVE_RANGE_SPLITTING;
   }
@@ -93,21 +93,22 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA_LIVE_RANGE_SPLITTING;
     }
 
+    @Override
     public final String getName() {
       return "Live Range Splitting";
     }
 
-    /**
-     * The main entrypoint for this pass.
-     */
+    @Override
     public final void perform(IR ir) {
       // 1. Compute an up-to-date loop structure tree.
       DominatorsPhase dom = new DominatorsPhase(true);
@@ -275,14 +276,14 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
               // fix up types: only split live ranges when the type is
               // consistent at all defs
               TypeReference t2 = null;
-              RegisterOperandEnumeration e2 = DefUse.defs(r);
+              Enumeration<RegisterOperand> e2 = DefUse.defs(r);
               if (!e2.hasMoreElements()) {
                 s = null;
               } else {
-                RegisterOperand rop2 = e2.next();
+                RegisterOperand rop2 = e2.nextElement();
                 t2 = rop2.getType();
                 while (e2.hasMoreElements()) {
-                  RegisterOperand nextOp2 = e2.next();
+                  RegisterOperand nextOp2 = e2.nextElement();
                   if (nextOp2.getType() != t2) {
                     s = null;
                   }
@@ -300,14 +301,14 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
               // fix up types: only split live ranges when the type is
               // consistent at all defs
               TypeReference t = null;
-              RegisterOperandEnumeration e = DefUse.defs(r);
+              Enumeration<RegisterOperand> e = DefUse.defs(r);
               if (!e.hasMoreElements()) {
                 s = null;
               } else {
-                RegisterOperand rop = e.next();
+                RegisterOperand rop = e.nextElement();
                 t = rop.getType();
                 while (e.hasMoreElements()) {
-                  RegisterOperand nextOp = e.next();
+                  RegisterOperand nextOp = e.nextElement();
                   if (nextOp.getType() != t) {
                     s = null;
                   }
@@ -361,16 +362,19 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
       static int nextHash = 0;
       int myHash = ++nextHash;
 
+      @Override
       public int hashCode() {
         return myHash;
       }
 
+      @Override
       public boolean equals(Object o) {
         if (!(o instanceof BasicBlockPair)) return false;
         BasicBlockPair p = (BasicBlockPair) o;
         return (src.equals(p.src) && dest.equals(p.dest));
       }
 
+      @Override
       public String toString() {
         return "<" + src + "," + dest + ">";
       }
@@ -388,14 +392,17 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
      * @param ir not used
      * @return this
      */
+    @Override
     public CompilerPhase newExecution(IR ir) {
       return this;
     }
 
+    @Override
     public final boolean shouldPerform(OptOptions options) {
       return options.SSA_LIVE_RANGE_SPLITTING;
     }
 
+    @Override
     public final String getName() {
       return "Rename Preparation";
     }
@@ -404,6 +411,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
      * register in the IR the SSA properties we need for simple scalar
      * renaming
      */
+    @Override
     public final void perform(IR ir) {
       ir.desiredSSAOptions = new SSAOptions();
       ir.desiredSSAOptions.setScalarsOnly(true);

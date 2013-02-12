@@ -90,6 +90,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -127,7 +129,6 @@ import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.RegisterOperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.TrapIf;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
@@ -332,11 +333,11 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
       return use;
     } else {
       RegisterOperand rop = use.asRegister();
-      RegisterOperandEnumeration defs = DefUse.defs(rop.getRegister());
+      Enumeration<RegisterOperand> defs = DefUse.defs(rop.getRegister());
       if (!defs.hasMoreElements()) {
         return use;
       } else {
-        Operand def = defs.next();
+        Operand def = defs.nextElement();
         if (defs.hasMoreElements()) {
           return def;
         } else {
@@ -672,8 +673,18 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   protected final void SET_EXCEPTION_OBJECT(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForCaughtException();
     StackLocationOperand sl = new StackLocationOperand(true, offset, DW);
-    RegisterOperand obj = (RegisterOperand) CacheOp.getRef(s);
-    EMIT(MIR_Move.mutate(s, IA32_MOV, sl, obj));
+    Operand val = CacheOp.getRef(s);
+    if (val.isRegister()) {
+        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, val));
+    } else if (val.isIntConstant()) {
+        RegisterOperand temp = regpool.makeTempInt();
+        EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, val)));
+        val = temp.copyRO(); // for opt compiler var usage info?
+        EMIT(MIR_Move.mutate(s, IA32_MOV, sl, temp));
+    } else {
+        throw new OptimizingCompilerException("BURS_Helpers",
+                "unexpected operand type "+val+" in SET_EXCEPTION_OBJECT");
+    }
   }
 
   /**

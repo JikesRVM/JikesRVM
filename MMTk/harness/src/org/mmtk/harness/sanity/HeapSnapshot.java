@@ -127,9 +127,6 @@ public class HeapSnapshot implements HeapVisitor {
     spaceStats.put(name, count+1);
   }
 
-  /**
-   * @see HeapVisitor#visitObject(ObjectReference, boolean, boolean)
-   */
   @Override
   public void visitObject(ObjectReference object, boolean root, boolean marked) {
     if (VERBOSE) {
@@ -154,9 +151,6 @@ public class HeapSnapshot implements HeapVisitor {
     entry.incRefCount();
   }
 
-  /**
-   * @see HeapVisitor#visitPointer(ObjectReference, Address, ObjectReference)
-   */
   @Override
   public void visitPointer(ObjectReference source, Address slot, ObjectReference target) {
     // Do nothing

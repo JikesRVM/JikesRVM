@@ -13,11 +13,11 @@
 package org.jikesrvm.compilers.opt.dfsolver;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.util.Graph;
 import org.jikesrvm.compilers.opt.util.GraphNode;
-import org.jikesrvm.compilers.opt.util.GraphNodeEnumeration;
 
 /**
  * Implementation of a graph used in the guts of the dataflow equation
@@ -35,9 +35,7 @@ class DF_Graph implements Graph {
    */
   private int count = 0;
 
-  /**
-   * @return number of nodes in the graph
-   */
+  @Override
   public int numberOfNodes() {
     return count;
   }
@@ -46,34 +44,34 @@ class DF_Graph implements Graph {
    * Implementation for Graph Interface.  TODO: why is this in the
    * Graph interface?
    */
+  @Override
   public void compactNodeNumbering() {}
 
   /**
    * Enumerate the nodes in the graph.
    * @return an enumeration of the nodes in the graph
    */
-  public GraphNodeEnumeration enumerateNodes() {
-    return new GraphNodeEnumeration() {
+  @Override
+  public Enumeration<GraphNode> enumerateNodes() {
+    return new Enumeration<GraphNode>() {
       private int i = 0;
 
+      @Override
       public boolean hasMoreElements() {
         return i < count;
       }
 
-      public GraphNode next() {
-        return nodes.get(i++);
-      }
-
+      @Override
       public GraphNode nextElement() {
-        return next();
+        return nodes.get(i++);
       }
     };
   }
 
   /**
-   * Add a node to the graph.
    * @param x the node to add
    */
+  @Override
   public void addGraphNode(GraphNode x) {
     x.setIndex(count);
     nodes.add(x);
@@ -83,6 +81,7 @@ class DF_Graph implements Graph {
   /**
    * Unsupported.  Why is this here?
    */
+  @Override
   public void addGraphEdge(GraphNode x, GraphNode y) {
     throw new OptimizingCompilerException("DF_Graph edges implicit");
   }

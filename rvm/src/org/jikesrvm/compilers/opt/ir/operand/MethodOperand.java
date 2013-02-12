@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * Refers to a method. Used for method call instructions.
  * Contains a RVMMethod (which may or may not have been resolved yet.)
- *
+ * <p>
  * TODO: Create subclasses of MethodOperand for internal & specialized
  * targets.
  *
@@ -39,7 +39,8 @@ public final class MethodOperand extends Operand {
   private static final byte INTERFACE = 3;
 
   /**
-   * Member reference for target.
+   * Member reference for target.<p>
+   *
    * Usually a MethodReference, but may be a FieldReference for
    * internal methods that don't have 'real' Java method but come from
    * OutOfLineMachineCode.
@@ -277,11 +278,7 @@ public final class MethodOperand extends Operand {
     }
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     MethodOperand mo = new MethodOperand(memRef, target, type);
     mo.isPreciseTarget = isPreciseTarget;
@@ -290,14 +287,7 @@ public final class MethodOperand extends Operand {
     return mo;
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     if (op instanceof MethodOperand) {
       MethodOperand mop = (MethodOperand) op;
@@ -312,6 +302,7 @@ public final class MethodOperand extends Operand {
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     String s = "";
     switch (type) {

@@ -43,7 +43,7 @@ class SummaryDatabase {
     return result;
   }
 
-  /** Implementation */
+  /* Implementation */
   private static final ImmutableEntryHashMapRVM<RVMMethod, MethodSummary> hash =
     new ImmutableEntryHashMapRVM<RVMMethod, MethodSummary>();
 }

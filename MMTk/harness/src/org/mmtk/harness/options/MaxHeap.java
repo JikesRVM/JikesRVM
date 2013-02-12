@@ -27,6 +27,7 @@ public final class MaxHeap extends org.vmutil.options.PagesOption {
         Integer.valueOf(System.getProperty("mmtk.harness.heap.max", "384")));
   }
 
+  @Override
   protected void validate() {
     failIf(value == 0, "Must have a non-zero heap size");
   }

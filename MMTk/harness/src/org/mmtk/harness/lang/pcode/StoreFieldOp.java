@@ -28,6 +28,7 @@ public final class StoreFieldOp extends TernaryOp {
     this.fieldType = fieldType;
   }
 
+  @Override
   public String toString() {
     return String.format("%s.%s[%s] <- %s", Register.nameOf(op1),
         fieldType == Type.OBJECT ? "object" : "int",

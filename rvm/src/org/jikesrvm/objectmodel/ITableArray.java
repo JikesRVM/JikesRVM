@@ -39,16 +39,17 @@ public final class ITableArray implements RuntimeTable<ITable> {
   /**
    * Return the backing array (for boot image writing)
    */
+  @Override
   public ITable[] getBacking() {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
     return backingData;
   }
 
   /**
-   * Create a new TIB of the specified size.
+   * Create a new array of {@link ITable} of the specified size.
    *
-   * @param size The size of the TIB
-   * @return The created TIB instance.
+   * @param size The size of the array
+   * @return The created ITableArray instance
    */
   public static ITableArray allocate(int size) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
@@ -56,11 +57,12 @@ public final class ITableArray implements RuntimeTable<ITable> {
   }
 
   /**
-   * Get a TIB entry.
+   * Get an {@link ITable} entry from the array.
    *
    * @param index The index of the entry to get
    * @return The value of that entry
    */
+  @Override
   @Intrinsic
   @Uninterruptible
   public ITable get(int index) {
@@ -69,11 +71,12 @@ public final class ITableArray implements RuntimeTable<ITable> {
   }
 
   /**
-   * Set a TIB entry.
+   * Set an {@link ITable} entry in the array.
    *
    * @param index The index of the entry to set
    * @param value The value to set the entry to.
    */
+  @Override
   @Intrinsic
   @UninterruptibleNoWarn("Interruptible code not reachable at runtime")
   public void set(int index, ITable value) {
@@ -82,8 +85,9 @@ public final class ITableArray implements RuntimeTable<ITable> {
   }
 
   /**
-   * Return the length of the TIB
+   * Return the length of the array of {@link ITable}
    */
+  @Override
   @Intrinsic
   @Uninterruptible
   public int length() {

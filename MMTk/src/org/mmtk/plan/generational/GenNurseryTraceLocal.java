@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * This class implments the core functionality for a transitive
+ * This class implements the core functionality for a transitive
  * closure over the heap graph.
  */
 @Uninterruptible
@@ -32,10 +32,13 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    *
    * Instance fields.
    */
+
+  /**
+   *
+   */
   private final ObjectReferenceDeque modbuf;
   private final AddressDeque remset;
   private final AddressPairDeque arrayRemset;
-
 
   /**
    * Constructor
@@ -53,11 +56,9 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    */
 
   /**
-   * Is the specified object live?
-   *
-   * @param object The object.
-   * @return True if the object is live.
+   * {@inheritDoc}
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (object.isNull()) return false;
     if (Gen.inNursery(object)) {
@@ -67,17 +68,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
     return true;
   }
 
-  /**
-   * This method is the core method during the trace of the object graph.
-   * The role of this method is to:
-   *
-   * 1. Ensure the traced object is not collected.
-   * 2. If this is the first visit to the object enqueue it to be scanned.
-   * 3. Return the forwarded reference to the object.
-   *
-   * @param object The object to be traced.
-   * @return The new reference to the same object instance.
-   */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (Gen.inNursery(object)) {
@@ -89,6 +80,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
   /**
    * Process any remembered set entries.
    */
+  @Override
   @Inline
   protected void processRememberedSets() {
     logMessage(5, "processing modbuf");
@@ -121,8 +113,9 @@ public final class GenNurseryTraceLocal extends TraceLocal {
    * Will the object move from now on during the collection.
    *
    * @param object The object to query.
-   * @return True if the object is guaranteed not to move.
+   * @return {@code true} if the object is guaranteed not to move.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (object.isNull()) return false;
     return !Gen.inNursery(object);

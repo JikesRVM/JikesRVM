@@ -20,7 +20,7 @@ import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Enforce the CopySpace invariant that all live objects are in to-space
- *
+ * <p>
  * This should be true at the start of the RELEASE collection phase
  */
 public class FromSpaceInvariant implements HeapVisitor {
@@ -34,7 +34,6 @@ public class FromSpaceInvariant implements HeapVisitor {
 
   /**
    * Unused - the heap invariant is enforced on pointers (edges)
-   * @see org.mmtk.harness.sanity.HeapVisitor#visitObject(ObjectReference, boolean, boolean)
    */
   @Override
   public void visitObject(ObjectReference object, boolean root, boolean marked) {
@@ -42,7 +41,6 @@ public class FromSpaceInvariant implements HeapVisitor {
 
   /**
    * Enforce the invariant.  We use this visitor method so we can
-   * @see org.mmtk.harness.sanity.HeapVisitor#visitPointer(ObjectReference, Address, ObjectReference)
    */
   @Override
   public void visitPointer(ObjectReference source, Address slot, ObjectReference target) {

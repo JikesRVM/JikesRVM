@@ -24,6 +24,7 @@ public class EventTypeSpaceVersion {
 	version = v;
     }
 
+    @Override
     public String toString() {
 	return name + "(v " + version + ")";
     }

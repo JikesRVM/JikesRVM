@@ -40,6 +40,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
 
  /**
    * Constructor
+   * @param trace TODO
    * @param modBuffer TODO
    */
   public ImmixDefragTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
@@ -53,11 +54,9 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
    */
 
   /**
-   * Is the specified object live?
-   *
-   * @param object The object.
-   * @return True if the object is live.
+   * {@inheritDoc}
    */
+  @Override
   public boolean isLive(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Immix.immixSpace.inImmixDefragCollection());
     if (object.isNull()) return false;
@@ -68,12 +67,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
   }
 
   /**
-   * This method is the core method during the trace of the object graph.
-   * The role of this method is to:
-   *
-   * 1. Ensure the traced object is not collected.
-   * 2. If this is the first visit to the object enqueue it to be scanned.
-   * 3. Return the forwarded reference to the object.
+   * {@inheritDoc}<p>
    *
    * In this instance, we refer objects in the mark-sweep space to the
    * immixSpace for tracing, and defer to the superclass for all others.
@@ -81,6 +75,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
    * @param object The object to be traced.
    * @return The new reference to the same object instance.
    */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Immix.immixSpace.inImmixDefragCollection());
@@ -91,12 +86,12 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
   }
 
   /**
-   * Return true if this object is guaranteed not to move during this
+   * Return {@code true} if this object is guaranteed not to move during this
    * collection (i.e. this object is defintely not an unforwarded
    * object).
    *
    * @param object
-   * @return True if this object is guaranteed not to move during this
+   * @return {@code true} if this object is guaranteed not to move during this
    *         collection.
    */
   @Override
@@ -107,17 +102,6 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
     return true;
   }
 
-  /**
-   * Collectors that move objects <b>must</b> override this method.
-   * It performs the deferred scanning of objects which are forwarded
-   * during bootstrap of each copying collection.  Because of the
-   * complexities of the collection bootstrap (such objects are
-   * generally themselves gc-critical), the forwarding and scanning of
-   * the objects must be dislocated.  It is an error for a non-moving
-   * collector to call this method.
-   *
-   * @param object The forwarded object to be scanned
-   */
   @Inline
   @Override
   protected void scanObject(ObjectReference object) {
@@ -132,6 +116,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
    * mod buffer and for each entry, marking the object as unlogged
    * (we don't enqueue for scanning since we're doing a full heap GC).
    */
+  @Override
   protected void processRememberedSets() {
     if (modBuffer != null) {
       logMessage(5, "clearing modBuffer");

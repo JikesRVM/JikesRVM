@@ -12,14 +12,13 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.MIR_LowTableSwitch;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterTools;
@@ -38,6 +37,7 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -46,35 +46,37 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
    * Return the name of this phase
    * @return "Live Range Splitting"
    */
+  @Override
   public final String getName() {
     return "MIR Range Splitting";
   }
 
   /**
-   * The main method.
+   * The main method.<p>
    *
    * We split live ranges for registers around PEIs which have catch
    * blocks.  Suppose we have a
    * PEI s which uses a symbolic register r1.  We must ensure that after
    * register allocation, r1 is NOT assigned to a scratch location in s,
-   * since this would mess up code in the catch block that uses r1.
+   * since this would mess up code in the catch block that uses r1.<p>
    *
    * So, instead, we introduce a new temporary r2 which holds the value of
    * r1.  The live range for r2 spans only the instruction s.  Later, we
-   * will ensure that r2 is never spilled.
+   * will ensure that r2 is never spilled.<p>
    *
    * TODO: This could be implemented more efficiently.
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
 
     java.util.HashMap<Register, Register> newMap = new java.util.HashMap<Register, Register>(5);
 
-    for (BasicBlockEnumeration be = ir.getBasicBlocks(); be.hasMoreElements();) {
+    for (Enumeration<BasicBlock> be = ir.getBasicBlocks(); be.hasMoreElements();) {
       BasicBlock bb = be.nextElement();
-      for (InstructionEnumeration ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-        Instruction s = ie.next();
+      for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
+        Instruction s = ie.nextElement();;
 
         // clear the cache of register assignments
         newMap.clear();
@@ -122,8 +124,8 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
   private static void splitAllLiveRanges(Instruction s, java.util.HashMap<Register, Register> newMap,
                                          IR ir, boolean rootOnly) {
     // walk over each USE
-    for (OperandEnumeration u = rootOnly ? s.getRootUses() : s.getUses(); u.hasMoreElements();) {
-      Operand use = u.next();
+    for (Enumeration<Operand> u = rootOnly ? s.getRootUses() : s.getUses(); u.hasMoreElements();) {
+      Operand use = u.nextElement();
       if (use.isRegister()) {
         RegisterOperand rUse = use.asRegister();
         RegisterOperand temp = findOrCreateTemp(rUse, newMap, ir);
@@ -132,8 +134,8 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
       }
     }
     // walk over each DEF (by defintion defs == root defs)
-    for (OperandEnumeration d = s.getDefs(); d.hasMoreElements();) {
-      Operand def = d.next();
+    for (Enumeration<Operand> d = s.getDefs(); d.hasMoreElements();) {
+      Operand def = d.nextElement();
       if (def.isRegister()) {
         RegisterOperand rDef = def.asRegister();
         RegisterOperand temp = findOrCreateTemp(rDef, newMap, ir);
@@ -142,8 +144,8 @@ public class MIRSplitRanges extends CompilerPhase implements Operators {
       }
     }
     // Now go back and replace the registers.
-    for (OperandEnumeration ops = rootOnly ? s.getRootOperands() : s.getOperands(); ops.hasMoreElements();) {
-      Operand op = ops.next();
+    for (Enumeration<Operand> ops = rootOnly ? s.getRootOperands() : s.getOperands(); ops.hasMoreElements();) {
+      Operand op = ops.nextElement();
       if (op.isRegister()) {
         RegisterOperand rOp = op.asRegister();
         Register r = rOp.getRegister();

@@ -70,6 +70,7 @@ public final class ScalarType {
      *
      * @return The string representing this scalar type.
      */
+    @Override
     public final String toString() {
 	return name;
     }

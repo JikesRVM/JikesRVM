@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.ObjectReference;
 /**
  * This class manages SoftReferences, WeakReferences, and
  * PhantomReferences.
- *
+ * <p>
  * The harness only provides reference types to ensure that the MMTk
  * Plan processes them correctly, so all types have the semantics
  * of weak references.
@@ -57,7 +57,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     processors.get(ref.getSemantics()).add(ref);
   }
 
-  /**
+  /*
    * The set of reference objects of this semantics
    */
   private final Set<ReferenceValue> oldRefs = new HashSet<ReferenceValue>();
@@ -72,7 +72,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
 
   /**
    * Add a reference value to the set of references of this type.
-   *
+   * <p>
    * This method is thread-safe, to support concurrent collection of
    * roots, by virtue of the synchronized collection types used for newRefs
    * and currentRefs.
@@ -88,10 +88,6 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     }
   }
 
-  /**
-   * Clear the contents of the table. This is called when reference types are
-   * disabled to make it easier for VMs to change this setting at runtime.
-   */
   @Override
   public void clear() {
     Trace.trace(Item.REFERENCES, "Clearing %s references", semantics);
@@ -100,14 +96,11 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
-   * Scan through the list of references.
-   *
+   * {@inheritDoc}
+   * <p>
    * TODO support concurrent scans
-   *
+   * <p>
    * TODO the nursery/mature logic could be improved
-   *
-   * @param trace the thread local trace element.
-   * @param nursery true if it is safe to only scan new references.
    */
   @Override
   public synchronized void scan(TraceLocal trace, boolean nursery) {
@@ -136,10 +129,9 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
-   * Iterate over all references and forward.  Only relevant to collectors like
-   * MarkCompact.
-   * @param trace The MMTk trace to forward to
-   * @param nursery The nursery collection hint
+   * {@inheritDoc}
+   * <p>
+   * Only relevant to collectors like MarkCompact.
    */
   @Override
   public void forward(TraceLocal trace, boolean nursery) {
@@ -150,9 +142,6 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     }
   }
 
-  /**
-   * @return the number of references objects on the queue
-   */
   @Override
   public int countWaitingReferences() {
     return currentRefs.size() + newRefs.size();

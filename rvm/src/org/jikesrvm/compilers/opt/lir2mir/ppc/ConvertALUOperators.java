@@ -28,16 +28,20 @@ public abstract class ConvertALUOperators extends CompilerPhase implements Opera
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final String getName() { return "ConvertALUOps"; }
 
+  @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
 
+  @Override
   public final void perform(IR ir) {
     // Nothing to do on PPC
   }

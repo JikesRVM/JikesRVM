@@ -38,7 +38,7 @@
 
   <target name="compile" depends="init">
     <mkdir dir="${build.classes}"/>
-    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" classpath="${test.class.path}" includeantruntime="false"/>
+    <javac srcdir="${main.java}" destdir="${build.classes}" debug="true" classpath="${test.class.path}" source="1.6" target="1.6" includeantruntime="false"/>
   </target>
 
   <!-- **************************************************************************** -->

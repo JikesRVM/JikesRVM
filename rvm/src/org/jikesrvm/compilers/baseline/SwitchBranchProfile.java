@@ -33,7 +33,7 @@ public final class SwitchBranchProfile extends BranchProfile {
     super(_bci, sumCounts(cs, start, numEntries));
     counts = new float[numEntries];
     for (int i = 0; i < numEntries; i++) {
-      counts[i] = (float) cs[start + i];
+      counts[i] = cs[start + i];
     }
   }
 
@@ -53,6 +53,7 @@ public final class SwitchBranchProfile extends BranchProfile {
     }
   }
 
+  @Override
   public String toString() {
     String res = bci + "\tswitch     < " + (int) counts[0];
     for (int i = 1; i < counts.length; i++) {
@@ -64,7 +65,7 @@ public final class SwitchBranchProfile extends BranchProfile {
   private static float sumCounts(int[] counts, int start, int numEntries) {
     float sum = 0.0f;
     for (int i = start; i < start + numEntries; i++) {
-      sum += (float) counts[i];
+      sum += counts[i];
     }
     return sum;
   }

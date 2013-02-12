@@ -22,15 +22,15 @@ import org.vmmagic.unboxed.Address;
 /**
  * Helper routine to pull the parameters to multianewarray off the
  * Java expression stack maintained by the baseline compiler and
- * pass them to RuntimeEntrypoints.buildMultiDimensionalArray.
+ * pass them to RuntimeEntrypoints.buildMultiDimensionalArray.<p>
  *
  * TODO: There is only 1 line of platform dependent code here; refactor?
  */
 public abstract class MultianewarrayHelper {
 
   /**
-   * Allocate something like "new Foo[cnt0][cnt1]...[cntN-1]",
-   *                      or "new int[cnt0][cnt1]...[cntN-1]".
+   * Allocate something like {@code new Foo[cnt0][cnt1]...[cntN-1]},
+   *                      or {@code new int[cnt0][cnt1]...[cntN-1]}.
    * @param methodId method id of caller
    * @param numDimensions number of array dimensions
    * @param typeId type id of type reference for array

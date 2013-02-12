@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
+import java.util.Enumeration;
 import java.util.HashSet;
 
 import org.jikesrvm.compilers.opt.DefUse;
@@ -19,7 +20,6 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.InstructionEnumeration;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -41,14 +41,17 @@ public class CoalesceMoves extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
   /**
    * Should we perform this phase?
-   * @param options controlling compiler options
+   * @return <code>true</code> iff move instructions should be
+   *  coalesced after leaving SSA
    */
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.SSA_COALESCE_AFTER;
   }
@@ -57,14 +60,12 @@ public class CoalesceMoves extends CompilerPhase {
    * Return a string name for this phase.
    * @return "Coalesce Moves"
    */
+  @Override
   public final String getName() {
     return "Coalesce Moves";
   }
 
-  /**
-   * perform the transformation
-   * @param ir the governing IR
-   */
+  @Override
   public final void perform(IR ir) {
     // Compute liveness.
     LiveAnalysis live = new LiveAnalysis(false /* GC Maps */, false /* don't skip local
@@ -81,7 +82,7 @@ public class CoalesceMoves extends CompilerPhase {
     HashSet<Instruction> dead = new HashSet<Instruction>(5);
 
     // for each Move instruction ...
-    for (InstructionEnumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
+    for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
       if (s.operator.isMove()) {
         Register r = Move.getResult(s).asRegister().getRegister();

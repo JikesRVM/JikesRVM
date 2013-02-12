@@ -17,7 +17,6 @@ import java.util.Enumeration;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.util.TreeNode;
 import org.jikesrvm.util.BitVector;
@@ -46,10 +45,12 @@ import org.jikesrvm.util.BitVector;
 public class DominanceFrontier extends CompilerPhase {
   /**
    * Should this phase be performed?  This is a member of a composite
-   * phase, so always return true.  The parent composite phase will
+   * phase, so always return {@code true}.  The parent composite phase will
    * dictate.
    * @param options controlling compiler options
+   * @return {@code true}
    */
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return true;
   }
@@ -60,6 +61,7 @@ public class DominanceFrontier extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -68,6 +70,7 @@ public class DominanceFrontier extends CompilerPhase {
    * Return a String representation for this phase
    * @return a String representation for this phase
    */
+  @Override
   public final String getName() {
     return "Dominance Frontier";
   }
@@ -76,9 +79,10 @@ public class DominanceFrontier extends CompilerPhase {
    * Should the IR be printed either before or after performing this phase?
    *
    * @param options controlling compiler options
-   * @param before true iff querying before the phase
-   * @return true or false
+   * @param before {@code true} iff querying before the phase
+   * @return {@code false}
    */
+  @Override
   public final boolean printingEnabled(OptOptions options, boolean before) {
     return false;
   }
@@ -93,6 +97,7 @@ public class DominanceFrontier extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public void perform(IR ir) {
     final boolean DEBUG = false;
     // make sure the dominator computation completed successfully
@@ -114,8 +119,8 @@ public class DominanceFrontier extends CompilerPhase {
       BitVector DF = new BitVector(ir.getMaxBasicBlockNumber() + 1);
       v.setDominanceFrontier(DF);
       // for each Y in Succ(X) do
-      for (BasicBlockEnumeration y = X.getOut(); y.hasMoreElements();) {
-        BasicBlock Y = y.next();
+      for (Enumeration<BasicBlock> y = X.getOut(); y.hasMoreElements();) {
+        BasicBlock Y = y.nextElement();
         // skip EXIT node
         if (Y.isExit()) {
           continue;
@@ -136,8 +141,8 @@ public class DominanceFrontier extends CompilerPhase {
           System.out.println("Processing Z = " + Z);
         }
         // for each Y in DF(Z) do
-        for (BasicBlockEnumeration y = zVertex.domFrontierEnumerator(ir); y.hasMoreElements();) {
-          BasicBlock Y = y.next();
+        for (Enumeration<BasicBlock> y = zVertex.domFrontierEnumerator(ir); y.hasMoreElements();) {
+          BasicBlock Y = y.nextElement();
           // if (idom(Y)!=X) then DF(X) <- DF(X) U Y
           if (LTDominatorInfo.getIdom(Y) != X) {
             DF.set(Y.getNumber());

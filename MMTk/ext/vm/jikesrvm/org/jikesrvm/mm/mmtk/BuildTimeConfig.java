@@ -26,7 +26,7 @@ import org.jikesrvm.mm.mminterface.Selected;
  * Read build-time configuration information for MMTk from a Java properties
  * file.  Properties read through this mechanism should be read at build time
  * and saved in static final fields.
- *
+ * <p>
  * This is a wrapper for a java.util.Properties object.
  */
 public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {

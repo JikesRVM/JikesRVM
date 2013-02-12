@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * Stack
  * Stack is a smaller implementation of java.util.Stack, that uses a linked
  * list rather than a vector.
  */
@@ -67,6 +66,8 @@ public class Stack<T> implements Iterable<T> {
       if (t1 != t2) {
         return false;
       }
+      t1 = i1.next();
+      t2 = i2.next();
     }
     return !i1.hasNext() && !i2.hasNext();
   }
@@ -83,10 +84,12 @@ public class Stack<T> implements Iterable<T> {
     return s;
   }
 
+  @Override
   public final Iterator<T> iterator() {
     return stack.iterator();
   }
 
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder(" --> ");
     for (T t : stack) {

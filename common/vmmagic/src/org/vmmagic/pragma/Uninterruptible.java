@@ -27,29 +27,27 @@ import org.vmmagic.Pragma;
  * thread scheduling, for example memory allocation. The {@link Unpreemptible}
  * annotation doesn't disallow operations that can cause garbage collection or
  * scheduling, but instructs the JVM to avoid inserting such operations during a
- * block of code.
+ * block of code.<p>
  *
  * In the internals of a VM most code wants to be {@link Uninterruptible}.
  * However, code involved in scheduling and locking will cause context switches,
  * and creating exception objects may trigger garbage collection, this code is
- * therefore {@link Unpreemptible}.
+ * therefore {@link Unpreemptible}.<p>
  *
  * Any method that is marked as uninterruptible is treated specially by the
  * machine code compiler:
- *
- * (1) the normal thread switch test that would be emitted in the method
- * prologue is omitted.
- *
- * (2) the stack overflow test that would be emitted in the method prologue is
- * omitted.
- *
- * (3) calls to preemptible code causes warnings.
- *
- * (4) bytecodes that can cause interruption cause warnings.
- *
- * (5) uninterruptible code will be generated assuming no RuntimeExceptions are
+ * <ol>
+ *   <li>the normal thread switch test that would be emitted in the method
+ * prologue is omitted.</li>
+ *   <li>the stack overflow test that would be emitted in the method prologue is
+ * omitted.</li>
+ *   <li>calls to preemptible code causes warnings.</li>
+ *   <li>bytecodes that can cause interruption cause warnings.</li>
+ *   <li>uninterruptible code will be generated assuming no RuntimeExceptions are
  * raised and without any GC maps (since by definition there can be noGC if
- * control is not lost).
+ * control is not lost).</li>
+ * </ol>
+ * <p>
  *
  * This is the inverse of {@link Interruptible}.
  */

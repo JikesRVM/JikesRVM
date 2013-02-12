@@ -19,11 +19,11 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 
 /**
  * A method that is specialized across all reference types.
- *
+ * <p>
  * In general as there may not be a 1-1 mapping between objects and the
  * specialized methods this class is responsible for performing the
  * mapping.
- *
+ * <p>
  * Specialized methods must have a static 'invoke' method that matches
  * the given signature and return type.
  */

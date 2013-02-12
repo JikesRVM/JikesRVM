@@ -28,7 +28,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * GCspy driver for the MMTk ContigousSpace.
+ * GCspy driver for the MMTk ContigousSpace.<p>
  *
  * This class implements a simple driver for contiguous MMTk spaces
  * such as CopySpace and ImmortalSpace.
@@ -106,10 +106,7 @@ import org.vmmagic.pragma.*;
     scanner = new LinearScan(this);
   }
 
-  /**
-   * Get the name of this driver type.
-   * @return The name of this driver.
-   */
+  @Override
   protected String getDriverName() { return "MMTk LinearSpaceDriver"; }
 
   /**
@@ -249,6 +246,7 @@ import org.vmmagic.pragma.*;
   /**
    * Reset the statistics for all the streams, including totals used for summaries
    */
+  @Override
   public void resetData() {
     super.resetData();
 
@@ -275,11 +273,12 @@ import org.vmmagic.pragma.*;
    */
    public LinearScan getScanner() { return scanner; }
 
-  /**
-   * Set the current address range of a contiguous space
-   * @param start the start of the contiguous space
-   * @param end the end of the contiguous space
-   */
+   /**
+    * Set the current address range of a contiguous space
+    * @param start the start of the contiguous space
+    * @param end the end of the contiguous space
+    */
+  @Override
   public void setRange(Address start, Address end) {
     int current = subspace.getBlockNum();
     int required = countTileNum(start, end, subspace.getBlockSize());
@@ -313,6 +312,7 @@ import org.vmmagic.pragma.*;
    * Update the tile statistics
    * @param obj The current object
    */
+  @Override
   public void  scan(ObjectReference obj) {
     scan(obj, true);
   }
@@ -322,6 +322,7 @@ import org.vmmagic.pragma.*;
    * @param obj The current object
    * @param total Whether to accumulate the values
    */
+  @Override
   public void scan(ObjectReference obj, boolean total) {
     boolean isArray = VM.objectModel.isArray(obj);
     int length = VM.objectModel.getCurrentSize(obj);
@@ -371,7 +372,7 @@ import org.vmmagic.pragma.*;
    * @param index Index of the tile
    * @param total Increment summary
    * @param length Current size of the Object, will be added to array space summary.
-   * @return True if this Object is an array of primitives.
+   * @return {@code true} if this Object is an array of primitives.
    */
   protected boolean scanCheckPrimitiveArray(ObjectReference obj, int index, boolean total, int length) {
     if(VM.objectModel.isPrimitiveArray(obj)) {
@@ -391,6 +392,7 @@ import org.vmmagic.pragma.*;
    * Implemented using the algorithm pattern, subclasses can override parts of it.
    * @param event The event, defined in the Plan
    */
+  @Override
   public void transmit(int event) {
     if (!server.isConnected(event))
       return;
@@ -461,7 +463,7 @@ import org.vmmagic.pragma.*;
    * Handle a root address
    *
    * @param addr Root Address
-   * @return true if the given Address is in this subspace.
+   * @return {@code true} if the given Address is in this subspace.
    */
   public boolean handleRoot(Address addr) {
     if(subspace.addressInRange(addr)) {
@@ -478,7 +480,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Reset the roots Stream
-   * The roots Stream has to be reset seperately because we do not
+   * The roots Stream has to be reset separately because we do not
    * gather data in the usual way using <code>scan()</code>.
  */
   public void resetRootsStream() {
@@ -490,8 +492,9 @@ import org.vmmagic.pragma.*;
    * Handle a direct reference from the immortal space.
    *
    * @param addr The Address
-   * @return true if the given Address is in this subspace.
+   * @return {@code true} if the given Address is in this subspace.
    */
+  @Override
   public boolean handleReferenceFromImmortalSpace(Address addr) {
     if(subspace.addressInRange(addr)) {
       // increment tile

@@ -34,6 +34,10 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    *
    * Class variables
    */
+
+  /**
+   *
+   */
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   private static final byte MARK_BIT =     1; // ...01
@@ -43,6 +47,10 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   private byte markState;
   private boolean inNurseryGC;
@@ -125,12 +133,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(sweepNursery ? treadmill.nurseryEmpty() : treadmill.fromSpaceEmpty());
   }
 
-  /**
-   * Release a group of pages that were allocated together.
-   *
-   * @param first The first page in the group of pages that were
-   * allocated together.
-   */
+  @Override
   @Inline
   public void release(Address first) {
     ((FreeListPageResource) pr).releasePages(first);
@@ -155,6 +158,7 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
+  @Override
   @Inline
   public ObjectReference traceObject(TransitiveClosure trace, ObjectReference object) {
     boolean nurseryObject = isInNursery(object);
@@ -169,9 +173,10 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
 
   /**
    * @param object The object in question
-   * @return True if this object is known to be live (i.e. it is marked)
+   * @return {@code true} if this object is known to be live (i.e. it is marked)
    */
-   @Inline
+  @Override
+  @Inline
    public boolean isLive(ObjectReference object) {
     return testMarkBit(object, markState);
   }
@@ -200,8 +205,8 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
    * Perform any required initialization of the GC portion of the header.
    *
    * @param object the object ref to the storage to be initialized
-   * @param alloc is this initialization occuring due to (initial) allocation
-   * (true) or due to copying (false)?
+   * @param alloc is this initialization occurring due to (initial) allocation
+   * ({@code true}) or due to copying ({@code false})?
    */
   @Inline
   public void initializeHeader(ObjectReference object, boolean alloc) {
@@ -215,8 +220,8 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
   }
 
   /**
-   * Atomically attempt to set the mark bit of an object.  Return true
-   * if successful, false if the mark bit was already set.
+   * Atomically attempt to set the mark bit of an object.  Return <code>true</code>
+   * if successful, <code>false</code> if the mark bit was already set.
    *
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
@@ -234,11 +239,11 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
   }
 
   /**
-   * Return true if the mark bit for an object has the given value.
+   * Return {@code true} if the mark bit for an object has the given value.
    *
    * @param object The object whose mark bit is to be tested
    * @param value The value against which the mark bit will be tested
-   * @return True if the mark bit for the object has the given value.
+   * @return {@code true} if the mark bit for the object has the given value.
    */
   @Inline
   private boolean testMarkBit(ObjectReference object, byte value) {
@@ -246,36 +251,23 @@ public final class LargeObjectSpace extends BaseLargeObjectSpace {
   }
 
   /**
-   * Return true if the object is in the logical nursery
+   * Return {@code true} if the object is in the logical nursery
    *
    * @param object The object whose status is to be tested
-   * @return True if the object is in the logical nursery
+   * @return {@code true} if the object is in the logical nursery
    */
   @Inline
   private boolean isInNursery(ObjectReference object) {
      return (byte)(VM.objectModel.readAvailableByte(object) & NURSERY_BIT) == NURSERY_BIT;
   }
 
-  /**
-   * Return the size of the per-superpage header required by this
-   * system.  In this case it is just the underlying superpage header
-   * size.
-   *
-   * @return The size of the per-superpage header required by this
-   * system.
-   */
+  @Override
   @Inline
   protected int superPageHeaderSize() {
     return Treadmill.headerSize();
   }
 
-  /**
-   * Return the size of the per-cell header for cells of a given class
-   * size.
-   *
-   * @return The size of the per-cell header for cells of a given class
-   * size.
-   */
+  @Override
   @Inline
   protected int cellHeaderSize() {
     return 0;

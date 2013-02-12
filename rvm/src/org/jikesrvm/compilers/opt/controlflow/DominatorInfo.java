@@ -16,8 +16,6 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.util.BitVector;
 
 /**
- * DominatorInfo.java
- *
  * This structure holds dominator-related information for a basic block.
  */
 public class DominatorInfo {

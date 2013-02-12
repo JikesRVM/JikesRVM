@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
+import java.util.Enumeration;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.database.AOSDatabase;
@@ -20,7 +22,6 @@ import org.jikesrvm.adaptive.measurements.instrumentation.YieldpointCounterData;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.BasicBlockEnumeration;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
@@ -44,14 +45,17 @@ public class InsertYieldpointCounters extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return Controller.options.INSERT_YIELDPOINT_COUNTERS;
   }
 
+  @Override
   public final String getName() { return "InsertYieldpointCounters"; }
 
   /**
@@ -59,6 +63,7 @@ public class InsertYieldpointCounters extends CompilerPhase {
    *
    * @param ir the governing IR
    */
+  @Override
   public final void perform(IR ir) {
 
     // Don't insert counters in uninterruptible methods,
@@ -75,8 +80,8 @@ public class InsertYieldpointCounters extends CompilerPhase {
       VM.sysWrite("InsertYieldpointCounters.perform() " + ir.method + "\n");
     }
     // For each yieldpoint, insert a counter.
-    for (BasicBlockEnumeration bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
-      BasicBlock bb = bbe.next();
+    for (Enumeration<BasicBlock> bbe = ir.getBasicBlocks(); bbe.hasMoreElements();) {
+      BasicBlock bb = bbe.nextElement();
 
       if (InsertYieldpointCounters.DEBUG) {
         VM.sysWrite("Considering basic block " + bb.toString() + "\n");

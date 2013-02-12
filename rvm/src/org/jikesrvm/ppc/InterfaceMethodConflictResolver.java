@@ -27,8 +27,13 @@ import org.jikesrvm.runtime.Memory;
  */
 public abstract class InterfaceMethodConflictResolver implements BaselineConstants, AssemblerConstants {
 
-  // Create a conflict resolution stub for the set of interface method signatures l.
-  //
+
+  /**
+   * Create a conflict resolution stub for the set of interface method signatures l.
+   * @param sigIds TODO document me!
+   * @param targets TODO document me!
+   * @return TODO document me!
+   */
   public static ArchitectureSpecific.CodeArray createStub(int[] sigIds, RVMMethod[] targets) {
     // (1) Create an assembler.
     int numEntries = sigIds.length;
@@ -59,7 +64,14 @@ public abstract class InterfaceMethodConflictResolver implements BaselineConstan
     return stub;
   }
 
-  // Assign ascending bytecode indices to each case (in the order they will be generated)
+  /**
+   * Assign ascending bytecode indices to each case (in the order they will be generated)
+   * @param bcIndex TODO document me!
+   * @param bcIndices TODO document me!
+   * @param low TODO document me!
+   * @param high TODO document me!
+   * @return
+   */
   private static int assignBytecodeIndices(int bcIndex, int[] bcIndices, int low, int high) {
     int middle = (high + low) / 2;
     bcIndices[middle] = bcIndex++;
@@ -77,14 +89,24 @@ public abstract class InterfaceMethodConflictResolver implements BaselineConstan
     }
   }
 
-  // Make a stub prologue: get TIB into S0
-  // factor out to reduce code space in each call.
-  //
+  /**
+   * Make a stub prologue: get TIB into S0 factor out to reduce code space in each call.
+   *
+   * @param asm TODO document me!
+   */
   private static void insertStubPrologue(Assembler asm) {
     ObjectModel.baselineEmitLoadTIB((ArchitectureSpecific.Assembler) asm, S0, T0);
   }
 
-  // Generate a subtree covering from low to high inclusive.
+  /**
+   * Generate a subtree covering from low to high inclusive.
+   * @param asm  TODO document me!
+   * @param sigIds  TODO document me!
+   * @param targets  TODO document me!
+   * @param bcIndices  TODO document me!
+   * @param low  TODO document me!
+   * @param high  TODO document me!
+   */
   private static void insertStubCase(Assembler asm, int[] sigIds, RVMMethod[] targets, int[] bcIndices, int low,
                                      int high) {
     int middle = (high + low) / 2;

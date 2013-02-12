@@ -22,7 +22,6 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see Operand
  */
-
 public final class DoubleConstantOperand extends ConstantOperand implements SizeConstants {
 
   /**
@@ -63,41 +62,28 @@ public final class DoubleConstantOperand extends ConstantOperand implements Size
     offset = i;
   }
 
-  /**
-   * Return a new operand that is semantically equivalent to <code>this</code>.
-   *
-   * @return a copy of <code>this</code>
-   */
+  @Override
   public Operand copy() {
     return new DoubleConstantOperand(value, offset);
   }
 
   /**
-   * Return the {@link TypeReference} of the value represented by the operand.
-   *
-   * @return TypeReference.Double
+   * @return {@link TypeReference#Double}
    */
+  @Override
   public TypeReference getType() {
     return TypeReference.Double;
   }
 
   /**
-   * Does the operand represent a value of the double data type?
-   *
    * @return <code>true</code>
    */
+  @Override
   public boolean isDouble() {
     return true;
   }
 
-  /**
-   * Are two operands semantically equivalent?
-   *
-   * @param op other operand
-   * @return   <code>true</code> if <code>this</code> and <code>op</code>
-   *           are semantically equivalent or <code>false</code>
-   *           if they are not.
-   */
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof DoubleConstantOperand) && (value == ((DoubleConstantOperand) op).value);
   }
@@ -107,6 +93,7 @@ public final class DoubleConstantOperand extends ConstantOperand implements Size
    *
    * @return a string representation of this operand.
    */
+  @Override
   public String toString() {
     return Double.toString(value) + "D";
   }

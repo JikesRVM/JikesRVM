@@ -25,13 +25,8 @@ import org.vmmagic.unboxed.Word;
  */
 @Uninterruptible
 public class Poisoned extends MS {
-  /**
-   * Perform any required write barrier action when installing an object reference
-   * a boot time.
-   *
-   * @param reference the reference value that is to be stored
-   * @return The raw value to be
-   */
+
+  @Override
   public Word bootTimeWriteBarrier(Word reference) {
     return reference.or(Word.one());
   }
@@ -57,22 +52,15 @@ public class Poisoned extends MS {
    */
 
   /**
-   * Store an object reference
-   *
-   * @param slot The location of the reference
-   * @param value The value to store
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public void storeObjectReference(Address slot, ObjectReference value) {
     slot.store(poison(value));
   }
 
-  /**
-   * Load an object reference
-   *
-   * @param slot The location of the reference
-   * @return the object reference loaded from slot
-   */
+  @Override
   @Inline
   public ObjectReference loadObjectReference(Address slot) {
     return depoison(slot.loadWord());

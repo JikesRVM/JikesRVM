@@ -14,9 +14,6 @@ package org.mmtk.harness.options;
 
 import org.mmtk.harness.Harness;
 
-/**
- * The maximum heap size.
- */
 public final class YieldInterval extends org.vmutil.options.IntOption {
   /**
    * Create the option.
@@ -27,6 +24,7 @@ public final class YieldInterval extends org.vmutil.options.IntOption {
         Integer.valueOf(System.getProperty("mmtk.harness.yieldpolicy.fixed.interval", "10")));
   }
 
+  @Override
   protected void validate() {
   }
 }

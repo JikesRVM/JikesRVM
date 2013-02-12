@@ -50,11 +50,7 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
     this.freeList = AddressArray.create(sizeClassCount());
   }
 
-  /**
-   * Return the space this allocator is currently bound to.
-   *
-   * @return The Space.
-   */
+  @Override
   protected final S getSpace() {
     return this.space;
   }
@@ -93,7 +89,7 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
   }
 
   /**
-   * The number of distinct size classes.
+   * The number of distinct size classes.<p>
    *
    * NOTE: For optimal performance this call must be implemented in a way
    * it can be inlined and optimized within the allocation sequence.
@@ -104,7 +100,7 @@ public abstract class SegregatedFreeList<S extends SegregatedFreeListSpace> exte
   }
 
   /**
-   * Get the size class for a given number of bytes.
+   * Get the size class for a given number of bytes.<p>
    *
    * NOTE: For optimal performance this call must be implemented in a way
    * it can be inlined and optimized within the allocation sequence.

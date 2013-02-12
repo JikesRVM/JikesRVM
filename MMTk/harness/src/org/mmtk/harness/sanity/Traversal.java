@@ -38,7 +38,7 @@ public final class Traversal {
   private static final boolean VERBOSE = false;
 
   /**
-   * Traverse the heap.  This is the only public method in the class
+   * Traverse the heap.
    * @param visitor The heap visitor
    */
   public static void traverse(HeapVisitor visitor) {

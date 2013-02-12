@@ -114,7 +114,7 @@ final class BaselineMagic {
    * @param m method reference
    * @param cm the method being compiled
    * @param sd the depth of the stack
-   * @return true if magic was generated
+   * @return {@code true} if magic was generated
    */
   static boolean generateMagic(Assembler asm, MethodReference m, RVMMethod cm, Offset sd) {
     MagicGenerator g = generators.get(m);
@@ -2213,7 +2213,7 @@ final class BaselineMagic {
   }
 
   /**
-   * Is the requested parameter a constant? Always false for baseline.
+   * Is the requested parameter a constant? Always {@code false} for baseline.
    */
   private static final class IsConstantParameter extends MagicGenerator {
     @Override

@@ -22,7 +22,7 @@ import org.vmmagic.pragma.*;
  * This abstract class implements core functionality for a generic
  * large object allocator. The shared VMResource used by each instance
  * is the point of global synchronization, and synchronization only
- * occurs at the granularity of aquiring (and releasing) chunks of
+ * occurs at the granularity of acquiring (and releasing) chunks of
  * memory from the VMResource.  Subclasses may require finer grained
  * synchronization during a marking phase, for example.<p>
  *
@@ -35,6 +35,10 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
   /****************************************************************************
    *
    * Instance variables
+   */
+
+  /**
+   *
    */
   protected final BaseLargeObjectSpace space;
 
@@ -53,11 +57,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
     this.space = space;
   }
 
-  /**
-   * Return the space this allocator is currently bound to.
-   *
-   * @return The Space.
-   */
+  @Override
   protected final BaseLargeObjectSpace getSpace() {
     return this.space;
   }
@@ -93,6 +93,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    * @return The address of the start of the newly allocated region at
    * least <code>bytes</code> bytes in size.
    */
+  @Override
   protected final Address allocSlowOnce(int bytes, int align, int offset) {
     int header = space.getHeaderSize();
     int maxbytes = getMaximumAlignedSize(bytes + header, align);

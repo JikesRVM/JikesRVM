@@ -18,19 +18,25 @@ package org.vmmagic.unboxed.harness;
  */
 public enum Architecture {
   BITS32 {
+    @Override
     public final int logBitsInWord() { return 5; }
+    @Override
     final ArchitecturalWord fromLong(long value) {
       return new ArchitecturalWord32((int)value);
     }
+    @Override
     final ArchitecturalWord fromIntZeroExtend(int value) {
       return fromLong(value);
     }
   },
   BITS64 {
+    @Override
     public final int logBitsInWord() { return 6; }
+    @Override
     final ArchitecturalWord fromLong(long value) {
       return new ArchitecturalWord64(value);
     }
+    @Override
     final ArchitecturalWord fromIntZeroExtend(int value) {
       return fromLong(value & 0xFFFFFFFFL);
     }

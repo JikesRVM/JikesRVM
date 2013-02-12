@@ -75,8 +75,10 @@ public class SpaceEffGraphNode implements GraphNode {
 
   public final void clearLoopHeader() { info &= ~LOOP_HEADER; }
 
+  @Override
   public int getScratch() { return scratch; }
 
+  @Override
   public int setScratch(int scratch) { return this.scratch = scratch; }
 
   public final void setNumber(int value) {
@@ -87,10 +89,12 @@ public class SpaceEffGraphNode implements GraphNode {
     return info & INFO_MASK;
   }
 
+  @Override
   public final int getIndex() {
     return getNumber();
   }
 
+  @Override
   public final void setIndex(int i) {
     setNumber(i);
   }
@@ -221,10 +225,11 @@ public class SpaceEffGraphNode implements GraphNode {
     return null;
   }
 
-  /*
+  /**
    * replaces the in edge matching e1 with e2.
-   * maintains the ordering of edges
-   * YUCK: this data structure is messy.  I assume this is in the name
+   * maintains the ordering of edges<p>
+   *
+   * TODO YUCK: this data structure is messy.  I assume this is in the name
    * of efficiency, but it makes control flow graph manipulations
    * a real pain. (SJF)
    */
@@ -322,7 +327,7 @@ public class SpaceEffGraphNode implements GraphNode {
 
   /* mark nodes according to the SCC (Strongly Connected Component Number),
      result written in 'scratch'
-     NOTE: it assummes that the 'dfs' flag has been cleared before */
+     NOTE: it assumes that the 'dfs' flag has been cleared before */
 
   public final void markSCC(int currSCC) {
     setDfsVisited();
@@ -479,11 +484,13 @@ public class SpaceEffGraphNode implements GraphNode {
     return new OutEdgeEnumeration(this);
   }
 
-  public final GraphNodeEnumeration inNodes() {
+  @Override
+  public final Enumeration<GraphNode> inNodes() {
     return new InNodeEnumeration(this);
   }
 
-  public final GraphNodeEnumeration outNodes() {
+  @Override
+  public final Enumeration<GraphNode> outNodes() {
     return new OutNodeEnumeration(this);
   }
 
@@ -638,10 +645,13 @@ public class SpaceEffGraphNode implements GraphNode {
       _edge = n._inEdgeStart;
     }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
+    @Override
     public SpaceEffGraphEdge nextElement() { return next(); }
 
+    @Override
     public SpaceEffGraphEdge next() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextIn;
@@ -649,18 +659,18 @@ public class SpaceEffGraphNode implements GraphNode {
     }
   }
 
-  static final class InNodeEnumeration implements GraphNodeEnumeration {
+  static final class InNodeEnumeration implements Enumeration<GraphNode> {
     private SpaceEffGraphEdge _edge;
 
     public InNodeEnumeration(SpaceEffGraphNode n) {
       _edge = n._inEdgeStart;
     }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
-    public GraphNode nextElement() { return next(); }
-
-    public GraphNode next() {
+    @Override
+    public GraphNode nextElement() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextIn;
       return e.fromNode();
@@ -674,10 +684,13 @@ public class SpaceEffGraphNode implements GraphNode {
       _edge = n._outEdgeStart;
     }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
+    @Override
     public GraphEdge nextElement() { return next(); }
 
+    @Override
     public GraphEdge next() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextOut;
@@ -685,18 +698,18 @@ public class SpaceEffGraphNode implements GraphNode {
     }
   }
 
-  static final class OutNodeEnumeration implements GraphNodeEnumeration {
+  static final class OutNodeEnumeration implements Enumeration<GraphNode> {
     private SpaceEffGraphEdge _edge;
 
     public OutNodeEnumeration(SpaceEffGraphNode n) {
       _edge = n._outEdgeStart;
     }
 
+    @Override
     public boolean hasMoreElements() { return _edge != null; }
 
-    public GraphNode nextElement() { return next(); }
-
-    public GraphNode next() {
+    @Override
+    public GraphNode nextElement() {
       SpaceEffGraphEdge e = _edge;
       _edge = e.nextOut;
       return e.toNode();

@@ -84,7 +84,7 @@ import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.util.Bits;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_METHOD_ID_OFFSET;
-import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET;
+import static org.jikesrvm.ppc.StackframeLayoutConstants.STACKFRAME_RETURN_ADDRESS_OFFSET;
 import static org.jikesrvm.ppc.StackframeLayoutConstants.STACK_SIZE_GUARD;
 import org.jikesrvm.runtime.Entrypoints;
 import org.vmmagic.unboxed.Offset;
@@ -110,6 +110,7 @@ public abstract class StackManager extends GenericStackManager {
    * Return the size of the fixed portion of the stack.
    * @return size in bytes of the fixed portion of the stackframe
    */
+  @Override
   public final int getFrameFixedSize() {
     return frameSize;
   }
@@ -121,6 +122,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param type the type to spill
    * @return the spill location
    */
+  @Override
   public final int allocateNewSpillLocation(int type) {
     int spillSize = PhysicalRegisterSet.getSpillSize(type);
 
@@ -140,6 +142,7 @@ public abstract class StackManager extends GenericStackManager {
    * Clean up some junk that's left in the IR after register allocation,
    * and add epilogue code.
    */
+  @Override
   public void cleanUpAndInsertEpilogue() {
     Instruction inst = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     for (; inst != null; inst = inst.nextInstructionInCodeOrder()) {
@@ -191,6 +194,7 @@ public abstract class StackManager extends GenericStackManager {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
+  @Override
   public final void insertSpillBefore(Instruction s, Register r, byte type, int location) {
 
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -230,6 +234,7 @@ public abstract class StackManager extends GenericStackManager {
    *                    CONDITION_VALUE
    * @param location the spill location
    */
+  @Override
   public final void insertUnspillBefore(Instruction s, Register r, byte type, int location) {
 
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -265,7 +270,7 @@ public abstract class StackManager extends GenericStackManager {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register temp = phys.getTemp();
     Register FP = phys.getFP();
-    ret.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET + frameSize)));
+    ret.insertBefore(MIR_Load.create(PPC_LAddr, A(temp), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET + frameSize)));
 
     // 3. Load return address into LR
     ret.insertBefore(MIR_Move.create(PPC_MTSPR, A(phys.getLR()), A(phys.getTemp())));
@@ -466,7 +471,7 @@ public abstract class StackManager extends GenericStackManager {
   *  5    <save used non volatiles>
   *  6    cmpi    TSR S1 0x0                                 # setting TSR for yield point (S1 is now free)
   *  7    lil     S1 CMID                                    # cmid
-  *  8    st      00 STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)  # return addr (00 is now free)
+  *  8    st      00 STACKFRAME_RETURN_ADDRESS_OFFSET(FP)  # return addr (00 is now free)
   *  9    st      S1 STACKFRAME_METHOD_ID_OFFSET(FP)         # cmid
   *  10   tgt     S0, FP                                     # stack overflow check (already bought frame)
   */
@@ -474,6 +479,7 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Schedule prologue for 'normal' case (see above)
    */
+  @Override
   public final void insertNormalPrologue() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
@@ -529,7 +535,7 @@ public abstract class StackManager extends GenericStackManager {
     ptr.insertBefore(MIR_Store.create(PPC_STAddr,
                                       A(R0),
                                       A(FP),
-                                      IC(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET))); // 8
+                                      IC(frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET))); // 8
     ptr.insertBefore(MIR_Store.create(PPC_STW, I(S1), A(FP), IC(STACKFRAME_METHOD_ID_OFFSET))); // 9
 
     if (stackOverflow) {
@@ -577,12 +583,12 @@ public abstract class StackManager extends GenericStackManager {
       // R0 is fairly useless (can't be operand 1 of an addi or the base ptr
       // of a load) so, free up S1 for use by briefly saving its contents in the
       // return address slot of my caller's frame
-      ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(S1), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       Offset offset = Entrypoints.stackLimitField.getOffset();
       if (VM.VerifyAssertions) VM._assert(Bits.fits(offset, 16));
       ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(phys.getTR()), IC(Bits.PPCMaskLower16(offset))));
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, A(R0), A(S1), IC(frameSize)));
-      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), IC(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      ptr.insertBefore(MIR_Load.create(PPC_LAddr, A(S1), A(FP), IC(STACKFRAME_RETURN_ADDRESS_OFFSET)));
 
       // Mutate the Prologue holder instruction into the trap
       MIR_Trap.mutate(ptr, PPC_TAddr, PowerPCTrapOperand.LESS(), A(FP), A(R0), TrapCodeOperand.StackOverflow());
@@ -601,7 +607,7 @@ public abstract class StackManager extends GenericStackManager {
     // Buy stack frame, save LR, caller's FP
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, A(R0), A(phys.getLR())));
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STAddrU, A(FP), A(FP), IC(-frameSize)));
-    ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(R0), A(FP), IC(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+    ptr.insertBefore(MIR_Store.create(PPC_STAddr, A(R0), A(FP), IC(frameSize + STACKFRAME_RETURN_ADDRESS_OFFSET)));
 
     // Store cmid
     int cmid = ir.compiledMethod.getId();
@@ -639,6 +645,7 @@ public abstract class StackManager extends GenericStackManager {
    * <li> updates the <code>frameRequired</code> field of this object
    * </ul>
    */
+  @Override
   public void computeNonVolatileArea() {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
@@ -746,6 +753,7 @@ public abstract class StackManager extends GenericStackManager {
    *
    * <p>Invalidate any scratch register assignments that are illegal in s.
    */
+  @Override
   public void restoreScratchRegistersBefore(Instruction s) {
     for (Iterator<ScratchRegister> i = scratchInUse.iterator(); i.hasNext();) {
       ScratchRegister scratch = i.next();
@@ -827,6 +835,7 @@ public abstract class StackManager extends GenericStackManager {
    * Initializes the "tmp" regs for this object
    * @param ir the governing ir
    */
+  @Override
   public final void initForArch(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     phys.getJTOC().reserveRegister();
@@ -844,6 +853,7 @@ public abstract class StackManager extends GenericStackManager {
    * Given symbolic register r in instruction s, do we need to ensure that
    * r is in a scratch register is s (as opposed to a memory operand)
    */
+  @Override
   public boolean needScratch(Register r, Instruction s) {
     if (s.operator == YIELDPOINT_OSR) return false;
 
@@ -859,6 +869,7 @@ public abstract class StackManager extends GenericStackManager {
    * @param s the instruction to mutate.
    * @param symb the symbolic register operand to replace
    */
+  @Override
   public void replaceOperandWithSpillLocation(Instruction s, RegisterOperand symb) {
     // PowerPC does not support memory operands.
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);

@@ -16,7 +16,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 
 /**
  * Represents a symbolic name for a stack location.
- *
+ * <p>
  * The stack location is defined by an offset from either the framepointer
  * (top of stack frame) or stackpointer-home-location (bottom of frame).
  */
@@ -85,6 +85,7 @@ public final class StackLocationOperand extends Operand {
     return size;
   }
 
+  @Override
   public String toString() {
     String s = "";
     switch (size) {
@@ -106,6 +107,7 @@ public final class StackLocationOperand extends Operand {
     return "<" + (isFromTop() ? "FrameTop" : "FrameBottom") + (getOffset() < 0 ? "" : "+") + getOffset() + s;
   }
 
+  @Override
   public boolean similar(Operand op) {
     if (op instanceof StackLocationOperand) {
       StackLocationOperand o2 = (StackLocationOperand) op;
@@ -115,6 +117,7 @@ public final class StackLocationOperand extends Operand {
     }
   }
 
+  @Override
   public Operand copy() {
     return new StackLocationOperand(isFromTop(), getOffset(), getSize());
   }

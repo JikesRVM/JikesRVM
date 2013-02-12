@@ -30,6 +30,7 @@ class CollectorThread extends JavaThread {
     setName("Collector-"+(++collectorId));
     setDaemon(daemon);
     setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+      @Override
       public void uncaughtException(Thread t, Throwable e) {
         Trace.trace(Item.SCHEDULER, "Catching uncaught exception for thread %s%n%s",
             Thread.currentThread().getName(),

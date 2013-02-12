@@ -21,7 +21,8 @@ public interface RegisterConstants {
   //               RVM register usage conventions - Intel version.                         //
   //---------------------------------------------------------------------------------------//
 
-  byte LG_INSTRUCTION_WIDTH = 0;             // log2 of instruction width in bytes
+  /** log2 of instruction width in bytes */
+  byte LG_INSTRUCTION_WIDTH = 0;
   int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;
 
   /**
@@ -57,7 +58,7 @@ public interface RegisterConstants {
         throw new Error("Invalid register ordinal");
       }
     }
-    /** @return encoded value of this register */
+    @Override
     @UninterruptibleNoWarn("Interruptible code only called during boot image creation")
     @Pure
     public byte value() {
@@ -93,7 +94,7 @@ public interface RegisterConstants {
       }
       return result;
     }
-    /** @return does this register require a REX prefix byte? */
+    @Override
     @Pure
     public boolean needsREXprefix() {
       if (VM.buildFor32Addr()) {
@@ -135,12 +136,12 @@ public interface RegisterConstants {
         throw new Error("Invalid register ordinal");
       }
     }
-    /** @return encoded value of this register */
+    @Override
     @Pure
     public byte value() {
       return (byte)ordinal();
     }
-    /** @return does this register require a REX prefix byte? */
+    @Override
     @Pure
     public boolean needsREXprefix() {
       return false; // do REX prefixes of floating point operands make sense?
@@ -170,12 +171,12 @@ public interface RegisterConstants {
         throw new Error("Invalid register ordinal");
       }
     }
-    /** @return encoded value of this register */
+    @Override
     @Pure
     public byte value() {
       return (byte)ordinal();
     }
-    /** @return does this register require a REX prefix byte? */
+    @Override
     @Pure
     public boolean needsREXprefix() {
       if (VM.buildFor32Addr()) {
@@ -209,12 +210,12 @@ public interface RegisterConstants {
         throw new Error("Invalid register ordinal");
       }
     }
-    /** @return encoded value of this register */
+    @Override
     @Pure
     public byte value() {
       return (byte)ordinal();
     }
-    /** @return does this register require a REX prefix byte? */
+    @Override
     @Pure
     public boolean needsREXprefix() {
       if (VM.buildFor32Addr()) {

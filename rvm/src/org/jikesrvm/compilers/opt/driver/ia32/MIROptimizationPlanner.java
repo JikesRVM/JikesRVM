@@ -32,7 +32,7 @@ import org.jikesrvm.compilers.opt.regalloc.ia32.MIRSplitRanges;
 
 /**
  * This class specifies the order in which CompilerPhases are
- * executed in the target-specific backend of the optimzing compiler.
+ * executed in the target-specific backend of the optimizing compiler.
  * The methods LIR2MIR, MIROptimizations, and MIR2MC each specify the
  * elements that make up the main compilation stages.
  */
@@ -59,6 +59,7 @@ public class MIROptimizationPlanner extends OptimizationPlanner {
         new SplitBasicBlock(),
         // Optional printing of final LIR
         new IRPrinter("Final LIR") {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.PRINT_FINAL_LIR;
           }
@@ -70,6 +71,7 @@ public class MIROptimizationPlanner extends OptimizationPlanner {
 
         // Optional printing of initial MIR
         new IRPrinter("Initial MIR") {
+          @Override
           public boolean shouldPerform(OptOptions options) {
             return options.PRINT_MIR;
           }

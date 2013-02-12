@@ -14,9 +14,6 @@ package org.mmtk.harness.options;
 
 import org.mmtk.harness.Harness;
 
-/**
- * Number of collector threads.
- */
 public final class Timeout extends org.vmutil.options.IntOption {
   /**
    * Create the option.
@@ -32,6 +29,7 @@ public final class Timeout extends org.vmutil.options.IntOption {
    *
    * Except for unit tests, which can have 0.
    */
+  @Override
   protected void validate() {
     failIf(this.value < 0, "Timeout must be > 0");
   }

@@ -20,7 +20,7 @@ import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 
 /**
- * Phases of a garbage collection.
+ * Phases of a garbage collection.<p>
  *
  * A complex phase is a sequence of phases.
  *
@@ -94,9 +94,7 @@ public final class ComplexPhase extends Phase
     return scheduledSubPhases[index];
   }
 
-  /**
-   * Display a description of this phase, for debugging purposes.
-   */
+  @Override
   protected void logPhase() {
     Log.write("ComplexPhase(");
     Log.write(name);

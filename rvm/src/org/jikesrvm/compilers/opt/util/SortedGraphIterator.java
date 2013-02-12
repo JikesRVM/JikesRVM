@@ -26,11 +26,12 @@ import java.util.Enumeration;
  * elements.  If there is a change, then the data-flow successors of
  * the current node become the new head of the order of remaining
  * nodes.
- *
+ * <p>
  *  A typical use is as follows:
+ * <pre>
  *   BasicBlock start = ir.cfg.entry();
  *   SortedGraphIterator bbIter = new SortedGraphIterator(start, true);
- *       // true means forward analysis; false means backward analysis
+ *   // true means forward analysis; false means backward analysis
  *   for (BasicBlock currBlock = start; currBlock!= null;) {
  *
  *       // do your analysis of the currBlock here
@@ -41,6 +42,7 @@ import java.util.Enumeration;
  *
  *       currBlock = (BasicBlock) bbIter.markAndGetNextTopSort(changed);
  *  }
+ *</pre>
  */
 public class SortedGraphIterator {
 
@@ -66,7 +68,7 @@ public class SortedGraphIterator {
   protected boolean forward;
 
   /**
-   * Cosntructor
+   * Constructor
    * @param current the node to start the iteration at
    * @param forward the direction we are processing the graph
    */
@@ -172,7 +174,7 @@ public class SortedGraphIterator {
    *
    * @param currentNode the possibly unique predecessor
    * @param nextNode the node of interest
-   * @return if first parameter is the only succesor of the 2nd parameter
+   * @return if first parameter is the only successor of the 2nd parameter
    */
   public boolean isSinglePredecessor(SortedGraphNode currentNode, SortedGraphNode nextNode) {
     // check that next node has only 1 successor

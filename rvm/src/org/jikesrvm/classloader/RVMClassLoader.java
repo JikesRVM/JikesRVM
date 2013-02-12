@@ -131,12 +131,13 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
   }
 
   /**
-   * Set list of places to be searched for application classes and resources.
-   * @param classpath path specification in standard "classpath" format
+   * Set list of places to be searched for application classes and resources.<p>
    *
    * Our Jikes RVM classloader can not handle having the class path reset
    * after it's been set up.   Unfortunately, it is stashed by classes in
    * GNU Classpath.
+   *
+   * @param classpath path specification in standard "classpath" format
    */
   public static void setApplicationRepositories(String classpath) {
     System.setProperty("java.class.path", classpath);
@@ -158,7 +159,6 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
   /** Are we getting the application CL?  Access is synchronized via the
    *  Class object.  Probably not necessary, but doesn't hurt, or shouldn't.
    *  Used for sanity checks. */
-
   private static int gettingAppCL = 0;
 
   /** Is the application class loader ready for use?  Don't leak it out until
@@ -230,60 +230,60 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
 
   // Names of special methods.
   //
-  /** "<clinit>" */
+  /** {@code <clinit>} */
   public static final Atom StandardClassInitializerMethodName = Atom.findOrCreateAsciiAtom("<clinit>");
   /** "()V" */
   public static final Atom StandardClassInitializerMethodDescriptor = Atom.findOrCreateAsciiAtom("()V");
 
-  /** "<init>" */
+  /** {@code <init>} */
   public static final Atom StandardObjectInitializerMethodName = Atom.findOrCreateAsciiAtom("<init>");
-  /** "()V" */
+  /** {@code ()V} */
   public static final Atom StandardObjectInitializerMethodDescriptor = Atom.findOrCreateAsciiAtom("()V");
-  /** "this" */
+  /** {@code this} */
   public static final Atom StandardObjectInitializerHelperMethodName = Atom.findOrCreateAsciiAtom("this");
 
-  /** "finalize" */
+  /** {@code finalize} */
   public static final Atom StandardObjectFinalizerMethodName = Atom.findOrCreateAsciiAtom("finalize");
-  /** "()V" */
+  /** {@code ()V} */
   public static final Atom StandardObjectFinalizerMethodDescriptor = Atom.findOrCreateAsciiAtom("()V");
 
   // Names of .class file attributes.
   //
-  /** "Code" */
+  /** {@code Code} */
   static final Atom codeAttributeName = Atom.findOrCreateAsciiAtom("Code");
-  /** "ConstantValue" */
+  /** {@code ConstantValue} */
   static final Atom constantValueAttributeName = Atom.findOrCreateAsciiAtom("ConstantValue");
-  /** "LineNumberTable" */
+  /** {@code LineNumberTable} */
   static final Atom lineNumberTableAttributeName = Atom.findOrCreateAsciiAtom("LineNumberTable");
-  /** "Exceptions" */
+  /** {@code Exceptions} */
   static final Atom exceptionsAttributeName = Atom.findOrCreateAsciiAtom("Exceptions");
-  /** "SourceFile" */
+  /** {@code SourceFile} */
   static final Atom sourceFileAttributeName = Atom.findOrCreateAsciiAtom("SourceFile");
-  /** "LocalVariableTable" */
+  /** {@code LocalVariableTable} */
   static final Atom localVariableTableAttributeName = Atom.findOrCreateAsciiAtom("LocalVariableTable");
-  /** "Deprecated" */
+  /** {@code Deprecated}  */
   static final Atom deprecatedAttributeName = Atom.findOrCreateAsciiAtom("Deprecated");
-  /** "InnerClasses" */
+  /** {@code InnerClasses} */
   static final Atom innerClassesAttributeName = Atom.findOrCreateAsciiAtom("InnerClasses");
-  /** "Synthetic" */
+  /** {@code Synthetic} */
   static final Atom syntheticAttributeName = Atom.findOrCreateAsciiAtom("Synthetic");
-  /** "EnclosingMethod" */
+  /** {@code EnclosingMethod} */
   static final Atom enclosingMethodAttributeName = Atom.findOrCreateAsciiAtom("EnclosingMethod");
-  /** "Signature" */
+  /** {@code Signature} */
   static final Atom signatureAttributeName = Atom.findOrCreateAsciiAtom("Signature");
-  /** "RuntimeVisibleAnnotations" */
+  /** {@code RuntimeVisibleAnnotations} */
   static final Atom runtimeVisibleAnnotationsAttributeName =
       Atom.findOrCreateAsciiAtom("RuntimeVisibleAnnotations");
-  /** "RuntimeInvisibleAnnotations" */
+  /** {@code RuntimeInvisibleAnnotations} */
   static final Atom runtimeInvisibleAnnotationsAttributeName =
       Atom.findOrCreateAsciiAtom("RuntimeInvisibleAnnotations");
-  /** "RuntimeVisibleParameterAnnotations" */
+  /** {@code RuntimeVisibleParameterAnnotations} */
   static final Atom runtimeVisibleParameterAnnotationsAttributeName =
       Atom.findOrCreateAsciiAtom("RuntimeVisibleParameterAnnotations");
-  /** "RuntimeInvisibleParameterAnnotations" */
+  /** {@code RuntimeInvisibleParameterAnnotations} */
   static final Atom runtimeInvisibleParameterAnnotationsAttributeName =
       Atom.findOrCreateAsciiAtom("RuntimeInvisibleParameterAnnotations");
-  /** "AnnotationDefault" */
+  /** {@code AnnotationDefault} */
   static final Atom annotationDefaultAttributeName = Atom.findOrCreateAsciiAtom("AnnotationDefault");
 
   /** Initialize at boot time.

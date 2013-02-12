@@ -28,6 +28,7 @@ public class ConcurrentTrigger extends org.vmutil.options.IntOption {
   /**
    * Only accept values between 1 and 100 (inclusive)
    */
+  @Override
   protected void validate() {
     failIf(this.value <= 0, "Trigger must be between 1 and 100");
     failIf(this.value > 100, "Trigger must be between 1 and 100");

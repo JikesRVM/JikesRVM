@@ -19,7 +19,7 @@ public interface ControllerInputEvent {
 
   /**
    * This method is called by the controller upon dequeuing this
-   * event from the controller input queue
+   * event from the controller input queue.
    */
   void process();
 }

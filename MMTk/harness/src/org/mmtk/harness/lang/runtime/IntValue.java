@@ -56,6 +56,7 @@ public class IntValue extends Value {
   /**
    * Get this value as an integer.
    */
+  @Override
   public int getIntValue() {
     return value;
   }

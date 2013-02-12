@@ -19,8 +19,6 @@ import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 
 /**
- * StringEventCounterData.java
- *
  * A generic data object that maps strings to counters.  The key
  * method is "Instruction getCounterInstructionForEvent(String)"
  * which, given a string, returns a counter instruction that
@@ -78,7 +76,7 @@ public class StringEventCounterData extends ManagedCounterData implements Report
     if (whole == Long.MAX_VALUE || whole == Long.MIN_VALUE) {
       return Double.toString(whole);
     }
-    double fract = Math.abs(num - (double) whole);
+    double fract = Math.abs(num - whole);
     String res = Long.toString(whole);
     if (fract != 0.0) {
       String f2s = Double.toString(fract + 1.0);
@@ -88,9 +86,9 @@ public class StringEventCounterData extends ManagedCounterData implements Report
   }
 
   /**
-   * Part of Reportable interface
    * Print a report at the end of execution
    */
+  @Override
   public void report() {
     // Turn off future instrumentation to avoid hanging during
     // iteration
@@ -150,9 +148,7 @@ public class StringEventCounterData extends ManagedCounterData implements Report
     return counter;
   }
 
-  /**
-   *  Part of Reportable interface
-   **/
+  @Override
   public void reset() {
     for (String stringName : stringToCounterMap.keySet()) {
       int counterIdx = getCounterIndexForString(stringName);
@@ -175,6 +171,6 @@ public class StringEventCounterData extends ManagedCounterData implements Report
    */
   int eventNumber = -1;
 
-} // end of class
+}
 
 

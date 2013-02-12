@@ -24,9 +24,6 @@ public class BooleanType extends AbstractType {
     super("boolean");
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.AbstractType#isCompatibleWith(org.mmtk.harness.lang.type.Type)
-   */
   @Override
   public boolean isCompatibleWith(Type rhs) {
     if (rhs == OBJECT) {
@@ -35,9 +32,6 @@ public class BooleanType extends AbstractType {
     return super.isCompatibleWith(rhs);
   }
 
-  /**
-   * @see org.mmtk.harness.lang.type.Type#initialValue()
-   */
   @Override
   public Value initialValue() {
     return BoolValue.FALSE;

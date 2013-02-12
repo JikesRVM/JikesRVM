@@ -14,7 +14,7 @@ package org.jikesrvm.osr.bytecodes;
 
 
 /**
- * BC_LongStore: lstore, lstore_<n>
+ * BC_LongStore: {@code lstore}, {@code lstore_<n>}
  */
 
 public class LongStore extends PseudoBytecode {
@@ -33,18 +33,22 @@ public class LongStore extends PseudoBytecode {
     }
   }
 
+  @Override
   public byte[] getBytes() {
     return codes;
   }
 
+  @Override
   public int getSize() {
     return bsize;
   }
 
+  @Override
   public int stackChanges() {
     return -2;
   }
 
+  @Override
   public String toString() {
     return "lstore " + lnum;
   }

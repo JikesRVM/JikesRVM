@@ -35,20 +35,23 @@ abstract class ArchitecturalWord {
   }
 
   ArchitecturalWord(long value) {
-    @32MASK@VM._assert(VM.NOT_REACHED);
+    @32MASK@VM.sysFail("Detected use of long constructor for 32-bit word!");
     @32MASK@this.value = (int)value;
     @64MASK@this.value = value;
   }
 
+  @Override
   @Interruptible
   public String toString() {
     return ""+value;
   }
 
+  @Override
   public int hashCode() {
     return (int)value;
   }
 
+  @Override
   public boolean equals(Object that) {
     if (that instanceof ArchitecturalWord) {
       return value == ((ArchitecturalWord)that).value;

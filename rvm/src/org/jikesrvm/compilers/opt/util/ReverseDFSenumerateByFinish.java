@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.util;
 
+import java.util.Enumeration;
+
 
 /**
  *  This class generates an enumeration of nodes of a graph, in order
@@ -36,7 +38,7 @@ public class ReverseDFSenumerateByFinish extends DFSenumerateByFinish {
    * @param net The graph over which to search
    * @param nodes The nodes at which to start the search
    */
-  public ReverseDFSenumerateByFinish(Graph net, GraphNodeEnumeration nodes) {
+  public ReverseDFSenumerateByFinish(Graph net, Enumeration<GraphNode> nodes) {
     super(net, nodes);
   }
 
@@ -46,7 +48,8 @@ public class ReverseDFSenumerateByFinish extends DFSenumerateByFinish {
    * @param n A node in the DFS
    * @return The nodes that have edges leading to n
    */
-  protected GraphNodeEnumeration getConnected(GraphNode n) {
+  @Override
+  protected Enumeration<GraphNode> getConnected(GraphNode n) {
     return n.inNodes();
   }
 }

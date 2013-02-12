@@ -46,6 +46,7 @@ public abstract class Chunk extends RawChunk {
 	this(chunkType, new byte[DEFAULT_CHUNK_SIZE]);
     }
 
+    @Override
     public void close() {
 	int pos = getPosition();
 	int bodyLength = pos - DATA_OFFSET;
@@ -53,6 +54,7 @@ public abstract class Chunk extends RawChunk {
 	super.close();
     }
 
+    @Override
     protected void resetImpl() {
       super.resetImpl();
       seek(DATA_OFFSET);

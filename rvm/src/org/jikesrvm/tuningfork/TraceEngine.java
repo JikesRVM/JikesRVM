@@ -111,7 +111,7 @@ public final class TraceEngine {
 
 
   /**
-   * Put some basic properties about this vm build & current execution into the feed.
+   * Put some basic properties about this VM build & current execution into the feed.
    */
   private void writeInitialProperites() {
     addProperty("rvm version", Configuration.RVM_VERSION_STRING);
@@ -263,6 +263,7 @@ public final class TraceEngine {
   private void createDaemonThreads() {
     /* Create primary I/O thread */
     Thread ioThread = new Thread(new Runnable() {
+      @Override
       public void run() {
         ioThreadMainLoop();
       }}, "TuningFork Primary I/O thread");
@@ -271,6 +272,7 @@ public final class TraceEngine {
 
     /* Install shutdown hook that will delay VM exit until I/O completes. */
     Callbacks.addExitMonitor(new ExitMonitor(){
+      @Override
       public void notifyExit(int value) {
         state = State.SHUTTING_DOWN;
         while (state == State.SHUTTING_DOWN) {

@@ -130,6 +130,7 @@ $$$$ END IF
    *
    * @return the name of the operator
    */
+  @Override
   public String toString() {
     return OperatorNames.toString(this);
   }

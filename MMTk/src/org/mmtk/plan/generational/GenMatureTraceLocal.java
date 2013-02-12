@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
- * This abstract class implments the core functionality for a transitive
+ * This abstract class implements the core functionality for a transitive
  * closure over the heap graph.
  */
 @Uninterruptible
@@ -32,6 +32,10 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
   /****************************************************************************
    *
    * Instance fields.
+   */
+
+  /**
+   *
    */
   private final ObjectReferenceDeque modbuf;
   private final AddressDeque remset;
@@ -68,11 +72,9 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
    */
 
   /**
-   * Is the specified object live?
-   *
-   * @param object The object.
-   * @return True if the object is live.
+   * {@inheritDoc}
    */
+  @Override
   @Inline
   public boolean isLive(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
@@ -83,14 +85,15 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
   }
 
   /**
-   * Return true if this object is guaranteed not to move during this
-   * collection (i.e. this object is defintely not an unforwarded
+   * Return {@code true} if this object is guaranteed not to move during this
+   * collection (i.e. this object is definitely not an unforwarded
    * object).
    *
    * @param object
-   * @return True if this object is guaranteed not to move during this
+   * @return {@code true} if this object is guaranteed not to move during this
    *         collection.
    */
+  @Override
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     if (Gen.inNursery(object))
       return false;
@@ -98,17 +101,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
       return super.willNotMoveInCurrentCollection(object);
   }
 
-  /**
-   * This method is the core method during the trace of the object graph.
-   * The role of this method is to:
-   *
-   * 1. Ensure the traced object is not collected.
-   * 2. If this is the first visit to the object enqueue it to be scanned.
-   * 3. Return the forwarded reference to the object.
-   *
-   * @param object The object to be traced.
-   * @return The new reference to the same object instance.
-   */
+  @Override
   @Inline
   public ObjectReference traceObject(ObjectReference object) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!object.isNull());
@@ -120,6 +113,7 @@ public abstract class GenMatureTraceLocal extends TraceLocal {
   /**
    * Process any remembered set entries.
    */
+  @Override
   protected void processRememberedSets() {
     logMessage(5, "clearing modbuf");
     ObjectReference obj;

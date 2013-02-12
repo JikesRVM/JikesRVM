@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
+import java.util.Enumeration;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.TypeReference;
@@ -27,7 +28,6 @@ import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_MOVE;
@@ -230,8 +230,8 @@ public abstract class CallingConvention extends IRTools {
         (-256 - ArchitectureSpecific.ArchConstants.STACKFRAME_HEADER_SIZE) >> LOG_BYTES_IN_ADDRESS;
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     Register FP = phys.getFP();
-    for (OperandEnumeration symParams = prologueInstr.getDefs(); symParams.hasMoreElements();) {
-      RegisterOperand symParamOp = (RegisterOperand) symParams.next();
+    for (Enumeration<Operand> symParams = prologueInstr.getDefs(); symParams.hasMoreElements();) {
+      RegisterOperand symParamOp = (RegisterOperand) symParams.nextElement();
       Register symParam = symParamOp.getRegister();
       TypeReference t = symParamOp.getType();
       if (t.isFloatType()) {

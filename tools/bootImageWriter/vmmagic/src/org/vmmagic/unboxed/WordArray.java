@@ -27,7 +27,7 @@ public final class WordArray implements RuntimeTable<Word> {
 
   @Interruptible
   public static WordArray create(int size) {
-    if (VM.runningVM) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // should be hijacked
     return new WordArray(size);
   }
 
@@ -41,37 +41,37 @@ public final class WordArray implements RuntimeTable<Word> {
 
   @Inline
   public Word get(int index) {
-    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && (VM.runningVM || VM.writingImage)) VM._assert(VM.NOT_REACHED);  // should be hijacked
     return data[index];
   }
 
   @Inline
   public void set(int index, Word v) {
-    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && (VM.runningVM || VM.writingImage)) VM._assert(VM.NOT_REACHED);  // should be hijacked
     data[index] = v;
   }
 
   @Inline
   public void set(int index, Address v) {
-    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && (VM.runningVM || VM.writingImage)) VM._assert(VM.NOT_REACHED);  // should be hijacked
     data[index] = v.toWord();
   }
 
   @Inline
   public void set(int index, Offset v) {
-    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && (VM.runningVM || VM.writingImage)) VM._assert(VM.NOT_REACHED);  // should be hijacked
     data[index] = v.toWord();
   }
 
   @Inline
   public void set(int index, Extent v) {
-    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && (VM.runningVM || VM.writingImage)) VM._assert(VM.NOT_REACHED);  // should be hijacked
     data[index] = v.toWord();
   }
 
   @Inline
   public int length() {
-    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
+    if (VM.VerifyAssertions && (VM.runningVM || VM.writingImage)) VM._assert(VM.NOT_REACHED);  // should be hijacked
     return data.length;
   }
 

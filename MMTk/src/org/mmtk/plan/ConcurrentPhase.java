@@ -20,7 +20,7 @@ import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 
 /**
- * Phases of a garbage collection.
+ * Phases of a garbage collection.<p>
  *
  * A concurrent phase runs concurrently with mutator activity.
  */
@@ -67,9 +67,7 @@ public final class ConcurrentPhase extends Phase
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(getSchedule(this.atomicScheduledPhase) != SCHEDULE_CONCURRENT);
   }
 
-  /**
-   * Display a description of this phase, for debugging purposes.
-   */
+  @Override
   protected void logPhase() {
     Log.write("ConcurrentPhase(");
     Log.write(name);

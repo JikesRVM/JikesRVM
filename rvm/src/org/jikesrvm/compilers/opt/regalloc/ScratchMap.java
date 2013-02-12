@@ -127,8 +127,12 @@ public final class ScratchMap {
   }
 
   /**
-   * If a physical register is being used as a scratch register at
-   * instruction n, return true; else, return false;
+   * Is the given physical register being used as a scratch register
+   * in the given instruction?
+   * @param r a physical register
+   * @param n the instruction's number
+   * @return {@code true} if the register is used as a scratch register
+   *  in the instruction, {@code false} otherwise
    */
   boolean isScratch(Register r, int n) {
     ArrayList<Interval> v = map.get(r);
@@ -189,6 +193,7 @@ public final class ScratchMap {
   /**
    * Return a String representation.
    */
+  @Override
   public String toString() {
     String result = "";
     for (ArrayList<Interval> v : map.values()) {
@@ -233,7 +238,8 @@ public final class ScratchMap {
 
   /**
    * An object that represents an interval where a symbolic register
-   * resides in a scratch register.
+   * resides in a scratch register.<p>
+   *
    * Note that this interval must not span a basic block.
    */
   static final class SymbolicInterval extends Interval {
@@ -251,6 +257,7 @@ public final class ScratchMap {
      * Return a string representation, assuming the 'scratch' field of
      * Instruction identifies an instruction.
      */
+    @Override
     public String toString() {
       return "SI: " + symbolic + " " + scratch + " [" + begin.scratch + "," + end.scratch + "]";
     }
@@ -259,7 +266,9 @@ public final class ScratchMap {
   /**
    * An object that represents an interval where a physical register's
    * contents are evicted so that the physical register can be used as a
-   * scratch.  Note that this interval must not span a basic block.
+   * scratch.<p>
+   *
+   * Note that this interval must not span a basic block.
    */
   static final class PhysicalInterval extends Interval {
     PhysicalInterval(Register scratch) {
@@ -270,6 +279,7 @@ public final class ScratchMap {
      * Return a string representation, assuming the 'scratch' field of
      * Instruction identifies an instruction.
      */
+    @Override
     public String toString() {
       return "PI: " + scratch + " [" + begin.scratch + "," + end.scratch + "]";
     }

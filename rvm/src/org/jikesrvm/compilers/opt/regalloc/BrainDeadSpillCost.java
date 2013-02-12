@@ -17,7 +17,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
 /**
  * An object that returns an estimate of the relative cost of spilling a
  * symbolic register.
- *
+ * <p>
  * This implementation returns a cost of zero for all registers.
  */
 class BrainDeadSpillCost extends SpillCostEstimator {
@@ -30,6 +30,7 @@ class BrainDeadSpillCost extends SpillCostEstimator {
    * Calculate the estimated cost for each register.
    * This brain-dead version does nothing.
    */
+  @Override
   void calculate(IR ir) {
   }
 }

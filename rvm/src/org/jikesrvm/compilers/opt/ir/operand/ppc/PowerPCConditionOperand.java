@@ -100,16 +100,18 @@ public final class PowerPCConditionOperand extends Operand {
     return new PowerPCConditionOperand(cond);
   }
 
+  @Override
   public Operand copy() {
     return new PowerPCConditionOperand(value);
   }
 
+  @Override
   public boolean similar(Operand op) {
     return (op instanceof PowerPCConditionOperand) && (((PowerPCConditionOperand) op).value == value);
   }
 
   /**
-   * flips the direction of the condition
+   * Flips the direction of the condition.
    */
   public PowerPCConditionOperand flipCode() {
     switch (value) {
@@ -150,8 +152,8 @@ public final class PowerPCConditionOperand extends Operand {
   }
 
   /**
-   * this could be used if you want to flip the order of the operands
-   * you will notice that there are some differences
+   * This could be used if you want to flip the order of the operands
+   * You will notice that there are some differences.
    */
   public PowerPCConditionOperand flipOperands() {
     switch (value) {
@@ -189,7 +191,7 @@ public final class PowerPCConditionOperand extends Operand {
   }
 
   /**
-   * translate from ConditionOperand: used by BURS
+   * Translate from ConditionOperand: used by BURS.
    */
   public void translate(ConditionOperand c) {
     switch (c.value) {
@@ -233,6 +235,7 @@ public final class PowerPCConditionOperand extends Operand {
   /**
    * Returns the string representation of this operand.
    */
+  @Override
   public String toString() {
     String result = "ppc ";
     if ((value & 0x1C0) == 0) {

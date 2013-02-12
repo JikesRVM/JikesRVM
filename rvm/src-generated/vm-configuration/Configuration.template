@@ -78,17 +78,17 @@ public abstract class Configuration {
    */
   public static final boolean VerifyUnint = VerifyAssertions;
 
-  // If set, ignore the supression pragma and print all warning messages.
+  /** If set, ignore the supression pragma and print all warning messages. */
   public static final boolean ParanoidVerifyUnint = false;
 
-  // Is this an adaptive build?
+  /** Is this an adaptive build? */
   public static final boolean BuildForAdaptiveSystem = @_RVM_WITH_ADAPTIVE_SYSTEM_@;
 
-  // Is this an opt compiler build?
+  /** Is this an opt compiler build? */
   public static final boolean BuildForOptCompiler = @_RVM_WITH_OPT_COMPILER_@;
 
-   // build with Base boot image compiler
-   public static final boolean BuildWithBaseBootImageCompiler = @_RVM_WITH_BASE_BOOTIMAGE_COMPILER_@;
+  /** build with Base boot image compiler? */
+  public static final boolean BuildWithBaseBootImageCompiler = @_RVM_WITH_BASE_BOOTIMAGE_COMPILER_@;
 
   // Interface method dispatch strategy.
   // We either use IMT's (Alpern, Cocchi, Fink, Grove, and Lieber OOPSLA 2001)
@@ -102,7 +102,7 @@ public abstract class Configuration {
       methods.  */
   public static final boolean UseEpilogueYieldPoints = BuildForAdaptiveSystem;
 
-  /* NUmber of allocations between gc's during stress testing. Set to 0 to disable. */
+  /** NUmber of allocations between gc's during stress testing. Set to 0 to disable. */
   public static final int StressGCAllocationInterval = @_RVM_STRESSGC_INTERVAL_@;
   public static final boolean ForceFrequentGC = 0 != StressGCAllocationInterval;
 

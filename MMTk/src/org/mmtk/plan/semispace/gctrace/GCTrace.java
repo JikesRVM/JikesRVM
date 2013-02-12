@@ -30,6 +30,7 @@ import org.vmmagic.pragma.*;
  * as faithful as possible to semiSpace/Plan.java.
  *
  * The generated trace format is as follows:
+ * <pre>
  *    B 345678 12
  *      (Object 345678 was created in the boot image with a size of 12 bytes)
  *    U 59843 234 47298
@@ -59,7 +60,7 @@ import org.vmmagic.pragma.*;
  *         with offset 23; b) the object allocated is of type java.lang.Foo)
  *    D 342789 361460
  *      (Object 342789 became unreachable after 361460 was allocated)
- *
+ * </pre>
  * This class implements a simple semi-space collector. See the Jones
  * & Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
@@ -85,6 +86,10 @@ import org.vmmagic.pragma.*;
    */
 
   /* Spaces */
+
+  /**
+   *
+   */
   public static final RawPageSpace traceSpace = new RawPageSpace("trace", VMRequest.create());
   public static final int TRACE = traceSpace.getDescriptor();
 
@@ -110,14 +115,7 @@ import org.vmmagic.pragma.*;
     TraceGenerator.init(workList, traceBuf);
   }
 
-  /**
-   * The processOptions method is called by the runtime immediately after
-   * command-line arguments are available. Allocation must be supported
-   * prior to this point because the runtime infrastructure may require
-   * allocation in order to parse the command line arguments.  For this
-   * reason all plans should operate gracefully on the default minimum
-   * heap size until the point that processOptions is called.
-   */
+  @Override
   @Interruptible
   public void processOptions() {
     super.processOptions();
@@ -128,6 +126,7 @@ import org.vmmagic.pragma.*;
    * The planExit method is called at RVM termination to allow the
    * trace process to finish.
    */
+  @Override
   @Interruptible
   public final void notifyExit(int value) {
     super.notifyExit(value);
@@ -137,13 +136,7 @@ import org.vmmagic.pragma.*;
     TraceGenerator.notifyExit(value);
   }
 
-  /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns true to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @return True if a collection is requested by the plan.
-   */
+  @Override
   public final boolean collectionRequired(boolean spaceFull, Space space) {
     if (super.collectionRequired(spaceFull, space)) {
       traceInducedGC = false;
@@ -157,6 +150,10 @@ import org.vmmagic.pragma.*;
    * Collection
    */
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void collectionPhase(short phaseId) {
     if (phaseId == PREPARE) {
       lastGCWasTracing = traceInducedGC;

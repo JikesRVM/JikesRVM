@@ -36,7 +36,8 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
   private TypeOperand[] exceptionTypes;
 
   /**
-   * The liveness information at the beginning of this block
+   * The liveness information at the beginning of this block.
+   * <p>
    *  NOTE: If we decide to store this for all blocks, we should move
    *  this field to BasicBlock (the parent class)
    */
@@ -132,10 +133,12 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
     return new Enumeration<TypeOperand>() {
       private int idx = 0;
 
+      @Override
       public boolean hasMoreElements() {
         return idx != exceptionTypes.length;
       }
 
+      @Override
       public TypeOperand nextElement() {
         try {
           return exceptionTypes[idx++];
@@ -147,7 +150,7 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
   }
 
   /**
-   * Get how many table entires this EHBB needs.
+   * Get how many table entries this EHBB needs.
    * Really only of interest during final assembly.
    *
    * @see org.jikesrvm.compilers.opt.runtimesupport.OptExceptionTable
@@ -187,6 +190,7 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
    *
    * @return a string representation of the block
    */
+  @Override
   public String toString() {
     String exmsg = " (catches ";
     for (int i = 0; i < exceptionTypes.length - 1; i++) {
@@ -194,9 +198,9 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
     }
     exmsg = exmsg + exceptionTypes[exceptionTypes.length - 1].toString();
     exmsg = exmsg + " for";
-    BasicBlockEnumeration in = getIn();
+    Enumeration<BasicBlock> in = getIn();
     while (in.hasMoreElements()) {
-      exmsg = exmsg + " " + in.next().toString();
+      exmsg = exmsg + " " + in.nextElement().toString();
     }
     exmsg = exmsg + ")";
 

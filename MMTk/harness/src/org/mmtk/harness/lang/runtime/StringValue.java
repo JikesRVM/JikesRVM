@@ -43,6 +43,7 @@ public class StringValue extends Value {
   /**
    * Get this value as a String
    */
+  @Override
   public String getStringValue() {
     return value;
   }

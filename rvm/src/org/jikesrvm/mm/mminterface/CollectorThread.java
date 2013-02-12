@@ -68,6 +68,7 @@ public final class CollectorThread extends SystemThread {
   /**
    * Collection entry point. Delegates the real work to MMTk.
    */
+  @Override
   @NoOptCompile
   // refs stored in registers by opt compiler will not be relocated by GC
   @BaselineNoRegisters

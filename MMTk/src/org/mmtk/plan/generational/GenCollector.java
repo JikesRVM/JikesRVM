@@ -40,6 +40,9 @@ import org.vmmagic.pragma.*;
    * Instance fields
    */
 
+  /**
+   *
+   */
   protected final GenNurseryTraceLocal nurseryTrace;
 
   protected final LargeObjectLocal los;
@@ -56,7 +59,7 @@ import org.vmmagic.pragma.*;
 
   /**
    * Constructor
-   *
+   * <p>
    * Note that the collector is a consumer of remsets, while the
    * mutator is a producer.  The <code>GenMutator</code> class is
    * responsible for construction of the WriteBuffer (producer).
@@ -76,11 +79,9 @@ import org.vmmagic.pragma.*;
    */
 
   /**
-   * Perform a per-collector collection phase.
-   *
-   * @param phaseId The collection phase to perform
-   * @param primary Use this thread for single-threaded local activities.
+   * {@inheritDoc}
    */
+  @Override
   @NoInline
   public void collectionPhase(short phaseId, boolean primary) {
 
@@ -136,6 +137,7 @@ import org.vmmagic.pragma.*;
     return (Gen) VM.activePlan.global();
   }
 
+  @Override
   public final TraceLocal getCurrentTrace() {
     if (global().traceFullHeap()) return getFullHeapTrace();
     return nurseryTrace;

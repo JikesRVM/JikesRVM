@@ -32,18 +32,15 @@ import org.jikesrvm.scheduler.RVMThread;
 /**
  * The default inlining oracle used by the optimizing compiler.
  * The basic strategy is as follows:
- *  (1) Always inline trivial methods that can be inlined without a guard
- *  (2) At O1 and greater use a mix of profile information and static heuristics
+ * <ol>
+ *  <li>Always inline trivial methods that can be inlined without a guard
+ *  <li>At O1 and greater use a mix of profile information and static heuristics
  *      to inline larger methods and methods that require guards.
+ * </ol>
  */
 public final class DefaultInlineOracle extends InlineTools implements InlineOracle {
 
-  /**
-   * Should we inline a particular call site?
-   *
-   * @param state information needed to make the inlining decision
-   * @return an InlineDecision with the result
-   */
+  @Override
   public InlineDecision shouldInline(final CompilationState state) {
     final OptOptions opts = state.getOptions();
     final boolean verbose = opts.PRINT_DETAILED_INLINE_REPORT;
@@ -212,6 +209,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
       final boolean goosc = guardOverrideOnStaticCallee; // real closures anyone?
       final boolean ps = purelyStatic;                   // real closures anyone?
       targets.visitTargets(new WeightedCallTargets.Visitor() {
+        @Override
         public void visit(RVMMethod callee, double weight) {
           if (hasBody(callee)) {
             if (verbose) {
@@ -306,7 +304,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
                          * Other alternatives would be to do a log interpolation or some other step function.
                          */
                         int range = opts.INLINE_AI_MAX_TARGET_SIZE -  2*opts.INLINE_MAX_TARGET_SIZE;
-                        double slope = ((double) range) / Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD;
+                        double slope = (range) / Controller.options.INLINE_AI_HOT_CALLSITE_THRESHOLD;
                         int scaledAdj = (int) (slope * adjustedWeight);
                         maxCost += opts.INLINE_MAX_TARGET_SIZE + scaledAdj;
                       }
@@ -419,7 +417,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
                 VM.sysWriteln("  Method " + i + ": " + methodsToInline.get(i));
                 VM.sysWriteln("  NeedsGuard: " + methodsNeedGuard.get(i));
               }
-              VM._assert(false);
+              VM._assert(VM.NOT_REACHED);
             }
           }
           methods[idx] = target;
@@ -471,7 +469,7 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
 
   /**
    * Estimate the expected cost of the inlining action
-   * (inclues both the inline body and the guard/off-branch code).
+   * (includes both the inline body and the guard/off-branch code).
    *
    * @param inlinedBodyEstimate size estimate for inlined body
    * @param needsGuard is it going to be a guarded inline?

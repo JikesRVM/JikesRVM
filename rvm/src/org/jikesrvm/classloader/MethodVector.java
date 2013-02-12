@@ -76,6 +76,7 @@ final class MethodVector {
     }
   }
 
+  @Override
   public int hashCode() {
     int val = 0;
     for (int i=cnt-1; i >= 0; i--) {
@@ -84,6 +85,7 @@ final class MethodVector {
     return val;
   }
 
+  @Override
   public boolean equals(Object obj) {
     if (obj instanceof MethodVector) {
       MethodVector that = (MethodVector)obj;

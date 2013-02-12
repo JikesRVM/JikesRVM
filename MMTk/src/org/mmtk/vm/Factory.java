@@ -74,8 +74,8 @@ public abstract class Factory {
   public abstract Collection newCollection();
 
   /**
-   * Create a new Config instance using the appropriate VM-specific
-   * concrete Config sub-class.
+   * Create a new BuildTimeConfig instance using the appropriate VM-specific
+   * concrete BuildTimeConfig sub-class.
    *
    * @see Collection
    * @return A concrete VM-specific Collection instance.

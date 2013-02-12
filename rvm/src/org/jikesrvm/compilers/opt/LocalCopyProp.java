@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,7 +23,6 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.OperandEnumeration;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
@@ -31,20 +31,23 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * Perform local copy propagation for a factored basic block.
  * Orthogonal to the copy propagation performed in Simple
  * since here we use flow-sensitive analysis within a basic block.
- *
+ * <p>
  * TODO: factor out common functionality in the various local propagation
  * phases?
  */
 public class LocalCopyProp extends CompilerPhase {
 
+  @Override
   public final boolean shouldPerform(OptOptions options) {
     return options.LOCAL_COPY_PROP;
   }
 
+  @Override
   public final String getName() {
     return "Local CopyProp";
   }
 
+  @Override
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
     VM.sysWrite(container.counter1 / container.counter2 * 100, 2);
@@ -57,6 +60,7 @@ public class LocalCopyProp extends CompilerPhase {
    * @param ir not used
    * @return this
    */
+  @Override
   public CompilerPhase newExecution(IR ir) {
     return this;
   }
@@ -66,6 +70,7 @@ public class LocalCopyProp extends CompilerPhase {
    *
    * @param ir the IR to optimize
    */
+  @Override
   public void perform(IR ir) {
     HashMap<Register, Operand> info = new HashMap<Register, Operand>();
     for (BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
@@ -84,8 +89,8 @@ public class LocalCopyProp extends CompilerPhase {
           int numUses = s.getNumberOfPureUses();
           if (numUses > 0) {
             boolean didSomething = false;
-            for (OperandEnumeration e = s.getUses(); e.hasMoreElements();) {
-              Operand use = e.next();
+            for (Enumeration<Operand> e = s.getUses(); e.hasMoreElements();) {
+              Operand use = e.nextElement();
               if (use instanceof RegisterOperand) {
                 RegisterOperand rUse = (RegisterOperand) use;
                 Operand value = info.get(rUse.getRegister());
@@ -125,8 +130,8 @@ public class LocalCopyProp extends CompilerPhase {
             }
           }
 
-          for (OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
-            Operand def = e.next();
+          for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements();) {
+            Operand def = e.nextElement();
             if (def != null && def.isRegister()) {
               Register r = def.asRegister().getRegister();
               info.remove(r);

@@ -57,7 +57,7 @@ public class AbstractAST implements AST {
   }
 
   /**
-   * Constructor only for AST elements that don't have a direct correspondance
+   * Constructor only for AST elements that don't have a direct correspondence
    * to the source.
    * @param line
    * @param column
@@ -70,6 +70,7 @@ public class AbstractAST implements AST {
   }
 
   /** @return The source token */
+  @Override
   public Token getToken() {
     return t;
   }
@@ -86,7 +87,6 @@ public class AbstractAST implements AST {
     return t.beginColumn;
   }
 
-  /** @see org.mmtk.harness.lang.ast.AST#sourceLocation(java.lang.String) */
   @Override
   public String sourceLocation(String prefix) {
     if (source == null) {

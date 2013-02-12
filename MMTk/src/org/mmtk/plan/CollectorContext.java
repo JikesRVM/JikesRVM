@@ -46,7 +46,7 @@ import org.vmmagic.unboxed.*;
  * <p>MMTk assumes that the VM instantiates instances of {@link CollectorContext}
  * in thread local storage (TLS) for each thread participating in
  * collection.  Accesses to this state are therefore assumed to be
- * low-cost at GC time.<p>
+ * low-cost at GC time.</p>
  *
  * <p>MMTk explicitly separates thread-local (this class) and global
  * operations (See {@link Plan}), so that syncrhonization is localized
@@ -97,14 +97,15 @@ public abstract class CollectorContext implements Constants {
    */
 
   /**
-   * Allocate memory when copying an object.
+   * Allocate space for copying an object (this method <i>does not</i>
+   * copy the object, it only allocates space)
    *
    * @param original The object that is being copied.
-   * @param bytes The number of bytes required for the copy.
-   * @param align Required alignment for the copy.
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param align Required alignment for the copy
    * @param offset Offset associated with the alignment.
-   * @param allocator The allocator associated with this request.
-   * @return The address of the newly allocated region.
+   * @param allocator The allocator associated with this request
+   * @return The address of the first byte of the allocated region
    */
   public Address allocCopy(ObjectReference original, int bytes, int align, int offset, int allocator) {
     VM.assertions.fail("Collector has not implemented allocCopy");
@@ -124,8 +125,8 @@ public abstract class CollectorContext implements Constants {
   }
 
   /**
-   * Run-time check of the allocator to use for a given copy allocation
-   *
+   * Run-time check of the allocator to use for a given copy allocation.
+   * <p>
    * At the moment this method assumes that allocators will use the simple
    * (worst) method of aligning to determine if the object is a large object
    * to ensure that no objects are larger than other allocators can handle.
@@ -134,7 +135,7 @@ public abstract class CollectorContext implements Constants {
    * @param bytes The number of bytes to be allocated.
    * @param align The requested alignment.
    * @param allocator The allocator statically assigned to this allocation.
-   * @return The allocator dyncamically assigned to this allocation.
+   * @return The allocator dynamically assigned to this allocation.
    */
   @Inline
   public int copyCheckAllocator(ObjectReference from, int bytes, int align, int allocator) {
