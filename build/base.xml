@@ -142,7 +142,7 @@
       <arg value="id"/>
       <arg value="--debug"/>
       <arg value="-i"/>
-      <redirector outputproperty="hg.revision"/>
+      <redirector outputproperty="hg.revision" errorproperty="hg.revision.erroroutput"/>
     </exec>
   </target>
 
