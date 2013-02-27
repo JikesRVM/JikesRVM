@@ -48,10 +48,11 @@ import org.vmmagic.unboxed.Word;
  *     perform synchronization without depending on RVM thread subsystem functionality.
  *     However, most of the time, you should use the methods that inform
  *     the thread system that you are blocking.  Methods that have the
- *     "Nicely" suffix will inform the thread system if you are blocked,
+ *     "WithHandshake" suffix will inform the thread system if you are blocked,
  *     while methods that do not have the suffix will either not block
- *     (as is the case with unlock and broadcast) or will block without
- *     letting anyone know (like lock and wait).  Not letting the threading
+ *     (as is the case with {@link #unlock()} and {@link #broadcast()})
+ *     or will block without letting anyone know (like {@link #lockNoHandshake()}
+ *     and {@link #waitNoHandshake()}). Not letting the threading
  *     system know that you are blocked may cause things like GC to stall
  *     until you unblock.</li>
  * </ul>
@@ -84,7 +85,7 @@ public class Monitor {
    * that it is blocking.  Thus, if someone (like, say, the GC) requests
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
-   * lockNicely instead.
+   * {@link #lockWithHandshake()} instead.
    */
   @NoInline
   @NoOptCompile
@@ -132,8 +133,9 @@ public class Monitor {
    * requested you to block needs to acquire the lock you were trying to
    * acquire when the blocking request came.
    * <p>
-   * It is usually not necessary to call this method instead of lock(),
-   * since most VM locks are held for short periods of time.
+   * It is usually not necessary to call this method instead of
+   * {@link #lockNoHandshake()} since most VM locks are held for short
+   * periods of time.
    */
   @Unpreemptible("If the lock cannot be acquired, this method will allow the thread to be asynchronously blocked")
   @NoInline
@@ -173,7 +175,8 @@ public class Monitor {
     }
   }
   /**
-   * Relock the mutex after using unlockCompletely, but do so "nicely".
+   * Relock the mutex after using {@link #unlockCompletely()} and notify
+   * the threading subsystem.
    */
   @NoInline
   @NoOptCompile
@@ -229,13 +232,13 @@ public class Monitor {
     return result;
   }
   /**
-   * Wait until someone calls broadcast.
+   * Wait until someone calls {@link #broadcast()}.
    * <p>
    * This blocking method method does not notify the threading subsystem
    * that it is blocking.  Thus, if someone (like, say, the GC) requests
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
-   * waitNicely instead.
+   * {@link #waitWithHandshake()} instead.
    */
   @NoInline
   @NoOptCompile
@@ -250,14 +253,14 @@ public class Monitor {
     holderSlot=RVMThread.getCurrentThreadSlot();
   }
   /**
-   * Wait until someone calls broadcast, or until the clock reaches the
-   * given time.
+   * Wait until someone calls {@link #broadcast()}, or until the clock
+   * reaches the given time.
    * <p>
    * This blocking method method does not notify the threading subsystem
    * that it is blocking.  Thus, if someone (like, say, the GC) requests
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
-   * timedWaitAbsoluteNicely instead.
+   * {@link #timedWaitAbsoluteWithHandshake(long)} instead.
    */
   @NoInline
   @NoOptCompile
@@ -272,14 +275,14 @@ public class Monitor {
     holderSlot=RVMThread.getCurrentThreadSlot();
   }
   /**
-   * Wait until someone calls broadcast, or until at least the given
-   * number of nanoseconds pass.
+   * Wait until someone calls {@link #broadcast()}, or until at least
+   * the given number of nanoseconds pass.
    * <p>
    * This blocking method method does not notify the threading subsystem
    * that it is blocking.  Thus, if someone (like, say, the GC) requests
    * that the thread is blocked then their request will block until this
    * method unblocks.  If this sounds like it might be undesirable, call
-   * timedWaitRelativeNicely instead.
+   * {@link #timedWaitRelativeWithHandshake(long)} instead.
    */
   @NoInline
   @NoOptCompile
@@ -288,13 +291,13 @@ public class Monitor {
     timedWaitAbsoluteNoHandshake(now+delayNanos);
   }
   /**
-   * Wait until someone calls broadcast.
+   * Wait until someone calls {@link #broadcast()}.
    * <p>
    * This blocking method notifies the threading subsystem that it
-   * is blocking.  Thus, it is generally safer than calling wait.  But,
-   * its reliance on threading subsystem accounting methods may mean that
-   * it cannot be used in certain contexts (say, the threading subsystem
-   * itself).
+   * is blocking.  Thus, it is generally safer than calling
+   * {@link #waitNoHandshake()}.  But, its reliance on threading subsystem
+   * accounting methods may mean that it cannot be used in certain contexts
+   * (say, the threading subsystem itself).
    * <p>
    * This method will ensure that if it blocks, it does so with the
    * mutex not held.  This is useful for cases where the subsystem that
@@ -320,14 +323,14 @@ public class Monitor {
     relockWithHandshakeImpl(recCount);
   }
   /**
-   * Wait until someone calls broadcast, or until the clock reaches the
-   * given time.
+   * Wait until someone calls {@link #broadcast()}, or until the clock
+   * reaches the given time.
    * <p>
    * This blocking method method notifies the threading subsystem that it
    * is blocking.  Thus, it is generally safer than calling
-   * timedWaitAbsolute.  But, its reliance on threading subsystem accounting
-   * methods may mean that it cannot be used in certain contexts (say, the
-   * threading subsystem itself).
+   * {@link #timedWaitAbsoluteNoHandshake(long)}. But, its reliance on
+   * threading subsystem accounting methods may mean that it cannot be
+   * used in certain contexts (say, the threading subsystem itself).
    * <p>
    * This method will ensure that if it blocks, it does so with the
    * mutex not held.  This is useful for cases where the subsystem that
@@ -353,14 +356,14 @@ public class Monitor {
     relockWithHandshakeImpl(recCount);
   }
   /**
-   * Wait until someone calls broadcast, or until at least the given
+   * Wait until someone calls {@link #broadcast()}, or until at least the given
    * number of nanoseconds pass.
    * <p>
    * This blocking method method notifies the threading subsystem that it
    * is blocking.  Thus, it is generally safer than calling
-   * timedWaitRelative.  But, its reliance on threading subsystem accounting
-   * methods may mean that it cannot be used in certain contexts (say, the
-   * threading subsystem itself).
+   * {@link #timedWaitRelativeWithHandshake(long)}.  But, its reliance on
+   * threading subsystem accounting methods may mean that it cannot be used
+   * in certain contexts (say, the threading subsystem itself).
    * <p>
    * This method will ensure that if it blocks, it does so with the
    * mutex not held.  This is useful for cases where the subsystem that
@@ -402,7 +405,7 @@ public class Monitor {
    * after sending the broadcast.  In most cases where you want to send
    * a broadcast but you don't need to acquire the lock to set the
    * condition that the other thread(s) are waiting on, you want to call
-   * this method instead of <code>broadcast</code>.
+   * this method instead of {@link #broadcast()}.
    */
   @NoInline
   @NoOptCompile
