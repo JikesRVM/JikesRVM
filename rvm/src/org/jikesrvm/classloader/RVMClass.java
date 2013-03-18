@@ -1638,7 +1638,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /**
    * Add to list of classes that derive from this one.
    */
-  private void addSubClass(RVMClass sub) {
+  private synchronized void addSubClass(RVMClass sub) {
     int n = subClasses.length;
     RVMClass[] tmp = new RVMClass[n + 1];
 

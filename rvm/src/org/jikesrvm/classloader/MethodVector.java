@@ -65,14 +65,16 @@ final class MethodVector {
   // Get array, trimmed to size.
   //
   public RVMMethod[] finish() {
-    RVMMethod[] result = popularMVs.get(this);
-    if (result != null) {
-      array = result;
-      return result;
-    } else {
-      adjustLength(cnt);
-      popularMVs.put(this, array);
-      return array;
+    synchronized(MethodVector.class) {
+      RVMMethod[] result = popularMVs.get(this);
+      if (result != null) {
+        array = result;
+        return result;
+      } else {
+        adjustLength(cnt);
+        popularMVs.put(this, array);
+        return array;
+      }
     }
   }
 

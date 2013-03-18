@@ -65,14 +65,16 @@ final class FieldVector {
   // Get array, trimmed to size.
   //
   public RVMField[] finish() {
-    RVMField[] result = popularFVs.get(this);
-    if (result != null) {
-      array = result;
-      return result;
-    } else {
-      adjustLength(cnt);
-      popularFVs.put(this, array);
-      return array;
+    synchronized(RVMField.class) {
+      RVMField[] result = popularFVs.get(this);
+      if (result != null) {
+        array = result;
+        return result;
+      } else {
+        adjustLength(cnt);
+        popularFVs.put(this, array);
+        return array;
+      }
     }
   }
 
