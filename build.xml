@@ -1473,7 +1473,7 @@ Check to make sure all required properties are specified. This includes properti
       <include name="gnu/**/VM*.class" />
       <exclude name="org/jikesrvm/compilers/**/*BootImageCompiler.class"/>
       <exclude name="org/jikesrvm/tools/header_gen/**/*.class" />
-      <exclude name="org/jikesrvm/apt/**/*.class" />
+      <exclude name="org/jikesrvm/annotations/**/*.class" />
     </fileset>
     <fileset id="primordials.vmmagic" dir="${build.vmmagic.classes}">
       <include name="**/*.class"/>
