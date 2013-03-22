@@ -2196,6 +2196,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="rvm/src" includes="**/*.java"/>
       <fileset dir="rvm/src-generated" includes="**/*.java"/>
       <fileset dir="${test.java}" includes="**/*.java"/>
+      <fileset dir="testing" includes="**/*.java"/>
       <fileset dir="MMTk" includes="**/*.java" excludes="harness/src-generated/**/*.java"/>
       <fileset dir="common/vmmagic" includes="**/*.java"/>
       <fileset dir="common/options" includes="**/*.java"/>
