@@ -11,10 +11,6 @@
  *  regarding copyright ownership.
  */
 
-import org.jikesrvm.VM;
-import org.jikesrvm.runtime.Magic;
-import org.vmmagic.unboxed.Address;
-
 /**
  * Test GC with nested Native and Java frames on stack
  */

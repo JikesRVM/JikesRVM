@@ -16,8 +16,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.Assert;
 import org.mmtk.harness.Harness;
-import org.mmtk.harness.lang.Env;
-import org.mmtk.harness.scheduler.Schedulable;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
