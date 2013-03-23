@@ -1641,12 +1641,8 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   private synchronized void addSubClass(RVMClass sub) {
     int n = subClasses.length;
     RVMClass[] tmp = new RVMClass[n + 1];
-
-    for (int i = 0; i < n; ++i) {
-      tmp[i] = subClasses[i];
-    }
+    System.arraycopy(subClasses, 0, tmp, 0, n);
     tmp[n] = sub;
-
     subClasses = tmp;
   }
 
