@@ -15,7 +15,8 @@ package org.jikesrvm.classloader;
 import java.util.WeakHashMap;
 
 /**
- *  Lightweight implementation of a vector of Fields.
+ *  Lightweight implementation of a vector of Fields. This class is intended
+ *  to be used by a single thread and is therefore not thread-safe.
  */
 final class MethodVector {
   //-----------//
@@ -26,8 +27,6 @@ final class MethodVector {
     array = new RVMMethod[10];
   }
 
-  // Add item.
-  //
   void addElement(RVMMethod item) {
     if (cnt == array.length) {
       adjustLength(cnt << 1); // double size of array
@@ -35,8 +34,12 @@ final class MethodVector {
     array[cnt++] = item;
   }
 
-  // Add item if it is not already in the Vector.
-  //
+  /**
+   * Adds an item if it is not already in the vector. The test
+   * for the item uses object identity.
+   *
+   * @param item method to be added
+   */
   public void addUniqueElement(RVMMethod item) {
     for (int i = 0; i < cnt; i++) {
       if (array[i] == item) return;
@@ -44,26 +47,26 @@ final class MethodVector {
     addElement(item);
   }
 
-  // Get item.
-  //
   RVMMethod elementAt(int index) {
     return array[index];
   }
 
-  // Set item.
-  //
   void setElementAt(RVMMethod item, int index) {
     array[index] = item;
   }
 
-  // Get number of items added so far.
-  //
   public int size() {
     return cnt;
   }
 
-  // Get array, trimmed to size.
-  //
+  /**
+   *
+   * @return an array of methods, trimmed to size. The returned array
+   *  is canonical: Adding the same set of methods in the same order
+   *  to different newly-created vectors {@code v1} and {@code v2}
+   *  will lead to the same array being returned for both {@code v1}
+   *  and {@code v2} when this method is called.
+   */
   public RVMMethod[] finish() {
     synchronized(MethodVector.class) {
       RVMMethod[] result = popularMVs.get(this);
