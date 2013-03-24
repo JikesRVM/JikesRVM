@@ -148,10 +148,6 @@ Perform global code placement
 SSA_GCSE 3 false
 Perform global code placement
 
-# ABCD is currently incomplete; it doesn't check lower bounds
-SSA_GLOBAL_BOUNDS_CHECK -1 false ssa_global_bounds
-Perform (incomplete/unsafe) global Array Bound Check elimination on Demand
-
 SSA_SPLITBLOCK_TO_AVOID_RENAME -1 false
 When leaving SSA create blocks to avoid renaming variables
 
@@ -266,9 +262,6 @@ Print dependence graph before prepass scheduling
 PRINT_DG_SCHED_POST -1 false
 Print dependence graph before postpass scheduling
 
-PRINT_COALESCING -1 false print_coal
-Print coalescing output
-
 ## Options for IR printing at various points in compilation
 PRINT_HIGH -1 false
 Print IR after initial generation
@@ -293,9 +286,6 @@ Print control flow graph too when IR is printed
 
 PRINT_SCHEDULE_PRE -1 false
 Print IR after prepass scheduling
-
-PRINT_SCHEDULE_POST -1 false
-Print IR after postpass scheduling
 
 PRINT_REGALLOC -1 false
 Print IR before and after register allocation

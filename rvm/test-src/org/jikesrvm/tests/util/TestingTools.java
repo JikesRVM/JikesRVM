@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.tests.util;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.JikesRVMSupport;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.Call;
@@ -78,6 +80,10 @@ public class TestingTools {
 
   public static InlineSequence createInlineSequence(InlineSequence node ,int ByteCodeIndex, Class<?> declaringClass, String methodName, Class<?>... argumentTypes) throws Exception {
     return new InlineSequence(getNormalMethod(declaringClass, methodName), node, setByteCodeIndex(ByteCodeIndex));
+  }
+
+  public static RVMField getRVMFieldForField(Field field) {
+    return JikesRVMSupport.getFieldOf(field);
   }
 
 }

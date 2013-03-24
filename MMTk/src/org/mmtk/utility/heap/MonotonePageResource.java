@@ -12,16 +12,19 @@
  */
 package org.mmtk.utility.heap;
 
-import org.mmtk.utility.alloc.EmbeddedMetaData;
-import org.mmtk.utility.options.Options;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.Constants;
+import org.mmtk.utility.alloc.EmbeddedMetaData;
+import org.mmtk.utility.options.Options;
 
 import org.mmtk.vm.VM;
 
-import org.vmmagic.pragma.*;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
 /**
  * This class manages the allocation of pages for a space.  When a
@@ -30,8 +33,7 @@ import org.vmmagic.unboxed.*;
  * be satisfied (for either reason) a GC may be triggered.<p>
  */
 @Uninterruptible
-public final class MonotonePageResource extends PageResource
-  implements Constants {
+public final class MonotonePageResource extends PageResource {
 
   /****************************************************************************
    *
@@ -76,16 +78,12 @@ public final class MonotonePageResource extends PageResource
    * pre-defined at initialization time and is dynamically defined to
    * be some set of pages, according to demand and availability.
    *
-   * CURRENTLY UNIMPLEMENTED
-   *
    * @param space The space to which this resource is attached
    * @param metaDataPagesPerRegion The number of pages of meta data
    * that are embedded in each region.
    */
   public MonotonePageResource(Space space, int metaDataPagesPerRegion) {
     super(space);
-    /* unimplemented */
-    this.start = Address.zero();
     this.cursor = Address.zero();
     this.sentinel = Address.zero();
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
@@ -140,9 +138,9 @@ public final class MonotonePageResource extends PageResource
     if (!contiguous && tmp.GT(sentinel)) {
       /* we're out of virtual memory within our discontiguous region, so ask for more */
       int requiredChunks = Space.requiredChunks(requiredPages);
-      start = space.growDiscontiguousSpace(requiredChunks); // Returns zero on failure
-      cursor = start;
-      sentinel = cursor.plus(start.isZero() ? 0 : requiredChunks<<Space.LOG_BYTES_IN_CHUNK);
+      Address chunk = space.growDiscontiguousSpace(requiredChunks); // Returns zero on failure
+      cursor = chunk;
+      sentinel = cursor.plus(chunk.isZero() ? 0 : requiredChunks<<Space.LOG_BYTES_IN_CHUNK);
       rtn = cursor;
       tmp = cursor.plus(bytes);
       newChunk = true;
@@ -251,7 +249,6 @@ public final class MonotonePageResource extends PageResource
    */
   @Inline
   private void releasePages() {
-    Address first = start;
     if (contiguous) {
       // TODO: We will perform unnecessary zeroing if the nursery size has decreased.
       if (zeroConcurrent) {
@@ -263,31 +260,35 @@ public final class MonotonePageResource extends PageResource
         zeroingSentinel = cursor;
       }
       zeroingCursor = start;
-    }
-    do {
-      Extent bytes = cursor.diff(start).toWord().toExtent();
-      releasePages(start, bytes);
       cursor = start;
-    } while (!contiguous && moveToNextChunk());
-    if (!contiguous) {
-      sentinel = Address.zero();
-      Map.freeAllChunks(first);
+    } else {/* Not contiguous */
+      if (!cursor.isZero()) {
+        do {
+          Extent bytes = cursor.diff(currentChunk).toWord().toExtent();
+          releasePages(currentChunk, bytes);
+        } while (moveToNextChunk());
+
+        currentChunk = Address.zero();
+        sentinel = Address.zero();
+        cursor = Address.zero();
+        space.releaseAllChunks();
+      }
     }
   }
 
   /**
-   * Adjust the start and cursor fields to point to the next chunk
+   * Adjust the currentChunk and cursor fields to point to the next chunk
    * in the linked list of chunks tied down by this page resource.
    *
    * @return {@code true} if we moved to the next chunk; {@code false} if we hit the
    * end of the linked list.
    */
   private boolean moveToNextChunk() {
-    start = Map.getNextContiguousRegion(start);
-    if (start.isZero())
+    currentChunk = Map.getNextContiguousRegion(currentChunk);
+    if (currentChunk.isZero())
       return false;
     else {
-      cursor = start.plus(Map.getContiguousRegionSize(start));
+      cursor = currentChunk.plus(Map.getContiguousRegionSize(currentChunk));
       return true;
     }
   }

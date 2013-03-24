@@ -20,7 +20,7 @@
 
   <property name="gcspy.component.dir" location="${components.dir}/gcspy"/>
   <property name="gcspy.package.dir" value="${gcspy.component.dir}/${gcspy.version}"/>
-  <property name="gcspy.dir" value="${gcspy.package.dir}/gcspy"/>
+  <property name="gcspy.dir" value="${gcspy.package.dir}/gcspy${gcspy.version}"/>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->

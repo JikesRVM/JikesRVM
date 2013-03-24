@@ -112,7 +112,7 @@ public abstract class ReflectionBase {
   protected static long unboxAsLong(Object obj) {
     if ((obj == null) ||
         (!(obj instanceof Long) && !(obj instanceof Integer) &&
-         !(obj instanceof Character) && (obj instanceof Short) &&
+         !(obj instanceof Character) && !(obj instanceof Short) &&
          !(obj instanceof Byte))) {
       throwIllegalArgumentException();
     }

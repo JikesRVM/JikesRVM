@@ -51,7 +51,7 @@ public final class AbstractMethod extends RVMMethod {
    * RuntimeEntrypoints that will raise an {@link AbstractMethodError}
    * when it is invoked.
    *
-   * @see RuntimeEntrypoints
+   * @see org.jikesrvm.runtime.RuntimeEntrypoints
    */
   @Override
   protected CompiledMethod genCode() {

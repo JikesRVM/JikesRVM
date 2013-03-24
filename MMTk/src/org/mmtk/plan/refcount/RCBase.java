@@ -87,7 +87,7 @@ public class RCBase extends StopTheWorld {
       Phase.scheduleCollector  (PROCESS_DECBUFFER),
       Phase.scheduleGlobal     (BT_CLOSURE),
       Phase.scheduleCollector  (BT_CLOSURE));
-  
+
   /**
    * Perform the initial determination of liveness from the roots.
    */
@@ -115,7 +115,7 @@ public class RCBase extends StopTheWorld {
       Phase.scheduleCollector  (PROCESS_MODBUFFER),
       Phase.scheduleGlobal     (CLOSURE),
       Phase.scheduleCollector  (CLOSURE));
-  
+
   /**
    * This is the phase that is executed to perform a collection.
    */
@@ -125,7 +125,7 @@ public class RCBase extends StopTheWorld {
       Phase.scheduleComplex(refCountCollectionPhase),
       Phase.scheduleComplex(completeClosurePhase),
       Phase.scheduleComplex(finishPhase));
-  
+
   public short genRCCollection = Phase.createComplex("collection", null,
       Phase.scheduleComplex(initPhase),
       Phase.scheduleComplex(genRCRootClosurePhase),
@@ -200,7 +200,7 @@ public class RCBase extends StopTheWorld {
    *
    */
   public static final boolean isRCObject(ObjectReference object) {
-    return !object.isNull() && !Space.isInSpace(VM_SPACE, object);
+    return !object.isNull() && (Space.isInSpace(REF_COUNT, object) || Space.isInSpace(REF_COUNT_LOS, object));
   }
 
   @Override
