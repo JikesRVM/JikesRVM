@@ -113,7 +113,14 @@
     <runCompareTest tag="TestStop" class="test.org.jikesrvm.basic.core.threads.TestStop"/>
     <runCompareTest tag="TestSuspend" class="test.org.jikesrvm.basic.core.threads.TestSuspend"/>
     <runCompareTest tag="TestTimeSlicing" class="test.org.jikesrvm.basic.core.threads.TestTimeSlicing"/>
-    <runCompareTest tag="TestVolatiles" class="test.org.jikesrvm.basic.core.threads.TestVolatiles"/>
+    <runCompareTest tag="TestVolatileStaticLongs" class="test.org.jikesrvm.basic.core.threads.TestVolatileStaticLongs"/>
+    <runCompareTest tag="TestVolatileStaticLongsUnresolved" class="test.org.jikesrvm.basic.core.threads.TestVolatileStaticLongsUnresolved"/>
+    <runCompareTest tag="TestVolatileStaticDoubles" class="test.org.jikesrvm.basic.core.threads.TestVolatileStaticDoubles"/>
+    <runCompareTest tag="TestVolatileStaticDoublesUnresolved" class="test.org.jikesrvm.basic.core.threads.TestVolatileStaticDoublesUnresolved"/>
+    <runCompareTest tag="TestVolatileLongs" class="test.org.jikesrvm.basic.core.threads.TestVolatileLongs"/>
+    <runCompareTest tag="TestVolatileLongsUnresolved" class="test.org.jikesrvm.basic.core.threads.TestVolatileLongsUnresolved"/>
+    <runCompareTest tag="TestVolatileDoubles" class="test.org.jikesrvm.basic.core.threads.TestVolatileDoubles"/>
+    <runCompareTest tag="TestVolatileDoublesUnresolved" class="test.org.jikesrvm.basic.core.threads.TestVolatileDoublesUnresolved"/>
 
     <runCompareTest tag="TestShutdownHook" class="test.org.jikesrvm.basic.core.threads.TestShutdownHook" timeLimit="20"/>
     <runCompareTest tag="TestShutdownHookAfterExit" class="test.org.jikesrvm.basic.core.threads.TestShutdownHookAfterExit"/>

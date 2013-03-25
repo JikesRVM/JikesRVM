@@ -1,0 +1,26 @@
+Thread 0 Main: bye
+Thread 1 VSDU0: creating
+Thread 1 VSDU0: starting
+Thread 1 VSDU0: run starting
+Thread 1 VSDU0: 0 errors found
+Thread 1 VSDU0: run finishing
+Thread 2 VSDU1: creating
+Thread 2 VSDU1: starting
+Thread 2 VSDU1: run starting
+Thread 2 VSDU1: 0 errors found
+Thread 2 VSDU1: run finishing
+Thread 3 VSDU2: creating
+Thread 3 VSDU2: starting
+Thread 3 VSDU2: run starting
+Thread 3 VSDU2: 0 errors found
+Thread 3 VSDU2: run finishing
+Thread 4 VSDU3: creating
+Thread 4 VSDU3: starting
+Thread 4 VSDU3: run starting
+Thread 4 VSDU3: 0 errors found
+Thread 4 VSDU3: run finishing
+Thread 5 VSDU4: creating
+Thread 5 VSDU4: starting
+Thread 5 VSDU4: run starting
+Thread 5 VSDU4: 0 errors found
+Thread 5 VSDU4: run finishing

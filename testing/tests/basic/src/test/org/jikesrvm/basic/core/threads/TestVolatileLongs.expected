@@ -1,0 +1,26 @@
+Thread 0 Main: bye
+Thread 1 VL0: creating
+Thread 1 VL0: starting
+Thread 1 VL0: run starting
+Thread 1 VL0: 0 errors found
+Thread 1 VL0: run finishing
+Thread 2 VL1: creating
+Thread 2 VL1: starting
+Thread 2 VL1: run starting
+Thread 2 VL1: 0 errors found
+Thread 2 VL1: run finishing
+Thread 3 VL2: creating
+Thread 3 VL2: starting
+Thread 3 VL2: run starting
+Thread 3 VL2: 0 errors found
+Thread 3 VL2: run finishing
+Thread 4 VL3: creating
+Thread 4 VL3: starting
+Thread 4 VL3: run starting
+Thread 4 VL3: 0 errors found
+Thread 4 VL3: run finishing
+Thread 5 VL4: creating
+Thread 5 VL4: starting
+Thread 5 VL4: run starting
+Thread 5 VL4: 0 errors found
+Thread 5 VL4: run finishing
