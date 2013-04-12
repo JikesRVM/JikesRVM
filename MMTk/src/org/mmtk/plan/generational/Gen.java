@@ -52,6 +52,9 @@ public abstract class Gen extends StopTheWorld {
    * Constants
    */
 
+  /**
+   *
+   */
   protected static final float SURVIVAL_ESTIMATE = 0.8f; // est yield
   protected static final float MATURE_FRACTION = 0.5f; // est yield
   private static final float WORST_CASE_COPY_EXPANSION = 1.5f; // worst case for addition of one word overhead due to address based hashing
