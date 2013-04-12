@@ -253,10 +253,10 @@ public abstract class Allocator implements Constants {
   public final Address allocSlowInline(int bytes, int alignment, int offset) {
     Allocator current = this;
     Space space = current.getSpace();
-    boolean emergencyCollection = false;
-    while (true) {
-      // Information about the previous collection.
 
+    // Information about the previous collection.
+    boolean emergencyCollection = Plan.isEmergencyCollection();
+    while (true) {
       // Try to allocate using the slow path
       Address result = current.allocSlowOnce(bytes, alignment, offset);
 
