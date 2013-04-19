@@ -255,7 +255,7 @@ public abstract class Allocator implements Constants {
     Space space = current.getSpace();
 
     // Information about the previous collection.
-    boolean emergencyCollection = Plan.isEmergencyCollection();
+    boolean emergencyCollection = false;
     while (true) {
       // Try to allocate using the slow path
       Address result = current.allocSlowOnce(bytes, alignment, offset);
