@@ -61,7 +61,7 @@ public class AddressTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    Harness.init("plan=org.mmtk.plan.nogc.NoGC","bits=32");
+    Harness.initOnce();
 //    Harness.init("plan=org.mmtk.plan.nogc.NoGC","bits=64");
 //    SimulatedMemory.addWatch(Address.fromIntSignExtend(LOW_TEST_PAGE), BYTES_IN_PAGE);
 //    SimulatedMemory.addWatch(Address.fromIntSignExtend(HIGH_TEST_PAGE), BYTES_IN_PAGE);

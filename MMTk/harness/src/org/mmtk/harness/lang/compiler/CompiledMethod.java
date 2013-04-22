@@ -18,17 +18,27 @@ import java.util.List;
 
 import org.mmtk.harness.lang.Declaration;
 import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.WatchedVariables;
 import org.mmtk.harness.lang.ast.NormalMethod;
 import org.mmtk.harness.lang.pcode.PseudoOp;
 import org.mmtk.harness.lang.pcode.ResolvableOp;
 import org.mmtk.harness.lang.runtime.PcodeInterpreter;
-import org.mmtk.harness.lang.runtime.StackFrame;
 import org.mmtk.harness.scheduler.Schedulable;
 
 /**
  * A method, compiled into pseudo-ops.
  */
 public class CompiledMethod implements Schedulable {
+
+  private static WatchedVariables watchedVariables;
+
+  public static void setWatchedVariables(WatchedVariables watchedVariables) {
+    CompiledMethod.watchedVariables = watchedVariables;
+  }
+
+  public static WatchedVariables getWatchedVariables() {
+    return watchedVariables;
+  }
 
   /** The name of the method */
   private final String name;
@@ -134,16 +144,41 @@ public class CompiledMethod implements Schedulable {
     return true;
   }
 
-  /**
-   * Create a new stack frame for the execution of this method.
-   * @return
-   */
-  public StackFrame formatStackFrame() {
-    return new StackFrame(decls,nTemps);
-  }
-
   @Override
   public void execute(Env env) {
     new PcodeInterpreter(env,this).exec();
+  }
+
+  public List<Declaration> getDecls() {
+    return decls;
+  }
+
+  public int getnTemps() {
+    return nTemps;
+  }
+
+
+  public String getSlotName(int slot) {
+    if (slot < decls.size()) {
+      return decls.get(slot).getName();
+    }
+    return "t" + slot;
+  }
+
+
+  /**
+   * Is the given variable being watched
+   * @param var
+   * @return
+   */
+  public boolean isWatched(String var) {
+    return watchedVariables.isWatched(name,var);
+  }
+
+  /**
+   * @return The size of the stack frame for this method, in words.
+   */
+  public int frameSize() {
+    return getDecls().size()+getnTemps();
   }
 }

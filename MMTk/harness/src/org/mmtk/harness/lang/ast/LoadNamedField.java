@@ -15,6 +15,7 @@ package org.mmtk.harness.lang.ast;
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Symbol;
 import org.mmtk.harness.lang.parser.Token;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * An expression returning the value of a field in an object.
@@ -25,6 +26,10 @@ public class LoadNamedField extends AbstractAST implements Expression {
   /** Field within the object */
   private final String fieldName;
   private final Symbol symbol;
+
+  /** The type of the result - calculated by the type checker pass */
+  private Type type;
+
 
   /**
    * Load a field and store the loaded value into the stack.
@@ -43,4 +48,12 @@ public class LoadNamedField extends AbstractAST implements Expression {
   public Symbol getObjectSymbol() {    return symbol;  }
   public String getFieldName() { return fieldName; }
   public int getSlot() { return slot; }
+
+  public Type getType() {
+    return type;
+  }
+
+  public void setType(Type type) {
+    this.type = type;
+  }
 }

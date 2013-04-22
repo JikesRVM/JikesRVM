@@ -10,19 +10,23 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-package org.vmmagic.unboxed;
+package org.mmtk.harness.lang;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.mmtk.harness.lang.ast.AST;
 
+public class CompilerException extends RuntimeException {
 
-@RunWith(Suite.class)
-@SuiteClasses({
-    WordTest.class,
-    AddressTestBasic.class,
-    AddressTest.class,
-    ObjectReferenceTest.class})
-public class All {
+  public CompilerException(AST ast) {
+    super(ast.sourceLocation("Compilation error at "));
+  }
+
+  public CompilerException(AST ast, Throwable cause) {
+    super(ast.sourceLocation("Compilation error at "), cause);
+  }
+
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
 
 }

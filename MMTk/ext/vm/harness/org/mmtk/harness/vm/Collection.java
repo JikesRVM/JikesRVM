@@ -21,9 +21,16 @@ import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.harness.Clock;
 
 @Uninterruptible
 public class Collection extends org.mmtk.vm.Collection {
+
+  private static int gcCount = 0;
+
+  public static int getGcCount() {
+    return gcCount;
+  }
 
   @Override
   public void prepareMutator(MutatorContext m) {
@@ -32,6 +39,7 @@ public class Collection extends org.mmtk.vm.Collection {
 
   @Override
   public void requestMutatorFlush() {
+    Mutator.current().getContext().flush();
     Assert.notImplemented();
   }
 
@@ -51,7 +59,10 @@ public class Collection extends org.mmtk.vm.Collection {
    */
   @Override
   public void blockForGC() {
+    gcCount++;
+    Clock.stop();
     Scheduler.waitForGC();
+    Clock.start();
   }
 
   /**
@@ -76,16 +87,22 @@ public class Collection extends org.mmtk.vm.Collection {
 
   @Override
   public void spawnCollectorContext(CollectorContext context) {
+    Clock.stop();
     Scheduler.scheduleCollector(context);
+    Clock.start();
   }
 
   @Override
   public void stopAllMutators() {
+    Clock.stop();
     Scheduler.stopAllMutators();
+    Clock.start();
   }
 
   @Override
   public void resumeAllMutators() {
+    Clock.stop();
     Scheduler.resumeAllMutators();
+    Clock.start();
   }
 }

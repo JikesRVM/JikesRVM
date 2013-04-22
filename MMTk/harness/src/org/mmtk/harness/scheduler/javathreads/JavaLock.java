@@ -12,6 +12,7 @@
  */
 package org.mmtk.harness.scheduler.javathreads;
 
+import org.mmtk.harness.Harness;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -20,9 +21,27 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 public class JavaLock extends org.mmtk.harness.scheduler.Lock {
 
+  private static final long NANOS_IN_SECOND = 1000000000L;
+
+  private static final int WAIT_TIME = 1000; // ms
+
+  private final long timeout;
+
   /** Create a new lock (with given name) */
   public JavaLock(String name) {
     super(name);
+    this.timeout = Harness.lockTimeout.getValue() * NANOS_IN_SECOND;
+  }
+
+  /** Initialize the timeout timer */
+  private long startWait() {
+    return System.nanoTime();
+  }
+
+  /** Check for timeout
+   * @param startWait TODO*/
+  private boolean timedOut(long startWait) {
+    return (System.nanoTime() - startWait) > timeout;
   }
 
   /**
@@ -31,10 +50,16 @@ public class JavaLock extends org.mmtk.harness.scheduler.Lock {
   @Override
   public void acquire() {
     synchronized(this) {
-      while(holder != null) {
+      long start = startWait();
+      while(holder != null && !timedOut(start)) {
         try {
-          this.wait();
-        } catch (InterruptedException ie) {}
+          wait(WAIT_TIME);
+        } catch (InterruptedException ie) {
+        }
+      }
+      if (timedOut(start)) {
+        String holderName = holder == null ? "<no-one>" : holder.getName();
+        Harness.dumpStateAndExit("Timed out waiting for "+name+", held by "+holderName);
       }
       holder = Thread.currentThread();
     }

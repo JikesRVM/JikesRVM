@@ -42,6 +42,7 @@ import org.mmtk.harness.lang.ast.StoreNamedField;
 import org.mmtk.harness.lang.ast.TypeLiteral;
 import org.mmtk.harness.lang.ast.Variable;
 import org.mmtk.harness.lang.ast.WhileStatement;
+import org.mmtk.harness.lang.parser.GlobalDefs;
 import org.mmtk.harness.lang.parser.MethodTable;
 import org.mmtk.harness.lang.parser.Parser;
 import org.vmmagic.unboxed.harness.ArchitecturalWord;
@@ -397,7 +398,8 @@ public class PrettyPrinter extends Visitor {
   public static void main(String[] args) {
     ArchitecturalWord.init(Harness.bits.getValue());
     try {
-      MethodTable methods = new Parser(new BufferedInputStream(new FileInputStream(args[0]))).script();
+      GlobalDefs defs  = new Parser(new BufferedInputStream(new FileInputStream(args[0]))).script();
+      MethodTable methods = defs.getMethods();
       PrettyPrinter.printMethodTable(methods);
     } catch (Exception e) {
       e.printStackTrace();

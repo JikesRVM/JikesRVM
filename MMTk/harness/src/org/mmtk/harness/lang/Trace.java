@@ -107,6 +107,7 @@ public final class Trace {
    * @param args Format arguments
    */
   public static synchronized void trace(Item item, String pattern, Object...args) {
+    Clock.assertStopped();
     if (isEnabled(item)) {
       printf(item, pattern + "%n", args);
     }
@@ -118,7 +119,8 @@ public final class Trace {
    * @return The string prefix
    */
   public static String prefix(Item item) {
-    return (Clock.ENABLE_CLOCK ? Clock.read()+":" : "") +"["+item+"] ";
+    return String.format("%6d: <%02d> [%s] ",
+        Clock.read(), Thread.currentThread().getId(), item);
   }
 
   /**
@@ -137,6 +139,7 @@ public final class Trace {
    * @param args Format arguments
    */
   public static void printf(String pattern, Object...args) {
+    Clock.assertStopped();
     System.err.printf(pattern,args);
     System.err.flush();
   }

@@ -32,3 +32,6 @@ syntax:regexp
 ^results
 ^target
 
+
+syntax: regexp
+^test-output$

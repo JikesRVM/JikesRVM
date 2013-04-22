@@ -19,6 +19,7 @@ import org.mmtk.plan.Simple;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * Debugger support for the MMTk harness
@@ -44,36 +45,67 @@ public final class Debug extends org.mmtk.vm.Debug {
     return ObjectModel.addressAndSpaceString(addr);
   }
 
+  /**
+   * @see org.mmtk.vm.Debug#arrayRemsetEntry(org.vmmagic.unboxed.Address, org.vmmagic.unboxed.Address)
+   */
   @Override
   public void arrayRemsetEntry(Address start, Address guard) {
-    Trace.trace(Item.REMSET, "arrayRemset: [%s,%s)", start, guard);
-  }
-
-  @Override
-  public void modbufEntry(ObjectReference object) {
-    Trace.trace(Item.REMSET, "modbuf: %s", format(object));
-  }
-
-  @Override
-  public void remsetEntry(Address slot) {
-    try {
-    Trace.trace(Item.REMSET, "remset: %s->%s", format(slot), format(slot.loadObjectReference()));
-    } catch (Throwable e) {
-      System.err.printf("Error encountered processing remset entry %s%n", slot);
-      throw new RuntimeException(e);
+    if (Trace.isEnabled(Item.REMSET)) {
+      Clock.stop();
+      Trace.trace(Item.REMSET, "arrayRemset: [%s,%s)", start, guard);
+      Clock.start();
     }
   }
 
+  /**
+   * @see org.mmtk.vm.Debug#modbufEntry(org.vmmagic.unboxed.ObjectReference)
+   */
+  @Override
+  public void modbufEntry(ObjectReference object) {
+    if (Trace.isEnabled(Item.REMSET)) {
+      Clock.stop();
+      Trace.trace(Item.REMSET, "modbuf: %s", format(object));
+      Clock.start();
+    }
+  }
+
+  /**
+   * @see org.mmtk.vm.Debug#remsetEntry(org.vmmagic.unboxed.Address)
+   */
+  @Override
+  public void remsetEntry(Address slot) {
+    if (Trace.isEnabled(Item.REMSET)) {
+      Clock.stop();
+      Trace.trace(Item.REMSET, "remset: %s->%s", format(slot), format(slot.loadObjectReference()));
+      Clock.start();
+    }
+  }
+
+  /**
+   * @see org.mmtk.vm.Debug#globalPhase(short, boolean)
+   */
   @Override
   public void globalPhase(short phaseId, boolean before) {
+    Clock.stop();
     if (phaseId == Simple.RELEASE && before) {
       new FromSpaceInvariant();
     }
+    if (phaseId == Simple.COMPLETE && !before) {
+      Scanning.releaseThreads();
+    }
+    Clock.start();
   }
 
+  /**
+   * @see org.mmtk.vm.Debug#traceObject(org.mmtk.plan.TraceLocal, org.vmmagic.unboxed.ObjectReference)
+   */
   @Override
   public void traceObject(TraceLocal trace, ObjectReference object) {
-    Trace.trace(Item.TRACEOBJECT, "traceObject: %s", format(object));
+    if (Trace.isEnabled(Item.TRACEOBJECT)) {
+      Clock.stop();
+      Trace.trace(Item.TRACEOBJECT, "traceObject: %s", format(object));
+      Clock.start();
+    }
   }
 
   /**
@@ -82,7 +114,11 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void queueHeadInsert(String queueName, Address value) {
-    Trace.trace(Item.QUEUE, "head insert %s to %s", value, queueName);
+    if (Trace.isEnabled(Item.QUEUE)) {
+      Clock.stop();
+      Trace.trace(Item.QUEUE, "head insert %s to %s", value, queueName);
+      Clock.start();
+    }
   }
 
   /**
@@ -91,7 +127,11 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void queueHeadRemove(String queueName, Address value) {
-    Trace.trace(Item.QUEUE, "head remove %s from %s", value, queueName);
+    if (Trace.isEnabled(Item.QUEUE)) {
+      Clock.stop();
+      Trace.trace(Item.QUEUE, "head remove %s from %s", value, queueName);
+      Clock.start();
+    }
   }
 
   /**
@@ -100,7 +140,11 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void queueTailInsert(String queueName, Address value) {
-    Trace.trace(Item.QUEUE, "tail insert %s to %s", value, queueName);
+    if (Trace.isEnabled(Item.QUEUE)) {
+      Clock.stop();
+      Trace.trace(Item.QUEUE, "tail insert %s to %s", value, queueName);
+      Clock.start();
+    }
   }
 
   /**
@@ -109,8 +153,10 @@ public final class Debug extends org.mmtk.vm.Debug {
    */
   @Override
   public void queueTailRemove(String queueName, Address value) {
-    Trace.trace(Item.QUEUE, "tail remove %s from %s", value, queueName);
+    if (Trace.isEnabled(Item.QUEUE)) {
+      Clock.stop();
+      Trace.trace(Item.QUEUE, "tail remove %s from %s", value, queueName);
+      Clock.start();
+    }
   }
-
-
 }

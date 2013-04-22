@@ -15,7 +15,7 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
-  <property name="javacc.version" value="4.0"/>
+  <property name="javacc.version" value="5.0"/>
   <property name="javacc.description" value="Java CC"/>
 
   <property name="javacc.package.dir" value="${components.dir}/javacc/${javacc.version}"/>
@@ -36,7 +36,7 @@
     <property name="javacc.web-archive" value="javacc-${javacc.version}.zip"/>
     <mkdir dir="${javacc.package.dir}"/>
     <cachedGet key="${javacc.web-archive}"
-         src="http://java.net/projects/javacc/downloads/download/oldversions/${javacc.web-archive}"
+         src="http://java.net/downloads/javacc/${javacc.web-archive}"
          dest="${javacc.package.dir}/${javacc.web-archive}"/>
     <unzip src="${javacc.package.dir}/${javacc.web-archive}" dest="${javacc.package.dir}"/>
     <writeComponentConstants dir="${javacc.dir}"/>

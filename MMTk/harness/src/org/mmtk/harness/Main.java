@@ -13,12 +13,24 @@
 package org.mmtk.harness;
 
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.mmtk.harness.lang.Checker;
 import org.mmtk.harness.lang.CheckerException;
 import org.mmtk.harness.lang.Compiler;
+import org.mmtk.harness.lang.Env;
+import org.mmtk.harness.lang.WatchedVariables;
+import org.mmtk.harness.lang.ast.OptionDef;
+import org.mmtk.harness.lang.compiler.CompiledMethod;
+import org.mmtk.harness.lang.parser.GlobalDefs;
 import org.mmtk.harness.lang.parser.MethodTable;
 import org.mmtk.harness.lang.parser.Parser;
+import org.mmtk.harness.lang.runtime.StackAllocator;
 import org.mmtk.harness.scheduler.Scheduler;
+import org.mmtk.harness.vm.Memory;
+import org.vmmagic.unboxed.Extent;
 
 /**
  * Main class for the MMTk debugging harness.
@@ -36,21 +48,20 @@ public class Main {
       System.exit(-1);
     }
 
-    /* First argument is the test script name */
-    String[] harnessArgs = new String[args.length - 1];
-    System.arraycopy(args, 1, harnessArgs, 0, harnessArgs.length);
-
-    /* Initialise the harness */
-    Harness.init(harnessArgs);
-
     /* Parse the script */
     String scriptFile = args[0];
     if(!scriptFile.endsWith(".script")) {
       scriptFile += ".script";
     }
+    /* First argument is the test script name */
+    List<String> harnessArgs = new ArrayList<String>(Arrays.asList(args));
+    harnessArgs.remove(0);
+
+    Harness.initArchitecture(harnessArgs);
 
     /* Compile the script */
-    final MethodTable methods = new Parser(scriptFile).script();
+    final GlobalDefs script = new Parser(scriptFile).script();
+    final MethodTable methods = script.getMethods();
 
     try {
       /* Type-check the script */
@@ -60,6 +71,24 @@ public class Main {
       System.err.println("Exiting due to type-checker exceptions");
       exitWithFailure();
     }
+
+    /*
+     * Add any options defined in the script
+     *
+     * They are overridden by options on the command line
+     */
+    for (OptionDef option : script.getOptions()) {
+      harnessArgs.add(0, option.toCommandLineArg());
+    }
+
+    /* Initialise the harness */
+    Harness.init(harnessArgs);
+
+    Env.setStackSpace(new StackAllocator(
+        Memory.getHeapstartaddress(),
+        Memory.getVmspacesize(),
+        Extent.fromIntZeroExtend(1024*1024)));
+    CompiledMethod.setWatchedVariables(new WatchedVariables());
 
     try {
       TimeoutThread timeout = new TimeoutThread(Harness.timeout.getValue());

@@ -14,21 +14,23 @@ package org.mmtk.harness.scheduler.rawthreads;
 
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * A Monitor object in the Raw Threads model
  */
 public class RawMonitor extends org.mmtk.vm.Monitor {
 
-  private final String name;
+  private final RawLock lock;
 
-  private boolean isLocked = false;
+  private final String name;
 
   private final RawThreadModel model;
 
   private final ThreadQueue waitList;
 
   RawMonitor(RawThreadModel model, String name) {
+    this.lock = new RawLock(model,name+"Lock");
     this.name = name;
     this.model = model;
     this.waitList = new ThreadQueue(name);
@@ -36,29 +38,37 @@ public class RawMonitor extends org.mmtk.vm.Monitor {
 
   @Override
   public void lock() {
-    while (isLocked) {
-      Trace.trace(Item.SCHEDULER,"%d: Yielded onto monitor queue %s",Thread.currentThread().getId(),name);
-      model.yield(waitList);
-    }
-    isLocked = true;
+    Clock.stop();
+    lock.acquire();
+    Clock.start();
   }
 
   @Override
   public void unlock() {
-    isLocked = false;
-    model.makeRunnable(waitList);
+    Clock.stop();
+    lock.release();
+    Clock.start();
   }
 
   @Override
   public void await() {
+    Clock.stop();
     unlock();
     Trace.trace(Item.SCHEDULER,"%d: Yielded onto monitor queue %s",Thread.currentThread().getId(),name);
     model.yield(waitList);
     lock();
+    Clock.start();
   }
 
   @Override
   public void broadcast() {
+    Clock.stop();
+    assert lock.isLocked();
+    Trace.trace(Item.SCHEDULER,"%s: Making %d threads on monitor queue %s runnable",
+        Thread.currentThread().getName(), waitList.size(), name);
     model.makeRunnable(waitList);
+    Clock.tick();
+    Clock.start();
   }
+
 }

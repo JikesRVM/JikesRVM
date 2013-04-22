@@ -49,8 +49,10 @@ final class MemoryPage {
     this.data = new int[BYTES_IN_PAGE >>> LOG_BYTES_IN_CELL];
     this.watch = getWatchPoints();
     if (Trace.isEnabled(Item.MEMORY)) {
+      Clock.stop();
       Object[] args = { pageAddress };
       Trace.trace(Item.MEMORY,"Mapping page %s%n", args);
+      Clock.start();
     }
   }
 
@@ -210,9 +212,11 @@ final class MemoryPage {
   private synchronized int read(int index) {
     int value = data[index];
     if (isWatched(index)) {
+      Clock.stop();
       Trace.printf("%4d  load %s = %08x%n", Thread.currentThread().getId(),
           cellAddress(index), value);
       //new Throwable().printStackTrace();
+      Clock.start();
     }
     return value;
   }
@@ -222,9 +226,11 @@ final class MemoryPage {
    */
   private void write(int index, int value) {
     if (isWatched(index)) {
+      Clock.stop();
       Trace.printf("%4d store %s: %08x -> %08x%n", Thread.currentThread().getId(),
           cellAddress(index), data[index], value);
       //new Throwable().printStackTrace();
+      Clock.start();
     }
     data[index] = value;
   }

@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
+
 /**
  * Common code for the scheduler tests.  Not actually a Junit test suite,
  * but used by several others.
@@ -32,9 +35,11 @@ public class SchedulerTestCases {
    * @return The result list
    */
   public <T> List<T> testOneThreadOneItem(T a) {
+    Trace.trace(Item.SCHEDULER,"testOneThreadOneItem: in");
     List<T> results = new ArrayList<T>(1);
     Scheduler.scheduleMutator(new TestMutator<T>(results,a));
     Scheduler.schedule();
+    Trace.trace(Item.SCHEDULER,"testOneThreadOneItem: out");
     return results;
   }
 
@@ -47,9 +52,11 @@ public class SchedulerTestCases {
    * @return The result list
    */
   public <T> List<T> testOneThreadTwoItems(T a, T b) {
+    Trace.trace(Item.SCHEDULER,"testOneThreadTwoItems: in");
     List<T> results = new ArrayList<T>(2);
     Scheduler.scheduleMutator(new TestMutator<T>(results,a,b));
     Scheduler.schedule();
+    Trace.trace(Item.SCHEDULER,"testOneThreadTwoItems: out");
     return results;
   }
 
@@ -64,10 +71,12 @@ public class SchedulerTestCases {
    * @return The result list
    */
   public <T> List<T> testTwoThreadsOneItem(T a, T b) {
+    Trace.trace(Item.SCHEDULER,"testTwoThreadsOneItem: in");
     List<T> results = Collections.synchronizedList(new ArrayList<T>(2));
     Scheduler.scheduleMutator(new TestMutator<T>(results,a));
     Scheduler.scheduleMutator(new TestMutator<T>(results,b));
     Scheduler.schedule();
+    Trace.trace(Item.SCHEDULER,"testTwoThreadsOneItem: out");
     return results;
   }
 

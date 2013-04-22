@@ -18,6 +18,7 @@ import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.vm.ReferenceProcessor.Semantics;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * Moral equivalent of java.lang.ref.Reference
@@ -43,7 +44,9 @@ public abstract class ReferenceValue extends Value {
   }
 
   public void clear() {
+    Clock.stop();
     Trace.trace(Item.REFERENCES, "Clearing reference %s", this);
+    Clock.start();
     cleared = true;
   }
 
@@ -72,8 +75,10 @@ public abstract class ReferenceValue extends Value {
       return;
     ObjectReference newRef = trace.getForwardedReferent(ref);
     if (Trace.isEnabled(Item.REFERENCES)) {
+      Clock.stop();
       Trace.trace(Item.REFERENCES, "Forwarded reference %x: %s reference (%s -> %s)",
           id, semantics, ObjectModel.getString(ref), ObjectModel.getString(newRef));
+      Clock.start();
     }
     ref = newRef;
   }
@@ -96,9 +101,11 @@ public abstract class ReferenceValue extends Value {
      * TODO - perhaps make this different, only really relevant when we have different semantics
      * for the different types of references.
      */
+    Clock.stop();
     Trace.trace(Item.REFERENCES, "Forwarding reference %x: %s reference %s",
         System.identityHashCode(this), semantics,
         ObjectModel.getString(ref));
+    Clock.start();
     processReference(trace);
   }
 

@@ -80,6 +80,11 @@ public final class AllocUserOp extends UnaryOp {
     }
   }
 
+  @Override
+  public boolean isAlloc() {
+    return true;
+  }
+
   /**
    * String representation of this operation
    * <pre>
@@ -90,6 +95,5 @@ public final class AllocUserOp extends UnaryOp {
   public String toString() {
     return super.toString() + "(" + type.getName() + ")";
   }
-
 
 }

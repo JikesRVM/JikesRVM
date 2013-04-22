@@ -13,6 +13,9 @@
 package org.mmtk.harness;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.mmtk.harness.options.*;
 import org.mmtk.harness.scheduler.AbstractPolicy;
@@ -21,13 +24,17 @@ import org.mmtk.harness.vm.*;
 
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
+import org.mmtk.policy.Space;
+import org.mmtk.policy.Space.SpaceVisitor;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.options.Options;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.harness.ArchitecturalWord;
+import org.vmmagic.unboxed.harness.MemoryConstants;
 import org.vmmagic.unboxed.harness.SimulatedMemory;
 import org.vmutil.options.BooleanOption;
+import org.vmutil.options.StringOption;
 
 /**
  * This is the central class for the MMTk test harness.
@@ -45,6 +52,9 @@ public class Harness {
 
   /** Option for the MMTk plan (prefix) to use */
   public static final Plan plan = new Plan();
+
+  /** Scalable heap size specification */
+  public static final BaseHeap baseHeap = new BaseHeap();
 
   /** Option for the initial heap size */
   public static final InitHeap initHeap = new InitHeap();
@@ -92,11 +102,35 @@ public class Harness {
   /** Timeout on unreasonably long GC */
   public static final Timeout timeout = new Timeout();
 
+  /** Timeout on unreasonably long lock wait */
+  public static final LockTimeout lockTimeout = new LockTimeout();
+
   /** Whether the Harness sanity checker uses the read barrier */
   public static final BooleanOption sanityUsesReadBarrier = new SanityUsesReadBarrier();
 
   /** Allocate during collection, to simulate JikesRVM thread iterator objects */
   public static final BooleanOption allocDuringCollection = new AllocDuringCollection();
+
+  /** Set watch points on variables */
+  public static final StringOption watchVar = new WatchVar();
+
+  protected static final double MB = 1024*1024;
+
+  private static boolean initialized = false;
+
+  public static void initArchitecture(List<String> args){
+    /* If the 'bits' arg is specified, parse and apply it first */
+    for(String arg: args) {
+      if (arg.startsWith("bits=")) {
+        options.process(arg);
+      }
+    }
+    ArchitecturalWord.init(Harness.bits.getValue());
+  }
+
+  public static void init(List<String> args) {
+    init(args.toArray(new String[0]));
+  }
 
   /**
    * Start up the harness, including creating the global plan and constraints,
@@ -106,22 +140,23 @@ public class Harness {
    * @param args Command-line arguments
    */
   public static void init(String... args) {
+    initialized = true;
+
     /* Always use the harness factory */
     System.setProperty("mmtk.hostjvm", Factory.class.getCanonicalName());
 
     /* Options used for configuring the plan to use */
     final ArrayList<String> newArgs = new ArrayList<String>();
 
-    /* If the 'bits' arg is specified, parse and apply it first */
-    for(String arg: args) {
-      if (arg.startsWith("bits=")) {
-        options.process(arg);
-      }
-    }
-    ArchitecturalWord.init(Harness.bits.getValue());
     for(String arg: args) {
       if (!options.process(arg)) newArgs.add(arg);
     }
+
+    /* If we're using the baseHeap mechanism, override initHeap and maxheap */
+    if (baseHeap.getPages() != 0 && initHeap.getPages() == initHeap.getDefaultPages()) {
+      applyHeapScaling();
+    }
+
     trace.apply();
     gcEvery.apply();
     org.mmtk.harness.scheduler.Scheduler.init();
@@ -141,9 +176,7 @@ public class Harness {
 
         try {
           /* Get MMTk breathing */
-          ActivePlan.init(plan.getValue());
-          ActivePlan.plan.enableAllocation();
-          HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
+          ActivePlan.init(PlanSpecificConfig.planClass(plan.getValue()));
 
           /* Override some defaults */
           Options.noFinalizer.setValue(true);
@@ -156,6 +189,14 @@ public class Harness {
             }
           }
 
+          ActivePlan.plan.enableAllocation();
+          if (org.mmtk.utility.options.Options.verbose.getValue() > 0) {
+            System.err.printf("[Harness] Configuring heap size [%4.2fMB..%4.2fMB]%n",
+                initHeap.getBytes().toLong()/MB,
+                maxHeap.getBytes().toLong()/MB);
+          }
+          HeapGrowthManager.boot(initHeap.getBytes(), maxHeap.getBytes());
+
           /* Check options */
           assert Options.noFinalizer.getValue(): "noFinalizer must be true";
 
@@ -163,6 +204,7 @@ public class Harness {
           ActivePlan.plan.processOptions();
           ActivePlan.plan.enableCollection();
           ActivePlan.plan.fullyBooted();
+          checkSpaces();
           Log.flush();
         } catch (Throwable e) {
           e.printStackTrace();
@@ -191,6 +233,26 @@ public class Harness {
           AbstractPolicy.printStats();
         }
       });
+    }
+  }
+
+  /**
+   * Apply the plan-specific heap scaling used when the "heap" option
+   * is used.
+   */
+  private static void applyHeapScaling() {
+    double heapFactor = PlanSpecificConfig.heapFactor(plan.getValue());
+    int scaledHeap = (int)Math.ceil(baseHeap.getPages() * heapFactor);
+    System.out.printf("heapFactor=%4.2f, baseHeap=%dK, initHeap=%dK%n",
+        heapFactor, baseHeap.getPages()*MemoryConstants.BYTES_IN_PAGE/1024,
+        scaledHeap*MemoryConstants.BYTES_IN_PAGE/1024);
+    initHeap.setPages(scaledHeap);
+    maxHeap.setPages(scaledHeap);
+  }
+
+  public static void initOnce() {
+    if (!initialized) {
+      init("plan=org.mmtk.plan.marksweep.MS","bits=32");
     }
   }
 
@@ -227,7 +289,7 @@ public class Harness {
    */
   public static MutatorContext createMutatorContext() {
     try {
-      String prefix = plan.getValue();
+      String prefix = PlanSpecificConfig.planClass(plan.getValue());
       return (MutatorContext)Class.forName(prefix + "Mutator").newInstance();
     } catch (Exception ex) {
       throw new RuntimeException("Could not create Mutator", ex);
@@ -238,11 +300,45 @@ public class Harness {
    */
   public static CollectorContext createCollectorContext() {
     try {
-      String prefix = plan.getValue();
+      String prefix = PlanSpecificConfig.planClass(plan.getValue());
       return (CollectorContext)Class.forName(prefix + "Collector").newInstance();
     } catch (Exception ex) {
       throw new RuntimeException("Could not create Collector", ex);
     }
   }
 
+  private static final Object DUMP_STATE_LOCK = new Object();
+
+  public static void dumpStateAndExit(String message) {
+    synchronized(DUMP_STATE_LOCK) {
+      System.err.print(Thread.currentThread().getName()+": ");
+      System.err.println(message);
+      new Throwable().printStackTrace();
+      throw new RuntimeException();
+    }
+  }
+
+  private static void checkSpaces() {
+    Set<String> expectedSpaces = PlanSpecificConfig.get(plan.getValue()).getExpectedSpaces();
+    final Set<String> actualSpaces = new HashSet<String>();
+    Space.visitSpaces(new SpaceVisitor() {
+      @Override
+      public void visit(Space s) {
+        actualSpaces.add(s.getName());
+      }
+    });
+    if (!expectedSpaces.equals(actualSpaces)) {
+      for (String name : expectedSpaces) {
+        if (!actualSpaces.contains(name)) {
+          System.err.printf("Expected space %s was not found%n",name);
+        }
+      }
+      for (String name : actualSpaces) {
+        if (!expectedSpaces.contains(name)) {
+          System.err.printf("Space %s was not expected%n",name);
+        }
+      }
+      throw new AssertionError("Space map does not match expectations");
+    }
+  }
 }

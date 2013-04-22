@@ -14,6 +14,7 @@ package org.mmtk.harness.lang.pcode;
 
 import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.ast.AST;
+import org.vmmagic.unboxed.harness.Clock;
 
 public class ExpectOp extends NullaryOp {
   private final Class<?> expectedThrowable;
@@ -25,7 +26,9 @@ public class ExpectOp extends NullaryOp {
 
   @Override
   public void exec(Env env) {
+    Clock.stop();
     env.setExpectedThrowable(expectedThrowable);
+    Clock.start();
   }
 
   @Override

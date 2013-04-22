@@ -16,6 +16,8 @@ package org.mmtk.harness.scheduler;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,7 +30,16 @@ public class DeterministicTests2 {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    Harness.init("scheduler=DETERMINISTIC","schedulerPolicy=NEVER");
+    Harness.initOnce();
+    Scheduler.setThreadModel(Scheduler.Model.DETERMINISTIC);
+    Harness.policy.setValue("NEVER");
+    /* Must call this after switching scheduler */
+    org.mmtk.harness.scheduler.Scheduler.initCollectors();
+  }
+  
+  @AfterClass
+  public static void tearDownAfterClass() {
+    Scheduler.setThreadModel(Scheduler.Model.JAVA);
   }
 
   @Before

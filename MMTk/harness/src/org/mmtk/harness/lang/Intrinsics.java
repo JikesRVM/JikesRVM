@@ -19,11 +19,15 @@ import org.mmtk.harness.lang.runtime.PhantomReferenceValue;
 import org.mmtk.harness.lang.runtime.SoftReferenceValue;
 import org.mmtk.harness.lang.runtime.WeakReferenceValue;
 import org.mmtk.harness.scheduler.Scheduler;
+import org.mmtk.harness.vm.Collection;
+import org.mmtk.plan.Plan;
 
 /**
  *
  * "built in" intrinsic functions
  *
+ * The language interface to these functions is defined in
+ * org.mmtk.harness.lang.parser.GlobalDefs
  */
 public class Intrinsics {
   /**
@@ -31,7 +35,15 @@ public class Intrinsics {
    * @param env Thread-local environment (language-dependent mutator context)
    */
   public static void gc(Env env) {
-//    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+    Plan.handleUserCollectionRequest();
+  }
+
+  /**
+   * Return the count of GCs since start of the running script
+   * @param env Thread-local environment (language-dependent mutator context)
+   */
+  public static int gcCount(Env env) {
+    return Collection.getGcCount();
   }
 
   /**

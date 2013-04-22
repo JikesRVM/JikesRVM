@@ -476,6 +476,7 @@ Check to make sure all required properties are specified. This includes properti
       <fileset dir="${build.mmtk.classes}"/>
       <fileset dir="${build.options.classes}"/>
     </jar>
+    <copy file="${build.mmtk-harness.jar}" todir="${dist.dir}"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -2427,8 +2428,13 @@ target.jni-suffix=${target.jni-suffix}
   <target name="mmtk-harness-eclipse-project" depends="mmtk-harness">
     <remove-eclipse-project-files/>
     <mkdir dir="eclipse"/>
+    <mkdir dir="eclipse/parser/org/mmtk/harness/lang/parser"/>
     <copy file="build/eclipse/mmtk-harness-project" tofile=".project"/>
     <copy file="build/eclipse/mmtk-harness-classpath" tofile=".classpath"/>
+    <copy toDir="eclipse/parser/org/mmtk/harness/lang/parser/" verbose="true" flatten="false">
+      <dirset dir="${generated.mmtk-harness-parser.java}"/>
+      <fileset dir="${generated.mmtk-harness-parser.java}" includes="**/*.java"/>
+    </copy>
   </target>
 
   <macrodef name="copy-testing-jars-for-eclipse-project">

@@ -15,6 +15,7 @@ package org.mmtk.harness.scheduler.rawthreads;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * Simple lock.
@@ -56,10 +57,16 @@ public class RawLock extends org.mmtk.harness.scheduler.Lock {
   @Override
   public void release() {
     isHeld = false;
+    Clock.stop();
     model.makeRunnable(waitList);
+    Clock.start();
   }
 
   int threadsWaiting() {
     return waitList.size();
+  }
+
+  boolean isLocked() {
+    return isHeld;
   }
 }

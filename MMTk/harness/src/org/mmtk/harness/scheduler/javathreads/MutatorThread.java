@@ -16,6 +16,7 @@ import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.scheduler.Schedulable;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * A Mutator thread in the java threading model.
@@ -40,7 +41,9 @@ final class MutatorThread extends JavaThread {
     env.begin();
     begin();
     Trace.trace(Item.SCHEDULER, "Running mutator code");
+    Clock.start();
     code.execute(env);
+    Clock.stop();
     env.end();
     endMutator();
   }
@@ -56,6 +59,7 @@ final class MutatorThread extends JavaThread {
     Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       @Override
       public void uncaughtException(Thread t, Throwable e) {
+        Clock.stop();
         Trace.trace(Item.SCHEDULER, "Catching uncaught exception for thread %s%n%s",
             Thread.currentThread().getName(),
             e.getClass().getCanonicalName());

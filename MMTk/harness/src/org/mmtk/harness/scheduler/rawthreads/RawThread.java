@@ -16,6 +16,7 @@ import org.mmtk.harness.Main;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.scheduler.MMTkThread;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * An MMTk thread in the RawThreads model
@@ -42,6 +43,7 @@ class RawThread extends MMTkThread {
     this.model = model;
     this.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
       @Override public void uncaughtException(Thread t, Throwable e) {
+        Clock.stop();
         e.printStackTrace();
         Main.exitWithFailure();
       }
@@ -57,7 +59,7 @@ class RawThread extends MMTkThread {
    */
   synchronized void resumeThread() {
     assert !exiting;
-    Trace.trace(Item.SCHED_DETAIL, "%d: resumeThread", getId());
+    Trace.trace(Item.SCHED_DETAIL, "%s: resumeThread", getName());
     isCurrent = true;
     setQueue(null);
     model.setCurrent(this);
@@ -72,10 +74,10 @@ class RawThread extends MMTkThread {
     isCurrent = false;
     setQueue(queue);
     queue.add(this);
-    Trace.trace(Item.SCHED_DETAIL, "%d: yieldThread", getId());
+    Trace.trace(Item.SCHED_DETAIL, "%s: yieldThread to %s %d", getName(), queue.getName(), queue.size());
     model.wakeScheduler();
     waitTillCurrent();
-    Trace.trace(Item.SCHED_DETAIL, "%d: resuming", getId());
+    Trace.trace(Item.SCHED_DETAIL, "%s: resuming", getName());
   }
 
   /**

@@ -21,10 +21,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mmtk.harness.Harness;
+import org.mmtk.harness.lang.Trace;
 
 /**
  * Test the plain Java scheduler
@@ -33,11 +35,22 @@ public class JavaSchedulerTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    Harness.init("scheduler=JAVA"/* ,"trace=SCHEDULER" */);
+    Harness.initOnce();
+  }
+  
+  @AfterClass
+  public static void tearDownAfterClass() {
+    Scheduler.setThreadModel(Scheduler.Model.JAVA);
   }
 
   @Before
   public void setUp() throws Exception {
+    Scheduler.setThreadModel(Scheduler.Model.JAVA);
+    Harness.policy.setValue("FIXED");
+    Harness.yieldInterval.setValue(1);
+    Trace.enable(Trace.Item.SCHEDULER);
+    /* Must call this after switching scheduler */
+    org.mmtk.harness.scheduler.Scheduler.initCollectors();
   }
 
   @Test

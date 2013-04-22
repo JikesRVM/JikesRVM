@@ -16,6 +16,7 @@ import org.mmtk.harness.Main;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.plan.CollectorContext;
+import org.vmmagic.unboxed.harness.Clock;
 
 class CollectorThread extends JavaThread {
   private static int collectorId = 0;
@@ -32,6 +33,7 @@ class CollectorThread extends JavaThread {
     setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       @Override
       public void uncaughtException(Thread t, Throwable e) {
+        Clock.stop();
         Trace.trace(Item.SCHEDULER, "Catching uncaught exception for thread %s%n%s",
             Thread.currentThread().getName(),
             e.getClass().getCanonicalName());
@@ -47,8 +49,12 @@ class CollectorThread extends JavaThread {
 
   @Override
   public void run() {
+    Trace.trace(Item.SCHEDULER, "CollectorThread.run: in");
     model.setCurrentCollector(context);
+    Clock.start();
     context.run();
+    Clock.stop();
     model.removeCollector(this);
+    Trace.trace(Item.SCHEDULER, "CollectorThread.run: out");
   }
 }

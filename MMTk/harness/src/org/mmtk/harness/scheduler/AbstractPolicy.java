@@ -19,11 +19,19 @@ import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 
 /**
- * Abstract superclass of scheduling policies.
+ * Abstract superclass of scheduling policies.  There is one instance of
+ * a policy per thread.
  */
 public abstract class AbstractPolicy implements Policy {
+
+  /**
+   * The list of policies, one per thread.
+   */
   private static List<AbstractPolicy> policies = new ArrayList<AbstractPolicy>();
 
+  /**
+   * Print statistics for all threads
+   */
   public static void printStats() {
     for (AbstractPolicy p : policies) {
       System.out.printf(p.formatStats());

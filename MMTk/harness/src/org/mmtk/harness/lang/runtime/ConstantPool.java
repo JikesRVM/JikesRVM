@@ -50,7 +50,7 @@ public class ConstantPool {
   }
 
   private static Register create(Value constant) {
-    Register result = Register.createConstant(next--);
+    Register result = Register.createConstant(next--,constant.type());
     constants.put(constant, result);
     values.add(constant);
     Trace.trace(Item.COMPILER,"Acquire new constant, %s = %s", result, constant);

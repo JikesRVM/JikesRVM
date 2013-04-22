@@ -45,7 +45,8 @@ public class Memory extends org.mmtk.vm.Memory {
    * TODO is this comment in the right place?
    */
    private static ImmortalSpace vmSpace = null;
-   private static Extent VMSPACE_SIZE = Extent.fromIntZeroExtend(0x10000000);
+
+   private static final Extent vmSpaceSize = Extent.fromIntZeroExtend(0x10000000);
 
    // Uncomment the below to exercise MMTk's 64-bit address space handling
 
@@ -56,14 +57,14 @@ public class Memory extends org.mmtk.vm.Memory {
 //       Address.fromIntZeroExtend(0xA0000000) :
 //       Address.fromLong(0x2A0000000L);
 
-   public static final Address HEAP_START = Address.fromIntZeroExtend(0x10000000);
-   public static final Address HEAP_END = Address.fromIntZeroExtend(0xA0000000);
+   private static final Address heapStartAddress = Address.fromIntZeroExtend(0x10000000);
+   private static final Address heapEndAddress = Address.fromIntZeroExtend(0x40000000);
 
   @Override
   @Interruptible
   public ImmortalSpace getVMSpace() {
     if (vmSpace == null) {
-      vmSpace = new ImmortalSpace("vm", VMRequest.create(VMSPACE_SIZE, false));
+      vmSpace = new ImmortalSpace("vm", VMRequest.create(getVmspacesize(), false));
     }
     return vmSpace;
   }
@@ -141,13 +142,13 @@ public class Memory extends org.mmtk.vm.Memory {
    * called by MMTk users.
    */
   @Override
-  protected Address getHeapStartConstant() { return HEAP_START; }
+  protected Address getHeapStartConstant() { return getHeapstartaddress(); }
   @Override
-  protected Address getHeapEndConstant() { return HEAP_END; }
+  protected Address getHeapEndConstant() { return getHeapendaddress(); }
   @Override
-  protected Address getAvailableStartConstant() { return HEAP_START.plus(VMSPACE_SIZE); }
+  protected Address getAvailableStartConstant() { return getHeapstartaddress().plus(getVmspacesize()); }
   @Override
-  protected Address getAvailableEndConstant()  { return HEAP_END; }
+  protected Address getAvailableEndConstant()  { return getHeapendaddress(); }
   @Override
   protected byte getLogBytesInAddressConstant() { return (byte) MemoryConstants.LOG_BYTES_IN_WORD; }
   @Override
@@ -162,4 +163,25 @@ public class Memory extends org.mmtk.vm.Memory {
   protected int getMaxBytesPaddingConstant() { return MemoryConstants.BYTES_IN_WORD; }
   @Override
   protected int getAlignmentValueConstant() { return ObjectModel.ALIGNMENT_VALUE; }
+
+  /**
+   * @return the vmspacesize
+   */
+  public static Extent getVmspacesize() {
+    return vmSpaceSize;
+  }
+
+  /**
+   * @return the heapstartaddress
+   */
+  public static Address getHeapstartaddress() {
+    return heapStartAddress;
+  }
+
+  /**
+   * @return the heapendaddress
+   */
+  public static Address getHeapendaddress() {
+    return heapEndAddress;
+  }
 }

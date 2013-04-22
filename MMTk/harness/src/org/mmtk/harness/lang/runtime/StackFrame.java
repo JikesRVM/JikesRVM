@@ -12,19 +12,31 @@
  */
 package org.mmtk.harness.lang.runtime;
 
+import static org.mmtk.harness.lang.Trace.Item.ROOTS;
+import static org.vmmagic.unboxed.harness.MemoryConstants.BYTES_IN_WORD;
+import static org.vmmagic.unboxed.harness.MemoryConstants.LOG_BYTES_IN_WORD;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.mmtk.harness.lang.Declaration;
+import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.lang.compiler.CompiledMethod;
 import org.mmtk.harness.lang.pcode.PseudoOp;
 import org.mmtk.harness.lang.type.Type;
+import org.mmtk.harness.sanity.Sanity;
 import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.harness.vm.ReferenceProcessor;
 import org.mmtk.plan.TraceLocal;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * A stack frame.  Currently assumes each slot contains exactly one
@@ -42,43 +54,50 @@ public class StackFrame {
   /** A sentinel for slots that have no value */
   public static final int NO_SUCH_SLOT = Integer.MAX_VALUE;
 
+  /** The method executed by this stack frame */
+  private final CompiledMethod method;
+
+  /** Size in words of the stack frame */
+  private final int size;
+
   /** The values of variables and temporaries */
   private final Value[] values;
-  /** (for debugging) the names of the value slots */
-  private String[] names = null;
+
   /** The saved program counter during a method call */
   private int savedPc;
+
   /** The saved instruction array for a method call */
   private PseudoOp[] savedCode;
+
   /** The slot for the return value of a method call */
   private int resultSlot = NO_SUCH_SLOT;
 
+  /** The base heap address of the stack frame */
+  private final Address base;
+
+  /** The address of this thread's environment */
+  private final Env env;
+
   /**
    * Create a stack frame, given a list of declarations and a quantity of temporaries
-   * @param decls Variables declared in this stack frame
-   * @param nTemp Number of temporaries
+   *
+   * @param env The current execution environment
+   * @param method The method being executed in this frame
+   * @param base The base address of the shadow stack in the heap
    */
-  public StackFrame(List<Declaration> decls, int nTemp) {
-    int size = decls.size()+nTemp;
+  public StackFrame(Env env, CompiledMethod method, Address base) {
+    this.method = method;
+    this.size = method.frameSize();
     this.values = new Value[size];
-    if (Trace.isEnabled(Item.ENV) || Trace.isEnabled(Item.ROOTS)) {
-      this.names = new String[size];
-      for (Declaration d : decls) {
-        declare(d);
-      }
-      for (int i=decls.size(); i < size; i++) {
-        names[i] = "t"+i;
-      }
+    this.base = base;
+    this.env = env;
+    for (Declaration d : method.getDecls()) {
+      setInternal(d.getSlot(),d.getInitial(), true);
     }
   }
 
-  /**
-   * Declare a variable in a given slot.  Only used when tracing.
-   * @param d The variable declaration
-   */
-  public void declare(Declaration d) {
-    values[d.getSlot()] = d.getInitial();
-    names[d.getSlot()] = d.getName();
+  private Address slotAddress(int slot) {
+    return base.plus(slot << LOG_BYTES_IN_WORD);
   }
 
   /**
@@ -88,9 +107,46 @@ public class StackFrame {
    */
   public Value get(int slot) {
     if (slot >= 0) {
-      return values[slot];
+      Value value = getInternal(slot);
+      if (value == null) {
+        Clock.stop();
+        Trace.printf("Error: getInternal(%d) = null, variable=%s",slot,method.getSlotName(slot));
+        throw new Error();
+      }
+      if (Trace.isEnabled(Item.EVAL) || method.isWatched(method.getSlotName(slot))) {
+        Clock.stop();
+        Trace.printf(Item.EVAL, "stack get: (slot %d) %s %s = %s%n",
+            slot,
+            value.type().toString(),
+            method.getSlotName(slot),
+            value);
+        Clock.start();
+      }
+      return value;
     }
     return ConstantPool.get(slot);
+  }
+
+  /**
+   * Read a value from a stack frame slot.  If the slot contains an object
+   * reference, this may involve reading the shadow stack and updating
+   * the 'cooked' copy from it.
+   * @param slot
+   * @return
+   */
+  private Value getInternal(int slot) {
+    Value value = values[slot];
+    if (value instanceof ObjectValue) {
+      ObjectReference shadowValue = env.getReferenceStackSlot(slotAddress(slot));
+      if (!shadowValue.equals(value.getObjectValue())) {
+        Clock.stop();
+        Trace.trace(ROOTS, "Updating %s from shadow stack, slot=%s, stack=%s, shadow=%s",
+            method.getSlotName(slot), slotAddress(slot), value, shadowValue);
+        Clock.start();
+        value = values[slot] = new ObjectValue(shadowValue);
+      }
+    }
+    return value;
   }
 
   /**
@@ -102,6 +158,10 @@ public class StackFrame {
     return values[slot].type();
   }
 
+  private void setShadowStack(int slot, Value value) {
+    env.setStackSlot(slotAddress(slot), value.getObjectValue());
+  }
+
   /**
    * Assign a new value to the given slot
    * @param slot Stack-frame slot to modify
@@ -109,17 +169,25 @@ public class StackFrame {
    */
   public void set(int slot, Value value) {
     assert value != null : "Unexpected null value";
-    if (Trace.isEnabled(Item.EVAL)) {
-      Trace.printf(Item.EVAL, "%s %s = %s",value.type().toString(),getSlotName(slot),value.toString());
-    }
-    values[slot] = value;
+    setInternal(slot, value, false);
   }
 
-  private String getSlotName(int slot) {
-    if (names != null && names[slot] != null) {
-      return names[slot];
+  private void setInternal(int slot, Value value, boolean isInitial) {
+    if (Trace.isEnabled(Item.EVAL) || method.isWatched(method.getSlotName(slot))) {
+      Clock.stop();
+      Trace.printf(Item.EVAL, "stack set: (slot %d) %s %s : %s->%s%s%n",
+          slot,
+          value.type().toString(),
+          method.getSlotName(slot),
+          getInternal(slot),
+          value.toString(),
+          isInitial ? " (I)" : "");
+      Clock.start();
     }
-    return "t" + slot;
+    values[slot] = value;
+    if (value instanceof ObjectValue) {
+      setShadowStack(slot, value);
+    }
   }
 
   /**
@@ -128,26 +196,27 @@ public class StackFrame {
    * @return The number of roots found
    */
   public int computeRoots(TraceLocal trace) {
+    Clock.stop();
+    Trace.trace(Item.ROOTS, "--- Computing roots, stack frame %s (%s) ---",
+        method.getName(),base);
+    Clock.start();
     int rootCount = 0;
-    for (ObjectValue object : getRoots()) {
-      if (!object.getObjectValue().isNull()) {
+    for (Address root : getRootAddresses()) {
+      ObjectReference obj = root.loadObjectReference();
+      if (!obj.isNull()) {
+        Clock.stop();
+        Sanity.assertValid(obj);
         if (Trace.isEnabled(Item.ROOTS)) {
-          Trace.trace(Item.ROOTS, "Tracing root %s", ObjectModel.getString(object.getObjectValue()));
+          Trace.trace(Item.ROOTS, "Tracing root %s->%s", root, ObjectModel.getString(obj));
         }
-        object.traceObject(trace);
-        if (ASSERT_WILL_NOT_MOVE) {
-          assert trace.willNotMoveInCurrentCollection(object.getObjectValue()) :
-            object.getObjectValue()+" has been traced but willNotMoveInCurrentCollection is still false";
-        }
-        if (Trace.isEnabled(Item.ROOTS)) {
-          Trace.trace(Item.ROOTS, "new value of %s", ObjectModel.getString(object.getObjectValue()));
-        }
-        // We would like to assert the sanity of the new root value, but can't in collectors
-        // like MC that update roots before actually moving the objects.
+        Clock.start();
+        trace.reportDelayedRootEdge(root);
         rootCount++;
       }
     }
+    Clock.stop();
     Trace.trace(Item.REFERENCES, "Discovering references");
+    Clock.start();
     for (ReferenceValue reference : getReferences()) {
       ReferenceProcessor.discover(reference);
     }
@@ -164,6 +233,33 @@ public class StackFrame {
       if (value != null && value instanceof ObjectValue) {
         roots.add((ObjectValue)value);
       }
+    }
+    return roots;
+  }
+
+  public List<Address> getRootAddresses() {
+    List<Address> roots = new ArrayList<Address>();
+    Set<Integer> gcMap = getGcMap();
+    for (int i=0; i < values.length; i++) {
+      Value value = values[i];
+      if (value != null && value instanceof ObjectValue) {
+        Clock.stop();
+        if (!gcMap.contains(i)) {
+          Trace.trace(Item.ROOTS, "Slot %d not in GCmap, name=%s", i, method.getSlotName(i));
+        }
+        Trace.trace(Item.ROOTS, "Root %s (%s->%s)", method.getSlotName(i),
+            slotAddress(i), slotAddress(i).loadObjectReference());
+        Clock.start();
+        roots.add(slotAddress(i));
+      }
+    }
+    for (int root : gcMap) {
+      Value value = values[root];
+      Clock.stop();
+      if (value == null || !(value instanceof ObjectValue)) {
+        Trace.trace(Item.ROOTS, "Slot %d in GCmap, but would not be scanned, name=%s", root, method.getSlotName(root));
+      }
+      Clock.start();
     }
     return roots;
   }
@@ -190,13 +286,8 @@ public class StackFrame {
   public Collection<ObjectReference> dumpRoots(int width) {
     List<ObjectReference> roots = new ArrayList<ObjectReference>();
     for (int i=0; i < values.length; i++) {
-      Value value = values[i];
-      String name;
-      if (Trace.isEnabled(Item.ROOTS)) {
-        name = names != null && i < names.length ? getSlotName(i) : "t"+i;
-      } else {
-        name = "slot["+i+"]";
-      }
+      Value value = get(i);
+      String name = method.getSlotName(i);
       if (value != null && value instanceof ObjectValue) {
         ObjectReference ref = ((ObjectValue)value).getObjectValue();
         System.err.printf(" %s=%s", name, ObjectModel.formatObject(width, ref));
@@ -256,5 +347,69 @@ public class StackFrame {
   public void setResult(Value returnValue) {
     assert resultSlot != NO_SUCH_SLOT : "Attempt to return a value to a method call with no result slot";
     set(resultSlot,returnValue);
+  }
+
+  /**
+   * @return The size in bytes of this stack frame
+   */
+  public int sizeInBytes() {
+    return size * BYTES_IN_WORD;
+  }
+
+  public void prepare() {
+    for (int root : getGcMap()) {
+      Value value = values[root];
+      setShadowStack(root,value);
+    }
+  }
+
+  public void release() {
+    for (int root : getGcMap()) {
+      Trace.trace(Item.ROOTS, "Releasing stack slot %s", slotAddress(root));
+      getInternal(root);
+    }
+  }
+
+  /**
+   * @return The set of (variable,object-id) pairs
+   */
+  @SuppressWarnings("unused")
+  private Map<String,Integer> objectShadowMap() {
+    Map<String,Integer> result = new HashMap<String,Integer>();
+    for (int i=0; i < size; i++) {
+      if (values[i] != null && values[i] instanceof ObjectValue) {
+        ObjectReference obj = slotAddress(i).loadObjectReference();
+        result.put(method.getSlotName(i),
+            obj.isNull() ? 0 : ObjectModel.getId(obj));
+      }
+    }
+    return result;
+  }
+
+  /**
+   * @return The set of (variable,object-id) pairs
+   */
+  @SuppressWarnings("unused")
+  private Map<String,Integer> objectMap() {
+    Map<String,Integer> result = new HashMap<String,Integer>();
+    for (int i=0; i < size; i++) {
+      if (values[i] != null && values[i] instanceof ObjectValue) {
+        ObjectReference obj = values[i].getObjectValue();
+        result.put(method.getSlotName(i),
+            obj.isNull() ? 0 : ObjectModel.getId(obj));
+      }
+    }
+    return result;
+  }
+
+  /**
+   * get the currently executing pseudo-op
+   */
+  private PseudoOp getCurrentInstr() {
+    return savedCode[savedPc-1];
+  }
+
+  private Set<Integer> getGcMap() {
+    return getCurrentInstr().getGcMap();
   }
 }
