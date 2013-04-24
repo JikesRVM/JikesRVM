@@ -37,7 +37,7 @@ public class JavaSchedulerTest {
   public static void setUpBeforeClass() throws Exception {
     Harness.initOnce();
   }
-  
+
   @AfterClass
   public static void tearDownAfterClass() {
     Scheduler.setThreadModel(Scheduler.Model.JAVA);

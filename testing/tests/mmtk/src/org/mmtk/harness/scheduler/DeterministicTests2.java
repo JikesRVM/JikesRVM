@@ -36,7 +36,7 @@ public class DeterministicTests2 {
     /* Must call this after switching scheduler */
     org.mmtk.harness.scheduler.Scheduler.initCollectors();
   }
-  
+
   @AfterClass
   public static void tearDownAfterClass() {
     Scheduler.setThreadModel(Scheduler.Model.JAVA);

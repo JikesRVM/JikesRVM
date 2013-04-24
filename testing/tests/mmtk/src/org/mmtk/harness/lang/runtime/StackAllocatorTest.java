@@ -20,7 +20,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mmtk.harness.Harness;
-import org.mmtk.harness.lang.runtime.StackAllocator;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.harness.SimulatedMemory;
