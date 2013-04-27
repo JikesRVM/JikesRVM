@@ -47,6 +47,17 @@ extern "C" int sched_yield(void);
 #include <utime.h>
 #include <setjmp.h>
 
+#ifdef __GLIBC__
+/* use glibc internal longjmp to bypass fortify checks */
+extern "C" void __libc_longjmp (jmp_buf buf, int val) \
+                    __attribute__ ((__noreturn__));
+#define rvm_longjmp(buf, ret) \
+        __libc_longjmp(buf, ret)
+#else
+#define rvm_longjmp(buf, ret) \
+        longjmp(buf, ret)
+#endif /* !__GLIBC__ */
+
 #ifdef RVM_WITH_PERFEVENT
 #include <perfmon/pfmlib_perf_event.h>
 #include <err.h>
@@ -1354,7 +1365,7 @@ sysThreadTerminate()
     if (jb==NULL) {
 	jb=&primordial_jb;
     }
-    longjmp(*jb,1);
+    rvm_longjmp(*jb,1);
 }
 
 //------------------------//
