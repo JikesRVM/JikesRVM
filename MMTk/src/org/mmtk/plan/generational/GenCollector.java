@@ -93,7 +93,10 @@ import org.vmmagic.pragma.*;
       nurseryTrace.prepare();
       return;
     }
-
+    if (phaseId == Simple.STACK_ROOTS && !global().gcFullHeap) {
+      VM.scanning.computeNewThreadRoots(getCurrentTrace());
+      return;
+    }
     if (phaseId == StopTheWorld.ROOTS) {
       VM.scanning.computeGlobalRoots(getCurrentTrace());
       if (!Gen.USE_NON_HEAP_OBJECT_REFERENCE_WRITE_BARRIER || global().traceFullHeap()) {

@@ -79,8 +79,9 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
   }
 
   @Override
-  public void notifyInitialThreadScanComplete() {
-    CompiledMethods.snipObsoleteCompiledMethods();
+  public void notifyInitialThreadScanComplete(boolean partialScan) {
+    if (!partialScan)
+      CompiledMethods.snipObsoleteCompiledMethods();
     /* flush out any remset entries generated during the above activities */
     Selected.Mutator.get().flushRememberedSets();
   }
@@ -152,23 +153,30 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
   }
 
   /**
-   * Computes roots pointed to by threads, their associated registers
-   * and stacks.  This method places these roots in the root values,
-   * root locations and interior root locations queues.  This method
-   * should not have side effects (such as copying or forwarding of
-   * objects).  There are a number of important preconditions:
-   *
-   * <ul>
-   * <li> The <code>threadCounter</code> must be reset so that load
-   * balancing parallel GC can share the work of scanning threads.
-   * </ul>
-   *
-   * TODO try to rewrite using chunking to avoid the per-thread synchronization?
-   *
-   * @param trace The trace to use for computing roots.
+   * {@inheritDoc}
    */
   @Override
   public void computeThreadRoots(TraceLocal trace) {
+    computeThreadRoots(trace, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void computeNewThreadRoots(TraceLocal trace) {
+    computeThreadRoots(trace, true);
+  }
+
+  /**
+   * Compute roots pointed to by threads.
+   *
+   * @param trace The trace to use for computing roots.
+   * @param newRootsSufficient  True if it sufficient for this method to only
+   * compute those roots that are new since the previous stack scan.   If false
+   * then all roots must be computed (both new and preexisting).
+   */
+  private void computeThreadRoots(TraceLocal trace, boolean newRootsSufficient) {
     boolean processCodeLocations = MemoryManagerConstants.MOVES_CODE;
 
     /* scan all threads */
@@ -180,7 +188,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
       if (thread == null || thread.isCollectorThread()) continue;
 
       /* scan the thread (stack etc.) */
-      ScanThread.scanThread(thread, trace, processCodeLocations);
+      ScanThread.scanThread(thread, trace, processCodeLocations, newRootsSufficient);
     }
 
     /* flush out any remset entries generated during the above activities */

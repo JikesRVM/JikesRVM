@@ -188,6 +188,12 @@ public abstract class Gen extends StopTheWorld {
       return;
     }
 
+    if (phaseId == STACK_ROOTS) {
+      VM.scanning.notifyInitialThreadScanComplete(!traceFullHeap());
+      setGCStatus(GC_PROPER);
+      return;
+    }
+
     if (phaseId == CLOSURE) {
       if (!traceFullHeap()) {
         nurseryTrace.prepare();

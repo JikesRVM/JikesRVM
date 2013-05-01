@@ -52,7 +52,7 @@ import org.vmmagic.unboxed.*;
    * have been scanned. This can be used (for example) to clean up
    * obsolete compiled methods that are no longer being executed.
    */
-  public abstract void notifyInitialThreadScanComplete();
+  public abstract void notifyInitialThreadScanComplete(boolean partialScan);
 
   /**
    * Computes static roots.  This method establishes all such roots for
@@ -90,7 +90,9 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Computes roots pointed to by threads, their associated registers
-   * and stacks.  This method places these roots in the root values,
+   * and stacks.<p>
+   *
+   * This method places these roots in the root values,
    * root locations and interior root locations queues.  This method
    * should not have side effects (such as copying or forwarding of
    * objects).  There are a number of important preconditions:
@@ -105,6 +107,28 @@ import org.vmmagic.unboxed.*;
    * @param trace The trace to use for computing roots.
    */
   public abstract void computeThreadRoots(TraceLocal trace);
+
+  /**
+   * Computes new roots pointed to by threads, their associated registers
+   * and stacks.   This method is only required to return roots that are
+   * new since the last stack scan (if possible, the implementation will
+   * optimize the scaning to only scan new portions of the stacks).<p>
+   *
+   * This method places these roots in the root values,
+   * root locations and interior root locations queues.  This method
+   * should not have side effects (such as copying or forwarding of
+   * objects).  There are a number of important preconditions:
+   *
+   * <ul>
+   * <li> All objects used in the course of GC (such as the GC thread
+   * objects) need to be "pre-copied" prior to calling this method.
+   * <li> The <code>threadCounter</code> must be reset so that load
+   * balancing parallel GC can share the work of scanning threads.
+   * </ul>
+   *
+   * @param trace The trace to use for computing roots.
+   */
+  public abstract void computeNewThreadRoots(TraceLocal trace);
 
   /**
    * Compute all roots out of the VM's boot image (if any).  This method is a no-op
