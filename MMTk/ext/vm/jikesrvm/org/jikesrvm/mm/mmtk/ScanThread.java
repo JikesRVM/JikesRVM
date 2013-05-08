@@ -200,7 +200,6 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
 
     /* stack trampoline will be freshly reinstalled at end of thread scan */
     if (Options.useReturnBarrier.getValue() || Options.useShortStackScans.getValue()) {
-      if (VM.VerifyAssertions) VM._assert(VM.BuildForIA32); // return barrier currently only implemented for IA32
       thread.deInstallStackTrampoline();
     }
 

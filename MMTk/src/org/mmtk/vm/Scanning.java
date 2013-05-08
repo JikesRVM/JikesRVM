@@ -143,4 +143,9 @@ import org.vmmagic.unboxed.*;
    * @param trace The trace object to use to report root locations.
    */
   public abstract void computeBootImageRoots(TraceLocal trace);
+
+  /**
+   * @return true if the runtime supports a return barrier
+   */
+  public abstract boolean supportsReturnBarrier();
 }

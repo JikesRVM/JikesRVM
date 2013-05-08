@@ -17,6 +17,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.Constants;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.jni.JNIEnvironment;
 import org.jikesrvm.jni.JNIGlobalRefTable;
@@ -198,5 +199,10 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
   @Override
   public void computeBootImageRoots(TraceLocal trace) {
     ScanBootImage.scanBootImage(trace);
+  }
+
+  @Override
+  public boolean supportsReturnBarrier() {
+    return VM.BuildForIA32;
   }
 }

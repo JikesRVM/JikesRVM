@@ -12,6 +12,7 @@
  */
 package org.mmtk.utility.options;
 
+import org.mmtk.vm.VM;
 
 /**
  * Option to enable an optimization that only scans the part of the stack that has changed since the last GC.
@@ -24,5 +25,9 @@ public final class UseShortStackScans extends org.vmutil.options.BooleanOption {
     super(Options.set, "Use Short Stack Scans",
           "Use optimization that only scans the part of the stack that has changed since last GC?",
           false);
+  }
+
+  protected void validate() {
+    if (!VM.scanning.supportsReturnBarrier() && value) fail("Use of short stack scans only implemented on IA32");
   }
 }
