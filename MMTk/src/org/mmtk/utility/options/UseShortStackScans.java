@@ -14,7 +14,7 @@ package org.mmtk.utility.options;
 
 
 /**
- * Should a major GC be performed when a system GC is triggered?
+ * Option to enable an optimization that only scans the part of the stack that has changed since the last GC.
  */
 public final class UseShortStackScans extends org.vmutil.options.BooleanOption {
   /**

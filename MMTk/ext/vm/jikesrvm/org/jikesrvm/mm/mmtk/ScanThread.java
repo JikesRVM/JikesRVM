@@ -199,8 +199,10 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     Address sentinalFp = newRootsSufficent && Options.useShortStackScans.getValue() ? thread.getNextUnencounteredFrame() : ArchitectureSpecific.StackframeLayoutConstants.STACKFRAME_SENTINEL_FP;
 
     /* stack trampoline will be freshly reinstalled at end of thread scan */
-    if (Options.useReturnBarrier.getValue() || Options.useShortStackScans.getValue())
+    if (Options.useReturnBarrier.getValue() || Options.useShortStackScans.getValue()) {
+      if (VM.VerifyAssertions) VM._assert(VM.BuildForIA32); // return barrier currently only implemented for IA32
       thread.deInstallStackTrampoline();
+    }
 
     /* scan the stack */
     scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame, sentinalFp);
