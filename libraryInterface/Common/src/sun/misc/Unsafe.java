@@ -66,7 +66,7 @@ public final class Unsafe {
 
   public void putOrderedInt(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
-    Magic.writeFloor();
+    Magic.storeStoreBarrier();
     if (NEEDS_INT_PUTFIELD_BARRIER) {
       intFieldWrite(obj, value, off, 0);
     } else {
@@ -76,7 +76,7 @@ public final class Unsafe {
 
   public void putOrderedLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
-    Magic.writeFloor();
+    Magic.storeStoreBarrier();
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
       longFieldWrite(obj, value, off, 0);
     } else {
@@ -86,7 +86,7 @@ public final class Unsafe {
 
   public void putOrderedObject(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
-    Magic.writeFloor();
+    Magic.storeStoreBarrier();
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
       objectFieldWrite(obj, value, off, 0);
     } else {
@@ -95,7 +95,7 @@ public final class Unsafe {
    }
 
   public void putIntVolatile(Object obj,long offset,int value) {
-    Magic.writeFloor();
+    Magic.storeStoreBarrier();
     Offset off = longToOffset(offset);
     if (NEEDS_INT_PUTFIELD_BARRIER) {
       intFieldWrite(obj, value, off, 0);
@@ -117,7 +117,7 @@ public final class Unsafe {
   public int getIntVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
     int result = Magic.getIntAtOffset(obj,off);
-    Magic.readCeiling();
+    Magic.combinedLoadBarrier();
     return result;
   }
 
@@ -127,7 +127,7 @@ public final class Unsafe {
   }
 
   public void putLongVolatile(Object obj,long offset,long value) {
-    Magic.writeFloor();
+    Magic.storeStoreBarrier();
     Offset off = longToOffset(offset);
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
       longFieldWrite(obj, value, off, 0);
@@ -149,7 +149,7 @@ public final class Unsafe {
   public long getLongVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
     long result = Magic.getLongAtOffset(obj,off);
-    Magic.readCeiling();
+    Magic.combinedLoadBarrier();
     return result;
   }
 
@@ -160,7 +160,7 @@ public final class Unsafe {
 
   public void putObjectVolatile(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
-    Magic.writeFloor();
+    Magic.storeStoreBarrier();
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
       objectFieldWrite(obj, value, off, 0);
     } else {
@@ -181,7 +181,7 @@ public final class Unsafe {
   public Object getObjectVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
     Object result = Magic.getObjectAtOffset(obj,off);
-    Magic.readCeiling();
+    Magic.combinedLoadBarrier();
     return result;
   }
 

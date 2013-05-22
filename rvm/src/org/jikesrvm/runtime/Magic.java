@@ -1063,18 +1063,43 @@ public final class Magic {
   //---------------------------------------//
 
   /**
-   * Disallow any reads to float above this point.
+   * Emits a strong memory fence, used to enforce StoreLoad in the JMM. A StoreLoad
+   * barrier ensures that the data that was stored by the instruction before the
+   * barrier is visible to all load instructions after the barrier.
+   * <p>
+   * Note: A StoreLoad barrier includes all other barriers on all platforms
+   * that we currently support (IA32 and PPC).
    */
-  public static void readCeiling() {
+  public static void fence() {
     if (VM.runningVM && VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
   }
 
   /**
-   * Disallow any writes to sink below this point.
+   * Emits an instruction that provides both a LoadLoad and a LoadStore barrier.
+   * A LoadLoad barrier ensures that the data accessed by all load instructions
+   * before the barrier is loaded before any data from load instructions after
+   * the barrier.
+   * A LoadStore barrier ensures that the data accessed by all load instructions
+   * before the barrier is loaded before any data store instructions after the barrier
+   * are completed.
+   * <p>
+   * We don't provide separate methods for LoadStore and LoadLoad barriers because
+   * the appropriate instructions for IA32 and PPC provide both barriers.
    */
-  public static void writeFloor() {
+  public static void combinedLoadBarrier() {
+    if (VM.runningVM && VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    }
+  }
+
+  /**
+   * Emits a StoreStore barrier. A StoreStore barrier ensures that the data
+   * that was stored by the instruction before the barrier is visible to all
+   * subsequent store instructions.
+   */
+  public static void storeStoreBarrier() {
     if (VM.runningVM && VM.VerifyAssertions) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
@@ -1085,15 +1110,6 @@ public final class Magic {
   //---------------------------------------//
 
   /**** NOTE: all per-address operations now live in vmmagic.Address *****/
-
-  /**
-   * A strong memory fence, used to enforce StoreLoad in the JMM.
-   */
-  public static void fence() {
-    if (VM.runningVM && VM.VerifyAssertions) {
-      VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    }
-  }
 
   /**
    * Wait for preceeding cache flush/invalidate instructions to
