@@ -1115,11 +1115,9 @@ public final class Magic {
     }
   }
 
-  /****************************************************************
-   *
-   *    Misc
-   *
-   */
+  //---------------------------------------//
+  //           Misc.                       //
+  //---------------------------------------//
 
   /**
    * On IA32, emit a PAUSE instruction, to optimize spin-wait loops.
@@ -1149,6 +1147,12 @@ public final class Magic {
     }
     return -1.0d; // which should upset them even if assertions aren't enabled ...
   }
+
+  //---------------------------------------//
+  //    Methods which are evaluated at     //
+  //    compile-time when instructions     //
+  //    for magic methods are generated.   //
+  //---------------------------------------//
 
   /**
    * How deeply inlined is this method (0 means no inlining).
