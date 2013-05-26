@@ -119,8 +119,6 @@
            dir="${classpath.package.dir}/classpath/" strip="0"/>
     <patch patchfile="${components.patch.dir}/classpath-git.RVM-903.patch"
            dir="${classpath.package.dir}/classpath/" strip="1"/>
-    <patch patchfile="${components.patch.dir}/classpath-git.RVM-1028.patch"
-           dir="${classpath.package.dir}/classpath/" strip="0"/>
   </target>
 
   <!-- Patches against the current stable version -->
