@@ -33,16 +33,18 @@ class CheckStore {
 
 
   static void run1(Object input) {
-
     Object[] n = new Integer[1];
     n[0] = new Integer(0);
     n[0] = input;
+
+    // Unreachable but needed to prevent the opt compiler from removing
+    // the access that causes the ArrayStoreException
+    System.out.println(n[0]);
   }
 
   static Object[] global = new Object[2];
 
   static void run3(Object input) {
-
     Object[] n = new Object[1];
     n[0] = input;
     global[0] = new Integer(0);
@@ -56,6 +58,15 @@ class CheckStore {
      else
         array = new String[2];
      array[0] = elem;
+
+     // Unreachable but needed to prevent the opt compiler from removing
+     // the access that causes the ArrayStoreException.
+     // A simple System.out.println(..) is currently not possible here
+     // because it triggers a bug - see RVM-1036
+     if (array[0].hashCode() % 3 == new Object().hashCode()) {
+       System.out.println("Unreachable.");
+     }
+
   }
 
 }
