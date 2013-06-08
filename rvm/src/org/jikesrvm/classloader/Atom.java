@@ -190,7 +190,14 @@ public final class Atom {
     Atom val = new Atom(bytes, -1, str);
     val = dictionary.get(val);
     if (val != null || !create) return val;
+
     synchronized(Atom.class) {
+      // Check if a matching Atom was created while
+      // the current thread tried to acquire the lock
+      val = new Atom(bytes, -1, str);
+      val = dictionary.get(val);
+      if (val != null) return val;
+
       val = new Atom(bytes, nextId++, str);
       int column = val.id >> LOG_ROW_SIZE;
       if (column == atoms.length) {
