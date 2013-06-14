@@ -2618,8 +2618,7 @@ public final class RVMThread extends ThreadContext implements Constants {
   }
 
   /**
-   * Start execution of 'this' by putting it on the appropriate queue of an
-   * unspecified virtual processor.
+   * Start execution of 'this' by creating and starting a native thread.
    */
   @Interruptible
   public void start() {
@@ -4585,7 +4584,7 @@ public final class RVMThread extends ThreadContext implements Constants {
 
   /**
    * @return the thread's context registers (saved registers when thread is
-   *         suspended by green-thread scheduler).
+   *         suspended by scheduler).
    */
   public Registers getContextRegisters() {
     return contextRegisters;

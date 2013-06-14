@@ -42,9 +42,9 @@ import org.vmmagic.pragma.NoInline;
  * <p> Acquiring or releasing a lock involves atomically reading and
  * setting the lock's <code>latestContender</code> field.  If this
  * field is null, the lock is unowned.  Otherwise, the field points to
- * the virtual processor that owns the lock, or, if MCS locking is
- * being used, to the last vp on a circular queue of virtual
- * processors spinning until they get the lock, or, if MCS locking is
+ * the thread that owns the lock, or, if MCS locking is
+ * being used, to the last thread on a circular queue of threads
+ * spinning until they get the lock, or, if MCS locking is
  * being used and the circular spin queue is being updated, to
  * <code>IN_FLUX</code>.
  *
@@ -59,19 +59,19 @@ import org.vmmagic.pragma.NoInline;
  * tryLocks, etc.) should lock() be called.  Here, any remaining
  * contention is handled by spinning on a local flag.
  *
- * <p> To add itself to the circular waiting queue, a processor must
+ * <p> To add itself to the circular waiting queue, a thread must
  * succeed in setting the latestContender field to IN_FLUX.  A backoff
  * strategy is used to reduce contention for this field.  This
- * strategy has both a pseudo-random (to prevent two or more virtual
- * processors from backing off in lock step) and an exponential
+ * strategy has both a pseudo-random (to prevent two or more threads
+ * from backing off in lock step) and an exponential
  * component (to deal with really high contention).
  *
  * <p> Releasing a lock entails either atomically setting the
- * latestContender field to null (if this processor is the
- * latestContender), or releasing the first virtual processor on the
+ * latestContender field to null (if this thread is the
+ * latestContender), or releasing the first thread on the
  * circular spin queue.  In the latter case, the latestContender field
  * must be set to IN_FLUX.  To give unlock() priority over lock(), the
- * backoff strategy is not used for unlocking: if a vp fails to set
+ * backoff strategy is not used for unlocking: if a thread fails to set
  * set the field to IN_FLUX, it tries again immediately.
  *
  * <p> Usage: system locks should only be used when synchronized
@@ -92,11 +92,11 @@ public final class SpinLock implements Constants {
   private static final boolean MCS_Locking = false;
 
   /**
-   * The state of the processor lock.
+   * The state of the thread lock.
    * <ul>
    * <li> <code>null</code>, if the lock is not owned;
-   * <li> the processor that owns the lock, if no processors are waiting;
-   * <li> the last in a circular chain of processors waiting to own the lock; or
+   * <li> the thread that owns the lock, if no threads are waiting;
+   * <li> the last in a circular chain of threads waiting to own the lock; or
    * <li> <code>IN_FLUX</code>, if the circular chain is being edited.
    * </ul>
    * Only the first two states are possible unless MCS locking is implemented.
@@ -110,7 +110,7 @@ public final class SpinLock implements Constants {
     lock();
   }
   /**
-   * Acquire a processor lock.
+   * Acquire a lock.
    */
   public void lock() {
     if (!VM.runningVM) return;
@@ -146,14 +146,14 @@ public final class SpinLock implements Constants {
       p.contenderLink = i;
     }
     Magic.sync(); // so other contender will see updated contender chain
-    Magic.setObjectAtOffset(this, latestContenderOffset, i);  // other processors can get at the lock
+    Magic.setObjectAtOffset(this, latestContenderOffset, i);  // other threads can get at the lock
     do { // spin, waiting for the lock
       Magic.isync(); // to make new value visible as soon as possible
     } while (i.awaitingSpinLock == this);
   }
 
   /**
-   * Conditionally acquire a processor lock.
+   * Conditionally acquire a lock.
    * @return whether acquisition succeeded
    */
   public boolean tryLock() {
@@ -172,11 +172,11 @@ public final class SpinLock implements Constants {
   }
 
   /**
-   * Release a processor lock.
+   * Release a lock.
    */
   public void unlock() {
     if (!VM.runningVM) return;
-    Magic.sync(); // commit changes while lock was held so they are visiable to the next processor that acquires the lock
+    Magic.sync(); // commit changes while lock was held so they are visible to the next processor that acquires the lock
     Offset latestContenderOffset = Entrypoints.latestContenderField.getOffset();
     RVMThread i = RVMThread.getCurrentThread();
     if (!MCS_Locking) {
@@ -192,7 +192,7 @@ public final class SpinLock implements Constants {
           break;
         }
       } else
-      if (Magic.objectAsAddress(p).NE(IN_FLUX)) { // there are waiters, but the contention chain is not being chainged
+      if (Magic.objectAsAddress(p).NE(IN_FLUX)) { // there are waiters, but the contention chain is not being changed
         if (Magic.attemptAddress(this, latestContenderOffset, Magic.objectAsAddress(p), IN_FLUX)) {
           break;
         }
@@ -200,17 +200,17 @@ public final class SpinLock implements Constants {
         handleMicrocontention(-1); // wait a little before trying again
       }
     } while (true);
-    if (p != i) { // p is the last processor on the chain of processors contending for the lock
-      RVMThread q = p.contenderLink; // q is first processor on the chain
-      if (p == q) { // only one processor waiting for the lock
+    if (p != i) { // p is the last thread on the chain of threads contending for the lock
+      RVMThread q = p.contenderLink; // q is first thread on the chain
+      if (p == q) { // only one thread waiting for the lock
         q.awaitingSpinLock = null; // q now owns the lock
-        Magic.sync(); // make sure the chain of waiting processors gets updated before another processor accesses the chain
+        Magic.sync(); // make sure the chain of waiting threads gets updated before another thread accesses the chain
         // other contenders can get at the lock:
         Magic.setObjectAtOffset(this, latestContenderOffset, q); // latestContender = q;
-      } else { // more than one processor waiting for the lock
+      } else { // more than one thread waiting for the lock
         p.contenderLink = q.contenderLink; // remove q from the chain
         q.awaitingSpinLock = null; // q now owns the lock
-        Magic.sync(); // make sure the chain of waiting processors gets updated before another processor accesses the chain
+        Magic.sync(); // make sure the chain of waiting threads gets updated before another thread accesses the chain
         Magic.setObjectAtOffset(this, latestContenderOffset, p); // other contenders can get at the lock
       }
     }

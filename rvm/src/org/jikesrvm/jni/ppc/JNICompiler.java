@@ -273,11 +273,11 @@ public abstract class JNICompiler
     }
 
     //
-    // try to return virtual processor to vpStatus IN_JAVA
+    // try to return thread status to IN_JAVA
     //
     int label1 = asm.getMachineCodeIndex();
 
-    //TODO: we can do this directly from FP becasue we know framesize at compiletime
+    //TODO: we can do this directly from FP because we know framesize at compiletime
     //      (the same way we stored the JNI Env above)
     asm.emitLAddr(S0, 0, FP);           // get mini-frame
     asm.emitLAddr(S0, 0, S0);           // get Java caller FP
