@@ -508,28 +508,31 @@ public final class OptCompiledMethod extends CompiledMethod {
       }
 
       if (VM.BuildForPowerPC) {
-        /* we need synchronization on PPC to handle the weak memory model
-         * and its icache/dcache synchronization requriements.
-         * before the class loading finish, other processor should get
-         * synchronized.
-         */
+        // we need synchronization on PPC to handle the weak memory model
+        // and its icache/dcache synchronization requirements.
+        // Before the class loading finishes, other processors must get
+        // synchronized.
         boolean DEBUG_CODE_PATCH = false;
 
-        // let other processors see changes; although really physical processors
-        // need synchronization, we set each virtual processor to execute
-        // isync at thread switch point.
+        // let other processors see changes.
         Magic.sync();
 
         // All other processors now will see the patched code in their data cache.
         // We now need to force everyone's instruction caches to be in synch with their
         // data caches.  Some of the work of this call is redundant (since we already have
         // forced the data caches to be in synch), but we need the icbi instructions
+        // to invalidate the instruction caches.
         Memory.sync(Magic.objectAsAddress(instructions),
                        instructions.length() << ArchitectureSpecific.RegisterConstants.LG_INSTRUCTION_WIDTH);
+        // Force all other threads to execute isync at the next thread switch point
+        // so that the icbi instructions take effect. Another effect is that
+        // prefetched instructions are discarded.
+        // Note: it would be sufficient to execute isync once for each
+        // physical processor.
         RVMThread.softHandshake(codePatchSyncRequestVisitor);
 
         if (DEBUG_CODE_PATCH) {
-          VM.sysWrite("all processors get synchronized!\n");
+          VM.sysWrite("all processors got synchronized!\n");
         }
       }
 
