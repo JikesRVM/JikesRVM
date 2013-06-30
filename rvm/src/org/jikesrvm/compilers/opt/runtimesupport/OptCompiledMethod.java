@@ -547,5 +547,13 @@ public final class OptCompiledMethod extends CompiledMethod {
         t.codePatchSyncRequested = true;
         return true; // handshake with everyone but ourselves.
       }
+      @Override
+      @Uninterruptible
+      public boolean includeThread(RVMThread t) {
+        // CollectorThreads will never be executing code that is subject to code patching.
+        // (We don't allow speculative optimization of Uninterruptible code).  Therefore
+        // it is safe to exempt collectors from the need to respond to the handshake.
+        return !t.isCollectorThread();
+      }
     };
 }
