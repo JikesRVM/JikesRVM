@@ -1888,7 +1888,7 @@ public final class RVMThread extends ThreadContext implements Constants {
    * Threads enter native code never need to block, since they will not be executing
    * any Java code.  However, such threads must ensure that any system services (like
    * GC) that are waiting for this thread to stop are notified that the thread has
-   * instead chosen to exit Java.  As well, any requests to perform a sot handshake
+   * instead chosen to exit Java.  As well, any requests to perform a soft handshake
    * must be serviced and acknowledged.
    */
   private void enterNativeBlockedImpl(boolean jni) {
