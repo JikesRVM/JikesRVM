@@ -1348,25 +1348,36 @@ Check to make sure all required properties are specified. This includes properti
     </junit>
   </target>
 
+  <macrodef name="runUnitTests">
+    <sequential>
+      <delete dir="${junit.reports.rvm}"/>
+      <mkdir dir="${junit.reports.rvm}"/>
+
+      <junit jvm="${dist.base}/rvm" haltonfailure="yes" printsummary="true" showoutput="true" >
+        <jvmarg value="-Xbootclasspath/a:${build.test-classes}:${junit.jar}:${hamcrest.jar}"/>
+        <classpath>
+          <!-- Technically unnecessary as ${junit.jar} is on the boot classpath,
+               but needed to make the <junit> task's sanity checks happy. -->
+          <pathelement location="${junit.jar}"/>
+        </classpath>
+        <batchtest fork="yes" todir="${junit.reports.rvm}">
+          <formatter type="plain"/>
+          <fileset dir="${build.test-classes}">
+            <include name="**/*Test.class"/>
+          </fileset>
+        </batchtest>
+      </junit>
+    </sequential>
+  </macrodef>
+
   <target name="rvm-unit-tests" description="Run unit tests on Jikes RVM" depends="runtime" if="${require.rvm-unit-tests}">
+    <runUnitTests/>
+  </target>
 
-    <delete dir="${junit.reports.rvm}"/>
-    <mkdir dir="${junit.reports.rvm}"/>
-
-    <junit jvm="${dist.base}/rvm" haltonfailure="yes" printsummary="true" showoutput="true" >
-      <jvmarg value="-Xbootclasspath/a:${build.test-classes}:${junit.jar}:${hamcrest.jar}"/>
-      <classpath>
-        <!-- Technically unnecessary as ${junit.jar} is on the boot classpath,
-             but needed to make the <junit> task's sanity checks happy. -->
-        <pathelement location="${junit.jar}"/>
-      </classpath>
-      <batchtest fork="yes" todir="${junit.reports.rvm}">
-        <formatter type="plain"/>
-        <fileset dir="${build.test-classes}">
-          <include name="**/*Test.class"/>
-        </fileset>
-      </batchtest>
-    </junit>
+  <target name="unit-tests-on-existing-image" description="Execute the unit tests on an existing image" depends="compile-unit-tests">
+    <available file="${dist.base}/rvm" property="image.exists"/>
+    <fail unless="image.exists" message="Could not find an image at ${dist.base}/rvm to run unit tests."/>
+    <runUnitTests/>
   </target>
 
   <target name="compile-vmmagic" depends="compile">
