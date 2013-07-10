@@ -292,7 +292,7 @@ public final class RVMThread extends ThreadContext implements Constants {
   }
 
   /** Registers used by return barrier trampoline */
-  private Registers trampolineRegisters = new Registers();
+  private final Registers trampolineRegisters = new Registers();
 
   /** Return address of stack frame hijacked by return barrier */
   private Address hijackedReturnAddress;
