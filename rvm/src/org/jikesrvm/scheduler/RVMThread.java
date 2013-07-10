@@ -3421,16 +3421,20 @@ public final class RVMThread extends ThreadContext implements Constants {
   }
 
   @Uninterruptible
-  public static class SoftHandshakeVisitor {
+  public abstract static class SoftHandshakeVisitor {
     /**
-     * Set whatever flags need to be set to signal that the given thread should
-     * perform some action when it acknowledges the soft handshake. If not
-     * interested in this thread, return false; otherwise return true. Returning
-     * true will cause a soft handshake request to be put through.
+     * Sets whatever flags need to be set to signal that the given thread should
+     * perform some action when it acknowledges the soft handshake.
      * <p>
-     * This method is called with the thread's monitor() held, but while the
+     * This method is only called for threads for which {@link #includeThread(RVMThread)}
+     * is {@code true}.
+     * <p>
+     * This method is called with the thread's monitor held, but while the
      * thread may still be running. This method is not called on mutators that
      * have indicated that they are about to terminate.
+     *
+     * @return {@code false} if not interested in this thread, {@code true} otherwise.
+     * Returning {@code true} will cause a soft handshake request to be put through.
      */
     public boolean checkAndSignal(RVMThread t) {
       return true;
@@ -3445,14 +3449,12 @@ public final class RVMThread extends ThreadContext implements Constants {
     }
 
     /**
-     * Check whether to include the specified thread in the soft handshake.
+     * Checks whether to include the specified thread in the soft handshake.<p>
      *
      * @param t The thread to check for inclusion
-     * @return True if the thread should be included.
+     * @return {@code true} if the thread should be included.
      */
-    public boolean includeThread(RVMThread t) {
-      return true;
-    }
+    public abstract boolean includeThread(RVMThread t);
   }
 
   @NoCheckStore
