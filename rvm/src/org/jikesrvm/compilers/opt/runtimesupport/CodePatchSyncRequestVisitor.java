@@ -17,23 +17,25 @@ import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A visitor that is used to request synchronization of processor caches
- * after code patching has taken place.<p>
+ * after code patching has taken place.
+ * <p>
+ * Garbage collection threads are exempt from the need to respond to soft
+ * handshakes in the current implementation. This is safe because garbage
+ * collection threads will never be executing code that is subject to code
+ * patching. (We don't allow speculative optimization of uninterruptible code).
  */
 @Uninterruptible
 class CodePatchSyncRequestVisitor extends RVMThread.SoftHandshakeVisitor {
 
+  /**
+   * Signals the given thread to sync for code patching.
+   * @return {@code true} because this visitor is interested in all
+   *  mutator threads
+   */
   @Override
   public boolean checkAndSignal(RVMThread t) {
     t.codePatchSyncRequested = true;
-    return true; // handshake with everyone but ourselves.
-  }
-
-  @Override
-  public boolean includeThread(RVMThread t) {
-    // CollectorThreads will never be executing code that is subject to code patching.
-    // (We don't allow speculative optimization of Uninterruptible code).  Therefore
-    // it is safe to exempt collectors from the need to respond to the handshake.
-    return !t.isCollectorThread();
+    return true;
   }
 
 }

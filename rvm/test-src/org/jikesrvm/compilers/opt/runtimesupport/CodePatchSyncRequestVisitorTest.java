@@ -13,7 +13,6 @@
 package org.jikesrvm.compilers.opt.runtimesupport;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
@@ -37,32 +36,8 @@ public class CodePatchSyncRequestVisitorTest {
 
   @Test
   public void normalThreadsTakePartInHandshake() throws Exception {
-    RVMThread nonCollectorThread = RVMThread.getCurrentThread();
-    assertTrue(codePatchSyncReqVisitor.includeThread(nonCollectorThread));
-  }
-
-  @Test
-  public void collectorThreadsDoNotTakePartInHandshake() throws Exception {
-    RVMThread anyCollectorThread = pickAnyLiveCollectorThread();
-    assertNotNull(anyCollectorThread);
-
-    assertFalse(codePatchSyncReqVisitor.includeThread(anyCollectorThread));
-  }
-
-  private RVMThread pickAnyLiveCollectorThread() {
-    RVMThread anyLiveCollectorThread = null;
-
-    RVMThread.acctLock.lockNoHandshake();
-    for (int i = 0; i < RVMThread.numThreads; ++i) {
-      RVMThread t = RVMThread.threads[i];
-      if (t.isCollectorThread() && t.isAlive()) {
-        anyLiveCollectorThread = t;
-        break;
-      }
-    }
-    RVMThread.acctLock.unlock();
-
-    return anyLiveCollectorThread;
+    RVMThread normalThread = RVMThread.getCurrentThread();
+    assertTrue(codePatchSyncReqVisitor.includeThread(normalThread));
   }
 
   @Test

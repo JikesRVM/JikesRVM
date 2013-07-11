@@ -3420,6 +3420,12 @@ public final class RVMThread extends ThreadContext implements Constants {
     return lockingId;
   }
 
+  /**
+   * Provides a skeleton implementation for use in soft handshakes.
+   * <p>
+   * During a soft handshake, the requesting thread waits for all mutator threads
+   * (i.e. non-gc threads) to perform a requested action.
+   */
   @Uninterruptible
   public abstract static class SoftHandshakeVisitor {
     /**
@@ -3436,36 +3442,50 @@ public final class RVMThread extends ThreadContext implements Constants {
      * @return {@code false} if not interested in this thread, {@code true} otherwise.
      * Returning {@code true} will cause a soft handshake request to be put through.
      */
-    public boolean checkAndSignal(RVMThread t) {
-      return true;
-    }
+    public abstract boolean checkAndSignal(RVMThread t);
 
     /**
      * Called when it is determined that the thread is stuck in native. While
      * this method is being called, the thread cannot return to running Java
      * code. As such, it is safe to perform actions "on the thread's behalf".
+     * <p>
+     * This implementation does nothing.
      */
     public void notifyStuckInNative(RVMThread t) {
     }
 
     /**
-     * Checks whether to include the specified thread in the soft handshake.<p>
+     * Checks whether to include the specified thread in the soft handshake.
+     * <p>
+     * This method will never see any threads from the garbage collector because
+     * those are excluded from the soft handshake by design.
+     * <p>
+     * This implementation always returns {@code true}.
      *
      * @param t The thread to check for inclusion
      * @return {@code true} if the thread should be included.
      */
-    public abstract boolean includeThread(RVMThread t);
+    public boolean includeThread(RVMThread t) {
+      return true;
+    }
   }
 
   @NoCheckStore
   public static int snapshotHandshakeThreads(SoftHandshakeVisitor v) {
     // figure out which threads to consider
-    acctLock.lockNoHandshake(); /* get a consistent view of which threads are live. */
+    acctLock.lockNoHandshake(); // get a consistent view of which threads are live.
 
     int numToHandshake = 0;
     for (int i = 0; i < numThreads; ++i) {
       RVMThread t = threads[i];
-      if (t != RVMThread.getCurrentThread() && !t.ignoreHandshakesAndGC() && v.includeThread(t)) {
+      // We exclude the following threads from the handshake:
+      // -the current thread (because we would deadlock if we included it)
+      // -threads that ignore handshakes by design (e.g. the timer thread)
+      // -collector threads (because they never yield and we would deadlock if we
+      //   tried to wait for them)
+      // -the threads that the provided visitor does not want to include
+      if (t != RVMThread.getCurrentThread() && !t.ignoreHandshakesAndGC() &&
+          !t.isCollectorThread() && v.includeThread(t)) {
         handshakeThreads[numToHandshake++] = t;
       }
     }
