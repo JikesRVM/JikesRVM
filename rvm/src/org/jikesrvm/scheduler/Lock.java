@@ -468,6 +468,7 @@ public final class Lock implements Constants {
         VM.sysWriteln("Lock.allocate: returning ",Magic.objectAsAddress(l),
                       ", a cached free lock from Thread #",me.getThreadSlot());
       }
+      l.active = true;
       return l;
     }
 

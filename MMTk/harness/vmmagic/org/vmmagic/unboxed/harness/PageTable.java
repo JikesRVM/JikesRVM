@@ -12,15 +12,17 @@
  */
 package org.vmmagic.unboxed.harness;
 
-import java.util.HashMap;
+import static org.vmmagic.unboxed.harness.MemoryConstants.LOG_BYTES_IN_PAGE;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.vmmagic.unboxed.Address;
-import static org.vmmagic.unboxed.harness.MemoryConstants.*;
 
 final class PageTable {
-  private final HashMap<Long, MemoryPage> pages = new HashMap<Long, MemoryPage>();
+  private final ConcurrentMap<Long, MemoryPage> pages = new ConcurrentHashMap<Long, MemoryPage>();
 
   private long pageTableEntry(Address p) {
     return p.toLong() >>> LOG_BYTES_IN_PAGE;
@@ -32,48 +34,54 @@ final class PageTable {
    * @param p
    * @return
    */
-  synchronized MemoryPage getPage(Address p) {
+  MemoryPage getPage(Address p) {
     MemoryPage page = pages.get(pageTableEntry(p));
     if (page == null) {
-      throw new RuntimeException("Page not mapped: " + p);
+      throw new Error("Page not mapped: " + p);
     } else if (!page.readable) {
-      throw new RuntimeException("Page not readable: " + p);
+      throw new Error("Page not readable: " + p);
     }
     return page;
   }
 
-  synchronized void setReadable(Address p) {
+  void setReadable(Address p) {
     MemoryPage page = pages.get(pageTableEntry(p));
     if (page == null) {
-      throw new RuntimeException("Page not mapped: " + p);
+      throw new Error("Page not mapped: " + p);
     }
     page.readable = true;
   }
 
-  synchronized void setNonReadable(Address p) {
+  void setNonReadable(Address p) {
     MemoryPage page = pages.get(pageTableEntry(p));
     if (page == null) {
-      throw new RuntimeException("Page not mapped: " + p);
+      throw new Error("Page not mapped: " + p);
     }
     page.readable = false;
   }
 
-  synchronized void mapPage(Address p) {
+  void mapPage(Address p) {
     long page = pageTableEntry(p);
     Trace.trace(Item.MEMORY,"Mapping page %s%n", p);
-    if (pages.get(page) != null) {
-      throw new RuntimeException("Page already mapped: " + p);
+    MemoryPage newPage = new MemoryPage(p);
+    if (pages.putIfAbsent(page, newPage) != null) {
+      throw new Error("Page already mapped: " + p);
     }
-    pages.put(page, new MemoryPage(p));
   }
 
-  synchronized void zeroPage(Address p) {
-    synchronized(pages) {
-      MemoryPage page = pages.get(pageTableEntry(p));
-      if (page == null) {
-        throw new RuntimeException("Page not mapped: " + p);
-      }
-      page.zero();
+  void unmapPage(Address p) {
+    long page = pageTableEntry(p);
+    Trace.trace(Item.MEMORY,"Unmapping page %s%n", p);
+    if (pages.get(page) != null) {
+      pages.remove(page);
     }
+  }
+
+  void zeroPage(Address p) {
+    MemoryPage page = pages.get(pageTableEntry(p));
+    if (page == null) {
+      throw new Error("Page not mapped: " + p);
+    }
+    page.zero();
   }
 }

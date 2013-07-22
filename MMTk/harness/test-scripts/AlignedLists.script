@@ -11,6 +11,7 @@
  *  regarding copyright ownership.
  */
 
+option baseHeap "3m";
 
 /*
  * This script is designed to work-out the write barriers in a generational 
@@ -52,7 +53,7 @@ void main() {
   
   // Create the lists
   int i=0;
-  int n=1;
+  int n=2;
   while (i < nLists) {
     print( "Creating list of length ",n);
     lists.object[i] = create(n);

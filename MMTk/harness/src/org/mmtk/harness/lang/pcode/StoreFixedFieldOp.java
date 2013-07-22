@@ -42,7 +42,7 @@ public final class StoreFixedFieldOp extends BinaryOp {
    * @param fieldType Type of field (INT or OBJECT)
    */
   public StoreFixedFieldOp(AST source, Register object, int index, String fieldName, Register val, Type fieldType) {
-    super(source,"storeField",object, val);
+    super(source,"storeFixedField",object, val);
     this.fieldType = fieldType;
     this.index = index;
     this.fieldName = fieldName;
@@ -51,7 +51,7 @@ public final class StoreFixedFieldOp extends BinaryOp {
 
   @Override
   public String toString() {
-    return String.format("%s.%s <- %s",
+    return String.format("[%s] storeFixedField %s.%s <- %s", formatGcMap(),
         Register.nameOf(op1),fieldName,Register.nameOf(op2));
   }
 

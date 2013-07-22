@@ -123,7 +123,7 @@ import org.jikesrvm.scheduler.ThreadQueue;
           state=LOCKED_QUEUED;
           me.monitor().lockNoHandshake();
           while (queue.isQueued(me)) {
-            // use await instead of waitNicely because this is NOT a GC point!
+            // use waitNoHandshake instead of waitWithHandshake because this is NOT a GC point!
             me.monitor().waitNoHandshake();
           }
           me.monitor().unlock();

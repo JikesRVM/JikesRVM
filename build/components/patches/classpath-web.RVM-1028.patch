@@ -1,0 +1,29 @@
+--- vm/reference/java/lang/VMProcess.java	2006-09-05 22:33:25.000000000 +0100
++++ vm/reference/java/lang/VMProcess.java	2013-04-25 20:59:20.318705390 +0100
+@@ -152,7 +152,7 @@
+ 		    {
+ 		      process.exitValue = exitValue;
+ 		      process.state = TERMINATED;
+-		      process.notify();
++		      process.notifyAll();
+ 		    }
+ 		}
+ 	      else
+@@ -214,7 +214,7 @@
+ 	      process.state = TERMINATED;
+ 	      process.exception = t;
+ 	    }
+-	  process.notify();
++	  process.notifyAll();
+ 	}
+     }
+   }
+@@ -243,7 +243,7 @@
+ 	  }
+ 	else
+ 	  {
+-	    workList.notify();
++	    workList.notifyAll();
+ 	  }
+       }
+ 

@@ -13,6 +13,7 @@
 package java.lang.ref;
 
 import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_GETFIELD_BARRIER;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_PUTFIELD_BARRIER;
 
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mminterface.Barriers;
@@ -107,7 +108,7 @@ public abstract class Reference<T> {
 
   public void clear() {
     if (RVMType.JavaLangRefReferenceReferenceField.madeTraced()) {
-      if (NEEDS_OBJECT_GETFIELD_BARRIER) {
+      if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
         Barriers.objectFieldWrite(this, null, RVMType.JavaLangRefReferenceReferenceField.getOffset(), RVMType.JavaLangRefReferenceReferenceField.getId());
       } else {
         Magic.setObjectAtOffset(this, RVMType.JavaLangRefReferenceReferenceField.getOffset(), null, RVMType.JavaLangRefReferenceReferenceField.getId());

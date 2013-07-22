@@ -12,34 +12,36 @@
  */
 package test.org.jikesrvm.basic.core.threads;
 
-class TestVolatiles extends XThread {
+class TestVolatileLongs extends XThread {
 
   public static void main(String[] args) {
+    VolatileLongField vlf = new VolatileLongField();
     for (int i = 0; i < 5; i++) {
-      TestVolatiles tv = new TestVolatiles(i);
-      tv.start();
+      TestVolatileLongs tvl = new TestVolatileLongs(i,vlf);
+      tvl.start();
     }
     XThread.say("bye");
     XThread.outputMessages();
   }
 
-  static volatile long vl = 0;
   static volatile int vi = 0;
 
   int n;
   long l;
+  VolatileLongField vlf;
 
-  TestVolatiles(int i) {
-    super("V" + i);
+  TestVolatileLongs(int i, VolatileLongField vlf) {
+    super("VL" + i);
     n = i;
     l = (((long) n) << 32) + n;
+    this.vlf = vlf;
   }
 
   void performTask() {
     int errors = 0;
     for (int i = 0; i < 10000000; i++) {
-      long tl = vl;
-      vl = l;
+      long tl = vlf.vl;
+      vlf.vl = l;
       int n0 = (int) tl;
       int n1 = (int) (tl >> 32);
       if (n0 != n1) errors++;
@@ -47,4 +49,9 @@ class TestVolatiles extends XThread {
     }
     tsay(errors + " errors found");
   }
+
+  private static class VolatileLongField {
+    volatile long vl = 0;
+  }
+
 }

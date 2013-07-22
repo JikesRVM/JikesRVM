@@ -19,7 +19,15 @@ import org.mmtk.harness.lang.compiler.CompiledMethod;
 import org.mmtk.harness.lang.pcode.CallNormalOp;
 import org.mmtk.harness.lang.pcode.PseudoOp;
 import org.mmtk.harness.lang.pcode.ReturnOp;
+import org.vmmagic.unboxed.harness.Clock;
 
+/**
+ * Interprets the p-code that is the compilation target of the
+ * MMTk Harness scripting language.
+ *
+ * p-ops are interpreted by calling the operator's exec method.
+ * The interpreter then performs control-flow adjustments.
+ */
 public final class PcodeInterpreter {
 
   /** The environment (stack and associated structures) for this thread. */
@@ -55,11 +63,15 @@ public final class PcodeInterpreter {
     setActualParams(params);
     while (true) {
       PseudoOp op = code[pc++];
+      Clock.stop();
+      Trace.trace(Item.EVAL,"depth=%-4d pc=%4d: %s",nesting,pc-1,op);
+      Clock.start();
       try {
-        Trace.trace(Item.EVAL,"%-4d %4d: %s",nesting,pc,op);
+        if (op.mayTriggerGc() || op.affectsControlFlow()) {
+          gcSafePoint(op, true);
+        }
         op.exec(env);
         if (op.affectsControlFlow()) {
-          env.gcSafePoint();
           if (op.isBranch()) {
             /*
              * Branch
@@ -84,6 +96,13 @@ public final class PcodeInterpreter {
         stackTrace(op);
         throw e;
       }
+    }
+  }
+
+  private void gcSafePoint(PseudoOp op, boolean unconditional) {
+    if (unconditional || env.gcRequested()) {
+      saveContext(op,env.top());
+      env.gcSafePoint();
     }
   }
 
@@ -124,7 +143,7 @@ public final class PcodeInterpreter {
    * @param callee
    */
   private void pushFrame(CompiledMethod callee) {
-    env.push(callee.formatStackFrame());
+    env.pushFrame(callee);
   }
 
   /**
@@ -160,7 +179,7 @@ public final class PcodeInterpreter {
    */
   private void stackTrace(PseudoOp op) {
     saveContext(op,env.top());
-    for (StackFrame frame : env.stack()) {
+    for (StackFrame frame : env.iterator()) {
       op = frame.getSavedMethod()[frame.getSavedPc()-1];
       System.err.println(op.getSourceLocation("at "));
     }

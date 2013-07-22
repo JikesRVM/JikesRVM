@@ -11,6 +11,8 @@
  *  regarding copyright ownership.
  */
 
+option baseHeap "10240k";
+
 /*
  * MMTk script that mimics the behaviour of the FixedLive benchmark
  */
@@ -22,7 +24,7 @@ type tree {
 }
 
 void main() {
-  tree t = createTree(15);
+  tree t = createTree(18);
   allocLoop(100000);
 }
 

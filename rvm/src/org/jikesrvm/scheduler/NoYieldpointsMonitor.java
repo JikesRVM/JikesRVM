@@ -24,7 +24,7 @@ import org.jikesrvm.VM;
  * the lock is held.  Extremely useful for any locks that may be acquired,
  * released, or waited upon in the process of performing a GC.
  * <p>
- * Note that calling any of the Nicely methods on an instance of this
+ * Note that calling any of the withHandshake methods on an instance of this
  * class is extremely dangerous.  These methods may cause you to block on
  * GC, which seemingly goes against the very intent of this being a "no
  * interrupts" condition variable and lock.  However, it makes a subtle
@@ -32,7 +32,7 @@ import org.jikesrvm.VM;
  * instance of NoInterruptsCondLock that your thread will wait on when
  * blocking on GC</i>.  This idiom is used quite a bit.
  * <p>
- * To ensure that the Nicely methods are used correctly - that is, that
+ * To ensure that the withHandshake methods are used correctly - that is, that
  * they are only used by the thread that owns the lock - there are assertions
  * in place to ensure that the caller is the owner.
  */

@@ -24,6 +24,7 @@ import org.mmtk.harness.lang.runtime.ReferenceValue;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * This class manages SoftReferences, WeakReferences, and
@@ -80,7 +81,9 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param ref The reference value
    */
   private void add(ReferenceValue ref) {
+    Clock.stop();
     Trace.trace(Item.REFERENCES, "Discovered reference %s", ref);
+    Clock.start();
     if (!oldRefs.contains(ref)) {
       newRefs.add(ref);
     } else {
@@ -90,7 +93,9 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
 
   @Override
   public void clear() {
+    Clock.stop();
     Trace.trace(Item.REFERENCES, "Clearing %s references", semantics);
+    Clock.start();
     currentRefs.clear();
     newRefs.clear();
   }
@@ -104,8 +109,10 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    */
   @Override
   public synchronized void scan(TraceLocal trace, boolean nursery) {
+    Clock.stop();
     Trace.trace(Item.REFERENCES, "Scanning %s references: current = %d, new = %d, %s",
         semantics,currentRefs.size(), newRefs.size(), nursery  ? "nursery" : "full-heap");
+    Clock.start();
     if (!nursery) {
       scanReferenceSet(trace, currentRefs);
     }
@@ -135,8 +142,10 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    */
   @Override
   public void forward(TraceLocal trace, boolean nursery) {
+    Clock.stop();
     Trace.trace(Item.REFERENCES, "Forwarding %s references: %s",
         semantics,nursery ? "nursery" : "full-heap");
+    Clock.start();
     for (ReferenceValue value : oldRefs) {
       value.forwardReference(trace);
     }

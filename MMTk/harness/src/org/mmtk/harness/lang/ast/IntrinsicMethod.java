@@ -28,6 +28,7 @@ import org.mmtk.harness.lang.runtime.StringValue;
 import org.mmtk.harness.lang.runtime.Value;
 import org.mmtk.harness.lang.runtime.WeakReferenceValue;
 import org.mmtk.harness.lang.type.Type;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * A method that is implemented directly in Java rather than in the scripting language.
@@ -257,12 +258,17 @@ public class IntrinsicMethod extends Method {
    * @return
    */
   Object invoke(Env env, Value[] values) {
-    Trace.trace(Item.INTRINSIC,"Executing "+toString());
+    Clock.stop();
     try {
-      Object result = method.invoke(null, marshall(env,values));
-      return result;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+      Trace.trace(Item.INTRINSIC,"Executing "+toString());
+      try {
+        Object result = method.invoke(null, marshall(env,values));
+        return result;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    } finally {
+      Clock.start();
     }
   }
 

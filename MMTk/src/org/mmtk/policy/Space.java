@@ -165,6 +165,7 @@ public abstract class Space implements Constants {
         VM.assertions.fail(name + " starting on non-aligned boundary: " + start.toLong() + " bytes");
       }
     } else if (vmRequest.top) {
+      if (Map.isFinalized()) VM.assertions.fail("heap is narrowed after regionMap is finalized: "+ name);
       heapLimit = heapLimit.minus(extent);
       start = heapLimit;
     } else {

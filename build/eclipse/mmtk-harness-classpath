@@ -6,7 +6,7 @@
 	<classpathentry kind="src" path="MMTk/harness/src"/>
 	<classpathentry kind="src" path="MMTk/harness/vmmagic"/>
 	<classpathentry kind="src" path="MMTk/src"/>
-	<classpathentry kind="src" path="generated/mmtk-harness-parser/java"/>
+	<classpathentry kind="src" path="eclipse/parser"/>
 	<classpathentry kind="src" path="testing/tests/mmtk/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>

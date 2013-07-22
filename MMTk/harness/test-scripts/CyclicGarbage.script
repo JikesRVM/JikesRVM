@@ -11,17 +11,16 @@
  *  regarding copyright ownership.
  */
 
+option verbose "3";
+
 /**
  * This is a simple test that creates lots of cyclic garbage.
  */
 void main() {
-  int cycles = 300;
-  int cycleSize = 100;
+  int cycleSize = 1000;
 
-  int i = 1;
-  while (i < cycles) {
+  while (gcCount() < 25) {
     createCycle(cycleSize);
-    i = i + 1;
   }
 }
 

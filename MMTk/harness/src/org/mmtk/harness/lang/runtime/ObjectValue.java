@@ -12,6 +12,8 @@
  */
 package org.mmtk.harness.lang.runtime;
 
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.type.Type;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
@@ -106,8 +108,11 @@ public class ObjectValue extends Value {
    * @param trace The trace object
    */
   public void traceObject(TraceLocal trace) {
+    assert false;
     if (lastDiscoveryPhase < currentRootDiscoveryPhase) {
+      ObjectReference old = value;
       value = trace.traceObject(value, true);
+      Trace.trace(Item.ROOTS,"ObjectValue.traceObject: %s->%s",old,value);
       lastDiscoveryPhase = currentRootDiscoveryPhase;
     }
   }

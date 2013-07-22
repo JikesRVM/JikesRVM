@@ -14,6 +14,43 @@
 /*
  * Concurrency test.  Creates a data structure that allows for maximum
  * heap contention.
+ *
+ * In order to arrange for multiple GC threads to work simultaneously, we create
+ * several mutator threads.  The stack scanning process ensures that each GC thread
+ * will collect one or more mutator threads, pushing its roots onto a per-thread 
+ * buffer.  Then when the closure phase starts, each colletcor has a chance to grab a 
+ * block of roots to scan.  With only one mutator thread there would be no concurrent
+ * collector activity.
+ *
+ * Each mutator thread has a root that points to a linked list that is private to the
+ * mutator thread.  Each node in the linked list points to two shared objects, each
+ * pointed to by two thread's lists.
+ *
+ * Diagramatically, for two threads the structure looks like this:
+ *
+ *         thread1
+ *            list ---> L_1_0 -------> L_1_1 ------> L_1_2 ...
+ *                       /  \           /  \
+ *                      v    v         v    v
+ *                   S_1_1  S_1_2   S_2_1  S_2_2   ...
+ *                      ^    ^         ^    ^
+ *         thread2       \  /           \  /
+ *            list ---> L_2_0 -------> L_2_1 ------> L_2_2 ...
+ *
+ *
+ * For four threads, the pointers at level 'n' of the lists looks like
+ *
+ *            L_1_n --> S_1_n <-- L_2_n
+ *              |                   |
+ *              v                   v
+ *            S_4_n               S_4_n
+ *              ^                   ^
+ *              |                   |
+ *            L_4_n --> S_3_n <-- L_3_n
+ *
+ * Net result in a copying collector like SemiSpace should be that half of the GC threads
+ * should win the race to copy one of the 'S' objects, and the other half should
+ * wait for the copy to be complete and install the forwarding pointer.
  */
  
 void main() {
@@ -21,7 +58,7 @@ void main() {
   int LENGTH = 16;
   int ROUNDS = 10;
  
-  /* The per-thread list-heads */
+  /* The per-thread list-heads, during construction */
   object lists = alloc(THREADS,0);
   
   int l = LENGTH;

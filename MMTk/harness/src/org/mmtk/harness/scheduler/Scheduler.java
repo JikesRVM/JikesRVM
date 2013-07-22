@@ -19,6 +19,7 @@ import org.mmtk.harness.scheduler.rawthreads.RawThreadModel;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Monitor;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * Facade class for the command-line selectable threading models available
@@ -69,8 +70,8 @@ public class Scheduler {
   /**
    * Thread Model factory - returns the thread model selected by user options.
    */
-  private static ThreadModel selectedThreadModel() {
-    switch (Harness.scheduler.model()) {
+  public static ThreadModel newThreadModel(Model model) {
+    switch (model) {
       case JAVA:
         return new JavaThreadModel();
       case DETERMINISTIC:
@@ -113,7 +114,15 @@ public class Scheduler {
    * Initialization
    */
   public static void init() {
-    model = selectedThreadModel();
+    setThreadModel(Harness.scheduler.model());
+  }
+
+  /**
+   * Set the thread model
+   * @param modelType
+   */
+  public static void setThreadModel(Scheduler.Model modelType) {
+    model = newThreadModel(modelType);
   }
 
   /**
@@ -184,8 +193,19 @@ public class Scheduler {
     return model.gcTriggered();
   }
 
+  /**
+   * Wait at a barrier in user code
+   * @param name
+   * @param expected
+   * @return
+   */
   public static int mutatorRendezvous(String name, int expected) {
-    return model.mutatorRendezvous(name,expected);
+    try {
+      Clock.stop();
+      return model.mutatorRendezvous(name,expected);
+    } finally {
+      Clock.start();
+    }
   }
 
   /**
@@ -216,7 +236,12 @@ public class Scheduler {
    * @return The newly created lock
    */
   public static Lock newLock(String name) {
-    return model.newLock(name);
+    try {
+      Clock.stop();
+      return model.newLock(name);
+    } finally {
+      Clock.start();
+    }
   }
 
   /**
@@ -224,21 +249,36 @@ public class Scheduler {
    * @return A new monitor of the appropriate class
    */
   public static Monitor newMonitor(String name) {
-    return model.newMonitor(name);
+    try {
+      Clock.stop();
+      return model.newMonitor(name);
+    } finally {
+      Clock.start();
+    }
   }
 
   /**
    * Stop all mutator threads. This is current intended to be run by a single thread.
    */
   public static void stopAllMutators() {
-    model.stopAllMutators();
+    try {
+      Clock.stop();
+      model.stopAllMutators();
+    } finally {
+      Clock.start();
+    }
   }
 
   /**
    * Resume all mutators blocked for GC.
    */
   public static void resumeAllMutators() {
-    model.resumeAllMutators();
+    try {
+      Clock.stop();
+      model.resumeAllMutators();
+    } finally {
+      Clock.start();
+    }
   }
 
   /** @return {@code true} if the current thread is a mutator thread */

@@ -63,7 +63,7 @@ public final class Goto extends NullaryOp {
 
   @Override
   public String toString() {
-    return String.format("%s %d", name, target);
+    return String.format("%s %d", super.toString(), target);
   }
 
 }

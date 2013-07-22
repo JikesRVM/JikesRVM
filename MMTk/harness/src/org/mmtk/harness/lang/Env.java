@@ -20,22 +20,36 @@ import java.util.Random;
 import org.mmtk.harness.Main;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.lang.compiler.CompiledMethod;
 import org.mmtk.harness.lang.runtime.ObjectValue;
+import org.mmtk.harness.lang.runtime.RuntimeStack;
+import org.mmtk.harness.lang.runtime.StackAllocator;
 import org.mmtk.harness.lang.runtime.StackFrame;
 import org.mmtk.plan.TraceLocal;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
- * An execution environment
+ * An execution environment.  This is the language-specific layer
+ * over a Mutator.
  */
 public class Env extends Mutator {
 
-  private static boolean gcEverySafepoint = false;
+  private static StackAllocator stackSpace;
+
+  public static void setStackSpace(StackAllocator stackSpace) {
+    Env.stackSpace = stackSpace;
+  }
+
+  public Env() {
+
+  }
 
   /**
    * The stack
    */
-  private final UnsyncStack<StackFrame> stack = new UnsyncStack<StackFrame>();
+  private final RuntimeStack stack = new RuntimeStack(stackSpace.alloc(), stackSpace.sizeInBytes());
 
   /**
    * A source of random numbers (we have one per thread so that we can write
@@ -49,19 +63,11 @@ public class Env extends Mutator {
   private Class<?> expectedThrowable;
 
   /**
-   * Enable a CG on every safepoint
-   */
-  public static void setGcEverySafepoint() {
-    gcEverySafepoint = true;
-  }
-
-  /**
    * Enter a new procedure, pushing a new stack frame.
-   * @param frame Stack frame to push
+   * @param callee Compiled method for which to push a frame
    */
-  public void push(StackFrame frame) {
-    stack.push(frame);
-    Trace.trace(Item.ENV,"push()");
+  public void pushFrame(CompiledMethod callee) {
+    stack.pushFrame(this, callee);
   }
 
   /**
@@ -69,20 +75,19 @@ public class Env extends Mutator {
    */
   public void pop() {
     stack.pop();
-    Trace.trace(Item.ENV,"pop()");
   }
 
   /**
    * @return The frame at the top of the stack.
    */
   public StackFrame top() {
-    return stack.peek();
+    return stack.top();
   }
 
   /**
    * @return The current stack
    */
-  public Iterable<StackFrame> stack() {
+  public Iterable<StackFrame> iterator() {
     return stack;
   }
 
@@ -92,11 +97,27 @@ public class Env extends Mutator {
     for (StackFrame frame : stack) {
       localCount += frame.computeRoots(trace);
     }
+    Clock.stop();
     Trace.trace(Item.ROOTS, "Locals: %d", localCount);
+    Clock.start();
   }
 
   @Override
-  public Collection<ObjectValue> getRoots() {
+  public void prepare() {
+    for (StackFrame frame : stack) {
+      frame.prepare();
+    }
+  }
+
+  @Override
+  public void release() {
+    for (StackFrame frame : stack) {
+      frame.release();
+    }
+  }
+
+  @Override
+  public List<ObjectValue> getRoots() {
     List<ObjectValue> roots = new ArrayList<ObjectValue>();
     for (StackFrame frame : stack) {
       roots.addAll(frame.getRoots());
@@ -104,6 +125,21 @@ public class Env extends Mutator {
     return roots;
   }
 
+  /**
+   * @see org.mmtk.harness.Mutator#getRoots()
+   */
+  @Override
+  public List<Address> getRootAddresses() {
+    List<Address> roots = new ArrayList<Address>();
+    for (StackFrame frame : stack) {
+      roots.addAll(frame.getRootAddresses());
+    }
+    return roots;
+  }
+
+  /**
+   * Print the thread roots and add them to a stack for processing.
+   */
   @Override
   public Collection<ObjectReference> dumpThreadRoots(int width) {
     int frameId = 0;
@@ -117,15 +153,9 @@ public class Env extends Mutator {
     return roots;
   }
 
-  @Override
-  public boolean gcSafePoint() {
-    if (gcEverySafepoint) {
-      gc();
-    }
-    return super.gcSafePoint();
-  }
-
-
+  /**
+   * @see org.mmtk.harness.Mutator#end()
+   */
   @Override
   public void end() {
     if (!(expectedThrowable == null)) fail(("Expected exception of class " + expectedThrowable + " not found"));
@@ -148,6 +178,7 @@ public class Env extends Mutator {
    * @param e Exception
    */
   public void uncaughtException(Thread t, Throwable e) {
+    Clock.stop();
     Trace.trace(Item.EXCEPTION, "Processing uncaught exception %s", e.getClass().getCanonicalName());
     if (e.getClass() == expectedThrowable) {
       System.err.println("Mutator " + context.getId() + " exiting due to expected exception of class " + expectedThrowable);
@@ -166,4 +197,11 @@ public class Env extends Mutator {
     return rng;
   }
 
+  public void setStackSlot(Address slot, ObjectValue value) {
+    setStackSlot(slot,value.getObjectValue());
+  }
+
+  public ObjectValue getObjectStackSlot(Address slot) {
+    return new ObjectValue(getReferenceStackSlot(slot));
+  }
 }

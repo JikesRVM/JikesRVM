@@ -11,22 +11,23 @@
  *  regarding copyright ownership.
  */
  
+option baseHeap "3m";
+
  /*
   * MMTk test script.  Allocate a large object holding pointers to objects of a wide
-  * (random) sizes.  Keep 100 live objects, and keep the newest objects
+  * (random) sizes.  Keep 200 live objects, and keep the newest objects
   * live.
   *
   * Highly non-generational :)  Basic exercise of multi-class allocation.
   */
 void main() {
-  int n = 10000;                  // Number of iterations
   int live = 200;                 // Number of live children
   int small = 5;                  // # scalars in the smallest object
   int large = 2000;               // # scalars in the largest object
   int i=0;
   
   object parent = alloc(live, 0, false);       // Parent object with 'live' pointers
-  while (i < n) {             // loop for a while
+  while (gcCount() < 30) {             // loop for a while
     parent.object[i%live] = alloc(0, random(small,large), false);
     i = i + 1;                // loop counter
   }

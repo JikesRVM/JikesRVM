@@ -12,7 +12,17 @@
  */
 package org.mmtk.harness.scheduler.javathreads;
 
+import org.mmtk.harness.Harness;
+
 public class JavaMonitor extends org.mmtk.vm.Monitor {
+
+  private static final long NANOS_IN_SECOND = 1000000000L;
+
+  private static final int WAIT_TIME = 1000; // ms
+
+  private final long timeout;
+
+  private final String name;
 
   private static final boolean TRACE = false;
 
@@ -20,50 +30,109 @@ public class JavaMonitor extends org.mmtk.vm.Monitor {
 
   private boolean isLocked = false;
 
+  /**
+   * This counter is used to distinguish wakeups due to broadcast() from
+   * other wakeups.  When we broadcast to threads waiting on the condition,
+   * we increment the counter.  Each await-ing thread saves a thread-local copy
+   * of the value when it started waiting, and when they diverge it wakes up.
+   */
+  private int counter = Integer.MIN_VALUE;
+
+  private Thread holder = null;
+
+  public JavaMonitor(String name) {
+    this.name = name;
+    this.timeout = Harness.lockTimeout.getValue() * NANOS_IN_SECOND;
+  }
+
+  /**
+   * Initialize the timeout timer.
+   *
+   * Value must be kept in a local variable, not a field.
+   */
+  private long startWait() {
+    return System.nanoTime();
+  }
+
+  /**
+   * Check for timeout
+   * @param startWait Time in nanoseconds that the wait started.
+   */
+  private boolean timedOut(long startWait) {
+    return (System.nanoTime() - startWait) > timeout;
+  }
+
   @Override
   public void await() {
-    if (TRACE) System.out.println("await() : in");
+    trace("await", "in");
     synchronized(monitor) {
-      try {
-        unlock();
-        monitor.wait();
-        lock();
-      } catch (InterruptedException e) { }
+      int savedCount = counter;
+      trace("await", "unlocking");
+      unlock();
+      trace("await", "waiting");
+      long start = startWait();
+      while (savedCount == counter && !timedOut(start)) {
+        try {
+          monitor.wait(WAIT_TIME);
+        } catch (InterruptedException e) { }
+      }
+      if (timedOut(start)) {
+        Harness.dumpStateAndExit("Timed out waiting for notification at "+name+", held by");
+      }
+      trace("await", "waking ...");
+      lock();
     }
-    if (TRACE) System.out.println("await() : out");
+    trace("await", "out");
   }
 
   @Override
   public void broadcast() {
-    if (TRACE) System.out.println("broadcast() : in");
+    trace("broadcast", "in");
     synchronized(monitor) {
+      counter++;
       monitor.notifyAll();
     }
-    if (TRACE) System.out.println("broadcast() : out");
+    trace("broadcast", "out");
   }
 
   @Override
   public void lock() {
-    if (TRACE) System.out.println("lock() : in");
+    trace("lock", "in");
     synchronized(monitor) {
-      while (isLocked) {
+      long start = startWait();
+      while (isLocked && !timedOut(start)) {
         try {
+          trace("lock", "wait for "+holder.getName());
           monitor.wait();
         } catch (InterruptedException e) { }
       }
+      if (timedOut(start)) {
+        String holderName = holder == null ? "<no-one>" : holder.getName();
+        Harness.dumpStateAndExit("Timed out waiting for "+name+", held by "+holderName);
+      }
       isLocked = true;
+      holder = Thread.currentThread();
     }
-    if (TRACE) System.out.println("lock() : out");
+    trace("lock", "out");
   }
 
   @Override
   public void unlock() {
-    if (TRACE) System.out.println("unlock() : in");
+    trace("unlock", "in");
     synchronized(monitor) {
+      assert isLocked;
       isLocked = false;
+      holder = null;
       monitor.notifyAll();
     }
-    if (TRACE) System.out.println("unlock() : out");
+    trace("unlock", "out");
+  }
+
+  private void trace(String method, String place) {
+    if (TRACE) {
+      System.out.printf("%s: %s(%s) : %s%n", Thread.currentThread().getName(), method, name, place);
+      System.out.flush();
+    }
   }
 
 }

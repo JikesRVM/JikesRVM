@@ -224,7 +224,7 @@ public abstract class Simple extends Plan implements Constants {
     }
 
     if (phaseId == STACK_ROOTS) {
-      VM.scanning.notifyInitialThreadScanComplete();
+      VM.scanning.notifyInitialThreadScanComplete(false);
       setGCStatus(GC_PROPER);
       return;
     }

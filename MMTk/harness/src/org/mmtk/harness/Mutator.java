@@ -30,9 +30,9 @@ import org.mmtk.harness.vm.Scanning;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.vm.Collection;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * This class represents a mutator thread that has memory managed by MMTk.
@@ -47,6 +47,15 @@ import org.vmmagic.unboxed.ObjectReference;
  * that a GC can not occur unless you execute commands on the mutator (or muEnd it).
  */
 public abstract class Mutator {
+
+  private static boolean gcEverySafepoint = false;
+
+  /**
+   * Enable a CG on every safepoint
+   */
+  public static void setGcEverySafepoint() {
+    gcEverySafepoint = true;
+  }
 
   private static boolean gcEveryWB = false;
 
@@ -162,11 +171,15 @@ public abstract class Mutator {
     // Nothing to do for the default mutator
   }
 
+  public void prepare() { }
+  public void release() { }
+
   /**
    * Return the roots
    * @return The roots for this mutator
    */
   public abstract Iterable<ObjectValue> getRoots();
+  public abstract Iterable<Address> getRootAddresses();
 
   /**
    * Print the thread roots and return them for processing.
@@ -202,12 +215,28 @@ public abstract class Mutator {
    * A gc safe point for the mutator.
    * @return Whether a GC has occurred
    */
+  public boolean gcRequested() {
+    return gcEverySafepoint || Scheduler.gcTriggered();
+  }
+
+  /**
+   * A gc safe point for the mutator.
+   * @return Whether a GC has occurred
+   */
   public boolean gcSafePoint() {
-    if (Scheduler.gcTriggered()) {
-      Scheduler.waitForGC();
-      return true;
+    if (gcEverySafepoint) {
+      gc();
     }
-    return false;
+    try {
+      Clock.stop();
+      if (Scheduler.gcTriggered()) {
+        Scheduler.waitForGC();
+        return true;
+      }
+      return false;
+    } finally {
+      Clock.start();
+    }
   }
 
   /**
@@ -230,7 +259,7 @@ public abstract class Mutator {
    * Request a garbage collection.
    */
   public void gc() {
-//    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
+    //    VM.collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
   }
 
   /**
@@ -257,7 +286,9 @@ public abstract class Mutator {
    */
   public void storeDataField(ObjectReference object, int index, int value) {
     if (object.isNull()) fail("Object can not be null in object "+ObjectModel.getString(object));
+    Clock.stop();
     Sanity.assertValid(object);
+    Clock.start();
     int limit = ObjectModel.getDataCount(object);
     if (index < 0) fail("Index must be non-negative in object "+ObjectModel.getString(object));
     if (index >= limit) fail("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object));
@@ -268,9 +299,11 @@ public abstract class Mutator {
     } else {
       ref.store(value);
     }
+    Clock.stop();
     if (Trace.isEnabled(Item.STORE)) {
       Trace.trace(Item.STORE,"%s.[%d] = %d", object.toString(), index, value);
     }
+    Clock.start();
   }
 
   /**
@@ -281,6 +314,7 @@ public abstract class Mutator {
    * @param value The value to store.
    */
   public void storeReferenceField(ObjectReference object, int index, ObjectReference value) {
+    Clock.stop();
     if (object.isNull()) fail(("Object can not be null in object "+ObjectModel.getString(object)));
     Sanity.assertValid(object);
     Sanity.assertValid(value);
@@ -292,6 +326,8 @@ public abstract class Mutator {
     if (!(index < limit)) fail(("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object)));
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
+    Clock.start();
+
     if (ActivePlan.constraints.needsObjectReferenceWriteBarrier()) {
       context.objectReferenceWrite(object, referenceSlot, value, referenceSlot.toWord(), null, Plan.INSTANCE_FIELD);
       if (gcEveryWB) {
@@ -310,6 +346,7 @@ public abstract class Mutator {
    * @return The contents of the data field
    */
   public int loadDataField(ObjectReference object, int index) {
+    Clock.stop();
     if (object.isNull()) fail(("Object can not be null in object "+ObjectModel.getString(object)));
     Sanity.assertValid(object);
     int limit = ObjectModel.getDataCount(object);
@@ -317,15 +354,18 @@ public abstract class Mutator {
     if (!(index < limit)) fail(("Index "+index+" out of bounds "+limit+" in object "+ObjectModel.getString(object)));
 
     Address dataSlot = ObjectModel.getDataSlot(object, index);
+    Clock.start();
     int result;
     if (ActivePlan.constraints.needsIntReadBarrier()) {
       result = context.intRead(object, dataSlot, dataSlot.toWord(), null, Plan.INSTANCE_FIELD);
     } else {
       result = dataSlot.loadInt();
     }
+    Clock.stop();
     if (Trace.isEnabled(Item.LOAD) || ObjectModel.isWatched(object)) {
       Trace.printf(Item.LOAD,"[%s].int[%d] returned [%d]%n",ObjectModel.getString(object),index,result);
     }
+    Clock.start();
     return result;
   }
 
@@ -337,6 +377,7 @@ public abstract class Mutator {
    * @return The object reference
    */
   public ObjectReference loadReferenceField(ObjectReference object, int index) {
+    Clock.stop();
     if (object.isNull()) fail(("Object can not be null in object "+ObjectModel.getString(object)));
     Sanity.assertValid(object);
     int limit = ObjectModel.getRefs(object);
@@ -345,15 +386,18 @@ public abstract class Mutator {
 
     Address referenceSlot = ObjectModel.getRefSlot(object, index);
     ObjectReference result;
+    Clock.start();
     if (ActivePlan.constraints.needsObjectReferenceReadBarrier()) {
       result = context.objectReferenceRead(object, referenceSlot, referenceSlot.toWord(), null, Plan.INSTANCE_FIELD);
     } else {
       result = referenceSlot.loadObjectReference();
     }
+    Clock.stop();
     Sanity.assertValid(object);
     if (Trace.isEnabled(Item.LOAD) || ObjectModel.isWatched(object)) {
       Trace.printf(Item.LOAD,"[%s].object[%d] returned [%s]%n",ObjectModel.getString(object),index,result.toString());
     }
+    Clock.start();
     return result;
   }
 
@@ -366,7 +410,9 @@ public abstract class Mutator {
     if (object.isNull()) fail("Object can not be null");
     int result = ObjectModel.getHashCode(object);
     if (Trace.isEnabled(Item.HASH) || ObjectModel.isWatched(object)) {
+      Clock.stop();
       Trace.printf(Item.HASH,"hash(%s) returned [%d]%n",ObjectModel.getString(object),result);
+      Clock.start();
     }
     return result;
   }
@@ -387,9 +433,11 @@ public abstract class Mutator {
     if (!(dataCount <= ObjectModel.MAX_DATA_FIELDS)) fail(("Maximum of "+ObjectModel.MAX_DATA_FIELDS+" data fields per object"));
     ObjectReference result = ObjectModel.allocateObject(context, refCount, dataCount, doubleAlign, allocSite);
     if (Trace.isEnabled(Item.ALLOC) || ObjectModel.isWatched(result)) {
+      Clock.stop();
       Trace.printf(Item.ALLOC,"alloc(%d,%d,%b) -> [%s]%n",refCount,dataCount,doubleAlign,ObjectModel.getString(result));
+      Clock.start();
     }
-    if (!(result != null)) fail("Allocation returned null");
+    if (result == null || result.isNull()) fail("Allocation returned null");
     return result;
   }
 
@@ -399,6 +447,7 @@ public abstract class Mutator {
    * @return Where in the script it was allocated
    */
   public static String getSiteName(ObjectReference object) {
+    Clock.assertStopped();
     int site = ObjectModel.getSite(object);
     if (!AllocationSite.isValid(site)) {
       return "<invalid>";
@@ -411,5 +460,22 @@ public abstract class Mutator {
    */
   public ObjectReference allocThreadIteratorTable() {
     return alloc(Scanning.THREAD_ITERATOR_TABLE_ENTRIES,0,false,AllocationSite.INTERNAL_SITE_ID);
+  }
+
+
+  /* ************************************************************** */
+
+  /* Stack Operations */
+
+  public void setStackSlot(Address slot, ObjectReference value) {
+    slot.store(value);
+  }
+
+  public ObjectReference getReferenceStackSlot(Address slot) {
+    ObjectReference ref = slot.loadObjectReference();
+    Clock.stop();
+    Sanity.assertValid(ref);
+    Clock.start();
+    return ref;
   }
 }

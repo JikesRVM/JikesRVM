@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
+import org.mmtk.harness.lang.type.Type;
 
 public class Temporary {
 
@@ -28,15 +29,16 @@ public class Temporary {
    * Get a free temporary from the pool, or create a new one.
    * @return
    */
-  public Register acquire() {
+  public Register acquire(Type type) {
     if (freePool.isEmpty()) {
-      Register tmp = Register.createTemporary(nextIndex++);
+      Register tmp = Register.createTemporary(nextIndex++, type);
       Trace.trace(Item.COMPILER,"Acquire new temporary, %s", tmp);
       return tmp;
     }
     Register result = freePool.remove(freePool.size()-1);
     Trace.trace(Item.COMPILER,"Acquire temporary, %s", result);
     result.setUsed();
+    result.setType(type);
     return result;
   }
 
@@ -44,6 +46,7 @@ public class Temporary {
     for (Register t : temp) {
       if (t.isTemporary()) {
         t.setFree();
+        t.setType(Type.NULL);
         freePool.add(t);
       }
     }

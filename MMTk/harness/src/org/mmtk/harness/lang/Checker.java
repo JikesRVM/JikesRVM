@@ -146,6 +146,9 @@ public class Checker extends Visitor {
   @Override
   public Object visit(Assert ass) {
     checkType(ass.getPredicate(),Type.BOOLEAN);
+    for (Expression expr : ass.getOutputs()) {
+      checkType(expr);
+    }
     return Type.VOID;
   }
 
@@ -182,10 +185,11 @@ public class Checker extends Visitor {
       }
     }
     if (Operator.booleanOperators.contains(op)) {
-      return Type.BOOLEAN;
+      exp.setType(Type.BOOLEAN);
     } else {
-      return lhsType;
+      exp.setType(lhsType);
     }
+    return exp.getType();
   }
 
   @Override
@@ -202,9 +206,11 @@ public class Checker extends Visitor {
     }
     checkParams(call, actualTypes, m.getParamTypes());
     if (call.isExpression()) {
-      return call.getMethod().getReturnType();
+      call.setType(call.getMethod().getReturnType());
+    } else {
+      call.setType(Type.VOID);
     }
-    return Type.VOID;
+    return call.getType();
   }
 
   @Override
@@ -257,7 +263,8 @@ public class Checker extends Visitor {
     if (field == null) {
       fail(load,"Type %s does not have a field called %s",t,load.getFieldName());
     }
-    return field.getType();
+    load.setType(field.getType());
+    return load.getType();
   }
 
   @Override
@@ -368,12 +375,12 @@ public class Checker extends Visitor {
   @Override
   public Object visit(UnaryExpression exp) {
     /* Unary operators preserve type */
-    Type type = getTypeOf(exp.getOperand());
+    exp.setType(getTypeOf(exp.getOperand()));
     /* With this one exception ... */
-    if (exp.getOperator() == Operator.NOT && type == Type.OBJECT) {
-      return Type.BOOLEAN;
+    if (exp.getOperator() == Operator.NOT && exp.getType() == Type.OBJECT) {
+      exp.setType(Type.BOOLEAN);
     }
-    return type;
+    return exp.getType();
   }
 
   @Override

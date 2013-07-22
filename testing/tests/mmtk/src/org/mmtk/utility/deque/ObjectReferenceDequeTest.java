@@ -16,6 +16,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.Assert;
 import org.mmtk.harness.Harness;
+import org.mmtk.harness.lang.Trace;
+import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
@@ -29,28 +31,13 @@ public class ObjectReferenceDequeTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    /*
-     * Setting options here can be handy for running in Eclipse.  Otherwise
-     * allow the harness to pick up the defaults so we can set them using
-     * properties from ant.
-     */
-    Harness.init("collectors=0"
-//        ,"scheduler=JAVA"
-//        ,"scheduler=DETERMINISTIC"
-
-//        ,"schedulerPolicy=FIXED"
-//        ,"yieldInterval=1"
-
-//        ,"schedulerPolicy=RANDOM"
-//        ,"randomPolicyLength=20"
-//        ,"randomPolicyMin=1"
-//        ,"randomPolicyMax=2"
-//        ,"randomPolicySeed=1"
-//        ,"policyStats=true"
-        );
-
-    /* The deques rely on being run during GC. */
-    Plan.setGCStatus(Plan.GC_PROPER);
+    Harness.initOnce();
+    Trace.enable(Item.SCHEDULER);
+    Scheduler.setThreadModel(Scheduler.Model.DETERMINISTIC);
+    Harness.policy.setValue("FIXED");
+    Harness.yieldInterval.setValue(1);
+    /* Must call this after switching scheduler */
+    org.mmtk.harness.scheduler.Scheduler.initCollectors();
   }
 
   /**
@@ -68,7 +55,7 @@ public class ObjectReferenceDequeTest {
    */
   private void runTest(final CollectorContext... items) {
     for (CollectorContext item : items) {
-      Scheduler.scheduleCollector(item);
+      Scheduler.scheduleCollectorContext(item);
     }
     Scheduler.scheduleGcThreads();
   }
@@ -78,6 +65,7 @@ public class ObjectReferenceDequeTest {
     runTest(new CollectorContext() {
       @Override
       public void run() {
+        Trace.trace(Item.SCHEDULER, "testPushPop: in");
         SharedDeque shared = new SharedDeque("shared",Plan.metaDataSpace,1);
         ObjectReferenceDeque deque = new ObjectReferenceDeque("deque",shared);
 
@@ -85,6 +73,7 @@ public class ObjectReferenceDequeTest {
         deque.push(o(1));
         Assert.assertEquals(deque.pop(),o(1));
         Assert.assertTrue(deque.isEmpty());
+        Trace.trace(Item.SCHEDULER, "testPushPop: out");
       }
     });
   }

@@ -63,7 +63,8 @@ public final class LoadFixedFieldOp extends UnaryOp {
 
   @Override
   public String toString() {
-    return String.format("%s <- %s.%s", Register.nameOf(getResult()),
+    return String.format("[%s] %s <- %s.%s", formatGcMap(),
+        Register.nameOf(getResult()),
         Register.nameOf(operand),fieldName);
   }
 

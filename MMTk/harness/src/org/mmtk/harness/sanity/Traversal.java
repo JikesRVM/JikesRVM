@@ -110,8 +110,8 @@ public final class Traversal {
       traceObject(value.getObjectValue(), true);
     }
     for (Mutator m : Mutators.getAll()) {
-      for (ObjectValue value : m.getRoots()) {
-        traceObject(value.getObjectValue(), true);
+      for (Address root : m.getRootAddresses()) {
+        traceObject(root.loadObjectReference(), true);
       }
     }
   }

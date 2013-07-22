@@ -798,9 +798,9 @@ public class GenerateMagic implements TIBLayoutConstants  {
       bc2ir.push(test.copyD2U());
     } else if (methodName == MagicNames.fence) {
       bc2ir.appendInstruction(Empty.create(FENCE));
-    } else if (methodName == MagicNames.readCeiling) {
+    } else if (methodName == MagicNames.combinedLoadBarrier) {
       bc2ir.appendInstruction(Empty.create(READ_CEILING));
-    } else if (methodName == MagicNames.writeFloor) {
+    } else if (methodName == MagicNames.storeStoreBarrier) {
       bc2ir.appendInstruction(Empty.create(WRITE_FLOOR));
     } else if (generatePolymorphicMagic(bc2ir, gc, meth, methodName)) {
       return true;

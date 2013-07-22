@@ -18,6 +18,7 @@ import org.mmtk.harness.lang.compiler.Register;
 import org.mmtk.harness.lang.runtime.StackFrame;
 import org.mmtk.harness.lang.type.Type;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.harness.Clock;
 
 public final class StoreFieldOp extends TernaryOp {
 
@@ -30,13 +31,15 @@ public final class StoreFieldOp extends TernaryOp {
 
   @Override
   public String toString() {
-    return String.format("%s.%s[%s] <- %s", Register.nameOf(op1),
+    return String.format("[%s] storeField %s.%s[%s] <- %s", formatGcMap(),
+        Register.nameOf(op1),
         fieldType == Type.OBJECT ? "object" : "int",
             Register.nameOf(op2), Register.nameOf(op3));
   }
 
   @Override
   public void exec(Env env) {
+    Clock.assertStarted();
     StackFrame frame = env.top();
 
     int fieldIndex = getIndex(frame);

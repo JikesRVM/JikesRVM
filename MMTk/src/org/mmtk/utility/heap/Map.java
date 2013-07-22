@@ -53,6 +53,8 @@ public class Map {
   private static final FreeListPageResource[] sharedFLMap;
   private static int totalAvailableDiscontiguousChunks = 0;
 
+  private static boolean finalized = false;
+
   private static final Lock lock = VM.newLock("Map lock");
 
   /****************************************************************************
@@ -276,6 +278,12 @@ public class Map {
       if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(allocedPages == firstPage);
       firstPage += Space.PAGES_IN_CHUNK;
     }
+
+    finalized  = true;
+  }
+
+  public static boolean isFinalized() {
+    return finalized;
   }
 
   /**

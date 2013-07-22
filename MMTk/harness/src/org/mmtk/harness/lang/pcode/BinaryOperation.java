@@ -50,7 +50,8 @@ public final class BinaryOperation extends BinaryOp {
 
   @Override
   public String toString() {
-    return String.format("%s <- %s %s %s", Register.nameOf(getResult()),
+    return String.format("[%s] %s <- %s %s %s", formatGcMap(),
+        Register.nameOf(getResult()),
         Register.nameOf(op1), name, Register.nameOf(op2));
   }
 }

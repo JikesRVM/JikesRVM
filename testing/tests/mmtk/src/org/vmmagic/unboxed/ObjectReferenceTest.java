@@ -26,7 +26,7 @@ public class ObjectReferenceTest {
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
-    Harness.init();
+    Harness.initOnce();
   }
 
   @Before

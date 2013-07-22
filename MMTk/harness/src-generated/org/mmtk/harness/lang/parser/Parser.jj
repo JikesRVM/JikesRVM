@@ -95,22 +95,23 @@ MORE : {
 /* Reserved words */
 
 TOKEN : {
-    < ALLOC : "alloc" >
-  | < ASSERT : "assert" >
-  | < CLASS : "class" >
-  | < ELIF : "elif" >
-  | < ELSE : "else" >
-  | < EXPECT : "expect" >
-  | < IF : "if" >
+    < ALLOC     : "alloc" >
+  | < ASSERT    : "assert" >
+  | < CLASS     : "class" >
+  | < ELIF      : "elif" >
+  | < ELSE      : "else" >
+  | < EXPECT    : "expect" >
+  | < IF        : "if" >
   | < INTRINSIC : "intrinsic" >
-  | < METHOD : "method" >
-  | < NULL : "null" >
-  | < PRINT : "print" >
-  | < RETURN : "return" >
+  | < METHOD    : "method" >
+  | < NULL      : "null" >
+  | < OPTION    : "option" >
+  | < PRINT     : "print" >
+  | < RETURN    : "return" >
   | < SIGNATURE : "signature" >
-  | < SPAWN : "spawn" >
-  | < TYPE : "type" >
-  | < WHILE : "while" >
+  | < SPAWN     : "spawn" >
+  | < TYPE      : "type" >
+  | < WHILE     : "while" >
 }
 
 /* Literals */
@@ -161,15 +162,33 @@ TOKEN : {
   < REM: "%" >
 }
 
-MethodTable script() : {
+GlobalDefs script() : {
   GlobalDefs defs = new GlobalDefs();
 }
 {
+  ( option(defs) )*
   ( method(defs) 
   | typeDeclaration(defs) 
   )+ <EOF>
-  { return defs.methods; }
+  { return defs; }
 }
+
+/*
+ * An option to the harness, defined in the script.
+ *
+ * <OPTION> ::= "option" <name> [value { "," value }] ";"
+ */
+void option(GlobalDefs defs) : {
+  Token t;
+  String name;
+  String value;
+  List<String> values = new ArrayList<String >();}{
+  t=<OPTION> name=ident()
+  (
+    value=string()    { values.add(value); }    ( <COMMA>
+      value=string()  { values.add(value); }    )*  )? <SEMICOLON>
+  {
+    defs.declare(new OptionDef(t,name,values));  }} 
 
 /**
  * A program method with its own variable scope.
@@ -190,7 +209,7 @@ void method(GlobalDefs defs) : {
   ( declaration1(defs, symbols) { params++; } ( <COMMA> declaration1(defs, symbols) { params++; } )* )?
   <RPAREN>
   ( stmt=statements(defs, symbols)
-    { defs.methods.add(new NormalMethod(t, name, params, retType, symbols.declarations(), stmt)); }
+    { defs.declare(new NormalMethod(t, name, params, retType, symbols.declarations(), stmt)); }
   | <INTRINSIC>
       <CLASS> javaClass=string()
       <METHOD> javaMethod=string()
@@ -200,7 +219,7 @@ void method(GlobalDefs defs) : {
           )?
         <RPAREN>
       )? <SEMICOLON>
-      { defs.methods.add(new IntrinsicMethod(name,javaClass,javaMethod,signature)); }
+      { defs.declare(new IntrinsicMethod(name,javaClass,javaMethod,signature)); }
   )
 }
 
@@ -209,10 +228,12 @@ void intrinsicParam(List<String> signature) : {
 }
 {
   javaParam=string()
-          { if (javaParam.equals("org.mmtk.harness.lang.Env")) {
-          	  throw new ParseException("Env parameter to intrinsic methods is implicit!");
-            }
-          	signature.add(javaParam); }
+  {
+    if (javaParam.equals("org.mmtk.harness.lang.Env")) {
+	  throw new ParseException("Env parameter to intrinsic methods is implicit!");
+    }
+    signature.add(javaParam);
+  }
 }
 
 /**

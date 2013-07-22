@@ -4499,9 +4499,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
       asm.emitISYNC();
     } else if (methodName == MagicNames.pause) {
       // NO-OP
-    } else if (methodName == MagicNames.readCeiling) {
+    } else if (methodName == MagicNames.combinedLoadBarrier) {
       asm.emitISYNC();
-    } else if (methodName == MagicNames.writeFloor ||
+    } else if (methodName == MagicNames.storeStoreBarrier ||
                methodName == MagicNames.fence) {
       asm.emitSYNC();
     } else if (methodName == MagicNames.dcbst) {

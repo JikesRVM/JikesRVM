@@ -31,6 +31,7 @@ import org.mmtk.plan.TransitiveClosure;
 
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.harness.Clock;
 
 @Uninterruptible
 public class Scanning extends org.mmtk.vm.Scanning {
@@ -71,12 +72,20 @@ public class Scanning extends org.mmtk.vm.Scanning {
 
   @Override
   public void scanObject(TransitiveClosure trace, ObjectReference object) {
-    Trace.trace(Item.SCAN, "Scanning object %s", ObjectModel.addressAndSpaceString(object));
+    if (Trace.isEnabled(Item.SCAN)) {
+      Clock.stop();
+      Trace.trace(Item.SCAN, "Scanning object %s", ObjectModel.addressAndSpaceString(object));
+      Clock.start();
+    }
     int refs = ObjectModel.getRefs(object);
 
     Address first = object.toAddress().plus(ObjectModel.REFS_OFFSET);
     for (int i=0; i < refs; i++) {
-      Trace.trace(Item.SCAN, "  Edge %s", first.plus(i << LOG_BYTES_IN_ADDRESS).loadObjectReference());
+      if (Trace.isEnabled(Item.SCAN)) {
+        Clock.stop();
+        Trace.trace(Item.SCAN, "  Edge %s", first.plus(i << LOG_BYTES_IN_ADDRESS).loadObjectReference());
+        Clock.start();
+      }
       trace.processEdge(object, first.plus(i << LOG_BYTES_IN_ADDRESS));
     }
   }
@@ -123,6 +132,7 @@ public class Scanning extends org.mmtk.vm.Scanning {
 
   @Override
   public void computeThreadRoots(TraceLocal trace) {
+    Clock.stop();
     Trace.trace(Item.COLLECT,"Computing roots for mutators");
     synchronized(this) {
       if (mutatorsToScan == null) {
@@ -132,17 +142,32 @@ public class Scanning extends org.mmtk.vm.Scanning {
     while(true) {
       Trace.trace(Item.COLLECT,"mutators to scan: %d",mutatorsToScan.size());
       Mutator m = mutatorsToScan.poll();
-      if (m == null)
+      if (m == null) {
         break;
-      if (Harness.allocDuringCollection.getValue()) {
-        Trace.trace(Item.COLLECT,"Allocating thread iterator object");
-        setThreadIteratorObject(m, m.alloc(0, 0, false, AllocationSite.INTERNAL_SITE_ID));
       }
       Trace.trace(Item.COLLECT,"Computing roots for mutator");
-      m.computeThreadRoots(trace);
       if (Harness.allocDuringCollection.getValue()) {
-        setThreadIteratorObject(m, ObjectReference.nullReference());
+        Trace.trace(Item.COLLECT,"Allocating thread iterator object");
+        Clock.start();
+        setThreadIteratorObject(m, m.alloc(0, 0, false, AllocationSite.INTERNAL_SITE_ID));
+        Clock.stop();
       }
+      Clock.start();
+      m.prepare();
+      m.computeThreadRoots(trace);
+      Clock.stop();
+      if (Harness.allocDuringCollection.getValue()) {
+        Clock.start();
+        setThreadIteratorObject(m, ObjectReference.nullReference());
+        Clock.stop();
+      }
+    }
+    Clock.start();
+  }
+
+  public static void releaseThreads() {
+    for (Mutator m : Mutators.getAll()) {
+      m.release();
     }
   }
 

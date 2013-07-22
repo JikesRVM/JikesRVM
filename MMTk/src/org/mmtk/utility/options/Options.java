@@ -61,6 +61,7 @@ public final class Options {
   public static Threads threads;
   public static TraceRate traceRate;
   public static UseReturnBarrier useReturnBarrier;
+  public static UseShortStackScans useShortStackScans;
   public static VariableSizeHeap variableSizeHeap;
   public static VerboseFragmentationStats verboseFragmentationStats;
   public static Verbose verbose;

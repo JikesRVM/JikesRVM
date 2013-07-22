@@ -16,7 +16,6 @@ import java.util.ArrayList;
 
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
-import org.mmtk.harness.scheduler.Scheduler;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Word;
@@ -128,7 +127,6 @@ public final class SimulatedMemory {
    */
   private static MemoryPage getPage(Address address) {
     Clock.tick();
-    Scheduler.yield();
     if (address.isZero()) {
       throw new RuntimeException("Attempted to dereference a null address");
     }
@@ -327,14 +325,42 @@ public final class SimulatedMemory {
    * <code>false</code>
    */
   public static boolean map(Address start, int size) {
+    Clock.stop();
     Object[] args = { start.toString(), size };
-    Trace.trace(Item.MEMORY,"map(%s,%d)\n", args);
+    Trace.trace(Item.MEMORY,"map(%s,%d)", args);
     Address last = start.plus(size);
 
+    assert size % BYTES_IN_PAGE == 0;
     assert start.toWord().and(Word.fromIntSignExtend(~PAGE_MASK)).EQ(Word.zero());
 
     for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
+      Trace.trace(Item.MEMORY, "Mapping %s:%d", p, BYTES_IN_PAGE);
       pageTable.mapPage(p);
+    }
+    Clock.start();
+    return true;
+  }
+
+  /**
+   * Unmaps an area of virtual memory.
+   *
+   * @param start the address of the start of the area to be mapped
+   * @param size the size, in bytes, of the area to be mapped
+   * @return <code>true</code> if successful, otherwise
+   * <code>false</code>
+   */
+  public static boolean unmap(Address start, int size) {
+    Clock.stop();
+    Trace.trace(Item.MEMORY,"map(%s,%d)\n", start.toString(), size);
+    Address last = start.plus(size);
+
+    assert size % BYTES_IN_PAGE == 0;
+    assert start.toWord().and(Word.fromIntSignExtend(~PAGE_MASK)).EQ(Word.zero());
+    Clock.start();
+
+    for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
+      pageTable.unmapPage(p);
+      Clock.tick();
     }
     return true;
   }
@@ -348,11 +374,15 @@ public final class SimulatedMemory {
    * <code>false</code>
    */
   public static boolean protect(Address start, int size) {
+    Clock.stop();
     assert start.toWord().and(Word.fromIntSignExtend(~PAGE_MASK)).EQ(Word.zero());
     Trace.trace(Item.MEMORY,"protect(%s,%d)\n", start.toString(), size);
     Address last = start.plus(size);
+    Clock.start();
+
     for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       pageTable.setNonReadable(p);
+      Clock.tick();
     }
     return true;
   }
@@ -366,11 +396,14 @@ public final class SimulatedMemory {
    * <code>false</code>
    */
   public static boolean unprotect(Address start, int size) {
+    Clock.stop();
     assert start.toWord().and(Word.fromIntSignExtend(~PAGE_MASK)).EQ(Word.zero());
     Trace.trace(Item.MEMORY,"unprotect(%s,%d)\n", start.toString(), size);
+    Clock.start();
     Address last = start.plus(size);
     for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       pageTable.setReadable(p);
+      Clock.tick();
     }
     return true;
   }
@@ -381,7 +414,9 @@ public final class SimulatedMemory {
    * @param size Length in bytes of range to zero
    */
   public static void zero(Address start, Extent size) {
+    Clock.stop();
     Trace.trace(Item.MEMORY,"zero(%s,%s)\n", start.toString(), size.toString());
+    Clock.start();
     zero(start, size.toInt());
   }
 
@@ -391,8 +426,11 @@ public final class SimulatedMemory {
    * @param size Length in bytes of range to zero
    */
   public static void zero(Address start, int size) {
+    Clock.stop();
     Trace.trace(Item.MEMORY,"zero(%s,%d)\n", start.toString(), size);
     assert (size % BYTES_IN_WORD == 0) : "Must zero word rounded bytes";
+    Clock.start();
+
     MemoryPage page = getPage(start);
     Address pageAddress = start;
     for(int i=0; i < size; i += BYTES_IN_INT) {
@@ -402,40 +440,9 @@ public final class SimulatedMemory {
         pageAddress=curAddr;
       }
       page.setInt(curAddr, 0);
+      Clock.tick();
     }
   }
-
-  /**
-   * Zero a region of memory.
-   * @param start Start of address range (inclusive)
-   * @param size Length in bytes of range to zero
-   */
-  public static void zeroNew(Address start, int size) {
-    Trace.trace(Item.MEMORY,"zero(%s,%d)\n", start.toString(), size);
-    assert (size % BYTES_IN_WORD == 0) : "Must zero word rounded bytes";
-    Address base = start;
-    final Address limit = start.plus(size);
-    if (!isPageAligned(base)) {
-      Address nextPage = alignDown(base,BYTES_IN_PAGE).plus(BYTES_IN_PAGE);
-      zeroIntraPage(base,nextPage);
-      base = nextPage;
-      if (base.GE(limit))
-        return;
-    }
-    final Address lastPage = alignDown(limit,BYTES_IN_PAGE);
-    zeroPages(base,lastPage.diff(base).toInt());
-    if (lastPage.LT(limit)) {
-      zeroIntraPage(lastPage,limit);
-    }
-  }
-
-  private static void zeroIntraPage(Address base, Address limit) {
-    MemoryPage page = getPage(base);
-    for(Address addr=base; addr.LT(limit); addr = addr.plus(BYTES_IN_INT)) {
-      page.setInt(addr, 0);
-    }
-  }
-
 
   /**
    * Zero a range of pages of memory.
@@ -443,9 +450,11 @@ public final class SimulatedMemory {
    * @param size Length in bytes of range (must be multiple of page size)
    */
   public static void zeroPages(Address start, int size) {
+    Clock.stop();
     assert isPageAligned(start);
     assert (size > 0) && ((size & ~PAGE_MASK) == 0);
     Trace.trace(Item.MEMORY,"zeroPages(%s,%d)\n", start.toString(), size);
+    Clock.start();
     Address last = start.plus(size);
     for(Address p=start; p.LT(last); p = p.plus(BYTES_IN_PAGE)) {
       pageTable.zeroPage(p);

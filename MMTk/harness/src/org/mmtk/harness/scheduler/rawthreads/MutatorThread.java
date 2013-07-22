@@ -16,6 +16,7 @@ import org.mmtk.harness.lang.Env;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.scheduler.Schedulable;
+import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * The superclass of mutator threads in the raw threads model
@@ -39,7 +40,9 @@ class MutatorThread extends RawThread {
     env.begin();
     begin();
     Trace.trace(Item.SCHEDULER, "%d: Running mutator code",this.getId());
+    Clock.start();
     code.execute(env);
+    Clock.stop();
     env.end();
     end();
   }

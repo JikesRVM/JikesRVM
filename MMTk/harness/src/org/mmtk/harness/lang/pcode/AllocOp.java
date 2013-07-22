@@ -73,4 +73,9 @@ public final class AllocOp extends TernaryOp {
     }
   }
 
+  @Override
+  public boolean isAlloc() {
+    return true;
+  }
+
 }

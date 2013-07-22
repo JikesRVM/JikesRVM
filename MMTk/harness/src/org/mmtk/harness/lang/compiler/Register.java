@@ -12,20 +12,26 @@
  */
 package org.mmtk.harness.lang.compiler;
 
+import org.mmtk.harness.lang.type.Type;
+
+/**
+ * An abstract register.  Registers represent constant, program variables
+ * or temporaries (sub-expression results).
+ */
 public final class Register {
 
-  public static final Register NULL = new Register(-1,false);
+  public static final Register NULL = new Register(-1,Type.NULL,false);
 
-  static Register createTemporary(int index) {
-    return new Register(index,true);
+  static Register createTemporary(int index, Type type) {
+    return new Register(index, type, true);
   }
 
-  public static Register createLocal(int index) {
-    return new Register(index,false);
+  public static Register createLocal(int index, Type type) {
+    return new Register(index, type, false);
   }
 
-  public static Register createConstant(int index) {
-    return new Register(index,false);
+  public static Register createConstant(int index, Type type) {
+    return new Register(index, type, false);
   }
 
   /*
@@ -35,11 +41,15 @@ public final class Register {
   private boolean isFree = false;
   private final boolean temporary;
 
+  /** Equality is based purely on the index */
   private final int index;
 
-  private Register(int index, boolean temporary) {
+  private Type type;
+
+  private Register(int index, Type type, boolean temporary) {
     this.index = index;
     this.temporary = temporary;
+    this.type = type;
   }
 
   public boolean isTemporary() {
@@ -63,6 +73,14 @@ public final class Register {
     return index;
   }
 
+  public Type getType() {
+    return type;
+  }
+
+  public void setType(Type type) {
+    this.type = type;
+  }
+
   public static String nameOf(int index) {
     if (index >= 0) {
       return "t"+index;
@@ -74,4 +92,28 @@ public final class Register {
   public String toString() {
     return nameOf(index);
   }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + index;
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    Register other = (Register) obj;
+    if (index != other.index)
+      return false;
+    return true;
+  }
+
+
 }

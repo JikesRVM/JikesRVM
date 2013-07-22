@@ -15,6 +15,7 @@ package org.mmtk.harness.lang.ast;
 import org.mmtk.harness.lang.Visitor;
 import org.mmtk.harness.lang.parser.Symbol;
 import org.mmtk.harness.lang.parser.Token;
+import org.mmtk.harness.lang.type.Type;
 
 /**
  * An assignment of an expression to a stack variable.
@@ -42,4 +43,5 @@ public class Assignment extends AbstractAST implements Statement {
   public int getSlot() { return symbol.getLocation(); }
   public Expression getRhs() { return expr; }
   public Symbol getSymbol() { return symbol; }
+  public Type getType() { return symbol.getType(); }
 }

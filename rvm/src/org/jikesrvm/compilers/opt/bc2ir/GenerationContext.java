@@ -200,10 +200,6 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * to exploit knowledge the callee BC2IR object had about the result.
    */
   public Operand result;
-  /**
-   * Do we do check stores?
-   */
-  boolean doesCheckStore;
 
   //////////
   // Main public methods
@@ -229,7 +225,6 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     options = opts;
     inlinePlan = ip;
     inlineSequence = new InlineSequence(meth);
-    doesCheckStore = !meth.hasNoCheckStoreAnnotation();
 
     // Create the CFG. Initially contains prologue, epilogue, and exit.
     cfg = new ControlFlowGraph(0);
@@ -542,6 +537,13 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    */
   boolean noBoundsChecks() {
     return method.hasNoBoundsCheckAnnotation();
+  }
+
+  /**
+   * Should checkstore checks be generated?
+   */
+  boolean noCheckStoreChecks() {
+    return method.hasNoCheckStoreAnnotation();
   }
 
   /**

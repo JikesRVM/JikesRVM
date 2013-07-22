@@ -11,6 +11,7 @@
  *  regarding copyright ownership.
  */
 
+option baseHeap "2560k";
 
 /*
  * This script is designed to work-out the write barriers in a generational 
@@ -61,6 +62,7 @@ void main() {
   // Rotate them
   print ("Rotating lists");
   int j = 0;
+  int lastGcCount = gcCount();
   while (j < rotations) {
     i = 0;
     while (i < nLists) {
@@ -70,6 +72,21 @@ void main() {
     //if ( (j%1000) == 0 ) {
     //  lengths(lists,nLists);
     //}
+    int currentGcCount = gcCount();
+    if (currentGcCount > lastGcCount) {
+      single tail = s.next;
+      // Mutate the singly-linked list so that in a generational collector its
+      // head will be in the nursery, and it will finish with the 2nd last entry
+      // in the mature space, and the last in the nursery.
+      s.next = alloc(single);
+      
+      // Use the previous tail element to create a (garbage) list with a head in
+      // the mature space and another element in the nursery.
+      tail.next = alloc(single);
+      
+      lastGcCount = currentGcCount;
+      tail = null;
+    }
     s = cons(s);
     j = j + 1;
   }
