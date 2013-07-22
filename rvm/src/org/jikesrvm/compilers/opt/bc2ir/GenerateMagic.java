@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.compilers.opt.ir.IRTools.*;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
@@ -148,7 +149,7 @@ public class GenerateMagic implements TIBLayoutConstants  {
 
     if (address && isLoad(methodName)) {
       // LOAD
-      Operand offset = (types.length == 0) ? new AddressConstantOperand(Address.zero()) : bc2ir.popAddress();
+      Operand offset = (types.length == 0) ? AC(Address.zero()) : bc2ir.popAddress();
       Operand base = bc2ir.popAddress();
       RegisterOperand result = gc.temps.makeTemp(returnType);
       bc2ir.appendInstruction(Load.create(getOperator(returnType, LOAD_OP), result, base, offset, null));
@@ -156,7 +157,7 @@ public class GenerateMagic implements TIBLayoutConstants  {
 
     } else if (address && isPrepare(methodName)) {
       // PREPARE
-      Operand offset = (types.length == 0) ? new AddressConstantOperand(Address.zero()) : bc2ir.popAddress();
+      Operand offset = (types.length == 0) ? AC(Address.zero()) : bc2ir.popAddress();
       Operand base = bc2ir.popAddress();
       RegisterOperand result = gc.temps.makeTemp(returnType);
       bc2ir.appendInstruction(Prepare.create(getOperator(returnType, PREPARE_OP), result, base, offset, null));
@@ -166,7 +167,7 @@ public class GenerateMagic implements TIBLayoutConstants  {
       // ATTEMPT
       TypeReference attemptType = types[0];
 
-      Operand offset = (types.length == 2) ? new AddressConstantOperand(Address.zero()) : bc2ir.popAddress();
+      Operand offset = (types.length == 2) ? AC(Address.zero()) : bc2ir.popAddress();
 
       Operand newVal = bc2ir.pop();
       Operand oldVal = bc2ir.pop();
@@ -185,7 +186,7 @@ public class GenerateMagic implements TIBLayoutConstants  {
       // STORE
       TypeReference storeType = types[0];
 
-      Operand offset = (types.length == 1) ? new AddressConstantOperand(Address.zero()) : bc2ir.popAddress();
+      Operand offset = (types.length == 1) ? AC(Address.zero()) : bc2ir.popAddress();
 
       Operand val = bc2ir.pop(storeType);
       Operand base = bc2ir.popAddress();
@@ -478,17 +479,17 @@ public class GenerateMagic implements TIBLayoutConstants  {
     } else if (methodName == MagicNames.getMemoryInt) {
       Operand memAddr = bc2ir.popAddress();
       RegisterOperand val = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(Load.create(INT_LOAD, val, memAddr, new AddressConstantOperand(Offset.zero()), null));
+      bc2ir.appendInstruction(Load.create(INT_LOAD, val, memAddr, AC(Offset.zero()), null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.getMemoryWord) {
       Operand memAddr = bc2ir.popAddress();
       RegisterOperand val = gc.temps.makeTemp(TypeReference.Word);
-      bc2ir.appendInstruction(Load.create(REF_LOAD, val, memAddr, new AddressConstantOperand(Offset.zero()), null));
+      bc2ir.appendInstruction(Load.create(REF_LOAD, val, memAddr, AC(Offset.zero()), null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.getMemoryAddress) {
       Operand memAddr = bc2ir.popAddress();
       RegisterOperand val = gc.temps.makeTemp(TypeReference.Address);
-      bc2ir.appendInstruction(Load.create(REF_LOAD, val, memAddr, new AddressConstantOperand(Offset.zero()), null));
+      bc2ir.appendInstruction(Load.create(REF_LOAD, val, memAddr, AC(Offset.zero()), null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.setMemoryInt) {
       Operand val = bc2ir.popInt();
@@ -496,7 +497,7 @@ public class GenerateMagic implements TIBLayoutConstants  {
       bc2ir.appendInstruction(Store.create(INT_STORE,
                                            val,
                                            memAddr,
-                                           new AddressConstantOperand(Offset.zero()),
+                                           AC(Offset.zero()),
                                            null));
     } else if (methodName == MagicNames.setMemoryWord) {
       Operand val = bc2ir.popRef();
@@ -504,7 +505,7 @@ public class GenerateMagic implements TIBLayoutConstants  {
       bc2ir.appendInstruction(Store.create(REF_STORE,
                                            val,
                                            memAddr,
-                                           new AddressConstantOperand(Offset.zero()),
+                                           AC(Offset.zero()),
                                            null));
     } else if (meth.isSysCall()) {
       // All methods of SysCall have the following signature:
@@ -705,25 +706,25 @@ public class GenerateMagic implements TIBLayoutConstants  {
       RVMField target = ArchEntrypoints.reflectiveMethodInvokerInstructionsField;
       MethodOperand met = MethodOperand.STATIC(target);
       Instruction s =
-          Call.create5(CALL, res, new AddressConstantOperand(target.getOffset()), met, code, gprs, fprs, fprmeta, spills);
+          Call.create5(CALL, res, AC(target.getOffset()), met, code, gprs, fprs, fprmeta, spills);
       bc2ir.appendInstruction(s);
     } else if (methodName == MagicNames.saveThreadState) {
       Operand p1 = bc2ir.popRef();
       RVMField target = ArchEntrypoints.saveThreadStateInstructionsField;
       MethodOperand mo = MethodOperand.STATIC(target);
-      bc2ir.appendInstruction(Call.create1(CALL, null, new AddressConstantOperand(target.getOffset()), mo, p1));
+      bc2ir.appendInstruction(Call.create1(CALL, null, AC(target.getOffset()), mo, p1));
     } else if (methodName == MagicNames.threadSwitch) {
       Operand p2 = bc2ir.popRef();
       Operand p1 = bc2ir.popRef();
       RVMField target = ArchEntrypoints.threadSwitchInstructionsField;
       MethodOperand mo = MethodOperand.STATIC(target);
-      bc2ir.appendInstruction(Call.create2(CALL, null, new AddressConstantOperand(target.getOffset()), mo, p1, p2));
+      bc2ir.appendInstruction(Call.create2(CALL, null, AC(target.getOffset()), mo, p1, p2));
     } else if (methodName == MagicNames.restoreHardwareExceptionState) {
       RVMField target = ArchEntrypoints.restoreHardwareExceptionStateInstructionsField;
       MethodOperand mo = MethodOperand.STATIC(target);
       bc2ir.appendInstruction(Call.create1(CALL,
                                            null,
-                                           new AddressConstantOperand(target.getOffset()),
+                                           AC(target.getOffset()),
                                            mo,
                                            bc2ir.popRef()));
     } else if (methodName == MagicNames.prepareInt) {
