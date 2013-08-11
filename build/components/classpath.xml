@@ -259,7 +259,7 @@
       <env key="CXX" value="${c++.exe} ${c++.args}"/>
       <env key="CC" value="${c.exe} ${c.args}"/>
       <env key="OBJECT_MODE" value="${cp.objectmode}" />
-      <env key="JAVAC" value="${components.dir}/ecj/3.2/ecj-3.2/ecj" />
+      <env key="JAVAC" value="${ecj.dir}/ecj" />
       <arg value="--enable-jni"/>
       <arg value="--disable-plugin"/>
       <arg value="--disable-gconf-peer"/>
