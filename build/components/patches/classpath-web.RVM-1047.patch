@@ -1,0 +1,85 @@
+# Quentin Sabah has contributed this patch to add support for formatted output of floats to java.util.Formatter.
+# He has mentioned that the support for  floats is limited so this patch might not be suitable for GNU Classpath.
+# We are using this patch because it helps us to run the h2 benchmark of DaCapo 9.12.
+# The upstream bug report for the more general issue of better support for format strings is at http://gcc.gnu.org/bugzilla/show_bug.cgi?id=32809 .
+--- java/util/Formatter.java	2011-09-27 14:15:42.092030742 +0200
++++ java/util/Formatter.java	2013-07-18 16:16:42.744562532 +0200
+@@ -51,6 +51,8 @@ import java.io.OutputStreamWriter;
+ import java.io.PrintStream;
+ import java.io.UnsupportedEncodingException;
+ import java.math.BigInteger;
++import java.math.BigDecimal;
++import java.math.MathContext;
+ import java.text.DateFormatSymbols;
+ import java.text.DecimalFormatSymbols;
+ 
+@@ -914,6 +916,60 @@ public final class Formatter
+     genericFormat(builder.toString(), flags, width, precision);
+   }
+ 
++	private void floatingDecimalConversion(Object arg, int flags, int width, 
++    int precision, char conversion) 
++    throws IOException {
++    
++    BigDecimal bd;
++    if(arg instanceof BigDecimal) {
++      bd = (BigDecimal) arg;
++    }else if(arg instanceof Number){
++      bd = new BigDecimal(((Number)arg).doubleValue());
++    }else
++      throw new IllegalFormatConversionException(conversion, arg.getClass());
++      
++
++    //int prec = bd.precision() - bd.scale() + (precision < 0 ? 6 : precision);
++    //MathContext mc = new MathContext(prec);
++    //bd = bd.round(mc);
++    if(precision < 0) precision = 6;
++    bd = bd.setScale(precision, BigDecimal.ROUND_HALF_UP);
++
++    CPStringBuilder builder = new CPStringBuilder(bd.toString());
++
++    int insertPoint = 0;
++    int resultWidth = builder.length();
++    if (resultWidth < width)
++      {
++	char fill = ((flags & FormattableFlags.ZERO) != 0) ? '0' : ' ';
++	if ((flags & FormattableFlags.LEFT_JUSTIFY) != 0)
++	  {
++	    // Left justify.  
++	    if (fill == ' ')
++	      insertPoint = builder.length();
++	  }
++	else
++	  {
++	    // Right justify.  Insert spaces before the radix prefix
++	    // and sign.
++	    insertPoint = 0;
++	  }
++	while (resultWidth++ < width)
++	  builder.insert(insertPoint, fill);
++      }
++
++    String result = builder.toString();
++    if ((flags & FormattableFlags.UPPERCASE) != 0)
++      {
++	if (fmtLocale == null)
++	  result = result.toUpperCase();
++	else
++	  result = result.toUpperCase(fmtLocale);
++      }
++
++    out.append(result);
++  }
++
+   /** 
+    * Emit a single date or time conversion to a StringBuilder.  
+    *
+@@ -1393,7 +1449,7 @@ public final class Formatter
+ 		// scientificNotationConversion();
+ 		break;
+ 	      case 'f':
+-		// floatingDecimalConversion();
++		  floatingDecimalConversion(argument, flags, width, precision, origConversion);
+ 		break;
+ 	      case 'g':
+ 		// smartFloatingConversion();
