@@ -14,7 +14,7 @@
 
   <import file="base.xml"/>
 
-  <property name="ecj.version" value="3.2"/>
+  <property name="ecj.version" value="4.2.2"/>
   <property name="ecj.description" value="Eclipse Compiler"/>
 
   <property name="ecj.dir" location="${components.dir}/ecj/${ecj.version}/ecj-${ecj.version}"/>
@@ -39,7 +39,7 @@
   <target name="fetch" depends="init-ecj-properties" if="ecj.from-web">
     <mkdir dir="${ecj.dir}"/>
     <cachedGet key="ecj-${ecj.version}.jar"
-         src="http://archive.eclipse.org/eclipse/downloads/drops/R-3.2-200606291905/ecj.jar"
+         src="http://archive.eclipse.org/eclipse/downloads/drops4/R-4.2.2-201302041200/ecj-4.2.2.jar"
          dest="${ecj.dir}/ecj.jar"/>
     <echo file="${ecj.dir}/ecj">#!/bin/bash
 java -Xmx256m -jar "`dirname "$0"`/ecj.jar" -warn:-unusedPrivate "$@"
