@@ -190,6 +190,15 @@ public abstract class SysCall {
   public abstract Word sysGetThreadId();
 
   @SysCallTemplate
+  public abstract Word sysGetThreadPriorityHandle();
+
+  @SysCallTemplate
+  public abstract int sysGetThreadPriority(Word thread, Word handle);
+
+  @SysCallTemplate
+  public abstract int sysSetThreadPriority(Word thread, Word handle, int priority);
+
+  @SysCallTemplate
   public abstract void sysSetupHardwareTrapHandler();
 
   // This implies that the RVMThread is somehow pinned, or else the

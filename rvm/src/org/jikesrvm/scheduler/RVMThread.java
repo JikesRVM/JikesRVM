@@ -180,6 +180,9 @@ public final class RVMThread extends ThreadContext implements Constants {
   /** Trace adjustments to stack size */
   private static final boolean traceAdjustments = false;
 
+  /** Trace thread priority */
+  private static final boolean tracePriority = false;
+
   /** Never kill threads.  Useful for testing bugs related to interaction of
       thread death with for example MMTk.  For production, this should never
       be set to true. */
@@ -1023,6 +1026,12 @@ public final class RVMThread extends ThreadContext implements Constants {
    * than a pointer-sized word.
    */
   public Word pthread_id;
+
+  /**
+   * Thread priority handle.  Used when manipulating the threads priority.
+   * This may be different from pthread_id.
+   */
+  public Word priority_handle;
 
   /**
    * Scratch area for use for gpr <=> fpr transfers by PPC baseline compiler.
@@ -2590,6 +2599,14 @@ public final class RVMThread extends ThreadContext implements Constants {
      * get pthread_id from the operating system and store into RVMThread field
      */
     currentThread.pthread_id = sysCall.sysGetThreadId();
+    currentThread.priority_handle = sysCall.sysGetThreadPriorityHandle();
+
+    /*
+     * set thread priority to match stored value
+     */
+    sysCall.sysSetThreadPriority(currentThread.pthread_id,
+        currentThread.priority_handle, currentThread.priority - Thread.NORM_PRIORITY);
+
     currentThread.enableYieldpoints();
     sysCall.sysStashVMThread(currentThread);
     if (traceAcct) {
@@ -4471,6 +4488,13 @@ public final class RVMThread extends ThreadContext implements Constants {
    * @see java.lang.Thread#getPriority()
    */
   public int getPriority() {
+    if (isAlive()) {
+      // compute current priority
+      priority = sysCall.sysGetThreadPriority(pthread_id, priority_handle) + Thread.NORM_PRIORITY;
+    }
+    if (tracePriority) {
+      VM.sysWriteln("Thread #", getThreadSlot(), " get priority returning: ", priority);
+    }
     return priority;
   }
 
@@ -4481,8 +4505,25 @@ public final class RVMThread extends ThreadContext implements Constants {
    * @see java.lang.Thread#getPriority()
    */
   public void setPriority(int priority) {
-    this.priority = priority;
-    // @TODO this should be calling a syscall
+    if (isAlive()) {
+      int result = sysCall.sysSetThreadPriority(pthread_id, priority_handle, priority - Thread.NORM_PRIORITY);
+      if (result == 0) {
+        this.priority = priority;
+        if (tracePriority) {
+          VM.sysWriteln("Thread #", getThreadSlot(), " set priority: ", priority);
+        }
+      } else {
+        // setting priority failed
+        if (tracePriority) {
+          VM.sysWriteln("Thread #", getThreadSlot(), " failed to set priority: ", priority, ", result: ", result);
+        }
+      }
+    } else {
+      if (tracePriority) {
+        VM.sysWriteln("Thread #", getThreadSlot(), " set priority: ", priority, " while not running");
+      }
+      this.priority = priority;
+    }
   }
 
   /**

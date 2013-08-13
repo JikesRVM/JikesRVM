@@ -34,6 +34,11 @@ extern "C" void profil(void *, uint, ulong, uint);
 extern "C" int sched_yield(void);
 #endif
 
+// Enable syscall on Linux / glibc
+#ifdef RVM_FOR_LINUX
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>      // getenv() and others
 #include <unistd.h>
@@ -41,6 +46,7 @@ extern "C" int sched_yield(void);
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <sys/resource.h> // getpriority, setpriority and PRIO_PROCESS
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>               // nanosleep() and other
@@ -71,6 +77,7 @@ extern "C" void __libc_longjmp (jmp_buf buf, int val) \
 #include <sys/ioctl.h>
 #ifdef RVM_FOR_LINUX
 #include <asm/ioctls.h>
+#include <sys/syscall.h>
 #endif
 
 # include <sched.h>
@@ -1246,6 +1253,104 @@ sysThreadYield()
 #else
     sched_yield();
 #endif
+}
+
+// Determine if a given thread can use pthread_setschedparam to
+// configure its priority, this is based on the current priority
+// of the thread.
+//
+// The result will be true on all systems other than Linux where
+// pthread_setschedparam cannot be used with SCHED_OTHER policy.
+//
+static int hasPthreadPriority(Word thread_id)
+{
+    struct sched_param param;
+    int policy;
+    if (!pthread_getschedparam((pthread_t)thread_id, &policy, &param)) {
+        int min = sched_get_priority_min(policy);
+        int max = sched_get_priority_max(policy);
+        if (min || max) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// Return a handle which can be used to manipulate a threads priority
+// on Linux this will be the kernel thread_id, on other systems the
+// standard thread id.
+extern "C" Word
+sysGetThreadPriorityHandle()
+{
+    // gettid() syscall is Linux specific, detect its syscall number macro
+    #ifdef SYS_gettid
+    pid_t tid = (pid_t) syscall(SYS_gettid);
+    if (tid != -1)
+        return (Word) tid;
+    #endif /* SYS_gettid */
+    return (Word) getThreadId();
+}
+
+// Compute the default (or middle) priority for a given policy.
+static int defaultPriority(int policy)
+{
+    int min = sched_get_priority_min(policy);
+    int max = sched_get_priority_max(policy);
+    return min + ((max - min) / 2);
+}
+
+// Get the thread priority as an offset from the default.
+extern "C" int
+sysGetThreadPriority(Word thread, Word handle)
+{
+    // use pthread priority mechanisms where possible
+    if (hasPthreadPriority(thread)) {
+        struct sched_param param;
+        int policy;
+        if (!pthread_getschedparam((pthread_t)thread, &policy, &param)) {
+            return param.sched_priority - defaultPriority(policy);
+        }
+    } else if (thread != handle) {
+        // fallback to setpriority if handle is valid
+        // i.e. handle is tid from gettid()
+        int result;
+        errno = 0; // as result can be legally be -1
+        result = getpriority(PRIO_PROCESS, (int) handle);
+        if (errno == 0) {
+            // default priority is 0, low number -> high priority
+            return -result;
+        }
+
+    }
+    return 0;
+}
+
+// Set the thread priority as an offset from the default.
+extern "C" int
+sysSetThreadPriority(Word thread, Word handle, int priority)
+{
+    // fast path
+    if (sysGetThreadPriority(thread, handle) == priority)
+        return 0;
+
+    // use pthread priority mechanisms where possible
+    if (hasPthreadPriority(thread)) {
+        struct sched_param param;
+        int policy;
+        int result = pthread_getschedparam((pthread_t)thread, &policy, &param);
+        if (!result) {
+            param.sched_priority = defaultPriority(policy) + priority;
+            return pthread_setschedparam((pthread_t)thread, policy, &param);
+        } else {
+            return result;
+        }
+    } else if (thread != handle) {
+        // fallback to setpriority if handle is valid
+        // i.e. handle is tid from gettid()
+        // default priority is 0, low number -> high priority
+        return setpriority(PRIO_PROCESS, (int) handle, -priority);
+    }
+    return -1;
 }
 
 ////////////// Pthread mutex and condition functions /////////////
