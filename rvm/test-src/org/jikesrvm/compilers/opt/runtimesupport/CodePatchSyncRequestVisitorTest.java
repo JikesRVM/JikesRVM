@@ -89,10 +89,6 @@ public class CodePatchSyncRequestVisitorTest {
       synchronized (this) {
         try {
           wait(1000);
-        } catch (IllegalMonitorStateException e) {
-          throw e;
-        } catch (IllegalArgumentException e) {
-          throw e;
         } catch (InterruptedException e) {
           return;
         }
@@ -119,8 +115,6 @@ public class CodePatchSyncRequestVisitorTest {
         synchronized (this) {
           idleImpl();
         }
-      } catch (IllegalMonitorStateException e) {
-        throw e;
       } catch (InterruptedException e) {
         return;
       }
@@ -135,7 +129,9 @@ public class CodePatchSyncRequestVisitorTest {
     @Override
     protected void idleImpl() throws InterruptedException,
         IllegalMonitorStateException {
-      wait();
+      while (true) {
+        wait();
+      }
     }
   }
 
