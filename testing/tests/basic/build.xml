@@ -133,6 +133,7 @@
     <runCompareTest tag="TestLoadingWithoutName" class="test.org.jikesrvm.basic.core.classloading.TestLoadingWithoutName"/>
 
     <runCompareTest tag="TestMath" class="test.org.jikesrvm.basic.java.lang.TestMath"/>
+    <runCompareTest tag="TestSystem" class="test.org.jikesrvm.basic.java.lang.TestSystem"/>
     <runCompareTest tag="TestFileChannel" class="test.org.jikesrvm.basic.java.nio.TestFileChannel"/>
 
     <runCompareTest tag="TestAgent" class="test.org.jikesrvm.basic.core.instrument.TestAgent"

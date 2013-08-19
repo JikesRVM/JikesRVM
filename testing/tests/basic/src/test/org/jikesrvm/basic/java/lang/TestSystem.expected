@@ -1,0 +1,186 @@
+Checking for easy error cases.
+Checking that NullPointerException (NPE) is thrown when expected.
+src is null
+SUCCESS
+dest is null
+SUCCESS
+Checking that ArrayStoreException is thrown when excpected.
+src is not an array
+SUCCESS
+dst is not an array
+SUCCESS
+primitive component types differ (using int and long)
+SUCCESS
+src is reference and dst is primitive (int)
+SUCCESS
+src is primitive (int) and dst is reference
+SUCCESS
+src (String) and dst (Integer) have incompatible reference types
+SUCCESS
+Checking that reference array is partially copied when ArrayStoreException is thrown while copying
+SUCCESS
+Checking boolean[] arrays
+Checking that IndexOutOfBoundsException is thrown when expected.
+srcPos is negative
+SUCCESS
+destPos is negative
+SUCCESS
+length is negative
+SUCCESS
+dstPos+length > dst.length
+SUCCESS
+Checking that ArrayStoreException is thrown when excpected.
+Trying to copy from boolean array to int array
+SUCCESS
+Checking that copying to the same array works with overlap (from greater position to lesser)
+SUCCESS
+Checking that copying to the same array works with overlap (from lesser position to greater)
+SUCCESS
+Checking byte[] arrays
+Checking that IndexOutOfBoundsException is thrown when expected.
+srcPos is negative
+SUCCESS
+destPos is negative
+SUCCESS
+length is negative
+SUCCESS
+srcPos+length > src.length
+SUCCESS
+dstPos+length > dst.length
+SUCCESS
+Checking that ArrayStoreException is thrown when excpected.
+Trying to copy from byte array to int array
+SUCCESS
+Checking that copying to the same array works with overlap (from greater position to lesser)
+SUCCESS
+Checking that copying to the same array works with overlap (from lesser position to greater)
+SUCCESS
+Checking char[] arrays
+Checking that IndexOutOfBoundsException is thrown when expected.
+srcPos is negative
+SUCCESS
+destPos is negative
+SUCCESS
+length is negative
+SUCCESS
+srcPos+length > src.length
+SUCCESS
+dstPos+length > dst.length
+SUCCESS
+Checking that ArrayStoreException is thrown when excpected.
+Trying to copy from char array to int array
+SUCCESS
+Checking that copying to the same array works with overlap (from greater position to lesser)
+SUCCESS
+Checking that copying to the same array works with overlap (from lesser position to greater)
+SUCCESS
+Checking double[] arrays
+Checking that IndexOutOfBoundsException is thrown when expected.
+srcPos is negative
+SUCCESS
+destPos is negative
+SUCCESS
+length is negative
+SUCCESS
+srcPos+length > src.length
+SUCCESS
+dstPos+length > dst.length
+SUCCESS
+Checking that ArrayStoreException is thrown when excpected.
+Trying to copy from double array to long array
+SUCCESS
+Checking that copying to the same array works with overlap (from greater position to lesser)
+SUCCESS
+Checking that copying to the same array works with overlap (from lesser position to greater)
+SUCCESS
+Checking float[] arrays
+Checking that IndexOutOfBoundsException is thrown when expected.
+srcPos is negative
+SUCCESS
+destPos is negative
+SUCCESS
+length is negative
+SUCCESS
+srcPos+length > src.length
+SUCCESS
+dstPos+length > dst.length
+SUCCESS
+Checking that ArrayStoreException is thrown when excpected.
+Trying to copy from float array to double array
+SUCCESS
+Checking that copying to the same array works with overlap (from greater position to lesser)
+SUCCESS
+Checking that copying to the same array works with overlap (from lesser position to greater)
+SUCCESS
+Checking int[] arrays
+Checking that IndexOutOfBoundsException is thrown when expected.
+srcPos is negative
+SUCCESS
+destPos is negative
+SUCCESS
+length is negative
+SUCCESS
+srcPos+length > src.length
+SUCCESS
+dstPos+length > dst.length
+SUCCESS
+Checking that ArrayStoreException is thrown when excpected.
+Trying to copy from int array to long array
+SUCCESS
+Checking that copying to the same array works with overlap (from greater position to lesser)
+SUCCESS
+Checking that copying to the same array works with overlap (from lesser position to greater)
+SUCCESS
+Checking that IndexOutOfBoundsException is thrown when expected.
+srcPos is negative
+SUCCESS
+destPos is negative
+SUCCESS
+length is negative
+SUCCESS
+srcPos+length > src.length
+SUCCESS
+dstPos+length > dst.length
+SUCCESS
+Checking that ArrayStoreException is thrown when excpected.
+Trying to copy from long array to double array
+SUCCESS
+Checking that copying to the same array works with overlap (from greater position to lesser)
+SUCCESS
+Checking that copying to the same array works with overlap (from lesser position to greater)
+SUCCESS
+Checking short[] arrays
+Checking that IndexOutOfBoundsException is thrown when expected.
+srcPos is negative
+SUCCESS
+destPos is negative
+SUCCESS
+length is negative
+SUCCESS
+srcPos+length > src.length
+SUCCESS
+dstPos+length > dst.length
+SUCCESS
+Checking that ArrayStoreException is thrown when excpected.
+Trying to copy from byte array to int array
+SUCCESS
+Checking that copying to the same array works with overlap (from greater position to lesser)
+SUCCESS
+Checking that copying to the same array works with overlap (from lesser position to greater)
+SUCCESS
+Checking Object[] arrays
+Checking that IndexOutOfBoundsException is thrown when expected.
+srcPos is negative
+SUCCESS
+destPos is negative
+SUCCESS
+length is negative
+SUCCESS
+srcPos+length > src.length
+SUCCESS
+dstPos+length > dst.length
+SUCCESS
+Checking that copying to the same array works with overlap (from greater position to lesser)
+SUCCESS
+Checking that copying to the same array works with overlap (from lesser position to greater)
+SUCCESS
