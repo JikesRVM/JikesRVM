@@ -226,6 +226,7 @@ public class BootRecord {
 
   // memory
   public Address sysCopyIP;
+  public Address sysMemmoveIP;
   public Address sysMallocIP;
   public Address sysCallocIP;
   public Address sysFreeIP;

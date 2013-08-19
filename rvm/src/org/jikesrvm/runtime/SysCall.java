@@ -80,8 +80,28 @@ public abstract class SysCall {
   public abstract int sysGetenv(byte[] varName, byte[] buf, int limit);
 
   // memory
+
+  /**
+   * Copies memory.<p>
+   *
+   * Assumption: the memory regions do not overlap. Use
+   * {@link #sysMemmove(Address, Address, Extent)} if the regions might overlap.
+   * @param dst destination address
+   * @param src source address
+   * @param cnt number of bytes to copy
+   */
   @SysCallTemplate
   public abstract void sysCopy(Address dst, Address src, Extent cnt);
+
+  /**
+   * Copies memory without making any assumptions about the memory areas.
+   *
+   * @param dst destination address
+   * @param src source address
+   * @param cnt number of bytes to copy
+   */
+  @SysCallTemplate
+  public abstract void sysMemmove(Address dst, Address src, Extent cnt);
 
   @SysCallTemplate
   public abstract Address sysMalloc(int length);

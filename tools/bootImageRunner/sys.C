@@ -1664,13 +1664,23 @@ sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
 // Memory operations //
 //-------------------//
 
-// Memory to memory copy.
+// Memory to memory copy. Memory regions must not overlap.
 //
 extern "C" void
 sysCopy(void *dst, const void *src, Extent cnt)
 {
     memcpy(dst, src, cnt);
 }
+
+// Memory to memory copy. Memory regions may overlap.
+//
+extern "C" void
+sysMemmove(void *dst, const void *src, Extent cnt)
+{
+    memmove(dst, src, cnt);
+}
+
+
 
 int inRVMAddressSpace(Address a);
 

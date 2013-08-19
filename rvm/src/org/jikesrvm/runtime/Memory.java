@@ -424,21 +424,34 @@ public class Memory {
   }
 
   /**
-   * Copy a region of memory.
-   * <p>
-   * Assumption: source and destination regions do not overlap
+   * Copies a region of memory.
    *
    * @param dst   Destination address
    * @param src   Source address
    * @param cnt   Number of bytes to copy
    */
   public static void memcopy(Address dst, Address src, Extent cnt) {
-    SysCall.sysCall.sysCopy(dst, src, cnt);
+    Address srcEnd = src.plus(cnt);
+    Address dstEnd = dst.plus(cnt);
+    boolean overlap = !srcEnd.LE(dst) && !dstEnd.LE(src);
+    if (overlap) {
+      SysCall.sysCall.sysMemmove(dst, src, cnt);
+    } else {
+      SysCall.sysCall.sysCopy(dst, src, cnt);
+    }
   }
 
+  /**
+   * Wrapper method for {@link #memcopy(Address, Address, Extent)}.
+   *
+   * @param dst   Destination address
+   * @param src   Source address
+   * @param cnt   Number of bytes to copy
+   */
   public static void memcopy(Address dst, Address src, int cnt) {
-    SysCall.sysCall.sysCopy(dst, src, Extent.fromIntSignExtend(cnt));
+    memcopy(dst, src, Extent.fromIntSignExtend(cnt));
   }
+
 
   /**
    * Zero a region of memory.
