@@ -618,4 +618,13 @@ public class Memory {
   public static int alignDown(int address, int alignment) {
     return (address & ~(alignment - 1));
   }
+
+  /**
+   * For use in test cases only.
+   * @return native threshold (number in bytes before copying uses C code)
+   */
+  static int getNativeThreshold() {
+    return NATIVE_THRESHOLD;
+  }
+
 }
