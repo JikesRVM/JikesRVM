@@ -1,0 +1,14 @@
+# Version of RVM-750 patch that applies cleanly against the git HEAD of GNU Classpath.
+--- java/lang/Thread.java 2013-08-11 16:53:57.000000000 +0200
++++ java/lang/Thread.java 2013-08-13 09:07:45.000000000 +0200
+@@ -374,8 +374,8 @@
+         this.threadId = ++totalThreadsCreated;
+       }
+ 
+-    priority = current.priority;
+-    daemon = current.daemon;
++    priority = current.getPriority();
++    daemon = current.isDaemon();
+     contextClassLoader = current.contextClassLoader;
+     contextClassLoaderIsSystemClassLoader =
+         current.contextClassLoaderIsSystemClassLoader;

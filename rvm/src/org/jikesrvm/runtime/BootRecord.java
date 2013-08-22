@@ -226,6 +226,7 @@ public class BootRecord {
 
   // memory
   public Address sysCopyIP;
+  public Address sysMemmoveIP;
   public Address sysMallocIP;
   public Address sysCallocIP;
   public Address sysFreeIP;
@@ -262,6 +263,9 @@ public class BootRecord {
   public Address sysSetupHardwareTrapHandlerIP;
   public Address sysStashVMThreadIP;
   public Address sysThreadTerminateIP;
+  public Address sysGetThreadPriorityHandleIP;
+  public Address sysGetThreadPriorityIP;
+  public Address sysSetThreadPriorityIP;
 
   // monitors
   public Address sysMonitorCreateIP;
