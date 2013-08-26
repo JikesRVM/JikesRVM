@@ -64,7 +64,7 @@ public final class GenNurseryTraceLocal extends TraceLocal {
     if (Gen.inNursery(object)) {
       return Gen.nurserySpace.isLive(object);
     }
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
+    /* During a nursery trace, all objects not in the nursery are considered alive */
     return true;
   }
 
