@@ -136,7 +136,7 @@ public class FinalizeTest {
 
     sum += liveNM.hashCode()+liveM.hashCode()+liveLarge.hashCode();
     System.out.println(sum);
-    System.out.println("SUCCESS");
+    System.out.println("Overall: SUCCESS");
   }
 
 
