@@ -26,7 +26,6 @@ import org.mmtk.harness.sanity.Sanity;
 import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
-import org.mmtk.harness.vm.Scanning;
 import org.mmtk.plan.MutatorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
@@ -153,7 +152,6 @@ public abstract class Mutator {
    */
   public void begin() {
     Mutators.set(this);
-    Scanning.initThreadIteratorTable(this);
   }
 
   /**
@@ -453,13 +451,6 @@ public abstract class Mutator {
       return "<invalid>";
     }
     return AllocationSite.getSite(site).toString();
-  }
-
-  /**
-   * @return The thread iterator table
-   */
-  public ObjectReference allocThreadIteratorTable() {
-    return alloc(Scanning.THREAD_ITERATOR_TABLE_ENTRIES,0,false,AllocationSite.INTERNAL_SITE_ID);
   }
 
 

@@ -12,10 +12,7 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import org.mmtk.harness.lang.Trace;
-import org.mmtk.harness.lang.Trace.Item;
 import org.mmtk.harness.lang.type.Type;
-import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.ObjectReference;
 
 /**
@@ -32,33 +29,10 @@ public class ObjectValue extends Value {
    */
   public static final ObjectValue NULL = NullValue.NULL;
 
-  private static volatile int currentRootDiscoveryPhase = 1;
-
-  /**
-   * Start a new root discovery phase, enabling every root to be traced again.
-   */
-  public static void startRootDiscoveryPhase() {
-    currentRootDiscoveryPhase++;
-  }
-
   /**
    * The reference to the heap object
-   *
-   * Not final because it may change during GC.
    */
-  private ObjectReference value;
-
-  /**
-   * When was this object last processed as a root ?
-   */
-  private int lastDiscoveryPhase = 0;
-
-  /**
-   * Construct an initially null object value
-   */
-  public ObjectValue() {
-    this(ObjectReference.nullReference());
-  }
+  private final ObjectReference value;
 
   /**
    * An object value with the given initial value
@@ -101,20 +75,6 @@ public class ObjectValue extends Value {
   @Override
   public Type type() {
     return Type.OBJECT;
-  }
-
-  /**
-   * GC-time processing of the contained object
-   * @param trace The trace object
-   */
-  public void traceObject(TraceLocal trace) {
-    assert false;
-    if (lastDiscoveryPhase < currentRootDiscoveryPhase) {
-      ObjectReference old = value;
-      value = trace.traceObject(value, true);
-      Trace.trace(Item.ROOTS,"ObjectValue.traceObject: %s->%s",old,value);
-      lastDiscoveryPhase = currentRootDiscoveryPhase;
-    }
   }
 
   @Override

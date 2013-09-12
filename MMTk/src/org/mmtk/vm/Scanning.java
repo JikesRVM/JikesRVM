@@ -112,7 +112,7 @@ import org.vmmagic.unboxed.*;
    * Computes new roots pointed to by threads, their associated registers
    * and stacks.   This method is only required to return roots that are
    * new since the last stack scan (if possible, the implementation will
-   * optimize the scaning to only scan new portions of the stacks).<p>
+   * optimize the scanning to only scan new portions of the stacks).<p>
    *
    * This method places these roots in the root values,
    * root locations and interior root locations queues.  This method

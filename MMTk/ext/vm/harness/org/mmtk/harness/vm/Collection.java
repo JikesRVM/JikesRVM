@@ -40,7 +40,6 @@ public class Collection extends org.mmtk.vm.Collection {
   @Override
   public void requestMutatorFlush() {
     Mutator.current().getContext().flush();
-    Assert.notImplemented();
   }
 
   /**
