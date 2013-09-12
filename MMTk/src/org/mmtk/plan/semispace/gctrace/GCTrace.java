@@ -90,7 +90,7 @@ import org.vmmagic.pragma.*;
   /**
    *
    */
-  public static final RawPageSpace traceSpace = new RawPageSpace("trace", VMRequest.create());
+  public static final RawPageSpace traceSpace = new RawPageSpace("trace", VMRequest.discontiguous());
   public static final int TRACE = traceSpace.getDescriptor();
 
   /* GC state */

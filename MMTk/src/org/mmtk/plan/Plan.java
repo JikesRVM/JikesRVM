@@ -111,22 +111,22 @@ public abstract class Plan implements Constants {
   public static final Space vmSpace = VM.memory.getVMSpace();
 
   /** Any immortal objects allocated after booting are allocated here. */
-  public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", VMRequest.create());
+  public static final ImmortalSpace immortalSpace = new ImmortalSpace("immortal", VMRequest.discontiguous());
 
   /** All meta data that is used by MMTk is allocated (and accounted for) in the meta data space. */
-  public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", VMRequest.create());
+  public static final RawPageSpace metaDataSpace = new RawPageSpace("meta", VMRequest.discontiguous());
 
   /** Large objects are allocated into a special large object space. */
-  public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", VMRequest.create());
+  public static final LargeObjectSpace loSpace = new LargeObjectSpace("los", VMRequest.discontiguous());
 
   /** Space used by the sanity checker (used at runtime only if sanity checking enabled */
-  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", VMRequest.create());
+  public static final RawPageSpace sanitySpace = new RawPageSpace("sanity", VMRequest.discontiguous());
 
   /** Space used to allocate objects that cannot be moved. we do not need a large space as the LOS is non-moving. */
-  public static final MarkSweepSpace nonMovingSpace = new MarkSweepSpace("non-moving", VMRequest.create());
+  public static final MarkSweepSpace nonMovingSpace = new MarkSweepSpace("non-moving", VMRequest.discontiguous());
 
-  public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", VMRequest.create()) : null;
-  public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", VMRequest.create()) : null;
+  public static final MarkSweepSpace smallCodeSpace = USE_CODE_SPACE ? new MarkSweepSpace("sm-code", VMRequest.discontiguous()) : null;
+  public static final LargeObjectSpace largeCodeSpace = USE_CODE_SPACE ? new LargeObjectSpace("lg-code", VMRequest.discontiguous()) : null;
 
   public static int pretenureThreshold = Integer.MAX_VALUE;
 

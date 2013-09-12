@@ -58,8 +58,8 @@ public class CopyMS extends StopTheWorld {
   /**
    *
    */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", false, VMRequest.create(0.15f, true));
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
+  public static final CopySpace nurserySpace = new CopySpace("nursery", false, VMRequest.highFraction(0.15f));
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.discontiguous());
 
   public static final int NURSERY = nurserySpace.getDescriptor();
   public static final int MARK_SWEEP = msSpace.getDescriptor();

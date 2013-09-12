@@ -30,7 +30,7 @@ public class GenRC extends RCBase {
   public static final int ALLOC_RC      = RCBase.ALLOCATORS + 1;
 
   /** The nursery space is where all new objects are allocated by default */
-  public static final CopySpace nurserySpace = new CopySpace("nursery", false, VMRequest.create(0.15f, true));
+  public static final CopySpace nurserySpace = new CopySpace("nursery", false, VMRequest.highFraction(0.15f));
 
   public static final int NURSERY = nurserySpace.getDescriptor();
 
