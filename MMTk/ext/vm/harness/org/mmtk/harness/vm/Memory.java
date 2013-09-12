@@ -64,7 +64,7 @@ public class Memory extends org.mmtk.vm.Memory {
   @Interruptible
   public ImmortalSpace getVMSpace() {
     if (vmSpace == null) {
-      vmSpace = new ImmortalSpace("vm", VMRequest.create(getVmspacesize(), false));
+      vmSpace = new ImmortalSpace("vm", VMRequest.fixedSize((int)(getVmspacesize().toLong()/(1<<20))));
     }
     return vmSpace;
   }
