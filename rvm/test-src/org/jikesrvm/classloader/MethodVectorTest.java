@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Before;
@@ -34,21 +33,6 @@ import org.junit.runner.RunWith;
 @RunWith(VMRequirements.class)
 @Category(RequiresJikesRVM.class)
 public class MethodVectorTest {
-
-  private static class MockMethod extends RVMMethod {
-
-    private static final Atom memberDescriptor = Atom.findOrCreateAsciiAtom("()V");
-
-    public MockMethod(TypeReference tRef, Atom memberName) {
-      super(null, MemberReference.findOrCreate(tRef, memberName, memberDescriptor), (short) 0, null, null, null, null, null);
-    }
-
-    @Override
-    protected CompiledMethod genCode() {
-      return null;
-    }
-
-  }
 
   private static TypeReference tRef;
   private MethodVector mv;
@@ -78,8 +62,15 @@ public class MethodVectorTest {
 
   RVMMethod createMockMethod(String methodName) {
     Atom memberName = Atom.findOrCreateAsciiAtom(methodName);
-    RVMMethod oneMethod = new MockMethod(tRef, memberName);
-    return oneMethod;
+    Atom memberDescriptor = Atom.findOrCreateAsciiAtom("()V");
+    MemberReference mr = MemberReference.findOrCreate(tRef, memberName, memberDescriptor);
+    short mo = 0;
+    short lw = 0;
+    short ow = 0;
+    byte[] bc = new byte[0];
+    int[] constantPool = new int[0];
+    NormalMethod mockMethod = new NormalMethod(tRef, mr, mo, null, lw, ow, bc, null, null, null, constantPool, null, null, null, null);
+    return mockMethod;
   }
 
   @Test
