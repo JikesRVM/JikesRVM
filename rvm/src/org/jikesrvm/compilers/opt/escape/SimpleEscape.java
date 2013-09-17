@@ -33,10 +33,10 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.ir.AStore;
 import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operators;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
@@ -470,10 +470,7 @@ class SimpleEscape extends CompilerPhase {
       case INSTANCEOF_opcode:
       case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
-      case CHECKCAST_opcode:
       case MUST_IMPLEMENT_INTERFACE_opcode:
-      case CHECKCAST_NOTNULL_opcode:
-      case CHECKCAST_UNRESOLVED_opcode:
       case GET_CAUGHT_EXCEPTION_opcode:
       case IR_PROLOGUE_opcode:
         return false;
@@ -512,8 +509,11 @@ class SimpleEscape extends CompilerPhase {
         // use is a parameter to the call.  Find out which one.
         int p = getParameterIndex(use, inst);
         return summ.parameterMayEscapeThread(p);
+      case CHECKCAST_opcode:
+      case CHECKCAST_NOTNULL_opcode:
+      case CHECKCAST_UNRESOLVED_opcode:
       case REF_MOVE_opcode: {
-        Register copy = Move.getResult(inst).getRegister();
+        Register copy = ResultCarrier.getResult(inst).getRegister();
         if (!copy.isSSA()) {
           return true;
         } else {
@@ -672,10 +672,7 @@ class SimpleEscape extends CompilerPhase {
       case INSTANCEOF_opcode:
       case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
-      case CHECKCAST_opcode:
       case MUST_IMPLEMENT_INTERFACE_opcode:
-      case CHECKCAST_NOTNULL_opcode:
-      case CHECKCAST_UNRESOLVED_opcode:
       case GET_CAUGHT_EXCEPTION_opcode:
       case IR_PROLOGUE_opcode:
         return false;
@@ -694,11 +691,14 @@ class SimpleEscape extends CompilerPhase {
         }
         return true;
       }
+      case CHECKCAST_opcode:
+      case CHECKCAST_NOTNULL_opcode:
+      case CHECKCAST_UNRESOLVED_opcode:
       case REF_MOVE_opcode: {
         if (visited == null) {
           visited = new HashSet<Register>();
         }
-        Register copy = Move.getResult(inst).getRegister();
+        Register copy = ResultCarrier.getResult(inst).getRegister();
         if(!copy.isSSA()) {
           return true;
         } else {
