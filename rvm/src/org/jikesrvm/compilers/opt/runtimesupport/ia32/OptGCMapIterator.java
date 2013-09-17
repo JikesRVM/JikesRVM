@@ -100,7 +100,7 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
         // move to the beginning of the nonVol area
-        Address location = nonVolArea.plus(4 * NUM_VOLATILE_GPRS);
+        Address location = nonVolArea.plus(BYTES_IN_ADDRESS * NUM_VOLATILE_GPRS);
 
         for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
           // determine what register index corresponds to this location
@@ -140,12 +140,12 @@ public abstract class OptGCMapIterator extends OptGenericGCMapIterator implement
   @Override
   public Address getLastSpillLoc() {
     if (compiledMethod.isSaveVolatile()) {
-      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);
+      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - BYTES_IN_ADDRESS - SAVE_VOL_SIZE);
     } else {
-      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - 4);
+      return framePtr.minus(compiledMethod.getUnsignedNonVolatileOffset() - BYTES_IN_ADDRESS);
     }
   }
 
-  static final int VOL_SIZE = 4 * NUM_VOLATILE_GPRS;
+  static final int VOL_SIZE = BYTES_IN_ADDRESS * NUM_VOLATILE_GPRS;
   static final int SAVE_VOL_SIZE = VOL_SIZE + StackframeLayoutConstants.FPU_STATE_SIZE;
 }
