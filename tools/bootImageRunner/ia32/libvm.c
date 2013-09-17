@@ -1015,13 +1015,13 @@ createVM(void)
       return 1;
     }
 
-    if ((bootRecord->spRegister % 4) != 0) {
+    if ((bootRecord->spRegister % __SIZEOF_POINTER__) != 0) {
       fprintf(SysErrorFile, "%s: image format error: sp (%x) is not word aligned\n",
                Me, bootRecord->spRegister);
       return 1;
     }
 
-    if ((bootRecord->ipRegister % 4) != 0) {
+    if ((bootRecord->ipRegister % __SIZEOF_POINTER__) != 0) {
       fprintf(SysErrorFile, "%s: image format error: ip (%x) is not word aligned\n",
               Me, bootRecord->ipRegister);
       return 1;
@@ -1179,7 +1179,7 @@ createVM(void)
      * processor object.
      */
     *(Address *) (tr + Thread_framePointer_offset)
-	= (Address)sp - 8;
+	= (Address)sp - 2*__SIZEOF_POINTER__;
 
     sysInitialize();
 
@@ -1199,7 +1199,7 @@ createVM(void)
 #endif
 	for (;;) pause();
     } else {
-	sp-=4;
+	sp -= __SIZEOF_POINTER__;
 	*(uint32_t*)sp = 0xdeadbabe;         /* STACKFRAME_RETURN_ADDRESS_OFFSET */
 	sp -= __SIZEOF_POINTER__;
 	*(Address*)sp = Constants_STACKFRAME_SENTINEL_FP; /* STACKFRAME_FRAME_POINTER_OFFSET */
