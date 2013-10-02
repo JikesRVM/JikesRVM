@@ -15,7 +15,7 @@
   <import file="base.xml"/>
   <property file="${components.file}"/>
 
-  <property name="checkstyle.version" value="5.3"/>
+  <property name="checkstyle.version" value="5.6"/>
   <property name="checkstyle.description" value="Checkstyle"/>
 
   <property name="checkstyle.package.dir" value="${components.dir}/checkstyle/${checkstyle.version}"/>
