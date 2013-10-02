@@ -20,12 +20,13 @@
 
   <property name="checkstyle.package.dir" value="${components.dir}/checkstyle/${checkstyle.version}"/>
   <property name="checkstyle.dir" location="${checkstyle.package.dir}/checkstyle-${checkstyle.version}"/>
+  <property name="checkstyle.jar" location="${checkstyle.dir}/checkstyle-${checkstyle.version}-all.jar"/>
 
   <target name="init-checkstyle-properties" depends="prepare-ant-tasks">
     <condition property="checkstyle.from-web" value="true">
       <or>
         <not>
-          <available file="${checkstyle.dir}/constants.properties"/>
+          <available file="${checkstyle.package.dir}/constants.properties"/>
         </not>
         <isset property="checkstyle.force-download"/>
       </or>
@@ -39,15 +40,16 @@
          src="http://sourceforge.net/projects/checkstyle/files/checkstyle/${checkstyle.version}/${checkstyle.web-archive}/download?use_mirror=autoselect"
          dest="${checkstyle.package.dir}/${checkstyle.web-archive}"/>
     <untar src="${checkstyle.package.dir}/${checkstyle.web-archive}" compression="gzip" dest="${checkstyle.package.dir}"/>
-    <writeComponentConstants dir="${checkstyle.dir}"/>
+    <writeComponentConstants dir="${checkstyle.package.dir}"/>
   </target>
 
   <target name="build" depends="fetch">
+    <setComponentsConfig key="checkstyle.jar" value="${checkstyle.jar}"/>
     <setComponentsConfig key="checkstyle.dir" value="${checkstyle.dir}"/>
   </target>
 
   <target name="ensure" depends="prepare-ant-tasks">
-    <ensureUptodate name="checkstyle" dir="${checkstyle.dir}"/>
+    <ensureUptodate name="checkstyle" dir="${checkstyle.package.dir}"/>
   </target>
 
 </project>

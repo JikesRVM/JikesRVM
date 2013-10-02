@@ -2200,7 +2200,7 @@ target.jni-suffix=${target.jni-suffix}
   </target>
 
   <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,ensure-checkstyle">
-    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.dir}/checkstyle-5.3-all.jar"/>
+    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar}"/>
 
     <mkdir dir="${build.dir}/checkstyle"/>
     <checkstyle config="build/checkstyle/rvm-checks.xml" failureProperty="checkstyle.failed" failOnViolation="false">
