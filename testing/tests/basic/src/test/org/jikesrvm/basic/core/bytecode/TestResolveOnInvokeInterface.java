@@ -20,7 +20,7 @@ package test.org.jikesrvm.basic.core.bytecode;
  */
 public class TestResolveOnInvokeInterface {
 
-  static interface A {
+  interface A {
     String genString();
   }
 

@@ -22,7 +22,7 @@ public class TestMiranda {
   /**
    * A simple interface with a method in it
    */
-  static interface Interface {
+  interface Interface {
     /** A method that can be implemented */
     int someMethod(int i, int j);
   }

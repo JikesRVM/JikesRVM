@@ -586,7 +586,7 @@ public abstract class Space implements Constants {
   /**
    * Interface to use to implement the Visitor Pattern for Spaces.
    */
-  public static interface SpaceVisitor {
+  public interface SpaceVisitor {
     void visit(Space s);
   }
 
