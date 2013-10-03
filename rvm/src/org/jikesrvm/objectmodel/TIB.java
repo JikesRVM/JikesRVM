@@ -43,7 +43,7 @@ public final class TIB implements RuntimeTable<Object>, TIBLayoutConstants, Size
    */
   public static int lazyMethodInvokerTrampolineWords() {
     int codeWords = VM.BuildForIA32 ? (VM.BuildFor32Addr ? 2 : 1) : (VM.BuildFor32Addr ? 3 : 2);
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       int codeBytes = LazyCompilationTrampoline.instructions.length() << ArchConstants.LG_INSTRUCTION_WIDTH;
       VM._assert(codeWords == ((codeBytes + BYTES_IN_ADDRESS - 1) >>> LOG_BYTES_IN_ADDRESS));
     }

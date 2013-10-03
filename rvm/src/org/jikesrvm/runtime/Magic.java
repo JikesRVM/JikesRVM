@@ -52,7 +52,7 @@ public final class Magic {
 
   /** Get contents of "JTOC" register. */
   public static Address getTocPointer() {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
     return BootRecord.the_boot_record.tocRegister;
@@ -709,7 +709,7 @@ public final class Magic {
    * @return object reference as bits
    */
   public static <T> Address objectAsAddress(T object) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     }
 
@@ -726,7 +726,7 @@ public final class Magic {
    * @return interned object
    */
   public static <T> T bootImageIntern(T object) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     }
 
@@ -743,7 +743,7 @@ public final class Magic {
    * @return interned object
    */
   public static int bootImageIdentityHashCode(Object object) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     }
 
@@ -762,7 +762,7 @@ public final class Magic {
    * @return object reference
    */
   public static Object addressAsObject(Address address) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
 
@@ -780,7 +780,7 @@ public final class Magic {
    * @return object reference
    */
   public static Object codeArrayAsObject(CodeArray code) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     }
 
@@ -794,7 +794,7 @@ public final class Magic {
    * @return object reference
    */
   public static Object tibAsObject(TIB tib) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED); // call site should have been hijacked by magic in compiler
     }
 
@@ -807,7 +807,7 @@ public final class Magic {
    * @return object array reference
    */
   public static TIB addressAsTIB(Address address) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
     return null;
@@ -819,7 +819,7 @@ public final class Magic {
    * @return object reference as type (no checking on cast)
    */
   public static RVMType objectAsType(Object object) {
-    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
 
     return (RVMType)object;
   }
@@ -892,7 +892,7 @@ public final class Magic {
    * @return short array (short[])  object reference
    */
   public static short[] objectAsShortArray(Object object) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
     return (short[]) object;
@@ -905,7 +905,7 @@ public final class Magic {
    * @return int array (int[])  object reference
    */
   public static int[] objectAsIntArray(Object object) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
     return (int[]) object;
@@ -1071,7 +1071,7 @@ public final class Magic {
    * that we currently support (IA32 and PPC).
    */
   public static void fence() {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
   }
@@ -1089,7 +1089,7 @@ public final class Magic {
    * the appropriate instructions for IA32 and PPC provide both barriers.
    */
   public static void combinedLoadBarrier() {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
   }
@@ -1100,7 +1100,7 @@ public final class Magic {
    * subsequent store instructions.
    */
   public static void storeStoreBarrier() {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
   }
@@ -1116,7 +1116,7 @@ public final class Magic {
    * complete on all processors.
    */
   public static void sync() {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
   }
@@ -1126,7 +1126,7 @@ public final class Magic {
    * prefetched instructions on this processor.
    */
   public static void isync() {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
   }
@@ -1139,7 +1139,7 @@ public final class Magic {
    * On IA32, emit a PAUSE instruction, to optimize spin-wait loops.
    */
   public static void pause() {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
   }
@@ -1148,7 +1148,7 @@ public final class Magic {
    * A hardware SQRT instruction
    */
   public static float sqrt(float value) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
     return -1.0f; // which should upset them even if assertions aren't enabled ...
@@ -1158,7 +1158,7 @@ public final class Magic {
    * A hardware SQRT instruction
    */
   public static double sqrt(double value) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
     return -1.0d; // which should upset them even if assertions aren't enabled ...
@@ -1174,7 +1174,7 @@ public final class Magic {
    * How deeply inlined is this method (0 means no inlining).
    */
   public static int getInlineDepth() {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
     return 0;
@@ -1185,7 +1185,7 @@ public final class Magic {
    * Count starts at zero and includes the 'this' parameter for instance methods.
    */
   public static boolean isConstantParameter(int index) {
-    if (VM.runningVM && VM.VerifyAssertions) {
+    if (VM.VerifyAssertions && VM.runningVM) {
       VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     }
     return false;

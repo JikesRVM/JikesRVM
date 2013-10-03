@@ -348,7 +348,13 @@ public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
           break;
         }
         case WORD: { //KV:TODO
-          if (VM.BuildFor64Addr) VM._assert(VM.NOT_REACHED);
+          if (VM.BuildFor64Addr) {
+            if (VM.VerifyAssertions) {
+              VM._assert(VM.NOT_REACHED);
+            } else {
+              VM.sysFail("Case not yet implemented for 64-bit addresssing.");
+            }
+          }
           int word = getIntBitsFrom(vtype, value, stack, fpOffset, registers);
 
           state.add(new VariableElement(kind, num, tcode, word));
