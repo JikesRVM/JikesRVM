@@ -638,7 +638,14 @@ public abstract class JNICompiler implements BaselineConstants {
         asm.emitFST_RegInd_Reg_Quad(SP, (FPR)r);
       }
     }
-    if (VM.VerifyAssertions) VM._assert(stackDepth << LG_WORDSIZE == STACKFRAME_BODY_OFFSET - (SAVED_GPRS_FOR_JNI << LG_WORDSIZE), "of2fp="+stackDepth+" sg4j="+SAVED_GPRS_FOR_JNI);
+    if (VM.VerifyAssertions) {
+      boolean b = stackDepth << LG_WORDSIZE == STACKFRAME_BODY_OFFSET - (SAVED_GPRS_FOR_JNI << LG_WORDSIZE);
+      if (!b) {
+        String msg = "of2fp="+stackDepth+" sg4j="+SAVED_GPRS_FOR_JNI;
+        VM._assert(VM.NOT_REACHED, msg);
+      }
+
+    }
     // Adjust first param from JNIEnv* to JNIEnvironment.
     final Offset firstStackArgOffset = Offset.fromIntSignExtend(2 * WORDSIZE);
     if (jniExternalFunctionsFieldOffset != 0) {

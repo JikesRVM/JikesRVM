@@ -830,8 +830,12 @@ public final class Atom {
   @Pure
   public String annotationClassToAnnotationInterface() {
     if (VM.VerifyAssertions) {
+      boolean isClassAnnotation = val[0] == 'L' && val[val.length - 1] == ';';
       VM._assert(val.length > 0);
-      VM._assert(val[0] == 'L' && val[val.length - 1] == ';', toString());
+      if (!isClassAnnotation) {
+        String msg = toString();
+        VM._assert(isClassAnnotation, msg);
+      }
     }
     return StringUtilities.asciiBytesToString(val, 1, val.length - 4).replace('/', '.');
   }

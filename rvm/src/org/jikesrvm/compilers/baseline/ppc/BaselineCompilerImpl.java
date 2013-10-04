@@ -394,7 +394,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
    */
   private void validateStackPush(int bytesActuallyWritten) {
     if (VM.VerifyAssertions) {
-      VM._assert((spTopOffset - bytesActuallyWritten) >= fullStackOffset, " spTopOffset="+spTopOffset+", empty="+emptyStackOffset+", full="+fullStackOffset+", bw="+bytesActuallyWritten);
+      boolean pushDoesNotOverwrite = (spTopOffset - bytesActuallyWritten) >= fullStackOffset;
+      if (!pushDoesNotOverwrite) {
+        String msg = " spTopOffset="+spTopOffset+", empty="+emptyStackOffset+
+            ", full="+fullStackOffset+", bw="+bytesActuallyWritten;
+        VM._assert(VM.NOT_REACHED, msg);
+      }
     }
   }
 

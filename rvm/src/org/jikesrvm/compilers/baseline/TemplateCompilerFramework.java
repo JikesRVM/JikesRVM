@@ -154,8 +154,11 @@ public abstract class TemplateCompilerFramework
     // uninterruptible
     // TODO: remove logically uninterruptible annotations (see RVM-115).
     if (VM.VerifyAssertions && method.hasLogicallyUninterruptibleAnnotation()) {
-      VM._assert(isUninterruptible, "LogicallyUninterruptible but not Uninterruptible method: ",
-        method.toString());
+      if (!isUninterruptible) {
+        String msg = "LogicallyUninterruptible but not Uninterruptible method: " +
+            method.toString();
+        VM._assert(VM.NOT_REACHED, msg);
+      }
     }
   }
 

@@ -514,7 +514,11 @@ public class ExpressionFolding extends IRTools {
       if (val1 == null) continue; // operator that's not being optimized
 
       if (VM.VerifyAssertions) {
-        VM._assert(val1.isRegister(), "Error with val1 of " + s);
+        boolean isRegister = val1.isRegister();
+        if (!isRegister) {
+          String msg = "Error with val1 of " + s;
+          VM._assert(VM.NOT_REACHED, msg);
+        }
       }
 
       Register v1 = val1.asRegister().getRegister();
@@ -558,7 +562,11 @@ public class ExpressionFolding extends IRTools {
     if (VM.VerifyAssertions) {
       RegisterOperand x2;
       x2 = getUseFromCandidate(s);
-      VM._assert(x.similar(x2), "x not similar to x2 " + x + " : " + x2);
+      boolean similar = x.similar(x2);
+      if (!similar) {
+        String msg = "x not similar to x2 " + x + " : " + x2;
+        VM._assert(VM.NOT_REACHED, msg);
+      }
     }
 
     switch (s.operator.opcode) {

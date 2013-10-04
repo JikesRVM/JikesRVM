@@ -1937,10 +1937,18 @@ abstract class BURS_Helpers extends BURS_Common_Helpers
         if (VM.VerifyAssertions) {
           if (longConstant) {
             long val = ((LongConstantOperand) v2).value;
-            VM._assert(val == 0L && cond.isEQUAL(), "Unexpected case of trap_if" + s);
+            boolean caseMatchesExpected = val == 0L && cond.isEQUAL();
+            if (!caseMatchesExpected) {
+              String msg = "Unexpected case of trap_if" + s;
+              VM._assert(VM.NOT_REACHED, msg);
+            }
           } else {
             int val = ((IntConstantOperand) v2).value;
-            VM._assert(val == 0 && cond.isEQUAL(), "Unexpected case of trap_if" + s);
+            boolean caseMatchesExpected = val == 0L && cond.isEQUAL();
+            if (!caseMatchesExpected) {
+              String msg = "Unexpected case of trap_if" + s;
+              VM._assert(VM.NOT_REACHED, msg);
+            }
           }
         }
 
