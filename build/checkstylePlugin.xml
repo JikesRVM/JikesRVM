@@ -34,6 +34,7 @@
 
   <target name="compile-checkstyle-plugin">
     <mkdir dir="${plugin.classes}"/>
+    <mkdir dir="${plugin.jar.dir}"/>
     <javac srcdir="${plugin.src}" destdir="${plugin.classes}" debug="true"
       classpath="${checkstyle.jar}" source="${plugin.java.version}" target="${plugin.java.version}" includeantruntime="false"/>
 
@@ -63,15 +64,15 @@
 
     <!-- Intended for debugging
     <echo message="Checksum for expected is ${plugin.test.expected.checksum}"/>
-    <echo message="Checksum for output is ${plugin.test.output.checksum}"/>
-     -->
+    <echo message="Checksum for output is   ${plugin.test.output.checksum}"/>
+    -->
 
-    <checksum file="${plugin.test.output.txt}" property="${plugin.test.expected.checksum}" verifyproperty="plugin.test.ok"/>
+    <checksum file="${plugin.test.output.txt}" property="${plugin.test.expected.checksum}" verifyproperty="${plugin.test.ok}"/>
 
     <!-- Intended for debugging
     <loadfile property="checkstyle-plugin-test.output" srcFile="${plugin.test.output.txt}"/>
     <echo message="${checkstyle-plugin-test.output}"/>
-     -->
+    -->
 
     <fail unless="${plugin.test.ok}" message="Tests for the Checkstyle Jikes RVM assertion style plugin failed (checksum mismatch)!"/>
   </target>
