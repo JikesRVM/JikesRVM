@@ -51,7 +51,9 @@ import org.vmmagic.pragma.*;
   public final void _assert(boolean cond) {
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
+    //CHECKSTYLE:OFF - Checkstyle assertion plugin would warn otherwise
     VM._assert(cond);
+    //CHECKSTYLE:ON
   }
 
   @Override
@@ -60,7 +62,9 @@ import org.vmmagic.pragma.*;
     if (!org.mmtk.vm.VM.VERIFY_ASSERTIONS)
       VM.sysFail("All assertions must be guarded by VM.VERIFY_ASSERTIONS: please check the failing assertion");
     if (!cond) VM.sysWriteln(message);
+    //CHECKSTYLE:OFF - Checkstyle assertion plugin would warn otherwise
     VM._assert(cond);
+    //CHECKSTYLE:ON
   }
 
   @Override

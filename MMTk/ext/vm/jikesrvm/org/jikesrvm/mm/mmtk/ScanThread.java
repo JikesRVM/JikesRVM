@@ -615,6 +615,11 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * but we can't move the native stack.
    */
   private void assertImmovableInCurrentCollection() {
+    // This method is guarded by VM.VerifyAssertions. Our Checkstyle assertion
+    // plugin does not recognize this because it does not track calls. Therefore,
+    // switch off Checkstyle for this method.
+
+    //CHECKSTYLE:OFF
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread)));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
@@ -624,6 +629,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters().gprs)));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getExceptionRegisters())));
     VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getExceptionRegisters().gprs)));
+    //CHECKSTYLE:ON
   }
 
   /**
