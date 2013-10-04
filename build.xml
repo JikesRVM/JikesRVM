@@ -18,6 +18,7 @@
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
   <import file="build/tasks.xml"/>
+  <import file="build/checkstylePlugin.xml"/>
 
   <property name="config.mmtk" value="default"/>
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
@@ -2199,8 +2200,9 @@ target.jni-suffix=${target.jni-suffix}
     </if>
   </target>
 
-  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,ensure-checkstyle">
-    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar}"/>
+  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,ensure-checkstyle,
+    test-checkstyle-plugin">
+    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar}:${plugin.jar}"/>
 
     <mkdir dir="${build.dir}/checkstyle"/>
     <checkstyle config="build/checkstyle/rvm-checks.xml" failureProperty="checkstyle.failed" failOnViolation="false">
@@ -2215,7 +2217,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>
       <fileset dir="libraryInterface/GNUClasspath/EPL" includes="**/*.java"/>
       <fileset dir="libraryInterface/Harmony/EPL" includes="**/*.java"/>
-      <fileset dir="tools" includes="**/*.java"/>
+      <fileset dir="tools" includes="**/src/**/*.java"/>
     </checkstyle>
 
     <xslt in="${build.dir}/checkstyle/report.xml"

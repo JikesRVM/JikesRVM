@@ -1,0 +1,16 @@
+
+Checkstyle Results for Checkstyle assertion plugin test case
+============================================================
+ at line 26,5 : The assert keyword must not be used.
+ at line 31,15 : All uses of VM._assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 37,17 : All uses of VM._assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 43,17 : Use VM.NOT_REACHED instead of false when writing assertions that fail when executed.
+ at line 46,17 : Use VM.NOT_REACHED instead of false when writing assertions that fail when executed.
+ at line 53,17 : All uses of VM._assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 56,17 : All uses of VM._assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 59,17 : All uses of VM._assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 62,17 : All uses of VM._assert must be guarded with one of the following on the left side of the guard: VM.VerifyAssertions, VM.ExtremeAssertions, IR.SANITY_CHECK or IR.PARANOID.
+ at line 69,17 : Message for assert must be a string literal or a variable: String concatenation is not allowed in asserts.
+ at line 72,17 : Message for assert must be a string literal or a variable: String concatenation is not allowed in asserts.
+
+Found 11 errors in 1 of 1 files.

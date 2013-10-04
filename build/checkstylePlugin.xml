@@ -1,0 +1,79 @@
+<!--
+ ~  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ ~
+ ~  This file is licensed to You under the Eclipse Public License (EPL);
+ ~  You may not use this file except in compliance with the License. You
+ ~  may obtain a copy of the License at
+ ~
+ ~      http://www.opensource.org/licenses/eclipse-1.0.php
+ ~
+ ~  See the COPYRIGHT.txt file distributed with this work for information
+ ~  regarding copyright ownership.
+ -->
+<project name="checkstylePlugin">
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
+  <!-- *                  Build the Checkstyle plugin                             * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <property name="plugin.dir" location="${build.dir}/plugins"/>
+  <property name="plugin.classes" location="${plugin.dir}/classes"/>
+	<property name="plugin.jar.dir" location="${plugin.dir}/plugin-jar"/>
+  <property name="plugin.java.version" value="1.6"/>
+  <property name="plugin.basedir" value="${jikesrvm.dir}/tools/checkstyle-assertion-plugin"/>
+  <property name="plugin.src" value="${plugin.basedir}/src"/>
+  <property name="plugin.jar" value="${plugin.jar.dir}/jikes-rvm-assertion-style-checkstyle-plugin.jar"/>
+  <property name="plugin.package-config" value="${plugin.basedir}/checkstyle_packages.xml"/>
+  <property name="plugin.test.output.xml" value="${plugin.dir}/checkstyle-report-for-testfile.xml"/>
+  <property name="plugin.test.output.html" value="${plugin.dir}/checkstyle-report-for-testfile.html"/>
+  <property name="plugin.test.output.txt" value="${plugin.dir}/checkstyle-report-for-testfile.txt"/>
+  <property name="plugin.test.expected" value="${plugin.basedir}/test-file/AssertionStyleTest.expected"/>
+
+
+  <target name="compile-checkstyle-plugin">
+    <mkdir dir="${plugin.classes}"/>
+    <javac srcdir="${plugin.src}" destdir="${plugin.classes}" debug="true"
+      classpath="${checkstyle.jar}" source="${plugin.java.version}" target="${plugin.java.version}" includeantruntime="false"/>
+
+    <!-- Configure packages so that we can use a simple name instead of the fully-qualified one -->
+    <copy file="${plugin.package-config}" todir="${plugin.classes}"/>
+
+    <jar destfile="${plugin.jar}" basedir="${plugin.classes}"/>
+  </target>
+
+  <target name="test-checkstyle-plugin" depends="compile-checkstyle-plugin">
+    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar}:${plugin.jar}"/>
+
+    <checkstyle config="build/checkstyle/rvm-checks.xml" failOnViolation="false">
+      <formatter type="xml" tofile="${plugin.test.output.xml}"/>
+      <fileset dir="tools" includes="**/AssertionStyleTest.java"/>
+    </checkstyle>
+
+    <xslt in="${plugin.test.output.xml}"
+           out="${plugin.test.output.html}"
+           style="${checkstyle.dir}/contrib/checkstyle-simple.xsl"/>
+    <xslt in="${plugin.test.output.xml}"
+           out="${plugin.test.output.txt}"
+           style="build/checkstyle/text-output-without-file.xsl"/>
+
+    <checksum file="${plugin.test.expected}" property="plugin.test.expected.checksum"/>
+    <checksum file="${plugin.test.output.txt}" property="plugin.test.output.checksum"/>
+
+    <!-- Intended for debugging
+    <echo message="Checksum for expected is ${plugin.test.expected.checksum}"/>
+    <echo message="Checksum for output is ${plugin.test.output.checksum}"/>
+     -->
+
+    <checksum file="${plugin.test.output.txt}" property="${plugin.test.expected.checksum}" verifyproperty="plugin.test.ok"/>
+
+    <!-- Intended for debugging
+    <loadfile property="checkstyle-plugin-test.output" srcFile="${plugin.test.output.txt}"/>
+    <echo message="${checkstyle-plugin-test.output}"/>
+     -->
+
+    <fail unless="${plugin.test.ok}" message="Tests for the Checkstyle Jikes RVM assertion style plugin failed (checksum mismatch)!"/>
+  </target>
+
+</project>
