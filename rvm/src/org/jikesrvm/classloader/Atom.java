@@ -492,12 +492,9 @@ public final class Atom {
         return TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i, toUnicodeStringInternal()));
       default:
         if (VM.VerifyAssertions) {
-          VM._assert(VM.NOT_REACHED,
-                     "Need a valid method descriptor; got \"" +
-                     this +
-                     "\"; can't parse the character '" +
-                     ((char)val[i]) +
-                     "'");
+          String msg = "Need a valid method descriptor; got \"" + this +
+              "\"; can't parse the character '" + ((char)val[i]) + "'";
+          VM._assert(VM.NOT_REACHED, msg);
         }
         return null;            // NOTREACHED
     }
@@ -578,13 +575,9 @@ public final class Atom {
 
         default:
           if (VM.VerifyAssertions) {
-            VM._assert(VM.NOT_REACHED,
-                       "The class descriptor \"" +
-                       this +
-                       "\" contains the illegal" +
-                       " character '" +
-                       ((char)val[i]) +
-                       "'");
+            String msg = "The class descriptor \"" + this + "\" contains the illegal" +
+                " character '" + ((char)val[i]) + "'";
+            VM._assert(VM.NOT_REACHED, msg);
           }
       }
     }

@@ -1620,13 +1620,9 @@ public abstract class TemplateCompilerFramework
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("anewarray ", arrayRef, bcodes.index());
 
           if (VM.VerifyAssertions && elementTypeRef.isUnboxedType()) {
-            VM._assert(VM.NOT_REACHED,
-                       "During compilation of " +
-                       method +
-                       " found an anewarray of " +
-                       elementTypeRef +
-                       "\n" +
-                       "You must use the 'create' function to create an array of this type");
+            String msg = "During compilation of " + method + " found an anewarray of " +
+             elementTypeRef + "\n" + "You must use the 'create' function to create an array of this type";
+            VM._assert(VM.NOT_REACHED, msg);
           }
 
           RVMArray array = (RVMArray) arrayRef.peekType();

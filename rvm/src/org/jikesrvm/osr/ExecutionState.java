@@ -243,8 +243,8 @@ public class ExecutionState implements OSRConstants, BytecodeConstants {
         }
         default: {
           if (VM.VerifyAssertions) {
-            VM._assert(VM.NOT_REACHED,
-                       "ExecutionState: unknown bytecode " + code + " at " + this.bcIndex + "@" + this.meth);
+            String msg = "ExecutionState: unknown bytecode " + code + " at " + this.bcIndex + "@" + this.meth;
+            VM._assert(VM.NOT_REACHED, msg);
           }
           break;
         }
