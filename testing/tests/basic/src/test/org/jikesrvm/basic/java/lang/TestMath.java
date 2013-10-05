@@ -47,6 +47,15 @@ class TestMath {
     runCeilTest(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
     runCeilTest(-0, -0);
     runCeilTest(0, 0);
+
+    runSQRTTest(4d, 2d);
+
+    runSQRTTest(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+    runSQRTTest(Double.NaN, Double.NaN);
+    runSQRTTest(Double.NEGATIVE_INFINITY, Double.NaN);
+    runSQRTTest(-1d, Double.NaN);
+    runSQRTTest(-0.0d, -0.0d);
+    runSQRTTest(0.0d, 0.0d);
   }
 
   private static void runCeilTest(final double value, final double expected) {
@@ -55,5 +64,9 @@ class TestMath {
 
   private static void runFloorTest(final double value, final double expected) {
     System.out.println("Math.floor(" + value + ") Expected: " + expected + " Actual: " + Math.floor(value));
+  }
+
+  private static void runSQRTTest(final double value, final double expected) {
+    System.out.println("Math.sqrt(" + value + ") Expected: " + expected + " Actual: " + Math.sqrt(value));
   }
 }
