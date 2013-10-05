@@ -191,7 +191,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
     switch (s.getOpcode()) {
       case IA32_PREFETCHNTA_opcode: {
         RegisterOperand op = MIR_CacheOp.getAddress(s).asRegister();
-        if (op.register == r) return true;
+        if (op.getRegister() == r) return true;
       }
       break;
 

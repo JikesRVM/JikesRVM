@@ -34,15 +34,13 @@ public final class RegisterOperand extends Operand {
 
   /**
    * Register object that this operand uses.
-   * TODO: make this field private, it is accessed via generated code
    */
-  public Register register;
+  private Register register;
 
   /**
    * Inferred data type of the contents of the register.
-   * TODO: make this field private, it is accessed via generated code
    */
-  public TypeReference type;
+  private TypeReference type;
 
   /**
    * Optimizations can use it for different purposes, as long as they
@@ -160,7 +158,7 @@ public final class RegisterOperand extends Operand {
    * and/or scratchObject being copied
    */
   public RegisterOperand copyRO() {
-    RegisterOperand temp = new RegisterOperand(getRegister(), type);
+    RegisterOperand temp = new RegisterOperand(register, type);
     temp.info = info;
     temp.flags = flags;
     temp.flags2 = flags2;
@@ -205,7 +203,7 @@ public final class RegisterOperand extends Operand {
    */
   @Override
   public boolean similar(Operand op) {
-    return (op instanceof RegisterOperand) && (getRegister() == ((RegisterOperand) op).getRegister());
+    return (op instanceof RegisterOperand) && (register == ((RegisterOperand) op).getRegister());
   }
 
   /**
@@ -216,7 +214,7 @@ public final class RegisterOperand extends Operand {
    */
   public void copyType(RegisterOperand rhs) {
     this.flags = rhs.flags;
-    this.setType(rhs.type); // setting type this way will force checking of precision
+    this.setType(rhs.getType()); // setting type this way will force checking of precision
   }
 
   @Override
@@ -450,7 +448,7 @@ public final class RegisterOperand extends Operand {
    */
   @Override
   public String toString() {
-    String s = getRegister().toString();
+    String s = register.toString();
     if (type != null) {
       if (type != TypeReference.VALIDATION_TYPE) {
         s = s + "(" + type.getName();
@@ -497,7 +495,7 @@ public final class RegisterOperand extends Operand {
    * @param t the inferred data type of the contents of the register
    */
   public void setPreciseType(TypeReference t) {
-    type = t;
+    setType(t);
     flags |= PRECISE_TYPE;
     if (VM.VerifyAssertions) verifyPreciseType();
   }
