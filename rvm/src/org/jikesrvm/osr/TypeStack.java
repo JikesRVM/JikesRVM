@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.osr;
 
-import org.jikesrvm.VM;
-
 /**
  * Utility class used by BytecodeTraverser.
  */
@@ -43,14 +41,14 @@ class TypeStack {
 
   void push(byte v) {
     if (top == stack.length) {
-      VM.sysWrite("TypeStack.push(B) : overflow!\n");
+      throw new RuntimeException("TypeStack overflow!");
     }
     stack[top++] = v;
   }
 
   byte pop() {
     if (top <= 0) {
-      VM.sysWrite("TypeStack.pop() : underflow!\n");
+      throw new RuntimeException("TypeStack underflow!");
     }
     top--;
     byte v = stack[top];
@@ -63,7 +61,7 @@ class TypeStack {
     int newtop = top - n;
 
     if (newtop < 0) {
-      VM.sysWrite("TypeStack.pop(I) : underflow!\n");
+      throw new RuntimeException("TypeStack underflow!");
     }
 
     for (int i = top - 1; i >= newtop; i--) {
@@ -74,6 +72,10 @@ class TypeStack {
   }
 
   byte peek() {
+    if (top <= 0) {
+      throw new RuntimeException("Tried to peek on an empty TypeStack!");
+    }
+
     return stack[top - 1];
   }
 
