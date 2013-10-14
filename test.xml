@@ -47,7 +47,10 @@
   <property name="cattrack.upload.incoming.dir" value="/home/regression/incoming"/>
 
   <condition property="compiler-dna.run">
-    <equals arg1="${test-run.name}" arg2="compiler-dna"/>
+    <or>
+      <equals arg1="${test-run.name}" arg2="compiler-dna"/>
+      <equals arg1="${test-run.name}" arg2="compiler-dna-dacapo-2006-10-MR2"/>
+    </or>
   </condition>
 
   <!-- **************************************************************************** -->
@@ -233,6 +236,9 @@
                   <property name="test.mode" value="${test.config.@{tag}.mode}"/>
                   <property name="test.group.name" value="@{test}"/>
                   <property name="test.config.${test.config.@{tag}.configuration}.extra.rvm.args" value="${test.config.@{tag}.extra.rvm.args}"/>
+                  <!-- Pass down information about compiler-dna status to tests so that they can
+                       do special handling if required (e.g. exclude tests that are not supported on all platforms) -->
+                  <property name="test.compiler-dna" value="${compiler-dna.run}"/>
                   <propertyset>
                     <propertyref prefix="exclude."/>
                   </propertyset>
