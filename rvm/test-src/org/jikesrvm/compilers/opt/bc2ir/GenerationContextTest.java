@@ -85,7 +85,6 @@ import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.tests.util.MethodsForTests;
 import org.jikesrvm.tests.util.TestingTools;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -1960,9 +1959,6 @@ public class GenerationContextTest {
     assertFalse(newNullCheckGuard.sameRegisterPropertiesAsExceptForScratchObject(thisNullCheckGuard));
   }
 
-  @Ignore("currently fails because resync deletes ALL null check guards." +
-   "This is caused by the use of getValue() instead of getKey() when " +
-   "checking whether to remove a mapping")
   @Test
   public void resyncDoesNotDeleteNullCheckGuardsThatMapToUsedRegisters() throws Exception {
     NormalMethod nm = TestingTools.getNormalMethod(MethodsForTests.class, "emptyInstanceMethodWithoutAnnotations");

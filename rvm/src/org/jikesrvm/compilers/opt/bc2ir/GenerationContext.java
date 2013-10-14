@@ -822,7 +822,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     Iterator<Map.Entry<Register, RegisterOperand>> i = _ncGuards.entrySet().iterator();
     while (i.hasNext()) {
       Map.Entry<Register, RegisterOperand> entry = i.next();
-      if (!(regPool.contains(entry.getValue()))) i.remove();
+      if (!(regPool.contains(entry.getKey()))) i.remove();
     }
   }
 
