@@ -13,6 +13,7 @@
 package org.jikesrvm.ia32;
 
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
@@ -252,16 +253,20 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     asm.emitPUSH_RegDisp(TR, fpOffset); // link this frame with next
     ThreadLocalState.emitMoveRegToField(asm, fpOffset, SP); // establish base of new frame
     asm.emitPUSH_Imm(INVISIBLE_METHOD_ID);
-    asm.emitADD_Reg_Imm(SP, STACKFRAME_BODY_OFFSET);
+    if (VM.BuildFor32Addr) {
+      asm.emitADD_Reg_Imm(SP, STACKFRAME_BODY_OFFSET);
+    } else {
+      asm.emitADD_Reg_Imm_Quad(SP, STACKFRAME_BODY_OFFSET);
+    }
 
     /* write parameters on stack
-    * move data from memory addressed by Paramaters array, the fourth
-    * parameter to this, into the stack.
-    * SP target address
-    * S0 source address
-    * T1 length
-    * T0 scratch
-    */
+     * move data from memory addressed by Paramaters array, the fourth
+     * parameter to this, into the stack.
+     * SP target address
+     * S0 source address
+     * T1 length
+     * T0 scratch
+     */
     ThreadLocalState.emitMoveFieldToReg(asm, S0, fpOffset);
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegDisp(S0, S0, PARAMS_FP_OFFSET); // S0 <- Parameters
@@ -331,7 +336,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
       ForwardReference fpr_r2 = asm.forwardJcc(Assembler.EQ);
-      asm.emitMOVSD_Reg_RegDisp(XMM1, T0, Offset.fromIntZeroExtend(WORDSIZE*2));
+      asm.emitMOVSD_Reg_RegDisp(XMM1, T0, Offset.fromIntZeroExtend(Constants.BYTES_IN_DOUBLE));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(1), 0);
       fr_next = asm.forwardJcc(Assembler.NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM1, XMM1);
@@ -339,7 +344,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
       ForwardReference fpr_r3 = asm.forwardJcc(Assembler.EQ);
-      asm.emitMOVSD_Reg_RegDisp(XMM2, T0, Offset.fromIntZeroExtend(WORDSIZE*4));
+      asm.emitMOVSD_Reg_RegDisp(XMM2, T0, Offset.fromIntZeroExtend(Constants.BYTES_IN_DOUBLE*2));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(2), 0);
       fr_next = asm.forwardJcc(Assembler.NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM2, XMM2);
@@ -347,7 +352,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
       ForwardReference fpr_r4 = asm.forwardJcc(Assembler.EQ);
-      asm.emitMOVSD_Reg_RegDisp(XMM3, T0, Offset.fromIntZeroExtend(WORDSIZE*6));
+      asm.emitMOVSD_Reg_RegDisp(XMM3, T0, Offset.fromIntZeroExtend(Constants.BYTES_IN_DOUBLE*3));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(3), 0);
       fr_next = asm.forwardJcc(Assembler.NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM3, XMM3);
@@ -385,7 +390,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
       asm.emitMOV_Reg_RegDisp(T1, S0, ObjectModel.getArrayLengthOffset());    // T1 <- GPRs.length()
       asm.emitCMP_Reg_Imm(T1, 0);                        // length == 0 ?
     } else {
-      asm.emitMOV_Reg_RegDisp(S0, S0, GPRS_FP_OFFSET);   // S0 <- GPRs
+      asm.emitMOV_Reg_RegDisp_Quad(S0, S0, GPRS_FP_OFFSET);   // S0 <- GPRs
       if (JavaHeaderConstants.ARRAY_LENGTH_BYTES == 4) {
         asm.emitMOV_Reg_RegDisp(T1, S0, ObjectModel.getArrayLengthOffset());    // T1 <- GPRs.length()
         asm.emitCMP_Reg_Imm(T1, 0);                        // length == 0 ?
@@ -397,11 +402,14 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     ForwardReference fr3 = asm.forwardJcc(Assembler.EQ);   // result 0 --> branch to end
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegInd(T0, S0);                    // T0 <- GPRs[0]
+      asm.emitADD_Reg_Imm(S0, WORDSIZE);                 // S0 += WORDSIZE
+      asm.emitADD_Reg_Imm(T1, -1);                       // T1--
     } else {
       asm.emitMOV_Reg_RegInd_Quad(T0, S0);                    // T0 <- GPRs[0]
+      asm.emitADD_Reg_Imm_Quad(S0, WORDSIZE);                 // S0 += WORDSIZE
+      asm.emitADD_Reg_Imm_Quad(T1, -1);                       // T1--
     }
-    asm.emitADD_Reg_Imm(S0, WORDSIZE);                 // S0 += WORDSIZE
-    asm.emitADD_Reg_Imm(T1, -1);                       // T1--
+
     ForwardReference fr4 = asm.forwardJcc(Assembler.EQ);   // result 0 --> branch to end
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegInd(T1, S0);                    // T1 <- GPRs[1]
@@ -466,7 +474,11 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
       asm.emitMOV_RegDisp_Reg_Quad(T0, fpOffset, S0); // registers.fp := pr.framePointer
     }
     asm.emitPOP_Reg(T1);                              // T1 := return address (target of final jmp)
-    asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);        // registers.ip := return address
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);        // registers.ip := return address
+    } else {
+      asm.emitMOV_RegDisp_Reg_Quad(T0, ipOffset, T1); // registers.ip := return address
+    }
     asm.emitPOP_Reg(S0);                              // throw away space for registers parameter (in T0)
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegDisp(S0, T0, gprsOffset);    // S0 := registers.gprs[]
@@ -571,8 +583,8 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     asm.emitPOP_RegDisp(S0, ipOffset);                  // T0.contextRegisters.ip = returnAddress
     asm.emitPUSH_RegDisp(TR, ArchEntrypoints.framePointerField.getOffset()); // push TR.framePointer
     asm.emitPOP_RegDisp(S0, fpOffset);                  // T0.contextRegisters.fp = pushed framepointer
-    asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // discard 2 words of parameters (T0, T1)
     if (VM.BuildFor32Addr) {
+      asm.emitADD_Reg_Imm(SP, 2*WORDSIZE);                // discard 2 words of parameters (T0, T1)
       asm.emitMOV_Reg_RegDisp(S0, S0, gprsOffset);       // S0 = T0.contextRegisters.gprs;
       asm.emitMOV_RegDisp_Reg(S0, Offset.fromIntZeroExtend(SP.value() << LG_WORDSIZE), SP); // T0.contextRegisters.gprs[#SP] := SP
       for (int i = 0; i < NUM_NONVOLATILE_GPRS; i++) {
@@ -582,6 +594,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
                                 NONVOLATILE_GPRS[i]);
       }
     } else {
+      asm.emitADD_Reg_Imm_Quad(SP, 2*WORDSIZE);                // discard 2 words of parameters (T0, T1)
       asm.emitMOV_Reg_RegDisp_Quad(S0, S0, gprsOffset);  // S0 = T0.contextRegisters.gprs;
       asm.emitMOV_RegDisp_Reg_Quad(S0, Offset.fromIntZeroExtend(SP.value() << LG_WORDSIZE), SP); // T0.contextRegisters.gprs[#SP] := SP
       for (int i = 0; i < NUM_NONVOLATILE_GPRS; i++) {
