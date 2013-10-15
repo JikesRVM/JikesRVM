@@ -66,12 +66,22 @@ public class Monitor {
   public int acquireCount;
   /**
    * Allocate a heavy condition variable and lock.  This involves
-   * allocating stuff in C that never gets deallocated.  Thus, don't
-   * instantiate too many of these.
+   * allocating stuff in C that gets deallocated only when the finalizer
+   * is run. Thus, don't instantiate too many of these.
    */
   public Monitor() {
     monitor = sysCall.sysMonitorCreate();
   }
+
+  /**
+   * Frees the data structures that were allocated in C code
+   * when the object was created.
+   */
+  @Override
+  protected void finalize() throws Throwable {
+    sysCall.sysMonitorDestroy(monitor);
+  }
+
   /**
    * Wait until it is possible to acquire the lock and then acquire it.
    * There is no bound on how long you might wait, if someone else is
