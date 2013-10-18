@@ -5925,7 +5925,11 @@ public class JNIFunctions implements SizeConstants {
   /** GetStringCritical:
    * Like GetStringChars and ReleaseStringChars, but in some VM environments
    * the VM may be able to avoid making a copy.   Native code must not issue
-   * arbitrary JNI calls and must not cause the current thread to block.
+   * arbitrary JNI calls and must not cause the current thread to block.<p>
+   *
+   * NOTE: Our interpretation of the JNI specification is that callers cannot
+   * expect that changes in the array for the String are propagated back. Our
+   * implementation assumes that the String will not be changed.
    *
    * @param env A JREF index for the JNI environment object
    * @param strJREF a JREF index for the string in Java
