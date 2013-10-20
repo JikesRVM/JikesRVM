@@ -70,14 +70,14 @@ public class YieldPoints extends CompilerPhase {
     //     As part of prologue/epilogue insertion we'll remove
     //     the yieldpoints in trivial methods that otherwise wouldn't need
     //     a stackframe.
-    prependYield(ir.cfg.entry(), YIELDPOINT_PROLOGUE, 0, ir.gc.inlineSequence);
+    prependYield(ir.cfg.entry(), YIELDPOINT_PROLOGUE, 0, ir.gc.getInlineSequence());
 
     // (2) If using epilogue yieldpoints scan basic blocks, looking for returns or throws
     if (VM.UseEpilogueYieldPoints) {
       for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
         BasicBlock block = e.nextElement();
         if (block.hasReturn() || block.hasAthrowInst()) {
-          prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, ir.gc.inlineSequence);
+          prependYield(block, YIELDPOINT_EPILOGUE, INSTRUMENTATION_BCI, ir.gc.getInlineSequence());
         }
       }
     }

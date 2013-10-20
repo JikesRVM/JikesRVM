@@ -664,7 +664,7 @@ public class EnterSSA extends CompilerPhase {
       BasicBlock pred = in.nextElement();
       Phi.setPred(s, i, new BasicBlockOperand(pred));
     }
-    s.position = ir.gc.inlineSequence;
+    s.position = ir.gc.getInlineSequence();
     s.bcIndex = SSA_SYNTH_BCI;
     return s;
   }

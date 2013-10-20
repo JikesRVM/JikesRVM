@@ -634,7 +634,7 @@ public final class IR {
    *         exception handler.
    */
   public boolean hasReachableExceptionHandlers() {
-    return gc.generatedExceptionHandlers;
+    return gc.isGeneratedExceptionHandlers();
   }
 
   /**

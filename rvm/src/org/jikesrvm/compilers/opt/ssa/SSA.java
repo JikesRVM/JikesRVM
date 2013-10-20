@@ -183,7 +183,7 @@ class SSA {
     RegisterOperand o1 = new RegisterOperand(r1, t);
     RegisterOperand o2 = new RegisterOperand(r2, t);
     Instruction s = Move.create(mv, o1, o2);
-    s.position = ir.gc.inlineSequence;
+    s.position = ir.gc.getInlineSequence();
     s.bcIndex = SSA_SYNTH_BCI;
     return s;
   }
@@ -202,7 +202,7 @@ class SSA {
     RegisterOperand o1 = new RegisterOperand(r1, c.getType());
     Operand o2 = c.copy();
     Instruction s = Move.create(mv, o1, o2);
-    s.position = ir.gc.inlineSequence;
+    s.position = ir.gc.getInlineSequence();
     s.bcIndex = SSA_SYNTH_BCI;
     return s;
   }

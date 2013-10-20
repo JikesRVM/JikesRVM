@@ -38,9 +38,9 @@ public final class ConvertBCtoHIR extends CompilerPhase {
     BC2IR.generateHIR(gc);
     // Transfer HIR and misc state from gc to the ir object
     ir.gc = gc;
-    ir.cfg = gc.cfg;
-    ir.regpool = gc.temps;
-    if (gc.allocFrame) {
+    ir.cfg = gc.getCfg();
+    ir.regpool = gc.getTemps();
+    if (gc.isAllocFrame()) {
       ir.stackManager.forceFrameAllocation();
     }
 

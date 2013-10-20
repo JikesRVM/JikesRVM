@@ -53,15 +53,15 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
       throws MagicNotImplementedException {
     Atom methodName = meth.getName();
     if (methodName == MagicNames.getFramePointer) {
-      bc2ir.push(gc.temps.makeFPOp());
-      gc.allocFrame = true;
+      bc2ir.push(gc.getTemps().makeFPOp());
+      gc.setAllocFrame(true);
     } else if (methodName == MagicNames.getTocPointer) {
-      bc2ir.push(gc.temps.makeJTOCOp(null, null));
+      bc2ir.push(gc.getTemps().makeJTOCOp(null, null));
     } else if (methodName == MagicNames.getJTOC) {
-      bc2ir.push(gc.temps.makeTocOp());
+      bc2ir.push(gc.getTemps().makeTocOp());
     } else if (methodName == MagicNames.getCallerFramePointer) {
       Operand fp = bc2ir.popAddress();
-      RegisterOperand val = gc.temps.makeTemp(TypeReference.Address);
+      RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD,
                                           val,
                                           fp,
@@ -80,7 +80,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
                                            null));
     } else if (methodName == MagicNames.getCompiledMethodID) {
       Operand fp = bc2ir.popAddress();
-      RegisterOperand val = gc.temps.makeTempInt();
+      RegisterOperand val = gc.getTemps().makeTempInt();
       bc2ir.appendInstruction(Load.create(INT_LOAD,
                                           val,
                                           fp,
@@ -99,7 +99,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
                                            null));
     } else if (methodName == MagicNames.getNextInstructionAddress) {
       Operand fp = bc2ir.popAddress();
-      RegisterOperand val = gc.temps.makeTemp(TypeReference.Address);
+      RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD,
                                           val,
                                           fp,
@@ -109,8 +109,8 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
       bc2ir.push(val.copyD2U());
     } else if (methodName == MagicNames.getReturnAddressLocation) {
       Operand fp = bc2ir.popAddress();
-      RegisterOperand callerFP = gc.temps.makeTemp(TypeReference.Address);
-      RegisterOperand val = gc.temps.makeTemp(TypeReference.Address);
+      RegisterOperand callerFP = gc.getTemps().makeTemp(TypeReference.Address);
+      RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
       bc2ir.appendInstruction(Load.create(REF_LOAD,
                                           callerFP,
                                           fp,

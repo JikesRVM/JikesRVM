@@ -112,12 +112,12 @@ public class Inliner {
     // Splice the callee into the caller's code order
     ir.cfg.removeFromCFGAndCodeOrder(bb);
     ir.cfg.breakCodeOrder(in, out);
-    ir.cfg.linkInCodeOrder(in, childgc.cfg.firstInCodeOrder());
-    ir.cfg.linkInCodeOrder(childgc.cfg.lastInCodeOrder(), out);
+    ir.cfg.linkInCodeOrder(in, childgc.getCfg().firstInCodeOrder());
+    ir.cfg.linkInCodeOrder(childgc.getCfg().lastInCodeOrder(), out);
     // Splice the callee into the caller's CFG
-    in.insertOut(childgc.prologue);
-    if (childgc.epilogue != null) {
-      childgc.epilogue.insertOut(out);
+    in.insertOut(childgc.getPrologue());
+    if (childgc.getEpilogue() != null) {
+      childgc.getEpilogue().insertOut(out);
     }
   }
 
@@ -147,7 +147,7 @@ public class Inliner {
       //Step 1: create the synthetic generation context we'll
       // return to our caller.
       GenerationContext container = GenerationContext.createSynthetic(parent, ebag);
-      container.cfg.breakCodeOrder(container.prologue, container.epilogue);
+      container.getCfg().breakCodeOrder(container.getPrologue(), container.getEpilogue());
       // Step 2: (a) Print a message (optional)
       //         (b) Generate the child GC for each target
       RVMMethod[] targets = inlDec.getTargets();
@@ -156,7 +156,7 @@ public class Inliner {
       for (int i = 0; i < targets.length; i++) {
         NormalMethod callee = (NormalMethod) targets[i];
         // (a)
-        if (parent.options.PRINT_INLINE_REPORT) {
+        if (parent.getOptions().PRINT_INLINE_REPORT) {
           String guard = guards[i] == OptOptions.INLINE_GUARD_CLASS_TEST ? " (class test) " : " (method test) ";
           VM.sysWrite("\tGuarded inline" + guard + " " + callee +
                       " into " + callSite.position.getMethod() +
@@ -174,10 +174,10 @@ public class Inliner {
       //         special purpose coding wrapping the calls to Operand.meet.
       if (Call.hasResult(callSite)) {
         Register reg = Call.getResult(callSite).getRegister();
-        container.result = children[0].result;
+        container.setResult(children[0].getResult());
         for (int i = 1; i < targets.length; i++) {
-          if (children[i].result != null) {
-            container.result = (container.result == null) ? children[i].result : Operand.meet(container.result, children[i].result, reg);
+          if (children[i].getResult() != null) {
+            container.setResult((container.getResult() == null) ? children[i].getResult() : Operand.meet(container.getResult(), children[i].getResult(), reg));
           }
         }
 
@@ -185,13 +185,13 @@ public class Inliner {
         if (!inlDec.OSRTestFailed()) {
           // Account for the non-predicted case as well...
           RegisterOperand failureCaseResult = Call.getResult(callSite).copyRO();
-          container.result = (container.result == null) ?  failureCaseResult : Operand.meet(container.result, failureCaseResult, reg);
+          container.setResult((container.getResult() == null) ?  failureCaseResult : Operand.meet(container.getResult(), failureCaseResult, reg));
         }
       }
 
       // Step 4: Create a block to contain a copy of the original call or an OSR_Yieldpoint
       //         to cover the case that all predictions fail.
-      BasicBlock testFailed = new BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
+      BasicBlock testFailed = new BasicBlock(callSite.bcIndex, callSite.position, parent.getCfg());
       testFailed.exceptionHandlers = ebag;
 
       if (COUNT_FAILED_GUARDS && Controller.options.INSERT_DEBUGGING_COUNTERS) {
@@ -214,14 +214,14 @@ public class Inliner {
         s.position = callSite.position;
         s.bcIndex = callSite.bcIndex;
         testFailed.appendInstruction(s);
-        testFailed.insertOut(parent.exit);
+        testFailed.insertOut(parent.getExit());
       } else {
         Instruction call = callSite.copyWithoutLinks();
         Call.getMethod(call).setIsGuardedInlineOffBranch(true);
         call.bcIndex = callSite.bcIndex;
         call.position = callSite.position;
         testFailed.appendInstruction(call);
-        testFailed.insertOut(container.epilogue);
+        testFailed.insertOut(container.getEpilogue());
         // This is ugly....since we didn't call BC2IR to generate the
         // block with callSite we have to initialize the block's exception
         // behavior manually.
@@ -237,7 +237,7 @@ public class Inliner {
         testFailed.setCanThrowExceptions();
         testFailed.setMayThrowUncaughtException();
       }
-      container.cfg.linkInCodeOrder(testFailed, container.epilogue);
+      container.getCfg().linkInCodeOrder(testFailed, container.getEpilogue());
       testFailed.setInfrequent();
 
       // Step 5: Patch together all the callees by generating guard blocks
@@ -262,7 +262,7 @@ public class Inliner {
             requiresImplementsTest = doesImplement != OptConstants.YES;
           }
           if (requiresImplementsTest) {
-            RegisterOperand checkedReceiver = parent.temps.makeTemp(receiver);
+            RegisterOperand checkedReceiver = parent.getTemps().makeTemp(receiver);
             Instruction dtc =
                 TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
                     checkedReceiver,
@@ -281,10 +281,10 @@ public class Inliner {
       // to allow us to have multiple if blocks for a single
       // "logical" test and to share test insertion for interfaces/virtuals.
       for (int i = children.length - 1; i >= 0; i--, testFailed = firstIfBlock) {
-        firstIfBlock = new BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
+        firstIfBlock = new BasicBlock(callSite.bcIndex, callSite.position, parent.getCfg());
         firstIfBlock.exceptionHandlers = ebag;
         BasicBlock lastIfBlock = firstIfBlock;
-        RVMMethod target = children[i].method;
+        RVMMethod target = children[i].getMethod();
         Instruction tmp;
 
         if (isInterface) {
@@ -325,13 +325,13 @@ public class Inliner {
             // Unlike the above case, this can actually happen (when
             // the method is inherited but only the child actually
             // implements the interface).
-            if (parent.options.PRINT_INLINE_REPORT) {
+            if (parent.getOptions().PRINT_INLINE_REPORT) {
               VM.sysWrite("\t\tRequired additional instanceof " + callDeclClass + " test\n");
             }
-            firstIfBlock = new BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
+            firstIfBlock = new BasicBlock(callSite.bcIndex, callSite.position, parent.getCfg());
             firstIfBlock.exceptionHandlers = ebag;
 
-            RegisterOperand instanceOfResult = parent.temps.makeTempInt();
+            RegisterOperand instanceOfResult = parent.getTemps().makeTempInt();
             tmp =
                 InstanceOf.create(INSTANCEOF_NOTNULL,
                                   instanceOfResult,
@@ -343,7 +343,7 @@ public class Inliner {
 
             tmp =
                 IfCmp.create(INT_IFCMP,
-                             parent.temps.makeTempValidation(),
+                             parent.getTemps().makeTempValidation(),
                              instanceOfResult.copyD2U(),
                              new IntConstantOperand(0),
                              ConditionOperand.EQUAL(),
@@ -354,7 +354,7 @@ public class Inliner {
 
             firstIfBlock.insertOut(testFailed);
             firstIfBlock.insertOut(lastIfBlock);
-            container.cfg.linkInCodeOrder(firstIfBlock, lastIfBlock);
+            container.getCfg().linkInCodeOrder(firstIfBlock, lastIfBlock);
           }
         }
 
@@ -371,7 +371,7 @@ public class Inliner {
           // the reciever's class is a subclass of inlined method's
           // declaring class.
           if (isInterface) {
-            RegisterOperand t = parent.temps.makeTempInt();
+            RegisterOperand t = parent.getTemps().makeTempInt();
             Instruction test =
                 InstanceOf.create(INSTANCEOF_NOTNULL,
                                   t,
@@ -382,7 +382,7 @@ public class Inliner {
 
             Instruction cmp =
                 IfCmp.create(INT_IFCMP,
-                             parent.temps.makeTempValidation(),
+                             parent.getTemps().makeTempValidation(),
                              t.copyD2U(),
                              new IntConstantOperand(0),
                              ConditionOperand.EQUAL(),
@@ -391,12 +391,12 @@ public class Inliner {
             cmp.copyPosition(callSite);
             lastIfBlock.appendInstruction(cmp);
 
-            BasicBlock subclassTest = new BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
+            BasicBlock subclassTest = new BasicBlock(callSite.bcIndex, callSite.position, parent.getCfg());
 
             lastIfBlock.insertOut(testFailed);
             lastIfBlock.insertOut(subclassTest);
 
-            container.cfg.linkInCodeOrder(lastIfBlock, subclassTest);
+            container.getCfg().linkInCodeOrder(lastIfBlock, subclassTest);
 
             lastIfBlock = subclassTest;
           }
@@ -421,22 +421,22 @@ public class Inliner {
         lastIfBlock.appendInstruction(tmp);
 
         lastIfBlock.insertOut(testFailed);
-        lastIfBlock.insertOut(children[i].prologue);
-        container.cfg.linkInCodeOrder(lastIfBlock, children[i].cfg.firstInCodeOrder());
-        if (children[i].epilogue != null) {
-          children[i].epilogue.appendInstruction(container.epilogue.makeGOTO());
-          children[i].epilogue.insertOut(container.epilogue);
+        lastIfBlock.insertOut(children[i].getPrologue());
+        container.getCfg().linkInCodeOrder(lastIfBlock, children[i].getCfg().firstInCodeOrder());
+        if (children[i].getEpilogue() != null) {
+          children[i].getEpilogue().appendInstruction(container.getEpilogue().makeGOTO());
+          children[i].getEpilogue().insertOut(container.getEpilogue());
         }
-        container.cfg.linkInCodeOrder(children[i].cfg.lastInCodeOrder(), testFailed);
+        container.getCfg().linkInCodeOrder(children[i].getCfg().lastInCodeOrder(), testFailed);
       }
       //Step 6: finish by linking container.prologue & testFailed
-      container.prologue.insertOut(testFailed);
-      container.cfg.linkInCodeOrder(container.prologue, testFailed);
+      container.getPrologue().insertOut(testFailed);
+      container.getCfg().linkInCodeOrder(container.getPrologue(), testFailed);
       return container;
     } else {
       if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
       NormalMethod callee = (NormalMethod) inlDec.getTargets()[0];
-      if (parent.options.PRINT_INLINE_REPORT) {
+      if (parent.getOptions().PRINT_INLINE_REPORT) {
         VM.sysWrite("\tInline " + callee +
                     " into " + callSite.position.getMethod() +
                     " at bytecode " + callSite.bcIndex + "\n");
