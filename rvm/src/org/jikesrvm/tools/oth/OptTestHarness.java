@@ -170,6 +170,12 @@ class OptTestHarness {
   }
 
   static RVMClass loadClass(String s) throws ClassNotFoundException {
+    String className = convertToClassName(s);
+    Class<?> clazz = Class.forName(className, true, cl);
+    return (RVMClass) java.lang.JikesRVMSupport.getTypeForClass(clazz);
+  }
+
+  private static String convertToClassName(String s) {
     if (s.startsWith("./")) s = s.substring(2, s.length());
     if (s.endsWith(".java")) s = s.substring(0, s.length() - 5);
     if (s.endsWith(".class")) s = s.substring(0, s.length() - 6);
@@ -180,8 +186,7 @@ class OptTestHarness {
     }
 
     s = s.replace('.', '/');
-
-    return (RVMClass) java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
+    return s;
   }
 
   static void printFormatString() {
