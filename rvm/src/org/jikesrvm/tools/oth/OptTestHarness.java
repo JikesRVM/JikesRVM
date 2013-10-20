@@ -36,6 +36,7 @@ import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.Time;
+import org.vmmagic.unboxed.Address;
 
 /**
  * A test harness for the optimizing compiler.
@@ -312,8 +313,10 @@ class OptTestHarness {
           }
           if (cm != null) {
             method.replaceCompiledMethod(cm);
-            if (PRINT_CODE_ADDRESS)
-              VM.sysWriteln("Method: " + method + " compiled code: ", Magic.objectAsAddress(cm.getEntryCodeArray()));
+            if (PRINT_CODE_ADDRESS) {
+              Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
+              System.out.println("Method: " + method + " compiled code: " + addrToString(addr));
+            }
           }
           TypeReference[] argDesc = method.getDescriptor().parseForParameterTypes(klass.getClassLoader());
           Object[] reflectMethodArgs = new Object[argDesc.length];
@@ -353,20 +356,22 @@ class OptTestHarness {
   private static void compileMethodsInVector() {
     // Compile all baseline methods first
     int size = baselineMethodVector.size();
-    VM.sysWrite("Compiling " + size + " methods baseline\n");
+    System.out.println("Compiling " + size + " methods baseline");
     // Compile all methods in baseline vector
     for (int i = 0; i < size; i++) {
       NormalMethod method = (NormalMethod) baselineMethodVector.elementAt(i);
       CompiledMethod cm = null;
       cm = BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
-      if (PRINT_CODE_ADDRESS)
-        VM.sysWriteln("Method: " + method + " compiled code: ", Magic.objectAsAddress(cm.getEntryCodeArray()));
+      if (PRINT_CODE_ADDRESS) {
+        Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
+        System.out.println("Method: " + method + " compiled code: " + addrToString(addr));
+      }
     }
 
     // Now compile all methods in opt vector
     size = optMethodVector.size();
-    VM.sysWrite("Compiling " + size + " methods opt\n");
+    System.out.println("Compiling " + size + " methods opt");
     for (int i = 0; i < size; i++) {
       NormalMethod method = (NormalMethod) optMethodVector.elementAt(i);
       OptOptions opts = optOptionsVector.elementAt(i);
@@ -376,8 +381,10 @@ class OptTestHarness {
             new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(opts), null, opts);
         cm = OptimizingCompiler.compile(cp);
         method.replaceCompiledMethod(cm);
-        if (PRINT_CODE_ADDRESS)
-          VM.sysWriteln("Method: " + method + " compiled code: ", Magic.objectAsAddress(cm.getEntryCodeArray()));
+        if (PRINT_CODE_ADDRESS) {
+          Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
+          System.out.println("Method: " + method + " compiled code: " + addrToString(addr));
+        }
       } catch (OptimizingCompilerException e) {
         if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
@@ -406,13 +413,13 @@ class OptTestHarness {
         reflectoid = reflectoidVector.elementAt(i);
         reflectMethodArgs = reflectMethodArgsVector.elementAt(i);
         RVMMethod method = reflectMethodVector.elementAt(i);
-        VM.sysWrite("**** START OF EXECUTION of " + method + " ****.\n");
+        System.out.println("**** START OF EXECUTION of " + method + " ****.");
         Object result = null;
         if (perf != null) perf.reset();
         result = reflectoid.invoke(null, reflectMethodArgs);
         if (perf != null) perf.stop();
-        VM.sysWrite("**** END OF EXECUTION of " + method + " ****.\n");
-        VM.sysWrite("**** RESULT: " + result + "\n");
+        System.out.println("**** END OF EXECUTION of " + method + " ****.");
+        System.out.println("**** RESULT: " + result);
       }
       EXECUTE_WITH_REFLECTION = false;
     }
@@ -424,9 +431,9 @@ class OptTestHarness {
         System.err.println(mainClass + " doesn't have a \"public static void main(String[])\" method to execute\n");
         return;
       }
-      VM.sysWrite("**** START OF EXECUTION of " + mainMethod + " ****.\n");
+      System.out.println("**** START OF EXECUTION of " + mainMethod + " ****.");
       Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
-      VM.sysWrite("**** END OF EXECUTION of " + mainMethod + " ****.\n");
+      System.out.println("**** END OF EXECUTION of " + mainMethod + " ****.");
     }
   }
 
@@ -450,6 +457,16 @@ class OptTestHarness {
       perf.show();
     }
   }
+
+  private static String addrToString(Address addr) {
+    if (VM.BuildFor32Addr) {
+      return Integer.toHexString(addr.toInt());
+    } else if (VM.BuildFor64Addr) {
+      return Long.toHexString(addr.toLong());
+    }
+    return null;
+  }
+
 
   private static class Performance implements Callbacks.ExitMonitor {
     private long start = 0;
