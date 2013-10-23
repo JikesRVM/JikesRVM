@@ -74,7 +74,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
         throw MagicNotImplementedException.UNEXPECTED(msg);
       }
     } else if (methodName == MagicNames.getFramePointer) {
-      gc.setAllocFrame(true);
+      gc.forceFrameAllocation();
       RegisterOperand val = gc.getTemps().makeTemp(TypeReference.Address);
       RVMField f = ArchEntrypoints.framePointerField;
       RegisterOperand pr = new RegisterOperand(phys.getESI(), TypeReference.Int);

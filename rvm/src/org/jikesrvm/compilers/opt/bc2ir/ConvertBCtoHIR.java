@@ -40,7 +40,7 @@ public final class ConvertBCtoHIR extends CompilerPhase {
     ir.gc = gc;
     ir.cfg = gc.getCfg();
     ir.regpool = gc.getTemps();
-    if (gc.isAllocFrame()) {
+    if (gc.requiresStackFrame()) {
       ir.stackManager.forceFrameAllocation();
     }
 

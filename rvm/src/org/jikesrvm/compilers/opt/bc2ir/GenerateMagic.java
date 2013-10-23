@@ -133,7 +133,7 @@ public class GenerateMagic implements TIBLayoutConstants  {
   static boolean generateMagic(BC2IR bc2ir, GenerationContext gc, MethodReference meth)
       throws MagicNotImplementedException {
 
-    if (gc.getMethod().hasNoInlinePragma()) gc.setAllocFrame(true);
+    if (gc.getMethod().hasNoInlinePragma()) gc.forceFrameAllocation();
 
     // HACK: Don't schedule any bbs containing unsafe magics.
     // TODO: move this to individual magics that are unsafe.

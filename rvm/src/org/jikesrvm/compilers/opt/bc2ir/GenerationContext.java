@@ -834,6 +834,25 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     _ncGuards = null;
   }
 
+  /**
+   * Forces allocation of a stack frame for this method.
+   */
+  public void forceFrameAllocation() {
+    this.allocFrame = true;
+  }
+
+  public boolean requiresStackFrame() {
+    return allocFrame;
+  }
+
+  public boolean generatedExceptionHandlers() {
+    return generatedExceptionHandlers;
+  }
+
+  public void markExceptionHandlersAsGenerated() {
+    this.generatedExceptionHandlers = true;
+  }
+
   ///////////
   // Getters and setters that need to be public
   ///////////
@@ -872,22 +891,6 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
 
   public InlineSequence getInlineSequence() {
     return inlineSequence;
-  }
-
-  public boolean isGeneratedExceptionHandlers() {
-    return generatedExceptionHandlers;
-  }
-
-  public void setGeneratedExceptionHandlers(boolean generatedExceptionHandlers) {
-    this.generatedExceptionHandlers = generatedExceptionHandlers;
-  }
-
-  public boolean isAllocFrame() {
-    return allocFrame;
-  }
-
-  public void setAllocFrame(boolean allocFrame) {
-    this.allocFrame = allocFrame;
   }
 
   public Operand getResult() {

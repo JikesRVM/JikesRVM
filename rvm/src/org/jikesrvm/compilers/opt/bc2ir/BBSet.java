@@ -451,7 +451,7 @@ final class BBSet implements IRGenOptions {
       // inject synthetic entry block too.
       if (curr instanceof HandlerBlockLE) {
         // tell our caller that we actually put a handler in the final CFG.
-        gc.setGeneratedExceptionHandlers(true);
+        gc.markExceptionHandlersAsGenerated();
         HandlerBlockLE hcurr = (HandlerBlockLE) curr;
         if (DBG_FLATTEN) {
           db("injecting handler entry block " + hcurr.entryBlock + " before " + hcurr);

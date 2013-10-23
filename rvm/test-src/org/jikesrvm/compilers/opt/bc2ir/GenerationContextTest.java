@@ -134,7 +134,7 @@ public class GenerationContextTest {
 
   private void assertThatGCHasNoExceptionHandlers(GenerationContext gc) {
     assertNull(gc.getEnclosingHandlers());
-    assertThat(gc.isGeneratedExceptionHandlers(), is(false));
+    assertThat(gc.generatedExceptionHandlers(), is(false));
   }
 
   private void assertThatReturnValueIsVoid(GenerationContext gc) {
@@ -691,7 +691,7 @@ public class GenerationContextTest {
   }
 
   private void assertThatExceptionHandlersWereGenerated(GenerationContext gc) {
-    assertThat(gc.isGeneratedExceptionHandlers(), is(true));
+    assertThat(gc.generatedExceptionHandlers(), is(true));
   }
 
   private void assertThatFirstInstructionEpilogueIsMonitorExit(
@@ -1655,22 +1655,22 @@ public class GenerationContextTest {
 
   private void setTransferableProperties(int targetNumberOfNodes,
       GenerationContext context) {
-    context.setAllocFrame(true);
-    context.setGeneratedExceptionHandlers(true);
+    context.forceFrameAllocation();
+    context.markExceptionHandlersAsGenerated();
     context.getCfg().setNumberOfNodes(targetNumberOfNodes);
   }
 
   private void assertThatStateWasTransferedToOtherContext(
       GenerationContext otherContext, int targetNumberOfNodes) {
-    assertTrue(otherContext.isAllocFrame());
-    assertTrue(otherContext.isGeneratedExceptionHandlers());
+    assertTrue(otherContext.requiresStackFrame());
+    assertTrue(otherContext.generatedExceptionHandlers());
     assertTrue(otherContext.getCfg().numberOfNodes() == targetNumberOfNodes);
   }
 
   private void assertThatContextIsInExpectedState(GenerationContext parent,
       int targetNumberOfNodes) {
-    assertFalse(parent.isAllocFrame());
-    assertFalse(parent.isGeneratedExceptionHandlers());
+    assertFalse(parent.requiresStackFrame());
+    assertFalse(parent.generatedExceptionHandlers());
     assertFalse("Assumption in test case wrong, need to change test case", parent.getCfg().numberOfNodes() == targetNumberOfNodes);
   }
 
@@ -1716,12 +1716,12 @@ public class GenerationContextTest {
     assertThat(synthethicContext.getCfg().firstInCodeOrder(), is(synthethicContext.getPrologue()));
     assertThat(synthethicContext.getCfg().lastInCodeOrder(), is(synthethicContext.getEpilogue()));
 
-    assertFalse(synthethicContext.isAllocFrame());
+    assertFalse(synthethicContext.requiresStackFrame());
     assertNull(synthethicContext.getArguments());
     assertNull(synthethicContext.getBranchProfiles());
     assertNull(synthethicContext.getEnclosingHandlers());
     assertNull(synthethicContext.getExit());
-    assertFalse(synthethicContext.isGeneratedExceptionHandlers());
+    assertFalse(synthethicContext.generatedExceptionHandlers());
     assertNull(synthethicContext.getInlinePlan());
     assertNull(synthethicContext.getInlineSequence());
     assertNull(synthethicContext.getMethod());

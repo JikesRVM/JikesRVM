@@ -54,7 +54,7 @@ public abstract class GenerateMachineSpecificMagic implements Operators, Stackfr
     Atom methodName = meth.getName();
     if (methodName == MagicNames.getFramePointer) {
       bc2ir.push(gc.getTemps().makeFPOp());
-      gc.setAllocFrame(true);
+      gc.forceFrameAllocation();
     } else if (methodName == MagicNames.getTocPointer) {
       bc2ir.push(gc.getTemps().makeJTOCOp(null, null));
     } else if (methodName == MagicNames.getJTOC) {
