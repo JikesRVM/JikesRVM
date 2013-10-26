@@ -176,7 +176,7 @@ class OptTestHarness {
     return (RVMClass) java.lang.JikesRVMSupport.getTypeForClass(clazz);
   }
 
-  private static String convertToClassName(String s) {
+  static String convertToClassName(String s) {
     if (s.startsWith("./")) s = s.substring(2, s.length());
     if (s.endsWith(".java")) s = s.substring(0, s.length() - 5);
     if (s.endsWith(".class")) s = s.substring(0, s.length() - 6);

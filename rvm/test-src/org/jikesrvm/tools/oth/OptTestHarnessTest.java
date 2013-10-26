@@ -20,6 +20,9 @@ import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.ApplicationClassLoader;
+import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.tests.util.StringBuilderOutputStream;
@@ -33,8 +36,14 @@ import org.junit.runner.RunWith;
 @Category(RequiresJikesRVM.class)
 public class OptTestHarnessTest {
 
-  //TODO use interface for output in OTH to eliminate necessity for
-  // redirection of streams
+  // Design
+  // TODO use interface for output in OTH to eliminate necessity for
+  //  redirection of streams
+  // TODO encapsulate VM specific functionality (e.g. class loading, compilers) in
+  //  a separate class. After that, check if TestClass1 can be eliminated.
+
+  // Bugs
+  // TODO convertToClassName has some bugs and quirks
 
   private static final String lineEnd = System.getProperty("line.separator");
 
@@ -113,7 +122,127 @@ public class OptTestHarnessTest {
   }
 
   private void assertThatNoErrorsHaveOccurred() {
-    assertTrue(err.getOutput().toString().isEmpty());
+    assertTrue(getErrorOutput().isEmpty());
+  }
+
+  @Test
+  public void incompleteArgsLeadToErrorMessage() throws Exception {
+    String[] incompleteArgs = {"-load"};
+    OptTestHarness.main(incompleteArgs);
+
+    String incompleteArgsMsg = "Uncaught ArrayIndexOutOfBoundsException, possibly" +
+        " not enough command-line arguments - aborting" + "\n";
+    assertThat(getErrorOutput().startsWith(incompleteArgsMsg), is(true));
+    removeMessageFromStartOfErrorOutput(incompleteArgsMsg);
+
+    String formatStringMsg = "Format: rvm org.jikesrvm.tools.oth.OptTestHarness { <command> }" + "\n";
+    assertThat(getErrorOutput().startsWith(formatStringMsg), is(true));
+    removeMessageFromStartOfErrorOutput(formatStringMsg);
+
+    assertThat(getErrorOutput().isEmpty(), is(false));
+  }
+
+  private String getErrorOutput() {
+    return err.getOutput().toString();
+  }
+
+  private void removeMessageFromStartOfErrorOutput(String msg) {
+    err.getOutput().replace(0, msg.length(), "");
+  }
+
+  @Test
+  public void unknownArgsAreIgnored() throws Exception {
+    String arg = "-foo";
+    String[] unknownArg = {arg};
+    OptTestHarness.main(unknownArg);
+
+    String unknownArgMsg = "Unrecognized argument: " + arg + " - ignored" + "\n";
+    assertThat(getErrorOutput().startsWith(unknownArgMsg), is(true));
+    removeMessageFromStartOfErrorOutput(unknownArgMsg);
+
+    assertThatNoAdditionalErrorsHaveOccurred();
+  }
+
+  @Test
+  public void canLoadAClassByItsClassname() throws Exception {
+    String className = "org.jikesrvm.tools.oth.TestClass1";
+
+    assertClassIsNotLoaded(className);
+
+    String[] loadClass = {"-load", className};
+    OptTestHarness.main(loadClass);
+
+    assertClassIsLoaded(className);
+    assertThatNoErrorsHaveOccurred();
+  }
+
+  private void assertClassIsLoaded(String className) {
+    TypeReference tRef = getTypeReferenceForClass(className);
+    assertNotNull(tRef.peekType());
+  }
+
+  private TypeReference getTypeReferenceForClass(String className) {
+    Atom classDescriptorAsAtom = Atom.findAsciiAtom(className).descriptorFromClassName();
+    ClassLoader appCl = ApplicationClassLoader.getSystemClassLoader();
+    TypeReference tRef = TypeReference.findOrCreate(appCl, classDescriptorAsAtom);
+    return tRef;
+  }
+
+  @Test
+  public void convertToClassNameWorksForDescriptors() throws Exception {
+    String result = replacePointsWithSlashes("org.jikesrvm.tools.oth.TestClass2");
+    String classDescriptor = "Lorg/jikesrvm/tools/oth/TestClass2;";
+    assertThat(OptTestHarness.convertToClassName(classDescriptor),is(result));
+  }
+
+  @Test
+  public void convertToClassNameWorksForSourceFileNames() throws Exception {
+    String className = "TestClass3";
+    String classSourcefile = className + ".java";
+    assertThat(OptTestHarness.convertToClassName(classSourcefile),is(className));
+  }
+
+  @Test
+  public void convertToClassNameWorksForClassfileName() throws Exception {
+    String className = "TestClass4";
+    String classClassFile = className + ".class";
+    assertThat(OptTestHarness.convertToClassName(classClassFile),is(className));
+  }
+
+  @Test
+  public void convertToClassNameWorksForASimplePathString() throws Exception {
+    String className = "TestClass5";
+    String pathOfClass = "./" + className;
+    assertThat(OptTestHarness.convertToClassName(pathOfClass),is(className));
+  }
+
+  @Test
+  public void convertToClassNameSupportsSenselessCombinations() throws Exception {
+    String result = replacePointsWithSlashes("org.jikesrvm.tools.oth.TestClass6");
+    String strangeString = "./Lorg/jikesrvm/tools/oth/TestClass6;.class";
+    assertThat(OptTestHarness.convertToClassName(strangeString),is(result));
+  }
+
+  @Test
+  public void convertToClassNameDoesNotWorkForComplexPathstrings() throws Exception {
+    String className = "org.jikesrvm.tools.oth.TestClass7";
+    String pathOfClass = "../.." + className;
+    String result = replacePointsWithSlashes(pathOfClass);
+    assertThat(OptTestHarness.convertToClassName(pathOfClass),is(result));
+  }
+
+  private String replacePointsWithSlashes(String s) {
+    s = s.replace(".", "/");
+    return s;
+  }
+
+  private void assertClassIsNotLoaded(String className) {
+    TypeReference tRef = getTypeReferenceForClass(className);
+    assertNull(tRef.peekType());
+  }
+
+  private void assertThatNoAdditionalErrorsHaveOccurred() {
+    assertTrue(getErrorOutput().isEmpty());
   }
 
 }
