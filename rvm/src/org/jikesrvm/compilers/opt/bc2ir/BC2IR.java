@@ -260,9 +260,10 @@ public final class BC2IR
 
   /**
    *  Debugging with method_to_print. Switch following 2
-   *  to both be non-final. Set DBG_SELECTIVE to true
-   *  DBG_SELECTED will then be true when the method matches.
-   *  You must also uncomment the assignment to DBG_SELECTIVE in start
+   *  to both be non-final. Set {@link #DBG_SELECTIVE} to true.
+   *  {@link #DBG_SELECTED} will then be {@code true} when the method matches.
+   *  You must also uncomment the assignment to DBG_SELECTIVE in
+   *  {@link #start(GenerationContext)}.
    */
   private static final boolean DBG_SELECTIVE = false;
   static final boolean DBG_SELECTED = false;
@@ -298,15 +299,10 @@ public final class BC2IR
   private void start(GenerationContext context) {
     gc = context;
     // To use the following you need to change the declarations
-    // in IRGenOption.java
+    // above the constructor
     if (DBG_SELECTIVE) {
-      if (gc.getOptions().hasMETHOD_TO_PRINT() && gc.getOptions().fuzzyMatchMETHOD_TO_PRINT(gc.getMethod().toString())) {
-        VM.sysWrite("Whoops! you need to uncomment the assignment to DBG_SELECTED");
-        // DBG_SELECTED = true;
-      } else {
-        // DBG_SELECTED = false;
-      }
-
+      VM.sysWrite("Whoops! you need to uncomment the assignment to DBG_SELECTED");
+//      DBG_SELECTED = gc.methodIsSelectedForDebuggingWithMethodToPrint();
     }
 
     if (context.getMethod().isForOsrSpecialization()) {

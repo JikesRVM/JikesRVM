@@ -45,6 +45,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
@@ -1998,6 +1999,48 @@ public class GenerationContextTest {
     GenerationContext gc = createMostlyEmptyContext("emptyStaticMethodWithoutAnnotations");
     gc.close();
     gc.resync();
+  }
+
+  @Test
+  public void methodIsSelectedForDebuggingWithMethodToPrintReturnsTrueIfMethodOfContextMatches() throws Exception {
+    String methodName = "emptyStaticMethodWithoutAnnotations";
+    NormalMethod nm = getNormalMethodForTest(methodName);
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = buildOptionsWithMethodToPrintOptionSet(methodName);
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext gc = new GenerationContext(nm, null, cm, opts, io);
+    assertThat(gc.methodIsSelectedForDebuggingWithMethodToPrint(), is(true));
+  }
+
+  @Test
+  public void methodIsSelectedForDebuggingWithMethodToPrintReturnsTrueIfOutermostParentMatches() throws Exception {
+    String methodName = "emptyStaticMethodWithoutAnnotations";
+    NormalMethod nm = getNormalMethodForTest(methodName);
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = buildOptionsWithMethodToPrintOptionSet(methodName);
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext gc = new GenerationContext(nm, null, cm, opts, io);
+
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
+    Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
+    GenerationContext nextInnerContext = GenerationContext.createChildContext(gc, ebag, callee, noCheckStoreInstr);
+
+    NormalMethod nextInnerCallee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
+    Instruction noNullCheckInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nextInnerCallee);
+    GenerationContext innermostContext = GenerationContext.createChildContext(nextInnerContext, ebag, nextInnerCallee, noNullCheckInstr);
+
+    assertThat(innermostContext.methodIsSelectedForDebuggingWithMethodToPrint(), is(true));
+  }
+
+  private OptOptions buildOptionsWithMethodToPrintOptionSet(String methodName) {
+    OptOptions opts = new OptOptions();
+    opts.processAsOption("-X:opt:", "method_to_print=" + methodName);
+    assertThat(opts.hasMETHOD_TO_PRINT(), is(true));
+    Iterator<String> iterator = opts.getMETHOD_TO_PRINTs();
+    String methodNameFromOpts = iterator.next();
+    assertThat(methodNameFromOpts, is(methodName));
+    return opts;
   }
 
 }

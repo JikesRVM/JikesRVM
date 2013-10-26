@@ -841,6 +841,22 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   }
 
   /**
+   * Is this method selected for debugging with method to print?<p>
+   *
+   * A method is selected if the name of the original method
+   * is contained in the set of methods to print. This ensures that debug
+   * output is not omitted during generation of IR for methods
+   * that are inlined into a method that is supposed to be printed.
+   *
+   *  @see BC2IR#DBG_SELECTIVE
+   */
+  boolean methodIsSelectedForDebuggingWithMethodToPrint() {
+    boolean originalMethodSelected = options.hasMETHOD_TO_PRINT() &&
+        options.fuzzyMatchMETHOD_TO_PRINT(getOriginalMethod().toString());
+    return originalMethodSelected;
+  }
+
+  /**
    * Forces allocation of a stack frame for this method.
    */
   public void forceFrameAllocation() {
