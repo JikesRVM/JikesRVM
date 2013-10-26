@@ -466,17 +466,21 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   }
 
   /**
-   * Use this to transfer state back from a child context back to its parent.
+   * Transfers the state from this context back to its direct
+   * parent.
    *
-   * @param parent the parent context that will receive the state
-   * @param child  the child context from which the state will be taken
+   * @throws IllegalStateException when this context does not have a parent
    */
-  public static void transferState(GenerationContext parent, GenerationContext child) {
-    parent.cfg.setNumberOfNodes(child.cfg.numberOfNodes());
-    if (child.generatedExceptionHandlers) {
+  public void transferStateToParent() {
+    if (parent == null) {
+      throw new IllegalStateException("This method may only be called on contexts that have a parent.");
+    }
+
+    parent.cfg.setNumberOfNodes(this.cfg.numberOfNodes());
+    if (this.generatedExceptionHandlers) {
       parent.generatedExceptionHandlers = true;
     }
-    if (child.allocFrame) {
+    if (this.allocFrame) {
       parent.allocFrame = true;
     }
   }

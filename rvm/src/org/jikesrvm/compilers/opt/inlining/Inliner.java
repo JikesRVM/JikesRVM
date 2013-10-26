@@ -165,7 +165,7 @@ public class Inliner {
         // (b)
         children[i] = GenerationContext.createChildContext(parent, ebag, callee, callSite);
         BC2IR.generateHIR(children[i]);
-        GenerationContext.transferState(parent, children[i]);
+        children[i].transferStateToParent();
       }
       // Step 3: Merge together result from children into container.
       //         Note: if the child ended with only exception control flow, then
@@ -444,7 +444,7 @@ public class Inliner {
       GenerationContext child = GenerationContext.
           createChildContext(parent, ebag, callee, callSite);
       BC2IR.generateHIR(child);
-      GenerationContext.transferState(parent, child);
+      child.transferStateToParent();
       return child;
     }
   }

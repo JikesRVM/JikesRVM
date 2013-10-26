@@ -34,7 +34,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1667,7 +1666,7 @@ public class GenerationContextTest {
     GenerationContext child = GenerationContext.createChildContext(parent, ebag, interruptibleCallee, callInstr);
     setTransferableProperties(targetNumberOfNodes, child);
 
-    GenerationContext.transferState(parent, child);
+    child.transferStateToParent();
 
     assertThatStateWasTransferedToOtherContext(parent, targetNumberOfNodes);
   }
@@ -1693,22 +1692,10 @@ public class GenerationContextTest {
     assertFalse("Assumption in test case wrong, need to change test case", parent.getCfg().numberOfNodes() == targetNumberOfNodes);
   }
 
-  @Test
-  public void transferStateDoesNotCheckThatChildIsReallyAChildOfParent() throws Exception {
-    NormalMethod nm = getNormalMethodForTest("emptyStaticMethodWithoutAnnotations");
-    CompiledMethod cm = new OptCompiledMethod(-1, nm);
-    OptOptions opts = new OptOptions();
-    InlineOracle io = new DefaultInlineOracle();
-    GenerationContext parent = new GenerationContext(nm, null, cm, opts, io);
-    int targetNumberOfNodes = 23456789;
-    assertThatContextIsInExpectedState(parent, targetNumberOfNodes);
-
-    GenerationContext nonChild = createMostlyEmptyContext("emptyStaticMethodWithoutAnnotations");
-    setTransferableProperties(targetNumberOfNodes, nonChild);
-
-    GenerationContext.transferState(parent, nonChild);
-
-    assertThatStateWasTransferedToOtherContext(parent, targetNumberOfNodes);
+  @Test(expected = IllegalStateException.class)
+  public void transferStateThrowsExceptionForContextsWithoutParents() throws Exception {
+    GenerationContext gc = createMostlyEmptyContext("emptyStaticMethodWithNoBoundCheckAnnotation");
+    gc.transferStateToParent();
   }
 
   @Test(expected = NullPointerException.class)
