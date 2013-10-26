@@ -75,9 +75,12 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   //////////
 
   /**
-   * The original method (root of the calling context tree)
+   * The parent of this context is the context that called
+   * {@link #createChildContext(GenerationContext, ExceptionHandlerBasicBlockBag, NormalMethod, Instruction)}
+   * to create this context. This field is {@code null} if this context is the outermost
+   * one.
    */
-  private NormalMethod original_method;
+  private GenerationContext parent;
 
   /**
    * The compiled method assigned for this compilation of original_method
@@ -217,7 +220,6 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * @param ip   The InlineOracle to be used for the generation
    */
   GenerationContext(NormalMethod meth, TypeReference[] params, CompiledMethod cm, OptOptions opts, InlineOracle ip) {
-    original_method = meth;
     original_cm = cm;
     method = meth;
     if (opts.frequencyCounters() || opts.inverseFrequencyCounters()) {
@@ -313,7 +315,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     if (parent.options.frequencyCounters() || parent.options.inverseFrequencyCounters()) {
       child.branchProfiles = EdgeCounts.getBranchProfiles(callee);
     }
-    child.original_method = parent.original_method;
+    child.parent = parent;
     child.original_cm = parent.original_cm;
 
     // Some state gets directly copied to the child
@@ -905,8 +907,15 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   // Getters and setters that are only used by the initial transformation to IR
   ///////////
 
+  /**
+   * @return the original method (root of the calling context tree)
+   */
   NormalMethod getOriginalMethod() {
-    return original_method;
+    GenerationContext outermostContext = this;
+    while (outermostContext.parent != null) {
+      outermostContext = outermostContext.parent;
+    }
+    return outermostContext.method;
   }
 
   CompiledMethod getOriginalCompiledMethod() {

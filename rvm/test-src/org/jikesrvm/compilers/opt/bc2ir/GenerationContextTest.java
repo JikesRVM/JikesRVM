@@ -34,6 +34,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -911,6 +912,24 @@ public class GenerationContextTest {
     assertThat(child.getExit(), is(parent.getExit()));
     assertThat(child.getInlinePlan(), is(parent.getInlinePlan()));
     assertThat(child.getEnclosingHandlers(), is(ebag));
+  }
+
+  @Test
+  public void getOriginalMethodReturnsTheOutermostMethod() throws Exception {
+    GenerationContext outermostContext = createMostlyEmptyContext("emptyStaticMethodWithNoBoundCheckAnnotation");
+    NormalMethod outermostCaller = getNormalMethodForTest("emptyStaticMethodWithNoBoundCheckAnnotation");
+
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
+    Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, outermostCaller);
+    GenerationContext nextInnerContext = GenerationContext.createChildContext(outermostContext, ebag, callee, noCheckStoreInstr);
+    assertThat(nextInnerContext.getOriginalMethod(), is(outermostCaller));
+
+    NormalMethod nextInnerCallee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
+    Instruction noNullCheckInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nextInnerCallee);
+    GenerationContext innermostContext = GenerationContext.createChildContext(nextInnerContext, ebag, nextInnerCallee, noNullCheckInstr);
+    assertThat(innermostContext.getOriginalMethod(), is(outermostCaller));
   }
 
   @Test
