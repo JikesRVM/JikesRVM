@@ -272,10 +272,6 @@ public final class BC2IR
   // End of field declarations
   //////////
 
-  // Prevent external instantiation
-
-  private BC2IR() {}
-
   /**
    * Construct the BC2IR object for the generation context.
    * After the constructor completes, we're ready to start generating
