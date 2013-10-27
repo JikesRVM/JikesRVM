@@ -27,6 +27,8 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
+
 /**
  * A place to put hand written machine code typically invoked by Magic
  * methods.
@@ -516,8 +518,18 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
   private static ArchitectureSpecific.CodeArray generateStackTrampolineBridgeInstructions() {
     if (VM.VerifyAssertions) {
       VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
-      VM._assert(VM.BuildFor32Addr);
     }
+
+    // NYI: 64-bit version. Do not use an assertion here because a failing assertion
+    // would fail the bootimage build on x64. Return barriers are currently
+    // optional. Therefore, just crash the VM if the code ever gets executed on
+    // x64.
+    if (VM.BuildFor64Addr) {
+      Assembler asm = new ArchitectureSpecific.Assembler(0);
+      asm.emitINT_Imm(TRAP_UNKNOWN + RVM_TRAP_BASE);
+      return asm.getMachineCodes();
+    }
+
     Assembler asm = new ArchitectureSpecific.Assembler(0);
 
     /* push the hijacked return address (which is held in thread-local state) */

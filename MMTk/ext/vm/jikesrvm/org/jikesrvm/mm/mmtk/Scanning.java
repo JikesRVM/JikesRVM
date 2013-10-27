@@ -203,6 +203,6 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
 
   @Override
   public boolean supportsReturnBarrier() {
-    return VM.BuildForIA32;
+    return VM.BuildForIA32 && VM.BuildFor32Addr;
   }
 }

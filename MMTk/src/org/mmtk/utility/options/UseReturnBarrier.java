@@ -24,7 +24,8 @@ public final class UseReturnBarrier extends org.vmutil.options.BooleanOption {
         false);
   }
 
+  @Override
   protected void validate() {
-    if (!VM.scanning.supportsReturnBarrier() && value) fail("Use of return barrier only supported on IA32");
+    if (!VM.scanning.supportsReturnBarrier() && value) fail("Use of return barrier only supported on IA32 32-bit");
   }
 }
