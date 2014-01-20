@@ -32,9 +32,9 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 
 /**
- * A somewhat complex subtask of IR generation is to discover and maintain
- * the set of basic blocks that are being generated.
- * This class encapsulates that functionality.
+ * Encapsulates the discovery and maintenance of the set of basic blocks that
+ * are being generated during construction of the IR.
+ * <p>
  * The backing data store is a red/black tree, but there are a number of
  * very specialized operations that are performed during search/insertion
  * so we roll our own instead of using one from the standard library.
