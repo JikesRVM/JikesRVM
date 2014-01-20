@@ -95,7 +95,6 @@ public final class VMRequest implements Constants {
    * A request for a number of megabytes of memory at the highest available addresses
    *
    * @param mb The number of megabytes
-   * @param top True to request high memory
    * @return The request object
    */
   public static VMRequest highFixedSize(int mb) {
