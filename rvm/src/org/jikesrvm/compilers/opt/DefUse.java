@@ -228,7 +228,7 @@ public final class DefUse {
         // (we don't want to copy type information for unboxed types as it is
         // likely the result of inlining new) or the type of the original is
         // precise
-        origRegOp.copyType(newRegOp);
+        origRegOp.copyTypeFrom(newRegOp);
       }
       recordUse(origRegOp);
     }

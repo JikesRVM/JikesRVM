@@ -373,7 +373,7 @@ public final class Simple extends CompilerPhase {
       }
       RegisterOperand rhs = (RegisterOperand) rhsOp;
       // Propagate the type in the def
-      lhs.copyType(rhs);
+      lhs.copyTypeFrom(rhs);
 
       // Now propagate lhs into all uses; substitute rhs.type for lhs.type
       for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
@@ -387,7 +387,7 @@ public final class Simple extends CompilerPhase {
         if (rhs.getType().isPrimitiveType() && !use.getType().isPrimitiveType()) {
           continue;
         }
-        use.copyType(rhs);
+        use.copyTypeFrom(rhs);
       }
     }
   }
