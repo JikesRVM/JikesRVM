@@ -28,20 +28,6 @@ final class OperandStack {
     top = 0;
   }
 
-  OperandStack copy() {
-    OperandStack newss = new OperandStack(stack.length);
-    newss.top = top;
-    for (int i = 0; i < top; i++) {
-      // deep copy of stack
-      newss.stack[i] = stack[i].copy();
-    }
-    return newss;
-  }
-
-  void clear() {
-    top = 0;
-  }
-
   void push(Operand val) {
 //    if (VM.VerifyAssertions) VM._assert(val.instruction == null);
     stack[top++] = val;
@@ -49,6 +35,11 @@ final class OperandStack {
 
   Operand pop() {
     return stack[--top];
+  }
+
+  void pop2() {
+    pop();
+    pop();
   }
 
   Operand peek(int depth) {
@@ -59,9 +50,13 @@ final class OperandStack {
     return stack[pos];
   }
 
-  void pop2() {
-    pop();
-    pop();
+  Operand getFromTop(int n) {
+    return stack[top - n - 1];
+  }
+
+  void replaceFromTop(int n, Operand op) {
+    if (VM.VerifyAssertions) VM._assert(op.instruction == null);
+    stack[top - n - 1] = op;
   }
 
   void swap() {
@@ -69,6 +64,20 @@ final class OperandStack {
     Operand v2 = pop();
     push(v1);
     push(v2);
+  }
+
+  void clear() {
+    top = 0;
+  }
+
+  OperandStack copy() {
+    OperandStack newss = new OperandStack(stack.length);
+    newss.top = top;
+    for (int i = 0; i < top; i++) {
+      // deep copy of stack
+      newss.stack[i] = stack[i].copy();
+    }
+    return newss;
   }
 
   boolean isEmpty() {
@@ -83,12 +92,5 @@ final class OperandStack {
     return stack.length;
   }
 
-  Operand getFromTop(int n) {
-    return stack[top - n - 1];
-  }
 
-  void replaceFromTop(int n, Operand op) {
-    if (VM.VerifyAssertions) VM._assert(op.instruction == null);
-    stack[top - n - 1] = op;
-  }
 }
