@@ -16,7 +16,10 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 
 /**
- * Simulated Operand Stack
+ * Simulates the Java stack for abstract interpretation in {@link BC2IR}.<p>
+ *
+ * This class is intended to be used by a single thread. Methods from this
+ * class do not provide any error handling.
  */
 final class OperandStack {
 
