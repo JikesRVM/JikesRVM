@@ -49,7 +49,7 @@ final class OperandStack {
     return stack[top - depth - 1];
   }
 
-  Operand peekAt(int pos) {
+  Operand getFromBottom(int pos) {
     return stack[pos];
   }
 
@@ -73,7 +73,7 @@ final class OperandStack {
     top = 0;
   }
 
-  OperandStack copy() {
+  OperandStack deepCopy() {
     OperandStack newss = new OperandStack(stack.length);
     newss.top = top;
     for (int i = 0; i < top; i++) {

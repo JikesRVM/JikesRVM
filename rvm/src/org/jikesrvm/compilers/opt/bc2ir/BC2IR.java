@@ -355,7 +355,7 @@ public final class BC2IR
       if (currentBBLE.stackState == null) {
         stack.clear();
       } else {
-        stack = currentBBLE.stackState.copy();
+        stack = currentBBLE.stackState.deepCopy();
       }
       _localState = currentBBLE.copyLocalState();
       if (DBG_BB || DBG_SELECTED) db("bbl: " + printBlocks());
@@ -4780,7 +4780,7 @@ public final class BC2IR
     /* the variable on stack can be used directly ? */
     int num_lstacks = 0;
     for (int i = 0, n = stack.getSize(); i < n; i++) {
-      Operand op = stack.peekAt(i);
+      Operand op = stack.getFromBottom(i);
 
       if ((op != null) && (op != DUMMY)) {
 
