@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #  This file is part of the Jikes RVM project (http://jikesrvm.org).
 #
