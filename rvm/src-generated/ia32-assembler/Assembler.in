@@ -53,7 +53,7 @@ import org.vmmagic.unboxed.*;
  * refers.  The assembler, when informed to what the label refers,
  * will go back and generate the appropriate offsets for all branches
  * that refer to the given label. The mechanism is implemented by the
- * following methods and helper classes:
+ * following methods and helper classes: </P>
  * <UL>
  * <LI> {@link #forwardRefs}
  * <LI> {@link #resolveForwardReferences}
@@ -64,7 +64,6 @@ import org.vmmagic.unboxed.*;
  * <LI> {@link #emitCALL_Label}
  * <LI> {@link ForwardReference}
  * </UL>
- * </P>
  *
  *  <P> There is also support for generating tableswitches.  This
  * consists providing support for storing tables of relative addresses
@@ -105,70 +104,70 @@ import org.vmmagic.unboxed.*;
  *
  * where the following substitutions are made:
  * <DL>
- * <DT> <EM>opcode</EM>
- * <DI> is the opcode of the instruction (e.g. ADC, MOV, etc)
+ * <DT><EM>opcode</EM></DT>
+ * <DD>is the opcode of the instruction (e.g. ADC, MOV, etc)</DD>
  *
- * <DT> <EM>operand code</EM>
- * <DI> represents the type of the nth operand:
+ *  <DT><EM>operand code</EM></DT>
+ * &lt;DI&gt; represents the type of the nth operand:
  *   <DL>
- *   <DT> "Imm"     <DI> immediate operands
- *   <DT> "Reg"     <DI> register operands
- *   <DT> "RegInd"  <DI> register indirect operands
- *   <DT> "RegDisp" <DI> register displacement
- *   <DT> "RegOff"  <DI> shifted index + displacement
- *   <DT> "RegIdx"  <DI> register base + shifted index + displacement
- *   <DT> "Cond"    <DI> condition codes
+ *   &lt;DT&gt; "Imm"     &lt;DI&gt; immediate operands
+ *   &lt;DT&gt; "Reg"     &lt;DI&gt; register operands
+ *   &lt;DT&gt; "RegInd"  &lt;DI&gt; register indirect operands
+ *   &lt;DT&gt; "RegDisp" &lt;DI&gt; register displacement
+ *   &lt;DT&gt; "RegOff"  &lt;DI&gt; shifted index + displacement
+ *   &lt;DT&gt; "RegIdx"  &lt;DI&gt; register base + shifted index + displacement
+ *   &lt;DT&gt; "Cond"    &lt;DI&gt; condition codes
  *   </DL>
  *
- * <DT> <EM>size</EM>
- * <DI> indicates non-word-sized operations
+ * &lt;DT&gt; <EM>size</EM>
+ * &lt;DI&gt; indicates non-word-sized operations
  *   <DL>
- *   <DT> "Byte"    <DI> bytes
- *   <DT> "Word"    <DI> Intel "words" (i.e. 16 bites)
- *   <DT> "Quad"    <DI> quad words (i.e. double-precision floating point)
+ *   &lt;DT&gt; "Byte"    &lt;DI&gt; bytes
+ *   &lt;DT&gt; "Word"    &lt;DI&gt; Intel "words" (i.e. 16 bites)
+ *   &lt;DT&gt; "Quad"    &lt;DI&gt; quad words (i.e. double-precision floating point)
  *   </DL>
  *
- * <DT> <EM>operand arguments</EM>
- * <DI> are the needed components of the operands, in order
+ * &lt;DT&gt; <EM>operand arguments</EM>
+ * &lt;DI&gt; are the needed components of the operands, in order
  *  <DL>
- *  <DT> "Imm"
- *  <DI>
+ *  &lt;DT&gt; "Imm"
+ *  &lt;DI&gt;
  *    <UL>
  *     <LI> immediate value (int)
  *    </UL>
- *  <DT> "Reg"
- *  <DI>
+ *  &lt;DT&gt; "Reg"
+ *  &lt;DI&gt;
  *    <UL>
  *     <LI> register number (byte)
  *    </UL>
- *  <DT> "RegInd"
- *  <DI>
+ *  &lt;DT&gt; "RegInd"
+ *  &lt;DI&gt;
  *    <UL>
  *     <LI> register number (byte)
  *    </UL>
- *  <DT> "RegDisp"
- *  <DI>
+ *  &lt;DT&gt; "RegDisp"
+ *  &lt;DI&gt;
  *    <UL>
  *     <LI> register number (byte)
  *     <LI> displacement (int)
  *    </UL>
- *  <DT> "RegOff"
- *  <DI>
+ *  &lt;DT&gt; "RegOff"
+ *  &lt;DI&gt;
  *    <UL>
  *     <LI> index register (byte)
  *     <LI> scale (short)
  *     <LI> displacement (int)
  *    </UL>
- *  <DT> "RegIdx"
- *  <DI>
+ *  &lt;DT&gt; "RegIdx"
+ *  &lt;DI&gt;
  *    <UL>
  *     <LI> base register (byte)
  *     <LI> index register (byte)
  *     <LI> scale (short)
  *     <LI> displacement (int)
  *    </UL>
- *  <DT> "Cond"
- *  <DI>
+ *  &lt;DT&gt; "Cond"
+ *  &lt;DI&gt;
  *    <UL>
  *     <LI> condition code mask (byte)
  *    </UL>
@@ -538,7 +537,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   /**
    * The more complex IA32 addressing modes require a
    * scale-index-base (SIB) byte.  This is used to encode addressing
-   * modes such as [ indexReg \<\< scale + baseReg ].  This method
+   * modes such as [ indexReg &lt;&lt; scale + baseReg ].  This method
    * encodes the SIB byte for a given base, index and scale.
    *
    * @param scale the shift amount for the index register value.
@@ -1023,7 +1022,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   }
 
   /**
-   * The set of outstanding forward references.  This list is used by
+   * <p> The set of outstanding forward references.  This list is used by
    * the assembler to keep track of all outstanding forward
    * references.  References are put on this list by the emit methods
    * for JMP and Jcc when they find a branch that is going forward.
@@ -1031,30 +1030,30 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
    * and how to patch its source instruction.  Then, when the client
    * calls resolveForwardBranches, the assembler searches this list to
    * find branches that match the instruction currently being
-   * generated, and calls the resolve method on each one that does.
+   * generated, and calls the resolve method on each one that does. </p>
    *
-   * All forward branches have a label as the branch target; clients
+   * <p> All forward branches have a label as the branch target; clients
    * can arbirarily associate labels and instructions, but must be
    * consistent in giving the chosen label as the target of branches
    * to an instruction and calling resolveForwardBranches with the
    * given label immediately before emitting the target instruction.
-   * See the header comments of ForwardReference for more details.
+   * See the header comments of ForwardReference for more details. </p>
    */
   protected ForwardReference forwardRefs;
 
   /**
-   * Resolve all forward branches that have the given target, and
+   * <p> Resolve all forward branches that have the given target, and
    * make them branch to the instruction currently being generated.
    * Clients of the assembler call this method immediately before they
    * emit the instruction intended to be the target of the given
-   * label.
+   * label. </p>
    *
-   * All forward branches have a label as the branch target; clients
+   * <p> All forward branches have a label as the branch target; clients
    * can arbirarily associate labels and instructions, but must be
    * consistent in giving the chosen label as the target of branches
    * to an instruction and calling resolveForwardBranches with the
    * given label immediately before emitting the target instruction.
-   * See the header comments of ForwardReference for more details.
+   * See the header comments of ForwardReference for more details. </p>
    *
    * @param label the forward branch label to resolve
    */
@@ -1196,23 +1195,23 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   /////////////////////////////////////
 
   /**
-   * An OFFSET instruction is not really an instruction; it is rather
+   * <p> An OFFSET instruction is not really an instruction; it is rather
    * an address (of an instruction) that is written into the binary
    * code.  These are used to build a table of addresses for table
    * switches.  The code for tableswitches first calculates the address of the
    * start of the method. Using this address a branch relative to the start
    * of the method is computed by loading the offset from the start of the
    * method for a particular switch case. The OFFSET instruction is encoding
-   * one value in the table.
+   * one value in the table. </p>
    *
-   * This mechanism assumes code for emitting tableswitch looks as
+   * <p> This mechanism assumes code for emitting tableswitch looks as
    * follows; it is not very nice, but is improved on X86 64 with the addition
    * of RIP displacement addressing. The GNU tools generate something.
-   * Note that default cases must be handled separately. </P>
+   * Note that default cases must be handled separately. </p>
    *
    * <PRE>
    *     T0 = getPCThunk() or RIP less offset from start of method
-   *     T0 += [T0 + m<<2 + tableDisplacement]
+   *     T0 += [T0 + m&lt;&lt;2 + tableDisplacement]
    *     JMP T0
    * tableDisplacement:
    *     OFFSET 0 (case 0 target)
@@ -1384,7 +1383,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   /**
    * Conditionally move the source to the destination, i.e.
    * <PRE>
-   * if (cond) dst = [index2<<scale2 + disp2]
+   * if (cond) dst = [index2&lt;&lt;scale2 + disp2]
    * </PRE>
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3})
@@ -1416,7 +1415,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   /**
    * Conditionally move the source to the destination, i.e.
    * <PRE>
-   * if (cond) dst = [base2 + index2<<scale2 + disp2]
+   * if (cond) dst = [base2 + index2&lt;&lt;scale2 + disp2]
    * </PRE>
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2,3,4})
@@ -1917,7 +1916,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   /**
    * Read time stamp into edx:eax, on Linux this appears to be unprivileged.
    * <pre>
-   * edx:eax <- time stamp counter
+   * edx:eax &lt;- time stamp counter
    * </pre>
    */
   public final void emitRDTSC() {
@@ -1980,7 +1979,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   /**
    * Compare and exchange 8 bytes
    * <PRE>
-   * cmpxchg8b [index2<<scale2 + disp2]
+   * cmpxchg8b [index2&lt;&lt;scale2 + disp2]
    * </PRE>
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
@@ -1996,7 +1995,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   /**
    * Compare and exchange 8 bytes
    * <PRE>
-   * cmpxchg8b [base + index2<<scale2 + disp2]
+   * cmpxchg8b [base + index2&lt;&lt;scale2 + disp2]
    * </PRE>
    */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
