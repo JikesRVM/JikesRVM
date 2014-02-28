@@ -77,9 +77,9 @@ import org.vmmagic.unboxed.*;
  * several instructions (ADD, ADC, SUB, AND, OR, XOR) can be
  * classified as binary accumulators that share a common set of
  * permitted addressing modes and binary encoding all the way down a
- * special case for enconding operands EAX and an immediate.  A shell
- * script (genAssembler.sh in the intel assembler source directory)
- * explots this by specifying a generic way of emtting a binary
+ * special case for encoding operands EAX and an immediate.  A shell
+ * script (genAssembler.sh in the Intel assembler source directory)
+ * exploits this by specifying a generic way of emitting a binary
  * accumulation and then calling it for each specific opcode that fits
  * that format.  These generated methods are combined with the
  * hand-coded ones (from Assembler.in, also in the assembler
@@ -94,8 +94,8 @@ import org.vmmagic.unboxed.*;
  * this assembler provides.  The {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt}
  * is entirely machine-generated, and this
  * requires that the methods for encoding instructions use a stylized
- * naming and signiture convention that is designed to make the method
- * signiture computable from the opcode and the operand types.  The
+ * naming and signature convention that is designed to make the method
+ * signature computable from the opcode and the operand types.  The
  * naming convention is as follows:
  *
  * <PRE>
