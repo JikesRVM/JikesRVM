@@ -46,7 +46,6 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
  * strictly an optimization, so they are options.
  *
  * @see org.jikesrvm.adaptive.util.CompilerAdviceAttribute
- * @see org.jikesrvm.adaptive.util.CompilerAdviceInfoReader
  * @see org.jikesrvm.compilers.common.RuntimeCompiler
  */
 public class BulkCompile implements Callbacks.StartupMonitor {
