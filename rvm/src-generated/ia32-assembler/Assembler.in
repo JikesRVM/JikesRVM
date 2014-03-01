@@ -108,66 +108,66 @@ import org.vmmagic.unboxed.*;
  * <DD>is the opcode of the instruction (e.g. ADC, MOV, etc)</DD>
  *
  *  <DT><EM>operand code</EM></DT>
- * &lt;DI&gt; represents the type of the nth operand:
+ * <DD> represents the type of the nth operand:
  *   <DL>
- *   &lt;DT&gt; "Imm"     &lt;DI&gt; immediate operands
- *   &lt;DT&gt; "Reg"     &lt;DI&gt; register operands
- *   &lt;DT&gt; "RegInd"  &lt;DI&gt; register indirect operands
- *   &lt;DT&gt; "RegDisp" &lt;DI&gt; register displacement
- *   &lt;DT&gt; "RegOff"  &lt;DI&gt; shifted index + displacement
- *   &lt;DT&gt; "RegIdx"  &lt;DI&gt; register base + shifted index + displacement
- *   &lt;DT&gt; "Cond"    &lt;DI&gt; condition codes
+ *   <DT> "Imm"     <DD> immediate operands
+ *   <DT> "Reg"     <DD> register operands
+ *   <DT> "RegInd"  <DD> register indirect operands
+ *   <DT> "RegDisp" <DD> register displacement
+ *   <DT> "RegOff"  <DD> shifted index + displacement
+ *   <DT> "RegIdx"  <DD> register base + shifted index + displacement
+ *   <DT> "Cond"    <DD> condition codes
  *   </DL>
  *
- * &lt;DT&gt; <EM>size</EM>
- * &lt;DI&gt; indicates non-word-sized operations
+ * <DT> <EM>size</EM>
+ * <DD> indicates non-word-sized operations
  *   <DL>
- *   &lt;DT&gt; "Byte"    &lt;DI&gt; bytes
- *   &lt;DT&gt; "Word"    &lt;DI&gt; Intel "words" (i.e. 16 bites)
- *   &lt;DT&gt; "Quad"    &lt;DI&gt; quad words (i.e. double-precision floating point)
+ *   <DT> "Byte"    <DD> bytes
+ *   <DT> "Word"    <DD> Intel "words" (i.e. 16 bites)
+ *   <DT> "Quad"    <DD> quad words (i.e. double-precision floating point)
  *   </DL>
  *
- * &lt;DT&gt; <EM>operand arguments</EM>
- * &lt;DI&gt; are the needed components of the operands, in order
+ * <DT> <EM>operand arguments</EM>
+ * <DD> are the needed components of the operands, in order
  *  <DL>
- *  &lt;DT&gt; "Imm"
- *  &lt;DI&gt;
+ *  <DT> "Imm"
+ *  <DD>
  *    <UL>
  *     <LI> immediate value (int)
  *    </UL>
- *  &lt;DT&gt; "Reg"
- *  &lt;DI&gt;
+ *  <DT> "Reg"
+ *  <DD>
  *    <UL>
  *     <LI> register number (byte)
  *    </UL>
- *  &lt;DT&gt; "RegInd"
- *  &lt;DI&gt;
+ *  <DT> "RegInd"
+ *  <DD>
  *    <UL>
  *     <LI> register number (byte)
  *    </UL>
- *  &lt;DT&gt; "RegDisp"
- *  &lt;DI&gt;
+ *  <DT> "RegDisp"
+ *  <DD>
  *    <UL>
  *     <LI> register number (byte)
  *     <LI> displacement (int)
  *    </UL>
- *  &lt;DT&gt; "RegOff"
- *  &lt;DI&gt;
+ *  <DT> "RegOff"
+ *  <DD>
  *    <UL>
  *     <LI> index register (byte)
  *     <LI> scale (short)
  *     <LI> displacement (int)
  *    </UL>
- *  &lt;DT&gt; "RegIdx"
- *  &lt;DI&gt;
+ *  <DT> "RegIdx"
+ *  <DD>
  *    <UL>
  *     <LI> base register (byte)
  *     <LI> index register (byte)
  *     <LI> scale (short)
  *     <LI> displacement (int)
  *    </UL>
- *  &lt;DT&gt; "Cond"
- *  &lt;DI&gt;
+ *  <DT> "Cond"
+ *  <DD>
  *    <UL>
  *     <LI> condition code mask (byte)
  *    </UL>
