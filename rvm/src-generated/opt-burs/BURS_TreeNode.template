@@ -22,7 +22,9 @@ import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
 /**
  * An BURS_TreeNode is a node in a binary tree that is fed
  * as input to BURS.
- * Machine-generated, do not edit.
+ * <p>
+ * Machine-generated, do not edit! If you need to make changes
+ * to this file, edit BURS_TreeNode.template.
  *
  * @see org.jikesrvm.compilers.opt.lir2mir.BURS
  * @see BURS_STATE
@@ -45,10 +47,10 @@ public class BURS_TreeNode implements BURS_Definitions {
   private final char opcode;
 
   /**
-   * nonterminal > 0 ==> this tree node is the
+   * nonterminal &gt; 0 ==&gt; this tree node is the
    * root of a "supernode"; the value of nonterminal
    *  identifies the matching non-terminal
-   * nonterminal = 0 ==> this tree node is NOT the
+   * nonterminal = 0 ==&gt; this tree node is NOT the
    * root of a "supernode".
    */
   private byte nonterminal;

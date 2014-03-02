@@ -61,7 +61,7 @@ public abstract class Configuration {
       <dl>
       <dt>false</dt>  <dd> no assertion checking at runtime</dd>
       <dt>true  </dt> <dd> execute assertion checks at runtime</dd>
-      <dl>
+      </dl>
 
       Note: code your assertion checks as
       <pre>
