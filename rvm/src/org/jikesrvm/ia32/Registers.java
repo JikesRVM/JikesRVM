@@ -129,7 +129,7 @@ public abstract class Registers implements RegisterConstants {
   }
 
   /**
-   * set ip & fp. used to control the stack frame at which a scan of
+   * set ip &amp; fp. used to control the stack frame at which a scan of
    * the stack during GC will start, for ex., the top java frame for
    * a thread that is blocked in native code during GC.
    */
@@ -140,7 +140,7 @@ public abstract class Registers implements RegisterConstants {
 
   /**
    * set ip and fp values to those of the caller. used just prior to entering
-   * sigwait to set fp & ip so that GC will scan the threads stack
+   * sigwait to set fp &amp; ip so that GC will scan the threads stack
    * starting at the frame of the method that called sigwait.
    */
   public final void setInnermost() {

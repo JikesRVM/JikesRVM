@@ -533,7 +533,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Initialization is a no-op (arrays have no <clinit> method).
+   * Initialization is a no-op (arrays have no {@code <clinit>} method).
    */
   @Override
   public void initialize() { }

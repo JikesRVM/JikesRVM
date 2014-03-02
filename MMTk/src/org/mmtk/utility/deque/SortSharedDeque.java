@@ -167,9 +167,9 @@ import org.vmmagic.unboxed.*;
 
   /**
    * Partition the slots in an address range based on the value in
-   * a particular bit. Place the start & end addresses of the two
-   * partitions & a bitmask per partition (which indicates the highest
-   * bit position at which the max & min of a partition differ) on the
+   * a particular bit. Place the start &amp; end addresses of the two
+   * partitions &amp; a bitmask per partition (which indicates the highest
+   * bit position at which the max &amp; min of a partition differ) on the
    * stack. This works just like the partition in quick sort, except
    * that a bit value is being compared here
    *

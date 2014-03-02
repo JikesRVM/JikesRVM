@@ -2572,9 +2572,9 @@ public class VM extends Properties implements Constants, ExitStatus {
    *   <li>allocating objects with "new"
    *   <li>throwing exceptions
    *   <li>executing trap instructions (including stack-growing traps)
-   *   <li>storing into object arrays, except when runtime types of lhs & rhs
+   *   <li>storing into object arrays, except when runtime types of lhs &amp; rhs
    *     match exactly
-   *   <li>typecasting objects, except when runtime types of lhs & rhs
+   *   <li>typecasting objects, except when runtime types of lhs &amp; rhs
    *     match exactly
    * </ul>
    *

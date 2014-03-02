@@ -77,7 +77,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   }
 
   /**
-   * Common code shared by the JNI functions CallStatic<type>Method
+   * Common code shared by the JNI functions CallStatic&lt;type&gt;Method
    * (static method invocation)
    * @param methodID the method ID
    * @param expectReturnType the return type of the method to be invoked
@@ -92,7 +92,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   }
 
   /**
-   * Common code shared by the JNI functions Call<type>Method
+   * Common code shared by the JNI functions Call&lt;type&gt;Method
    * (virtual method invocation)
    * @param obj the object instance
    * @param methodID the method ID
@@ -138,18 +138,18 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    * <pre>
    *  low address
    *
-   *   |  fp  | <- JNIEnvironment.getVarArgAddress
+   *   |  fp  | &lt;- JNIEnvironment.getVarArgAddress
    *   | mid  |
    *   |      |
    *   |      |
    *   |------|
-   *   |  fp  | <- JNIEnvironment.invokeWithDotDotVarArg frame
+   *   |  fp  | &lt;- JNIEnvironment.invokeWithDotDotVarArg frame
    *   | mid  |
    *   | ...  |
    *   |      |
    *   |      |
    *   |------|
-   *   |  fp  | <- JNI method frame
+   *   |  fp  | &lt;- JNI method frame
    *   | mid  |
    *   | ...  |
    *   | arg 0|    args copied by JNI prolog (3 for static, nonvirtual,
@@ -158,7 +158,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    *   |      |
    *   |      |
    *   |------|
-   *   | fp   | <- Native C caller frame
+   *   | fp   | &lt;- Native C caller frame
    *   |return|
    *   | arg 0|
    *   | arg 1|
@@ -191,7 +191,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   }
 
   /**
-   * Common code shared by the JNI functions CallStatic<type>MethodV
+   * Common code shared by the JNI functions CallStatic&lt;type&gt;MethodV
    * @param methodID the method ID
    * @param argAddress a raw address for the variable argument list
    * @return an object that may be the return object or a wrapper for the primitive return value
@@ -202,7 +202,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   }
 
   /**
-   * Common code shared by the JNI functions Call<type>MethodV
+   * Common code shared by the JNI functions Call&lt;type&gt;MethodV
    * @param obj the object instance
    * @param methodID the method ID
    * @param argAddress a raw address for the variable argument list
@@ -216,7 +216,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   }
 
   /**
-   * Common code shared by the JNI functions CallStatic<type>MethodA
+   * Common code shared by the JNI functions CallStatic&lt;type&gt;MethodA
    * @param methodID id of MemberReference
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value
@@ -227,7 +227,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   }
 
   /**
-   * Common code shared by the JNI functions Call<type>MethodA
+   * Common code shared by the JNI functions Call&lt;type&gt;MethodA
    * @param obj the object instance
    * @param methodID id of MemberReference
    * @param argAddress a raw address for the argument array
@@ -299,7 +299,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
 
   /**
    * Repackage the arguments passed as a variable argument list into an array of Object,
-   * used by the JNI functions CallStatic<type>MethodV
+   * used by the JNI functions CallStatic&lt;type&gt;MethodV
    * @param targetMethod   The target {@link RVMMethod}
    * @param argAddress an address into the C space for the array of jvalue unions;
    *                   each element is 2-word and holds the argument of the appropriate type
@@ -356,7 +356,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
 
   /**
    * Repackage the arguments passed as an array of jvalue into an array of Object,
-   * used by the JNI functions CallStatic<type>MethodA
+   * used by the JNI functions CallStatic&lt;type&gt;MethodA
    * @param targetMethod   The target {@link RVMMethod}
    * @param argAddress an address into the C space for the array of jvalue unions;
    *                   each element is 2-word and holds the argument of the appropriate type

@@ -271,7 +271,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
   }
 
   /**
-   * compare to values and set result to -1, 0, 1 for <, =, >, respectively
+   * compare to values and set result to -1, 0, 1 for &lt;, =, &gt;, respectively
    * @param s the compare instruction
    * @param ir the governing IR
    */
@@ -338,7 +338,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
   }
 
   /**
-   * compare to values and set result to -1, 0, 1 for <, =, >, respectively
+   * compare to values and set result to -1, 0, 1 for &lt;, =, &gt;, respectively
    * @param s the compare instruction
    * @param ir the governing IR
    */

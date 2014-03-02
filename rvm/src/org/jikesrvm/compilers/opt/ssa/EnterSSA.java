@@ -67,7 +67,7 @@ import org.jikesrvm.util.Pair;
  * This compiler phase constructs SSA form.
  *
  * <p> This module constructs SSA according to the SSA properties defined
- * in </code> IR.desiredSSAOptions </code>.  See <code> SSAOptions
+ * in <code> IR.desiredSSAOptions </code>.  See <code> SSAOptions
  * </code> for more details on supported options for SSA construction.
  *
  * <p>The SSA construction algorithm is the classic dominance frontier
@@ -709,7 +709,7 @@ public class EnterSSA extends CompilerPhase {
    *    done
    *  done (end of first loop)
    *  for each Y in succ(X) do
-   *      j <- whichPred(Y,X)
+   *      j &lt;- whichPred(Y,X)
    *      for each phi-function F in Y do
    *       replace the j-th operand (r) in RHS(F) with TOP(S(r))
    *     done
@@ -723,7 +723,7 @@ public class EnterSSA extends CompilerPhase {
    *   done
    *  done (end of fourth loop)
    *  end
-   * <pre>
+   * </pre>
    *
    * @param symbolicRegisters mapping from integer to symbolic registers
    */

@@ -184,7 +184,7 @@ public class Log implements Constants {
    * The value is not padded and not thousands separator is used. If
    * the value is negative a leading hyphen-minus (-) is logged.  The
    * decimal point is a full stop (.) and is logged even if
-   * <postDecimcalDigits</code> is zero. If <code>d</code> is greater
+   * <code>postDecimcalDigits</code> is zero. If <code>d</code> is greater
    * than the largest representable value of type <code>int</code>, it
    * is logged as "TooBig".  Similarly, if it is less than
    * the negative of the largest representable value, it is logged as

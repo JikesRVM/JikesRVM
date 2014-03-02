@@ -85,7 +85,7 @@ public class Memory {
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
    *
-   * Assumptions: <code> src != dst || (scrPos >= dstPos + 4) </code>
+   * Assumptions: <code> src != dst || (scrPos &gt;= dstPos + 4) </code>
    *              and src and dst are 8Bit arrays.
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
@@ -102,7 +102,7 @@ public class Memory {
   /**
    * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    *
-   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
+   * Assumption <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 4 bytes.
    *
    * @param dstPtr The destination start address
    * @param srcPtr The source start address
@@ -195,7 +195,7 @@ public class Memory {
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
    * <p>
-   * Assumption; {@code src != dst || (srcPos >= dstPos + 2)}.
+   * Assumption; {@code src != dst || (srcPos &gt;= dstPos + 2)}.
    *
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
@@ -212,7 +212,7 @@ public class Memory {
   /**
    * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    * <p>
-   * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 2 bytes.
+   * Assumption: <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 2 bytes.
    *
    * @param dstPtr The destination start address
    * @param srcPtr The source start address
@@ -285,7 +285,7 @@ public class Memory {
   /**
    * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    * <p>
-   * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 4 bytes.
+   * Assumption: <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 4 bytes.
    *
    * @param src     the source array
    * @param srcIdx  index in the source array to begin copy
@@ -303,7 +303,7 @@ public class Memory {
   /**
    * Low level copy of <code>len</code> elements from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    * <p>
-   * Assumption: <code>src != dst || (srcPos >= dstPos)</code> and element size is 8 bytes.
+   * Assumption: <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 8 bytes.
    *
    * @param src     the source array
    * @param srcIdx  index in the source array to begin copy
@@ -321,7 +321,7 @@ public class Memory {
   /**
    * Low level copy of <code>copyBytes</code> bytes from <code>src[srcPos]</code> to <code>dst[dstPos]</code>.
    *
-   * Assumption <code>src != dst || (srcPos >= dstPos)</code> and element size is 8 bytes.
+   * Assumption <code>src != dst || (srcPos &gt;= dstPos)</code> and element size is 8 bytes.
    *
    * @param dstPtr The destination start address
    * @param srcPtr The source start address
@@ -345,7 +345,7 @@ public class Memory {
 
   /**
    * Copy copyBytes from src to dst.
-   * Assumption: either the ranges are non overlapping, or {@code src >= dst + 4}.
+   * Assumption: either the ranges are non overlapping, or {@code src &gt;= dst + 4}.
    * Also, src and dst are 4 byte aligned and numBytes is a multiple of 4.
    *
    * @param dst the destination addr
@@ -393,7 +393,7 @@ public class Memory {
 
   /**
    * Copy numbytes from src to dst.
-   * Assumption: either the ranges are non overlapping, or {@code src >= dst + BYTES_IN_ADDRESS}.
+   * Assumption: either the ranges are non overlapping, or {@code src &gt;= dst + BYTES_IN_ADDRESS}.
    * Also, src and dst are word aligned and numBytes is a multiple of BYTES_IN_ADDRESS.
    * @param dst the destination addr
    * @param src the source addr
@@ -409,7 +409,7 @@ public class Memory {
 
   /**
    * Copy <code>numbytes</code> from <code>src</code> to <code>dst</code>.
-   * Assumption either the ranges are non overlapping, or <code>src >= dst + BYTES_IN_ADDRESS</code>.
+   * Assumption either the ranges are non overlapping, or <code>src &gt;= dst + BYTES_IN_ADDRESS</code>.
    * @param dst     The destination addr
    * @param src     The source addr
    * @param numBytes The number of bytes to copy

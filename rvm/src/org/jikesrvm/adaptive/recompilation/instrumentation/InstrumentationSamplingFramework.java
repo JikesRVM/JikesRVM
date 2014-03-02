@@ -881,7 +881,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * with a counter-based check.
    * <ol>
    *   <li>split the basic block before and after the i
-   *    to get A -> B -> C
+   *    to get A -&gt; B -&gt; C
    *   <li>Add check to A, making it go to B if it succeeds, otherwise C
    * </ol>
    */

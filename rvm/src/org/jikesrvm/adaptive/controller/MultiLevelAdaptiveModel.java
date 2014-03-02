@@ -87,7 +87,7 @@ class MultiLevelAdaptiveModel extends AnalyticModel {
   /**
    * Setup a lookup table that maps a "previous compiler" to a set
    * of viable recompilation choices.  In this case, a viable choice
-   * is any compiler > prevCompiler.
+   * is any compiler &gt; prevCompiler.
    */
   protected void createViableOptionLookupTable(int maxCompiler) {
     viableChoices = new RecompilationChoice[maxCompiler][];

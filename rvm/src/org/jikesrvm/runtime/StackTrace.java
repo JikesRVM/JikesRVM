@@ -160,7 +160,7 @@ public class StackTrace {
 
   /** Class to wrap up a stack frame element */
   public static class Element {
-    /** Stack trace's method, null => invisible or trap */
+    /** Stack trace's method, null =&gt; invisible or trap */
     private final RVMMethod method;
     /** Line number of element */
     private final int lineNumber;

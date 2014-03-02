@@ -64,8 +64,8 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
   }
 
   /**
-   * Dump all threads & their stacks starting at the frame identified
-   * by the threads saved contextRegisters (ip & fp fields).
+   * Dump all threads &amp; their stacks starting at the frame identified
+   * by the threads saved contextRegisters (ip &amp; fp fields).
    */
   @Uninterruptible
   public static void dumpAllThreadStacks() {
@@ -73,7 +73,7 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
   }  // dumpAllThreadStacks
 
   /**
-   * Check if a ref, its tib pointer & type pointer are all in the heap
+   * Check if a ref, its tib pointer &amp; type pointer are all in the heap
    */
   @Uninterruptible
   public static boolean validObject(Object ref) {

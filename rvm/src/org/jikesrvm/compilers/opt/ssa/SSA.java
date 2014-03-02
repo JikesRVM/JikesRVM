@@ -65,7 +65,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  *  <pre>
  *              HEAP_x[a] = z
  *              HEAP_x = dphi(HEAP_x,HEAP_x)
- *              HEAP_I[] = { < b,100,5 > }
+ *              HEAP_I[] = { &lt; b,100,5 &gt; }
  *              HEAP_I[] = dphi(HEAP_I[], HEAP_I[])
  *              y = HEAP_x[a]
  *  </pre>

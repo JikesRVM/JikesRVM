@@ -341,7 +341,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /**
    * Name of source file from which class was compiled -
    * something like "c:\java\src\java\lang\Object.java".
-   * ({@code null} --> "unknown - wasn't recorded by compiler").
+   * ({@code null} --&gt; "unknown - wasn't recorded by compiler").
    */
   public Atom getSourceName() {
     return sourceName;
@@ -445,7 +445,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Static initializer method for this class ({@code null} -> no static initializer
+   * Static initializer method for this class ({@code null} -&gt; no static initializer
    *  or initializer already been run).
    */
   @Uninterruptible
@@ -495,7 +495,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * Find description of a field of this class.
    * @param fieldName field name - something like "foo"
    * @param fieldDescriptor field descriptor - something like "I"
-   * @return description ({@code null} --> not found)
+   * @return description ({@code null} --&gt; not found)
    */
   public RVMField findDeclaredField(Atom fieldName, Atom fieldDescriptor) {
     for (RVMField field : declaredFields) {
@@ -509,7 +509,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /**
    * Find description of a field of this class. NB. ignores descriptor.
    * @param fieldName field name - something like "foo"
-   * @return description ({@code null} --> not found)
+   * @return description ({@code null} --&gt; not found)
    */
   public RVMField findDeclaredField(Atom fieldName) {
     for (RVMField field : declaredFields) {
@@ -524,7 +524,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * Find description of a method of this class.
    * @param methodName method name - something like "foo"
    * @param methodDescriptor method descriptor - something like "()I"
-   * @return description (null --> not found)
+   * @return description (null --&gt; not found)
    */
   public RVMMethod findDeclaredMethod(Atom methodName, Atom methodDescriptor) {
     for (RVMMethod method : declaredMethods) {
@@ -538,7 +538,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /**
    * Find the first description of a method of this class.
    * @param methodName method name - something like "foo"
-   * @return description (null --> not found)
+   * @return description (null --&gt; not found)
    */
   public RVMMethod findDeclaredMethod(Atom methodName) {
     for (RVMMethod method : declaredMethods) {
@@ -552,7 +552,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /**
    * Find description of "public static void main(String[])"
    * method of this class.
-   * @return description ({@code null} --> not found)
+   * @return description ({@code null} --&gt; not found)
    */
   public RVMMethod findMainMethod() {
     Atom mainName = Atom.findOrCreateAsciiAtom(("main"));
@@ -728,7 +728,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Constructors (<init>) methods of this class.
+   * Constructors ({@code <init>}) methods of this class.
    */
   @Pure
   public RVMMethod[] getConstructorMethods() {
@@ -868,7 +868,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * Find specified static method description.
    * @param memberName method name - something like "foo"
    * @param memberDescriptor method descriptor - something like "I" or "()I"
-   * @return method description (null --> not found)
+   * @return method description (null --&gt; not found)
    */
   @Pure
   public RVMMethod findStaticMethod(Atom memberName, Atom memberDescriptor) {
@@ -884,7 +884,7 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
   /**
    * Find specified initializer method description.
    * @param  memberDescriptor  init method descriptor - something like "(I)V"
-   * @return method description (null --> not found)
+   * @return method description (null --&gt; not found)
    */
   @Pure
   public RVMMethod findInitializerMethod(Atom memberDescriptor) {

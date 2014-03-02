@@ -3397,7 +3397,7 @@ public final class BC2IR
    * Pop an int from the stack to be used in a shift. A shift only uses the
    * bottom 5 or 6 bits of an int so the upper bits must be masked to conform
    * with the semantics of xx_SHx. NB the opt compiler shift operators allow that
-   * (x << 16) << 16 == x << 32, which isn't true in the bytecode
+   * {@code (x << 16) << 16 == x << 32}, which isn't true in the bytecode
    * @param longShift is this a shift of a long
    * @return the operand containing the amount to shift by
    */

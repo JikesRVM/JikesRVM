@@ -41,24 +41,24 @@ public final class ConditionOperand extends Operand {
   // branches that fall through when unordered
   /** Branch if == (equivalent to CMPG_EQUAL) */
   public static final int CMPL_EQUAL = 10;
-  /** Branch if > */
+  /** Branch if &gt; */
   public static final int CMPL_GREATER = 11;
-  /** Branch if < */
+  /** Branch if &lt; */
   public static final int CMPG_LESS = 12;
-  /** Branch if >= */
+  /** Branch if &gt;= */
   public static final int CMPL_GREATER_EQUAL = 13;
-  /** Branch if <= */
+  /** Branch if &lt;= */
   public static final int CMPG_LESS_EQUAL = 14;
   // branches that are taken when unordered
   /** Branch if != (equivalent to CMPG_NOT_EQUAL) */
   public static final int CMPL_NOT_EQUAL = 17;
-  /** Branch if < or unordered */
+  /** Branch if &lt; or unordered */
   public static final int CMPL_LESS = 18;
-  /** Branch if >= or unordered */
+  /** Branch if &gt;= or unordered */
   public static final int CMPG_GREATER_EQUAL = 19;
-  /** Branch if > or unordered */
+  /** Branch if &gt; or unordered */
   public static final int CMPG_GREATER = 20;
-  /** Branch if <= or unordered */
+  /** Branch if &lt;= or unordered */
   public static final int CMPL_LESS_EQUAL = 21;
 
   /**
@@ -826,7 +826,7 @@ public final class ConditionOperand extends Operand {
    * </code>
    * becomes:
    * <code>
-   * if y &gte; x then goto A
+   * if y &gt; x then goto A
    * </code>
    * Note that this is not the same as calling {@link #flipCode}.
    */

@@ -19,10 +19,10 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 /**
  * VariableMap, non-encoded yet
  * <pre>
- * VariableMap          ---> LinkedList of VariableMapElement
- * VariableMapElement   ---> (OsrPoint, LinkedList of MethodVariables)
- * MethodVariables      ---> (Method, PC, List of LocalRegTuple)
- * LocalRegTuple   ---> ( LocalNum, regOp, Type ) or ( StackNum, regOp, Type )
+ * VariableMap          ---&gt; LinkedList of VariableMapElement
+ * VariableMapElement   ---&gt; (OsrPoint, LinkedList of MethodVariables)
+ * MethodVariables      ---&gt; (Method, PC, List of LocalRegTuple)
+ * LocalRegTuple   ---&gt; ( LocalNum, regOp, Type ) or ( StackNum, regOp, Type )
  * </pre>
  * *
  */

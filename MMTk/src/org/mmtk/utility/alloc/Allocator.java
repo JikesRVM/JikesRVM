@@ -198,7 +198,7 @@ public abstract class Allocator implements Constants {
    * @param alignment The requested alignment (some factor of 2).
    * @param knownAlignment The known minimum alignment. Specifically for use in
    * allocators that enforce greater than particle alignment. It is a <b>precondition</b>
-   * that size is aligned to knownAlignment, and that knownAlignment >= MIN_ALGINMENT.
+   * that size is aligned to knownAlignment, and that knownAlignment &gt;= MIN_ALGINMENT.
    */
   @Inline
   public static int getMaximumAlignedSize(int size, int alignment, int knownAlignment) {

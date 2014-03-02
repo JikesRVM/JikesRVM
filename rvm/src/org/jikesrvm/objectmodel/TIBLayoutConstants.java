@@ -33,19 +33,19 @@ import org.jikesrvm.classloader.SpecializedMethodManager;
  *            +--------------------+              +--------------+
  *            |      length        |              |    field0    |
  *            +--------------------+              +--------------+
- *    TIB:  0:|       type         +------------> |     ...      |
+ *    TIB:  0:|       type         +------------&gt; |     ...      |
  *            +--------------------+              +--------------+
- *          1:|   superclass ids   +-->           |   fieldN-1   |
+ *          1:|   superclass ids   +--&gt;           |   fieldN-1   |
  *            +--------------------+              +--------------+
- *          2:|  implements trits  +-->
+ *          2:|  implements trits  +--&gt;
  *            +--------------------+
- *          3:|  array element TIB +-->
+ *          3:|  array element TIB +--&gt;
  *            +--------------------+
- *          4:|     iTABLES/IMT    +-->
+ *          4:|     iTABLES/IMT    +--&gt;
  *            +--------------------+
- *          5:|  specialized 0     +-->
+ *          5:|  specialized 0     +--&gt;
  *            +--------------------+
- *            |       ...          +-->
+ *            |       ...          +--&gt;
  *            +--------------------+
  *         V0:|  virtual method 0  +-----+
  *            +--------------------+     |
@@ -58,7 +58,7 @@ import org.jikesrvm.classloader.SpecializedMethodManager;
  *                                       |        +--------------+
  *                                       |        |    length    |
  *                                       |        +--------------+
- *                                       +------->|    code0     |
+ *                                       +-------&gt;|    code0     |
  *                                                +--------------+
  *                                                |      ...     |
  *                                                +--------------+
@@ -118,7 +118,7 @@ public interface TIBLayoutConstants {
    *  <ul>
    *  <li>the jtoc offsets are aligned and this value should be
    *  too huge to address the table</li>
-   *  <li>instance field offsets are always &gte; -4</li>
+   *  <li>instance field offsets are always &gt;= -4 (TODO check if this is still correct)</li>
    *  <li>virtual method offsets are always positive w.r.t. TIB pointer</li>
    *  <li>fits into a PowerPC 16bit immediate operand</li>
    *   </ul>

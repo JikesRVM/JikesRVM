@@ -206,7 +206,7 @@ public abstract class RVMType extends AnnotatedElement
   /**
    * Number of [ in descriptor for arrays; -1 for primitives; 0 for
    * classes. NB this field must appear in all Types for fast type
-   * checks (See {@link org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion}).
+   * checks (See transformation from HIR to LIR for details).
    */
   @Entrypoint
   protected final int dimension;
@@ -214,13 +214,13 @@ public abstract class RVMType extends AnnotatedElement
    * Number of superclasses to Object. Known immediately for
    * primitives and arrays, but only after resolving for classes. NB
    * this field must appear in all Types for fast object array
-   * store checks (See {@link org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion}).
+   * store checks (See transformation from HIR to LIR for details).
    */
   @Entrypoint
   protected int depth;
   /**
    * cached RVMArray that corresponds to arrays of this type.
-   * (null ->> not created yet).
+   * (null --&gt; not created yet).
    */
   private RVMArray cachedElementType;
 
@@ -630,7 +630,7 @@ public abstract class RVMType extends AnnotatedElement
    * Find specified virtual method description.
    * @param memberName   method name - something like "foo"
    * @param memberDescriptor method descriptor - something like "I" or "()I"
-   * @return method description (null --> not found)
+   * @return method description (null --&gt; not found)
    */
   public final RVMMethod findVirtualMethod(Atom memberName, Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());

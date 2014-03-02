@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * An interface conflict resolution stub uses a hidden parameter to
  * distinguish among multiple interface methods of a class that map to
- * the same slot in the class's IMT. </p>
+ * the same slot in the class's IMT.
  *
  * <p><STRONG>Assumption:</STRONG>
  * Register EAX contains the "this" parameter of the

@@ -178,7 +178,7 @@ public class CompiledMethods implements SizeConstants {
    * have no idea how far to back up the instruction pointer to point to the
    * "call site" or "exception site".
    *
-   * @return method (<code>null</code> --> not found)
+   * @return method (<code>null</code> --&gt; not found)
    */
   @Uninterruptible
   public static CompiledMethod findMethodForInstruction(Address ip) {

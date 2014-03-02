@@ -40,7 +40,7 @@ public interface IRGenOptions {
   /**
    * How many return addresses will we allow in the local variables of
    * a basic block before we decide that we should bail out to prevent
-   * exponential blowup in code space & compile time?
+   * exponential blowup in code space &amp; compile time?
    */
   int MAX_RETURN_ADDRESSES = 3;
 

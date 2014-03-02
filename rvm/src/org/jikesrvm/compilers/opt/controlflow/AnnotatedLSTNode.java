@@ -53,7 +53,7 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
 import org.jikesrvm.util.BitVector;
 
 /**
- * <p>A node in the LST (Loop Structure Tree) with added information
+ * A node in the LST (Loop Structure Tree) with added information
  * on:
  *
  * <ul><li>Whether this is a countable, affine or non-regular loop</li>
@@ -69,7 +69,7 @@ import org.jikesrvm.util.BitVector;
  * The information is only held on regular loops. The regular loop
  * structure is:
  *
- * <listing>
+ * <pre>
  * predecessor:
  *   initialLoopIterator = ...;
  * header:
@@ -80,17 +80,17 @@ import org.jikesrvm.util.BitVector;
  * exit:
  *   if carriedLoopIterator condition terminalIteratorValue goto header
  * successor:
- * </listing>
+ * </pre>
  *
  * While loops (and implicitly for loops) aren't handled as they can
  * be transformed to this form by {@link CFGTransformations}.
- *
+ * <p>
  * TODO:
  * <ul><li>More complex iterator instructions (sequences rather than single instructions)</li>
  *     <li>Handle longs, floats and doubles as loop iterators</li>
  *     <li>Consideration of more loop structures</li>
  * </ul>
- * </p>
+ *
  *
  * @see LSTNode
  */
@@ -183,7 +183,7 @@ public final class AnnotatedLSTNode extends LSTNode {
 
   /**
    * Is this a countable loop of the form:
-   * <listing>
+   * <pre>
    * predecessor:
    *   initialLoopIterator = ConstantInitialValue;
    * header:
@@ -194,7 +194,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * exit:
    *   if carriedLoopIterator condition ConstantTerminalIteratorValue goto header
    * successor:
-   * </listing>
+   * </pre>
    * ie. lots of constant fields so we can calculate the number of
    * loop iterations (handy for pre-scheduling).
    *
@@ -213,7 +213,7 @@ public final class AnnotatedLSTNode extends LSTNode {
 
   /**
    * Is this an affine loop of the form:
-   * <listing>
+   * <pre>
    * predecessor:
    *   initialLoopIterator = ...;
    * header:
@@ -224,7 +224,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * exit:
    *   if carriedLoopIterator condition invariantTerminalIteratorValue goto header
    * successor:
-   * </listing>
+   * </pre>
    * ie. lots of constant fields so we can calculate the number of
    * loop iterations (handy for pre-scheduling).
    *

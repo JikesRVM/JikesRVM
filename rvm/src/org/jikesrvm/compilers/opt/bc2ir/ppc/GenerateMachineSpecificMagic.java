@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * This class implements the machine-specific magics for the opt compiler.
  *
- * @see org.jikesrvm.compilers.opt.ir.GenerateMagic for the machine-independent magics.
+ * @see org.jikesrvm.compilers.opt.bc2ir.GenerateMagic for the machine-independent magics.
  */
 public abstract class GenerateMachineSpecificMagic implements Operators, StackframeLayoutConstants {
 

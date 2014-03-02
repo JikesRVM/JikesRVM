@@ -31,7 +31,7 @@ import static org.jikesrvm.mm.mminterface.Barriers.*;
 public final class RVMField extends RVMMember {
 
   /**
-   * constant pool index of field's value (0 --> not a "static final constant")
+   * constant pool index of field's value (0 --&gt; not a "static final constant")
    */
   private final int constantValueIndex;
 
@@ -263,7 +263,7 @@ public final class RVMField extends RVMMember {
   /**
    * Get index of constant pool entry containing this
    * "static final constant" field's value.
-   * @return constant pool index (0 --> field is not a "static final constant")
+   * @return constant pool index (0 --&gt; field is not a "static final constant")
    */
   @Uninterruptible
   int getConstantValueIndex() {

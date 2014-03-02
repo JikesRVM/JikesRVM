@@ -42,15 +42,15 @@ import org.vmmagic.unboxed.Offset;
  *
  * <p> The supported functions are:
  * <ul>
- *  <li> (1) Map from a machine code offset to a GC map (register & stack map).
- *  <li> (2) Map from machinecode offset to <method, bcIndex> pair.
+ *  <li> (1) Map from a machine code offset to a GC map (register &amp; stack map).
+ *  <li> (2) Map from machinecode offset to &lt;method, bcIndex&gt; pair.
  *        Used for:
  *                  <ul>
  *                  <li> dynamic linking
  *                  <li> lazy compilation
  *                  <li> adaptive system profiling
  *                  </ul>
- *  <li> (3) Map from a machine code offset to a tree of <method, bcIndex> pairs
+ *  <li> (3) Map from a machine code offset to a tree of &lt;method, bcIndex&gt; pairs
  *      that encodes the inlining sequence.
  *        Used for:
  *                  <ul>

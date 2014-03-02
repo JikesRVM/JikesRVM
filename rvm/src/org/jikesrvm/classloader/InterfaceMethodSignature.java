@@ -113,7 +113,7 @@ public final class InterfaceMethodSignature implements TIBLayoutConstants, SizeC
   /**
    * If using embedded IMTs, Get offset of interface method slot in TIB.
    * If using indirect IMTs, Get offset of interface method slot in IMT.
-   * Note that all methods with same name & descriptor map to the same slot.
+   * Note that all methods with same name &amp; descriptor map to the same slot.
    * <p>
    * TODO!! replace this stupid offset assignment algorithm with something more reasonable.
    *

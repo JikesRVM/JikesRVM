@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  * <p>
  * All methods of this class have the following signature:
  * <pre>
- * public abstract <TYPE> NAME(<args to pass to sysNAME via native calling convention>)
+ * public abstract &lt;TYPE&gt; NAME(&lt;args to pass to sysNAME via native calling convention&gt;)
  * </pre>
  * which will call the corresponding method in system call trampoline
  * with the added function address from the boot image.

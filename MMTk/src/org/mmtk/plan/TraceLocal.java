@@ -408,11 +408,13 @@ public abstract class TraceLocal extends TransitiveClosure implements Constants 
    *
    * <i>For many collectors these semantics reflect those of
    * <code>traceObject</code>, which is implemented here.  Other
-   * collectors must override this method.</i>
+   * collectors must override this method.</i><p>
+   *
+   * TODO is the JavaDoc for this method still up to date?
    *
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.  <i>In this
-   * case return <code>object</code>, copying collectors must override
+   * case return <code>object</code></i>, copying collectors must override
    *         this method.
    */
   public ObjectReference retainForFinalize(ObjectReference object) {

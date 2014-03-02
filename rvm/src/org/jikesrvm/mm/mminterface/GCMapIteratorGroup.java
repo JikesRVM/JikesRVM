@@ -55,7 +55,7 @@ public final class GCMapIteratorGroup implements SizeConstants {
   /** iterator for HardwareTrap stackframes */
   private final GCMapIterator hardwareTrapIterator;
 
-  /** iterator for JNI Java -> C  stackframes */
+  /** iterator for JNI Java -&gt; C  stackframes */
   private final GCMapIterator jniIterator;
 
   public GCMapIteratorGroup() {

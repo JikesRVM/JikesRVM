@@ -37,7 +37,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode.GraphEdgeEnumeration;
 class CoalesceGraph extends SpaceEffGraph {
 
   /**
-   * Mapping register -> Node
+   * Mapping register -&gt; Node
    */
   final HashMap<Register, Node> nodeMap = new HashMap<Register, Node>();
 

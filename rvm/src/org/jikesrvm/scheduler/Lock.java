@@ -39,7 +39,6 @@ import org.vmmagic.unboxed.Offset;
  <LI> management of heavy weight locks, and
  <LI> debugging and performance tuning support.
  </OL>
- </p>
 
  <p><STRONG>Requirement 1:</STRONG>
  It must be possible to lock an object when allocations are not
@@ -59,7 +58,7 @@ org.jikesrvm.ArchitectureSpecific.BaselineExceptionDeliverer#unwindStackFrame(or
  support for {@link java.lang.Object#notify}, {@link
 java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  When these methods are called, the indicated object must be locked
- by the current thread.  <p>
+ by the current thread.  </p>
 
  <p><STRONG>Section 2:</STRONG>
  has two sections.  <EM>Section 2a:</EM> locks (and unlocking)
@@ -79,7 +78,7 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
 
  <p>
  The following performance tuning issues have not yet been addressed
- adaquately:
+ adaquately:</p>
  <OL>
  <LI> <EM>What to do if the attempt to lock an object fails?</EM>  There
  are three choices: try again (busy-wait), yield and then try again,
@@ -102,6 +101,7 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  <LI> <EM>Is there any advantage to using the {@link SpinLock#tryLock}
  method?</EM>
  </OL>
+ <p>
  Once these questions, and the issue of using MCS locking in {@link SpinLock},
  have been investigated, then a larger performance issue
  comes into view.  A number of different light-weight locking schemes have

@@ -240,19 +240,19 @@ public final class IR {
 
   /**
    * Pointer to the HIRInfo for this method.
-   * Valid only if {@link #IRStage}>=HIR
+   * Valid only if {@link #IRStage}&gt;=HIR
    */
   public HIRInfo HIRInfo;
 
   /**
    * Pointer to the LIRInfo for this method.
-   * Valid only if {@link #IRStage}>=LIR.
+   * Valid only if {@link #IRStage}&gt;=LIR.
    */
   public LIRInfo LIRInfo;
 
   /**
    * Pointer to the MIRInfo for this method.
-   * Valid only if {@link #IRStage}>=MIR.
+   * Valid only if {@link #IRStage}&gt;=MIR.
    */
   public MIRInfo MIRInfo;
 
@@ -659,7 +659,7 @@ public final class IR {
 
   /**
    * States whether liveness for handlers is available
-   & @return whether liveness for handlers is available
+   * @return whether liveness for handlers is available
    */
   public boolean getHandlerLivenessComputed() {
     return handlerLivenessComputed;

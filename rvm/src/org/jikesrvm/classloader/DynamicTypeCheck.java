@@ -58,12 +58,12 @@ import org.vmmagic.pragma.Uninterruptible;
  *    <li>(2b) LHS is [^k class:
  *        If so, the dimensionality of the RHS must be k
  *        and the baseclass of the RHS must be assignable with class (see #3)
- *        _OR_ the dimensionality of the RHS must be >k
+ *        _OR_ the dimensionality of the RHS must be &gt;k
  *        and the baseclass of the LHS is java.lang.Cloneable or java.io.Serializable
  *    <li>(2c) LHS is [^k Ljava.lang.Object:
  *        If so, either the dimensionality of the RHS is greater than k
  *        or, this dimensionality is k and the baseclass is NOT primitive
- *    <ul>
+ *    </ul>
  * <p>
  * (3) Otherwise, is the LHS unresolved?
  *    If so, fall back to calling RuntimeEntrypoints.instanceOf at runtime which will
@@ -80,8 +80,10 @@ import org.vmmagic.pragma.Uninterruptible;
  * <p>
  * (6) Otherwise.  If the LHS depth component of the RHS's superclassIds
  *    array is the LHS class ID, the test succeeds.  Else, it fails.
+ * <p>
+ * For details about the expansion of type checks in the optimizing compiler, see
+ * the transformation from high level IR to low level IR.
  *
- * @see org.jikesrvm.compilers.opt.hir2lir.DynamicTypeCheckExpansion
  * @see RVMType
  * @see RVMClass
  * @see RVMArray

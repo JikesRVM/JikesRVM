@@ -72,7 +72,7 @@ import org.vmmagic.pragma.Pure;
  field descriptor of the return type.  There are no spaces or other
  separator characters between the argument types.  "<code>V</code>" is
  used to denote the <code>void</code> method return type.  Constructors
- use "<code>V</code>" as their return type and use "<code>&lt;init&gt;"
+ use "<code>V</code>" as their return type and use "<code>&lt;init&gt;</code>"
  as their name.
  </blockquote>
 
@@ -82,8 +82,8 @@ import org.vmmagic.pragma.Pure;
  <dt>TypeReference names</dt>
  <dd>Inside Jikes RVM, we use the TypeReference class to represent the
  reference in some class file to some type (class, interface, primitive, or
- array).  We also use them to represent Void (TypeReference.Void).</dd>
- TypeReference names are just field descriptors plus "V".
+ array).  We also use them to represent Void ({@code TypeReference.Void}).
+ TypeReference names are just field descriptors plus "V".</dd>
  </dl>
 
  */

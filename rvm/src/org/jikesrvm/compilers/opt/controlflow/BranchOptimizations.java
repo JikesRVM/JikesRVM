@@ -187,7 +187,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    *    5)   GOTO BBn where BBn has exactly one in edge
    *         - move BBn immediately after the GOTO in the code order,
    *           so that pattern 3) will create a fallthrough
-   * <pre>
+   * </pre>
    *
    * <p> Precondition: Goto.conforms(g)
    *
@@ -679,7 +679,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * The parameter k is specified by OPT\_Options.COND_MOVE_CUTOFF.
    *
    * <p> In the example above, since we've increased the shortest path by
-   * 6 instructions, we will only perform the transformation if k >= 7.
+   * 6 instructions, we will only perform the transformation if {@code k >= 7}.
    *
    * <p> TODO items
    * <ul>
@@ -970,7 +970,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * For each real non-branch instruction s in bb,
    * <ul>
    * <li> Copy s to s', and store s' in the returned array
-   * <li> Insert the function s->s' in the map
+   * <li> Insert the function s-&gt;s' in the map
    * </ul>
    */
   private Instruction[] copyAndMapInstructions(BasicBlock bb, HashMap<Instruction, Instruction> map) {

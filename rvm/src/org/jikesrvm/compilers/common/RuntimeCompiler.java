@@ -66,7 +66,7 @@ import org.jikesrvm.scheduler.RVMThread;
  *   machine code array and thus CompiledMethod.numberOfInsturctions()
  *   is a close enough approximation of the number of machinecodes generated)
  * </ol>
- *   Note that even if 3. & 4. are inflated due to padding, the numbers will
+ *   Note that even if 3. &amp; 4. are inflated due to padding, the numbers will
  *   still be an accurate measure of the space costs of the compile-only
  *   approach.
  */
@@ -385,7 +385,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    * using the default compilation plan.  If
    * this fails we will use the quicker compiler (baseline for now)
    * The following is carefully crafted to avoid (infinte) recursive opt
-   * compilation for all combinations of bootimages & lazy/eager compilation.
+   * compilation for all combinations of bootimages &amp; lazy/eager compilation.
    * Be absolutely sure you know what you're doing before changing it !!!
    * @param method the method to compile
    */
@@ -417,7 +417,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
    * with the passed compilation plan.  If
    * this fails we will use the quicker compiler (baseline for now)
    * The following is carefully crafted to avoid (infinite) recursive opt
-   * compilation for all combinations of bootimages & lazy/eager compilation.
+   * compilation for all combinations of bootimages &amp; lazy/eager compilation.
    * Be absolutely sure you know what you're doing before changing it !!!
    * @param method the method to compile
    * @param plan the compilation plan to use for the compile

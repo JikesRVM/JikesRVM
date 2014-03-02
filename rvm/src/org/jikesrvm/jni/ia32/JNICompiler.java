@@ -65,7 +65,7 @@ import org.vmmagic.unboxed.Offset;
  * <li>Convert a reference result (currently a JNI ref) into a true reference</li>
  * <li>Release JNI refs</li>
  * <li>Restore stack and place result in register</li>
- * <ol>
+ * </ol>
  *
  * Prologue generation from C to Java:
  * <ol>
@@ -109,7 +109,7 @@ public abstract class JNICompiler implements BaselineConstants {
   /**
    * Stack frame location for saved JNIEnvironment.JNITopJavaFP that
    * will be clobbered by a transition from Java to C.  Only used in
-   * the prologue & epilogue for JNIFunctions.
+   * the prologue &amp; epilogue for JNIFunctions.
    */
   private static final Offset SAVED_JAVA_FP_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
 
@@ -141,7 +141,7 @@ public abstract class JNICompiler implements BaselineConstants {
    * <li>Convert a reference result (currently a JNI ref) into a true reference</li>
    * <li>Release JNI refs</li>
    * <li>Restore stack and place result in register</li>
-   * <ol>
+   * </ol>
    */
   public static synchronized CompiledMethod compile(NativeMethod method) {
     // Meaning of constant offset into frame (assuming 4byte word size):
@@ -573,21 +573,21 @@ public abstract class JNICompiler implements BaselineConstants {
    *            Stack on entry            Stack at end of prolog after call
    *             high memory                       high memory
    *            |            |                   |            |
-   *    EBP ->  |saved FP    |                   |saved FP    |
+   *    EBP -&gt;  |saved FP    |                   |saved FP    |
    *            |  ...       |                   |  ...       |
    *            |            |                   |            |
    *            |arg n-1     |                   |arg n-1     |
    * native     |  ...       |                   |  ...       |
    * caller     |arg 0       | JNIEnv*           |arg 0       | JNIEnvironment
-   *    ESP ->  |return addr |                   |return addr |
-   *            |            |           EBP ->  |saved FP    | outer most native frame pointer
+   *    ESP -&gt;  |return addr |                   |return addr |
+   *            |            |           EBP -&gt;  |saved FP    | outer most native frame pointer
    *            |            |                   |methodID    | normal MethodID for JNI function
    *            |            |                   |saved JavaFP| offset to preceeding java frame
    *            |            |                   |saved nonvol| to be used for nonvolatile storage
    *            |            |                   |  ...       |   including ebp on entry
    *            |            |                   |arg 0       | copied in reverse order (JNIEnvironment)
    *            |            |                   |  ...       |
-   *            |            |           ESP ->  |arg n-1     |
+   *            |            |           ESP -&gt;  |arg n-1     |
    *            |            |                   |            | normally compiled Java code continue
    *            |            |                   |            |
    *            |            |                   |            |

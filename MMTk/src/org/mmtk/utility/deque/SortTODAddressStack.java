@@ -81,7 +81,7 @@ import org.vmmagic.pragma.*;
   /**
    * Check if the (local and shared) stacks are empty.
    *
-   * @return True if there are no more entries on the local & shared stack,
+   * @return True if there are no more entries on the local &amp; shared stack,
    *         false otherwise.
    */
   @Inline

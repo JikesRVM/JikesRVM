@@ -34,8 +34,8 @@ import org.jikesrvm.compilers.opt.driver.CompilationPlan;
  * <p>
  * status states:
  * <pre>
- * UNINITIALIZED -> IN_PROGRESS -> COMPLETED -> OUTDATED
- *             \              \--> ABORTED_COMPILATION_ERROR (never recompile method)
+ * UNINITIALIZED -&gt; IN_PROGRESS -&gt; COMPLETED -&gt; OUTDATED
+ *             \              \--&gt; ABORTED_COMPILATION_ERROR (never recompile method)
  * </pre>
  */
 public final class ControllerPlan {

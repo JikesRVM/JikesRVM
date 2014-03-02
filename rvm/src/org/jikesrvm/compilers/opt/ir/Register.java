@@ -31,7 +31,7 @@ public final class Register {
   public final int number;
 
   /**
-   * Encoding of register properties & scratch bits
+   * Encoding of register properties &amp; scratch bits
    */
   private int flags;
 

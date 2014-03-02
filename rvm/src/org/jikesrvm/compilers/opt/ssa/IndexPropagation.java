@@ -23,7 +23,7 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
 
 /**
- * Perform index propagation (see Fink, Knobe && Sarkar, SAS 2000)
+ * Perform index propagation (see Fink, Knobe &amp; Sarkar, SAS 2000)
  *
  * <p> This analysis computes for each Array SSA variable A,
  * the set of value numbers V(k) such that location
@@ -311,9 +311,10 @@ public final class IndexPropagation extends CompilerPhase {
    * the elements indexed by these value numbers are available for
    * a certain array type.
    *
-   * <p> For example, suppose p is an int[], with value number v(p).
-   * Then the value number pair <p,5> for heap variable I[ means
-   * that p[5] is available.
+   * <p> For example, suppose {@code p} is an {@code int[]}, with value number
+   * {@code v(p)}.
+   * Then the value number pair {@code <p,5>} for heap variable {@code I[} means
+   * that {@code p[5]} is available.
    *
    * <p> Note: this implementation does not scale, and is not terribly
    * efficient.

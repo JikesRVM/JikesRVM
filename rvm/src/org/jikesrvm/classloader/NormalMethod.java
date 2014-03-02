@@ -105,17 +105,17 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
   private short operandWords;
 
   /**
-   * bytecodes for this method ({@code null} --> none)
+   * bytecodes for this method ({@code null} --&gt; none)
    */
   private final byte[] bytecodes;
 
   /**
-   * try/catch/finally blocks for this method ({@code null} --> none)
+   * try/catch/finally blocks for this method ({@code null} --&gt; none)
    */
   private final ExceptionHandlerMap exceptionHandlerMap;
 
   /**
-   * pc to source-line info ({@code null} --> none)
+   * pc to source-line info ({@code null} --&gt; none)
    * Each entry contains both the line number (upper 16 bits)
    * and corresponding start PC (lower 16 bits).
    */
@@ -233,7 +233,7 @@ public final class NormalMethod extends RVMMethod implements BytecodeConstants {
 
   /**
    * Exceptions caught by this method.
-   * @return info (null --> method doesn't catch any exceptions)
+   * @return info (null --&gt; method doesn't catch any exceptions)
    */
   @Uninterruptible
   public ExceptionHandlerMap getExceptionHandlerMap() {

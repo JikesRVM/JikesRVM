@@ -419,7 +419,7 @@ public final class RVMThread extends ThreadContext implements Constants {
 
   /**
    * Scheduling priority for this thread. Note that:
-   * {@link java.lang.Thread#MIN_PRIORITY} <= priority <=
+   * {@link java.lang.Thread#MIN_PRIORITY} &lt;= priority &lt;=
    * {@link java.lang.Thread#MAX_PRIORITY}.
    */
   private int priority;
@@ -577,7 +577,7 @@ public final class RVMThread extends ThreadContext implements Constants {
 
   /**
    * Should this thread yield at yieldpoints? A value of: 1 means "yes"
-   * (yieldpoints enabled) <= 0 means "no" (yieldpoints disabled)
+   * (yieldpoints enabled) &lt;= 0 means "no" (yieldpoints disabled)
    */
   private int yieldpointsEnabledCount;
 
@@ -911,8 +911,8 @@ public final class RVMThread extends ThreadContext implements Constants {
    * <p>
    * To support efficient sampling of only prologue/epilogues we also encode
    * some extra information into this field. 0 means that the yieldpoint should
-   * not be taken. >0 means that the next yieldpoint of any type should be taken
-   * <0 means that the next prologue/epilogue yieldpoint should be taken
+   * not be taken. &gt;0 means that the next yieldpoint of any type should be taken
+   * &lt;0 means that the next prologue/epilogue yieldpoint should be taken
    * <p>
    * Note the following rules:
    * <ol>
@@ -1034,7 +1034,7 @@ public final class RVMThread extends ThreadContext implements Constants {
   public Word priority_handle;
 
   /**
-   * Scratch area for use for gpr <=> fpr transfers by PPC baseline compiler.
+   * Scratch area for use for gpr &lt;=&gt; fpr transfers by PPC baseline compiler.
    * Used to transfer x87 to SSE registers on IA32
    */
   @SuppressWarnings({ "unused" })
@@ -4082,7 +4082,7 @@ public final class RVMThread extends ThreadContext implements Constants {
    *          new size (in bytes)
    * @param exceptionRegisters
    *          register state at which stack overflow trap was encountered (null
-   *          --> normal method call, not a trap)
+   *          --&gt; normal method call, not a trap)
    */
   @Unpreemptible("May block due to allocation")
   public static void resizeCurrentStack(int newSize,

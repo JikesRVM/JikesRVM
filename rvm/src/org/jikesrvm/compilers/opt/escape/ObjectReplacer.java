@@ -139,8 +139,9 @@ final class ObjectReplacer implements AggregateReplacer {
   }
 
   /**
-   * Returns a ArrayList<RVMField>, holding the fields of the object
+   * Returns the instance fields of the object.
    * @param klass the type of the object
+   * @return a list holding the instance fields of the object
    */
   private static ArrayList<RVMField> getFieldsAsArrayList(RVMClass klass) {
     ArrayList<RVMField> v = new ArrayList<RVMField>();

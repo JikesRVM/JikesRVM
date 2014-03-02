@@ -56,7 +56,7 @@ import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 
 /**
- * Wrappers around IA32-specific IR common to both 32 & 64 bit
+ * Wrappers around IA32-specific IR common to both 32 &amp; 64 bit
  */
 public abstract class MachineSpecificIRIA extends MachineSpecificIR {
 

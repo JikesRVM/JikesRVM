@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * Wrappers around IA32-specific code common to both 32 & 64 bit
+ * Wrappers around IA32-specific code common to both 32 &amp; 64 bit
  */
 public abstract class MachineSpecificIA extends MachineSpecific implements ArchConstants {
 

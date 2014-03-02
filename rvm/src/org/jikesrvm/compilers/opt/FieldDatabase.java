@@ -21,7 +21,7 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 
 /**
  * database to hold field-level information
- * this is a mapping from RVMField -> FieldDatabaseEntry
+ * this is a mapping from RVMField -&gt; FieldDatabaseEntry
  */
 final class FieldDatabase {
   private static final boolean DEBUG = false;

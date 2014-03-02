@@ -906,7 +906,7 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Performs a long -> double/float conversion using x87 and marshalls back to XMMs.
+   * Performs a long -&gt; double/float conversion using x87 and marshalls back to XMMs.
    */
   protected final void SSE2_X87_FROMLONG(Instruction s) {
     Operand result = Unary.getResult(s);
@@ -921,7 +921,7 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Performs a long -> double/float conversion using x87 and marshalls between to XMMs.
+   * Performs a long -&gt; double/float conversion using x87 and marshalls between to XMMs.
    */
   protected final void SSE2_X87_REM(Instruction s) {
     Operand result = Binary.getClearResult(s);
@@ -1059,7 +1059,7 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Expansion of SSE2 conversions double <-> float
+   * Expansion of SSE2 conversions double &lt;-&gt; float
    */
   protected final void SSE2_CONV(Operator op, Instruction s, Operand result, Operand value) {
     if(VM.VerifyAssertions) VM._assert(result.isRegister());
@@ -2720,7 +2720,7 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Expansion of LONG_CMP: compare to values and set result to -1, 0, 1 for <, =, >,
+   * Expansion of LONG_CMP: compare to values and set result to -1, 0, 1 for &lt;, =, &gt;,
    * respectively
    *
    * @param s the compare instruction
@@ -2800,7 +2800,7 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Expansion for [DF]CMP[GL] compare to values and set result to -1, 0, 1 for <, =, >,
+   * Expansion for [DF]CMP[GL] compare to values and set result to -1, 0, 1 for &lt;, =, &gt;
    * respectively
    *
    * @param s the compare instruction

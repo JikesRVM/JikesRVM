@@ -611,7 +611,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * RVM did allow the GC system to move thread stacks, and called a
    * special fixup routine, thread.fixupMovedStack to adjust all of
    * the special interior pointers (SP, FP).  If we implement split C
-   * & Java stacks then we could allow the Java stacks to be moved,
+   * &amp; Java stacks then we could allow the Java stacks to be moved,
    * but we can't move the native stack.
    */
   private void assertImmovableInCurrentCollection() {

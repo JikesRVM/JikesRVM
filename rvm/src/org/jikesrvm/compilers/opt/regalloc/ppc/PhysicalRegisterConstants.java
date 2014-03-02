@@ -17,7 +17,7 @@ import org.jikesrvm.ppc.RegisterConstants;
 /**
  * This class holds constants that describe PowerPC register set.
  *
- * @see org.jikesrvm.compilers.opt.RegisterAllocator
+ * @see org.jikesrvm.compilers.opt.regalloc.RegisterAllocator
  */
 public interface PhysicalRegisterConstants extends RegisterConstants {
 

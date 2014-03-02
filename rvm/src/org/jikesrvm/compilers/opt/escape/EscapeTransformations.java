@@ -148,8 +148,8 @@ public class EscapeTransformations extends CompilerPhase {
   }
 
   /**
-   * Generate an object which transforms defs & uses of "synchronized"
-   * objects to defs & uses of "unsynchronized" objects
+   * Generate an object which transforms defs &amp; uses of "synchronized"
+   * objects to defs &amp; uses of "unsynchronized" objects
    *
    * <p> PRECONDITION: objects pointed to by reg do NOT escape
    *

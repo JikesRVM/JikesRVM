@@ -23,7 +23,7 @@ import org.jikesrvm.compilers.opt.ir.Register;
  * <ul>
  *   <li>TODO: Consider caching the state in a lookaside structure.
  *   <li>TODO: Currently, the physical registers are STATIC! fix this.
- * <ul>
+ * </ul>
  */
 public class RegisterAllocatorState {
 

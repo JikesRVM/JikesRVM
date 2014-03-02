@@ -234,7 +234,7 @@ public abstract class RecompilationStrategy {
   private OptOptions[] _options;
 
   /**
-   * Create the default set of <optimization plan, options> pairs
+   * Create the default set of &lt;optimization plan, options&gt; pairs
    * Process optimizing compiler command line options.
    */
   void createOptimizationPlans() {

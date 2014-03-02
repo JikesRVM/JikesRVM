@@ -39,11 +39,11 @@ import org.vmmagic.unboxed.*;
  * See the PLDI'08 paper by Blackburn and McKinley for a description
  * of the algorithm: http://doi.acm.org/10.1145/1375581.1375586<p>
  *
- * See the Jones & Lins GC book, chapter 7 for a detailed discussion
+ * See the Jones &amp; Lins GC book, chapter 7 for a detailed discussion
  * of generational collection and section 7.3 for an overview of the
  * flexible nursery behavior ("The Standard ML of New Jersey
  * collector"), or go to Appel's paper "Simple generational garbage
- * collection and fast allocation." SP&E 19(2):171--183, 1989.<p>
+ * collection and fast allocation." SP&amp;E 19(2):171--183, 1989.<p>
  *
  *
  * For general comments about the global/local distinction among classes refer

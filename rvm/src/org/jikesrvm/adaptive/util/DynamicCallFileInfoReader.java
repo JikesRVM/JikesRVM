@@ -36,7 +36,7 @@ import org.jikesrvm.classloader.MethodReference;
  * </pre>
  * Where the types and meanings of the fields is as follows:
  * <ul>
- * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
+ * <li><code>&lt;signature&gt;</code> <i>string</i> The method signature</li>
  * </ul>
  *
  *

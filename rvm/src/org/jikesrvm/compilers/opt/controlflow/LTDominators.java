@@ -374,7 +374,7 @@ public class LTDominators extends Stack<BasicBlock> {
    * <ul>
    *   <li>block, if block is a root of a tree in the forest
    *   <li>any vertex, u != r such that r is the root of the tree
-   *       containing block and semi(u) is minimum on the path  r -> v,
+   *       containing block and semi(u) is minimum on the path  r -&gt; v,
    *       otherwise
    * </ul>
    * <p>

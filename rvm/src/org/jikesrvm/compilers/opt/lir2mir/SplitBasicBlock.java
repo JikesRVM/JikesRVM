@@ -20,8 +20,8 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 
 /**
- * Splits a large basic block into smaller ones with size <=
- * OptOptions.L2M_MAX_BLOCK_SIZE
+ * Splits a large basic block into smaller ones with {@code size <=
+ * OptOptions.L2M_MAX_BLOCK_SIZE}
  */
 public final class SplitBasicBlock extends CompilerPhase {
 

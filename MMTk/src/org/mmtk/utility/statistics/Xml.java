@@ -235,7 +235,7 @@ public class Xml {
   /**
    * End a tag, optionally closing it (if it is a simple entity)
    *
-   * @param close If true, close the tag with "/>" rather than ">"
+   * @param close If true, close the tag with "/&gt;" rather than "&gt;"
    */
   public static void closeTag(boolean close) {
     closeTag(close,true);
@@ -245,7 +245,7 @@ public class Xml {
    * End a tag, optionally closing it (if it is a simple entity),
    * and optionally printing end-of-line
    *
-   * @param close If true, close the tag with "/>" rather than ">"
+   * @param close If true, close the tag with "/&gt;" rather than "&gt;"
    * @param endLine If true end the current line.
    */
   public static void closeTag(boolean close, boolean endLine) {
@@ -255,7 +255,7 @@ public class Xml {
   }
 
   /**
-   * Close a tag with a "/>"
+   * Close a tag with a "/&gt;"
    */
   public static void closeMinorTag() {
     closeTag(true,true);

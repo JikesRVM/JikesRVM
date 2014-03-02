@@ -46,7 +46,7 @@ import org.vmmagic.unboxed.Word;
  * <pre>
  *
  *  +-------------+-------------+-------------+---------------
- *  | Region  End | Next Region |  Data  End  | Data -->
+ *  | Region  End | Next Region |  Data  End  | Data --&gt;
  * +-------------+-------------+-------------+---------------
  *
  * </pre>

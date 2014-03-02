@@ -21,9 +21,9 @@ import org.mmtk.vm.VM;
  *
  * <pre>
  * static final int LOG_BYTES_IN_INT = 2;
- * static final int BYTES_IN_INT = 1<<LOG_BYTES_IN_INT;
+ * static final int BYTES_IN_INT = 1&lt;&lt;LOG_BYTES_IN_INT;
  * static final int LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
- * static final int BITS_IN_INT = 1<<LOG_BITS_IN_INT;
+ * static final int BITS_IN_INT = 1&lt;&lt;LOG_BITS_IN_INT;
  * </pre>
  */
 public interface Constants {

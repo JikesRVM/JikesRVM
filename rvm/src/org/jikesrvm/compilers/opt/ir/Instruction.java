@@ -1079,7 +1079,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Is the instruction a compare (val,val) => condition?
+   * Is the instruction a compare (val,val) =&gt; condition?
    *
    * @return <code>true</code> if the instruction is a compare
    *         or <code>false</code> if it is not.
@@ -1513,7 +1513,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * Replacement: Replace this with newInstr.
-   * We could allow replacement of first & last instrs in the basic block,
+   * We could allow replacement of first &amp; last instrs in the basic block,
    * but it would be a fair amount of work to update everything, and probably
    * isn't useful, so we'll simply disallow it for now.
    *
@@ -1551,7 +1551,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *  CFG data structure.....right now we just assume the caller knows what
    *  they are doing and takes care of it.
    *  <p>
-   *  NB: execution of this method nulls out the prev & next fields of this
+   *  NB: execution of this method nulls out the prev &amp; next fields of this
    *
    * @return the previous instruction in the instruction stream
    */

@@ -3004,7 +3004,7 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Emit code to dynamically link and allocate a scalar object
-   * @param typeRef   {@link TypeReference} to dynamically link & instantiate
+   * @param typeRef   {@link TypeReference} to dynamically link &amp; instantiate
    */
   protected abstract void emit_unresolved_new(TypeReference typeRef);
 
@@ -3016,13 +3016,13 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Emit code to dynamically link the element class and allocate an array
-   * @param typeRef typeReference to dynamically link & instantiate
+   * @param typeRef typeReference to dynamically link &amp; instantiate
    */
   protected abstract void emit_unresolved_newarray(TypeReference typeRef);
 
   /**
    * Emit code to allocate a multi-dimensional array
-   * @param typeRef typeReference to dynamically link & instantiate
+   * @param typeRef typeReference to dynamically link &amp; instantiate
    * @param dimensions the number of dimensions
    */
   protected abstract void emit_multianewarray(TypeReference typeRef, int dimensions);

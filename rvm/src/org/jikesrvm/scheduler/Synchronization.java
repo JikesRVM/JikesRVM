@@ -35,7 +35,7 @@ public class Synchronization {
    * @param offset position of field
    * @param testValue expected value of field
    * @param newValue new value of field
-   * @return {@code true}=> successful swap, {@code false}=> field not equal to testValue
+   * @return {@code true}=&gt; successful swap, {@code false}=&gt; field not equal to testValue
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, int testValue, int newValue) {
@@ -61,7 +61,7 @@ public class Synchronization {
    * @param offset position of field
    * @param testValue expected value of field
    * @param newValue new value of field
-   * @return {@code true}=> successful swap, {@code false}=> field not equal to testValue
+   * @return {@code true}=&gt; successful swap, {@code false}=&gt; field not equal to testValue
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, long testValue, long newValue) {
@@ -87,7 +87,7 @@ public class Synchronization {
    * @param offset position of field
    * @param testValue expected value of field
    * @param newValue new value of field
-   * @return {@code true}=> successful swap, {@code false}=> field not equal to testValue
+   * @return {@code true}=&gt; successful swap, {@code false}=&gt; field not equal to testValue
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, Word testValue, Word newValue) {
@@ -113,7 +113,7 @@ public class Synchronization {
    * @param offset position of field
    * @param testValue expected value of field
    * @param newValue new value of field
-   * @return {@code true}=> successful swap, {@code false}=> field not equal to testValue
+   * @return {@code true}=&gt; successful swap, {@code false}=&gt; field not equal to testValue
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, Address testValue, Address newValue) {
@@ -140,7 +140,7 @@ public class Synchronization {
    * @param offset position of field
    * @param testValue expected value of field
    * @param newValue new value of field
-   * @return {@code true}=> successful swap, {@code false}=> field not equal to testValue
+   * @return {@code true}=&gt; successful swap, {@code false}=&gt; field not equal to testValue
    */
   @Inline
   public static boolean tryCompareAndSwap(Object base, Offset offset, Object testValue, Object newValue) {

@@ -158,9 +158,8 @@ public class EstimateBlockFrequencies extends CompilerPhase {
    *   <li>Start with S = {all basic blocks}.
    *   <li>Sort the blocks by frequency.  Starting with the most frequent
    *       blocks, remove blocks from S until the sum of block frequencies in S
-   *       <= f.  Then blocks in S are infrequent.
+   *       &lt;= f.  Then blocks in S are infrequent.
    * </ol>
-   * </pre>
    *
    * @param ir the governing IR.
    */

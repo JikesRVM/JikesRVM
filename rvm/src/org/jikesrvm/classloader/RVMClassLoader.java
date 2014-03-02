@@ -55,17 +55,17 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
    */
   private static boolean assertionsEnabled = false;
   /**
-   * String describing packages and classes to enable assertions on (of the form ":<packagename>...|:<classname>")
+   * String describing packages and classes to enable assertions on (of the form ":&lt;packagename&gt;...|:&lt;classname&gt;")
    */
   private static String[] enabledAssertionStrings;
   /**
-   * String describing packages and classes to disable assertions on (of the form ":<packagename>...|:<classname>")
+   * String describing packages and classes to disable assertions on (of the form ":&lt;packagename&gt;...|:&lt;classname&gt;")
    */
   private static String[] disabledAssertionStrings;
 
   /**
    * Remember the given enable assertions string
-   * @param arg String of the form ":<packagename>...|:<classname>"
+   * @param arg String of the form ":&lt;packagename&gt;...|:&lt;classname&gt;"
    */
   public static void stashEnableAssertionArg(String arg) {
     assertionsEnabled = true;
@@ -81,7 +81,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
 
   /**
    * Remember the given disable assertions string
-   * @param arg String of the form ":<packagename>...|:<classname>"
+   * @param arg String of the form ":&lt;packagename&gt;...|:&lt;classname&gt;"
    */
   public static void stashDisableAssertionArg(String arg) {
     if (arg == null || arg.equals("")) {

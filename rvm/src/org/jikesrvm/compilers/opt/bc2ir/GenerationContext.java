@@ -297,7 +297,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   }
 
   /**
-   * Create a child generation context from parent & callerBB to
+   * Create a child generation context from parent &amp; callerBB to
    * generate IR for callsite.
    * Make this 'static' to avoid confusing parent/child fields.
    *
@@ -427,7 +427,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   /**
    * Only for internal use by Inliner (when inlining multiple targets)
    * This is probably not the prettiest way to handle this, but it requires
-   * no changes to BC2IR's & Inliner's high level control logic.
+   * no changes to BC2IR's &amp; Inliner's high level control logic.
    *
    * @param parent the parent GC
    * @param ebag the enclosing exception handlers (null if none)
@@ -668,7 +668,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
 
   /**
    * Fill in the rest of the method prologue.
-   * PRECONDITION: arguments & temps have been setup/initialized.
+   * PRECONDITION: arguments &amp; temps have been setup/initialized.
    */
   private void completePrologue(boolean isOutermost) {
     // Deal with Uninteruptible code.
@@ -695,7 +695,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
 
   /**
    * Fill in the rest of the method epilogue.
-   * PRECONDITION: arguments & temps have been setup/initialized.
+   * PRECONDITION: arguments &amp; temps have been setup/initialized.
    */
   private void completeEpilogue(boolean isOutermost) {
     // Deal with implicit monitorexit for synchronized methods.
@@ -721,8 +721,8 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
 
   /**
    * If the method is synchronized then we wrap it in a
-   * synthetic exception handler that unlocks & rethrows
-   * PRECONDITION: cfg, arguments & temps have been setup/initialized.
+   * synthetic exception handler that unlocks &amp; rethrows
+   * PRECONDITION: cfg, arguments &amp; temps have been setup/initialized.
    */
   private void completeExceptionHandlers(boolean isOutermost) {
     if (method.isSynchronized() && !options.ESCAPE_INVOKEE_THREAD_LOCAL) {

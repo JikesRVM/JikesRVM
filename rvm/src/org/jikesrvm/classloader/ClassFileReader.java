@@ -326,7 +326,7 @@ public class ClassFileReader implements Constants, ClassLoaderConstants {
   /**
    * Return the class initializer method among the declared methods of the class
    * @param declaredMethods
-   * @return the class initializer method <cinit> of the class
+   * @return the class initializer method {@code <clinit>} of the class
    */
   static RVMMethod getClassInitializerMethod(RVMMethod[] declaredMethods) {
     for (RVMMethod method : declaredMethods) {

@@ -26,7 +26,7 @@ import org.vmmagic.pragma.*;
  */
 @Uninterruptible
 public class StickyImmixConstraints extends ImmixConstraints {
-  /** @return The number of specialized scans.  We need nursery & full heap. */
+  /** @return The number of specialized scans.  We need nursery &amp; full heap. */
   @Override
   public int numSpecializedScans() { return 3; }
 

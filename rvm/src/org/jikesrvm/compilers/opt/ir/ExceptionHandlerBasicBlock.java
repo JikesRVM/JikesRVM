@@ -150,12 +150,14 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
   }
 
   /**
-   * Get how many table entries this EHBB needs.
+   * Gets the number of table entries required for this EHBB.
+   * <p>
    * Really only of interest during final assembly.
    *
-   * @see org.jikesrvm.compilers.opt.runtimesupport.OptExceptionTable
-   *
    * @return the number of table entries for this basic block
+   *
+   * @see org.jikesrvm.compilers.common.ExceptionTable exception table and
+   *   its opt-compiler specific subclasses
    */
   public int getNumberOfExceptionTableEntries() {
     return exceptionTypes.length;

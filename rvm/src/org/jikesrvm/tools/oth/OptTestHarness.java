@@ -56,15 +56,15 @@ import org.vmmagic.unboxed.Address;
  * In addition, the org.jikesrvm.tools.oth.OptTestHarness supports the following commands:
  * <pre>
  * -useBootOptions           Use the same OptOptions as the bootimage compiler.
- * -longcommandline <filename>    Read commands (one per line) from a file
+ * -longcommandline &lt;filename&gt;    Read commands (one per line) from a file
  * +baseline                      Switch default compiler to baseline
  * -baseline                      Switch default compiler to optimizing
- * -load  <class    >             Load a class
- * -class <class>                 Load a class and compile all its methods
- * -method <class> <method> [-|<descrip>] Compile method with default compiler
- * -methodOpt <class> <method> [-|<descrip>] Compile method with opt compiler
- * -methodBase <class> <method> [-|<descrip>] Compile method with base compiler
- * -er <class> <method> [-|<descrip>] {args} Compile with default compiler and execute a method
+ * -load  &lt;class    &gt;             Load a class
+ * -class &lt;class&gt;                 Load a class and compile all its methods
+ * -method &lt;class&gt; &lt;method&gt; [-|&lt;descrip&gt;] Compile method with default compiler
+ * -methodOpt &lt;class&gt; &lt;method&gt; [-|&lt;descrip&gt;] Compile method with opt compiler
+ * -methodBase &lt;class&gt; &lt;method&gt; [-|&lt;descrip&gt;] Compile method with base compiler
+ * -er &lt;class&gt; &lt;method&gt; [-|&lt;descrip&gt;] {args} Compile with default compiler and execute a method
  * -performance                   Show performance results
  * </pre>
  */

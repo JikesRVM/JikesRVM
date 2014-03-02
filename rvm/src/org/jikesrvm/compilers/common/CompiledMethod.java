@@ -427,7 +427,7 @@ public abstract class CompiledMethod implements SizeConstants {
    * @param instructionOffset offset of machine instruction from start of this method, in bytes
    * @param exceptionType type of exception being thrown - something like "NullPointerException"
    * @return offset of machine instruction for catch block
-   * (-1 --> no catch block)
+   * (-1 --&gt; no catch block)
    */
   @Unpreemptible
   public abstract int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType);
@@ -452,7 +452,7 @@ public abstract class CompiledMethod implements SizeConstants {
    * <li> The implementation must not cause any allocations,
    * because it executes with
    * GC disabled when called by GCMapIterator.
-   * <ul>
+   * </ul>
    *
    * @param dynamicLink place to put return information
    * @param instructionOffset offset of machine instruction from start of

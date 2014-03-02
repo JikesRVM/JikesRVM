@@ -32,7 +32,7 @@ import org.jikesrvm.ia32.ArchConstants;
 /**
  * At the beginning of each basic block, the register allocator expects
  * all floating-point stack locations to be available, and named
- * FPi, 0 < i < 7
+ * FPi, 0 &lt; i &lt; 7
  *
  * <p>However, BURS may consume FP stack locations by inserting instructions
  * that push or pop the floating-point stack.  This phase inserts dummy

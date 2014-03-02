@@ -93,7 +93,7 @@ final class NormalBURS extends BURS {
    * Complete BURS trees by adding leaf nodes as needed, and
    * creating tree edges by calling insertChild1() or insertChild2()
    * This step is also where we introduce intermediate tree nodes for
-   * any LIR instruction that has > 2 "real" operands e.g., a CALL.
+   * any LIR instruction that has &gt; 2 "real" operands e.g., a CALL.
    * We also mark nodes that must be tree roots.
    *
    * @param dg  The dependence graph.

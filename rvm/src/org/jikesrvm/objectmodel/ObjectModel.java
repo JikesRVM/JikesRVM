@@ -58,17 +58,17 @@ import org.vmmagic.unboxed.Word;
  * Every object's header contains the three portions outlined above.
  *
  * <pre>
- * |<- lo memory                                        hi memory ->|
+ * |&lt;- lo memory                                        hi memory -&gt;|
  *
  *   SCALAR LAYOUT:
- * |<---------- scalar header --------->|
+ * |&lt;---------- scalar header ---------&gt;|
  * +----------+------------+------------+------+------+------+--------+
  * | GCHeader | MiscHeader | JavaHeader | fldO | fld1 | fldx | fldN-1 |
  * +----------+------------+------------+------+------+------+--------+
  *                         ^ JHOFF             ^objref
  *                                             .
  *    ARRAY LAYOUT:                            .
- * |<---------- array header ----------------->|
+ * |&lt;---------- array header -----------------&gt;|
  * +----------+------------+------------+------+------+------+------+------+
  * | GCHeader | MiscHeader | JavaHeader | len  | elt0 | elt1 | ...  |eltN-1|
  * +----------+------------+------------+------+------+------+------+------+
@@ -80,9 +80,9 @@ import org.vmmagic.unboxed.Word;
  * <li> Each portion of the header (JavaHeader, GCHeader, MiscHeader)
  *      is some multiple of 4 bytes (possibly 0).  This simplifies access, since we
  *      can access each portion independently without having to worry about word tearing.
- * <li> The JavaHeader exports k (>=0) unused contiguous bits that can be used
+ * <li> The JavaHeader exports k (&gt;=0) unused contiguous bits that can be used
  *      by the GCHeader and MiscHeader.  The GCHeader gets first dibs on these bits.
- *      The GCHeader should use buts 0..i, MiscHeader should use bits i..k.
+ *      The GCHeader should use bits 0..i, MiscHeader should use bits i..k.
  * <li> JHOFF is a constant for a given configuration.
  * </ul>
  *

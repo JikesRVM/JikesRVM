@@ -78,7 +78,7 @@ public final class InvocationCounts {
 
   /**
    * Create the compilation plan according to the default set
-   * of {@literal <optimization plan, options>} pairs
+   * of &lt;optimization plan, options&gt; pairs
    */
   public static CompilationPlan createCompilationPlan(NormalMethod method) {
     return new CompilationPlan(method, _optPlan, null, _options);
@@ -104,7 +104,7 @@ public final class InvocationCounts {
   private static OptOptions _options;
 
   /**
-   * Create the default set of <optimization plan, options> pairs
+   * Create the default set of &lt;optimization plan, options&gt; pairs
    * Process optimizing compiler command line options.
    */
   static void createOptimizationPlan() {

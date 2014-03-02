@@ -67,7 +67,7 @@ public class FileSystem {
    * Get file status.
    * @param fileName file name
    * @param kind     kind of info desired (one of STAT_XXX, above)
-   * @return desired info (-1 -> error)
+   * @return desired info (-1 -&gt; error)
    *    The boolean ones return 0 in case of non-true, 1 in case of
    *    true status.
    */
@@ -84,7 +84,7 @@ public class FileSystem {
    * Get user's perms for a file.
    * @param fileName file name
    * @param kind     kind of access perm(s) to check for (ACCESS_W_OK,...)
-   * @return 0 if access ok (-1 -> error)
+   * @return 0 if access ok (-1 -&gt; error)
    */
   public static int access(String fileName, int kind) {
     // convert file name from unicode to filesystem character set
@@ -103,7 +103,7 @@ public class FileSystem {
    * Read single byte from file.
    *
    * @param fd file descriptor
-   * @return byte that was read (< -2: i/o error, -2: timeout, -1: eof, >= 0: data)
+   * @return byte that was read (&lt; -2: i/o error, -2: timeout, -1: eof, &gt;= 0: data)
    */
   @NoInline
   @NoOptCompile
@@ -140,7 +140,7 @@ public class FileSystem {
    * Read multiple bytes.
    *
    * @param buf a pinned byte array to read into
-   * @return -2: i/o error, -1: timeout, >=0: number of bytes read
+   * @return -2: i/o error, -1: timeout, &gt;=0: number of bytes read
    */
   @NoInline
   @NoOptCompile
@@ -158,7 +158,7 @@ public class FileSystem {
    * Write multiple bytes.
    *
    * @param buf a pinned byte array to write from
-   * @return -2: i/o error, -1: timeout, >=0: number of bytes written
+   * @return -2: i/o error, -1: timeout, &gt;=0: number of bytes written
    */
   @NoInline
   @NoOptCompile
