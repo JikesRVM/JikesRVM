@@ -45,10 +45,6 @@ final class OperandStack {
     pop();
   }
 
-  Operand peek(int depth) {
-    return stack[top - depth - 1];
-  }
-
   Operand getFromBottom(int pos) {
     return stack[pos];
   }
