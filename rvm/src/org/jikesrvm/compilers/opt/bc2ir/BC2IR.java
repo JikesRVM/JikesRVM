@@ -984,10 +984,7 @@ public final class BC2IR
         break;
 
         case JBC_swap: {
-          Operand op1 = stack.pop();
-          Operand op2 = stack.pop();
-          stack.push(op1);
-          stack.push(op2);
+          stack.swap();
         }
         break;
 
