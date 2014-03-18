@@ -258,7 +258,7 @@ final class BBSet implements IRGenOptions {
         db("First stack rectifiction for " + p + "(" + p.block + ") simply saving");
       }
       if (VM.VerifyAssertions) VM._assert(p.stackState == null);
-      p.stackState = new OperandStack(stack.getCapacity());
+      p.stackState = stack.createEmptyOperandStackWithSameCapacity();
       for (int i = stack.getSize() - 1; i >= 0; i--) {
         Operand op = stack.getFromTop(i);
         if (op == BC2IR.DUMMY) {

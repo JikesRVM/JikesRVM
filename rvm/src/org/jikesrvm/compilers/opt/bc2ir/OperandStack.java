@@ -123,12 +123,12 @@ final class OperandStack {
   }
 
   /**
-   * Returns the capacity of the stack.
-   *
-   * @return the maximum number of operands that the stack can hold
+   * Returns a new, empty operand stack that has the same capacity
+   * as this one.
+   * @return a new operand stack
    */
-  int getCapacity() {
-    return stack.length;
+  OperandStack createEmptyOperandStackWithSameCapacity() {
+    return new OperandStack(stack.length);
   }
 
 

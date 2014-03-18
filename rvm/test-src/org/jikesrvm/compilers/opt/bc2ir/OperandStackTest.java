@@ -50,12 +50,6 @@ public class OperandStackTest {
   }
 
   @Test
-  public void getCapacityReturnsCapacityPassedInAtCreation() throws Exception {
-    createOperandStackWithSize(25);
-    assertThat(stack.getCapacity(), is(25));
-  }
-
-  @Test
   public void getSizeReturnsNumberOfOperandsOnTheStack() throws Exception {
     createOperandStackWithSize(25);
     stack.push(mockOperand());
@@ -319,13 +313,38 @@ public class OperandStackTest {
     stack.push(top);
     OperandStack copy = stack.deepCopy();
     assertThat(copy.getSize(), is(stack.getSize()));
-    assertThat(copy.getCapacity(), is(stack.getCapacity()));
     TrueGuardOperand topFromCopiedStack = (TrueGuardOperand) copy.getFromTop(0);
     assertThat(topFromCopiedStack, not(sameInstance(top)));
     assertThat(copy.getFromTop(0).similar(top), is(true));
     IntConstantOperand bottomFromCopiedStack = (IntConstantOperand) copy.getFromTop(1);
     assertThat(bottomFromCopiedStack, not(sameInstance(bottom)));
     assertThat(copy.getFromTop(1).similar(bottom), is(true));
+  }
+
+  @Test
+  public void createEmptyOperandStackWithSameCapacityReturnsAnEmptyOperandStack() throws Exception {
+    createOperandStackWithSize(3);
+    stack.push(mockOperand());
+    OperandStack newStack = stack.createEmptyOperandStackWithSameCapacity();
+    assertThat(newStack.isEmpty(), is(true));
+  }
+
+  @Test
+  public void createEmptyOperandStackWithSameCapacityReturnsAStackWithTheSameCapacity() throws Exception {
+    createOperandStackWithSize(3);
+    stack.push(mockOperand());
+    OperandStack newStack = stack.createEmptyOperandStackWithSameCapacity();
+    newStack.push(mockOperand());
+    newStack.push(mockOperand());
+    newStack.push(mockOperand());
+    assertThat(newStack.getSize(), is(3));
+    boolean stackHasRightCapacity = false;
+    try {
+      newStack.push(mockOperand());
+    } catch (ArrayIndexOutOfBoundsException e) {
+      stackHasRightCapacity = true;
+    }
+    assertThat(stackHasRightCapacity, is(true));
   }
 
 }
