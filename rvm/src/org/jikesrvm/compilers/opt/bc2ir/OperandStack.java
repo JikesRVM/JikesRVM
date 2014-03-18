@@ -19,15 +19,26 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
  * Simulates the Java stack for abstract interpretation in {@link BC2IR}.<p>
  *
  * This class is intended to be used by a single thread. Methods from this
- * class do not provide any error handling.
+ * class do not provide any error handling.<p>
+ *
+ * The total amount of {@link Operand}s that can be accepted by an operand stack
+ * is called the capacity of the operand stack. It is determined when the stack is
+ * created. The capacity is distinct from the current number of operands on the stack
+ * which is called the size of the operand stack.
  */
 final class OperandStack {
 
   private final Operand[] stack;
   private int top;
 
-  OperandStack(int size) {
-    stack = new Operand[size];
+  /**
+   * Creates an operand stack.
+   *
+   * @param capacity the maximum number of operands that the stack
+   *  must be able to hold, must be {@code >= 0}
+   */
+  OperandStack(int capacity) {
+    stack = new Operand[capacity];
     top = 0;
   }
 
@@ -40,6 +51,11 @@ final class OperandStack {
     return stack[--top];
   }
 
+  /**
+   * Pops the two topmost operands from the stack and discards them.<p>
+   *
+   * This implements the pop2 bytecode.
+   */
   void pop2() {
     pop();
     pop();
@@ -58,6 +74,11 @@ final class OperandStack {
     stack[top - n - 1] = op;
   }
 
+  /**
+   * Swaps the two topmost operands on the stack.<p>
+   *
+   * This implements the swap bytecode.
+   */
   void swap() {
     Operand v1 = pop();
     Operand v2 = pop();
@@ -69,6 +90,15 @@ final class OperandStack {
     top = 0;
   }
 
+  /**
+   * Returns a deep copy of the stack.<p>
+   *
+   * The copied stack has copies of the operands from the original stack. The
+   * size and capacity of the copied stack are equal to the original stack
+   * at the time of the copy.
+   *
+   * @return a copy of the stack
+   */
   OperandStack deepCopy() {
     OperandStack newss = new OperandStack(stack.length);
     newss.top = top;
@@ -83,10 +113,20 @@ final class OperandStack {
     return (top == 0);
   }
 
+  /**
+   * Returns the current size of the stack.
+   *
+   * @return the current number of operands on the stack
+   */
   int getSize() {
     return top;
   }
 
+  /**
+   * Returns the capacity of the stack.
+   *
+   * @return the maximum number of operands that the stack can hold
+   */
   int getCapacity() {
     return stack.length;
   }
