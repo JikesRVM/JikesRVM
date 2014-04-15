@@ -1136,8 +1136,12 @@ sysThreadStartup(void *args)
 	// not reached
 	//
 	fprintf(SysTraceFile, "%s: sysThreadStartup: failed\n", Me);
-	return 0;
     }
+#ifdef RVM_FOR_HARMONY
+    return 0;
+#else
+    return NULL;
+#endif
 }
 
 // Routines to support sleep/wakeup of idle threads:
