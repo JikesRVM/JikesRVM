@@ -645,10 +645,12 @@ public abstract class Space implements Constants {
     Address regionStart = Space.getDiscontigStart();
     Address regionEnd = Space.getDiscontigEnd();
     int pages = regionEnd.diff(regionStart).toInt()>>LOG_BYTES_IN_PAGE;
-    Log.write("Mapping discontiguous spaces ");
-    Log.write(regionStart);
-    Log.write("->");
-    Log.writeln(regionEnd.minus(1));
+    if (Options.verbose.getValue() > 2) {
+      Log.write("Mapping discontiguous spaces ");
+      Log.write(regionStart);
+      Log.write("->");
+      Log.writeln(regionEnd.minus(1));
+    }
     Mmapper.ensureMapped(getDiscontigStart(), pages);
   }
 
