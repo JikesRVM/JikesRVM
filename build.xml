@@ -736,7 +736,7 @@ Check to make sure all required properties are specified. This includes properti
     </exec>
     <exec executable="${c.exe}" failonerror="true">
       <arg
-          line="-W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts -fkeep-inline-functions -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-unused -Wno-strict-prototypes -Wno-undef"/>
+          line="-W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -fkeep-static-consts -fkeep-inline-functions -Wno-unused -Wno-strict-prototypes -Wno-undef"/>
       <arg value="-I"/>
       <arg value="${basedir}/rvm/src-generated/opt-burs/jburg"/>
       <arg value="-o"/>
