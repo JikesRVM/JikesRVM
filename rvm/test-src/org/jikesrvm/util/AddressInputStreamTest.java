@@ -12,11 +12,8 @@
  */
 package org.jikesrvm.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
-
 
 import java.io.IOException;
 
@@ -29,7 +26,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Extent;
 
 @Category(RequiresJikesRVM.class)
 @RunWith(VMRequirements.class)
@@ -50,7 +47,7 @@ public class AddressInputStreamTest {
     byteArray[0] = FIRST_VALUE;
     byteArray[1] = SECOND_VALUE;
     byteArray[2] = THIRD_VALUE;
-    streamFromByteArray = new AddressInputStream(Magic.objectAsAddress(byteArray), Offset.fromIntZeroExtend(byteArray.length));
+    streamFromByteArray = new AddressInputStream(Magic.objectAsAddress(byteArray), Extent.fromIntZeroExtend(byteArray.length));
   }
 
   @After
@@ -73,15 +70,7 @@ public class AddressInputStreamTest {
   }
 
   private AddressInputStream createEmptyRegion() {
-    return new AddressInputStream(Address.zero(), Offset.zero());
-  }
-
-  @Test
-  public void constructorChangesNegativeLengthToZero() throws IOException {
-    AddressInputStream invalidRegion = new AddressInputStream(Address.zero(), Offset.fromIntSignExtend(-1));
-    toBeClosedAfterTestMethodRuns = invalidRegion;
-    assertEquals(0, invalidRegion.available());
-    assertEquals(-1, invalidRegion.read());
+    return new AddressInputStream(Address.zero(), Extent.zero());
   }
 
   @Test
@@ -99,7 +88,7 @@ public class AddressInputStreamTest {
   public void availableForNewlyCreatedRegionIsEqualToRegionLength() throws IOException {
     assertEquals(createEmptyRegion().available(), 0);
     int length = 13;
-    AddressInputStream aRegion = new AddressInputStream(Address.zero(), Offset.fromIntZeroExtend(length));
+    AddressInputStream aRegion = new AddressInputStream(Address.zero(), Extent.fromIntZeroExtend(length));
     toBeClosedAfterTestMethodRuns = aRegion;
     assertEquals(length, aRegion.available());
   }
@@ -112,14 +101,14 @@ public class AddressInputStreamTest {
 
   @Test
   public void availableForMaximumSizeRegionsIsNonNegative() throws Exception {
-    AddressInputStream maximumSizeRegion = new AddressInputStream(Address.zero(), Offset.max());
+    AddressInputStream maximumSizeRegion = new AddressInputStream(Address.zero(), Extent.max());
     toBeClosedAfterTestMethodRuns = maximumSizeRegion;
     assertTrue(maximumSizeRegion.available() >= 0);
   }
 
   @Test
   public void skipAmountIsLimitedToIntMaxValue() {
-    AddressInputStream regionOfIntMaxSize = new AddressInputStream(Address.zero(), Offset.fromIntZeroExtend(Integer.MAX_VALUE));
+    AddressInputStream regionOfIntMaxSize = new AddressInputStream(Address.zero(), Extent.fromIntZeroExtend(Integer.MAX_VALUE));
     toBeClosedAfterTestMethodRuns = regionOfIntMaxSize;
     long skippedNumber = regionOfIntMaxSize.skip(Long.MAX_VALUE);
     assertEquals(Integer.MAX_VALUE, skippedNumber);

@@ -14,39 +14,34 @@ package org.jikesrvm.util;
 
 import java.io.InputStream;
 import java.io.IOException;
+
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.Word;
+import org.vmmagic.unboxed.Extent;
 
 /**
  * Access raw memory region as an input stream.
  */
 public final class AddressInputStream extends InputStream {
-  /** Address of memory region to be read */
-  private final Address location;
+  /** Start address of memory region to be read */
+  private final Address startAddress;
   /** Length of the memory region */
-  private final Offset length;
-  /** Offset to be read */
-  private Offset offset;
-  /** Mark offset */
-  private Offset markOffset;
+  private final Extent length;
+  /** Offset to be read. Uses an Extent because the offset is always non-negative. */
+  private Extent offset;
+  /** Mark offset.  Uses an Extent because the offset is always non-negative. */
+  private Extent markOffset;
 
   /**
    *
-   * @param location an address
-   * @param length a positive Offset. Negative offsets will be silently
-   *  changed to zero.
+   * @param startAddress start address of the memory region
+   * @param length length of the region in bytes
    */
-  public AddressInputStream(Address location, Offset length) {
-    if (length.sLT(Offset.zero())) {
-      length = Offset.zero();
-    }
-
-    this.location = location;
+  public AddressInputStream(Address startAddress, Extent length) {
+    this.startAddress = startAddress;
     this.length = length;
 
-    offset = Offset.zero();
-    markOffset = Offset.zero();
+    offset = Extent.zero();
+    markOffset = Extent.zero();
   }
 
   /** @return number of bytes that can be read */
@@ -79,13 +74,12 @@ public final class AddressInputStream extends InputStream {
   /** Reads a byte */
   @Override
   public int read() {
-    Word offsetAsWord = offset.toWord();
-    Word lengthAsWord = length.toWord();
-    if (offsetAsWord.GE(lengthAsWord)) {
+    if (offset.GE(length)) {
       return -1;
     }
 
-    byte result = location.loadByte(offset);
+    Address readLocation = startAddress.plus(offset);
+    byte result = readLocation.loadByte();
     offset = offset.plus(1);
     return result & 0xFF;
   }

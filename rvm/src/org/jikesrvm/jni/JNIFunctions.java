@@ -16,6 +16,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
+
 import org.jikesrvm.ArchitectureSpecific.JNIHelpers;
 import org.jikesrvm.VM;
 import org.jikesrvm.Properties;
@@ -41,9 +42,11 @@ import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.util.AddressInputStream;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
+
 import org.vmmagic.pragma.NativeBridge;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -151,7 +154,7 @@ public class JNIFunctions implements SizeConstants {
       } else {
         cl = (ClassLoader) env.getJNIRef(classLoader);
       }
-      AddressInputStream reader = new AddressInputStream(data, Offset.fromIntZeroExtend(dataLen));
+      AddressInputStream reader = new AddressInputStream(data, Extent.fromIntZeroExtend(dataLen));
 
       final RVMType vmType = RVMClassLoader.defineClassInternal(classString, reader, cl);
       return env.pushJNIRef(vmType.getClassForType());
