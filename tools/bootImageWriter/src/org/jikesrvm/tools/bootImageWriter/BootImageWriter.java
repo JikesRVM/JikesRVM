@@ -3001,7 +3001,7 @@ public class BootImageWriter extends BootImageWriterMessages
         public int hashCode() { return System.identityHashCode(wrapper); }
         @Override
         public boolean equals(Object o) {
-          return getClass() == o.getClass() && hashCode() == o.hashCode();
+          return o != null && getClass() == o.getClass() && hashCode() == o.hashCode();
         }
       };
       Integer sz = traversed.get(key);

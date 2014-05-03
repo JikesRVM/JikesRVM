@@ -486,7 +486,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
     if (security != null) {
       security.checkMemberAccess(this, type);
       String packageName = getPackageName();
-      if(packageName != "") {
+      if (!packageName.isEmpty()) {
         security.checkPackageAccess(packageName);
       }
     }

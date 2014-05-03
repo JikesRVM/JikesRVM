@@ -109,7 +109,7 @@ public final class VMThrowable {
       String className = vmElement.getClassName();
       String methodName = vmElement.getMethodName();
       VM.sysWrite("   at ");
-      if (className != "") {
+      if (!className.isEmpty()) {
         VM.sysWrite(className);
         VM.sysWrite(".");
       }
