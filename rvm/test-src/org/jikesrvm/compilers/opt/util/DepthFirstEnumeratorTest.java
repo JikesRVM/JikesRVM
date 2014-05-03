@@ -128,7 +128,7 @@ public class DepthFirstEnumeratorTest {
   }
 
 
-  @Test(timeout = 100)
+  @Test(timeout = 10000)
   public void testThatCirclesAreNotAProblem() throws Exception {
     GraphNode b = mock(GraphNode.class);
 
