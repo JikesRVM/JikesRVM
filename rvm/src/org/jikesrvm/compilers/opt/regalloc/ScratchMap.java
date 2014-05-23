@@ -77,7 +77,7 @@ public final class ScratchMap {
 
     SymbolicInterval i = (SymbolicInterval) pending.get(r);
     i.end = end;
-    pending.remove(i);
+    pending.remove(r);
   }
 
   /**

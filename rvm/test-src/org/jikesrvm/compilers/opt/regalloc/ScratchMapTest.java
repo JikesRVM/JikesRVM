@@ -26,7 +26,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -96,7 +95,6 @@ public class ScratchMapTest {
     assertThat(scratchMap.isEmpty(), is(false));
   }
 
-  @Ignore("fails because interval is never removed from the map")
   @Test(expected = NullPointerException.class)
   public void endSymbolicIntervalRemovesInformationAboutScratchRegisterFromPendingMap() {
     Register symb = createRegister(0);
