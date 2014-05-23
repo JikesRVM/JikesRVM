@@ -199,13 +199,14 @@ public final class ScratchMap {
    */
   @Override
   public String toString() {
-    String result = "";
+    StringBuilder result = new StringBuilder();
     for (ArrayList<Interval> v : map.values()) {
       for (Interval i : v) {
-        result += i + "\n";
+        result.append(i);
+        result.append("\n");
       }
     }
-    return result;
+    return result.toString();
   }
 
   /**
