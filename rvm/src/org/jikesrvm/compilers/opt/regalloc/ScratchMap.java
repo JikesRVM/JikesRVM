@@ -165,8 +165,12 @@ public final class ScratchMap {
   }
 
   /**
-   * Note that at GC point s, the real value of register symb is cached in
-   * a dirty scratch register.
+   * Records that the real value of a symbolic register is cached in
+   * a dirty scratch register at a given instruction that is a GC point.
+   *
+   * @param s an instruction that is a GC point. Note: it is the caller's
+   *    responsibility to check this
+   * @param symb the symbolic register
    */
   public void markDirty(Instruction s, Register symb) {
     HashSet<Register> set = dirtyMap.get(s);
