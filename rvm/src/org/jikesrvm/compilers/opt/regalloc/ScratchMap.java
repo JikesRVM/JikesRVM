@@ -216,27 +216,27 @@ public final class ScratchMap {
     /**
      * The instruction before which the scratch range begins.
      */
-    Instruction begin;
+    protected Instruction begin;
     /**
      * The instruction before which the scratch range ends.
      */
-    Instruction end;
+    protected Instruction end;
     /**
      * The physical scratch register or register evicted.
      */
-    final Register scratch;
+    protected final Register scratch;
 
     /**
      * Initialize scratch register
      */
-    Interval(Register scratch) {
+    protected Interval(Register scratch) {
       this.scratch = scratch;
     }
 
     /**
      * Does this interval contain the instruction numbered n?
      */
-    final boolean contains(int n) {
+    protected final boolean contains(int n) {
       return (begin.scratch <= n && end.scratch > n);
     }
   }
@@ -247,11 +247,11 @@ public final class ScratchMap {
    *
    * Note that this interval must not span a basic block.
    */
-  static final class SymbolicInterval extends Interval {
+  private static final class SymbolicInterval extends Interval {
     /**
      * The symbolic register
      */
-    final Register symbolic;
+    private final Register symbolic;
 
     SymbolicInterval(Register symbolic, Register scratch) {
       super(scratch);
@@ -275,7 +275,7 @@ public final class ScratchMap {
    *
    * Note that this interval must not span a basic block.
    */
-  static final class PhysicalInterval extends Interval {
+  private static final class PhysicalInterval extends Interval {
     PhysicalInterval(Register scratch) {
       super(scratch);
     }
