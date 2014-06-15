@@ -68,7 +68,6 @@ public class ImmixConstants {
          static final short MAX_CONSV_SPILL_COUNT = (short) (LINES_IN_BLOCK/2);
   public static final short SPILL_HISTOGRAM_BUCKETS = (short) (MAX_CONSV_SPILL_COUNT + 1);
   public static final short MARK_HISTOGRAM_BUCKETS = (short) (LINES_IN_BLOCK + 1);
-  public static final short MAX_COLLECTORS = 16; // nothing special here---we can increase this at the cost of a few hundred bites at build time.
 
   public static final Word RECYCLE_ALLOC_CHUNK_MASK = Word.fromIntZeroExtend(BYTES_IN_RECYCLE_ALLOC_CHUNK - 1);
   protected static final Word CHUNK_MASK = Word.fromIntZeroExtend(BYTES_IN_CHUNK - 1);

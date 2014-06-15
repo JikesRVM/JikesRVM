@@ -15,7 +15,6 @@ package org.mmtk.plan.immix;
 import org.mmtk.plan.StopTheWorldConstraints;
 import org.mmtk.policy.immix.ObjectHeader;
 
-import static org.mmtk.policy.immix.ImmixConstants.MAX_COLLECTORS;
 import static org.mmtk.policy.immix.ImmixConstants.MAX_IMMIX_OBJECT_BYTES;
 
 import org.vmmagic.pragma.*;
@@ -46,7 +45,4 @@ public class ImmixConstraints extends StopTheWorldConstraints {
 
   @Override
   public int maxNonLOSCopyBytes() { return MAX_IMMIX_OBJECT_BYTES; }
-
-  @Override
-  public int maxNumGCThreads() { return MAX_COLLECTORS; }
 }

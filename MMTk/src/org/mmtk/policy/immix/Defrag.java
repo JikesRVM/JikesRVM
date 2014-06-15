@@ -15,7 +15,6 @@ package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.*;
 
-
 import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.FreeListPageResource;
@@ -30,6 +29,7 @@ import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.EventCounter;
 import org.mmtk.utility.statistics.SizeCounter;
 import org.mmtk.vm.VM;
+import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible
@@ -38,7 +38,7 @@ public class Defrag  implements Constants {
   private int debugBytesDefraged = 0;
   private int availableCleanPagesForDefrag;
   private boolean defragSpaceExhausted = true;
-  private int[][] spillMarkHistograms = new int[MAX_COLLECTORS][SPILL_HISTOGRAM_BUCKETS];
+  private int[][] spillMarkHistograms;
   private int[] spillAvailHistogram = new int[SPILL_HISTOGRAM_BUCKETS];
   public static SizeCounter defragCleanBytesUsed = new SizeCounter("cleanUsed");
 
@@ -66,6 +66,18 @@ public class Defrag  implements Constants {
 
   Defrag(FreeListPageResource pr) {
     this.pr = pr;
+  }
+
+  /**
+   * Prepares the histograms.<p>
+   *
+   * This needs to happen at runtime because the collector count is not known
+   * at build time.
+   */
+  @Interruptible
+  void prepareHistograms() {
+    int collectorCount = VM.activePlan.collectorCount();
+    spillMarkHistograms = new int[collectorCount][SPILL_HISTOGRAM_BUCKETS];
   }
 
   boolean inDefrag() { return inDefragCollection; }

@@ -118,6 +118,11 @@ public final class ImmixSpace extends Space implements Constants {
     defrag = new Defrag((FreeListPageResource) pr);
   }
 
+  @Interruptible
+  public void initializeDefrag() {
+    defrag.prepareHistograms();
+  }
+
   /****************************************************************************
    *
    * Global prepare and release
@@ -135,8 +140,6 @@ public final class ImmixSpace extends Space implements Constants {
     chunkMap.reset();
     defrag.prepare(chunkMap, this);
     inCollection = true;
-
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(VM.activePlan.collectorCount() <= MAX_COLLECTORS);
   }
 
   /**

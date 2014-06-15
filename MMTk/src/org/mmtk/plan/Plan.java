@@ -245,6 +245,8 @@ public abstract class Plan implements Constants {
           "Actual thread count does not match collector count from active plan.");
     }
 
+    preCollectorSpawn();
+
     spawnCollectorThreads(actualThreadCount);
   }
 
@@ -303,6 +305,18 @@ public abstract class Plan implements Constants {
     }
 
     return actualThreadCount;
+  }
+
+  /**
+   * Prepares for spawning of collectors.<p>
+   *
+   * This is a good place to do initialization work that depends on
+   * options that are only known at runtime. Collectors must keep allocation
+   * to a minimum because collection is not yet enabled.
+   */
+  @Interruptible
+  protected void preCollectorSpawn() {
+    // most collectors do not need to do any work here
   }
 
   /**

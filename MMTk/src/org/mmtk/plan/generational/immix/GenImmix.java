@@ -19,7 +19,6 @@ import org.mmtk.policy.immix.ImmixSpace;
 import org.mmtk.policy.immix.ObjectHeader;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.VMRequest;
-
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -177,5 +176,11 @@ public class GenImmix extends Gen {
     TransitiveClosure.registerSpecializedScan(SCAN_IMMIX, GenImmixMatureTraceLocal.class);
 //    TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, GenImmixMatureDefragTraceLocal.class);
     super.registerSpecializedMethods();
+  }
+
+  @Override
+  @Interruptible
+  public void preCollectorSpawn() {
+    immixSpace.initializeDefrag();
   }
 }
