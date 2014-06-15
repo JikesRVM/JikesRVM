@@ -238,15 +238,88 @@ public abstract class Plan implements Constants {
    */
   @Interruptible
   public void enableCollection() {
-    // Make sure that if we have not explicitly set threads, then we use the right default.
-    Options.threads.updateDefaultValue(VM.collection.getDefaultThreads());
+    int actualThreadCount = determineThreadCount();
 
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(actualThreadCount == VM.activePlan.collectorCount(),
+          "Actual thread count does not match collector count from active plan.");
+    }
+
+    spawnCollectorThreads(actualThreadCount);
+  }
+
+  /**
+   * Determines the number of threads that will be used for collection.<p>
+   *
+   * Collectors that need fine-grained control over the number of spawned collector
+   * threads may override this method. Subclasses must ensure that the return value
+   * of this method is consistent with the number of collector threads in
+   * the active plan.
+   *
+   * @return number of threads to be used for collection
+   * @see PlanConstraints#maxNumGCThreads() setting only the maximum number
+   *  of collectors
+   */
+  @Interruptible("Options methods and Math.min are interruptible")
+  protected int determineThreadCount() {
+    int defaultThreadCount = VM.collection.getDefaultThreads();
+    int maxThreadCount = VM.activePlan.constraints().maxNumGCThreads();
+    int safeDefaultValue = Math.min(defaultThreadCount, maxThreadCount);
+
+    // Make sure that if we have not explicitly set threads, then we use the right default.
+    if (Options.verbose.getValue() > 0) {
+        Log.write("Setting default thread count for MMTk to minimum of ");
+        Log.write("default thread count ");
+        Log.write(defaultThreadCount);
+        Log.write(" and maximal thread count ");
+        Log.write(maxThreadCount);
+        Log.write(" supported by current GC plan.");
+        Log.writeln();
+        Log.write("New default thread count value is ");
+        Log.write(safeDefaultValue);
+        Log.writeln();
+    }
+    Options.threads.updateDefaultValue(safeDefaultValue);
+
+    int desiredThreadCount = Options.threads.getValue();
+    int actualThreadCount = Math.min(desiredThreadCount, maxThreadCount);
+    if (Options.verbose.getValue() > 0) {
+      Log.write("Setting actual thread count for MMTk to minimum of ");
+      Log.write("desired thread count ");
+      Log.write(desiredThreadCount);
+      Log.write(" and maximal thread count ");
+      Log.write(maxThreadCount);
+      Log.write(" supported by current GC plan.");
+      Log.writeln();
+      Log.write("New actual thread count is ");
+      Log.write(actualThreadCount);
+      Log.writeln();
+    }
+    Options.threads.setValue(actualThreadCount);
+
+    if (VM.VERIFY_ASSERTIONS) {
+      VM.assertions._assert(actualThreadCount > 0,
+          "Determining the number of gc threads yieled a result <= 0");
+    }
+
+    return actualThreadCount;
+  }
+
+  /**
+   * Spawns the collector threads.<p>
+   *
+   * Collection is enabled after this method returns.
+   *
+   * @param numThreads the number of collector threads to spawn
+   */
+  @Interruptible("Spawning collector threads requires allocation")
+  protected void spawnCollectorThreads(int numThreads) {
     // Create our parallel workers
-    parallelWorkers.initGroup(Options.threads.getValue(), defaultCollectorContext);
+    parallelWorkers.initGroup(numThreads, defaultCollectorContext);
 
     // Create the concurrent worker threads.
     if (VM.activePlan.constraints().needsConcurrentWorkers()) {
-      concurrentWorkers.initGroup(Options.threads.getValue(), defaultCollectorContext);
+      concurrentWorkers.initGroup(numThreads, defaultCollectorContext);
     }
 
     // Create our control thread.
