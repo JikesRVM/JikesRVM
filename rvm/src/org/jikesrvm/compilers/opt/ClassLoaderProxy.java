@@ -379,7 +379,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
   public static LongConstantOperand getLongFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     long val = Statics.getSlotContentsAsLong(offset);
-    return new LongConstantOperand(val, offset);
+    return new LongConstantOperand(val);
   }
 
   /**

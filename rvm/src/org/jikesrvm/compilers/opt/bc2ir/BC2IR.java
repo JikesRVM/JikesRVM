@@ -2503,7 +2503,7 @@ public final class BC2IR
                 VM.sysWriteln("PSEUDO_LoadLongConst " + value);
               }
 
-              pushDual(new LongConstantOperand(value, Offset.zero()));
+              pushDual(new LongConstantOperand(value));
               break;
             }
             case PSEUDO_LoadWordConst: {

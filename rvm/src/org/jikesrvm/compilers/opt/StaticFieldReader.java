@@ -180,7 +180,7 @@ public abstract class StaticFieldReader implements SizeConstants {
       return new IntConstantOperand(val);
     } else if (fieldType.isLongType()) {
       long val = getLongStaticFieldValue(field);
-      return new LongConstantOperand(val, off);
+      return new LongConstantOperand(val);
     } else if (fieldType.isFloatType()) {
       float val = getFloatStaticFieldValue(field);
       return new FloatConstantOperand(val, off);
