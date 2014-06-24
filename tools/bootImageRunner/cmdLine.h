@@ -36,7 +36,9 @@ static const int RECOMP_INDEX                  = IRC_INDEX+1;
 static const int BASE_INDEX                    = RECOMP_INDEX+1;
 static const int OPT_INDEX                     = BASE_INDEX+1;
 static const int VMCLASSES_INDEX               = OPT_INDEX+1;
-static const int PROCESSORS_INDEX              = VMCLASSES_INDEX+1;
+static const int BOOTCLASSPATH_P_INDEX         = VMCLASSES_INDEX+1;
+static const int BOOTCLASSPATH_A_INDEX         = BOOTCLASSPATH_P_INDEX+1;
+static const int PROCESSORS_INDEX              = BOOTCLASSPATH_A_INDEX+1;
 
 static const int numNonstandardArgs      = PROCESSORS_INDEX+1;
 
@@ -58,6 +60,8 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:base",
    "-X:opt",
    "-X:vmClasses=",
+   "-Xbootclasspath/p:",
+   "-Xbootclasspath/a:",
    "-X:availableProcessors=",
 };
 
