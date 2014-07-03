@@ -54,7 +54,7 @@ How many rounds of redundant load elimination will we attempt?
 
 
 V L2M_MAX_BLOCK_SIZE int 300
-Maximum size of block for BURS, larger blocks are split
+Maximum size of block for BURS in real instructions, larger blocks are split.
 
 
 E REGALLOC_SPILL_COST_ESTIMATE byte REGALLOC_BLOCK_COUNT_SPILL_COST

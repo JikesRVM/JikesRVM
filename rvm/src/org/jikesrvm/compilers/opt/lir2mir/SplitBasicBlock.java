@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.lir2mir;
 
 import java.util.Enumeration;
 
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
@@ -50,20 +51,33 @@ public final class SplitBasicBlock extends CompilerPhase {
    * @return {@code null} if no splitting is done, returns the second block if splitting is done.
    */
   BasicBlock splitEachBlock(BasicBlock bb, IR ir) {
+    if (ir.options.L2M_MAX_BLOCK_SIZE <= 0) {
+      throw new OptimizingCompilerException("Maximum block size must be a" +
+          " positive number but was " +
+          ir.options.L2M_MAX_BLOCK_SIZE + "!", true);
+    }
 
-    int instCount = ir.options.L2M_MAX_BLOCK_SIZE;
-    for (Instruction inst = bb.firstInstruction(); inst != bb.lastInstruction(); inst =
-        inst.nextInstructionInCodeOrder()) {
-      if ((--instCount) <= 0) {
+    int remainingInstCount = ir.options.L2M_MAX_BLOCK_SIZE;
+
+    Enumeration<Instruction> instructions = bb.forwardRealInstrEnumerator();
+    while (instructions.hasMoreElements()) {
+      Instruction inst = instructions.nextElement();
+      remainingInstCount--;
+      if (remainingInstCount <= 0) {
+        // no need to split because all the rests are just branches
         if (inst.isBranch()) {
-          return null; // no need to split because all the rests are just branches
+          return null;
         }
-        // Now, split!
+        // no need to split because the basic block does not contain any more instructions
+        if (!instructions.hasMoreElements()) {
+          return null;
+        }
+
         return bb.splitNodeWithLinksAt(inst, ir);
       }
     }
 
-    return null; // no splitting happened
+    return null;
   }
 
 }

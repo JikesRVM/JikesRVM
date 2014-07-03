@@ -25,6 +25,7 @@ import java.util.Enumeration;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
+import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.Empty;
@@ -33,7 +34,6 @@ import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -104,7 +104,6 @@ public class SplitBasicBlockTest {
     return ir;
   }
 
-  @Ignore("fails because of an off-by-one error")
   @Test
   public void doesNotCreateNewBlocksWhenNumberOfInstructionsMatchesLimit() {
     int maxInstPerBlock = 2;
@@ -130,7 +129,6 @@ public class SplitBasicBlockTest {
     assertThatInstructionCountForEachBlockIsAtMost(ir, maxInstPerBlock);
   }
 
-  @Ignore("fails because of an off-by-one error")
   @Test(timeout = 1000)
   public void worksCorrectlyForALimitOfOneInstructionPerBlock() {
     int maxInstPerBlock = 1;
@@ -153,20 +151,14 @@ public class SplitBasicBlockTest {
     }
   }
 
-  @Ignore("fails because limit is invalid and not checked")
-  @Test(timeout = 1000)
-  public void doesNotCheckSanityOfInstructionLimit() {
+  @Test(expected = OptimizingCompilerException.class)
+  public void throwsOptimizingCompilerExceptionWhenLimitIsInvalid() {
     int maxInstPerBlock = 0;
     IR ir = createIRWithEmptyCFG(maxInstPerBlock);
-    int nodeNumberBefore = ir.cfg.numberOfNodes();
     addNumberOfInstructionsToBlock(ir, 1);
     splitPhase.perform(ir);
-    int nodeNumberAfter = ir.cfg.numberOfNodes();
-    assertThat(nodeNumberAfter, is(nodeNumberBefore));
-    assertThatInstructionCountForEachBlockIsAtMost(ir, maxInstPerBlock);
   }
 
-  @Ignore("fails because of off-by-one error")
   @Test
   public void branchesAtTheEndOfTheBlockDoNotCountAsIntructions() {
     int maxInstPerBlock = 3;
