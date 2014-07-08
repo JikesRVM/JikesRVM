@@ -72,7 +72,7 @@ public class EntrypointHelper {
                 memberDescriptor +
                 "\n");
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-    return null; // placate jikes
+    return null;
   }
 
   public static NormalMethod getMethod(String klass, String member, String descriptor, final boolean runtimeServiceMethod) {

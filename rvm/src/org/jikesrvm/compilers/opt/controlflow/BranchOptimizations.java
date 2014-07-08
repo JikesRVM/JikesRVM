@@ -838,7 +838,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
       return true; // (CF == 1) and unordered
     default:
       OptimizingCompilerException.UNREACHABLE();
-    return false; // keep jikes happy
+    return false;
     }
   }
 

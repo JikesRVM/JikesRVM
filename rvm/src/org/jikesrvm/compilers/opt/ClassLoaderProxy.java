@@ -312,7 +312,7 @@ public final class ClassLoaderProxy implements Constants, OptConstants {
       } catch (Throwable e) {
         e.printStackTrace();
         OptimizingCompilerException.UNREACHABLE();
-        return MAYBE;            // placate jikes.
+        return MAYBE;
       }
     }
   }

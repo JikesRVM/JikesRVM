@@ -1368,7 +1368,7 @@ public final class IR {
         }
       }
       verror(where, "Basic block not found in CFG for BasicBlockOperand: " + operand);
-      return null; // keep jikes quiet
+      return null;
     } else if (operand instanceof HeapOperand) {
       if (!actualSSAOptions.getHeapValid()) {
         return null;
@@ -1382,7 +1382,7 @@ public final class IR {
       }
     } else {
       verror(where, "Unknown variable of " + operand.getClass() + " with operand: " + operand);
-      return null; // keep jikes quiet
+      return null;
     }
   }
 
@@ -1411,7 +1411,7 @@ public final class IR {
       return null;
     } else {
       verror(where, "Unknown variable of " + operand.getClass() + " with operand: " + operand);
-      return null; // keep jikes quiet
+      return null;
     }
   }
 

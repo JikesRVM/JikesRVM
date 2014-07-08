@@ -134,7 +134,7 @@ public abstract class IREnumeration {
           return res;
         } catch (NullPointerException e) {
           fail("forwardGlobalIR");
-          return null; // placate jikes
+          return null;
         }
       }
     };
@@ -161,7 +161,7 @@ public abstract class IREnumeration {
           return res;
         } catch (NullPointerException e) {
           fail("forwardGlobalIR");
-          return null; // placate jikes
+          return null;
         }
       }
     };
@@ -188,7 +188,7 @@ public abstract class IREnumeration {
           return res;
         } catch (NullPointerException e) {
           fail("forwardBE");
-          return null; // placate jikes
+          return null;
         }
       }
     };
@@ -215,7 +215,7 @@ public abstract class IREnumeration {
           return res;
         } catch (NullPointerException e) {
           fail("forwardBE");
-          return null; // placate jikes
+          return null;
         }
       }
     };

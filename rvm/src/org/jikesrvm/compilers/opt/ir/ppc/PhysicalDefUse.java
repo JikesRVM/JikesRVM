@@ -126,7 +126,7 @@ public abstract class PhysicalDefUse {
           return phys.getTR();
       }
       org.jikesrvm.compilers.opt.OptimizingCompilerException.UNREACHABLE();
-      return null; // placate jikes.
+      return null;
     }
   }
 }
