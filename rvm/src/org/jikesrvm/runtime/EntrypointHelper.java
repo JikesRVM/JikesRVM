@@ -22,6 +22,7 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Helper class for retrieving entrypoints. Entrypoints are fields and
@@ -52,9 +53,11 @@ public class EntrypointHelper {
 
       RVMMember member;
       if ((member = cls.findDeclaredField(memName, memDescriptor)) != null) {
+        verifyPresenceOfEntrypointAnnotation(member);
         return member;
       }
       if ((member = cls.findDeclaredMethod(memName, memDescriptor)) != null) {
+        verifyPresenceOfEntrypointAnnotation(member);
         return member;
       }
     } catch (Exception e) {
@@ -73,6 +76,14 @@ public class EntrypointHelper {
                 "\n");
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return null;
+  }
+
+  private static void verifyPresenceOfEntrypointAnnotation(RVMMember member) {
+    if (VM.VerifyAssertions && !(member.isAnnotationPresent(Entrypoint.class))) {
+      String msg = "WARNING: MISSING @Entrypoint ANNOTATION: " + member +
+          " is missing an @Entrypoint annotation!";
+        VM.sysWriteln(msg);
+    }
   }
 
   public static NormalMethod getMethod(String klass, String member, String descriptor, final boolean runtimeServiceMethod) {
