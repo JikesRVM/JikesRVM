@@ -2074,8 +2074,8 @@ public abstract class TemplateCompilerFramework
       if (method.hasUnpreemptibleNoWarnAnnotation()) return;
     }
     // NB generate as a single string to avoid threads splitting output
-    VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
-    "\n   Uninterruptible methods may not contain the following forbidden bytecode\n   " + msg);
+    VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+    ". Uninterruptible methods may not contain the following forbidden bytecode: " + msg);
   }
 
   /**
@@ -2093,13 +2093,13 @@ public abstract class TemplateCompilerFramework
     }
     if (isUninterruptible && !target.isUninterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNINTERRUPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
-      "\n   Uninterruptible method calls non-uninterruptible method " + target + "\n");
+      VM.sysWrite("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+      ". Uninterruptible method calls non-uninterruptible method " + target + "\n");
     }
     if (isUnpreemptible && target.isInterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNPREEMPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
-          "\n   Unpreemptible method calls interruptible method " + target + "\n");
+      VM.sysWrite("WARNING: UNPREEMPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+          ". Unpreemptible method calls interruptible method " + target + "\n");
     }
   }
 
