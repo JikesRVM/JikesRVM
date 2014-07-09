@@ -102,6 +102,7 @@ final class VMCommonLibrarySupport {
    * @param dstPos position within destination array
    * @param len amount of elements to copy
    */
+  @Entrypoint
   static void arraycopy(Object src, int srcPos, Object dst, int dstPos, int len) {
     if (src == null || dst == null) {
       RuntimeEntrypoints.raiseNullPointerException();

@@ -20,6 +20,7 @@ import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -47,21 +48,21 @@ public abstract class OutOfLineMachineCode
   }
 
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray reflectiveMethodInvokerInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray saveThreadStateInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray threadSwitchInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray restoreHardwareExceptionStateInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray saveVolatilesInstructions;
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray restoreVolatilesInstructions;
 
   /** Machine code for reflective method invocation.

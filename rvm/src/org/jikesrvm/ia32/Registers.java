@@ -17,6 +17,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
@@ -36,15 +37,19 @@ public abstract class Registers implements RegisterConstants {
 
   /** General purpose registers */
   @Untraced
+  @Entrypoint
   public final WordArray gprs;
   /** Floating point registers */
   @Untraced
+  @Entrypoint
   public final double[] fprs;
   public final WordArray gprsShadow;
   public final double[] fprsShadow;
   /** Instruction address register */
+  @Entrypoint
   public Address ip;
   /** Frame pointer */
+  @Entrypoint
   public Address fp;
 
   /**
@@ -52,6 +57,7 @@ public abstract class Registers implements RegisterConstants {
    * exception handler and RuntimeEntrypoints.athrow and reset by each
    * implementation of ExceptionDeliverer.deliverException
    */
+  @Entrypoint
   public boolean inuse;
 
   public Registers() {

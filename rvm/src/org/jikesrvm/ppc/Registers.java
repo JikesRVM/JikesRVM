@@ -17,6 +17,7 @@ import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.VM;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
@@ -35,12 +36,15 @@ public abstract class Registers implements ArchConstants {
 
   /** word size general purpose registers (either 32 or 64 bit) */
   @Untraced
+  @Entrypoint
   public final WordArray gprs;
   @Untraced
+  @Entrypoint
   public final double[] fprs; // 64-bit floating point registers
   public final WordArray gprsShadow;
   public final double[] fprsShadow;
   /** instruction address register **/
+  @Entrypoint
   public Address ip;
 
   // The following are used by exception delivery.
@@ -49,8 +53,10 @@ public abstract class Registers implements ArchConstants {
   // They are not used for context switching.
   //
   /** link register */
+  @Entrypoint
   public Address lr;
   /** do exception registers currently contain live values? */
+  @Entrypoint
   public boolean inuse;
 
   private static final Address invalidIP = Address.max();

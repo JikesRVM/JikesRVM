@@ -25,6 +25,7 @@ import org.jikesrvm.runtime.EntrypointHelper;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Offset;
 
 import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
@@ -92,16 +93,16 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
   private static  ArchitectureSpecific.CodeArray pcThunkEDIInstructions;
 
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray reflectiveMethodInvokerInstructions;
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray saveThreadStateInstructions;
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray threadSwitchInstructions;
   @SuppressWarnings({"unused", "UnusedDeclaration", "FieldCanBeLocal"})
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray restoreHardwareExceptionStateInstructions;
 
   private static final Offset PARAMS_FP_OFFSET = Offset.fromIntSignExtend(WORDSIZE * 2);

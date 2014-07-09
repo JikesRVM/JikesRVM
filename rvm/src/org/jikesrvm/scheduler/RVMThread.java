@@ -295,9 +295,11 @@ public final class RVMThread extends ThreadContext implements Constants {
   }
 
   /** Registers used by return barrier trampoline */
+  @Entrypoint
   private Registers trampolineRegisters = new Registers();
 
   /** Return address of stack frame hijacked by return barrier */
+  @Entrypoint
   private Address hijackedReturnAddress;
 
   /** Callee frame pointer for stack frame hijacked by return barrier */
@@ -501,16 +503,19 @@ public final class RVMThread extends ThreadContext implements Constants {
   /**
    * FP for current frame, saved in the prologue of every method
    */
+  @Entrypoint
   Address framePointer;
 
   /**
    * "hidden parameter" for interface invocation thru the IMT
    */
+  @Entrypoint
   int hiddenSignatureId;
 
   /**
    * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
    */
+  @Entrypoint
   int arrayIndexTrapParam;
 
   /* --------- END IA-specific fields. NOTE: NEED TO REFACTOR --------- */

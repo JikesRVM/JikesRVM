@@ -18,6 +18,7 @@ import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -40,6 +41,7 @@ public abstract class MultianewarrayHelper implements Constants {
    *                      be allocated for each dimension.
    * See also: bytecode 0xc5 ("multianewarray") in Compiler
    */
+  @Entrypoint
   static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     if (numDimensions == 2) {
