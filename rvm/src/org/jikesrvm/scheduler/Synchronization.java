@@ -100,7 +100,7 @@ public class Synchronization {
         Word oldValue;
         do {
           oldValue = Magic.prepareWord(base, offset);
-          if (oldValue != testValue) return false;
+          if (oldValue.NE(testValue)) return false;
         } while (!Magic.attemptWord(base, offset, oldValue, newValue));
         return true;
       }
@@ -126,7 +126,7 @@ public class Synchronization {
         Address oldValue;
         do {
           oldValue = Magic.prepareAddress(base, offset);
-          if (oldValue != testValue)
+          if (oldValue.NE(testValue))
             return false;
         } while (!Magic.attemptAddress(base, offset, oldValue, newValue));
         return true;

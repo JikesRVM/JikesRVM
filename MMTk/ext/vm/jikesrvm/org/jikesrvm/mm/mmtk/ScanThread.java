@@ -330,7 +330,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
       compiledMethod.setActiveOnStack();
       ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
       Address ipLoc = exReg.getIPLocation();
-      if (VM.VerifyAssertions) VM._assert(ip == ipLoc.loadAddress());
+      if (VM.VerifyAssertions) VM._assert(ip.EQ(ipLoc.loadAddress()));
       processCodeLocation(code, ipLoc);
     }
   }

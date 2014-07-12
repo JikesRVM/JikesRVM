@@ -463,7 +463,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
     } else {
       do {
         Word currentValue = Magic.prepareWord(ref, offset.toOffset());
-        if (currentValue != old) return false;
+        if (currentValue.NE(old)) return false;
       } while (!Magic.attemptWord(ref, offset.toOffset(), old, target));
       return true;
     }
@@ -536,7 +536,7 @@ public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
       Address oldValue;
       do {
         oldValue = Magic.prepareAddress(objref, offset.toOffset());
-        if (oldValue != expected) return false;
+        if (oldValue.NE(expected)) return false;
       } while (!Magic.attemptAddress(objref, offset.toOffset(), oldValue, newValue));
       return true;
     }
