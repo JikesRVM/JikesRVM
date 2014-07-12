@@ -113,8 +113,8 @@ public class Memory {
       memcopy(dstPtr, srcPtr, copyBytes);
     } else {
       if (copyBytes >= BYTES_IN_COPY &&
-          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)) ==
-          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1))))) {
+          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)).EQ(
+          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)))))) {
         // relative alignment is the same
         Address endPtr = srcPtr.plus(copyBytes);
         Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();
@@ -223,8 +223,8 @@ public class Memory {
       memcopy(dstPtr, srcPtr, copyBytes);
     } else {
       if (copyBytes >= BYTES_IN_COPY &&
-          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)) ==
-          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1))))) {
+          (srcPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)).EQ(
+          (dstPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY - 1)))))) {
         // relative alignment is the same
         Address endPtr = srcPtr.plus(copyBytes);
         Address wordEndPtr = endPtr.toWord().and(Word.fromIntZeroExtend(BYTES_IN_COPY-1).not()).toAddress();

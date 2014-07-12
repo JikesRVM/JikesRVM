@@ -134,7 +134,7 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
     int callerCMID = 0;
     Address returnAddress = Address.zero();
 
-    if (sfp.loadAddress() == STACKFRAME_SENTINEL_FP) {
+    if (sfp.loadAddress().EQ(STACKFRAME_SENTINEL_FP)) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");
       return;
     }
@@ -151,7 +151,7 @@ public class EdgeListener extends ContextListener implements StackframeLayoutCon
 
     returnAddress = Magic.getReturnAddress(sfp); // return address in caller
     sfp = Magic.getCallerFramePointer(sfp);      // caller's frame pointer
-    if (sfp.loadAddress() == STACKFRAME_SENTINEL_FP) {
+    if (sfp.loadAddress().EQ(STACKFRAME_SENTINEL_FP)) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack\n");
       return;
     }

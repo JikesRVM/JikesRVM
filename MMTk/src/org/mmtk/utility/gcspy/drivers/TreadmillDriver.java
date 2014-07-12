@@ -245,7 +245,7 @@ import org.vmmagic.pragma.*;
     Address start = subspace.getStart();
     int required = countTileNum(start, maxAddr, blockSize);
     int current = subspace.getBlockNum();
-    if (required > current || maxAddr != subspace.getEnd()) {
+    if (required > current || maxAddr.NE(subspace.getEnd())) {
       subspace.reset(start, maxAddr, 0, required);
       allTileNum = required;
       serverSpace.resize(allTileNum);

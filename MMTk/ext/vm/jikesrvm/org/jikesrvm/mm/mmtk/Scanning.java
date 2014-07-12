@@ -135,7 +135,7 @@ public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
     }
 
     Address linkageTriplets = Magic.objectAsAddress(JNIEnvironment.LinkageTriplets);
-    if (linkageTriplets != null) {
+    if (!linkageTriplets.isZero()) {
       for(int i=start; i < end; i++) {
         trace.processRootEdge(linkageTriplets.plus(i << LOG_BYTES_IN_ADDRESS), true);
       }

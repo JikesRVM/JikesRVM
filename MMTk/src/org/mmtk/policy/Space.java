@@ -573,7 +573,7 @@ public abstract class Space implements Constants {
         for(Address a = space.headDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
           Log.write(a); Log.write("->");
           Log.write(a.plus(Map.getContiguousRegionSize(a).minus(1)));
-          if (Map.getNextContiguousRegion(a) != Address.zero())
+          if (!Map.getNextContiguousRegion(a).isZero())
             Log.write(", ");
         }
         Log.writeln("]");
