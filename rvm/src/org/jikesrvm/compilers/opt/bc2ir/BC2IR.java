@@ -4297,6 +4297,15 @@ public final class BC2IR
     RegisterOperand ref = (RegisterOperand) op0;
     BranchOperand branch = null;
     RegisterOperand guard = null;
+
+    // Check for incorrect null checks on unboxed types
+    if (ref.getType().isUnboxedType()) {
+      throw new OptimizingCompilerException("Detected incorrect null check of unboxed type in " +
+          gc.getMethod() + " at bytecode index " + instrIndex + " from class " +
+          gc.getMethod().getDeclaringClass() +
+          " . Use the methods provided on the unboxed types to do null checks!");
+    }
+
     if (cond.isEQUAL()) {
       branch = generateTarget(offset);
       if (ref.getRegister().isLocal()) {
@@ -4375,6 +4384,27 @@ public final class BC2IR
         return null;
       }
     }
+
+    // Check for incorrect comparison operators on unboxed types
+    if (op0.isRegister()) {
+      RegisterOperand op0Reg = op0.asRegister();
+      if (op0Reg.getType().isUnboxedType()) {
+        throw new OptimizingCompilerException("Detected incorrect comparison of unboxed types in " +
+            gc.getMethod() + " at bytecode index " + instrIndex + " from class " +
+            gc.getMethod().getDeclaringClass() +
+            " . Use the methods provided on the unboxed types to do comparisons!");
+      }
+    }
+    if (op1.isRegister()) {
+      RegisterOperand op1Reg = op1.asRegister();
+      if (op1Reg.getType().isUnboxedType()) {
+        throw new OptimizingCompilerException("Detected incorrect comparison of unboxed types in " +
+            gc.getMethod() + " at bytecode index " + instrIndex + " from class " +
+            gc.getMethod().getDeclaringClass() +
+            " . Use the methods provided on the unboxed types to do comparisons!");
+      }
+    }
+
     fallThrough = true;
     RegisterOperand guard = gc.getTemps().makeTempValidation();
     return IfCmp.create(REF_IFCMP,
