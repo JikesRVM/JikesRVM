@@ -75,7 +75,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
          (options.PRINT_MACHINECODE) &&
          (!options.hasMETHOD_TO_PRINT() || options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
-    if (shouldPrint && VM.runningVM && !fullyBootedVM) {
+    if (shouldPrint && VM.runningVM && !VM.fullyBooted) {
       shouldPrint = false;
       if (options.PRINT_METHOD) {
         VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
@@ -105,7 +105,6 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     if (options.hasMETHOD_TO_PRINT() && options.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
-    fullyBootedVM = true;
   }
 
   /**

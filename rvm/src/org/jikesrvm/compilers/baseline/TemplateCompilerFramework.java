@@ -49,11 +49,6 @@ public abstract class TemplateCompilerFramework
     implements ClassLoaderConstants, SizeConstants, StackframeLayoutConstants {
 
   /**
-   * has fullyBootedVM been called by VM.boot?
-   */
-  protected static boolean fullyBootedVM = false;
-
-  /**
    * The method being compiled
    */
   protected final NormalMethod method;
