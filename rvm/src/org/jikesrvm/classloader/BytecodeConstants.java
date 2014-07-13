@@ -429,7 +429,7 @@ public final class BytecodeConstants {
                        3, // getfield
                        3, // putfield
                        3, // invokevirtual
-                       3, // invokenonvirtual
+                       3, // invokespecial
                        3, // invokestatic
                        5, // invokeinterface
                        -2, // xxxunusedxxx
@@ -709,7 +709,7 @@ public final class BytecodeConstants {
        "getfield",
        "putfield",
        "invokevirtual",
-       "invokenonvirtual",
+       "invokespecial",
        "invokestatic",
        "invokeinterface",
        "xxxunusedxxx",
