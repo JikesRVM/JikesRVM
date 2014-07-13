@@ -2151,7 +2151,7 @@ public final class BC2IR
         }
         break;
 
-        case JBC_xxxunusedxxx:
+        case JBC_invokedynamic:
           OptimizingCompilerException.UNREACHABLE();
           break;
 

@@ -207,7 +207,7 @@ public final class BytecodeConstants {
   public static final int JBC_invokespecial = 183;
   public static final int JBC_invokestatic = 184;
   public static final int JBC_invokeinterface = 185;
-  public static final int JBC_xxxunusedxxx = 186;
+  public static final int JBC_invokedynamic = 186;
   public static final int JBC_new = 187;
   public static final int JBC_newarray = 188;
   public static final int JBC_anewarray = 189;
@@ -223,6 +223,7 @@ public final class BytecodeConstants {
   public static final int JBC_ifnonnull = 199;
   public static final int JBC_goto_w = 200;
   public static final int JBC_jsr_w = 201;
+  public static final int JBC_breakpoint = 202;
 
   public static final int JBC_impdep1 = 254;
   public static final int JBC_impdep2 = 255;
@@ -432,7 +433,7 @@ public final class BytecodeConstants {
                        3, // invokespecial
                        3, // invokestatic
                        5, // invokeinterface
-                       -2, // xxxunusedxxx
+                       -2, // invokedynamic
                        3, // new
                        2, // newarray
                        3, // anewarray
@@ -448,7 +449,7 @@ public final class BytecodeConstants {
                        3, // ifnonnull
                        5, // goto_w
                        5, // jsr_w
-                       -2, // 202
+                       -2, // breakpoint
                        -2, // 203
                        -2, // 204
                        -2, // 205
@@ -501,7 +502,7 @@ public final class BytecodeConstants {
                        -2, // 252
                        -2, // 253
                        -1, // impdep1  254
-                       -2, // 255
+                       -2, // impdep2 255
   };
 
   /**
@@ -712,7 +713,7 @@ public final class BytecodeConstants {
        "invokespecial",
        "invokestatic",
        "invokeinterface",
-       "xxxunusedxxx",
+       "invokedynamic",
        "new",
        "newarray",
        "anewarray",
@@ -727,6 +728,7 @@ public final class BytecodeConstants {
        "ifnull",
        "ifnonnull",
        "goto_w",
-       "jsr_w"
+       "jsr_w",
+       "breakpoint"
       };
 }

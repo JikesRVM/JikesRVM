@@ -1180,7 +1180,7 @@ public class BytecodeTraverser implements ClassLoaderConstants, OSRConstants {
           }
         }
         break;
-        case JBC_xxxunusedxxx:
+        case JBC_invokedynamic:
           break;
 
         case JBC_new:

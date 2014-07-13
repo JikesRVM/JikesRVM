@@ -1575,7 +1575,7 @@ public abstract class TemplateCompilerFramework
           break;
         }
 
-        case JBC_xxxunusedxxx: {
+        case JBC_invokedynamic: {
           if (shouldPrint) asm.noteBytecode(biStart, "unused");
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;

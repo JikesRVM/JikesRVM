@@ -742,7 +742,7 @@ public final class NormalMethod extends RVMMethod {
           calleeSize += CALL_COST;
           break;
 
-        case JBC_xxxunusedxxx:
+        case JBC_invokedynamic:
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
 
