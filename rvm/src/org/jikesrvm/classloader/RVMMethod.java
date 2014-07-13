@@ -32,13 +32,15 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 import static org.jikesrvm.classloader.TypeReference.baseReflectionClass;
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+
 
 /**
  * A method of a java class corresponding to a method_info structure
  * in the class file. A method is read from a class file using the
  * {@link #readMethod} method.
  */
-public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
+public abstract class RVMMethod extends RVMMember {
 
   /**
    * current compiled method for this method

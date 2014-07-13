@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_fstore;
 
 /**
  * BC_FloatStore: {@code fstore}, {@code fstore_<i>}

@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.opt.runtimesupport.ppc;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.runtime.ExceptionDeliverer;
@@ -30,7 +29,7 @@ import org.vmmagic.unboxed.Word;
  * opt compiled methods.
  */
 public abstract class OptExceptionDeliverer extends ExceptionDeliverer
-    implements Constants, BytecodeConstants {
+    implements Constants {
 
   /**
    * Pass control to a catch block.

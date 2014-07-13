@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_goto;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_goto_w;
 
 /**
  * goto instruction

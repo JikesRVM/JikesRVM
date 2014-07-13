@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.NormalMethod;
@@ -23,7 +24,7 @@ import org.jikesrvm.classloader.NormalMethod;
  * basic blocks. Used for building the reference maps for a
  * method.
  */
-final class BuildBB implements BytecodeConstants, BBConstants {
+final class BuildBB implements BBConstants {
 
   // ---------------- Static Class Fields --------------------
 

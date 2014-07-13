@@ -12,15 +12,17 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_impdep1;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_wide;
+
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.osr.OSRConstants;
 import org.vmmagic.unboxed.Word;
 
 /**
  * OSR_PseudoBytecode is super class of all pseudo instructions.
  */
-public abstract class PseudoBytecode implements BytecodeConstants, OSRConstants, SizeConstants {
+public abstract class PseudoBytecode implements OSRConstants, SizeConstants {
 
   public PseudoBytecode next;
 

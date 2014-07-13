@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.RVMClass;
@@ -56,7 +57,7 @@ import org.jikesrvm.osr.bytecodes.InvokeStatic;
  *      types are same for all PCs.
  * </ol>
  */
-public class BytecodeTraverser implements BytecodeConstants, ClassLoaderConstants, OSRConstants {
+public class BytecodeTraverser implements ClassLoaderConstants, OSRConstants {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
@@ -337,7 +338,7 @@ public class BytecodeTraverser implements BytecodeConstants, ClassLoaderConstant
 
       if (TRACE) {
         if (bcode <= JBC_jsr_w) {
-          VM.sysWriteln(pc + " : " + S.depth() + " : " + JBC_name[bcode]);
+          VM.sysWriteln(pc + " : " + S.depth() + " : " + JBC_name(bcode));
         } else {
           VM.sysWriteln(pc + " : " + S.depth() + " : impdep1");
         }

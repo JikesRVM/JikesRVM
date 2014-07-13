@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -23,7 +25,7 @@ import org.vmmagic.pragma.Uninterruptible;
 /**
  * A method of a java class that has bytecodes.
  */
-public final class NormalMethod extends RVMMethod implements BytecodeConstants {
+public final class NormalMethod extends RVMMethod {
 
   /* As we read the bytecodes for the method, we compute
    * a simple summary of some interesting properties of the method.

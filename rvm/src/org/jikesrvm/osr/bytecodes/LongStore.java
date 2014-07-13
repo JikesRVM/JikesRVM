@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_lstore;
 
 /**
  * BC_LongStore: {@code lstore}, {@code lstore_<n>}

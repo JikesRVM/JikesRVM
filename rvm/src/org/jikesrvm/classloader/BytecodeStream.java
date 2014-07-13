@@ -12,8 +12,10 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM;
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+
 import org.jikesrvm.SizeConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
@@ -22,7 +24,7 @@ import org.vmmagic.unboxed.Offset;
  * Provides minimal abstraction layer to a stream of bytecodes
  * from the code attribute of a method.
  */
-public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, SizeConstants {
+public class BytecodeStream implements ClassLoaderConstants, SizeConstants {
   private final NormalMethod method;
   private final int bcLength;
   private final byte[] bcodes;
@@ -152,7 +154,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
    */
   public final void skipInstruction() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
-    int len = JBC_length[opcode] - 1;
+    int len = JBC_length(opcode) - 1;
     if (wide) len += len;
     if (len >= 0) {
       bcIndex += len;
@@ -170,7 +172,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
    */
   public final void skipInstruction(int opcode, boolean wide) {
     if (VM.VerifyAssertions) VM._assert(bcIndex < bcLength);
-    int len = JBC_length[opcode] - 1;
+    int len = JBC_length(opcode) - 1;
     if (wide) len += len;
     if (len >= 0) {
       bcIndex += len;
@@ -818,7 +820,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
       break;
       case JBC_wide: {
         int oc = getWideOpcode();
-        int len = JBC_length[oc] - 1;
+        int len = JBC_length(oc) - 1;
         bcIndex += len + len;
       }
       break;
