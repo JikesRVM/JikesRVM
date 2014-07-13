@@ -12,8 +12,11 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
-import org.jikesrvm.SizeConstants;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
+
+import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.adaptive.recompilation.InvocationCounts;

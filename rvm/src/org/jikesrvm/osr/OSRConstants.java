@@ -13,13 +13,12 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.classloader.ClassLoaderConstants;
 
 /**
  * OSRConstants defines constants used for on-stack-replacement mapping,
  * VM scope descriptor, and pseudo bytecodes.
  */
-public interface OSRConstants extends SizeConstants, ClassLoaderConstants {
+public interface OSRConstants extends SizeConstants {
 
   ////////////////////////////////////////////
   // Part I  constants used for opt compilation with OSR points

@@ -12,8 +12,20 @@
  */
 package org.jikesrvm.osr.ia32;
 
-import org.jikesrvm.VM;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ArrayTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
@@ -21,9 +33,9 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.ia32.ArchConstants;
 import org.jikesrvm.osr.BytecodeTraverser;
-import org.jikesrvm.osr.OSRConstants;
-import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.ExecutionState;
+import org.jikesrvm.osr.ExecutionStateExtractor;
+import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.VariableElement;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;

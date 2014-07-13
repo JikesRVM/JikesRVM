@@ -12,6 +12,18 @@
  */
 package org.jikesrvm.osr.ppc;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.ArrayTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.NormalMethod;

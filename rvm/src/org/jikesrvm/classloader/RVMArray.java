@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 import org.jikesrvm.ArchitectureSpecific;
@@ -46,7 +47,7 @@ import org.vmmagic.unboxed.Offset;
  * @see UnboxedType
  */
 @NonMoving
-public final class RVMArray extends RVMType implements Constants, ClassLoaderConstants {
+public final class RVMArray extends RVMType implements Constants {
 
   /*
    * We hold on to a number of commonly used arrays for easy access.

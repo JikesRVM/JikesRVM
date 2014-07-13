@@ -12,6 +12,10 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.classloader.RVMMethod;

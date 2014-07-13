@@ -13,16 +13,28 @@
 package org.jikesrvm.osr;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ArrayTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.ClassLoaderConstants;
-import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.osr.bytecodes.InvokeStatic;
@@ -57,7 +69,7 @@ import org.jikesrvm.osr.bytecodes.InvokeStatic;
  *      types are same for all PCs.
  * </ol>
  */
-public class BytecodeTraverser implements ClassLoaderConstants, OSRConstants {
+public class BytecodeTraverser implements OSRConstants {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a

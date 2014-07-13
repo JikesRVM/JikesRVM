@@ -12,6 +12,16 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+
 import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.TIB;
@@ -40,7 +50,7 @@ import org.vmmagic.unboxed.Offset;
  * @see UnboxedType
  */
 @NonMoving
-public final class Primitive extends RVMType implements Constants, ClassLoaderConstants {
+public final class Primitive extends RVMType implements Constants {
   /**
    * The pretty (external) name for this primitive.
    * For example, for a long the name is 'long'

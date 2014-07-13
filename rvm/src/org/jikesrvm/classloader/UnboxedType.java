@@ -31,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * @see Primitive
  */
 @NonMoving
-public final class UnboxedType extends RVMType implements Constants, ClassLoaderConstants {
+public final class UnboxedType extends RVMType implements Constants {
   /**
    * The pretty (external) name for this Unboxed type.
    */

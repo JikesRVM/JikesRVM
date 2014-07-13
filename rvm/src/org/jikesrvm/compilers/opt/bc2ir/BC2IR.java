@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -20,7 +21,6 @@ import java.util.Enumeration;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.ClassLoaderConstants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.FieldReference;
@@ -141,7 +141,7 @@ import org.vmmagic.unboxed.Offset;
  * @see ConvertBCtoHIR
  */
 public final class BC2IR
-    implements IRGenOptions, Operators, ClassLoaderConstants, OptConstants, OSRConstants {
+    implements IRGenOptions, Operators, OptConstants, OSRConstants {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take

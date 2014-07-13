@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.liveness;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
-import static org.jikesrvm.osr.OSRConstants.LongTypeCode;
-import static org.jikesrvm.osr.OSRConstants.VoidTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;

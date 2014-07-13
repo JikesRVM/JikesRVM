@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.vmmagic.unboxed.Word;

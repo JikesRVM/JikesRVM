@@ -12,6 +12,17 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Pure;
@@ -88,7 +99,7 @@ import org.vmmagic.pragma.Pure;
 
  */
 
-public abstract class TypeDescriptorParsing implements ClassLoaderConstants {
+public abstract class TypeDescriptorParsing {
   /** Is the string <code>s</code> a legal name for a Java class or interface?
    * This will take either fully-qualified names or names that are not fully
    * qualified.

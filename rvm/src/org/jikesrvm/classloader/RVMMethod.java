@@ -33,6 +33,7 @@ import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 import static org.jikesrvm.classloader.TypeReference.baseReflectionClass;
 import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 
 
 /**

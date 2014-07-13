@@ -13,6 +13,8 @@
 
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 
@@ -27,7 +29,7 @@ import org.vmmagic.unboxed.Offset;
  * and create the appropriate instance of an RVMClass or UnboxedType.
  * Also low-level support for our internal constant pool format.
  */
-public class ClassFileReader implements Constants, ClassLoaderConstants {
+public class ClassFileReader implements Constants {
 
   /**
    * Parse and return the constant pool in a class file

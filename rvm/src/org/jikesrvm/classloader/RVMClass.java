@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 
@@ -48,7 +50,7 @@ import org.vmmagic.unboxed.Offset;
  * @see UnboxedType
  */
 @NonMoving
-public final class RVMClass extends RVMType implements Constants, ClassLoaderConstants {
+public final class RVMClass extends RVMType implements Constants {
 
   /** Flag for closed world testing */
   public static boolean classLoadingDisabled = false;

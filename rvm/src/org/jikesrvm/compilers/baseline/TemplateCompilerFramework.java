@@ -13,21 +13,24 @@
 package org.jikesrvm.compilers.baseline;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
 
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.ArchitectureSpecific.MachineCode;
 import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
-import org.jikesrvm.VM;
 import org.jikesrvm.Services;
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.classloader.ClassLoaderConstants;
-import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -46,7 +49,7 @@ import org.vmmagic.unboxed.Offset;
  * seen. It is the common base class of the base compiler.
  */
 public abstract class TemplateCompilerFramework
-    implements ClassLoaderConstants, SizeConstants, StackframeLayoutConstants {
+    implements SizeConstants, StackframeLayoutConstants {
 
   /**
    * The method being compiled

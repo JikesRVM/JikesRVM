@@ -61,7 +61,7 @@ import org.vmmagic.unboxed.Offset;
  */
 @NonMoving
 public abstract class RVMType extends AnnotatedElement
-    implements ClassLoaderConstants, SizeConstants, Constants {
+    implements SizeConstants, Constants {
 
   /**
    * A zero-length array, used as GC metadata for primitive
