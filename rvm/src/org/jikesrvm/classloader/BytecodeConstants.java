@@ -228,6 +228,10 @@ public final class BytecodeConstants {
   public static final int JBC_impdep1 = 254;
   public static final int JBC_impdep2 = 255;
 
+  private BytecodeConstants() {
+    // prevent instantiation
+  }
+
   /**
    * Returns the length of the given bytecode.
    *
