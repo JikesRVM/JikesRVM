@@ -15,6 +15,11 @@ package org.jikesrvm.compilers.baseline;
 import static org.jikesrvm.classloader.BytecodeConstants.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+import static org.jikesrvm.compilers.baseline.BBConstants.ADDRESS_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.DOUBLE_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.FLOAT_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.INT_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.LONG_TYPE;
 
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.VM;
@@ -35,7 +40,7 @@ import org.jikesrvm.classloader.TypeReference;
  * java operand stack or a C-like stack?; when processing java bytecodes it
  * seemed best to use "stack" for java operand stack.)
  */
-final class BuildReferenceMaps implements BBConstants {
+final class BuildReferenceMaps {
 
   /**
    * The entry in the reference map contains a value that is not a reference.

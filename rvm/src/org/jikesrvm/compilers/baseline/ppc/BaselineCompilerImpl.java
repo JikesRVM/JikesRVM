@@ -12,6 +12,14 @@
  */
 package org.jikesrvm.compilers.baseline.ppc;
 
+import static org.jikesrvm.compilers.baseline.BBConstants.ADDRESS_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.DOUBLE_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.FLOAT_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.INT_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.LONG_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.LONGHALF_TYPE;
+import static org.jikesrvm.compilers.baseline.BBConstants.VOID_TYPE;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.adaptive.recompilation.InvocationCounts;
@@ -29,7 +37,6 @@ import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.baseline.BBConstants;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
@@ -58,7 +65,7 @@ import org.vmmagic.unboxed.Offset;
  * Compiler is the baseline compiler class for powerPC architectures.
  */
 public abstract class BaselineCompilerImpl extends BaselineCompiler
-    implements BaselineConstants, JNIStackframeLayoutConstants, BBConstants, AssemblerConstants {
+    implements BaselineConstants, JNIStackframeLayoutConstants, AssemblerConstants {
 
   // stackframe pseudo-constants //
   private int frameSize;

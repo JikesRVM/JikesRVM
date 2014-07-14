@@ -17,38 +17,42 @@ package org.jikesrvm.compilers.baseline;
  * sizes that describe the state of a basic block and its stack
  * contents on entry.
  */
-public interface BBConstants {
+public final class BBConstants {
 
   // first two bits determine the number of Java words making up the
   // entity
-  byte LENGTH_MASK = 0x03;
+  public static final byte LENGTH_MASK = 0x03;
 
-  byte VOID_TYPE = 0x00;
-  byte INT_TYPE = 0x01;
-  byte ADDRESS_TYPE = 0x02;
-  byte LONG_TYPE = 0x04;
-  byte FLOAT_TYPE = 0x08;
-  byte DOUBLE_TYPE = 0x10;
-  byte LONGHALF_TYPE = 0x20;
+  public static final byte VOID_TYPE = 0x00;
+  public static final byte INT_TYPE = 0x01;
+  public static final byte ADDRESS_TYPE = 0x02;
+  public static final byte LONG_TYPE = 0x04;
+  public static final byte FLOAT_TYPE = 0x08;
+  public static final byte DOUBLE_TYPE = 0x10;
+  public static final byte LONGHALF_TYPE = 0x20;
 
-  short DUMMYBLOCK = -1;
-  short STARTBLOCK = 1;
-  short EXITBLOCK = 2;
-  short EXCEPTIONHANDLER = -2;
+  public static final short DUMMYBLOCK = -1;
+  public static final short STARTBLOCK = 1;
+  public static final short EXITBLOCK = 2;
+  public static final short EXCEPTIONHANDLER = -2;
 
-  byte TARGET_ = 0x10;
-  byte CONDITIONAL_ = 0x20;
-  byte FALLTHRU_ = 0x40;
-  byte TRYSTART_ = (byte) 0x80;
+  public static final byte TARGET_ = 0x10;
+  public static final byte CONDITIONAL_ = 0x20;
+  public static final byte FALLTHRU_ = 0x40;
+  public static final byte TRYSTART_ = (byte) 0x80;
 
-  byte NOTBLOCK = 0x0;
-  byte INJSR_ = 0x1;
-  byte JSRENTRY = 0x2;
-  byte TRYHANDLERSTART = 0x4;
-  byte HASHANDLER_ = 0x8;
-  byte METHODENTRY = TARGET_;
-  byte CONDITIONALTARGET = TARGET_ | CONDITIONAL_;
-  byte UNCONDITIONALTARGET = TARGET_;
-  byte FALLTHRUTARGET = TARGET_ | CONDITIONAL_ | FALLTHRU_;
+  public static final byte NOTBLOCK = 0x0;
+  public static final byte INJSR_ = 0x1;
+  public static final byte JSRENTRY = 0x2;
+  public static final byte TRYHANDLERSTART = 0x4;
+  public static final byte HASHANDLER_ = 0x8;
+  public static final byte METHODENTRY = TARGET_;
+  public static final byte CONDITIONALTARGET = TARGET_ | CONDITIONAL_;
+  public static final byte UNCONDITIONALTARGET = TARGET_;
+  public static final byte FALLTHRUTARGET = TARGET_ | CONDITIONAL_ | FALLTHRU_;
+
+  private BBConstants() {
+    // prevent instantiation
+  }
 
 }

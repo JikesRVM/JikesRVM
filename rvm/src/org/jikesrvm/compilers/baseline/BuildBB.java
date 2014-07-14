@@ -24,7 +24,7 @@ import org.jikesrvm.classloader.NormalMethod;
  * basic blocks. Used for building the reference maps for a
  * method.
  */
-final class BuildBB implements BBConstants {
+final class BuildBB {
 
   // ---------------- Static Class Fields --------------------
 
