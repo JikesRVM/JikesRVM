@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.common.assembler.ia32;
 
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.*;
+
 import org.jikesrvm.*;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl;
@@ -179,7 +181,7 @@ import org.vmmagic.unboxed.*;
  * @see ForwardReference
  *
 */
-public abstract class Assembler extends AbstractAssembler implements RegisterConstants, AssemblerConstants {
+public abstract class Assembler extends AbstractAssembler implements RegisterConstants {
 
   /**
    * The lister object is used to print generated machine code.

@@ -12,11 +12,13 @@
  */
 package org.jikesrvm.jni.ia32;
 
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -29,8 +31,8 @@ import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -781,7 +783,7 @@ public abstract class JNICompiler implements BaselineConstants {
       T1);
 
     // if we succeeded, move on, else go into slow path
-    ForwardReference doneLeaveJNIRef = asm.forwardJcc(Assembler.EQ);
+    ForwardReference doneLeaveJNIRef = asm.forwardJcc(EQ);
 
     // make the slow call
     asm.emitCALL_Abs(
@@ -916,7 +918,7 @@ public abstract class JNICompiler implements BaselineConstants {
       T1);
 
     // if success, skip the slow path call
-    ForwardReference doneEnterJNIRef = asm.forwardJcc(Assembler.EQ);
+    ForwardReference doneEnterJNIRef = asm.forwardJcc(EQ);
 
     // fast path failed, make the call
     asm.emitCALL_Abs(

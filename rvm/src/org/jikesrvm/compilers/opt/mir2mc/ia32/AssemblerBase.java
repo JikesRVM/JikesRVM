@@ -12,16 +12,21 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.CONDITION;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.WORD;
+import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
-import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
 import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.MIR_BinaryAcc;
 import org.jikesrvm.compilers.opt.ir.MIR_Branch;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
@@ -33,8 +38,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.MIR_Test;
 import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -1009,10 +1012,10 @@ abstract class AssemblerBase extends Assembler
     // idx += [ms + idx<<2 + ??] - we will patch ?? when we know the placement of the table
     int toPatchAddress = getMachineCodeIndex();
     if (VM.buildFor32Addr()) {
-      emitMOV_Reg_RegIdx(idx, ms, idx, Assembler.WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
+      emitMOV_Reg_RegIdx(idx, ms, idx, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
       emitADD_Reg_Reg(idx, ms);
     } else {
-      emitMOV_Reg_RegIdx(idx, ms, idx, Assembler.WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
+      emitMOV_Reg_RegIdx(idx, ms, idx, WORD, Offset.fromIntZeroExtend(Integer.MAX_VALUE));
       emitADD_Reg_Reg_Quad(idx, ms);
     }
     // JMP T0

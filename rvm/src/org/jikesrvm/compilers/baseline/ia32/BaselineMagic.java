@@ -18,19 +18,32 @@ import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.NO_SLOT;
 import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.ONE_SLOT;
 import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.THREE_SLOTS;
 import static org.jikesrvm.compilers.baseline.ia32.BaselineCompilerImpl.TWO_SLOTS;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.BYTE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.GE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.GT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LGE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LGT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LLE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LLT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LONG;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.NE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.WORD;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_BASE;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 import static org.jikesrvm.ia32.BaselineConstants.EBX_SAVE_OFFSET;
 import static org.jikesrvm.ia32.BaselineConstants.EDI_SAVE_OFFSET;
 import static org.jikesrvm.ia32.BaselineConstants.FPU_SAVE_OFFSET;
 import static org.jikesrvm.ia32.BaselineConstants.LG_WORDSIZE;
-import static org.jikesrvm.ia32.BaselineConstants.TR;
 import static org.jikesrvm.ia32.BaselineConstants.S0;
 import static org.jikesrvm.ia32.BaselineConstants.SP;
 import static org.jikesrvm.ia32.BaselineConstants.T0;
 import static org.jikesrvm.ia32.BaselineConstants.T0_SAVE_OFFSET;
 import static org.jikesrvm.ia32.BaselineConstants.T1;
 import static org.jikesrvm.ia32.BaselineConstants.T1_SAVE_OFFSET;
+import static org.jikesrvm.ia32.BaselineConstants.TR;
 import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
 import static org.jikesrvm.ia32.BaselineConstants.XMM_SAVE_OFFSET;
 import static org.jikesrvm.ia32.RegisterConstants.EAX;
@@ -50,10 +63,10 @@ import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_RETURN_ADDR
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_TYPE_INDEX;
 import static org.jikesrvm.runtime.EntrypointHelper.getMethodReference;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.Registers;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMArray;
@@ -284,7 +297,7 @@ final class BaselineMagic {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // object ref
-      asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT); // pushes [T0+S0]
+      asm.emitPUSH_RegIdx(T0, S0, BYTE, NO_SLOT); // pushes [T0+S0]
     }
   }
   static {
@@ -325,7 +338,7 @@ final class BaselineMagic {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // object ref
-      asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT); // pushes [T0+S0]
+      asm.emitPUSH_RegIdx(T0, S0, BYTE, NO_SLOT); // pushes [T0+S0]
     }
   }
   static {
@@ -367,7 +380,7 @@ final class BaselineMagic {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // base
-      asm.emitMOVSX_Reg_RegIdx_Byte(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and sign extend byte [T0+S0]
+      asm.emitMOVSX_Reg_RegIdx_Byte(T0, T0, S0, BYTE, NO_SLOT); // load and sign extend byte [T0+S0]
       asm.emitPUSH_Reg(T0);
     }
   }
@@ -386,7 +399,7 @@ final class BaselineMagic {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // base
-      asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and sign extend byte [T0+S0]
+      asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, BYTE, NO_SLOT); // load and sign extend byte [T0+S0]
       asm.emitPUSH_Reg(T0);
     }
   }
@@ -421,7 +434,7 @@ final class BaselineMagic {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // base
-      asm.emitMOVSX_Reg_RegIdx_Word(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and sign extend word [T0+S0]
+      asm.emitMOVSX_Reg_RegIdx_Word(T0, T0, S0, BYTE, NO_SLOT); // load and sign extend word [T0+S0]
       asm.emitPUSH_Reg(T0);
     }
   }
@@ -457,7 +470,7 @@ final class BaselineMagic {
       // Load at offset
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // base
-      asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, Assembler.BYTE, NO_SLOT); // load and sign extend word [T0+S0]
+      asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, BYTE, NO_SLOT); // load and sign extend word [T0+S0]
       asm.emitPUSH_Reg(T0);
     }
   }
@@ -501,11 +514,11 @@ final class BaselineMagic {
       asm.emitPOP_Reg(S0);                  // offset
       asm.emitPOP_Reg(T0);                  // base
       if (VM.BuildFor32Addr) {
-        asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, ONE_SLOT); // pushes [T0+S0+4]
-        asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
+        asm.emitPUSH_RegIdx(T0, S0, BYTE, ONE_SLOT); // pushes [T0+S0+4]
+        asm.emitPUSH_RegIdx(T0, S0, BYTE, NO_SLOT);  // pushes [T0+S0]
       } else {
         asm.emitPUSH_Reg(T0);                                  // create space
-        asm.emitPUSH_RegIdx(T0, S0, Assembler.BYTE, NO_SLOT);  // pushes [T0+S0]
+        asm.emitPUSH_RegIdx(T0, S0, BYTE, NO_SLOT);  // pushes [T0+S0]
       }
     }
   }
@@ -553,7 +566,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(T1);                   // address
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+      asm.emitMOV_RegIdx_Reg(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- T0
     }
   }
   static {
@@ -578,7 +591,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+      asm.emitMOV_RegIdx_Reg(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- T0
     }
   }
   static {
@@ -606,7 +619,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- T0
+      asm.emitMOV_RegIdx_Reg(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- T0
     }
   }
   static {
@@ -651,7 +664,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(T1);                   // base
-      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
+      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
     }
   }
   static {
@@ -669,7 +682,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
+      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
     }
   }
   static {
@@ -689,7 +702,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
+      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- (byte) T0
     }
   }
   static {
@@ -726,7 +739,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(T1);                   // base
-      asm.emitMOV_RegIdx_Reg_Word(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0
+      asm.emitMOV_RegIdx_Reg_Word(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0
     }
   }
   static {
@@ -744,7 +757,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg_Word(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0
+      asm.emitMOV_RegIdx_Reg_Word(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0
     }
   }
   static {
@@ -764,7 +777,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
-      asm.emitMOV_RegIdx_Reg_Word(T1, S0, Assembler.BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0
+      asm.emitMOV_RegIdx_Reg_Word(T1, S0, BYTE, NO_SLOT, T0); // [T1+S0] <- (word) T0
     }
   }
   static {
@@ -848,7 +861,7 @@ final class BaselineMagic {
         asm.emitPOP_Reg(T1);                       // throw away slot
         asm.emitPOP_Reg(T1);                       // T1 = offset
         asm.emitPOP_Reg(S0);                       // S0 = base
-        asm.emitMOV_RegIdx_Reg_Quad(S0, T1, Assembler.BYTE, NO_SLOT, T0); // [base+offset] <- T0
+        asm.emitMOV_RegIdx_Reg_Quad(S0, T1, BYTE, NO_SLOT, T0); // [base+offset] <- T0
       }
     }
   }
@@ -879,7 +892,7 @@ final class BaselineMagic {
         asm.emitPOP_Reg(T1);                       // throw away slot
         asm.emitPOP_Reg(T1);                       // T1 = offset
         asm.emitPOP_Reg(S0);                       // S0 = base
-        asm.emitMOV_RegIdx_Reg_Quad(S0, T1, Assembler.BYTE, NO_SLOT, T0); // [base+offset] <- T0
+        asm.emitMOV_RegIdx_Reg_Quad(S0, T1, BYTE, NO_SLOT, T0); // [base+offset] <- T0
       }
     }
   }
@@ -903,7 +916,7 @@ final class BaselineMagic {
       asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
       asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
       asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(Assembler.EQ); // skip if compare fails
+      ForwardReference fr = asm.forwardJcc(EQ); // skip if compare fails
       asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
       fr.resolve(asm);
     }
@@ -935,7 +948,7 @@ final class BaselineMagic {
       asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
       asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
       asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(Assembler.EQ); // skip if compare fails
+      ForwardReference fr = asm.forwardJcc(EQ); // skip if compare fails
       asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
       fr.resolve(asm);
     }
@@ -970,7 +983,7 @@ final class BaselineMagic {
       asm.emitCMPXCHG_RegInd_Reg(S0, T1);   // atomic compare-and-exchange
       asm.emitMOV_RegInd_Imm(SP, 1);        // 'push' true (overwriting base)
       asm.emitBranchLikelyNextInstruction();
-      ForwardReference fr = asm.forwardJcc(Assembler.EQ); // skip if compare fails
+      ForwardReference fr = asm.forwardJcc(EQ); // skip if compare fails
       asm.emitMOV_RegInd_Imm(SP, 0);        // 'push' false (overwriting base)
       fr.resolve(asm);
     }
@@ -1009,7 +1022,7 @@ final class BaselineMagic {
       asm.emitADD_Reg_RegDisp(ESI, SP, FOUR_SLOTS);   // ESI += offset
       asm.emitLockNextInstruction();
       asm.emitCMPXCHG8B_RegInd(ESI);                  // atomic compare-and-exchange
-      ForwardReference fr1 = asm.forwardJcc(Assembler.NE); // skip if compare fails
+      ForwardReference fr1 = asm.forwardJcc(NE); // skip if compare fails
       asm.emitMOV_RegDisp_Imm(SP, FIVE_SLOTS, 1);     // 'push' true (overwriting base)
       ForwardReference fr2 = asm.forwardJMP();     // skip if compare fails
       fr1.resolve(asm);
@@ -1265,12 +1278,12 @@ final class BaselineMagic {
     }
   }
   static {
-    MagicGenerator llt = new AddressComparison(Assembler.LLT);
-    MagicGenerator lle = new AddressComparison(Assembler.LLE);
-    MagicGenerator lgt = new AddressComparison(Assembler.LGT);
-    MagicGenerator lge = new AddressComparison(Assembler.LGE);
-    MagicGenerator eq = new AddressComparison(Assembler.EQ);
-    MagicGenerator ne = new AddressComparison(Assembler.NE);
+    MagicGenerator llt = new AddressComparison(LLT);
+    MagicGenerator lle = new AddressComparison(LLE);
+    MagicGenerator lgt = new AddressComparison(LGT);
+    MagicGenerator lge = new AddressComparison(LGE);
+    MagicGenerator eq = new AddressComparison(EQ);
+    MagicGenerator ne = new AddressComparison(NE);
     // Unsigned unboxed types
     Class<?>[] unboxedTypes = new Class<?>[]{Address.class, Extent.class, Word.class};
     for (Class<?> type : unboxedTypes) {
@@ -1281,10 +1294,10 @@ final class BaselineMagic {
       generators.put(getMethodReference(type, MagicNames.wordEQ, type, boolean.class), eq);
       generators.put(getMethodReference(type, MagicNames.wordNE, type, boolean.class), ne);
     }
-    MagicGenerator lt = new AddressComparison(Assembler.LT);
-    MagicGenerator le = new AddressComparison(Assembler.LE);
-    MagicGenerator gt = new AddressComparison(Assembler.GT);
-    MagicGenerator ge = new AddressComparison(Assembler.GE);
+    MagicGenerator lt = new AddressComparison(LT);
+    MagicGenerator le = new AddressComparison(LE);
+    MagicGenerator gt = new AddressComparison(GT);
+    MagicGenerator ge = new AddressComparison(GE);
     // Signed unboxed types
     unboxedTypes = new Class<?>[]{Offset.class};
     for (Class<?> type : unboxedTypes) {
@@ -1309,7 +1322,7 @@ final class BaselineMagic {
       } else {
         asm.emitTEST_Reg_Reg_Quad(T0, T0);
       }
-      ForwardReference fr1 = asm.forwardJcc(Assembler.EQ);
+      ForwardReference fr1 = asm.forwardJcc(EQ);
       asm.emitPUSH_Imm(0);
       ForwardReference fr2 = asm.forwardJMP();
       fr1.resolve(asm);
@@ -1341,7 +1354,7 @@ final class BaselineMagic {
       } else {
         asm.emitCMP_Reg_Imm_Quad(T0, -1);
       }
-      ForwardReference fr1 = asm.forwardJcc(Assembler.EQ);
+      ForwardReference fr1 = asm.forwardJcc(EQ);
       asm.emitPUSH_Imm(0);
       ForwardReference fr2 = asm.forwardJMP();
       fr1.resolve(asm);
@@ -1995,7 +2008,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(S0);          // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
       // push [S0+T0<<2]
-      asm.emitPUSH_RegIdx(S0, T0, Assembler.WORD, NO_SLOT);
+      asm.emitPUSH_RegIdx(S0, T0, WORD, NO_SLOT);
     }
   }
   /**
@@ -2009,7 +2022,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(S0);          // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
       // push [S0+T0<<3]
-      asm.emitPUSH_RegIdx(S0, T0, Assembler.LONG, NO_SLOT);
+      asm.emitPUSH_RegIdx(S0, T0, LONG, NO_SLOT);
     }
   }
   static {
@@ -2038,7 +2051,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(S0); // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0); // T0 is index, S0 is address of array
       // T1 = (int)[S0+T0<<1]
-      asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, Assembler.BYTE, NO_SLOT);
+      asm.emitMOVSX_Reg_RegIdx_Byte(T1, S0, T0, BYTE, NO_SLOT);
       asm.emitPUSH_Reg(T1);        // push byte onto stack
     }
   }
@@ -2059,7 +2072,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T0); // T0 is array index
       asm.emitPOP_Reg(S0); // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);            // T0 is index, S0 is address of array
-      asm.emitMOV_RegIdx_Reg(S0, T0, Assembler.WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
+      asm.emitMOV_RegIdx_Reg(S0, T0, WORD, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     }
   }
   /**
@@ -2074,7 +2087,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T0); // T0 is array index
       asm.emitPOP_Reg(S0); // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);                 // T0 is index, S0 is address of array
-      asm.emitMOV_RegIdx_Reg_Quad(S0, T0, Assembler.LONG, NO_SLOT, T1); // [S0 + T0<<2] <- T1
+      asm.emitMOV_RegIdx_Reg_Quad(S0, T0, LONG, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     }
   }
   static {
@@ -2104,7 +2117,7 @@ final class BaselineMagic {
       asm.emitPOP_Reg(T0); // T0 is array index
       asm.emitPOP_Reg(S0); // S0 is array ref
       BaselineCompilerImpl.genBoundsCheck(asm, T0, S0);                // T0 is index, S0 is address of array
-      asm.emitMOV_RegIdx_Reg_Byte(S0, T0, Assembler.BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
+      asm.emitMOV_RegIdx_Reg_Byte(S0, T0, BYTE, NO_SLOT, T1); // [S0 + T0<<2] <- T1
     }
   }
   static {

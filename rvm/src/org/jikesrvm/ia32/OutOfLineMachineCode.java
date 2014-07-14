@@ -12,14 +12,18 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.NE;
+import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
-import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.JavaHeaderConstants;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.EntrypointHelper;
 import org.jikesrvm.runtime.Entrypoints;
@@ -27,8 +31,6 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Offset;
-
-import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
 
 /**
  * A place to put hand written machine code typically invoked by Magic
@@ -287,7 +289,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
     }
 
     int parameterLoopLabel = asm.getMachineCodeIndex();
-    ForwardReference fr1 = asm.forwardJcc(Assembler.EQ); // done? --> branch to end
+    ForwardReference fr1 = asm.forwardJcc(EQ); // done? --> branch to end
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegInd(T0, S0);                  // T0 <- Paramaters[i]
     } else {
@@ -330,34 +332,34 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
       ForwardReference fr_next;
 
       asm.emitCMP_Reg_Imm(T1, 0);                         // length == 0 ?
-      ForwardReference fpr_r1 = asm.forwardJcc(Assembler.EQ);
+      ForwardReference fpr_r1 = asm.forwardJcc(EQ);
       asm.emitMOVSD_Reg_RegInd(XMM0, T0);
       asm.emitCMP_RegInd_Imm_Byte(S0, 0);
-      fr_next = asm.forwardJcc(Assembler.NE);
+      fr_next = asm.forwardJcc(NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM0, XMM0);
       fr_next.resolve(asm);
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
-      ForwardReference fpr_r2 = asm.forwardJcc(Assembler.EQ);
+      ForwardReference fpr_r2 = asm.forwardJcc(EQ);
       asm.emitMOVSD_Reg_RegDisp(XMM1, T0, Offset.fromIntZeroExtend(Constants.BYTES_IN_DOUBLE));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(1), 0);
-      fr_next = asm.forwardJcc(Assembler.NE);
+      fr_next = asm.forwardJcc(NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM1, XMM1);
       fr_next.resolve(asm);
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
-      ForwardReference fpr_r3 = asm.forwardJcc(Assembler.EQ);
+      ForwardReference fpr_r3 = asm.forwardJcc(EQ);
       asm.emitMOVSD_Reg_RegDisp(XMM2, T0, Offset.fromIntZeroExtend(Constants.BYTES_IN_DOUBLE*2));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(2), 0);
-      fr_next = asm.forwardJcc(Assembler.NE);
+      fr_next = asm.forwardJcc(NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM2, XMM2);
       fr_next.resolve(asm);
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
-      ForwardReference fpr_r4 = asm.forwardJcc(Assembler.EQ);
+      ForwardReference fpr_r4 = asm.forwardJcc(EQ);
       asm.emitMOVSD_Reg_RegDisp(XMM3, T0, Offset.fromIntZeroExtend(Constants.BYTES_IN_DOUBLE*3));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(3), 0);
-      fr_next = asm.forwardJcc(Assembler.NE);
+      fr_next = asm.forwardJcc(NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM3, XMM3);
       fr_next.resolve(asm);
 
@@ -377,7 +379,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
       asm.emitCMP_Reg_Imm(T1, 0);                        // length == 0 ?
 
       int fprsLoopLabel = asm.getMachineCodeIndex();
-      ForwardReference fr2 = asm.forwardJcc(Assembler.EQ);   // done? --> branch to end
+      ForwardReference fr2 = asm.forwardJcc(EQ);   // done? --> branch to end
       asm.emitSUB_Reg_Imm(S0, 2 * WORDSIZE);            // i--
       asm.emitFLD_Reg_RegInd_Quad(FP0, S0);              // frp[fpr_sp++] <-FPRs[i]
       asm.emitSUB_Reg_Imm(T1, 2 * WORDSIZE);              // length--
@@ -402,7 +404,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
         asm.emitCMP_Reg_Imm_Quad(T1, 0);                        // length == 0 ?
       }
     }
-    ForwardReference fr3 = asm.forwardJcc(Assembler.EQ);   // result 0 --> branch to end
+    ForwardReference fr3 = asm.forwardJcc(EQ);   // result 0 --> branch to end
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegInd(T0, S0);                    // T0 <- GPRs[0]
       asm.emitADD_Reg_Imm(S0, WORDSIZE);                 // S0 += WORDSIZE
@@ -413,7 +415,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
       asm.emitADD_Reg_Imm_Quad(T1, -1);                       // T1--
     }
 
-    ForwardReference fr4 = asm.forwardJcc(Assembler.EQ);   // result 0 --> branch to end
+    ForwardReference fr4 = asm.forwardJcc(EQ);   // result 0 --> branch to end
     if (VM.BuildFor32Addr) {
       asm.emitMOV_Reg_RegInd(T1, S0);                    // T1 <- GPRs[1]
     } else {
