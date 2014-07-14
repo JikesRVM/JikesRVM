@@ -19,6 +19,12 @@ import static org.jikesrvm.compilers.baseline.BBConstants.INT_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.LONG_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.LONGHALF_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.VOID_TYPE;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GE;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LE;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
@@ -43,7 +49,6 @@ import org.jikesrvm.compilers.baseline.EdgeCounts;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
 import org.jikesrvm.jni.ppc.JNICompiler;
 import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
@@ -65,7 +70,7 @@ import org.vmmagic.unboxed.Offset;
  * Compiler is the baseline compiler class for powerPC architectures.
  */
 public abstract class BaselineCompilerImpl extends BaselineCompiler
-    implements BaselineConstants, JNIStackframeLayoutConstants, AssemblerConstants {
+    implements BaselineConstants, JNIStackframeLayoutConstants {
 
   // stackframe pseudo-constants //
   private int frameSize;
@@ -3441,7 +3446,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitADDI(scratch, 1, scratch);
     // Branch around store if we overflowed: want count to saturate at maxint.
     asm.emitCMPI(scratch, 0);
-    ForwardReference fr = asm.emitForwardBC(Assembler.LT);
+    ForwardReference fr = asm.emitForwardBC(LT);
     asm.emitSTW(scratch, counterIdx << 2, counters);
     fr.resolve(asm);
   }
@@ -3452,7 +3457,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
     asm.emitADDI(scratch, 1, scratch);
     // Branch around store if we overflowed: want count to saturate at maxint.
     asm.emitCMPI(scratch, 0);
-    ForwardReference fr = asm.emitForwardBC(Assembler.LT);
+    ForwardReference fr = asm.emitForwardBC(LT);
     asm.emitSTWX(scratch, counterIdx, counters);
     fr.resolve(asm);
   }
@@ -3491,7 +3496,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler
         asm.emitLIntX(T2, T0, T1);
         asm.emitADDICr(T2, T2, -1);
         asm.emitSTWX(T2, T0, T1);
-        ForwardReference fr2 = asm.emitForwardBC(Assembler.GT);
+        ForwardReference fr2 = asm.emitForwardBC(GT);
         asm.emitLAddrToc(T0, AosEntrypoints.invocationCounterTrippedMethod.getOffset());
         asm.emitMTCTR(T0);
         asm.emitLVAL(T0, id);

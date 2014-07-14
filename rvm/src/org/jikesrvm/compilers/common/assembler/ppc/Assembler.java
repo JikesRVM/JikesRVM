@@ -12,6 +12,13 @@
  */
 package org.jikesrvm.compilers.common.assembler.ppc;
 
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GE;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LE;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.Services;
@@ -50,7 +57,7 @@ import org.vmmagic.unboxed.Word;
  * <p>
  * Machine code generators:
  */
-public abstract class Assembler extends AbstractAssembler implements BaselineConstants, AssemblerConstants {
+public abstract class Assembler extends AbstractAssembler implements BaselineConstants {
 
   /** Machine code being assembled */
   private final MachineCode mc;

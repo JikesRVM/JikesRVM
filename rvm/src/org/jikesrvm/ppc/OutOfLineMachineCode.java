@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
 import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
@@ -37,7 +38,7 @@ import org.vmmagic.unboxed.Offset;
  * via a jtoc offset (obtained from Entrypoints.XXXInstructionsMethod).
  */
 public abstract class OutOfLineMachineCode
-    implements BaselineConstants, JNIStackframeLayoutConstants, AssemblerConstants {
+    implements BaselineConstants, JNIStackframeLayoutConstants {
   public static void init() {
     reflectiveMethodInvokerInstructions = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
