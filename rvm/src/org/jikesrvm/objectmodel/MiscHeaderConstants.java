@@ -12,7 +12,8 @@
  */
 package org.jikesrvm.objectmodel;
 
-import org.jikesrvm.Constants;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 
 /**
@@ -23,18 +24,24 @@ import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
  *
  * @see ObjectModel
  */
-public interface MiscHeaderConstants extends Constants {
+public final class MiscHeaderConstants {
 
   /*********************
    * Support for GC Tracing; uses either 0 or 3 words of MISC HEADER
    */
 
-  /* amount by which tracing causes headers to grow */ int GC_TRACING_HEADER_WORDS =
+  /* amount by which tracing causes headers to grow */
+  public static final int GC_TRACING_HEADER_WORDS =
       (MemoryManagerConstants.GENERATE_GC_TRACE ? 3 : 0);
-  int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS << LOG_BYTES_IN_ADDRESS;
+  public static final int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS << LOG_BYTES_IN_ADDRESS;
 
   /**
    * How many bytes are used by all misc header fields?
    */
-  int NUM_BYTES_HEADER = GC_TRACING_HEADER_BYTES; // + YYY_HEADER_BYTES;
+  public static final int NUM_BYTES_HEADER = GC_TRACING_HEADER_BYTES; // + YYY_HEADER_BYTES;
+
+  private MiscHeaderConstants() {
+    // prevent instantiation
+  }
+
 }
