@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mminterface;
 
 import static org.jikesrvm.classloader.RVMType.REFARRAY_OFFSET_ARRAY;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.FIELD_ZERO_OFFSET;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.SizeConstants;
@@ -24,7 +25,6 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
-import org.jikesrvm.objectmodel.JavaHeaderConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.TransitiveClosure;
@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * the given signature and return type.
  */
 @Uninterruptible
-public final class SpecializedScanMethod extends SpecializedMethod implements SizeConstants, JavaHeaderConstants {
+public final class SpecializedScanMethod extends SpecializedMethod implements SizeConstants {
 
   /** Use specialized scanning ? */
   public static final boolean ENABLED = true;

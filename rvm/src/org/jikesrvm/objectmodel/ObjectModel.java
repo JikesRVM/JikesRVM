@@ -12,9 +12,13 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ADDRESS_BASED_HASHING;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_OFFSET;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASHCODE_BYTES;
+
 import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
@@ -126,7 +130,7 @@ import org.vmmagic.unboxed.Word;
  * @see MemoryManager
  */
 @Uninterruptible
-public class ObjectModel implements JavaHeaderConstants, SizeConstants {
+public class ObjectModel implements SizeConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;
@@ -750,8 +754,8 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     TIB tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
     if (needsIdentityHash) {
-      if (JavaHeader.ADDRESS_BASED_HASHING) {
-        size += JavaHeader.HASHCODE_BYTES;
+      if (ADDRESS_BASED_HASHING) {
+        size += HASHCODE_BYTES;
       } else {
         // TODO: support rehashing or header initialisation for object models
         // that don't support an extra word for the hash code
@@ -835,8 +839,8 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     TIB tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     if (needsIdentityHash) {
-      if (JavaHeader.ADDRESS_BASED_HASHING) {
-        size += JavaHeader.HASHCODE_BYTES;
+      if (ADDRESS_BASED_HASHING) {
+        size += HASHCODE_BYTES;
       } else {
         // TODO: support rehashing or header initialisation for object models
         // that don't support an extra word for the hash code

@@ -12,10 +12,26 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ADDRESS_BASED_HASHING;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ALIGNMENT_MASK;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_BYTES;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.DYNAMIC_HASH_OFFSET;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASHCODE_BYTES;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASHCODE_OFFSET;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASH_STATE_HASHED;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASH_STATE_HASHED_AND_MOVED;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASH_STATE_MASK;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASH_STATE_UNHASHED;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.JAVA_HEADER_BYTES;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.JAVA_HEADER_OFFSET;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.NUM_AVAILABLE_BITS;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.OTHER_HEADER_BYTES;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.STATUS_BYTES;
+
 import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.VM;
 import org.jikesrvm.Configuration;
 import org.jikesrvm.SizeConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
@@ -23,8 +39,8 @@ import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.scheduler.Lock;
-import org.jikesrvm.scheduler.ThinLock;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.scheduler.ThinLock;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
@@ -69,7 +85,7 @@ import org.vmmagic.unboxed.Word;
  * </pre>
  */
 @Uninterruptible
-public class JavaHeader implements JavaHeaderConstants {
+public class JavaHeader {
 
   protected static final int SCALAR_HEADER_SIZE = JAVA_HEADER_BYTES + OTHER_HEADER_BYTES;
   protected static final int ARRAY_HEADER_SIZE = SCALAR_HEADER_SIZE + ARRAY_LENGTH_BYTES;
