@@ -12,17 +12,18 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.InterfaceMethodConflictResolver;
-import org.jikesrvm.VM;
 import org.jikesrvm.SizeConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ITable;
 import org.jikesrvm.objectmodel.ITableArray;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -37,7 +38,7 @@ import org.vmmagic.pragma.Entrypoint;
  *   ITable-based (searched at dispatch time with 1 entry move-to-front cache)
   * </pre>
  */
-public class InterfaceInvocation implements TIBLayoutConstants, SizeConstants {
+public class InterfaceInvocation implements SizeConstants {
 
   /*
    * PART I: runtime routines to implement the invokeinterface bytecode.

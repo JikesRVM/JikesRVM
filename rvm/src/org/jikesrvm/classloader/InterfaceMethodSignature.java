@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
+
 import org.jikesrvm.SizeConstants;
-import org.jikesrvm.objectmodel.TIBLayoutConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 import org.vmmagic.unboxed.Offset;
 
@@ -22,7 +23,7 @@ import org.vmmagic.unboxed.Offset;
  *  An interface method signature is a pair of atoms:
  *  interfaceMethodName + interfaceMethodDescriptor.
  */
-public final class InterfaceMethodSignature implements TIBLayoutConstants, SizeConstants {
+public final class InterfaceMethodSignature implements SizeConstants {
 
   /**
    * Used to canonicalize InterfaceMethodSignatures

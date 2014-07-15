@@ -25,6 +25,11 @@ import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GT;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LE;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_INTERFACE_DISPATCH_TABLE_INDEX;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_SUPERCLASS_IDS_INDEX;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_TYPE_INDEX;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;

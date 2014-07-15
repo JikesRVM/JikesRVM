@@ -12,10 +12,13 @@
  */
 package org.jikesrvm.runtime;
 
+import static org.jikesrvm.Configuration.BuildForSSE2Full;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_FIRST_VIRTUAL_METHOD_INDEX;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.MachineReflection;
-import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
@@ -25,8 +28,6 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
-
-import static org.jikesrvm.Configuration.BuildForSSE2Full;
 
 /**
  * Arch-independent portion of reflective method invoker.

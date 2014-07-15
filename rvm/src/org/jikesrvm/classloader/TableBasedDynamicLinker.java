@@ -12,8 +12,10 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
+
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;

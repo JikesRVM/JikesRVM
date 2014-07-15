@@ -15,7 +15,6 @@ package org.jikesrvm.classloader;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -88,7 +87,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * @see RVMClass
  * @see RVMArray
  */
-public class DynamicTypeCheck implements TIBLayoutConstants {
+public class DynamicTypeCheck {
 
   /**
    * Minimum length of the superclassIds array in TIB.

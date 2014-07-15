@@ -14,7 +14,7 @@ package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.compilers.opt.ir.IRTools.*;
+import static org.jikesrvm.compilers.opt.ir.IRTools.AC;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT;
 import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG;
 import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
@@ -70,13 +70,14 @@ import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
 import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_FIRST_SPECIALIZED_METHOD_INDEX;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecificOpt.GenerateMachineSpecificMagic;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
-import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -104,7 +105,6 @@ import org.jikesrvm.compilers.opt.ir.operand.ObjectConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
-import org.jikesrvm.objectmodel.TIBLayoutConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.MagicNames;
 import org.vmmagic.pragma.Interruptible;
@@ -118,7 +118,7 @@ import org.vmmagic.unboxed.Offset;
  * It does not mean that the eventual MIR that implements the magic
  * won't differ from architecture to architecture.
  */
-public class GenerateMagic implements TIBLayoutConstants  {
+public class GenerateMagic {
 
   /**
    * "Semantic inlining" of methods of the Magic class.
