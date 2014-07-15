@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.depgraph;
 
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.COMPACT;
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.REG_TRUE;
+
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
@@ -19,7 +22,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 /**
  * Dependence graph node: there is one for each instruction in a basic block.
  */
-public final class DepGraphNode extends SpaceEffGraphNode implements DepGraphConstants {
+public final class DepGraphNode extends SpaceEffGraphNode {
 
   /**
    * Instruction that this node represents.
