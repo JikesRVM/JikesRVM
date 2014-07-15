@@ -13,15 +13,13 @@
 package org.jikesrvm;
 
 import org.jikesrvm.objectmodel.TIBLayoutConstants;
-import org.jikesrvm.objectmodel.ThinLockConstants;
 
 /**
  * Constants describing VM object, stack, and register characteristics.
  * Some of these constants are architecture-specific
  * and some are (at the moment) architecture-neutral.
  */
-public interface Constants extends ThinLockConstants,         // architecture-neutral
-                                      TIBLayoutConstants,        // architecture-neutral
+public interface Constants extends    TIBLayoutConstants,        // architecture-neutral
                                       HeapLayoutConstants,       // architecture-neutral
                                       SizeConstants             // 'semi-'architecture-neutral
 {
