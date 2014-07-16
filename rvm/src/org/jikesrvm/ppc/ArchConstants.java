@@ -15,5 +15,5 @@ package org.jikesrvm.ppc;
 /**
  * Architecture specific constants.
  */
-public interface ArchConstants extends StackframeLayoutConstants, RegisterConstants, TrapConstants {
+public interface ArchConstants extends StackframeLayoutConstants, RegisterConstants {
 }
