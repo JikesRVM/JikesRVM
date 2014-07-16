@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.baseline.ia32;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.*;
+import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
