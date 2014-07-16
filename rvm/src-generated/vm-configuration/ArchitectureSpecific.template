@@ -66,7 +66,6 @@ public class ArchitectureSpecific {
   @NonMoving
   public static final class Registers extends org.jikesrvm.@_ARCH_@.Registers {}
   public interface StackframeLayoutConstants extends org.jikesrvm.@_ARCH_@.StackframeLayoutConstants {}
-  public interface TrapConstants extends org.jikesrvm.@_ARCH_@.TrapConstants {}
   public static final class JNICompiler extends org.jikesrvm.jni.@_ARCH_@.JNICompiler {}
   public static final class JNIGCMapIterator extends org.jikesrvm.jni.@_ARCH_@.JNIGCMapIterator {
     public JNIGCMapIterator(WordArray registerLocations) {
