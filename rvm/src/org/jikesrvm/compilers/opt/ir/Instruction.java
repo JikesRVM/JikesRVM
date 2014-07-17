@@ -12,14 +12,15 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.UNKNOWN_BCI;
+
 import java.util.Enumeration;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
+import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
@@ -123,7 +124,7 @@ import org.vmmagic.pragma.NoInline;
  * @see Operand
  * @see BasicBlock
  */
-public final class Instruction implements Constants, Operators, OptConstants {
+public final class Instruction implements Constants, Operators {
 
   /**
    * BITFIELD used to encode {@link #operatorInfo}.

@@ -12,6 +12,16 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.EPILOGUE_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.EPILOGUE_BLOCK_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.PROLOGUE_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.PROLOGUE_BLOCK_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNCHRONIZED_MONITORENTER_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNCHRONIZED_MONITOREXIT_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNTH_CATCH_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
+
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,8 +30,8 @@ import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.BranchProfile;
@@ -67,7 +77,7 @@ import org.vmmagic.unboxed.Offset;
  * a method's bytecodes and populate targetIR with instructions.
  *
  **/
-public final class GenerationContext implements org.jikesrvm.compilers.opt.driver.OptConstants, Operators {
+public final class GenerationContext implements Operators {
 
   //////////
   // These fields are used to communicate information from its

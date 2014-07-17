@@ -12,18 +12,19 @@
  */
 package org.jikesrvm.adaptive.measurements.instrumentation;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.INSTRUMENTATION_BCI;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
-import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
 import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
@@ -41,7 +42,7 @@ import org.vmmagic.unboxed.Offset;
  * NOTE: Much of this class was stolen from CounterArray.java, which
  * is now gone.
  */
-public final class CounterArrayManager extends InstrumentedEventCounterManager implements Operators, OptConstants {
+public final class CounterArrayManager extends InstrumentedEventCounterManager implements Operators {
 
   static final boolean DEBUG = false;
 

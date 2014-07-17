@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.RECTIFY_BCI;
+
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
@@ -270,7 +272,7 @@ final class BBSet implements IRGenOptions {
             temp.setInheritableFlags(rop);
             BC2IR.setGuard(temp, BC2IR.getGuard(rop));
             Instruction move = Move.create(IRTools.getMoveOp(rop.getType()), temp, rop.copyRO());
-            move.bcIndex = BC2IR.RECTIFY_BCI;
+            move.bcIndex = RECTIFY_BCI;
             move.position = gc.getInlineSequence();
             block.appendInstructionRespectingTerminalBranch(move);
             p.stackState.push(temp.copy());
@@ -375,7 +377,7 @@ final class BBSet implements IRGenOptions {
 
   private void injectMove(BasicBlock block, RegisterOperand res, Operand val) {
     Instruction move = Move.create(IRTools.getMoveOp(res.getType()), res, val);
-    move.bcIndex = BC2IR.RECTIFY_BCI;
+    move.bcIndex = RECTIFY_BCI;
     move.position = gc.getInlineSequence();
     block.appendInstructionRespectingTerminalBranch(move);
     if (DBG_STACK || BC2IR.DBG_SELECTED) {

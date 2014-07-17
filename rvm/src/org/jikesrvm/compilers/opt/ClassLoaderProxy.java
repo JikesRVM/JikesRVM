@@ -12,15 +12,18 @@
  */
 package org.jikesrvm.compilers.opt;
 
-import org.jikesrvm.VM;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
+
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.bc2ir.IRGenOptions;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.operand.ClassConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
@@ -34,7 +37,7 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  **/
-public final class ClassLoaderProxy implements Constants, OptConstants {
+public final class ClassLoaderProxy implements Constants {
 
   /**
    * Returns a common superclass of the two types.

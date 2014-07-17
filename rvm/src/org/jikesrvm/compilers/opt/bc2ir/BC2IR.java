@@ -14,6 +14,9 @@ package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -21,11 +24,11 @@ import java.util.Enumeration;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.BytecodeStream;
+import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.SwitchBranchProfile;
@@ -36,7 +39,6 @@ import org.jikesrvm.compilers.opt.FieldAnalysis;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.Simplifier;
 import org.jikesrvm.compilers.opt.StaticFieldReader;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.compilers.opt.inlining.CompilationState;
 import org.jikesrvm.compilers.opt.inlining.InlineDecision;
@@ -63,8 +65,8 @@ import org.jikesrvm.compilers.opt.ir.InstanceOf;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.LookupSwitch;
 import org.jikesrvm.compilers.opt.ir.MonitorOp;
-import org.jikesrvm.compilers.opt.ir.Multianewarray;
 import org.jikesrvm.compilers.opt.ir.Move;
+import org.jikesrvm.compilers.opt.ir.Multianewarray;
 import org.jikesrvm.compilers.opt.ir.New;
 import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
@@ -141,7 +143,7 @@ import org.vmmagic.unboxed.Offset;
  * @see ConvertBCtoHIR
  */
 public final class BC2IR
-    implements IRGenOptions, Operators, OptConstants, OSRConstants {
+    implements IRGenOptions, Operators, OSRConstants {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take
