@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadWordConst;
+
 import org.vmmagic.unboxed.Word;
 
 /**

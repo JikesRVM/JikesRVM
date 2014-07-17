@@ -12,9 +12,22 @@
  */
 package org.jikesrvm.osr;
 
-import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokeinterface;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokespecial;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokestatic;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_invokevirtual;
+import static org.jikesrvm.osr.OSRConstants.CLEANREFS;
+import static org.jikesrvm.osr.OSRConstants.DOUBLE;
+import static org.jikesrvm.osr.OSRConstants.FLOAT;
+import static org.jikesrvm.osr.OSRConstants.GETREFAT;
+import static org.jikesrvm.osr.OSRConstants.INT;
+import static org.jikesrvm.osr.OSRConstants.LONG;
+import static org.jikesrvm.osr.OSRConstants.REF;
+import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
+import static org.jikesrvm.osr.OSRConstants.WORD;
 
 import java.util.LinkedList;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.NormalMethod;
@@ -36,12 +49,12 @@ import org.jikesrvm.osr.bytecodes.LongStore;
 import org.jikesrvm.osr.bytecodes.Nop;
 import org.jikesrvm.osr.bytecodes.ParamInitEnd;
 import org.jikesrvm.osr.bytecodes.Pop;
-import org.jikesrvm.osr.bytecodes.RefStore;
 import org.jikesrvm.osr.bytecodes.PseudoBytecode;
+import org.jikesrvm.osr.bytecodes.RefStore;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Offset;
 
-public class ExecutionState implements OSRConstants {
+public class ExecutionState {
 
   /** the caller's state if this method is an inlinee */
   public ExecutionState callerState = null;

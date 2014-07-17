@@ -13,6 +13,7 @@
 package org.jikesrvm.osr;
 
 import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.osr.OSRConstants.LOCAL;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -22,7 +23,7 @@ import org.vmmagic.unboxed.Word;
  * An LocalRegPair keeps the type information and location of
  * a local variable/stack slot from byte code to machine code.
  */
-public class LocalRegPair implements OSRConstants {
+public class LocalRegPair {
 
   /** is it a local or stack? */
   public final boolean kind;

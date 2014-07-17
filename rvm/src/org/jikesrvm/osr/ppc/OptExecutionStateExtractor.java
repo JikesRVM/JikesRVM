@@ -12,6 +12,20 @@
  */
 package org.jikesrvm.osr.ppc;
 
+import static org.jikesrvm.osr.OSRConstants.ACONST;
+import static org.jikesrvm.osr.OSRConstants.DOUBLE;
+import static org.jikesrvm.osr.OSRConstants.FLOAT;
+import static org.jikesrvm.osr.OSRConstants.HIGH_64BIT;
+import static org.jikesrvm.osr.OSRConstants.ICONST;
+import static org.jikesrvm.osr.OSRConstants.INT;
+import static org.jikesrvm.osr.OSRConstants.LCONST;
+import static org.jikesrvm.osr.OSRConstants.LONG;
+import static org.jikesrvm.osr.OSRConstants.PHYREG;
+import static org.jikesrvm.osr.OSRConstants.REF;
+import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
+import static org.jikesrvm.osr.OSRConstants.SPILL;
+import static org.jikesrvm.osr.OSRConstants.WORD;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.MethodReference;
@@ -20,7 +34,6 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants;
-import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.EncodedOSRMap;
 import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.ExecutionState;
@@ -39,7 +52,7 @@ import org.vmmagic.unboxed.WordArray;
  * It extracts the execution state of a optimized activation.
  */
 public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
-    implements ArchConstants, OSRConstants, PhysicalRegisterConstants {
+    implements ArchConstants, PhysicalRegisterConstants {
 
   @Override
   public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {

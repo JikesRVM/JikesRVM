@@ -26,6 +26,17 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeCompiledMethod;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeStatic;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadDoubleConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadFloatConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadIntConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadLongConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadRetAddrConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadWordConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_ParamInitEnd;
+import static org.jikesrvm.osr.OSRConstants.ReturnAddressTypeCode;
+import static org.jikesrvm.osr.OSRConstants.WordTypeCode;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeStream;
@@ -69,7 +80,7 @@ import org.jikesrvm.osr.bytecodes.InvokeStatic;
  *      types are same for all PCs.
  * </ol>
  */
-public class BytecodeTraverser implements OSRConstants {
+public class BytecodeTraverser {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a

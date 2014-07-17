@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadFloatConst;
 
 /**
  * BC_LoadFloatConst: ldc, ldc_w

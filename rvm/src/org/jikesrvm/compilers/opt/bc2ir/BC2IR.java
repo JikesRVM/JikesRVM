@@ -17,6 +17,7 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
+import static org.jikesrvm.osr.OSRConstants.*;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -102,7 +103,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
-import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.ObjectHolder;
 import org.jikesrvm.osr.bytecodes.InvokeStatic;
 import org.jikesrvm.runtime.Entrypoints;
@@ -143,7 +143,7 @@ import org.vmmagic.unboxed.Offset;
  * @see ConvertBCtoHIR
  */
 public final class BC2IR
-    implements IRGenOptions, Operators, OSRConstants {
+    implements IRGenOptions, Operators {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take

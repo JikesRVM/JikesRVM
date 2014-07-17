@@ -12,8 +12,23 @@
  */
 package org.jikesrvm.osr.ia32;
 
-import org.jikesrvm.VM;
+import static org.jikesrvm.osr.OSRConstants.ACONST;
+import static org.jikesrvm.osr.OSRConstants.DOUBLE;
+import static org.jikesrvm.osr.OSRConstants.FLOAT;
+import static org.jikesrvm.osr.OSRConstants.HIGH_64BIT;
+import static org.jikesrvm.osr.OSRConstants.ICONST;
+import static org.jikesrvm.osr.OSRConstants.INT;
+import static org.jikesrvm.osr.OSRConstants.LCONST;
+import static org.jikesrvm.osr.OSRConstants.LOCAL;
+import static org.jikesrvm.osr.OSRConstants.LONG;
+import static org.jikesrvm.osr.OSRConstants.PHYREG;
+import static org.jikesrvm.osr.OSRConstants.REF;
+import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
+import static org.jikesrvm.osr.OSRConstants.SPILL;
+import static org.jikesrvm.osr.OSRConstants.WORD;
+
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
@@ -22,10 +37,9 @@ import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.ia32.ArchConstants;
-import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.EncodedOSRMap;
-import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.ExecutionState;
+import org.jikesrvm.osr.ExecutionStateExtractor;
 import org.jikesrvm.osr.OSRMapIterator;
 import org.jikesrvm.osr.VariableElement;
 import org.jikesrvm.runtime.Magic;
@@ -41,7 +55,7 @@ import org.vmmagic.unboxed.WordArray;
  * It extracts the execution state from an optimized activation.
  */
 public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
-    implements Constants, ArchConstants, OSRConstants, PhysicalRegisterConstants {
+    implements Constants, ArchConstants, PhysicalRegisterConstants {
 
   @Override
   public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {

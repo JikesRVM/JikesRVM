@@ -22,6 +22,7 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.osr.OSRConstants.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +43,7 @@ import org.vmmagic.unboxed.Offset;
  * In OptCompiledMethod, an instance of this class will represent
  * all OSR map info for that method.
  */
-public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConstants {
+public final class EncodedOSRMap implements OptGCMapIteratorConstants {
 
   /** osr info entries */
   private final long[] mapEntries;

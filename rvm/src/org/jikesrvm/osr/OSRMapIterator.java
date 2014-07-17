@@ -12,6 +12,16 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.osr.OSRConstants.KIND_MASK;
+import static org.jikesrvm.osr.OSRConstants.KIND_SHIFT;
+import static org.jikesrvm.osr.OSRConstants.NEXT_BIT;
+import static org.jikesrvm.osr.OSRConstants.NUM_MASK;
+import static org.jikesrvm.osr.OSRConstants.NUM_SHIFT;
+import static org.jikesrvm.osr.OSRConstants.TCODE_MASK;
+import static org.jikesrvm.osr.OSRConstants.TCODE_SHIFT;
+import static org.jikesrvm.osr.OSRConstants.VTYPE_MASK;
+import static org.jikesrvm.osr.OSRConstants.VTYPE_SHIFT;
+
 import org.jikesrvm.VM;
 
 /**
@@ -30,7 +40,7 @@ import org.jikesrvm.VM;
  *</pre>
  */
 
-public class OSRMapIterator implements OSRConstants {
+public class OSRMapIterator {
   private int curidx;
   private final int[] maps;
   private int curmid;

@@ -15,6 +15,7 @@ package org.jikesrvm.osr.bytecodes;
 import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeCompiledMethod;
 
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
