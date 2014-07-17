@@ -12,18 +12,22 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.HeapLayoutConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
@@ -68,7 +72,7 @@ import org.vmmagic.unboxed.WordArray;
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
 @Uninterruptible
-public final class MemoryManager implements HeapLayoutConstants, Constants {
+public final class MemoryManager implements Constants {
 
   /***********************************************************************
    *

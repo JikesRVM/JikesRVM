@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMType;
