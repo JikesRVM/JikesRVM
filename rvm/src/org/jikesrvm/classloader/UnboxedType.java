@@ -12,6 +12,10 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+
 import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.TIB;

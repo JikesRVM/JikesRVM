@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.SizeConstants;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.AlignmentEncoding;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.TIB;
@@ -61,7 +62,7 @@ import org.vmmagic.unboxed.Offset;
  */
 @NonMoving
 public abstract class RVMType extends AnnotatedElement
-    implements SizeConstants, Constants {
+    implements Constants {
 
   /**
    * A zero-length array, used as GC metadata for primitive

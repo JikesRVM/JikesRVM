@@ -12,15 +12,16 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.runtime.Memory;
 
 /**
  * Layout fields in an object, packed like sardines in a crushed tin box.
  */
-public class FieldLayoutPacked extends FieldLayout implements SizeConstants {
+public class FieldLayoutPacked extends FieldLayout {
 
   /**
    * Lay out an object, maintaining offsets of free slots of size 1,2,4 and 8

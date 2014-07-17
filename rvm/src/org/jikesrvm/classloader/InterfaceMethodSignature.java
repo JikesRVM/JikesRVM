@@ -12,9 +12,9 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.util.ImmutableEntryHashSetRVM;
 import org.vmmagic.unboxed.Offset;
@@ -23,7 +23,7 @@ import org.vmmagic.unboxed.Offset;
  *  An interface method signature is a pair of atoms:
  *  interfaceMethodName + interfaceMethodDescriptor.
  */
-public final class InterfaceMethodSignature implements SizeConstants {
+public final class InterfaceMethodSignature {
 
   /**
    * Used to canonicalize InterfaceMethodSignatures

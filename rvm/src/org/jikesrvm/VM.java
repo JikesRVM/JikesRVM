@@ -12,6 +12,9 @@
  */
 package org.jikesrvm;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
+
 import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;

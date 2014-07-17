@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMArray;

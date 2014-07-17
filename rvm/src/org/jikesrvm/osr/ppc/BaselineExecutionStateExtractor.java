@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.osr.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ArrayTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;

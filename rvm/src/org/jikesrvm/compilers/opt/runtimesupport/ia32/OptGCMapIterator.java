@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
 import org.jikesrvm.ia32.StackframeLayoutConstants;
 import org.vmmagic.pragma.Uninterruptible;
@@ -29,7 +30,7 @@ import org.vmmagic.unboxed.WordArray;
  * This version is for IA32.
  */
 @Uninterruptible
-public abstract class OptGCMapIterator extends OptGenericGCMapIterator implements SizeConstants {
+public abstract class OptGCMapIterator extends OptGenericGCMapIterator {
 
   private static final boolean DEBUG = false;
 

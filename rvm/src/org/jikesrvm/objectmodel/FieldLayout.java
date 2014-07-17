@@ -12,8 +12,10 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.vmmagic.unboxed.Offset;
@@ -24,7 +26,7 @@ import org.vmmagic.unboxed.Offset;
  * <p>
  * The field layout object encapsulates layout state.
  */
-public abstract class FieldLayout implements SizeConstants {
+public abstract class FieldLayout {
 
   /**
    * Enable debugging

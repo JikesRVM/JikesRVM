@@ -12,17 +12,20 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.VM;
+import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.mm.mminterface.GCMapIteratorGroup;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
@@ -35,7 +38,6 @@ import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
-import org.jikesrvm.ArchitectureSpecific.Registers;
 
 /**
  * Class that supports scanning thread stacks for references during

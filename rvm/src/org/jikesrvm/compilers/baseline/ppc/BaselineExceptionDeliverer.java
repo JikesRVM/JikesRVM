@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.compilers.baseline.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;

@@ -12,6 +12,13 @@
  */
 package org.jikesrvm.jni.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;

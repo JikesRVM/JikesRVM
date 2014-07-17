@@ -12,11 +12,11 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.InterfaceMethodConflictResolver;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.IMT;
@@ -38,7 +38,7 @@ import org.vmmagic.pragma.Entrypoint;
  *   ITable-based (searched at dispatch time with 1 entry move-to-front cache)
   * </pre>
  */
-public class InterfaceInvocation implements SizeConstants {
+public class InterfaceInvocation {
 
   /*
    * PART I: runtime routines to implement the invokeinterface bytecode.

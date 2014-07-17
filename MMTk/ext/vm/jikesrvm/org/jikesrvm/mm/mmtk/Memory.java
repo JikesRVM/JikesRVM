@@ -30,7 +30,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible public class Memory extends org.mmtk.vm.Memory
-  implements Constants, SizeConstants {
+  implements Constants {
 
   @Override
   protected final Address getHeapStartConstant() { return BOOT_IMAGE_DATA_START; }

@@ -12,9 +12,11 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.MachineCode;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;

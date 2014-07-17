@@ -12,12 +12,15 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BITS_IN_BYTE;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.*;
 
 import org.jikesrvm.ArchitectureSpecific.ArchConstants;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.LazyCompilationTrampoline;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.Magic;
@@ -39,7 +42,7 @@ import org.vmmagic.unboxed.Word;
  */
 @Uninterruptible
 @NonMoving
-public final class TIB implements RuntimeTable<Object>, SizeConstants {
+public final class TIB implements RuntimeTable<Object> {
   /**
    * @return the number of words required to hold the lazy method invoker trampoline.
    */

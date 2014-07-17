@@ -12,16 +12,22 @@
  */
 package org.jikesrvm.runtime;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.Registers;
-import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.Services;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.DynamicTypeCheck;
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;

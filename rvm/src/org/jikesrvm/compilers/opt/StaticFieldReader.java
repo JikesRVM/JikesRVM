@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Field;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.Word;
  * getstatic's of initialized static fields
  * by replacing the getstatic with a constant operand.
  */
-public abstract class StaticFieldReader implements SizeConstants {
+public abstract class StaticFieldReader {
 
   /**
    * Read the field from obj and return as the appropriate constant

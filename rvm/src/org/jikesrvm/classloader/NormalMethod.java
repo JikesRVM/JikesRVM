@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
 import static org.jikesrvm.classloader.BytecodeConstants.*;
 
 import org.jikesrvm.VM;

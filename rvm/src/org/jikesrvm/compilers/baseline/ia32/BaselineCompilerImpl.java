@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.*;
@@ -22,7 +24,6 @@ import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_DOES_IMPLEMENT_IND
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_INTERFACE_DISPATCH_TABLE_INDEX;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_SUPERCLASS_IDS_INDEX;
 
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.adaptive.recompilation.InvocationCounts;
@@ -66,7 +67,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * BaselineCompilerImpl is the baseline compiler implementation for the IA32 architecture.
  */
-public abstract class BaselineCompilerImpl extends BaselineCompiler implements BaselineConstants, SizeConstants {
+public abstract class BaselineCompilerImpl extends BaselineCompiler implements BaselineConstants {
 
   static {
     // Force resolution of BaselineMagic before using in genMagic

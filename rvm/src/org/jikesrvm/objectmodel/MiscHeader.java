@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.objectmodel.MiscHeaderConstants.GC_TRACING_HEADER_BYTES;
 import static org.jikesrvm.objectmodel.MiscHeaderConstants.NUM_BYTES_HEADER;
 

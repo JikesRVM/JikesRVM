@@ -12,7 +12,6 @@
  */
 package org.vmmagic.unboxed;
 
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -31,7 +30,7 @@ import org.vmmagic.pragma.UninterruptibleNoWarn;
  *
  */
 @Uninterruptible
-public final class Address extends ArchitecturalWord implements SizeConstants {
+public final class Address extends ArchitecturalWord {
 
   Address(int value) {
     super(value, false);

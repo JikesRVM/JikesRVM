@@ -22,7 +22,6 @@ import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.ArchitectureSpecific.MachineCode;
 import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
 import org.jikesrvm.Services;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.FieldReference;
@@ -49,7 +48,7 @@ import org.vmmagic.unboxed.Offset;
  * seen. It is the common base class of the base compiler.
  */
 public abstract class TemplateCompilerFramework
-    implements SizeConstants, StackframeLayoutConstants {
+    implements StackframeLayoutConstants {
 
   /**
    * The method being compiled

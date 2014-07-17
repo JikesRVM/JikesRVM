@@ -31,6 +31,7 @@ import org.vmmagic.pragma.RuntimePure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
+import static org.jikesrvm.SizeConstants.BITS_IN_SHORT;
 import static org.jikesrvm.classloader.TypeReference.baseReflectionClass;
 import static org.jikesrvm.classloader.BytecodeConstants.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;

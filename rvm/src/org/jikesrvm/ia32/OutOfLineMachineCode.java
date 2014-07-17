@@ -12,13 +12,13 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.NE;
 import static org.jikesrvm.ia32.TrapConstants.RVM_TRAP_BASE;
 import static org.jikesrvm.runtime.RuntimeEntrypoints.TRAP_UNKNOWN;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
@@ -342,7 +342,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
       ForwardReference fpr_r2 = asm.forwardJcc(EQ);
-      asm.emitMOVSD_Reg_RegDisp(XMM1, T0, Offset.fromIntZeroExtend(Constants.BYTES_IN_DOUBLE));
+      asm.emitMOVSD_Reg_RegDisp(XMM1, T0, Offset.fromIntZeroExtend(BYTES_IN_DOUBLE));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(1), 0);
       fr_next = asm.forwardJcc(NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM1, XMM1);
@@ -350,7 +350,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
       ForwardReference fpr_r3 = asm.forwardJcc(EQ);
-      asm.emitMOVSD_Reg_RegDisp(XMM2, T0, Offset.fromIntZeroExtend(Constants.BYTES_IN_DOUBLE*2));
+      asm.emitMOVSD_Reg_RegDisp(XMM2, T0, Offset.fromIntZeroExtend(BYTES_IN_DOUBLE*2));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(2), 0);
       fr_next = asm.forwardJcc(NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM2, XMM2);
@@ -358,7 +358,7 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
 
       asm.emitSUB_Reg_Imm(T1, 1);                         // length == 0 ?
       ForwardReference fpr_r4 = asm.forwardJcc(EQ);
-      asm.emitMOVSD_Reg_RegDisp(XMM3, T0, Offset.fromIntZeroExtend(Constants.BYTES_IN_DOUBLE*3));
+      asm.emitMOVSD_Reg_RegDisp(XMM3, T0, Offset.fromIntZeroExtend(BYTES_IN_DOUBLE*3));
       asm.emitCMP_RegDisp_Imm_Byte(S0, Offset.fromIntZeroExtend(3), 0);
       fr_next = asm.forwardJcc(NE);
       asm.emitCVTSD2SS_Reg_Reg(XMM3, XMM3);

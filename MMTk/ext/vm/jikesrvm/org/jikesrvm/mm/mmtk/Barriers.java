@@ -12,7 +12,8 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.jikesrvm.SizeConstants;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.vm.VM;
 
@@ -20,7 +21,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
-public class Barriers extends org.mmtk.vm.Barriers implements SizeConstants {
+public class Barriers extends org.mmtk.vm.Barriers {
   /**
    * Perform the actual write of a boolean write barrier.
    *

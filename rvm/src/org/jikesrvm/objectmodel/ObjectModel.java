@@ -12,12 +12,12 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ADDRESS_BASED_HASHING;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_OFFSET;
 import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASHCODE_BYTES;
 
 import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
@@ -130,7 +130,7 @@ import org.vmmagic.unboxed.Word;
  * @see MemoryManager
  */
 @Uninterruptible
-public class ObjectModel implements SizeConstants {
+public class ObjectModel {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;

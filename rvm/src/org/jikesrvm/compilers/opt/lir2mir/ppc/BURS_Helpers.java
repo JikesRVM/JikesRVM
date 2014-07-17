@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ppc;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BITS_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BITS_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BITS_IN_ADDRESS;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;

@@ -12,14 +12,20 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_BOOLEAN;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_BOOLEAN;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
-import org.jikesrvm.mm.mminterface.HandInlinedScanning;
+import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Barriers;
+import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;

@@ -12,10 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
+import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.mm.mminterface.GCMapIterator;

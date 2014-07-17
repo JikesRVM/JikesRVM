@@ -12,13 +12,14 @@
  */
 package org.jikesrvm.compilers.common;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.Services;
-import org.jikesrvm.SizeConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
@@ -34,7 +35,7 @@ import org.vmmagic.unboxed.Address;
  * Manage pool of compiled methods. <p>
  * Original extracted from RVMClassLoader. <p>
  */
-public class CompiledMethods implements SizeConstants {
+public class CompiledMethods {
   /**
    * 2^LOG_ROW_SIZE is the number of elements per row
    */

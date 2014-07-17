@@ -12,23 +12,35 @@
  */
 package org.jikesrvm.jni;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_SHORT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 
 import org.jikesrvm.ArchitectureSpecific.JNIHelpers;
-import org.jikesrvm.VM;
 import org.jikesrvm.Properties;
-import org.jikesrvm.SizeConstants;
-import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.MemberReference;
+import org.jikesrvm.classloader.NativeMethod;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.classloader.UTF8Convert;
@@ -40,9 +52,6 @@ import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.util.AddressInputStream;
-
-import static org.jikesrvm.runtime.SysCall.sysCall;
-
 import org.vmmagic.pragma.NativeBridge;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
@@ -106,7 +115,7 @@ import org.vmmagic.unboxed.Offset;
 @SuppressWarnings({"unused", "UnusedDeclaration"})
 // methods are called from native code
 @NativeBridge
-public class JNIFunctions implements SizeConstants {
+public class JNIFunctions {
   // one message for each JNI function called from native
   public static final boolean traceJNI = Properties.verboseJNI;
 

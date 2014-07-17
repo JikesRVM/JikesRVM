@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.classloader.BytecodeConstants.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
@@ -19,7 +22,6 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
 
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Inline;
@@ -29,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * Provides minimal abstraction layer to a stream of bytecodes
  * from the code attribute of a method.
  */
-public class BytecodeStream implements SizeConstants {
+public class BytecodeStream {
   private final NormalMethod method;
   private final int bcLength;
   private final byte[] bcodes;

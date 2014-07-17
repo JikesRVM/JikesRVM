@@ -12,9 +12,14 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
+import static org.jikesrvm.SizeConstants.BITS_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.Constants;
+import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.util.BitVector;

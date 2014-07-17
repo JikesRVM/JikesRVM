@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.common;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.DynamicLink;
@@ -34,7 +33,7 @@ import org.vmmagic.unboxed.Word;
 /**
  * A method that has been compiled into machine code by one of our compilers.
  */
-public abstract class CompiledMethod implements SizeConstants {
+public abstract class CompiledMethod {
 
   /*
    * constants for compiler types

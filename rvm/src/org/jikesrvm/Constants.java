@@ -17,8 +17,7 @@ package org.jikesrvm;
  * Some of these constants are architecture-specific
  * and some are (at the moment) architecture-neutral.
  */
-public interface Constants extends SizeConstants // 'semi-'architecture-neutral
-{
+public interface Constants {
   /**
    * For assertion checking things that should never happen.
    */

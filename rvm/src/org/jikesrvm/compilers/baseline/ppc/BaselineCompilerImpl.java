@@ -12,6 +12,16 @@
  */
 package org.jikesrvm.compilers.baseline.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
 import static org.jikesrvm.compilers.baseline.BBConstants.ADDRESS_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.DOUBLE_TYPE;
 import static org.jikesrvm.compilers.baseline.BBConstants.FLOAT_TYPE;

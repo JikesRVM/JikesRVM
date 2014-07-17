@@ -12,6 +12,10 @@
  */
 package org.jikesrvm;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
@@ -27,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  *  Various service utilities.  This is a common place for some shared utility routines
  */
 @Uninterruptible
-public class Services implements SizeConstants {
+public class Services {
   /**
    * Biggest buffer you would possibly need for {@link org.jikesrvm.scheduler.RVMThread#dump(char[], int)}
    * Modify this if you modify that method.

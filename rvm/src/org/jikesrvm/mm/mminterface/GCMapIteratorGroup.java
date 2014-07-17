@@ -12,12 +12,13 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.BaselineGCMapIterator;
 import org.jikesrvm.ArchitectureSpecific.JNIGCMapIterator;
 import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIterator;
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.HardwareTrapGCMapIterator;
 import org.jikesrvm.scheduler.RVMThread;
@@ -41,7 +42,7 @@ import org.vmmagic.unboxed.WordArray;
  * @see CompiledMethod
  * @see CollectorThread
  */
-public final class GCMapIteratorGroup implements SizeConstants {
+public final class GCMapIteratorGroup {
 
   /** current location (memory address) of each gpr register */
   private final WordArray registerLocations;

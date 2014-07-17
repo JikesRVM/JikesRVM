@@ -12,10 +12,12 @@
  */
 package org.jikesrvm.objectmodel;
 
-import org.jikesrvm.SizeConstants;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+
 import org.jikesrvm.classloader.RVMClass;
 
-public class FieldLayoutUnpacked extends FieldLayout implements SizeConstants {
+public class FieldLayoutUnpacked extends FieldLayout {
 
   private static class LayoutContext extends FieldLayoutContext {
     private static final int NO_HOLE = -1;
@@ -35,22 +37,22 @@ public class FieldLayoutUnpacked extends FieldLayout implements SizeConstants {
     @Override
     int nextOffset(int size, boolean isReference) {
       int objectSize = getObjectSize();
-      if (size == FieldLayoutUnpacked.BYTES_IN_DOUBLE) {
-        adjustAlignment(FieldLayoutUnpacked.BYTES_IN_DOUBLE);
+      if (size == BYTES_IN_DOUBLE) {
+        adjustAlignment(BYTES_IN_DOUBLE);
         if ((objectSize & 0x7) == 0) {
-          ensureObjectSize(objectSize + FieldLayoutUnpacked.BYTES_IN_DOUBLE);
+          ensureObjectSize(objectSize + BYTES_IN_DOUBLE);
           return objectSize;
         } else {
-          ensureObjectSize(objectSize + FieldLayoutUnpacked.BYTES_IN_DOUBLE + FieldLayoutUnpacked.BYTES_IN_INT);
+          ensureObjectSize(objectSize + BYTES_IN_DOUBLE + BYTES_IN_INT);
           intHole = objectSize;
-          return objectSize + FieldLayoutUnpacked.BYTES_IN_INT;
+          return objectSize + BYTES_IN_INT;
         }
       } else if (intHole >= 0) {
         int result = intHole;
         intHole = NO_HOLE;
         return result;
       } else {
-        ensureObjectSize(objectSize + FieldLayoutUnpacked.BYTES_IN_INT);
+        ensureObjectSize(objectSize + BYTES_IN_INT);
         return objectSize;
       }
     }

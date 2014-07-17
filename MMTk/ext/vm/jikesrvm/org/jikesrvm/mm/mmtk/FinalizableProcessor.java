@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.jikesrvm.SizeConstants.*;
+
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
@@ -28,7 +29,7 @@ import org.mmtk.plan.TraceLocal;
  * TODO can this be a linked list?
  */
 @Uninterruptible
-public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor implements SizeConstants {
+public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor {
 
   /********************************************************************
    * Class fields

@@ -13,12 +13,11 @@
 package org.jikesrvm.ppc;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 
 /**
  * Register Usage Conventions for PowerPC.
  */
-public interface RegisterConstants extends SizeConstants {
+public interface RegisterConstants {
   // Machine instructions.
   //
 

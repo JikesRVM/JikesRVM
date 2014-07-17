@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.compilers.common;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
@@ -27,7 +28,7 @@ import org.vmmagic.unboxed.WordArray;
  * They contain no object references or JSR return addresses.
  */
 @Uninterruptible
-public final class HardwareTrapGCMapIterator extends GCMapIterator implements SizeConstants {
+public final class HardwareTrapGCMapIterator extends GCMapIterator {
 
   public HardwareTrapGCMapIterator(WordArray registerLocations) {
     this.registerLocations = registerLocations;

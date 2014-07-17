@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.jni.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.ppc.RegisterConstants;
 import org.jikesrvm.ppc.StackframeLayoutConstants;
