@@ -14,6 +14,7 @@ package org.jikesrvm.options;
 
 import static org.jikesrvm.SizeConstants.BYTES_IN_PAGE;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_PAGE;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_PRINTED_HELP_MESSAGE;
 
 import org.jikesrvm.CommandLineArgs;
 import org.jikesrvm.VM;
@@ -203,7 +204,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
       o = o.getNext();
     }
 
-    VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
+    VM.sysExit(EXIT_STATUS_PRINTED_HELP_MESSAGE);
   }
 
   /**

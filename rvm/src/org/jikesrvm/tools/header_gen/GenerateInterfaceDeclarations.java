@@ -12,10 +12,24 @@
  */
 package org.jikesrvm.tools.header_gen;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BAD_WORKING_DIR;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_COULD_NOT_EXECUTE;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_EXECUTABLE_NOT_FOUND;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_JNI_TROUBLE;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_MISC_TROUBLE;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_SYSCALL_TROUBLE;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_TIMER_TROUBLE;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
@@ -25,9 +39,9 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.ThinLockConstants;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
+import org.jikesrvm.runtime.FileSystem;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
-import org.jikesrvm.runtime.FileSystem;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
@@ -97,7 +111,7 @@ public class GenerateInterfaceDeclarations {
       if (args[i].equals("-da")) {              // image address
         if (++i == args.length) {
           System.err.println("Error: The -da flag requires an argument");
-          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+          System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         bootImageDataAddress = Integer.decode(args[i]);
         continue;
@@ -105,7 +119,7 @@ public class GenerateInterfaceDeclarations {
       if (args[i].equals("-ca")) {              // image address
         if (++i == args.length) {
           System.err.println("Error: The -ca flag requires an argument");
-          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+          System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         bootImageCodeAddress = Integer.decode(args[i]);
         continue;
@@ -113,7 +127,7 @@ public class GenerateInterfaceDeclarations {
       if (args[i].equals("-ra")) {              // image address
         if (++i == args.length) {
           System.err.println("Error: The -ra flag requires an argument");
-          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+          System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         bootImageRMapAddress = Integer.decode(args[i]);
         continue;
@@ -121,26 +135,26 @@ public class GenerateInterfaceDeclarations {
       if (args[i].equals("-out")) {              // output file
         if (++i == args.length) {
           System.err.println("Error: The -out flag requires an argument");
-          System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+          System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         outFileName = args[i];
         continue;
       }
       System.err.println("Error: unrecognized command line argument: " + args[i]);
-      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
 
     if (bootImageDataAddress == 0) {
       System.err.println("Error: Must specify boot image data load address.");
-      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (bootImageCodeAddress == 0) {
       System.err.println("Error: Must specify boot image code load address.");
-      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (bootImageRMapAddress == 0) {
       System.err.println("Error: Must specify boot image ref map load address.");
-      System.exit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      System.exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (outFileName == null) {
       out = System.out;
@@ -504,20 +518,20 @@ public class GenerateInterfaceDeclarations {
   // Codes for exit(3).
   static void emitExitStatusCodes() {
     pln("/* Automatically generated from the exitStatus declarations in ExitStatus.java */");
-    pln("const int EXIT_STATUS_EXECUTABLE_NOT_FOUND                 = " + VM.EXIT_STATUS_EXECUTABLE_NOT_FOUND + ";");
-    pln("const int EXIT_STATUS_COULD_NOT_EXECUTE                    = " + VM.EXIT_STATUS_COULD_NOT_EXECUTE + ";");
-    pln("const int EXIT_STATUS_MISC_TROUBLE                         = " + VM.EXIT_STATUS_MISC_TROUBLE + ";");
+    pln("const int EXIT_STATUS_EXECUTABLE_NOT_FOUND                 = " + EXIT_STATUS_EXECUTABLE_NOT_FOUND + ";");
+    pln("const int EXIT_STATUS_COULD_NOT_EXECUTE                    = " + EXIT_STATUS_COULD_NOT_EXECUTE + ";");
+    pln("const int EXIT_STATUS_MISC_TROUBLE                         = " + EXIT_STATUS_MISC_TROUBLE + ";");
     pln("const int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR    = " +
-        VM.EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR + ";");
-    pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = " + VM.EXIT_STATUS_SYSCALL_TROUBLE + ";");
-    pln("const int EXIT_STATUS_TIMER_TROUBLE                        = " + VM.EXIT_STATUS_TIMER_TROUBLE + ";");
-    pln("const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP              = " + VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
-    pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = " + VM.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
+        EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR + ";");
+    pln("const int EXIT_STATUS_SYSCALL_TROUBLE                      = " + EXIT_STATUS_SYSCALL_TROUBLE + ";");
+    pln("const int EXIT_STATUS_TIMER_TROUBLE                        = " + EXIT_STATUS_TIMER_TROUBLE + ";");
+    pln("const int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP              = " + EXIT_STATUS_UNSUPPORTED_INTERNAL_OP + ";");
+    pln("const int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS               = " + EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
     pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = " +
-        VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
-    pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = " + VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
-    pln("const int EXIT_STATUS_JNI_TROUBLE                          = " + VM.EXIT_STATUS_JNI_TROUBLE + ";");
-    pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = " + VM.EXIT_STATUS_BAD_WORKING_DIR + ";");
+        EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
+    pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = " + EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
+    pln("const int EXIT_STATUS_JNI_TROUBLE                          = " + EXIT_STATUS_JNI_TROUBLE + ";");
+    pln("const int EXIT_STATUS_BAD_WORKING_DIR                      = " + EXIT_STATUS_BAD_WORKING_DIR + ";");
   }
 
   // Emit assembler constants.

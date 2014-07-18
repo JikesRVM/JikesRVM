@@ -16,6 +16,7 @@ import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
@@ -175,7 +176,7 @@ public final class MemoryManager implements Constants {
   public static void processCommandLineArg(String arg) {
     if (!OptionSet.gc.process(arg)) {
       VM.sysWriteln("Unrecognized command line argument: \"" + arg + "\"");
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 

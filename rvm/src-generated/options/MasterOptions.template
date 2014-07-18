@@ -341,7 +341,7 @@ $$$$ END FOREACH
 $$$$ END LOOP
     instancePrintHelpFooter(prefix);
 
-    VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
+    VM.sysExit(EXIT_STATUS_PRINTED_HELP_MESSAGE);
   }
 
   /** @return a String representing the options values */

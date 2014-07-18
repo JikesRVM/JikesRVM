@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.common;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.JNICompiler;
 import org.jikesrvm.VM;
@@ -321,7 +323,7 @@ public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
           optimizationPlan = OptimizationPlanner.createOptimizationPlan((OptOptions) options);
         } else {
           VM.sysWrite("Unrecognized opt compiler argument \"" + arg + "\"");
-          VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+          VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
       } else {
         String[] tmp = new String[earlyOptArgs.length + 2];

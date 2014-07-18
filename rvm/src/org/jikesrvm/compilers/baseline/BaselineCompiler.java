@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.baseline;
 
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
@@ -117,7 +118,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
   public static void processCommandLineArg(String prefix, String arg) {
     if (!options.processAsOption(prefix, arg)) {
       VM.sysWrite("BaselineCompiler: Unrecognized argument \"" + arg + "\"\n");
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 

@@ -23,6 +23,7 @@ import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.ExitStatus.*;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import java.lang.reflect.Constructor;
@@ -394,10 +395,10 @@ public class JNIFunctions {
 
     try {
       VM.sysWrite(JNIHelpers.createStringFromC(messageAddress));
-      System.exit(VM.EXIT_STATUS_JNI_TROUBLE);
+      System.exit(EXIT_STATUS_JNI_TROUBLE);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
-      System.exit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
+      System.exit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
   }
 
@@ -6078,25 +6079,25 @@ public class JNIFunctions {
 
   private static int reserved0(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved1(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved2(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved3(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 }

@@ -14,6 +14,9 @@ package org.jikesrvm;
 
 import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_SYSFAIL;
 
 import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
 import org.jikesrvm.adaptive.controller.Controller;
@@ -34,7 +37,6 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.runtime.ExitStatus;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.SysCall;
@@ -64,7 +66,7 @@ import org.vmmagic.unboxed.Word;
  * A virtual machine.
  */
 @Uninterruptible
-public class VM extends Properties implements Constants, ExitStatus {
+public class VM extends Properties implements Constants {
 
   /**
    * Reference to the main thread that is the first none VM thread run
@@ -465,7 +467,7 @@ public class VM extends Properties implements Constants, ExitStatus {
         VM.sysWrite("vm: \"");
         VM.sysWrite(applicationArguments[0]);
         VM.sysWrite("\" is not a recognized Jikes RVM command line argument.\n");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
 
     if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
@@ -518,7 +520,7 @@ public class VM extends Properties implements Constants, ExitStatus {
   private static void pleaseSpecifyAClass() {
     VM.sysWrite("vm: Please specify a class to execute.\n");
     VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
-    VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
   /**

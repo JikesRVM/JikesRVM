@@ -12,16 +12,18 @@
  */
 package org.jikesrvm;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+
 import java.io.File;
 import java.util.Arrays;
+
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.BaselineOptions;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
-
-import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
@@ -296,7 +298,7 @@ public class CommandLineArgs {
         if (v.endsWith(" ")) {
           if (++i >= numArgs) {
             VM.sysWriteln("vm: ", v, "needs an argument");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           args[i - 1] += argRdr.getArg(i);
           args[i] = null;
@@ -550,7 +552,7 @@ public class CommandLineArgs {
           if (RVMThread.availableProcessors < 1) {
             VM.sysWrite("vm: ", p.value, " needs an argument that is at least 1");
             VM.sysWriteln(", but found ", arg);
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
 
@@ -584,7 +586,7 @@ public class CommandLineArgs {
             Controller.addOptCompilerOption("opt:help");
           } else {
             VM.sysWriteln("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
         case RECOMP_ARG:
@@ -594,7 +596,7 @@ public class CommandLineArgs {
             Controller.addOptCompilerOption("opt" + arg);
           } else {
             VM.sysWriteln("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
 
@@ -606,7 +608,7 @@ public class CommandLineArgs {
             Controller.processCommandLineArg("help");
           } else {
             VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
         case AOS_ARG: // "-X:aos:arg" pass 'arg' as an option
@@ -614,7 +616,7 @@ public class CommandLineArgs {
             Controller.processCommandLineArg(arg);
           } else {
             VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
 
@@ -638,7 +640,7 @@ public class CommandLineArgs {
           } else {
             VM.sysWriteln("vm: You are not using a system that includes the optimizing compiler.");
             VM.sysWriteln("  Illegal command line argument prefix '-X:opt'");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
         case OPT_ARG: // "-X:opt:arg"; pass 'arg' as an option
@@ -648,7 +650,7 @@ public class CommandLineArgs {
           } else {
             VM.sysWriteln("vm: You are not using a system that includes the optimizing compiler.");
             VM.sysWriteln("  Illegal command line argument prefix '-X:opt'");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
 
@@ -661,7 +663,7 @@ public class CommandLineArgs {
         case ARG: // "-X:vm:arg" pass 'arg' as an option
           if (!Options.process(arg)) {
             VM.sysWriteln("Unrecognized command line argument ", p.value, arg);
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           break;
       }
@@ -691,7 +693,7 @@ public class CommandLineArgs {
           int mid = arg.indexOf('=');
           if (mid == -1 || mid + 1 == arg.length()) {
             VM.sysWriteln("vm: bad property setting: \"", arg, "\"");
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           String name = arg.substring(0, mid);
           String value = arg.substring(mid + 1);
@@ -714,16 +716,16 @@ public class CommandLineArgs {
             mf = jf.getManifest();
           } catch (Exception e) {
             VM.sysWriteln("vm: IO Exception opening JAR file ", arg, ": ", e.getMessage());
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           if (mf == null) {
             VM.sysWriteln("The jar file is missing the manifest entry for the main class: ", arg);
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           String s = mf.getMainAttributes().getValue("Main-Class");
           if (s == null) {
             VM.sysWriteln("The jar file is missing the manifest entry for the main class: ", arg);
-            VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+            VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
           // maybe also load classes on the classpath list in the manifest
           RVMClassLoader.setApplicationRepositories(arg);
@@ -916,7 +918,7 @@ public class CommandLineArgs {
           VM.sysWrite(" ", argName);
         }
         VM.sysWriteln(" argument: >", arg, "<");
-        VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+        VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
       }
       b[i] = (byte) c;
     }

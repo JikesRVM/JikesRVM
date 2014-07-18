@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.scheduler;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_DUMP_STACK_AND_DIE;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN;
+
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -2739,7 +2744,7 @@ public final class RVMThread extends ThreadContext implements Constants {
         if (VM.TraceExceptionDelivery) {
           VM.sysWriteln("Calling sysExit due to uncaught exception.");
         }
-        callSystemExit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+        callSystemExit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
       } else if (thread instanceof MainThread) {
         MainThread mt = (MainThread) thread;
         if (!mt.launched) {
@@ -2752,7 +2757,7 @@ public final class RVMThread extends ThreadContext implements Constants {
            * should not support this.) This was discussed on
            * jikesrvm-researchers on 23 Jan 2005 and 24 Jan 2005.
            */
-          callSystemExit(VM.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
+          callSystemExit(EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
         }
       }
       /* Use System.exit so that any shutdown hooks are run. */
@@ -5339,11 +5344,11 @@ public final class RVMThread extends ThreadContext implements Constants {
       // This is the first time I've been called, attempt to exit "cleanly"
       exitInProgress = true;
       dumpStack(fp);
-      VM.sysExit(VM.EXIT_STATUS_DUMP_STACK_AND_DIE);
+      VM.sysExit(EXIT_STATUS_DUMP_STACK_AND_DIE);
     } else {
       // Another failure occurred while attempting to exit cleanly.
       // Get out quick and dirty to avoid hanging.
-      sysCall.sysExit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
+      sysCall.sysExit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
   }
 

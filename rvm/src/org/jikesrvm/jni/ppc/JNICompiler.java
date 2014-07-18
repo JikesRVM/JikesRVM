@@ -18,6 +18,7 @@ import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_JNI_COMPILER_FAILED;
 
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
@@ -1545,7 +1546,7 @@ public abstract class JNICompiler
 
         if (nextOSReg > LAST_OS_PARAMETER_GPR + 1) {
           VM.sysWrite("ERROR: " + meth + " has too many int or long parameters\n");
-          VM.sysExit(VM.EXIT_STATUS_JNI_COMPILER_FAILED);
+          VM.sysExit(EXIT_STATUS_JNI_COMPILER_FAILED);
         }
       }
     }
