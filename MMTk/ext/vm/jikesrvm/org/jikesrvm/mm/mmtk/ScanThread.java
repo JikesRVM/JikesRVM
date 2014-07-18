@@ -16,7 +16,6 @@ import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.Registers;
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -80,7 +79,7 @@ import org.vmmagic.unboxed.Offset;
  * collector, the pointer into the object must be adjusted so it now
  * points into the newly copied object.<p>
  */
-@Uninterruptible public final class ScanThread implements Constants {
+@Uninterruptible public final class ScanThread {
 
   /***********************************************************************
    *

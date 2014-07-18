@@ -12,12 +12,10 @@
  */
 package org.jikesrvm.ppc;
 
-import org.jikesrvm.Constants;
-
 /**
  * Registers used by baseline compiler code.
  */
-public interface BaselineConstants extends Constants, ArchConstants {
+public interface BaselineConstants extends ArchConstants {
 
   // Dedicated registers
   int FP = FRAME_POINTER;

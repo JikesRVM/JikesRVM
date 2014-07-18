@@ -16,7 +16,6 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_PRIVATE;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_PROTECTED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_PUBLIC;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Offset;
@@ -24,7 +23,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * A field or method of a java class.
  */
-public abstract class RVMMember extends AnnotatedElement implements Constants {
+public abstract class RVMMember extends AnnotatedElement {
 
   /** Initial value for a field offset - indicates field not laid out. */
   private static final int NO_OFFSET = Short.MIN_VALUE + 1;

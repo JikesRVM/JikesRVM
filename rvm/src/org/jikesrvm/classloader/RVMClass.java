@@ -22,7 +22,6 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 
 import org.jikesrvm.Callbacks;
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.inlining.ClassLoadingDependencyManager;
@@ -54,7 +53,7 @@ import org.vmmagic.unboxed.Offset;
  * @see UnboxedType
  */
 @NonMoving
-public final class RVMClass extends RVMType implements Constants {
+public final class RVMClass extends RVMType {
 
   /** Flag for closed world testing */
   public static boolean classLoadingDisabled = false;

@@ -18,7 +18,6 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.Services;
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -55,7 +54,7 @@ import org.jikesrvm.ppc.Disassembler;
 /**
  * Assemble PowerPC MIR into binary code.
  */
-public abstract class AssemblerOpt implements Constants, ArchConstants {
+public abstract class AssemblerOpt implements ArchConstants {
 
   private static final boolean DEBUG = false;
   private static final boolean DEBUG_CODE_PATCH = false;

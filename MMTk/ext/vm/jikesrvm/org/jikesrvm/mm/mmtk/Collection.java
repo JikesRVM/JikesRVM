@@ -31,8 +31,7 @@ import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Address;
 
 @Uninterruptible
-public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utility.Constants,
-                                                                  org.jikesrvm.Constants {
+public class Collection extends org.mmtk.vm.Collection implements org.mmtk.utility.Constants {
 
   /****************************************************************************
    *

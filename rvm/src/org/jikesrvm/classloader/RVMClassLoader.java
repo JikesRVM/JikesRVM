@@ -30,14 +30,13 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.Properties;
 import org.jikesrvm.VM;
 
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>
  */
-public class RVMClassLoader implements Constants {
+public class RVMClassLoader {
 
   private static final boolean DBG_APP_CL = false;
 

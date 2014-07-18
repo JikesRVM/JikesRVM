@@ -17,7 +17,6 @@ import static org.jikesrvm.VM.NOT_REACHED;
 import java.io.PrintStream;
 import java.util.LinkedList;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -28,7 +27,7 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
  *  controller plans, which contain compilation plans and other goodies,
  *  and allows searching for previous decisions
  */
-public final class ControllerMemory implements Constants {
+public final class ControllerMemory {
 
   /**
    *  This is a hashtable of controller plans indexed by RVMMethod.

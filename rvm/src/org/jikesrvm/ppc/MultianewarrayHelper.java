@@ -15,7 +15,6 @@ package org.jikesrvm.ppc;
 import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
@@ -30,7 +29,7 @@ import org.vmmagic.unboxed.Address;
  *
  * TODO: There is only 1 line of platform dependent code here; refactor?
  */
-public abstract class MultianewarrayHelper implements Constants {
+public abstract class MultianewarrayHelper {
 
   /**
    * Allocate something like {@code new Foo[cnt0][cnt1]...[cntN-1]},

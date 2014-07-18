@@ -14,7 +14,6 @@ package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.Callbacks;
-import org.jikesrvm.Constants;
 import org.jikesrvm.Services;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.ThinLockConstants;
@@ -115,7 +114,7 @@ java.lang.Object#notifyAll}, and {@link java.lang.Object#wait()}.
  */
 
 @Uninterruptible
-public final class Lock implements Constants {
+public final class Lock {
   /****************************************************************************
    * Constants
    */

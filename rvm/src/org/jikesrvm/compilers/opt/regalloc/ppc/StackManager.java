@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
-import static org.jikesrvm.VM.NOT_REACHED;
-
 import java.util.Enumeration;
 import java.util.Iterator;
 import org.jikesrvm.VM;

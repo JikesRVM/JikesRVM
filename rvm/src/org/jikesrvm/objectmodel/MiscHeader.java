@@ -17,7 +17,6 @@ import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.objectmodel.MiscHeaderConstants.GC_TRACING_HEADER_BYTES;
 import static org.jikesrvm.objectmodel.MiscHeaderConstants.NUM_BYTES_HEADER;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
 import org.jikesrvm.runtime.Magic;
@@ -38,7 +37,7 @@ import org.vmmagic.unboxed.Word;
  * @see ObjectModel
  */
 @Uninterruptible
-public final class MiscHeader implements Constants {
+public final class MiscHeader {
 
   private static final Offset MISC_HEADER_START = JavaHeaderConstants.MISC_HEADER_OFFSET;
 

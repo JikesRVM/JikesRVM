@@ -17,7 +17,6 @@ import static org.jikesrvm.VM.NOT_REACHED;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.DynamicLinkerHelper;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
@@ -33,7 +32,7 @@ import org.vmmagic.unboxed.Offset;
  * Implement lazy compilation.
  */
 @DynamicBridge
-public class DynamicLinker implements Constants {
+public class DynamicLinker {
 
   /**
    * Resolve, compile if necessary, and invoke a method.

@@ -31,7 +31,6 @@ import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.TIB;
 import org.vmmagic.pragma.NonMoving;
@@ -59,7 +58,7 @@ import org.vmmagic.unboxed.Offset;
  * @see UnboxedType
  */
 @NonMoving
-public final class Primitive extends RVMType implements Constants {
+public final class Primitive extends RVMType {
   /**
    * The pretty (external) name for this primitive.
    * For example, for a long the name is 'long'

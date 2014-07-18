@@ -28,7 +28,6 @@ import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
 import static org.jikesrvm.osr.OSRConstants.SPILL;
 import static org.jikesrvm.osr.OSRConstants.WORD;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.MethodReference;
@@ -56,7 +55,7 @@ import org.vmmagic.unboxed.WordArray;
  * It extracts the execution state from an optimized activation.
  */
 public abstract class OptExecutionStateExtractor extends ExecutionStateExtractor
-    implements Constants, ArchConstants, PhysicalRegisterConstants {
+    implements ArchConstants, PhysicalRegisterConstants {
 
   @Override
   public ExecutionState extractState(RVMThread thread, Offset osrFPoff, Offset methFPoff, int cmid) {

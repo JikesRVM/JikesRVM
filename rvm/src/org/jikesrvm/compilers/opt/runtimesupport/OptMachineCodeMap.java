@@ -18,7 +18,6 @@ import static org.jikesrvm.compilers.opt.driver.OptConstants.UNKNOWN_BCI;
 import java.util.ArrayList;
 
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.database.callgraph.CallSite;
 import org.jikesrvm.classloader.MemberReference;
@@ -71,7 +70,7 @@ import org.vmmagic.unboxed.Offset;
  *       <li>2) methods called at GC time (no allocation allowed!)
  *  </ul>
  */
-public final class OptMachineCodeMap implements Constants {
+public final class OptMachineCodeMap {
 
   /**
    * Private constructor, object should be created via create

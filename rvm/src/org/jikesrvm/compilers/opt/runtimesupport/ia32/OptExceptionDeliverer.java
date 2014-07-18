@@ -16,7 +16,6 @@ import static org.jikesrvm.VM.NOT_REACHED;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.compilers.common.CompiledMethod;

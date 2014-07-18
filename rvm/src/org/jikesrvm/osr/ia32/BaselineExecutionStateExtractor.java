@@ -38,7 +38,6 @@ import static org.jikesrvm.osr.OSRConstants.STACK;
 import static org.jikesrvm.osr.OSRConstants.WORD;
 import static org.jikesrvm.osr.OSRConstants.WordTypeCode;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
@@ -62,7 +61,7 @@ import org.vmmagic.unboxed.Word;
  * baseline compiler.
  */
 public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtractor
-    implements Constants, ArchConstants, PhysicalRegisterConstants {
+    implements ArchConstants, PhysicalRegisterConstants {
 
   /**
    * Implements ExecutionStateExtractor.extractState.

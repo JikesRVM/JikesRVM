@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt.mir2mc;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
@@ -26,7 +25,7 @@ import org.jikesrvm.runtime.Memory;
 /**
  * A compiler phase that generates machine code instructions and maps.
  */
-final class AssemblerDriver extends CompilerPhase implements Constants {
+final class AssemblerDriver extends CompilerPhase {
 
   @Override
   public String getName() {

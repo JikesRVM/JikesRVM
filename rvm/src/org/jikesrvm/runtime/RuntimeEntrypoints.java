@@ -21,7 +21,6 @@ import static org.jikesrvm.VM.NOT_REACHED;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.Registers;
-import org.jikesrvm.Constants;
 import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.DynamicTypeCheck;
@@ -83,7 +82,7 @@ import org.vmmagic.unboxed.Offset;
  *   <li> "fp" values that point to interior of "stack" objects
  * </ul>
  */
-public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.StackframeLayoutConstants {
+public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayoutConstants {
 
   private static final boolean traceAthrow = false;
   // Trap codes for communication with C trap handler.

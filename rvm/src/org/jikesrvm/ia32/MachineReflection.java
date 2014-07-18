@@ -12,8 +12,10 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.runtime.Reflection.REFLECTION_FPRS_BITS;
+import static org.jikesrvm.runtime.Reflection.REFLECTION_GPRS_BITS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
@@ -82,8 +84,8 @@ public abstract class MachineReflection implements RegisterConstants {
     }
 
     // hack to return triple
-    return (parameters << (Constants.REFLECTION_FPRS_BITS + Constants.REFLECTION_GPRS_BITS)) |
-           (FPRs << Constants.REFLECTION_GPRS_BITS) |
+    return (parameters << (REFLECTION_FPRS_BITS + REFLECTION_GPRS_BITS)) |
+           (FPRs << REFLECTION_GPRS_BITS) |
            GPRs;
   }
 

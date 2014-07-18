@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.StringTokenizer;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.AOSLogging;
 import org.jikesrvm.classloader.NormalMethod;
@@ -41,7 +40,7 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
  * The PowerPC data was gathered on piccolo.watson.ibm.com (JS21, machine type 8884; ppc64-aix).
  * The IA32 data was gathered on lyric.watson.ibm.com (LS41, machine type 7972; x86_64-linux).
  */
-public class CompilerDNA implements Constants {
+public class CompilerDNA {
 
   private static final String[] compilerNames = {"Baseline", "Opt0", "Opt1", "Opt2"};
   public static final int BASELINE = 0;

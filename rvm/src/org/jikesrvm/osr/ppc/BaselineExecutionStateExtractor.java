@@ -41,7 +41,6 @@ import static org.jikesrvm.osr.OSRConstants.WORD;
 import static org.jikesrvm.osr.OSRConstants.WordTypeCode;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.baseline.ppc.BaselineCompilerImpl;
@@ -67,7 +66,7 @@ import org.vmmagic.unboxed.WordArray;
  * thread whose top method was compiled by a baseline compiler.
  */
 public abstract class BaselineExecutionStateExtractor extends ExecutionStateExtractor
-    implements Constants, BaselineConstants, PhysicalRegisterConstants {
+    implements BaselineConstants, PhysicalRegisterConstants {
 
   @Override
   public ExecutionState extractState(RVMThread thread, Offset tsFromFPoff, Offset methFPoff, int cmid) {

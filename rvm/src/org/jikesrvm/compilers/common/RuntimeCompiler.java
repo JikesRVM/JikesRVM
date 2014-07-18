@@ -19,7 +19,6 @@ import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.JNICompiler;
 import org.jikesrvm.VM;
 import org.jikesrvm.Callbacks;
-import org.jikesrvm.Constants;
 import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
@@ -73,7 +72,7 @@ import org.jikesrvm.scheduler.RVMThread;
  *   still be an accurate measure of the space costs of the compile-only
  *   approach.
  */
-public class RuntimeCompiler implements Constants, Callbacks.ExitMonitor {
+public class RuntimeCompiler implements Callbacks.ExitMonitor {
 
   // Use these to encode the compiler for record()
   public static final byte JNI_COMPILER = 0;

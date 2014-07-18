@@ -12,14 +12,13 @@
  */
 package org.jikesrvm.ia32;
 
-import org.jikesrvm.Constants;
 import org.vmmagic.unboxed.Offset;
 import org.jikesrvm.VM;
 
 /**
  * Registers used by baseline compiler implementation of virtual machine.
  */
-public interface BaselineConstants extends Constants, ArchConstants {
+public interface BaselineConstants extends ArchConstants {
 
   int WORDSIZE = VM.BuildFor64Addr ? 8 : 4; // bytes
   int LG_WORDSIZE = VM.BuildFor64Addr ? 3 : 2;

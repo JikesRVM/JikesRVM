@@ -66,7 +66,7 @@ import org.vmmagic.unboxed.Word;
  * A virtual machine.
  */
 @Uninterruptible
-public class VM extends Properties implements Constants {
+public class VM extends Properties {
 
   /**
    * For assertion checking things that should never happen.

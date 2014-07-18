@@ -33,7 +33,6 @@ import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
 import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.Configuration;
 import org.jikesrvm.Services;
@@ -157,7 +156,7 @@ import org.jikesrvm.tuningfork.Feedlet;
  */
 @Uninterruptible
 @NonMoving
-public final class RVMThread extends ThreadContext implements Constants {
+public final class RVMThread extends ThreadContext {
   /*
    * debug and statistics
    */

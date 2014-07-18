@@ -14,7 +14,6 @@ package org.jikesrvm.osr;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.PrintContainer;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -35,7 +34,7 @@ import org.vmmagic.unboxed.Offset;
  * ExecutionState.
  */
 
-public abstract class ExecutionStateExtractor implements Constants {
+public abstract class ExecutionStateExtractor {
   /**
    * Returns a VM scope descriptor (ExecutionState) for a compiled method
    * on the top of a thread stack, (or a list of descriptors for an inlined

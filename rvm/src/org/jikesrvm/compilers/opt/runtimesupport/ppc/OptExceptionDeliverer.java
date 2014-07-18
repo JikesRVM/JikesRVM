@@ -18,7 +18,6 @@ import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.runtime.ExceptionDeliverer;
@@ -32,8 +31,7 @@ import org.vmmagic.unboxed.Word;
  * Handle exception delivery and stack unwinding for
  * opt compiled methods.
  */
-public abstract class OptExceptionDeliverer extends ExceptionDeliverer
-    implements Constants {
+public abstract class OptExceptionDeliverer extends ExceptionDeliverer {
 
   /**
    * Pass control to a catch block.

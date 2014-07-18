@@ -17,7 +17,6 @@ import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MethodReference;
@@ -37,7 +36,7 @@ import org.vmmagic.unboxed.Offset;
 
 /**
  **/
-public final class ClassLoaderProxy implements Constants {
+public final class ClassLoaderProxy {
 
   /**
    * Returns a common superclass of the two types.

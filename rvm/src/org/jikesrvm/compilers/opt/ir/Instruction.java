@@ -33,7 +33,6 @@ import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
 import java.util.Enumeration;
 
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -140,7 +139,7 @@ import org.vmmagic.pragma.NoInline;
  * @see Operand
  * @see BasicBlock
  */
-public final class Instruction implements Constants {
+public final class Instruction {
 
   /**
    * BITFIELD used to encode {@link #operatorInfo}.

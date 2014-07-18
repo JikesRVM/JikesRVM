@@ -18,7 +18,6 @@ import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.objectmodel.TIB;
@@ -85,7 +84,7 @@ import org.vmmagic.unboxed.Word;
  *                                             +---------------+
  * </pre>
  */
-public class Statics implements Constants {
+public class Statics {
   /**
    * How many 32bit slots do we want in the JTOC to hold numeric (non-reference) values?
    */

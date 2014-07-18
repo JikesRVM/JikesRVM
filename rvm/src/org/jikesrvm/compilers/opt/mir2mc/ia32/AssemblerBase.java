@@ -90,7 +90,6 @@ import java.util.Enumeration;
 
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -134,7 +133,7 @@ import org.vmmagic.unboxed.Offset;
  * from the Assembler.
  */
 abstract class AssemblerBase extends Assembler
-    implements Constants, PhysicalRegisterConstants {
+    implements PhysicalRegisterConstants {
 
   private static final boolean DEBUG_ESTIMATE = false;
 
