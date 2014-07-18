@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
 import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.*;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
@@ -142,8 +143,7 @@ import org.vmmagic.unboxed.Offset;
  * @see GenerationContext
  * @see ConvertBCtoHIR
  */
-public final class BC2IR
-    implements IRGenOptions, Operators {
+public final class BC2IR implements Operators {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take

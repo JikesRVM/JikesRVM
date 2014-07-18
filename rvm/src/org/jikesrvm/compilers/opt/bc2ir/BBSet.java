@@ -12,6 +12,16 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_BB;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_BBSET;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_CFG;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_EX;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_FLATTEN;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_INLINE_JSR;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_LOCAL;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_REGEN;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_STACK;
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.MAX_RETURN_ADDRESSES;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.RECTIFY_BCI;
 
 import java.util.Enumeration;
@@ -41,7 +51,7 @@ import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
  * very specialized operations that are performed during search/insertion
  * so we roll our own instead of using one from the standard library.
  */
-final class BBSet implements IRGenOptions {
+final class BBSet {
   /** root of the backing red/black tree*/
   private BasicBlockLE root;
 

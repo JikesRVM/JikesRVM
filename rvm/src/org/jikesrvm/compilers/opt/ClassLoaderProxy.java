@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt;
 
+import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.DBG_TYPE;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.MAYBE;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
@@ -23,7 +24,6 @@ import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.bc2ir.IRGenOptions;
 import org.jikesrvm.compilers.opt.ir.operand.ClassConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.FloatConstantOperand;
@@ -86,7 +86,7 @@ public final class ClassLoaderProxy implements Constants {
       return t1;
     }
 
-    if (IRGenOptions.DBG_TYPE) {
+    if (DBG_TYPE) {
       VM.sysWrite("finding common supertype of " + t1 + " and " + t2);
     }
 
@@ -115,7 +115,7 @@ public final class ClassLoaderProxy implements Constants {
       while (arrayDimensions-- > 0) {
         type = type.getArrayTypeForElementType();
       }
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("one is a primitive array, so supertype is " + type);
       }
       return type;
@@ -131,7 +131,7 @@ public final class ClassLoaderProxy implements Constants {
       while (arrayDimensions-- > 0) {
         type = type.getArrayTypeForElementType();
       }
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("differing dimensionalities for arrays, so supertype is " + type);
       }
       return type;
@@ -154,10 +154,10 @@ public final class ClassLoaderProxy implements Constants {
         s2.push(c2);
         c2 = c2.getSuperClass();
       } while (c2 != null);
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("stack 1: " + s1);
       }
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("stack 2: " + s2);
       }
       TypeReference best = TypeReference.JavaLangObject;
@@ -169,7 +169,7 @@ public final class ClassLoaderProxy implements Constants {
           break;
         }
       }
-      if (IRGenOptions.DBG_TYPE) {
+      if (DBG_TYPE) {
         VM.sysWrite("common supertype of the two classes is " + best);
       }
       while (arrayDimensions-- > 0) {
@@ -177,10 +177,10 @@ public final class ClassLoaderProxy implements Constants {
       }
       return best;
     } else {
-      if (IRGenOptions.DBG_TYPE && c1 == null) {
+      if (DBG_TYPE && c1 == null) {
         VM.sysWrite(c1 + " is not loaded, using Object as common supertype");
       }
-      if (IRGenOptions.DBG_TYPE && c2 == null) {
+      if (DBG_TYPE && c2 == null) {
         VM.sysWrite(c2 + " is not loaded, using Object as common supertype");
       }
       TypeReference common = TypeReference.JavaLangObject;
