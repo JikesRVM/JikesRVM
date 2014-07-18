@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
 import static org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_Definitions.*;
 
 import org.jikesrvm.*;
@@ -127,7 +128,7 @@ public class BURS_TreeNode {
   }
 
   public final boolean isREGISTERNode() {
-    return getOpcode() == Operators.REGISTER_opcode;
+    return getOpcode() == REGISTER_opcode;
   }
 
 /**** remainder will be inserted by the BURS generator *********/

@@ -14,6 +14,75 @@ package org.jikesrvm.compilers.opt.mir2mc.ia32;
 
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.CONDITION;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.WORD;
+import static org.jikesrvm.compilers.opt.ir.Operators.BBEND_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADC_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADDSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADDSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_ADD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_AND_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPEQSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPEQSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLESD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLESS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLTSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPLTSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPNESD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPNESS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPNLESD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPNLESS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPNLTSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPNLTSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPORDSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPORDSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPUNORDSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMPUNORDSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTSD2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTSD2SS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTSI2SD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTSI2SS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTSS2SD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTSS2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTTSD2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CVTTSS2SI_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_DIVSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_DIVSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_INT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_JCC_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_JMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LEA_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_LOCK_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_METHODSTART_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVLPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVQ_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MULSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MULSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_OFFSET_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_OR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_PUSH_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_RET_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SBB_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SQRTSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SUBSD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SUBSS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_UCOMISD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_UCOMISS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XORPD_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XORPS_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_XOR_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LABEL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR_opcode;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
 
 import java.util.ArrayList;
@@ -65,7 +134,7 @@ import org.vmmagic.unboxed.Offset;
  * from the Assembler.
  */
 abstract class AssemblerBase extends Assembler
-    implements Operators, Constants, PhysicalRegisterConstants {
+    implements Constants, PhysicalRegisterConstants {
 
   private static final boolean DEBUG_ESTIMATE = false;
 

@@ -12,9 +12,19 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.PAUSE;
+import static org.jikesrvm.compilers.opt.ir.Operators.PREFETCH;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
+
 import org.jikesrvm.classloader.Atom;
-import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.MethodReference;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.MagicNotImplementedException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
@@ -25,7 +35,6 @@ import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.GetField;
 import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.Move;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Store;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
@@ -44,7 +53,7 @@ import org.jikesrvm.runtime.MagicNames;
  *
  * @see org.jikesrvm.compilers.opt.bc2ir.GenerateMagic for the machine-independent magics
  */
-public abstract class GenerateMachineSpecificMagic implements Operators, StackframeLayoutConstants {
+public abstract class GenerateMachineSpecificMagic implements StackframeLayoutConstants {
 
   /**
    * "Semantic inlining" of methods of the Magic class.

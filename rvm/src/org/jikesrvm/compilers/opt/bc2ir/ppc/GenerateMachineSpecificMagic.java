@@ -12,6 +12,20 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir.ppc;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.DCBST;
+import static org.jikesrvm.compilers.opt.ir.Operators.DCBT;
+import static org.jikesrvm.compilers.opt.ir.Operators.DCBTST;
+import static org.jikesrvm.compilers.opt.ir.Operators.DCBZ;
+import static org.jikesrvm.compilers.opt.ir.Operators.DCBZL;
+import static org.jikesrvm.compilers.opt.ir.Operators.ICBI;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
+
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.TypeReference;
@@ -22,7 +36,6 @@ import org.jikesrvm.compilers.opt.ir.Binary;
 import org.jikesrvm.compilers.opt.ir.CacheOp;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.Load;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Store;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
@@ -37,7 +50,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see org.jikesrvm.compilers.opt.bc2ir.GenerateMagic for the machine-independent magics.
  */
-public abstract class GenerateMachineSpecificMagic implements Operators, StackframeLayoutConstants {
+public abstract class GenerateMachineSpecificMagic implements StackframeLayoutConstants {
 
   /**
    * "Semantic inlining" of methods of the Magic class

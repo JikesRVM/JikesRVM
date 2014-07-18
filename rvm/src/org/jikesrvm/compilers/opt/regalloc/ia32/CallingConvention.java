@@ -13,24 +13,38 @@
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.compilers.opt.ir.Operators.ADVISE_ESP;
+import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_CALL;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FCLEAR;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FMOV;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_FSTP;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSD;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOVSS;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_PUSH;
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_SYSCALL;
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.Operators.REQUIRE_ESP;
+import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
 
 import java.util.Enumeration;
+
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.InterfaceMethodSignature;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.ir.Call;
+import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.IRTools;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.MIR_Return;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
-import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Prologue;
+import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterTools;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
@@ -58,7 +72,7 @@ import org.jikesrvm.runtime.Entrypoints;
  * architecture-independent.
  */
 public abstract class CallingConvention extends IRTools
-    implements Operators, PhysicalRegisterConstants {
+    implements PhysicalRegisterConstants {
 
   /**
    * Size of a word, in bytes

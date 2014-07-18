@@ -15,12 +15,11 @@ package org.jikesrvm.compilers.opt.lir2mir.ppc;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Operators;
 
 /**
  * Nothing to do on PowerPC.
  */
-public abstract class ConvertALUOperators extends CompilerPhase implements Operators {
+public abstract class ConvertALUOperators extends CompilerPhase {
 
   /**
    * Return this instance of this phase. This phase contains no

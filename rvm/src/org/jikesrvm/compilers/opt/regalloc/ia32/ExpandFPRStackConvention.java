@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_DEF;
+import static org.jikesrvm.compilers.opt.ir.Operators.DUMMY_USE;
+
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
@@ -24,7 +27,6 @@ import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.MIR_Nullary;
 import org.jikesrvm.compilers.opt.ir.MIR_UnaryNoRes;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
 import org.jikesrvm.ia32.ArchConstants;
@@ -63,7 +65,7 @@ import org.jikesrvm.ia32.ArchConstants;
  * beginning of each catch block.
  */
 
-public final class ExpandFPRStackConvention extends CompilerPhase implements Operators {
+public final class ExpandFPRStackConvention extends CompilerPhase {
 
   /**
    * The number of FPRs available for allocation.

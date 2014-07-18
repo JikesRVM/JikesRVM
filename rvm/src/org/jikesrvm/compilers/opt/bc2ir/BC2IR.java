@@ -18,6 +18,7 @@ import static org.jikesrvm.compilers.opt.bc2ir.IRGenOptions.*;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
 import static org.jikesrvm.osr.OSRConstants.*;
 
 import java.util.ArrayList;
@@ -73,7 +74,6 @@ import org.jikesrvm.compilers.opt.ir.New;
 import org.jikesrvm.compilers.opt.ir.NewArray;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.OsrBarrier;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.PutField;
@@ -143,7 +143,7 @@ import org.vmmagic.unboxed.Offset;
  * @see GenerationContext
  * @see ConvertBCtoHIR
  */
-public final class BC2IR implements Operators {
+public final class BC2IR {
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take

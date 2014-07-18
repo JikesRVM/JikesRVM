@@ -17,6 +17,8 @@ import static org.jikesrvm.SizeConstants.BITS_IN_INT;
 import static org.jikesrvm.SizeConstants.LOG_BITS_IN_INT;
 import static org.jikesrvm.SizeConstants.LOG_BITS_IN_ADDRESS;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
@@ -43,7 +45,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.Nullary;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.OsrPoint;
 import org.jikesrvm.compilers.opt.ir.Prologue;
@@ -81,7 +82,7 @@ import org.vmmagic.unboxed.Word;
  * Contains architecture-specific helper functions for BURS.
  */
 abstract class BURS_Helpers extends BURS_Common_Helpers
-    implements Operators, PhysicalRegisterConstants {
+    implements PhysicalRegisterConstants {
 
   BURS_Helpers(BURS burs) {
     super(burs);

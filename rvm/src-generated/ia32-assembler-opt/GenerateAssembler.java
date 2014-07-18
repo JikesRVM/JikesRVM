@@ -1165,6 +1165,7 @@ public class GenerateAssembler {
     }
 
     emit("package org.jikesrvm.compilers.opt.mir2mc.ia32;\n\n");
+    emit("import static org.jikesrvm.compilers.opt.ir.Operators.*;\n\n");
     emit("import org.jikesrvm.*;\n\n");
     emit("import org.jikesrvm.compilers.opt.*;\n\n");
     emit("import org.jikesrvm.compilers.opt.ir.*;\n\n");

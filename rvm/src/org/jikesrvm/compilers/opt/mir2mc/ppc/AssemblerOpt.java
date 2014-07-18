@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
@@ -43,7 +45,6 @@ import org.jikesrvm.compilers.opt.ir.MIR_Unary;
 import org.jikesrvm.compilers.opt.ir.NullCheck;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
@@ -54,7 +55,7 @@ import org.jikesrvm.ppc.Disassembler;
 /**
  * Assemble PowerPC MIR into binary code.
  */
-public abstract class AssemblerOpt implements Operators, Constants, ArchConstants {
+public abstract class AssemblerOpt implements Constants, ArchConstants {
 
   private static final boolean DEBUG = false;
   private static final boolean DEBUG_CODE_PATCH = false;

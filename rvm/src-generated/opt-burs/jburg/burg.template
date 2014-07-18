@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
 import static org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_Definitions.*;
 
 import org.jikesrvm.compilers.opt.ir.@_ARCH_@.*;
@@ -41,8 +42,7 @@ import org.vmmagic.unboxed.*;
  * NOTE: Program generated file, do not edit!
  */
 @SuppressWarnings("unused") // Machine generated code is hard to get perfect
-public class BURS_STATE extends BURS_Helpers
-   implements Operators {
+public class BURS_STATE extends BURS_Helpers {
 
           static final byte NOFLAGS           = 0x00;
           static final byte EMIT_INSTRUCTION  = 0x01;

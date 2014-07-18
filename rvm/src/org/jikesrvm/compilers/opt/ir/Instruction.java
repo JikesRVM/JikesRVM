@@ -13,6 +13,22 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import static org.jikesrvm.compilers.opt.driver.OptConstants.UNKNOWN_BCI;
+import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.GOTO_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP2_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LOOKUPSWITCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LOWTABLESWITCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.MIR_START_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
 
 import java.util.Enumeration;
 
@@ -124,7 +140,7 @@ import org.vmmagic.pragma.NoInline;
  * @see Operand
  * @see BasicBlock
  */
-public final class Instruction implements Constants, Operators {
+public final class Instruction implements Constants {
 
   /**
    * BITFIELD used to encode {@link #operatorInfo}.

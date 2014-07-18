@@ -21,6 +21,16 @@ import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNCHRONIZED_MONITO
 import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNCHRONIZED_MONITOREXIT_BCI;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNTH_CATCH_BCI;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
+import static org.jikesrvm.compilers.opt.ir.Operators.CALL;
+import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;
+import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER;
+import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
+import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -56,7 +66,6 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.MonitorOp;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.Nullary;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Return;
@@ -77,7 +86,7 @@ import org.vmmagic.unboxed.Offset;
  * a method's bytecodes and populate targetIR with instructions.
  *
  **/
-public final class GenerationContext implements Operators {
+public final class GenerationContext {
 
   //////////
   // These fields are used to communicate information from its

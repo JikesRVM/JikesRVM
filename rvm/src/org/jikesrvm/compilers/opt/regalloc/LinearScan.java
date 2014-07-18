@@ -252,7 +252,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   }
 
   public static final class LinearScanPhase extends CompilerPhase
-      implements PhysicalRegisterConstants, Operators {
+      implements PhysicalRegisterConstants {
 
     /**
      * An object which manages spill location assignments.
@@ -1704,7 +1704,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   /**
    * phase to compute linear scan intervals.
    */
-  public static final class IntervalAnalysis extends CompilerPhase implements Operators {
+  public static final class IntervalAnalysis extends CompilerPhase {
     /**
      * the governing ir
      */
@@ -2454,7 +2454,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   /**
    * Insert Spill Code after register assignment.
    */
-  static final class SpillCode extends CompilerPhase implements Operators {
+  static final class SpillCode extends CompilerPhase {
     /**
      * Return this instance of this phase. This phase contains no
      * per-compilation instance fields.
