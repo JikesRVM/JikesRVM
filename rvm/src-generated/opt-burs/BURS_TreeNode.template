@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@;
 
+import static org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_Definitions.*;
+
 import org.jikesrvm.*;
 import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
@@ -29,7 +31,7 @@ import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
  * @see org.jikesrvm.compilers.opt.lir2mir.BURS
  * @see BURS_STATE
  */
-public class BURS_TreeNode implements BURS_Definitions {
+public class BURS_TreeNode {
 
   public ArchitectureSpecificOpt.BURS_TreeNode child1;
   public ArchitectureSpecificOpt.BURS_TreeNode child2;
