@@ -74,9 +74,10 @@ import org.vmmagic.unboxed.Word;
  *
  * If {@link JavaHeaderConstants#ADDRESS_BASED_HASHING ADDRESS_BASED_HASHING} is true,
  * then Jikes RVM uses two bits of the status word to record the hash code state in
- * a typical three state scheme ({@link #HASH_STATE_UNHASHED}, {@link #HASH_STATE_HASHED},
- * and {@link #HASH_STATE_HASHED_AND_MOVED}). In this case, the status word is laid
- * out as shown below:
+ * a typical three state scheme ({@link JavaHeaderConstants#HASH_STATE_UNHASHED},
+ * {@link JavaHeaderConstants#HASH_STATE_HASHED}, and
+ * {@link JavaHeaderConstants#HASH_STATE_HASHED_AND_MOVED}). In this case, the status
+ * word is laid out as shown below:
  * <pre>
  *      TTTT TTTT TTTT TTTT TTTT TTHH AAAA AAAA
  * T = thin lock bits
