@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ppc;
 
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 

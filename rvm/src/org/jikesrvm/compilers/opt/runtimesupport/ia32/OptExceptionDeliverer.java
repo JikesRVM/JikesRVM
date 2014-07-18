@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
@@ -111,7 +113,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
 
     // "branches" to catchBlockInstructionAddress
     Magic.restoreHardwareExceptionState(registers);
-    if (VM.VerifyAssertions) VM._assert(Constants.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
   }
 
   /**

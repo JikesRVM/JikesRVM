@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.ia32;
 
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.osr.OSRConstants.ACONST;
 import static org.jikesrvm.osr.OSRConstants.DOUBLE;
 import static org.jikesrvm.osr.OSRConstants.FLOAT;

@@ -20,6 +20,7 @@ import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;
 import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.SizeConstants.BYTES_IN_SHORT;
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
 import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;

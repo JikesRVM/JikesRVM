@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.adaptive.controller;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import java.io.PrintStream;
 import java.util.LinkedList;
 import org.jikesrvm.VM;

@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
@@ -222,7 +224,7 @@ public abstract class MachineReflection implements ArchConstants {
           GPRs.set(--GPR, val);
         }
       } else {
-        if (VM.VerifyAssertions) VM._assert(Constants.NOT_REACHED);
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       }
     }
   }

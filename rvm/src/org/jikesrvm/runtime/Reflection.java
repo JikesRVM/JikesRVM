@@ -14,6 +14,7 @@ package org.jikesrvm.runtime;
 
 import static org.jikesrvm.Configuration.BuildForSSE2Full;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_FIRST_VIRTUAL_METHOD_INDEX;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;

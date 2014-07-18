@@ -18,10 +18,6 @@ package org.jikesrvm;
  * and some are (at the moment) architecture-neutral.
  */
 public interface Constants {
-  /**
-   * For assertion checking things that should never happen.
-   */
-  boolean NOT_REACHED = false;
 
   /*
    * Reflection uses an integer return from a function which logically

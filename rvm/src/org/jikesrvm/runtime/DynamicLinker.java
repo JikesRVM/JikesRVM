@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.runtime;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.DynamicLinkerHelper;
 import org.jikesrvm.VM;

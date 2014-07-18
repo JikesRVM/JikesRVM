@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.adaptive.recompilation;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;

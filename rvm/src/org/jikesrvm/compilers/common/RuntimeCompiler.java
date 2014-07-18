@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.common;
 
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 
 import org.jikesrvm.ArchitectureSpecific;

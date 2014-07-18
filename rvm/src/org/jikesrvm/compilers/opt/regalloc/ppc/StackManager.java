@@ -12,10 +12,12 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ppc;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import java.util.Enumeration;
 import java.util.Iterator;
 import org.jikesrvm.VM;
-import static org.jikesrvm.Constants.NOT_REACHED;
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;

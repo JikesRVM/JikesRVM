@@ -69,6 +69,11 @@ import org.vmmagic.unboxed.Word;
 public class VM extends Properties implements Constants {
 
   /**
+   * For assertion checking things that should never happen.
+   */
+  public static final boolean NOT_REACHED = false;
+
+  /**
    * Reference to the main thread that is the first none VM thread run
    */
   public static MainThread mainThread;

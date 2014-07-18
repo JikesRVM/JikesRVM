@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.baseline.ia32;
 
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.VM.NOT_REACHED;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;

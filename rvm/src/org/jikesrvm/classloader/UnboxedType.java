@@ -15,6 +15,7 @@ package org.jikesrvm.classloader;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.BYTES_IN_BYTE;
 import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.VM.NOT_REACHED;
 
 import org.jikesrvm.Constants;
 import org.jikesrvm.VM;

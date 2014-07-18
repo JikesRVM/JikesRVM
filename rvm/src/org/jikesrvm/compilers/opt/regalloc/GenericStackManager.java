@@ -28,7 +28,7 @@ import org.jikesrvm.ArchitectureSpecificOpt.RegisterPreferences;
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
 import org.jikesrvm.VM;
 import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
-import static org.jikesrvm.Constants.NOT_REACHED;
+import static org.jikesrvm.VM.NOT_REACHED;
 
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;

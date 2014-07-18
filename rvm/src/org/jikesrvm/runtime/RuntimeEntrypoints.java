@@ -17,6 +17,7 @@ import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
 import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.VM.NOT_REACHED;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.Registers;

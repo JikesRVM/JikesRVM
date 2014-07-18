@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.common.assembler.ppc;
 
+import static org.jikesrvm.VM.NOT_REACHED;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GE;
 import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GT;
