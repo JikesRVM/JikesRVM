@@ -15,6 +15,7 @@ package org.jikesrvm.compilers.opt.runtimesupport.ia32;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
 import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
@@ -136,7 +137,7 @@ public abstract class OptExceptionDeliverer extends ExceptionDeliverer
 
     // restore non-volatile registers
     int frameOffset = optMethod.getUnsignedNonVolatileOffset();
-    for (int i = optMethod.getFirstNonVolatileGPR(); i < NUM_NONVOLATILE_GPRS; i++, frameOffset += 4) {
+    for (int i = optMethod.getFirstNonVolatileGPR(); i < NUM_NONVOLATILE_GPRS; i++, frameOffset += BYTES_IN_ADDRESS) {
       registers.gprs.set(NONVOLATILE_GPRS[i].value(), fp.minus(frameOffset).loadWord());
     }
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);

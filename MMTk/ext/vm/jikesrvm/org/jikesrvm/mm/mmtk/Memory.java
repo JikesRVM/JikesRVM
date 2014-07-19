@@ -80,7 +80,7 @@ import org.vmmagic.pragma.*;
   @Interruptible
   public final ImmortalSpace getVMSpace() {
     if (bootSpace == null) {
-      bootSpace = new ImmortalSpace("boot", VMRequest.create(BOOT_SEGMENT_MB));
+      bootSpace = new ImmortalSpace("boot", VMRequest.fixedSize(BOOT_SEGMENT_MB));
     }
     return bootSpace;
   }

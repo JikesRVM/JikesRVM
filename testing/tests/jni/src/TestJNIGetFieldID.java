@@ -23,7 +23,7 @@ public class TestJNIGetFieldID {
     public int a = 0;
   }
 
-  static interface I {
+  interface I {
     int f = 1;
   }
 

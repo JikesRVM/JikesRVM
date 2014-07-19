@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.compilers.opt.ir.Operators.ATHROW_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_IFCMP_opcode;
@@ -458,7 +459,7 @@ public final class IR {
     int nWords = method.getParameterWords();
     // getParameterWords() does not include the implicit 'this' parameter.
     if (!method.isStatic()) nWords++;
-    return nWords << 2;
+    return nWords << LOG_BYTES_IN_ADDRESS;
   }
 
   /**

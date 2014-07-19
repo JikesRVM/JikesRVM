@@ -18,7 +18,7 @@ import org.vmmagic.pragma.NoInline;
 */
 class TestInvoke {
 
-  static interface MyInterface {
+  interface MyInterface {
     void performMagic();
   }
 

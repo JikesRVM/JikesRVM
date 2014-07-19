@@ -23,8 +23,9 @@ import org.vmmagic.unboxed.harness.Clock;
 
 /**
  * Interprets the p-code that is the compilation target of the
- * MMTk Harness scripting language.
- *
+ * MMTk Harness scripting language.  Each instance of this class executes
+ * one thread to completion.
+ * <p>
  * p-ops are interpreted by calling the operator's exec method.
  * The interpreter then performs control-flow adjustments.
  */
@@ -45,9 +46,9 @@ public final class PcodeInterpreter {
   /**
    * Create a pcode interpreter for a given environment/method pair.  This will
    * in general be a thread of execution within a script, either <code>main()</code>
-   * or a spawned process.
-   * @param env
-   * @param method
+   * or a spawned thread.
+   * @param env Thread-local environment for the running thread
+   * @param method Method to execute in this instance of the interpreter
    */
   public PcodeInterpreter(Env env, CompiledMethod method) {
     this.env = env;
@@ -57,7 +58,7 @@ public final class PcodeInterpreter {
 
   /**
    * Execute the method, with given values for its parameters.
-   * @param params
+   * @param params Method parameters
    */
   public void exec(Value...params) {
     setActualParams(params);

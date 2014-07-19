@@ -195,9 +195,9 @@ public class Scheduler {
 
   /**
    * Wait at a barrier in user code
-   * @param name
-   * @param expected
-   * @return
+   * @param name The name of the barrier
+   * @param expected The number of threads expected to arrive
+   * @return An integer from 0..expected-1, unique to each arriving thread
    */
   public static int mutatorRendezvous(String name, int expected) {
     try {

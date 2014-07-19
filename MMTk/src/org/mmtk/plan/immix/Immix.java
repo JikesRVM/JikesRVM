@@ -56,7 +56,7 @@ public class Immix extends StopTheWorld {
   /**
    *
    */
-  public static final ImmixSpace immixSpace = new ImmixSpace("immix", VMRequest.create());
+  public static final ImmixSpace immixSpace = new ImmixSpace("immix", VMRequest.discontiguous());
   public static final int IMMIX = immixSpace.getDescriptor();
 
   public static final int SCAN_IMMIX = 0;

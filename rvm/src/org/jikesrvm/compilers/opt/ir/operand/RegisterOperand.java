@@ -524,4 +524,34 @@ public final class RegisterOperand extends Operand {
       setType(t);
     }
   }
+
+  /**
+   * Note: This method is currently used only by test cases.<p>
+   *
+   * Does this operand have the same properties as the given Operand? This method
+   * checks only the properties specific to RegisterOperand.
+   *
+   * @param other
+   * @return whether the given RegisterOperand could be seen as a copy of this one
+   */
+  public boolean sameRegisterPropertiesAs(RegisterOperand other) {
+    return this.register == other.register && this.flags == other.flags &&
+        this.flags2 == other.flags2 && this.info == other.info &&
+        this.scratchObject == other.scratchObject;
+  }
+
+  /**
+   * Note: This method is currently used only by test cases.<p>
+   *
+   * Does this operand have the same properties as the given Operand? This method
+   * checks only the properties specific to RegisterOperand.
+   *
+   * @param other
+   * @return whether the given RegisterOperand could be seen as a copy of this one
+   *  if {@link #scratchObject} can be ignored
+   */
+  public boolean sameRegisterPropertiesAsExceptForScratchObject(RegisterOperand other) {
+    return this.register == other.register && this.flags == other.flags &&
+        this.flags2 == other.flags2 && this.info == other.info;
+  }
 }

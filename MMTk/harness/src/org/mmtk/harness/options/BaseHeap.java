@@ -20,12 +20,12 @@ import org.mmtk.harness.Harness;
  * by multiplying the value of this option by a factor specific
  * to the current plan.
  *
- * The idea is that by specifying a heap size for a script (e.g.
+ * <p>The idea is that by specifying a heap size for a script (e.g.
  * the size in which the most space-efficient script (MC at the moment) runs,
  * the script should run on every collector, and should behave in much the same
  * way.
  *
- * If unspecified (value -1), the values of initHeap etc are used.  If specified,
+ * <p>If unspecified (value -1), the values of initHeap etc are used.  If specified,
  * it supersedes those values and sets variableSizedHeap to 'false'.
  */
 public final class BaseHeap extends org.vmutil.options.PagesOption {
@@ -37,6 +37,7 @@ public final class BaseHeap extends org.vmutil.options.PagesOption {
         "Base Heap Size (scaled for the current plan)",0);
   }
 
+  /** {@inheritDoc} */
   @Override
   protected void validate() {
     failIf(value <= 0, "Must have a positive heap size");

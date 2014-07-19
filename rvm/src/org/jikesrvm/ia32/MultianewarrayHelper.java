@@ -19,6 +19,8 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.vmmagic.unboxed.Address;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_WORD;
+
 /**
  * Helper routine to pull the parameters to multianewarray off the
  * Java expression stack maintained by the baseline compiler and
@@ -47,9 +49,9 @@ public abstract class MultianewarrayHelper {
       // fetch number of elements to be allocated for each array dimension
       VM.disableGC();
       Address argp = Magic.getFramePointer().plus(argOffset);
-      argp = argp.minus(4);
+      argp = argp.minus(BYTES_IN_WORD);
       dim0 = argp.loadInt();
-      argp = argp.minus(4);
+      argp = argp.minus(BYTES_IN_WORD);
       dim1 = argp.loadInt();
       VM.enableGC();
       // validate arguments
@@ -64,11 +66,7 @@ public abstract class MultianewarrayHelper {
       VM.disableGC();
       Address argp = Magic.getFramePointer().plus(argOffset);
       for (int i = 0; i < numDimensions; ++i) {
-        if (VM.BuildFor32Addr) {
-          argp = argp.minus(4);
-        } else {
-          argp = argp.minus(8);
-        }
+        argp = argp.minus(BYTES_IN_WORD);
         numElements[i] = argp.loadInt();
       }
       VM.enableGC();

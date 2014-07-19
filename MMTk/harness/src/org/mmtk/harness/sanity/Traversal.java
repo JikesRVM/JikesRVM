@@ -22,10 +22,8 @@ import org.mmtk.harness.Mutator;
 import org.mmtk.harness.Mutators;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
-import org.mmtk.harness.lang.runtime.ObjectValue;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
-import org.mmtk.harness.vm.Scanning;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
@@ -106,9 +104,6 @@ public final class Traversal {
    * Trace the harness root set
    */
   private void traceRoots() {
-    for (ObjectValue value : Scanning.getRoots()) {
-      traceObject(value.getObjectValue(), true);
-    }
     for (Mutator m : Mutators.getAll()) {
       for (Address root : m.getRootAddresses()) {
         traceObject(root.loadObjectReference(), true);

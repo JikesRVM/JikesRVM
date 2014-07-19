@@ -21,13 +21,15 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * A concrete stack for the execution of a scripting language frame.
- *
+ * <p>
  * Consists of a stack (in the abstract sense) of StackFrames.
  */
 public class RuntimeStack implements Iterable<StackFrame> {
 
+  /** The minimum address of this stack. */
   private final Address stackBase;
 
+  /** The maximum address of this stack. */
   private final Address stackLimit;
 
   /**
@@ -36,6 +38,10 @@ public class RuntimeStack implements Iterable<StackFrame> {
    */
   private Address top;
 
+  /**
+   * @param stackBase The base address of the stack
+   * @param sizeInBytes The size in bytes
+   */
   public RuntimeStack(Address stackBase, int sizeInBytes) {
     this.stackBase = stackBase;
     this.stackLimit = stackBase.plus(sizeInBytes);
@@ -80,8 +86,8 @@ public class RuntimeStack implements Iterable<StackFrame> {
 
   /**
    * Create a stack frame for the given CompiledMethod
-   * @param callee
-   * @return
+   * @param env The thread-specific runtime environment
+   * @param callee The CompiledMethod that executes in this frame
    */
   public void pushFrame(Env env, CompiledMethod callee) {
     StackFrame frame = new StackFrame(env, callee, top);

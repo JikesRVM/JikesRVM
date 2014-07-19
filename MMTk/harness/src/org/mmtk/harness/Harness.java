@@ -108,9 +108,6 @@ public class Harness {
   /** Whether the Harness sanity checker uses the read barrier */
   public static final BooleanOption sanityUsesReadBarrier = new SanityUsesReadBarrier();
 
-  /** Allocate during collection, to simulate JikesRVM thread iterator objects */
-  public static final BooleanOption allocDuringCollection = new AllocDuringCollection();
-
   /** Set watch points on variables */
   public static final StringOption watchVar = new WatchVar();
 

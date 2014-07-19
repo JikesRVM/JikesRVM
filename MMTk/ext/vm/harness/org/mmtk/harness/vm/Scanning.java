@@ -12,64 +12,25 @@
  */
 package org.mmtk.harness.vm;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
-import org.mmtk.harness.Harness;
 import org.mmtk.harness.Mutator;
 import org.mmtk.harness.Mutators;
 import org.mmtk.harness.lang.Trace;
 import org.mmtk.harness.lang.Trace.Item;
-import org.mmtk.harness.lang.runtime.AllocationSite;
-import org.mmtk.harness.lang.runtime.ObjectValue;
-import org.mmtk.harness.lang.runtime.StackFrame;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
-
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.harness.Clock;
 
 @Uninterruptible
 public class Scanning extends org.mmtk.vm.Scanning {
-  public static final int THREAD_ITERATOR_TABLE_ENTRIES = 2048;
 
   /**
-   * Table of thread iterator objects (to simulate JikesRVM thread iterator objects)
+   * {@inheritDoc}
    */
-  private static volatile ObjectValue threadIteratorTable = null;
-
-  /**
-   * Initialize the thread iterator table
-   * @param m Calling mutator
-   */
-  public static void initThreadIteratorTable(Mutator m) {
-    if (Harness.allocDuringCollection.getValue() && threadIteratorTable == null) {
-      threadIteratorTable = new ObjectValue(m.allocThreadIteratorTable());
-    }
-  }
-
-  /**
-   * @param m Mutator
-   * @param obj The iterator object
-   */
-  public static void setThreadIteratorObject(Mutator m, ObjectReference obj) {
-    m.storeReferenceField(threadIteratorTable.getObjectValue(), m.getContext().getId() % THREAD_ITERATOR_TABLE_ENTRIES, obj);
-  }
-
-  /**
-   * Internal harness method to get all non-stack roots
-   * @return The set of roots
-   */
-  public static Set<ObjectValue> getRoots() {
-    if (threadIteratorTable == null)
-      return Collections.emptySet();
-    return new HashSet<ObjectValue>(Arrays.asList(threadIteratorTable));
-  }
-
   @Override
   public void scanObject(TransitiveClosure trace, ObjectReference object) {
     if (Trace.isEnabled(Item.SCAN)) {
@@ -90,46 +51,56 @@ public class Scanning extends org.mmtk.vm.Scanning {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void specializedScanObject(int id, TransitiveClosure trace, ObjectReference object) {
     scanObject(trace, object);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public synchronized void resetThreadCounter() {
     assert mutatorsToScan.size() == 0;
     mutatorsToScan = null;
-    ObjectValue.startRootDiscoveryPhase();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void notifyInitialThreadScanComplete() {
+  public void notifyInitialThreadScanComplete(boolean partialScan) {
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void computeStaticRoots(TraceLocal trace) {
-    if (threadIteratorTable != null) {
-      if (Trace.isEnabled(Item.ROOTS)) {
-        Trace.trace(Item.ROOTS, "Tracing root %s", ObjectModel.getString(threadIteratorTable.getObjectValue()));
-      }
-      threadIteratorTable.traceObject(trace);
-      if (StackFrame.ASSERT_WILL_NOT_MOVE) {
-        assert trace.willNotMoveInCurrentCollection(threadIteratorTable.getObjectValue()) :
-          threadIteratorTable.getObjectValue()+" has been traced but willNotMoveInCurrentCollection is still false";
-      }
-      if (Trace.isEnabled(Item.ROOTS)) {
-        Trace.trace(Item.ROOTS, "new value of %s", ObjectModel.getString(threadIteratorTable.getObjectValue()));
-      }
-    }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void computeGlobalRoots(TraceLocal trace) {
     // none
   }
 
+  /**
+   * Queue of mutators to scan.  At the start of the parallel scan of thread roots
+   * this is (atomically) initialized to the set of all mutator threads.  As each
+   * collector thread proceeds, it removes a thread from the queue and scans it,
+   * exiting when the queue is empty.
+   */
   private BlockingQueue<Mutator> mutatorsToScan = null;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void computeThreadRoots(TraceLocal trace) {
     Clock.stop();
@@ -146,21 +117,10 @@ public class Scanning extends org.mmtk.vm.Scanning {
         break;
       }
       Trace.trace(Item.COLLECT,"Computing roots for mutator");
-      if (Harness.allocDuringCollection.getValue()) {
-        Trace.trace(Item.COLLECT,"Allocating thread iterator object");
-        Clock.start();
-        setThreadIteratorObject(m, m.alloc(0, 0, false, AllocationSite.INTERNAL_SITE_ID));
-        Clock.stop();
-      }
       Clock.start();
       m.prepare();
       m.computeThreadRoots(trace);
       Clock.stop();
-      if (Harness.allocDuringCollection.getValue()) {
-        Clock.start();
-        setThreadIteratorObject(m, ObjectReference.nullReference());
-        Clock.stop();
-      }
     }
     Clock.start();
   }
@@ -171,8 +131,30 @@ public class Scanning extends org.mmtk.vm.Scanning {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void computeBootImageRoots(TraceLocal trace) {
     /* None */
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void computeNewThreadRoots(TraceLocal trace) {
+    /*
+     * For now the harness doesn't support partial stack scanning, so do a complete scan
+     */
+    computeThreadRoots(trace);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean supportsReturnBarrier() {
+    return false;
   }
 }

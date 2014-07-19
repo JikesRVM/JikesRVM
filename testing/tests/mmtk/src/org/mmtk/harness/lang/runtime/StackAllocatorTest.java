@@ -12,10 +12,11 @@
  */
 package org.mmtk.harness.lang.runtime;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.vmmagic.unboxed.harness.MemoryConstants.BYTES_IN_INT;
+import static org.vmmagic.unboxed.harness.MemoryConstants.BYTES_IN_PAGE;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,9 +24,6 @@ import org.mmtk.harness.Harness;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.harness.SimulatedMemory;
-
-import static org.vmmagic.unboxed.harness.MemoryConstants.BYTES_IN_PAGE;
-import static org.vmmagic.unboxed.harness.MemoryConstants.BYTES_IN_INT;
 
 public class StackAllocatorTest {
 
@@ -37,11 +35,6 @@ public class StackAllocatorTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     Harness.initOnce();
-  }
-
-  @AfterClass
-  public static void tearDownAfterClass() throws Exception {
-
   }
 
   StackAllocator sa;
@@ -78,7 +71,7 @@ public class StackAllocatorTest {
   @Test(expected=Error.class)
   public void testAllocOverflow() {
     for (int i=0; i <= STACK_COUNT; i++) {
-      Address addr = sa.alloc();
+      sa.alloc();
     }
   }
 

@@ -38,7 +38,7 @@ public class CMS extends Concurrent {
   /**
    *
    */
-  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.create());
+  public static final MarkSweepSpace msSpace = new MarkSweepSpace("ms", VMRequest.discontiguous());
   public static final int MARK_SWEEP = msSpace.getDescriptor();
 
   static {

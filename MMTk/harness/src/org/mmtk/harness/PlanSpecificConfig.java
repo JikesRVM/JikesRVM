@@ -20,10 +20,13 @@ import java.util.Set;
 
 /**
  * Per-plan configuration for the various MMTk plans.  Here we specify:
- *
- * - Short name(s) for each plan (eg "MS" for org.mmtk.plan.marksweep.MS)
- * - A "Heap Factor", ie the expected minimum heap (compared to MarkCompact) in which
+ * <ul>
+ * <li>Short name(s) for each plan (eg "MS" for org.mmtk.plan.marksweep.MS)
+ * <li>A "Heap Factor", i.e. the expected minimum heap (compared to MarkCompact) in which
  *   a given benchmark should complete.
+ * </ul>
+ * If you create a new plan, add a call to the <code>register</code> method to the static
+ * initializer (around line 60).
  */
 public class PlanSpecificConfig {
 
@@ -47,72 +50,11 @@ public class PlanSpecificConfig {
     }
   }
 
-  /**
-   * The per-plan configuration.
-   */
-  public static final class PlanSpecific {
-
-    /** The full class name of this plan's Plan class */
-    private final String name;
-
-    /** heap factor */
-    private double heapFactor = 1.0d;
-
-    /** The names of the expected spaces */
-    private final Set<String> expectedSpaces = new HashSet<String>();
-
-    /**
-     * Create a plan with the given class name
-     * @param name
-     */
-    private PlanSpecific(String name) {
-      this.name = name;
-      addExpectedSpaces("vm");
-      addExpectedSpaces("immortal");
-      addExpectedSpaces("meta");
-      addExpectedSpaces("los");
-      addExpectedSpaces("sanity");
-      addExpectedSpaces("non-moving");
-      addExpectedSpaces("sm-code");
-      addExpectedSpaces("lg-code");
-    }
-
-    /**
-     * @return The heap factor of this plan
-     */
-    public double getHeapFactor() {
-      return heapFactor;
-    }
-
-    /**
-     * Set the heap factor, ie the multiple of the minimum heap (ie MC heap)
-     * required for this plan to run equivalent benchmarks.
-     * @param heapFactor
-     * @return This PlanSpecific, so that setters can be chained
-     */
-    public PlanSpecific heapFactor(double heapFactor) {
-      this.heapFactor = heapFactor;
-      return this;
-    }
-
-    /** @return the class name of this plan's Plan class */
-    public String getName() {
-      return name;
-    }
-
-    public PlanSpecific addExpectedSpaces(String...spaces) {
-      for (String space : spaces) {
-        expectedSpaces.add(space);
-      }
-      return this;
-    }
-
-    public Set<String> getExpectedSpaces() {
-      return Collections.unmodifiableSet(expectedSpaces);
-    }
-  }
-
   private static final PlanSpecific DEFAULTS = new PlanSpecific("DEFAULT");
+
+  /**
+   * This is where you define a new plan.
+   */
   static {
     /* Heap factors determined by min heap size for FixedLive benchmark */
     final double BASE_HEAP = 9472d; // Heap size in k for MS
@@ -227,4 +169,70 @@ public class PlanSpecificConfig {
   public static double heapFactor(String plan) {
     return get(plan).getHeapFactor();
   }
+
+  /**
+   * The per-plan configuration.
+   */
+  public static final class PlanSpecific {
+
+    /** The full class name of this plan's Plan class */
+    private final String name;
+
+    /** heap factor */
+    private double heapFactor = 1.0d;
+
+    /** The names of the expected spaces */
+    private final Set<String> expectedSpaces = new HashSet<String>();
+
+    /**
+     * Create a plan with the given class name
+     * @param name
+     */
+    private PlanSpecific(String name) {
+      this.name = name;
+      addExpectedSpaces("vm");
+      addExpectedSpaces("immortal");
+      addExpectedSpaces("meta");
+      addExpectedSpaces("los");
+      addExpectedSpaces("sanity");
+      addExpectedSpaces("non-moving");
+      addExpectedSpaces("sm-code");
+      addExpectedSpaces("lg-code");
+    }
+
+    /**
+     * @return The heap factor of this plan
+     */
+    public double getHeapFactor() {
+      return heapFactor;
+    }
+
+    /**
+     * Set the heap factor, ie the multiple of the minimum heap (ie MC heap)
+     * required for this plan to run equivalent benchmarks.
+     * @param heapFactor
+     * @return This PlanSpecific, so that setters can be chained
+     */
+    public PlanSpecific heapFactor(double heapFactor) {
+      this.heapFactor = heapFactor;
+      return this;
+    }
+
+    /** @return the class name of this plan's Plan class */
+    public String getName() {
+      return name;
+    }
+
+    public PlanSpecific addExpectedSpaces(String...spaces) {
+      for (String space : spaces) {
+        expectedSpaces.add(space);
+      }
+      return this;
+    }
+
+    public Set<String> getExpectedSpaces() {
+      return Collections.unmodifiableSet(expectedSpaces);
+    }
+  }
+
 }

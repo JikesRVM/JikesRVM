@@ -63,7 +63,7 @@ public final class MainThread extends Thread {
           instrumenter = (Instrumentation)Class.forName("gnu.java.lang.JikesRVMSupport")
             .getMethod("createInstrumentation").invoke(null);
           java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
-        } catch (Exception _) {
+        } catch (Exception e) {
         }
       }
       for (String agent : agents) {
