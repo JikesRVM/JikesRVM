@@ -12,9 +12,10 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.heap.VMRequest;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -31,7 +32,7 @@ import org.vmmagic.unboxed.*;
  * TreadmillLocal corresponds to one thread operating over one space.
  */
 @Uninterruptible
-public abstract class BaseLargeObjectSpace extends Space implements Constants {
+public abstract class BaseLargeObjectSpace extends Space {
 
   /****************************************************************************
    *

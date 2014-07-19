@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.alloc;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.vm.Lock;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
@@ -39,7 +41,7 @@ import org.vmmagic.pragma.*;
  * GC are run incorrectly.
  */
 @Uninterruptible
-public abstract class Allocator implements Constants {
+public abstract class Allocator {
 
   /** Lock used for out of memory handling */
   private static Lock oomLock = VM.newLock("OOM Lock");

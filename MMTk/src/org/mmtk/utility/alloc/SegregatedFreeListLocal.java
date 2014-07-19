@@ -13,7 +13,6 @@
 package org.mmtk.utility.alloc;
 
 import org.mmtk.policy.SegregatedFreeListSpace;
-import org.mmtk.utility.*;
 
 import org.mmtk.vm.VM;
 
@@ -41,8 +40,7 @@ import org.vmmagic.unboxed.*;
  * there are no more blocks the a new block is allocated.<p>
  */
 @Uninterruptible
-public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace> extends SegregatedFreeList<S>
-  implements Constants {
+public abstract class SegregatedFreeListLocal<S extends SegregatedFreeListSpace> extends SegregatedFreeList<S> {
 
   /****************************************************************************
    *

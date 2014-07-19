@@ -13,6 +13,7 @@
 package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.*;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
@@ -20,7 +21,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.LineReuseRatio;
 import org.mmtk.utility.options.Options;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.ForwardingWord;
 import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.Log;
@@ -42,7 +42,7 @@ import org.vmmagic.unboxed.*;
  *
  */
 @Uninterruptible
-public final class ImmixSpace extends Space implements Constants {
+public final class ImmixSpace extends Space {
 
   /****************************************************************************
    *

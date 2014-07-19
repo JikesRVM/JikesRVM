@@ -12,8 +12,6 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -22,8 +20,7 @@ import org.vmmagic.pragma.*;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of addresses
  */
-@Uninterruptible public class AddressDeque extends LocalDeque
-  implements Constants {
+@Uninterruptible public class AddressDeque extends LocalDeque {
 
   /****************************************************************************
    *

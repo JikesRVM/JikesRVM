@@ -14,7 +14,6 @@ package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.*;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.Inline;
@@ -24,7 +23,7 @@ import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
 
 @Uninterruptible
-public class Line implements Constants {
+public class Line {
 
   public static Address align(Address ptr) {
     return ptr.toWord().and(LINE_MASK.not()).toAddress();

@@ -14,7 +14,6 @@ package org.mmtk.utility.sanitychecker;
 
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.Simple;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 
@@ -24,7 +23,7 @@ import org.vmmagic.pragma.*;
  * This class performs sanity checks for Simple collectors.
  */
 @Uninterruptible
-public final class SanityCheckerLocal implements Constants {
+public final class SanityCheckerLocal {
 
   /** Trace */
   final SanityRootTraceLocal rootTraceLocal;

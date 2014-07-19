@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.vm.VM;
 
@@ -24,7 +26,7 @@ import org.vmmagic.unboxed.*;
  *
  * This class is <i>not thread safe</i>.
  */
-@Uninterruptible public abstract class SimpleHashtable implements Constants {
+@Uninterruptible public abstract class SimpleHashtable {
   /** The number of low order bits to ignore */
   private static final int HASH_SHIFT = 3;
 

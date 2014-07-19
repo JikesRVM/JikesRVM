@@ -12,10 +12,11 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
-import org.mmtk.utility.Constants;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -33,7 +34,7 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
-public final class Scanning extends org.mmtk.vm.Scanning implements Constants {
+public final class Scanning extends org.mmtk.vm.Scanning {
   /****************************************************************************
    *
    * Class variables

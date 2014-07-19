@@ -12,8 +12,6 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -24,8 +22,7 @@ import org.vmmagic.pragma.*;
  * references.  In addition, this can sort the entries currently on
  * the shared stack.
  */
-@Uninterruptible public class SortTODObjectReferenceStack extends LocalDeque
-  implements Constants {
+@Uninterruptible public class SortTODObjectReferenceStack extends LocalDeque {
 
   /****************************************************************************
    *

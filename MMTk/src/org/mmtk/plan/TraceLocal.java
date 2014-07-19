@@ -13,7 +13,6 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.options.Options;
@@ -33,7 +32,7 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.Trace
  */
 @Uninterruptible
-public abstract class TraceLocal extends TransitiveClosure implements Constants {
+public abstract class TraceLocal extends TransitiveClosure {
   /****************************************************************************
    *
    * Instance variables

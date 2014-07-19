@@ -17,6 +17,7 @@ import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
@@ -47,7 +48,6 @@ import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
@@ -73,7 +73,7 @@ import org.vmmagic.unboxed.WordArray;
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
 @Uninterruptible
-public final class MemoryManager implements Constants {
+public final class MemoryManager {
 
   /***********************************************************************
    *

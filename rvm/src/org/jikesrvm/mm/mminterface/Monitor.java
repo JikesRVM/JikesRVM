@@ -13,12 +13,11 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.Callbacks;
-import org.mmtk.utility.Constants;
 
 /**
  * This class allows JMTk to register call backs with Callbacks.
  */
-public class Monitor implements Constants, Callbacks.ExitMonitor {
+public class Monitor implements Callbacks.ExitMonitor {
 
   /**
    * Register the exit monitor at boot time.

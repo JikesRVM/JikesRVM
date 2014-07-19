@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.*;
 
 import org.mmtk.vm.VM;
 
@@ -40,7 +40,7 @@ import org.vmmagic.unboxed.*;
  * arity) are packed to the low end of the buffer.  Thus buffer
  * underflows will always arise when then cursor is buffer-size aligned.
  */
-@Uninterruptible class LocalQueue extends LocalSSB implements Constants {
+@Uninterruptible class LocalQueue extends LocalSSB {
 
   /**
    * Constructor

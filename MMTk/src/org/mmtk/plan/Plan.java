@@ -12,13 +12,14 @@
  */
 package org.mmtk.plan;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.MarkSweepSpace;
 import org.mmtk.policy.Space;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.LargeObjectSpace;
 import org.mmtk.utility.alloc.LinearScan;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.Map;
@@ -55,7 +56,7 @@ import org.vmmagic.unboxed.*;
  * performance properties of MMTk plans.
  */
 @Uninterruptible
-public abstract class Plan implements Constants {
+public abstract class Plan {
   /****************************************************************************
    * Constants
    */

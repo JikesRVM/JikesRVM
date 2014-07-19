@@ -20,7 +20,6 @@ import org.mmtk.policy.immix.Line;
 import org.mmtk.policy.immix.ImmixSpace;
 import static org.mmtk.policy.immix.ImmixConstants.*;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.vm.VM;
@@ -32,7 +31,7 @@ import org.vmmagic.pragma.*;
  *
  */
 @Uninterruptible
-public class ImmixAllocator extends Allocator implements Constants {
+public class ImmixAllocator extends Allocator {
 
   /****************************************************************************
    *

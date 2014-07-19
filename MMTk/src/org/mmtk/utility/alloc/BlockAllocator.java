@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.alloc;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.Space;
 import org.mmtk.utility.*;
 
@@ -30,7 +32,7 @@ import org.vmmagic.unboxed.*;
  * consumed by blocks are accounted for by a memory resource.
  */
 @Uninterruptible
-public final class BlockAllocator implements Constants {
+public final class BlockAllocator {
   /****************************************************************************
    *
    * Class variables

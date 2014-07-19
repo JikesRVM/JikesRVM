@@ -12,6 +12,7 @@
  */
 package org.mmtk.utility;
 
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_ADDRESS;
 import static org.mmtk.utility.TracingConstants.TRACE_ALLOC;
 import static org.mmtk.utility.TracingConstants.TRACE_ARRAY_SET;
 import static org.mmtk.utility.TracingConstants.TRACE_BOOT_ALLOC;
@@ -39,8 +40,7 @@ import org.vmmagic.unboxed.*;
  * Class that supports scanning Objects and Arrays for references
  * during tracing, handling those references, and computing death times
  */
-@Uninterruptible public final class TraceGenerator
-  implements Constants {
+@Uninterruptible public final class TraceGenerator {
 
 
   /***********************************************************************

@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.deque;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.RawPageSpace;
 
 import org.mmtk.vm.VM;

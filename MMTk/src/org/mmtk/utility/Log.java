@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -21,7 +23,7 @@ import org.vmmagic.pragma.*;
  * Error and trace logging.
  */
 @Uninterruptible
-public class Log implements Constants {
+public class Log {
 
   /****************************************************************************
    *

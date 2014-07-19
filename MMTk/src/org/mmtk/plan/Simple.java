@@ -13,7 +13,6 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.options.*;
@@ -35,7 +34,7 @@ import org.vmmagic.pragma.*;
  * @see org.mmtk.plan.Plan
  */
 @Uninterruptible
-public abstract class Simple extends Plan implements Constants {
+public abstract class Simple extends Plan {
   /****************************************************************************
    * Constants
    */

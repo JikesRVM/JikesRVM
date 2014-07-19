@@ -91,7 +91,7 @@ import org.vmmagic.pragma.*;
  * the doubly linked list of free blocks.
  */
 @Uninterruptible
-public final class GenericFreeList extends BaseGenericFreeList implements Constants {
+public final class GenericFreeList extends BaseGenericFreeList {
 
   /****************************************************************************
    *

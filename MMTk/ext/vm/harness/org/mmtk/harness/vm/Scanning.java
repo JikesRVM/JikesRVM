@@ -12,6 +12,8 @@
  */
 package org.mmtk.harness.vm;
 
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_ADDRESS;
+
 import java.util.concurrent.BlockingQueue;
 
 import org.mmtk.harness.Mutator;

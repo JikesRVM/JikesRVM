@@ -25,8 +25,9 @@ import org.mmtk.vm.VM;
  * static final int LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
  * static final int BITS_IN_INT = 1&lt;&lt;LOG_BITS_IN_INT;
  * </pre>
+ *
  */
-public interface Constants {
+public final class Constants {
 
   /****************************************************************************
    *
@@ -36,8 +37,8 @@ public interface Constants {
   /**
    *
    */
-  int INSTANCE_FIELD = 0;
-  int ARRAY_ELEMENT = 1;
+  public static final int INSTANCE_FIELD = 0;
+  public static final int ARRAY_ELEMENT = 1;
 
 
   /****************************************************************************
@@ -48,16 +49,16 @@ public interface Constants {
   /**
    *
    */
-  byte LOG_BYTES_IN_BYTE = 0;
-  int BYTES_IN_BYTE = 1;
-  byte LOG_BITS_IN_BYTE = 3;
-  int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
+  public static final byte LOG_BYTES_IN_BYTE = 0;
+  public static final int BYTES_IN_BYTE = 1;
+  public static final byte LOG_BITS_IN_BYTE = 3;
+  public static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
 
-  byte LOG_BYTES_IN_MBYTE = 20;
-  int BYTES_IN_MBYTE = 1 << LOG_BYTES_IN_MBYTE;
+  public static final byte LOG_BYTES_IN_MBYTE = 20;
+  public static final int BYTES_IN_MBYTE = 1 << LOG_BYTES_IN_MBYTE;
 
-  byte LOG_BYTES_IN_KBYTE = 10;
-  int BYTES_IN_KBYTE = 1 << LOG_BYTES_IN_KBYTE;
+  public static final byte LOG_BYTES_IN_KBYTE = 10;
+  public static final int BYTES_IN_KBYTE = 1 << LOG_BYTES_IN_KBYTE;
 
   /****************************************************************************
    *
@@ -67,15 +68,15 @@ public interface Constants {
   /**
    *
    */
-  boolean SUPPORT_CARD_SCANNING = false;
-  int LOG_CARD_META_SIZE = 2;// each card consumes four bytes of metadata
-  int LOG_CARD_UNITS = 10;  // number of units tracked per card
-  int LOG_CARD_GRAIN = 0;   // track at byte grain, save shifting
-  int LOG_CARD_BYTES = LOG_CARD_UNITS + LOG_CARD_GRAIN;
-  int LOG_CARD_META_BYTES = EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_CARD_BYTES + LOG_CARD_META_SIZE;
-  int LOG_CARD_META_PAGES = LOG_CARD_META_BYTES - VM.LOG_BYTES_IN_PAGE;
-  int CARD_META_PAGES_PER_REGION = SUPPORT_CARD_SCANNING ? (1<<LOG_CARD_META_PAGES) : 0;
-  int CARD_MASK = (1<<LOG_CARD_BYTES) - 1;
+  public static final boolean SUPPORT_CARD_SCANNING = false;
+  public static final int LOG_CARD_META_SIZE = 2;// each card consumes four bytes of metadata
+  public static final int LOG_CARD_UNITS = 10;  // number of units tracked per card
+  public static final int LOG_CARD_GRAIN = 0;   // track at byte grain, save shifting
+  public static final int LOG_CARD_BYTES = LOG_CARD_UNITS + LOG_CARD_GRAIN;
+  public static final int LOG_CARD_META_BYTES = EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_CARD_BYTES + LOG_CARD_META_SIZE;
+  public static final int LOG_CARD_META_PAGES = LOG_CARD_META_BYTES - VM.LOG_BYTES_IN_PAGE;
+  public static final int CARD_META_PAGES_PER_REGION = SUPPORT_CARD_SCANNING ? (1<<LOG_CARD_META_PAGES) : 0;
+  public static final int CARD_MASK = (1<<LOG_CARD_BYTES) - 1;
 
 
   /****************************************************************************
@@ -88,23 +89,23 @@ public interface Constants {
   /**
    *
    */
-  byte LOG_BYTES_IN_CHAR= 1;
-  int BYTES_IN_CHAR = 1 << LOG_BYTES_IN_CHAR;
-  byte LOG_BITS_IN_CHAR = LOG_BITS_IN_BYTE + LOG_BYTES_IN_CHAR;
-  int BITS_IN_CHAR = 1 << LOG_BITS_IN_CHAR;
+  public static final byte LOG_BYTES_IN_CHAR= 1;
+  public static final int BYTES_IN_CHAR = 1 << LOG_BYTES_IN_CHAR;
+  public static final byte LOG_BITS_IN_CHAR = LOG_BITS_IN_BYTE + LOG_BYTES_IN_CHAR;
+  public static final int BITS_IN_CHAR = 1 << LOG_BITS_IN_CHAR;
 
-  byte LOG_BYTES_IN_SHORT = 1;
-  int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;
-  byte LOG_BITS_IN_SHORT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_SHORT;
-  int BITS_IN_SHORT = 1 << LOG_BITS_IN_SHORT;
+  public static final byte LOG_BYTES_IN_SHORT = 1;
+  public static final int BYTES_IN_SHORT = 1 << LOG_BYTES_IN_SHORT;
+  public static final byte LOG_BITS_IN_SHORT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_SHORT;
+  public static final int BITS_IN_SHORT = 1 << LOG_BITS_IN_SHORT;
 
-  byte LOG_BYTES_IN_INT = 2;
-  int BYTES_IN_INT = 1 << LOG_BYTES_IN_INT;
-  byte LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
-  int BITS_IN_INT = 1 << LOG_BITS_IN_INT;
+  public static final byte LOG_BYTES_IN_INT = 2;
+  public static final int BYTES_IN_INT = 1 << LOG_BYTES_IN_INT;
+  public static final byte LOG_BITS_IN_INT = LOG_BITS_IN_BYTE + LOG_BYTES_IN_INT;
+  public static final int BITS_IN_INT = 1 << LOG_BITS_IN_INT;
 
-  int MAX_INT = 0x7fffffff;
-  int MIN_INT = 0x80000000;
+  public static final int MAX_INT = 0x7fffffff;
+  public static final int MIN_INT = 0x80000000;
 
   /****************************************************************************
    *
@@ -114,24 +115,24 @@ public interface Constants {
   /**
    *
    */
-  byte LOG_BYTES_IN_ADDRESS = VM.LOG_BYTES_IN_ADDRESS;
-  int BYTES_IN_ADDRESS = 1 << LOG_BYTES_IN_ADDRESS;
-  int LOG_BITS_IN_ADDRESS = LOG_BITS_IN_BYTE + LOG_BYTES_IN_ADDRESS;
-  int BITS_IN_ADDRESS = 1 << LOG_BITS_IN_ADDRESS;
+  public static final byte LOG_BYTES_IN_ADDRESS = VM.LOG_BYTES_IN_ADDRESS;
+  public static final int BYTES_IN_ADDRESS = 1 << LOG_BYTES_IN_ADDRESS;
+  public static final int LOG_BITS_IN_ADDRESS = LOG_BITS_IN_BYTE + LOG_BYTES_IN_ADDRESS;
+  public static final int BITS_IN_ADDRESS = 1 << LOG_BITS_IN_ADDRESS;
 
   // Note that in MMTk we currently define WORD & ADDRESS to be the same size
-  byte LOG_BYTES_IN_WORD = LOG_BYTES_IN_ADDRESS;
-  int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
-  int LOG_BITS_IN_WORD = LOG_BITS_IN_BYTE + LOG_BYTES_IN_WORD;
-  int BITS_IN_WORD = 1 << LOG_BITS_IN_WORD;
+  public static final byte LOG_BYTES_IN_WORD = LOG_BYTES_IN_ADDRESS;
+  public static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
+  public static final int LOG_BITS_IN_WORD = LOG_BITS_IN_BYTE + LOG_BYTES_IN_WORD;
+  public static final int BITS_IN_WORD = 1 << LOG_BITS_IN_WORD;
 
-  byte LOG_BYTES_IN_PAGE = VM.LOG_BYTES_IN_PAGE;
-  int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
-  int LOG_BITS_IN_PAGE = LOG_BITS_IN_BYTE + LOG_BYTES_IN_PAGE;
-  int BITS_IN_PAGE = 1 << LOG_BITS_IN_PAGE;
+  public static final byte LOG_BYTES_IN_PAGE = VM.LOG_BYTES_IN_PAGE;
+  public static final int BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
+  public static final int LOG_BITS_IN_PAGE = LOG_BITS_IN_BYTE + LOG_BYTES_IN_PAGE;
+  public static final int BITS_IN_PAGE = 1 << LOG_BITS_IN_PAGE;
 
   /* Assume byte-addressability */
-  byte LOG_BYTES_IN_ADDRESS_SPACE = (byte) BITS_IN_ADDRESS;
+  public static final byte LOG_BYTES_IN_ADDRESS_SPACE = (byte) BITS_IN_ADDRESS;
 
   /**
    * This value specifies the <i>minimum</i> allocation alignment
@@ -141,26 +142,26 @@ public interface Constants {
    *
    * This value is required to be a power of 2.
    */
-  byte LOG_MIN_ALIGNMENT = VM.LOG_MIN_ALIGNMENT;
-  int MIN_ALIGNMENT = 1 << LOG_MIN_ALIGNMENT;
+  public static final byte LOG_MIN_ALIGNMENT = VM.LOG_MIN_ALIGNMENT;
+  public static final int MIN_ALIGNMENT = 1 << LOG_MIN_ALIGNMENT;
 
   /**
    * The maximum alignment request the vm will make. This must be a
    * power of two multiple of the minimum alignment.
    */
-  int MAX_ALIGNMENT = MIN_ALIGNMENT<<VM.MAX_ALIGNMENT_SHIFT;
+  public static final int MAX_ALIGNMENT = MIN_ALIGNMENT<<VM.MAX_ALIGNMENT_SHIFT;
 
   /**
    * The VM will add at most this value minus BYTES_IN_INT bytes of
    * padding to the front of an object that it places in a region of
    * memory. This value must be a power of 2.
    */
-  int MAX_BYTES_PADDING = VM.MAX_BYTES_PADDING;
+  public static final int MAX_BYTES_PADDING = VM.MAX_BYTES_PADDING;
 
   /**
    * The VM will add at most this value minus BYTES_IN_INT bytes of
    * padding to the front of an object that it places in a region of
    * memory. This value must be a power of 2.
    */
-  int ALIGNMENT_VALUE = VM.ALIGNMENT_VALUE;
+  public static final int ALIGNMENT_VALUE = VM.ALIGNMENT_VALUE;
 }

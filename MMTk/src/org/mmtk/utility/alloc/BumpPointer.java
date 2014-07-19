@@ -12,8 +12,16 @@
  */
 package org.mmtk.utility.alloc;
 
+import static org.mmtk.utility.Constants.BYTES_IN_ADDRESS;
+import static org.mmtk.utility.Constants.CARD_MASK;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
+import static org.mmtk.utility.Constants.LOG_CARD_BYTES;
+import static org.mmtk.utility.Constants.LOG_CARD_META_SIZE;
+import static org.mmtk.utility.Constants.MAX_ALIGNMENT;
+import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
+import static org.mmtk.utility.Constants.SUPPORT_CARD_SCANNING;
+
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.gcspy.drivers.LinearSpaceDriver;
@@ -62,8 +70,7 @@ import org.vmmagic.unboxed.Word;
  * This class relies on the supporting virtual machine implementing the
  * getNextObject and related operations.
  */
-@Uninterruptible public class BumpPointer extends Allocator
-  implements Constants {
+@Uninterruptible public class BumpPointer extends Allocator {
 
   /****************************************************************************
    *

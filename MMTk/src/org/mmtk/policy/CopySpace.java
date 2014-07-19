@@ -12,10 +12,11 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.options.Options;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.ForwardingWord;
 import org.mmtk.utility.Log;
 
@@ -29,8 +30,7 @@ import org.vmmagic.pragma.*;
  * space.  Since no state needs to be held globally or locally, all
  * methods are static.
  */
-@Uninterruptible public final class CopySpace extends Space
-  implements Constants {
+@Uninterruptible public final class CopySpace extends Space {
 
   /****************************************************************************
    *

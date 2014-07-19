@@ -13,7 +13,6 @@
 package org.mmtk.plan;
 
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
@@ -65,7 +64,7 @@ import org.vmmagic.unboxed.*;
  * @see Plan
  */
 @Uninterruptible
-public abstract class CollectorContext implements Constants {
+public abstract class CollectorContext {
 
   /****************************************************************************
    * Instance fields

@@ -12,9 +12,10 @@
  */
 package org.mmtk.utility.sanitychecker;
 
+import static org.mmtk.utility.Constants.BYTES_IN_WORD;
+
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.RawPageSpace;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.SimpleHashtable;
 
@@ -28,7 +29,7 @@ import org.vmmagic.unboxed.*;
  * This class is not thread safe.
  */
 @Uninterruptible
-public final class SanityDataTable extends SimpleHashtable implements Constants {
+public final class SanityDataTable extends SimpleHashtable {
 
   /** The number of bits for the normal reference count */
   private static final int NORMAL_RC_BITS = 25;

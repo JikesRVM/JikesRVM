@@ -18,7 +18,6 @@ import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
@@ -77,7 +76,7 @@ import org.vmmagic.unboxed.*;
  * @see Plan
  */
 @Uninterruptible
-public abstract class MutatorContext implements Constants {
+public abstract class MutatorContext {
 
   /****************************************************************************
    * Initialization

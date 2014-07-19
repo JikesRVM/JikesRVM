@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.*;
 
 import org.mmtk.vm.VM;
 
@@ -26,8 +26,7 @@ import org.vmmagic.pragma.*;
  * the ability for entries to be added to the head of the deque and popped
  * from the rear.
  */
-@Uninterruptible public class LocalDeque extends LocalQueue
-  implements Constants {
+@Uninterruptible public class LocalDeque extends LocalQueue {
 
   /****************************************************************************
    *

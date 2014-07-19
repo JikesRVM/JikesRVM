@@ -16,6 +16,12 @@ import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_BOOLEAN;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
+import static org.mmtk.utility.Constants.ARRAY_ELEMENT;
+import static org.mmtk.utility.Constants.INSTANCE_FIELD;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_ADDRESS;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_CHAR;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_INT;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_SHORT;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
@@ -30,7 +36,7 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 @Uninterruptible
-public class Barriers implements org.mmtk.utility.Constants {
+public class Barriers {
   /** {@code true} if the selected plan requires a read barrier on java.lang.ref.Reference types */
   private static final boolean NEEDS_JAVA_LANG_REFERENCE_GC_READ_BARRIER = Selected.Constraints.get().needsJavaLangReferenceReadBarrier();
   /** {@code true} if the selected plan requires a read barrier on java.lang.ref.Reference types */

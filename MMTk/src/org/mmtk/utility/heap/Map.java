@@ -12,6 +12,9 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.BITS_IN_ADDRESS;
+import static org.mmtk.utility.Constants.BYTES_IN_ADDRESS;
+
 import org.mmtk.policy.Space;
 import org.mmtk.utility.GenericFreeList;
 import org.mmtk.utility.Log;
@@ -33,7 +36,7 @@ import org.vmmagic.unboxed.Word;
 public class Map {
 
   /** set the map base address so that we have an unused {@code null} chunk at the bottome of the space for 64 bit */
-  private static final Address MAP_BASE_ADDRESS = Space.BITS_IN_ADDRESS == 32 ? Address.zero() : Space.HEAP_START.minus(Space.BYTES_IN_CHUNK);
+  private static final Address MAP_BASE_ADDRESS = BITS_IN_ADDRESS == 32 ? Address.zero() : Space.HEAP_START.minus(Space.BYTES_IN_CHUNK);
 
   /****************************************************************************
    *
@@ -74,7 +77,7 @@ public class Map {
     globalPageMap = new GenericFreeList(1, 1, Space.MAX_SPACES);
     sharedFLMap = new FreeListPageResource[Space.MAX_SPACES];
     if (VM.VERIFY_ASSERTIONS)
-        VM.assertions._assert(Space.BITS_IN_ADDRESS == Space.LOG_ADDRESS_SPACE ||
+        VM.assertions._assert(BITS_IN_ADDRESS == Space.LOG_ADDRESS_SPACE ||
             Space.HEAP_END.diff(MAP_BASE_ADDRESS).toWord().rshl(Space.LOG_ADDRESS_SPACE).isZero());
   }
 
@@ -352,7 +355,7 @@ public class Map {
    */
   @Inline
   private static int getChunkIndex(Address address) {
-    if (Space.BYTES_IN_ADDRESS == 8) {
+    if (BYTES_IN_ADDRESS == 8) {
       if (address.LT(Space.HEAP_START) || address.GE(Space.HEAP_END))
         return 0;
       else
@@ -362,7 +365,7 @@ public class Map {
   }
   @Inline
   private static Address addressForChunkIndex(int chunk) {
-    if (Space.BYTES_IN_ADDRESS == 8) {
+    if (BYTES_IN_ADDRESS == 8) {
       if (chunk == 0)
         return Address.zero();
       else

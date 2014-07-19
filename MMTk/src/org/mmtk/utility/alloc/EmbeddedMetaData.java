@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.alloc;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  * to the start of each page to be heavily conflicted).
  */
 @Uninterruptible
-public final class EmbeddedMetaData implements Constants {
+public final class EmbeddedMetaData {
 
   /* The (log of the) size of each region of meta data management */
   public static final int LOG_BYTES_IN_REGION = 22;

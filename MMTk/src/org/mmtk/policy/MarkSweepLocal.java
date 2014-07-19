@@ -13,7 +13,6 @@
 package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.SegregatedFreeListLocal;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 
@@ -40,7 +39,7 @@ import org.vmmagic.pragma.*;
  * @see MarkSweepSpace
  */
 @Uninterruptible
-public final class MarkSweepLocal extends SegregatedFreeListLocal<MarkSweepSpace> implements Constants {
+public final class MarkSweepLocal extends SegregatedFreeListLocal<MarkSweepSpace> {
 
   /****************************************************************************
    *

@@ -89,7 +89,7 @@ import org.vmmagic.pragma.*;
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
  */
-@Uninterruptible abstract class BaseGenericFreeList implements Constants {
+@Uninterruptible abstract class BaseGenericFreeList {
 
   /****************************************************************************
    *

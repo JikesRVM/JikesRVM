@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.statistics.Timer;
@@ -33,7 +32,7 @@ import org.vmmagic.pragma.*;
  * @see MutatorContext#collectionPhase
  */
 @Uninterruptible
-public abstract class Phase implements Constants {
+public abstract class Phase {
   /***********************************************************************
   *
   * Phase allocation and storage.

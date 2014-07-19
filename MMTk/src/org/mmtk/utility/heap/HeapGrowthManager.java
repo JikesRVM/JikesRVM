@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.*;
 import org.mmtk.utility.options.Options;
@@ -25,7 +27,7 @@ import org.vmmagic.unboxed.*;
  * This class is responsible for growing and shrinking the
  * heap size by observing heap utilization and GC load.
  */
-@Uninterruptible public abstract class HeapGrowthManager implements Constants {
+@Uninterruptible public abstract class HeapGrowthManager {
 
   /**
    * The initial heap size (-Xms) in bytes

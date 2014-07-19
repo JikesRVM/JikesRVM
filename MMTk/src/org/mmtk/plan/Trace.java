@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.deque.SharedDeque;
 import org.mmtk.policy.RawPageSpace;
 
@@ -24,7 +23,7 @@ import org.vmmagic.pragma.*;
  * and its super-classes handle per-thread state.
  */
 @Uninterruptible
-public class Trace implements Constants {
+public class Trace {
 
   // Global pools for load-balancing deques
   final SharedDeque valuePool;

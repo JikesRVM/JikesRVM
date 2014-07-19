@@ -12,16 +12,13 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
-
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
  * This supports <i>unsynchronized</i> insertion of write buffer values.
  */
-@Uninterruptible public class WriteBuffer extends LocalSSB
-  implements Constants {
+@Uninterruptible public class WriteBuffer extends LocalSSB {
 
   /****************************************************************************
    *

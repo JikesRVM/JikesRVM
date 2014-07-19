@@ -14,8 +14,8 @@
 package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.*;
+import static org.mmtk.utility.Constants.*;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.options.DefragFreeHeadroom;
@@ -33,7 +33,7 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 
 @Uninterruptible
-public class Defrag  implements Constants {
+public class Defrag {
   private boolean inDefragCollection = false;
   private int debugBytesDefraged = 0;
   private int availableCleanPagesForDefrag;

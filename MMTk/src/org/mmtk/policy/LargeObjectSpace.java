@@ -12,6 +12,8 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
+
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.heap.VMRequest;

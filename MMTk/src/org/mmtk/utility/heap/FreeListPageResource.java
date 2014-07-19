@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 
@@ -20,7 +22,6 @@ import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
 import org.mmtk.vm.VM;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -32,7 +33,7 @@ import org.vmmagic.pragma.*;
  * be satisfied (for either reason) a GC may be triggered.<p>
  */
 @Uninterruptible
-public final class FreeListPageResource extends PageResource implements Constants {
+public final class FreeListPageResource extends PageResource {
 
   private final GenericFreeList freeList;
   private int highWaterMark = 0;

@@ -12,11 +12,12 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.MonotonePageResource;
 import org.mmtk.utility.heap.VMRequest;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.HeaderByte;
 
 import org.mmtk.vm.VM;
@@ -31,8 +32,7 @@ import org.vmmagic.pragma.*;
  * actually collect.  This class does not hold any state, all methods
  * are static.
  */
-@Uninterruptible public final class ImmortalSpace extends Space
-  implements Constants {
+@Uninterruptible public final class ImmortalSpace extends Space {
 
   /****************************************************************************
    *

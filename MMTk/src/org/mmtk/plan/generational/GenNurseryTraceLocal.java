@@ -12,6 +12,8 @@
  */
 package org.mmtk.plan.generational;
 
+import static org.mmtk.utility.Constants.BYTES_IN_ADDRESS;
+
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.utility.HeaderByte;

@@ -12,6 +12,8 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.Map;
@@ -21,7 +23,6 @@ import org.mmtk.utility.heap.SpaceDescriptor;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 
@@ -44,7 +45,7 @@ import org.vmmagic.unboxed.*;
  *
  */
 @Uninterruptible
-public abstract class Space implements Constants {
+public abstract class Space {
 
   /****************************************************************************
    *

@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.BootRecord;
@@ -27,7 +28,7 @@ import org.vmmagic.pragma.*;
 /**
  * Scan the boot image for references using the boot image reference map
  */
-public class ScanBootImage implements Constants {
+public class ScanBootImage {
 
   private static final boolean DEBUG = false;
   private static final boolean FILTER = true;

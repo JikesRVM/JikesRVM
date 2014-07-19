@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.PerfEvent;
 import org.jikesrvm.runtime.Time;
 import static org.jikesrvm.runtime.SysCall.sysCall;
@@ -20,7 +19,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.vmmagic.pragma.*;
 
 @Uninterruptible
-public final class Statistics extends org.mmtk.vm.Statistics implements Constants {
+public final class Statistics extends org.mmtk.vm.Statistics {
 
   /**
    * Read nanoTime (high resolution, monotonically increasing clock).

@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan.refcount;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.deque.*;
 
 import org.vmmagic.pragma.*;
@@ -24,7 +23,7 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.TransitiveClosure
  */
 @Uninterruptible
-public final class RCDecBuffer extends ObjectReferenceBuffer implements Constants {
+public final class RCDecBuffer extends ObjectReferenceBuffer {
   /****************************************************************************
    *
    * Initialization
