@@ -12,15 +12,24 @@
  */
 package org.mmtk.utility;
 
+import static org.mmtk.utility.TracingConstants.TRACE_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_ARRAY_SET;
+import static org.mmtk.utility.TracingConstants.TRACE_BOOT_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_DEATH;
+import static org.mmtk.utility.TracingConstants.TRACE_EXACT_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_EXACT_IMMORTAL_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_FIELD_SET;
+import static org.mmtk.utility.TracingConstants.TRACE_IMMORTAL_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_TIB_SET;
+
 import org.mmtk.plan.ParallelCollector;
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.semispace.gctrace.GCTrace;
 import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.semispace.gctrace.GCTrace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.options.TraceRate;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -31,7 +40,7 @@ import org.vmmagic.unboxed.*;
  * during tracing, handling those references, and computing death times
  */
 @Uninterruptible public final class TraceGenerator
-  implements Constants, TracingConstants {
+  implements Constants {
 
 
   /***********************************************************************
