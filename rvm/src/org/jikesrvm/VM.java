@@ -541,7 +541,7 @@ public class VM extends Properties {
   @Interruptible
   static void runClassInitializer(String className) {
     if (verboseBoot >= 2) {
-      sysWrite("running class intializer for ");
+      sysWrite("running class initializer for ");
       sysWriteln(className);
     }
     Atom classDescriptor = Atom.findOrCreateAsciiAtom(className.replace('.', '/')).descriptorFromClassName();
@@ -549,11 +549,11 @@ public class VM extends Properties {
         TypeReference.findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     RVMClass cls = (RVMClass) tRef.peekType();
     if (null == cls) {
-      sysWrite("Failed to run class intializer for ");
+      sysWrite("Failed to run class initializer for ");
       sysWrite(className);
       sysWriteln(" as the class does not exist.");
     } else if (!cls.isInBootImage()) {
-      sysWrite("Failed to run class intializer for ");
+      sysWrite("Failed to run class initializer for ");
       sysWrite(className);
       sysWriteln(" as the class is not in the boot image.");
     } else {
