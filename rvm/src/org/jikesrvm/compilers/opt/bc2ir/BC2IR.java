@@ -2979,7 +2979,10 @@ public final class BC2IR
       case CP_CLASS:
         return ClassLoaderProxy.getClassFromConstantPool(declaringClass, index);
       default:
-        if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + Integer.toHexString(desc));
+        if (VM.VerifyAssertions) {
+          String msg = "invalid literal type: 0x" + Integer.toHexString(desc);
+          VM._assert(VM.NOT_REACHED, msg);
+        }
         return null;
     }
   }
@@ -3028,7 +3031,8 @@ public final class BC2IR
   private Instruction do_aload(int index) {
     Operand r = getLocal(index);
     if (VM.VerifyAssertions && !(r.isRef() || r.isAddress())) {
-      VM._assert(VM.NOT_REACHED, r + " not ref, but a " + r.getType());
+      String msg = r + " not ref, but a " + r.getType();
+      VM._assert(VM.NOT_REACHED, msg);
     }
     if (LOCALS_ON_STACK) {
       push(r);
@@ -3501,7 +3505,8 @@ public final class BC2IR
       } else {
         TypeReference type1 = op.getType();
         if (ClassLoaderProxy.includesType(type, type1) == NO) {
-          VM._assert(VM.NOT_REACHED, op + ": " + type + " is not assignable with " + type1);
+          String msg = op + ": " + type + " is not assignable with " + type1;
+          VM._assert(VM.NOT_REACHED, msg);
         }
       }
     }
@@ -3529,7 +3534,8 @@ public final class BC2IR
             while(callHierarchy.hasMoreElements()) {
               VM.sysWriteln(callHierarchy.nextElement().toString());
             }
-            VM._assert(VM.NOT_REACHED, parentType + " not assignable with " + childType);
+            String msg = parentType + " not assignable with " + childType;
+            VM._assert(VM.NOT_REACHED, msg);
           }
         }
       }

@@ -201,8 +201,12 @@ public abstract class InlineTools implements OptConstants {
         int[] args = ann.arguments();
         for (int arg : args) {
           if (VM.VerifyAssertions) {
-            VM._assert(arg >= 0, "argument is invalid: " + arg);
-            VM._assert(arg < Call.getNumberOfParams(s), "argument is invalid: " + arg);
+            boolean biggerThanMin = arg >= 0;
+            boolean smallerThanMax = arg < Call.getNumberOfParams(s);
+            if (!(smallerThanMax && biggerThanMin)) {
+              String msg = "argument is invalid: " + arg;
+              VM._assert(VM.NOT_REACHED, msg);
+            }
           }
           if (!Call.getParam(s, arg).isConstant()) {
             result = false;

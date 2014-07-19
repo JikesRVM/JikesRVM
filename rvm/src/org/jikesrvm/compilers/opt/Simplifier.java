@@ -517,19 +517,21 @@ public abstract class Simplifier extends IRTools {
       switch (result) {
         case MOVE_FOLDED:
           // Check move has constant RHS
-          VM._assert(Move.conforms(s) && (Move.getVal(s) instanceof ConstantOperand),
-                     "RHS of move " +
-                     s +
-                     " should be constant during simplification of " +
-                     OperatorNames.operatorName[opcode]);
+          boolean moveHasConstantRHS = Move.conforms(s) && (Move.getVal(s) instanceof ConstantOperand);
+          if (!moveHasConstantRHS) {
+            String msg = "RHS of move " + s + " should be constant during simplification of " +
+                OperatorNames.operatorName[opcode];
+            VM._assert(VM.NOT_REACHED, msg);
+          }
           break;
         case MOVE_REDUCED:
           // Check move has non-constant RHS
-          VM._assert(Move.conforms(s) && !(Move.getVal(s) instanceof ConstantOperand),
-                     "RHS of move " +
-                     s +
-                     " shouldn't be constant during simplification of " +
-                     OperatorNames.operatorName[opcode]);
+          boolean moveHasNonConstantRHS = Move.conforms(s) && !(Move.getVal(s) instanceof ConstantOperand);
+          if (!moveHasNonConstantRHS) {
+            String msg = "RHS of move " + s + " shouldn't be constant during simplification of " +
+                OperatorNames.operatorName[opcode];
+            VM._assert(moveHasNonConstantRHS, msg);
+          }
           break;
         default:
           // Nothing to check

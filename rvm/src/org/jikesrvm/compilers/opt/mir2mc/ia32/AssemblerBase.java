@@ -924,7 +924,10 @@ abstract class AssemblerBase extends Assembler
     if (isImm(MIR_CondBranch.getTarget(inst))) {
       emitJCC_Cond_Imm(cond, getImm(MIR_CondBranch.getTarget(inst)));
     } else {
-      if (VM.VerifyAssertions && !isLabel(MIR_CondBranch.getTarget(inst))) VM._assert(VM.NOT_REACHED, inst.toString());
+      if (VM.VerifyAssertions && !isLabel(MIR_CondBranch.getTarget(inst))) {
+        String msg = inst.toString();
+        VM._assert(VM.NOT_REACHED, msg);
+      }
       int sourceLabel = -inst.getmcOffset();
       int targetLabel = getLabel(MIR_CondBranch.getTarget(inst));
       int delta = targetLabel - sourceLabel;
@@ -985,7 +988,10 @@ abstract class AssemblerBase extends Assembler
     } else if (isRegInd(MIR_Branch.getTarget(inst))) {
       emitJMP_RegInd(getBase(MIR_Branch.getTarget(inst)));
     } else {
-      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED, inst.toString());
+      if (VM.VerifyAssertions) {
+        String msg = inst.toString();
+        VM._assert(VM.NOT_REACHED, msg);
+      }
     }
   }
 

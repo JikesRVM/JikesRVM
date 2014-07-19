@@ -205,7 +205,9 @@ public final class JNIEnvironment implements SizeConstants {
   @NoInline
   private void checkPush(Object ref, boolean canGrow) {
     final boolean debug=true;
-    VM._assert(MemoryManager.validRef(ObjectReference.fromObject(ref)));
+    if (VM.VerifyAssertions) {
+      VM._assert(MemoryManager.validRef(ObjectReference.fromObject(ref)));
+    }
     if (JNIRefsTop < 0) {
       if (debug) {
         VM.sysWriteln("JNIRefsTop=", JNIRefsTop);

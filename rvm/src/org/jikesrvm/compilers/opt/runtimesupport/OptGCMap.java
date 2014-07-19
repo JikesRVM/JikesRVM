@@ -333,7 +333,8 @@ public final class OptGCMap implements OptGCMapIteratorConstants {
   private void addSpillLocation(int spill) {
     // make sure the value doesn't overflow the maximum spill location
     if (VM.VerifyAssertions && ((spill < 0) || (spill > 32767))) {
-      VM._assert(VM.NOT_REACHED, "Unexpected spill passed:" + spill);
+      String msg = "Unexpected spill passed:" + spill;
+      VM._assert(VM.NOT_REACHED, msg);
     }
     // get the next entry (with the NEXT bit set) ...
     int entry = getNextMapEntry();

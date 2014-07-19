@@ -130,7 +130,11 @@ public final class GlobalCSE extends CompilerPhase {
     globalCSE(ir.firstBasicBlockInCodeOrder());
 
     if (VM.VerifyAssertions) {
-      VM._assert(avail.isEmpty(), avail.toString());
+      boolean isEmpty = avail.isEmpty();
+      if (!isEmpty) {
+        String msg = avail.toString();
+        VM._assert(isEmpty, msg);
+      }
     }
     ir.actualSSAOptions.setScalarValid(false);
   }

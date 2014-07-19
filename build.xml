@@ -18,6 +18,7 @@
   <property name="jikesrvm.dir" location="${basedir}"/>
   <import file="build/base.xml"/>
   <import file="build/tasks.xml"/>
+  <import file="build/checkstylePlugin.xml"/>
 
   <property name="config.mmtk" value="default"/>
   <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
@@ -1207,6 +1208,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="compile" depends="compile-mmtk,compile-options,prepare-source,prepare-config-source,choose-classlib,do-checkstyle">
+
     <condition property="exclude-arch" value="IA" else="PPC">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
@@ -1749,7 +1751,7 @@ Check to make sure all required properties are specified. This includes properti
     <loadfile property="bootimage.warnings" srcFile="${build.base}/BootImageWriterOutput.txt">
       <filterchain>
         <linecontainsregexp>
-          <regexp pattern="^WARNioING"/>
+          <regexp pattern="^WARNING"/>
         </linecontainsregexp>
       </filterchain>
     </loadfile>
@@ -2451,8 +2453,9 @@ target.jni-suffix=${target.jni-suffix}
     </if>
   </target>
 
-  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,ensure-checkstyle">
-    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar}"/>
+  <target name="checkstyle" depends="prepare-source,prepare-config-source,choose-classlib,ensure-checkstyle,
+    test-checkstyle-plugin">
+    <taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar}:${plugin.jar}"/>
 
     <mkdir dir="${build.dir}/checkstyle"/>
     <checkstyle config="build/checkstyle/rvm-checks.xml" failureProperty="checkstyle.failed" failOnViolation="false">
@@ -2468,7 +2471,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="libraryInterface/GNUClasspath/EPL" includes="**/*.java"/>
       <fileset dir="libraryInterface/Harmony/EPL" includes="**/*.java"/>
       <fileset dir="libraryInterface/OpenJDK/EPL" includes="**/*.java"/>
-      <fileset dir="tools" includes="**/*.java"/>
+      <fileset dir="tools" includes="**/src/**/*.java"/>
     </checkstyle>
 
     <xslt in="${build.dir}/checkstyle/report.xml"

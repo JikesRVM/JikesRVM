@@ -146,6 +146,10 @@
     <!--<module name="TodoComment"/>-->
     <module name="UpperEll"/>
 
+    <!-- Jikes RVM assertion style                       -->
+    <!-- See http://www.jikesrvm.org/Coding+Conventions  -->
+    <module name="JikesRVMAssertionStyle"/>
+
   </module>
 
 </module>

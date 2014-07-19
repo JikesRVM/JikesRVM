@@ -1575,6 +1575,13 @@ public final class Instruction implements Constants, Operators, OptConstants {
    * Invocations to these functions are guarded by IR.PARANOID and thus
    * the calls to VM.Assert don't need to be guarded by VM.VerifyAssertions.
    */
+
+  // Our Checkstyle assertion plugin does not handle this case because that
+  // would require tracking all calls. Therefore, switch off checkstyle for
+  // the affected methods.
+
+  //CHECKSTYLE:OFF
+
   private void isLinked() {
     VM._assert(prev.next == this, "is_linked: failure (1)");
     VM._assert(next.prev == this, "is_linked: failure (2)");
@@ -1595,6 +1602,8 @@ public final class Instruction implements Constants, Operators, OptConstants {
   private void isNotLinked() {
     VM._assert(prev == null && next == null, "is_not_linked: failure (1)");
   }
+
+  //CHECKSTYLE:ON
 
   /*
   * Implementation: Operand enumeration classes

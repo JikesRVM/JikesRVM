@@ -16,10 +16,8 @@ import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 import static org.jikesrvm.tests.util.TestingTools.*;
 
-import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(VMRequirements.class)
@@ -85,11 +83,18 @@ public class TypeStackTest {
     assertEquals(EMPTY, t.depth());
   }
 
-  @Category(RequiresJikesRVM.class)
-  @Test(expected=ArrayIndexOutOfBoundsException.class)
+  @Test(expected=RuntimeException.class)
   public void testPopMoreElementsThanExisting() {
     TypeStack t = newTypeStack();
     t.pop(3);
+  }
+
+  @Test(expected=RuntimeException.class)
+  public void testPopMoreElementsThanExistingUsingSinglePop() {
+    TypeStack t = newTypeStack();
+    t.pop();
+    t.pop();
+    t.pop();
   }
 
   @Test
@@ -101,7 +106,16 @@ public class TypeStackTest {
     assertEquals(B1, t.peek());
   }
 
-  @Test(expected=ArrayIndexOutOfBoundsException.class)
+  @Test(expected=RuntimeException.class)
+  public void testPushMoreElementsThanAvailableSpace() {
+    TypeStack t = newTypeStack();
+    t.push(B0);
+    t.push(B0);
+    t.push(B0);
+    t.push(B1);
+  }
+
+  @Test(expected=RuntimeException.class)
   public void testPeekingAnEmptyStack() {
     TypeStack t = new TypeStack(TYPE_STACK_LENGTH, DEFAULT_VALUE);
     t.peek();

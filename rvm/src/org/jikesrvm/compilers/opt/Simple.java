@@ -197,20 +197,20 @@ public final class Simple extends CompilerPhase {
         RegisterOperand rop1 = Binary.getVal1(s).asRegister();
         RegisterOperand rop2 = Binary.getVal2(s).asRegister();
         // Simple SSA based test
-        if (rop1.register.isSSA()) {
-          if(rop2.register.isSSA()) {
+        if (rop1.getRegister().isSSA()) {
+          if(rop2.getRegister().isSSA()) {
             // ordering is arbitrary, ignore
           } else {
             // swap
             Binary.setVal1(s, rop2);
             Binary.setVal2(s, rop1);
           }
-        } else if (rop2.register.isSSA()) {
+        } else if (rop2.getRegister().isSSA()) {
           // already have prefered ordering
         } else {
           // neither registers are SSA so place registers used more on the RHS
           // (we don't have easy access to a count of the number of definitions)
-          if (rop1.register.useCount > rop2.register.useCount) {
+          if (rop1.getRegister().useCount > rop2.getRegister().useCount) {
             // swap
             Binary.setVal1(s, rop2);
             Binary.setVal2(s, rop1);

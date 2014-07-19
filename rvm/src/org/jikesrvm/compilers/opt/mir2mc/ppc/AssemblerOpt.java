@@ -227,9 +227,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_MULHWU_opcode:
         case PPC_FSUB_opcode:
         case PPC_FSUBS_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -238,9 +238,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC64_MULLD_opcode:
         case PPC64_DIVD_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -256,9 +256,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_LIntX_opcode:
         case PPC_LAddrARX_opcode:
         case PPC_LAddrX_opcode: {
-          int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Load.getAddress(p).register.number & REG_MASK;
-          int op2 = MIR_Load.getOffset(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Load.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Load.getOffset(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -266,9 +266,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC64_LDX_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Load.getAddress(p).register.number & REG_MASK;
-          int op2 = MIR_Load.getOffset(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Load.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Load.getOffset(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -283,9 +283,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_STAddrCXr_opcode:
         case PPC_STAddrX_opcode:
         case PPC_STAddrUX_opcode: {
-          int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
-          int op1 = MIR_Store.getAddress(p).register.number & REG_MASK;
-          int op2 = MIR_Store.getOffset(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Store.getValue(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Store.getOffset(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -295,17 +295,17 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_LBZUX_opcode:
         case PPC_LIntUX_opcode:
         case PPC_LAddrUX_opcode: {
-          int op0 = MIR_LoadUpdate.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_LoadUpdate.getAddress(p).register.number & REG_MASK;
-          int op2 = MIR_LoadUpdate.getOffset(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_LoadUpdate.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_LoadUpdate.getAddress(p).getRegister().number & REG_MASK;
+          int op2 = MIR_LoadUpdate.getOffset(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
         case PPC_LWZU_opcode: {
-          int op0 = MIR_LoadUpdate.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_LoadUpdate.getAddress(p).register.number & REG_MASK;
+          int op0 = MIR_LoadUpdate.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_LoadUpdate.getAddress(p).getRegister().number & REG_MASK;
           int op2 = MIR_LoadUpdate.getOffset(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -315,8 +315,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_TW_opcode:
         case PPC_TAddr_opcode: {
           int op0 = MIR_Trap.getCond(p).value;
-          int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Trap.getValue2(p).asRegister().register.number & REG_MASK;
+          int op1 = MIR_Trap.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Trap.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -325,8 +325,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC64_TD_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Trap.getCond(p).value;
-          int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Trap.getValue2(p).asRegister().register.number & REG_MASK;
+          int op1 = MIR_Trap.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Trap.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -334,7 +334,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_TWI_opcode: {
           int op0 = MIR_Trap.getCond(p).value;
-          int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
+          int op1 = MIR_Trap.getValue1(p).getRegister().number & REG_MASK;
           int op2;
           if (VM.BuildFor64Addr && MIR_Trap.getValue2(p).isLongConstant()) {
             op2 = ((int) MIR_Trap.getValue2(p).asLongConstant().value) & SHORT_MASK;
@@ -349,7 +349,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC64_TDI_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
           int op0 = MIR_Trap.getCond(p).value;
-          int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
+          int op1 = MIR_Trap.getValue1(p).getRegister().number & REG_MASK;
           int op2;
           if (MIR_Trap.getValue2(p).isLongConstant()) {
             op2 = ((int) MIR_Trap.getValue2(p).asLongConstant().value) & SHORT_MASK;
@@ -377,7 +377,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_LDIS_opcode:
           // D_Form. pseudo instructions derived from PPC_ADDI and PPC_ADDIS
         {
-          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
+          int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | op1));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -390,8 +390,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_MULLI_opcode:
         case PPC_ADDI_opcode:
         case PPC_ADDIS_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -404,8 +404,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_EXTSBr_opcode:
         case PPC_EXTSH_opcode:
         case PPC_EXTSHr_opcode: {
-          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -414,8 +414,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC64_EXTSW_opcode:
         case PPC64_EXTSWr_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -423,8 +423,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC64_EXTZW_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           int op3high = 1;  //op3low = 0, so op3 == 32
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op3high << 5)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -436,8 +436,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_NEG_opcode:
         case PPC_NEGr_opcode:
         case PPC_ADDME_opcode: {
-          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -446,8 +446,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         // Bit positions of op1 and op2 are reversed.
         case PPC_XORI_opcode:
         case PPC_XORIS_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -477,9 +477,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_SRWr_opcode:
         case PPC_SRAW_opcode:
         case PPC_SRAWr_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -492,9 +492,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC64_SRAD_opcode:
         case PPC64_SRADr_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -503,8 +503,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_MOVE_opcode:
           /* pseudo opcode, equal to PPC_ORI with 0 */
         {
-          int op0 = MIR_Move.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Move.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_Move.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Move.getValue(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -513,8 +513,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_SRWI_opcode:
           /* pseudo opcode, equal to rlwinm Rx,Ry,32-n,n,31 */
         case PPC_SRWIr_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int shift = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
           int op2 = (32 - shift);
           int op3 = shift;
@@ -526,8 +526,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         // Bit positions of op1 and op2 are reversed.
         case PPC_SLWI_opcode:
         case PPC_SLWIr_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int shift = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
           int op2 = shift;
           int op3 = (31 - shift);
@@ -538,8 +538,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_SRAWI_opcode:
         case PPC_SRAWIr_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -548,16 +548,16 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_SRAddrI_opcode: {
           if (VM.BuildFor32Addr) {
-            int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-            int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+            int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+            int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
             int shift = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
             int op2 = (32 - shift);
             int op3 = shift;
             machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6)));
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
           } else {
-            int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-            int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+            int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+            int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
             int op3 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
             int op2 = 64 - op3;
             int op2low = op2 & 0x1F;
@@ -579,14 +579,14 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_SRAAddrI_opcode: {
           if (VM.BuildFor32Addr) {
-            int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-            int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+            int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+            int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
             int op2 = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
           } else {
-            int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-            int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+            int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+            int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
             int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
             int op2low = op2 & 0x1F;
             int op2high = (op2 & 0x20) >>> 5;
@@ -598,8 +598,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC64_SRADI_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
           int op2low = op2 & 0x1F;
           int op2high = (op2 & 0x20) >>> 5;
@@ -610,8 +610,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC64_SRDI_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op3 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
           int op2 = 64 - op3;
           int op2low = op2 & 0x1F;
@@ -633,8 +633,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC64_SLDI_opcode: //shorthand via RLDICR
         {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int shift = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
           int op2 = shift;
           int op2low = op2 & 0x1F;
@@ -656,8 +656,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC64_RLDICR_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_RotateAndMask.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_RotateAndMask.getValue(p).getRegister().number & REG_MASK;
           int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & SIXBIT_MASK; //shift
           int op2low = op2 & 0x1F;
           int op2high = (op2 & 0x20) >>> 5;
@@ -682,8 +682,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC64_RLDICL_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_RotateAndMask.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_RotateAndMask.getValue(p).getRegister().number & REG_MASK;
           int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & SIXBIT_MASK; //shift
           int op2low = op2 & 0x1F;
           int op2high = (op2 & 0x20) >>> 5;
@@ -711,8 +711,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_ANDISr_opcode:
         case PPC_ORI_opcode:
         case PPC_ORIS_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -721,8 +721,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_RLWINM_opcode:
         case PPC_RLWINMr_opcode: {
-          int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_RotateAndMask.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_RotateAndMask.getValue(p).getRegister().number & REG_MASK;
           int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & REG_MASK;
           int op3 = MIR_RotateAndMask.getMaskBegin(p).value & REG_MASK;
           int op4 = MIR_RotateAndMask.getMaskEnd(p).value & REG_MASK;
@@ -733,12 +733,12 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_RLWIMI_opcode:
         case PPC_RLWIMIr_opcode: {
-          int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
-          int op0f = MIR_RotateAndMask.getSource(p).register.number & REG_MASK;
+          int op0 = MIR_RotateAndMask.getResult(p).getRegister().number & REG_MASK;
+          int op0f = MIR_RotateAndMask.getSource(p).getRegister().number & REG_MASK;
           if (op0 != op0f) {
             throw new OptimizingCompilerException("CodeGen", "format for RLWIMI is incorrect");
           }
-          int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
+          int op1 = MIR_RotateAndMask.getValue(p).getRegister().number & REG_MASK;
           int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & REG_MASK;
           int op3 = MIR_RotateAndMask.getMaskBegin(p).value & REG_MASK;
           int op4 = MIR_RotateAndMask.getMaskEnd(p).value & REG_MASK;
@@ -749,9 +749,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_RLWNM_opcode:
         case PPC_RLWNMr_opcode: {
-          int op0 = MIR_RotateAndMask.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_RotateAndMask.getValue(p).register.number & REG_MASK;
-          int op2 = MIR_RotateAndMask.getShift(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_RotateAndMask.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_RotateAndMask.getValue(p).getRegister().number & REG_MASK;
+          int op2 = MIR_RotateAndMask.getShift(p).asRegister().getRegister().number & REG_MASK;
           int op3 = MIR_RotateAndMask.getMaskBegin(p).value & REG_MASK;
           int op4 = MIR_RotateAndMask.getMaskEnd(p).value & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1)));
@@ -782,7 +782,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_BCC_opcode:
           /* p 38, BO == 0000y, 0001y, 0100y or 0101y */
         {                     // COND BRANCH
-          int op0 = MIR_CondBranch.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_CondBranch.getValue(p).getRegister().number & REG_MASK;
           int op1 = MIR_CondBranch.getCond(p).value;
           // Add (CR field)<<2 to make BI represent the correct
           // condition bit (0..3) in the correct condition field (0..7).
@@ -823,7 +823,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_BCCTR_opcode:
           /* p   , BO == 0z10y or 0z11y */
         {                     // INDIRECT COND BRANCH
-          int op0 = MIR_CondBranch.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_CondBranch.getValue(p).getRegister().number & REG_MASK;
           int op1 = MIR_CondBranch.getCond(p).value;
           // Add (CR field)<<2 to make BI represent the correct
           // condition bit (0..3) in the correct condition field (0..7).
@@ -857,7 +857,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         break;
 
         case PPC_BCL_opcode: {                     // COND CALL
-          int op0 = MIR_CondCall.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_CondCall.getValue(p).getRegister().number & REG_MASK;
           int op1 = MIR_CondCall.getCond(p).value;
           // Add (CR field)<<2 to make BI represent the correct
           // condition bit (0..3) in the correct condition field (0..7).
@@ -903,7 +903,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         break;
 
         case PPC_BCLRL_opcode: {                     // INDIRECT COND CALL
-          int op0 = MIR_CondCall.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_CondCall.getValue(p).getRegister().number & REG_MASK;
           int op1 = MIR_CondCall.getCond(p).value;
           // Add (CR field)<<2 to make BI represent the correct
           // condition bit (0..3) in the correct condition field (0..7).
@@ -917,9 +917,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_CMP_opcode:
         case PPC_CMPL_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -928,9 +928,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC64_CMP_opcode:
         case PPC64_CMPL_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -938,8 +938,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_CMPI_opcode:
         case PPC_CMPLI_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -949,8 +949,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC64_CMPI_opcode:
         case PPC64_CMPLI_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -958,8 +958,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         break;
 
         case PPC_FMR_opcode: {
-          int op0 = MIR_Move.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Move.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_Move.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Move.getValue(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -972,8 +972,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_FRSP_opcode:
         case PPC_FCTIW_opcode:
         case PPC_FCTIWZ_opcode: {
-          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -982,8 +982,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC64_FCFID_opcode:
         case PPC64_FCTIDZ_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Unary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -991,9 +991,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_FCMPO_opcode:
         case PPC_FCMPU_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1001,9 +1001,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_FMUL_opcode:
         case PPC_FMULS_opcode: {
-          int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
+          int op0 = MIR_Binary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Binary.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Binary.getValue2(p).asRegister().getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 6)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1018,10 +1018,10 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_FNMSUB_opcode:
         case PPC_FNMSUBS_opcode:
         case PPC_FSEL_opcode: {
-          int op0 = MIR_Ternary.getResult(p).register.number & REG_MASK;
-          int op1 = MIR_Ternary.getValue1(p).register.number & REG_MASK;
-          int op2 = MIR_Ternary.getValue2(p).register.number & REG_MASK;
-          int op3 = MIR_Ternary.getValue3(p).register.number & REG_MASK;
+          int op0 = MIR_Ternary.getResult(p).getRegister().number & REG_MASK;
+          int op1 = MIR_Ternary.getValue1(p).getRegister().number & REG_MASK;
+          int op2 = MIR_Ternary.getValue2(p).getRegister().number & REG_MASK;
+          int op3 = MIR_Ternary.getValue3(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 6) | (op3 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1034,9 +1034,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_LFD_opcode:
         case PPC_LFS_opcode:
         case PPC_LMW_opcode: {
-          int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
+          int op0 = MIR_Load.getResult(p).getRegister().number & REG_MASK;
           int op1 = MIR_Load.getOffset(p).asIntConstant().value & SHORT_MASK;
-          int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
+          int op2 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1044,9 +1044,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC64_LD_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
+          int op0 = MIR_Load.getResult(p).getRegister().number & REG_MASK;
           int op1 = (MIR_Load.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
-          int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
+          int op2 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1055,15 +1055,15 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_LAddr_opcode:
         case PPC_LInt_opcode: {
           if (VM.BuildFor32Addr) {
-            int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
+            int op0 = MIR_Load.getResult(p).getRegister().number & REG_MASK;
             int op1 = MIR_Load.getOffset(p).asIntConstant().value & SHORT_MASK;
-            int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
+            int op2 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
           } else {
-            int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
+            int op0 = MIR_Load.getResult(p).getRegister().number & REG_MASK;
             int op1 = (MIR_Load.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
-            int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
+            int op2 = MIR_Load.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
           }
@@ -1076,9 +1076,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_STFD_opcode:
         case PPC_STFS_opcode:
         case PPC_STMW_opcode: {
-          int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_Store.getValue(p).getRegister().number & REG_MASK;
           int op1 = MIR_Store.getOffset(p).asIntConstant().value & SHORT_MASK;
-          int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
+          int op2 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1087,8 +1087,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_STWU_opcode:
         case PPC_STFDU_opcode:
         case PPC_STFSU_opcode: {
-          int op0 = MIR_StoreUpdate.getValue(p).register.number & REG_MASK;
-          int op1 = MIR_StoreUpdate.getAddress(p).register.number & REG_MASK;
+          int op0 = MIR_StoreUpdate.getValue(p).getRegister().number & REG_MASK;
+          int op1 = MIR_StoreUpdate.getAddress(p).getRegister().number & REG_MASK;
           int op2 = MIR_StoreUpdate.getOffset(p).asIntConstant().value & SHORT_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
@@ -1097,9 +1097,9 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC64_STD_opcode: {
           if (VM.VerifyAssertions) VM._assert(VM.BuildFor64Addr);
-          int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
+          int op0 = MIR_Store.getValue(p).getRegister().number & REG_MASK;
           int op1 = (MIR_Store.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
-          int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
+          int op2 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1107,15 +1107,15 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_STAddr_opcode: {
           if (VM.BuildFor32Addr) {
-            int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
+            int op0 = MIR_Store.getValue(p).getRegister().number & REG_MASK;
             int op1 = MIR_Store.getOffset(p).asIntConstant().value & SHORT_MASK;
-            int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
+            int op2 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
           } else {
-            int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
+            int op0 = MIR_Store.getValue(p).getRegister().number & REG_MASK;
             int op1 = (MIR_Store.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
-            int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
+            int op2 = MIR_Store.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
           }
@@ -1124,15 +1124,15 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_STAddrU_opcode: {
           if (VM.BuildFor32Addr) {
-            int op0 = MIR_StoreUpdate.getValue(p).register.number & REG_MASK;
-            int op1 = MIR_StoreUpdate.getAddress(p).register.number & REG_MASK;
+            int op0 = MIR_StoreUpdate.getValue(p).getRegister().number & REG_MASK;
+            int op1 = MIR_StoreUpdate.getAddress(p).getRegister().number & REG_MASK;
             int op2 = MIR_StoreUpdate.getOffset(p).asIntConstant().value & SHORT_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
           } else {
-            int op0 = MIR_StoreUpdate.getValue(p).register.number & REG_MASK;
+            int op0 = MIR_StoreUpdate.getValue(p).getRegister().number & REG_MASK;
             int op1 = (MIR_StoreUpdate.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
-            int op2 = MIR_StoreUpdate.getAddress(p).register.number & REG_MASK;
+            int op2 = MIR_StoreUpdate.getAddress(p).getRegister().number & REG_MASK;
             machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 2) | (op2 << 16)));
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
           }
@@ -1140,16 +1140,16 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         break;
 
         case PPC_MFSPR_opcode: {
-          int op0 = MIR_Move.getResult(p).register.number & REG_MASK;
-          int op1 = phys.getSPR(MIR_Move.getValue(p).register);
+          int op0 = MIR_Move.getResult(p).getRegister().number & REG_MASK;
+          int op1 = phys.getSPR(MIR_Move.getValue(p).getRegister());
           machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
 
         case PPC_MTSPR_opcode: {
-          int op0 = phys.getSPR(MIR_Move.getResult(p).register);
-          int op1 = MIR_Move.getValue(p).register.number & REG_MASK;
+          int op0 = phys.getSPR(MIR_Move.getResult(p).getRegister());
+          int op1 = MIR_Move.getValue(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1157,7 +1157,7 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
 
         case PPC_MFTB_opcode:
         case PPC_MFTBU_opcode: {
-          int op0 = MIR_Move.getResult(p).register.number & REG_MASK;
+          int op0 = MIR_Move.getResult(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 21)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
@@ -1177,8 +1177,8 @@ public abstract class AssemblerOpt implements Operators, Constants, ArchConstant
         case PPC_DCBZL_opcode:
         case PPC_DCBF_opcode:
         case PPC_ICBI_opcode: {
-          int op0 = MIR_CacheOp.getAddress(p).register.number & REG_MASK;
-          int op1 = MIR_CacheOp.getOffset(p).register.number & REG_MASK;
+          int op0 = MIR_CacheOp.getAddress(p).getRegister().number & REG_MASK;
+          int op1 = MIR_CacheOp.getOffset(p).getRegister().number & REG_MASK;
           machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 11)));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }

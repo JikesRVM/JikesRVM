@@ -47,10 +47,13 @@ public abstract class StaticFieldReader implements SizeConstants {
    * Read the field from obj and return as the appropriate constant
    */
   public static ConstantOperand getFieldValueAsConstant(RVMField field, Object obj) throws NoSuchFieldException {
-    if (VM.VerifyAssertions) VM._assert(field.isFinal(), "Error reading field " + field);
     if (VM.VerifyAssertions) {
-      VM._assert(field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage(),
-                 "Error reading field " + field);
+      boolean isFinalField = field.isFinal();
+      boolean isInitializedField = field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage();
+      if (!(isFinalField || isInitializedField)) {
+        String msg = "Error reading field " + field;
+        VM._assert(VM.NOT_REACHED, msg);
+      }
     }
 
     TypeReference type = field.getType();
@@ -153,11 +156,13 @@ public abstract class StaticFieldReader implements SizeConstants {
    * @return a constant operand representing the current value of the field.
    */
   public static ConstantOperand getStaticFieldValue(RVMField field) throws NoSuchFieldException {
-    if (VM.VerifyAssertions) VM._assert(field.isFinal(), "Error reading field " + field);
-    if (VM.VerifyAssertions) VM._assert(field.isStatic(), "Error reading field " + field);
     if (VM.VerifyAssertions) {
-      VM._assert(field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage(),
-                 "Error reading field " + field);
+      boolean isFinalField = field.isFinal();
+      boolean isStaticField = field.isStatic();
+      if (!(isFinalField || isStaticField)) {
+        String msg = "Error reading field " + field;
+        VM._assert(VM.NOT_REACHED, msg);
+      }
     }
 
     TypeReference fieldType = field.getType();

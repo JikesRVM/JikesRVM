@@ -732,7 +732,14 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    */
   @Pure
   public RVMMethod[] getConstructorMethods() {
-    if (VM.VerifyAssertions) VM._assert(isResolved(), "Error class " + this + " is not resolved but " + state);
+    if (VM.VerifyAssertions) {
+      boolean isResolved = isResolved();
+      if (!isResolved) {
+        String msg = "Error class " + this + " is not resolved but " + state;
+        VM._assert(VM.NOT_REACHED, msg);
+      }
+    }
+
     return constructorMethods;
   }
 

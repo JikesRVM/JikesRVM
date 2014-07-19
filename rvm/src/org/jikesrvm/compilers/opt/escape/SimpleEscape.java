@@ -312,10 +312,7 @@ class SimpleEscape extends CompilerPhase {
   private static boolean checkIfUseEscapesThread(Register reg, IR ir, Set<Register> visited) {
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
 
-      if (VM.VerifyAssertions && use.getType() == null) {
-        ir.printInstructions();
-        VM._assert(VM.NOT_REACHED, "type of " + use + " is null");
-      }
+      assertThatTypeIsNotNull(ir, use);
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
@@ -328,10 +325,7 @@ class SimpleEscape extends CompilerPhase {
     }
     for (RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
 
-      if (VM.VerifyAssertions && def.getType() == null) {
-        ir.printInstructions();
-        VM._assert(VM.NOT_REACHED, "type of " + def + " is null");
-      }
+      assertThatTypeIsNotNull(ir, def);
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
@@ -346,10 +340,7 @@ class SimpleEscape extends CompilerPhase {
   }
   private static boolean checkIfUseEscapesMethod(Register reg, IR ir, Set<Register> visited) {
     for (RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
-      if (VM.VerifyAssertions && use.getType() == null) {
-        ir.printInstructions();
-        VM._assert(VM.NOT_REACHED, "type of " + use + " is null");
-      }
+      assertThatTypeIsNotNull(ir, use);
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
@@ -361,10 +352,7 @@ class SimpleEscape extends CompilerPhase {
       }
     }
     for (RegisterOperand def = reg.defList; def != null; def = def.getNext()) {
-      if (VM.VerifyAssertions && def.getType() == null) {
-        ir.printInstructions();
-        VM._assert(VM.NOT_REACHED, "type of " + def + " is null");
-      }
+      assertThatTypeIsNotNull(ir, def);
 
       // if the type is primitive, just say it escapes
       // TODO: handle this more cleanly
@@ -376,6 +364,14 @@ class SimpleEscape extends CompilerPhase {
       }
     }
     return false;
+  }
+
+  private static void assertThatTypeIsNotNull(IR ir, RegisterOperand useOrDef) {
+    if (VM.VerifyAssertions && useOrDef.getType() == null) {
+      ir.printInstructions();
+      String msg = "type of " + useOrDef + " is null";
+      VM._assert(VM.NOT_REACHED, msg);
+    }
   }
 
   /**

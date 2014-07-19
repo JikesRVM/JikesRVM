@@ -364,7 +364,7 @@ public class GenerationContextTest {
 
   private void assertThatRegOpIsLocalRegOfRegister(RegisterOperand regOp,
       Register reg) {
-    assertThat(regOp.register, is(reg));
+    assertThat(regOp.getRegister(), is(reg));
     assertThat(reg.isLocal(), is(true));
   }
 
@@ -870,7 +870,7 @@ public class GenerationContextTest {
     RegisterOperand firstArg = child.arguments[0].asRegister();
     assertTrue(firstArg.sameRegisterPropertiesAs(expectedLocalForObjectParam));
 
-    assertSame(result.register, child.resultReg);
+    assertSame(result.getRegister(), child.resultReg);
     assertTrue(child.resultReg.spansBasicBlock());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);

@@ -1171,7 +1171,8 @@ public class EnterSSA extends CompilerPhase {
           }
         }
         if (VM.VerifyAssertions && meet == null) {
-          VM._assert(VM.NOT_REACHED, result + " and " + t + " meet to null");
+          String msg = result + " and " + t + " meet to null";
+          VM._assert(VM.NOT_REACHED, msg);
         }
         result = meet;
       }

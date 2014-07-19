@@ -150,7 +150,7 @@ public abstract class StackManager extends GenericStackManager {
         case PPC_MOVE_opcode:
         case PPC_FMR_opcode:
           // remove frivolous moves
-          if (MIR_Move.getResult(inst).register.number == MIR_Move.getValue(inst).register.number) {
+          if (MIR_Move.getResult(inst).getRegister().number == MIR_Move.getValue(inst).getRegister().number) {
             inst = inst.remove();
           }
           break;
@@ -166,7 +166,7 @@ public abstract class StackManager extends GenericStackManager {
         case PPC_LAddr_opcode:
           // the following to handle spilled parameters
           // SJF: this is ugly.  clean it up someday.
-          if (MIR_Load.getAddress(inst).register == ir.regpool.getPhysicalRegisterSet().getFP()) {
+          if (MIR_Load.getAddress(inst).getRegister() == ir.regpool.getPhysicalRegisterSet().getFP()) {
             Operand one = MIR_Load.getOffset(inst);
             if (one instanceof IntConstantOperand) {
               int offset = ((IntConstantOperand) one).value;
