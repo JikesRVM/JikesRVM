@@ -16,8 +16,14 @@ import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.heap.VMRequest;
 
 /**
- * This interface provides an immortal allocation space for GCspy objects.
+ * This interface provides an immortal allocation space for GCspy objects.<p>
+ *
+ * TODO constant interfaces are bad practice. Converting this to a class does
+ * not seem to be the right thing to do because it does not fit well with the
+ * current MMTk architecture and the plan concept. It's probably best to fix
+ * this up if we get around to updating GCSpy.
  */
+@Deprecated
 public interface GCspyPlan {
 
   /**
