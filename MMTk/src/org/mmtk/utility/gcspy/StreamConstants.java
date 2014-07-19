@@ -13,7 +13,7 @@
 package org.mmtk.utility.gcspy;
 
 /**
- * This interface provides constants used by the GCspy framweork.
+ * This class provides constants used by the GCspy framweork.
  * These must correspond with values in gcspy_stream.h
  * <table>
       <caption>Presentation</caption>
@@ -38,23 +38,27 @@ package org.mmtk.utility.gcspy;
  * StreamConstants
  */
 
-public interface StreamConstants {
+public final class StreamConstants {
 
-  int NAME_LEN = 40;
-  int PRESENTATION_PLAIN       = 0;
-  int PRESENTATION_PLUS        = 1;
-  int PRESENTATION_MAX_VAR     = 2;
-  int PRESENTATION_PERCENT     = 3;
-  int PRESENTATION_PERCENT_VAR = 4;
-  int PRESENTATION_ENUM        = 5;
+  public static final int NAME_LEN = 40;
+  public static final int PRESENTATION_PLAIN       = 0;
+  public static final int PRESENTATION_PLUS        = 1;
+  public static final int PRESENTATION_MAX_VAR     = 2;
+  public static final int PRESENTATION_PERCENT     = 3;
+  public static final int PRESENTATION_PERCENT_VAR = 4;
+  public static final int PRESENTATION_ENUM        = 5;
 
-  int PAINT_STYLE_PLAIN = 0;
-  int PAINT_STYLE_ZERO  = 1;
+  public static final int PAINT_STYLE_PLAIN = 0;
+  public static final int PAINT_STYLE_ZERO  = 1;
 
-  int BYTE_TYPE  = 0;
-  int SHORT_TYPE = 1;
-  int INT_TYPE   = 2;
+  public static final int BYTE_TYPE  = 0;
+  public static final int SHORT_TYPE = 1;
+  public static final int INT_TYPE   = 2;
 
-  int ENUM_MAX_LEN = 20;
-  int ENUM_MAX_NUM = 5;
+  public static final int ENUM_MAX_LEN = 20;
+  public static final int ENUM_MAX_NUM = 5;
+
+  private StreamConstants() {
+    // prevent instantiation
+  }
 }
