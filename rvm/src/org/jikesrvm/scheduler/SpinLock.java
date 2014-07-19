@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Entrypoints;
@@ -84,7 +83,7 @@ import org.vmmagic.pragma.NoInline;
  * @see Monitor
  * @see Lock */
 @Uninterruptible
-public final class SpinLock implements Constants {
+public final class SpinLock {
   /**
    * Should contending <code>RVMThread</code>s spin on thread local addresses (true)
    * or on a globally shared address (false).

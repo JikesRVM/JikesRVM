@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.runtimesupport.OptGenericGCMapIterator;
 import org.jikesrvm.ppc.ArchConstants;

@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
+
 import java.util.Enumeration;
 
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -20,13 +22,12 @@ import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.CondMove;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.ia32.ArchConstants;
 
 /**
  * Reduce the number of ALU operators considered by BURS
  */
-public class ConvertALUOperators extends CompilerPhase implements Operators, ArchConstants {
+public class ConvertALUOperators extends CompilerPhase implements ArchConstants {
 
   @Override
   public final String getName() { return "ConvertALUOps"; }

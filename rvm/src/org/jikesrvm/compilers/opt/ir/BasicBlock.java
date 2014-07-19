@@ -1257,9 +1257,9 @@ public class BasicBlock extends SortedGraphNode {
    * <li> does not establish control flow edge into B2 -- caller responsibility
    * <li> Leaves a break in the code order -- caller responsibility
    *      to patch back together. If the original code order was
-   *      BB_before -> BB1 -> BB_after
+   *      BB_before -&gt; BB1 -&gt; BB_after
    *      then the new code order is
-   *      BB_before -> BB1 <break> BB2 -> BB_after.
+   *      BB_before -&gt; BB1 &lt;break&gt; BB2 -&gt; BB_after.
    *      Note that if BB_after == null, splitNodeAt does handle
    *      updating ir.cfg._lastNode to point to BB2.
    * </ul>
@@ -1357,6 +1357,7 @@ public class BasicBlock extends SortedGraphNode {
    * <li> inherits the original block's exception handlers
    * <li> inherits the original block's bytecode index
    * <li> has NEW copies of each instruction.
+   * </ul>
    *
    * @param ir the containing IR
    * @return the copy

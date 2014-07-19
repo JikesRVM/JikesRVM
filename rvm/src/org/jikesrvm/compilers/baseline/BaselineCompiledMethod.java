@@ -12,11 +12,13 @@
  */
 package org.jikesrvm.compilers.baseline;
 
-import org.jikesrvm.PrintLN;
-import org.jikesrvm.VM;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
 import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.BaselineExceptionDeliverer;
+import org.jikesrvm.PrintLN;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMArray;

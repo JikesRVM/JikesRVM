@@ -13,13 +13,12 @@
 package org.jikesrvm.classloader;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * A class to represent the reference in a class file to a field.
  */
-public final class FieldReference extends MemberReference implements SizeConstants {
+public final class FieldReference extends MemberReference {
 
   /**
    * The field's type

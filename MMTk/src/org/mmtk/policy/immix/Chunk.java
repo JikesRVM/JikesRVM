@@ -14,8 +14,8 @@ package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.Space.BYTES_IN_CHUNK;
 import static org.mmtk.policy.immix.ImmixConstants.*;
+import static org.mmtk.utility.Constants.*;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.Mmapper;
 import org.mmtk.vm.VM;
@@ -25,7 +25,7 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 
 @Uninterruptible
-public class Chunk implements Constants {
+public class Chunk {
 
   public static Address align(Address ptr) {
     return ptr.toWord().and(CHUNK_MASK.not()).toAddress();

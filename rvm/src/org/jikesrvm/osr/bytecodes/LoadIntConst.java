@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadIntConst;
 
 /**
  * load an integer constant on the stack

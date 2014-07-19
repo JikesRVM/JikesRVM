@@ -45,6 +45,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
@@ -85,7 +86,6 @@ import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.tests.util.MethodsForTests;
 import org.jikesrvm.tests.util.TestingTools;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -109,7 +109,7 @@ public class GenerationContextTest {
   }
 
   private void assertThatNumberOfParametersIs(GenerationContext gc, int numberParams) {
-    assertThat(gc.arguments.length, is(numberParams));
+    assertThat(gc.getArguments().length, is(numberParams));
   }
 
   private void assertThatDataIsSavedCorrectly(NormalMethod nm,
@@ -124,7 +124,7 @@ public class GenerationContextTest {
   }
 
   private void assertThatRegisterPoolExists(GenerationContext gc) {
-    assertNotNull(gc.temps);
+    assertNotNull(gc.getTemps());
   }
 
   private void assertThatChecksWontBeSkipped(GenerationContext gc) {
@@ -134,43 +134,43 @@ public class GenerationContextTest {
   }
 
   private void assertThatGCHasNoExceptionHandlers(GenerationContext gc) {
-    assertNull(gc.enclosingHandlers);
-    assertThat(gc.generatedExceptionHandlers, is(false));
+    assertNull(gc.getEnclosingHandlers());
+    assertThat(gc.generatedExceptionHandlers(), is(false));
   }
 
   private void assertThatReturnValueIsVoid(GenerationContext gc) {
-    assertNull(gc.resultReg);
+    assertNull(gc.getResultReg());
   }
 
   private void assertThatOriginalCompiledMethodWasSetCorrectly(CompiledMethod cm,
       GenerationContext gc) {
-    assertThat(gc.original_cm, is(cm));
+    assertThat(gc.getOriginalCompiledMethod(), is(cm));
   }
 
   private void assertThatOriginalMethodWasSetCorrectly(NormalMethod nm,
       GenerationContext gc) {
-    assertThat(gc.original_method, is(nm));
+    assertThat(gc.getOriginalMethod(), is(nm));
   }
 
   private void assertThatInlinePlanWasSetCorrectly(InlineOracle io,
       GenerationContext gc) {
-    assertThat(gc.inlinePlan, is(io));
+    assertThat(gc.getInlinePlan(), is(io));
   }
 
   private void assertThatExitBlockIsSetCorrectly(GenerationContext gc) {
-    assertThat(gc.exit, is(gc.cfg.exit()));
+    assertThat(gc.getExit(), is(gc.getCfg().exit()));
   }
 
   private void assertThatLastInstructionInEpilogueIsReturn(
       GenerationContext gc, BasicBlock epilogue) {
     assertThat(epilogue.lastRealInstruction().operator(), is(RETURN));
     assertThat(epilogue.lastRealInstruction().getBytecodeIndex(), is(EPILOGUE_BCI));
-    assertThat(epilogue.getNormalOut().nextElement(), is(gc.exit));
+    assertThat(epilogue.getNormalOut().nextElement(), is(gc.getExit()));
   }
 
   private void assertThatEpilogueBlockIsSetupCorrectly(GenerationContext gc,
       InlineSequence inlineSequence, BasicBlock epilogue) {
-    assertThat(gc.cfg.lastInCodeOrder(), is(epilogue));
+    assertThat(gc.getCfg().lastInCodeOrder(), is(epilogue));
     assertThat(epilogue.firstInstruction().getBytecodeIndex(), is(EPILOGUE_BLOCK_BCI));
     assertTrue(epilogue.firstInstruction().position.equals(inlineSequence));
   }
@@ -184,14 +184,14 @@ public class GenerationContextTest {
 
   private void assertThatPrologueBlockIsSetupCorrectly(GenerationContext gc,
       InlineSequence inlineSequence, BasicBlock prologue) {
-    assertThat(gc.cfg.firstInCodeOrder(), is(prologue));
+    assertThat(gc.getCfg().firstInCodeOrder(), is(prologue));
     assertThat(prologue.firstInstruction().getBytecodeIndex(), is(PROLOGUE_BLOCK_BCI));
     assertTrue(prologue.firstInstruction().position.equals(inlineSequence));
   }
 
   private void assertThatInlineSequenceWasSetCorrectly(GenerationContext gc,
       InlineSequence inlineSequence) {
-    assertThat(gc.inlineSequence.equals(inlineSequence),is(true));
+    assertThat(gc.getInlineSequence().equals(inlineSequence),is(true));
   }
 
   @Test
@@ -226,7 +226,7 @@ public class GenerationContextTest {
     assertThatLocalsForInstanceMethodWithoutParametersAreCorrect(nm, gc);
     RegisterOperand thisOperand = getThisOperand(gc);
 
-    BasicBlock prologue = gc.prologue;
+    BasicBlock prologue = gc.getPrologue();
     assertThatPrologueBlockIsSetupCorrectly(gc, inlineSequence, prologue);
     assertThatFirstInstructionInPrologueIsPrologue(inlineSequence, prologue);
     assertThatPrologueOperandIsRegOpFromLocalNr(prologue, thisOperand, 0);
@@ -266,12 +266,12 @@ public class GenerationContextTest {
 
     assertThatNumberOfParametersIs(gc, 0);
 
-    BasicBlock prologue = gc.prologue;
+    BasicBlock prologue = gc.getPrologue();
     assertThatPrologueBlockIsSetupCorrectly(gc, inlineSequence, prologue);
     assertThatFirstInstructionInPrologueIsPrologue(inlineSequence, prologue);
     assertThatBlockOnlyHasOneRealInstruction(prologue);
 
-    BasicBlock epilogue = gc.epilogue;
+    BasicBlock epilogue = gc.getEpilogue();
     assertThatEpilogueBlockIsSetupCorrectly(gc, inlineSequence, epilogue);
     assertThatLastInstructionInEpilogueIsReturn(gc, epilogue);
     RegisterOperand returnValue = Return.getVal(epilogue.lastRealInstruction()).asRegister();
@@ -281,7 +281,7 @@ public class GenerationContextTest {
 
     assertThatDataIsSavedCorrectly(nm, cm, io, gc);
 
-    assertThat(gc.resultReg.isLong(),is(true));
+    assertThat(gc.getResultReg().isLong(),is(true));
     assertThatGCHasNoExceptionHandlers(gc);
 
     assertThatRegisterPoolExists(gc);
@@ -312,13 +312,13 @@ public class GenerationContextTest {
     RegisterOperand longRegOp = getThisOperand(gc);
     assertThat(longRegOp.isLong(),is(true));
     assertThatRegOpHasDeclaredType(longRegOp);
-    RegisterOperand intRegOp = gc.arguments[1].asRegister();
+    RegisterOperand intRegOp = gc.getArguments()[1].asRegister();
     assertThat(intRegOp.isInt(), is(true));
     assertThatRegOpHasDeclaredType(intRegOp);
-    RegisterOperand objectRegOp = gc.arguments[2].asRegister();
+    RegisterOperand objectRegOp = gc.getArguments()[2].asRegister();
     assertThatRegOpHoldsClassType(objectRegOp);
     assertThatRegOpHasDeclaredType(objectRegOp);
-    RegisterOperand doubleRegOp = gc.arguments[3].asRegister();
+    RegisterOperand doubleRegOp = gc.getArguments()[3].asRegister();
     assertThat(doubleRegOp.isDouble(), is(true));
     assertThatRegOpHasDeclaredType(doubleRegOp);
 
@@ -331,7 +331,7 @@ public class GenerationContextTest {
     Register doubleReg = gc.localReg(4, TypeReference.Double);
     assertThatRegOpIsLocalRegOfRegister(doubleRegOp, doubleReg);
 
-    BasicBlock prologue = gc.prologue;
+    BasicBlock prologue = gc.getPrologue();
     assertThatPrologueBlockIsSetupCorrectly(gc, inlineSequence, prologue);
     assertThatFirstInstructionInPrologueIsPrologue(inlineSequence, prologue);
     assertThatBlockOnlyHasOneRealInstruction(prologue);
@@ -393,16 +393,16 @@ public class GenerationContextTest {
     RegisterOperand thisOperand = getThisOperand(gc);
     assertThatRegOpHoldsClassType(thisOperand);
     assertThatRegOpHasDeclaredType(thisOperand);
-    RegisterOperand objectRegOp = gc.arguments[1].asRegister();
+    RegisterOperand objectRegOp = gc.getArguments()[1].asRegister();
     assertThatRegOpHoldsClassType(objectRegOp);
     assertThatRegOpHasDeclaredType(objectRegOp);
-    RegisterOperand doubleRegOp = gc.arguments[2].asRegister();
+    RegisterOperand doubleRegOp = gc.getArguments()[2].asRegister();
     assertThat(doubleRegOp.isDouble(), is(true));
     assertThatRegOpHasDeclaredType(doubleRegOp);
-    RegisterOperand intRegOp = gc.arguments[3].asRegister();
+    RegisterOperand intRegOp = gc.getArguments()[3].asRegister();
     assertThat(intRegOp.isInt(), is(true));
     assertThatRegOpHasDeclaredType(intRegOp);
-    RegisterOperand longRegOp = gc.arguments[4].asRegister();
+    RegisterOperand longRegOp = gc.getArguments()[4].asRegister();
     assertThat(longRegOp.isLong(),is(true));
     assertThatRegOpHasDeclaredType(longRegOp);
 
@@ -418,7 +418,7 @@ public class GenerationContextTest {
     assertThatRegOpIsLocalRegOfRegister(longRegOp, longReg);
 
 
-    BasicBlock prologue = gc.prologue;
+    BasicBlock prologue = gc.getPrologue();
     assertThatPrologueBlockIsSetupCorrectly(gc, inlineSequence, prologue);
     assertThatFirstInstructionInPrologueIsPrologue(inlineSequence, prologue);
     Instruction lastPrologueInstruction = prologue.lastRealInstruction();
@@ -478,7 +478,7 @@ public class GenerationContextTest {
     Register objectReg = gc.localReg(0, TypeReference.Uninterruptible);
     assertThatRegOpIsLocalRegOfRegister(objectRegOp, objectReg);
 
-    BasicBlock prologue = gc.prologue;
+    BasicBlock prologue = gc.getPrologue();
     assertThatPrologueBlockIsSetupCorrectly(gc, inlineSequence, prologue);
     assertThatFirstInstructionInPrologueIsPrologue(inlineSequence, prologue);
     assertThatBlockOnlyHasOneRealInstruction(prologue);
@@ -500,7 +500,7 @@ public class GenerationContextTest {
 
   private void assertThatEpilogueIsForVoidReturnMethod(GenerationContext gc,
       InlineSequence inlineSequence) {
-    BasicBlock epilogue = gc.epilogue;
+    BasicBlock epilogue = gc.getEpilogue();
     assertThatEpilogueBlockIsSetupCorrectly(gc, inlineSequence, epilogue);
     assertThatLastInstructionInEpilogueIsReturn(gc, epilogue);
     assertThatReturnInstructionReturnsVoid(epilogue);
@@ -532,7 +532,7 @@ public class GenerationContextTest {
 
     assertThatNumberOfParametersIs(gc, 0);
 
-    BasicBlock prologue = gc.prologue;
+    BasicBlock prologue = gc.getPrologue();
     assertThatPrologueBlockIsSetupCorrectly(gc, inlineSequence, prologue);
     assertThatFirstInstructionInPrologueIsPrologue(inlineSequence, prologue);
 
@@ -551,7 +551,7 @@ public class GenerationContextTest {
 
     assertThatNumberOfRealInstructionsMatches(prologue, 2);
 
-    BasicBlock epilogue = gc.epilogue;
+    BasicBlock epilogue = gc.getEpilogue();
     assertThatEpilogueBlockIsSetupCorrectly(gc, inlineSequence, epilogue);
 
     assertThatFirstInstructionEpilogueIsMonitorExit(inlineSequence, epilogue);
@@ -579,7 +579,7 @@ public class GenerationContextTest {
   private void checkCodeOrderForRethrowBlock(GenerationContext gc,
       BasicBlock prologue, BasicBlock epilogue,
       ExceptionHandlerBasicBlock rethrow) {
-    BasicBlock firstBlockInCodeOrder = gc.cfg.firstInCodeOrder();
+    BasicBlock firstBlockInCodeOrder = gc.getCfg().firstInCodeOrder();
     assertTrue(firstBlockInCodeOrder.equals(prologue));
     BasicBlock secondBlockInCodeOrder = firstBlockInCodeOrder.nextBasicBlockInCodeOrder();
     assertTrue(secondBlockInCodeOrder.equals(rethrow));
@@ -614,7 +614,7 @@ public class GenerationContextTest {
     assertThatLocalsForInstanceMethodWithoutParametersAreCorrect(nm, gc);
     RegisterOperand thisOperand = getThisOperand(gc);
 
-    BasicBlock prologue = gc.prologue;
+    BasicBlock prologue = gc.getPrologue();
     assertThatPrologueBlockIsSetupCorrectly(gc, inlineSequence, prologue);
     assertThatFirstInstructionInPrologueIsPrologue(inlineSequence, prologue);
 
@@ -635,7 +635,7 @@ public class GenerationContextTest {
 
     assertThatNumberOfRealInstructionsMatches(prologue, 3);
 
-    BasicBlock epilogue = gc.epilogue;
+    BasicBlock epilogue = gc.getEpilogue();
     assertThatEpilogueBlockIsSetupCorrectly(gc, inlineSequence, epilogue);
 
     assertThatFirstInstructionEpilogueIsMonitorExit(inlineSequence, epilogue);
@@ -663,7 +663,7 @@ public class GenerationContextTest {
   private void assertThatUnlockAndRethrowBlockIsCorrect(GenerationContext gc,
       InlineSequence inlineSequence, BasicBlock prologue, Operand lockObject,
       BasicBlock epilogue) {
-    ExceptionHandlerBasicBlockBag ehbb = gc.enclosingHandlers;
+    ExceptionHandlerBasicBlockBag ehbb = gc.getEnclosingHandlers();
     Enumeration<BasicBlock> enumerator = ehbb.enumerator();
 
     ExceptionHandlerBasicBlock rethrow = (ExceptionHandlerBasicBlock) enumerator.nextElement();
@@ -679,20 +679,20 @@ public class GenerationContextTest {
     while (outEdges.hasMoreElements()) {
       GraphEdge nextElement = outEdges.nextElement();
       BasicBlock target = (BasicBlock) nextElement.to();
-      if (target == gc.cfg.exit()) {
+      if (target == gc.getCfg().exit()) {
         leadsToExit = true;
       }
     }
     assertTrue(leadsToExit);
-    assertSame(rethrow, gc.unlockAndRethrow);
+    assertSame(rethrow, gc.getUnlockAndRethrow());
 
-    ExceptionHandlerBasicBlockBag ehbbb = gc.enclosingHandlers;
+    ExceptionHandlerBasicBlockBag ehbbb = gc.getEnclosingHandlers();
     assertNull(ehbbb.getCaller());
     assertThatEnclosingHandlersContainRethrow(rethrow, ehbbb);
   }
 
   private void assertThatExceptionHandlersWereGenerated(GenerationContext gc) {
-    assertThat(gc.generatedExceptionHandlers, is(true));
+    assertThat(gc.generatedExceptionHandlers(), is(true));
   }
 
   private void assertThatFirstInstructionEpilogueIsMonitorExit(
@@ -715,7 +715,7 @@ public class GenerationContextTest {
   }
 
   private RegisterOperand getThisOperand(GenerationContext gc) {
-    return gc.arguments[0].asRegister();
+    return gc.getArguments()[0].asRegister();
   }
 
   private void assertThatLocalsForInstanceMethodWithoutParametersAreCorrect(NormalMethod nm,
@@ -766,7 +766,7 @@ public class GenerationContextTest {
 
     assertThatNumberOfParametersIs(gc, 0);
 
-    BasicBlock prologue = gc.prologue;
+    BasicBlock prologue = gc.getPrologue();
     assertThatPrologueBlockIsSetupCorrectly(gc, inlineSequence, prologue);
     assertThatFirstInstructionInPrologueIsPrologue(inlineSequence, prologue);
     assertThatBlockOnlyHasOneRealInstruction(prologue);
@@ -805,12 +805,12 @@ public class GenerationContextTest {
 
     assertThatNumberOfParametersIs(gc, 0);
 
-    BasicBlock prologue = gc.prologue;
+    BasicBlock prologue = gc.getPrologue();
     assertThatPrologueBlockIsSetupCorrectly(gc, inlineSequence, prologue);
     assertThatFirstInstructionInPrologueIsPrologue(inlineSequence, prologue);
     assertThatNumberOfRealInstructionsMatches(prologue, 1);
 
-    BasicBlock epilogue = gc.epilogue;
+    BasicBlock epilogue = gc.getEpilogue();
     assertThatEpilogueBlockIsSetupCorrectly(gc, inlineSequence, epilogue);
 
     assertThatFirstInstructionEpilogueIsMonitorExit(inlineSequence, epilogue);
@@ -858,7 +858,7 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
-    gc.cfg.setNumberOfNodes(nodeNumber);
+    gc.getCfg().setNumberOfNodes(nodeNumber);
 
     GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
     RegisterOperand expectedLocalForObjectParam = child.makeLocal(0, objectParam);
@@ -866,16 +866,16 @@ public class GenerationContextTest {
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
     InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
-    assertEquals(expectedInlineSequence, child.inlineSequence);
-    RegisterOperand firstArg = child.arguments[0].asRegister();
+    assertEquals(expectedInlineSequence, child.getInlineSequence());
+    RegisterOperand firstArg = child.getArguments()[0].asRegister();
     assertTrue(firstArg.sameRegisterPropertiesAs(expectedLocalForObjectParam));
 
-    assertSame(result.getRegister(), child.resultReg);
-    assertTrue(child.resultReg.spansBasicBlock());
+    assertSame(result.getRegister(), child.getResultReg());
+    assertTrue(child.getResultReg().spansBasicBlock());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
 
-    Enumeration<Instruction> prologueRealInstr = child.prologue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     Instruction move = prologueRealInstr.nextElement();
     RegisterOperand objectParamInChild = objectParam.copy().asRegister();
     assertMoveOperationIsCorrect(callInstr, REF_MOVE,
@@ -883,7 +883,7 @@ public class GenerationContextTest {
 
     assertThatNoMoreInstructionsExist(prologueRealInstr);
 
-    Enumeration<Instruction> epilogueRealInstr = child.epilogue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> epilogueRealInstr = child.getEpilogue().forwardRealInstrEnumerator();
     assertThatNoMoreInstructionsExist(epilogueRealInstr);
 
     assertThatNoRethrowBlockExists(child);
@@ -904,14 +904,32 @@ public class GenerationContextTest {
 
   private void assertThatStateIsCopiedFromParentToChild(
       GenerationContext parent, NormalMethod callee, GenerationContext child, ExceptionHandlerBasicBlockBag ebag) {
-    assertThat(child.method, is(callee));
-    assertThat(child.original_method, is(parent.original_method));
-    assertThat(child.original_cm, is(parent.original_cm));
-    assertThat(child.options, is(parent.options));
-    assertThat(child.temps, is(parent.temps));
-    assertThat(child.exit, is(parent.exit));
-    assertThat(child.inlinePlan, is(parent.inlinePlan));
-    assertThat(child.enclosingHandlers, is(ebag));
+    assertThat(child.getMethod(), is(callee));
+    assertThat(child.getOriginalMethod(), is(parent.getOriginalMethod()));
+    assertThat(child.getOriginalCompiledMethod(), is(parent.getOriginalCompiledMethod()));
+    assertThat(child.getOptions(), is(parent.getOptions()));
+    assertThat(child.getTemps(), is(parent.getTemps()));
+    assertThat(child.getExit(), is(parent.getExit()));
+    assertThat(child.getInlinePlan(), is(parent.getInlinePlan()));
+    assertThat(child.getEnclosingHandlers(), is(ebag));
+  }
+
+  @Test
+  public void getOriginalMethodReturnsTheOutermostMethod() throws Exception {
+    GenerationContext outermostContext = createMostlyEmptyContext("emptyStaticMethodWithNoBoundCheckAnnotation");
+    NormalMethod outermostCaller = getNormalMethodForTest("emptyStaticMethodWithNoBoundCheckAnnotation");
+
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
+    Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, outermostCaller);
+    GenerationContext nextInnerContext = GenerationContext.createChildContext(outermostContext, ebag, callee, noCheckStoreInstr);
+    assertThat(nextInnerContext.getOriginalMethod(), is(outermostCaller));
+
+    NormalMethod nextInnerCallee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
+    Instruction noNullCheckInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nextInnerCallee);
+    GenerationContext innermostContext = GenerationContext.createChildContext(nextInnerContext, ebag, nextInnerCallee, noNullCheckInstr);
+    assertThat(innermostContext.getOriginalMethod(), is(outermostCaller));
   }
 
   @Test
@@ -944,7 +962,7 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
-    gc.cfg.setNumberOfNodes(nodeNumber);
+    gc.getCfg().setNumberOfNodes(nodeNumber);
 
     GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
 
@@ -952,7 +970,7 @@ public class GenerationContextTest {
 
     assertThatReturnValueIsVoid(child);
 
-    RegisterOperand thisArg = child.arguments[0].asRegister();
+    RegisterOperand thisArg = child.getArguments()[0].asRegister();
     assertFalse(thisArg.isPreciseType());
     assertTrue(thisArg.isDeclaredType());
     TypeReference calleeClass = callee.getDeclaringClass().getTypeRef();
@@ -961,28 +979,28 @@ public class GenerationContextTest {
     RegisterOperand expectedLocalForReceiverParam = child.makeLocal(0, thisArg);
     assertTrue(thisArg.sameRegisterPropertiesAs(expectedLocalForReceiverParam));
 
-    RegisterOperand firstArg = child.arguments[1].asRegister();
+    RegisterOperand firstArg = child.getArguments()[1].asRegister();
     RegisterOperand expectedLocalForObjectParam = child.makeLocal(1, firstArg);
     assertTrue(firstArg.sameRegisterPropertiesAs(expectedLocalForObjectParam));
 
-    RegisterOperand secondArg = child.arguments[2].asRegister();
+    RegisterOperand secondArg = child.getArguments()[2].asRegister();
     RegisterOperand expectedLocalForDoubleParam = child.makeLocal(2, secondArg);
     assertTrue(secondArg.sameRegisterPropertiesAs(expectedLocalForDoubleParam));
 
-    RegisterOperand thirdArg = child.arguments[3].asRegister();
+    RegisterOperand thirdArg = child.getArguments()[3].asRegister();
     RegisterOperand expectedLocalForIntParam = child.makeLocal(4, thirdArg);
     assertTrue(thirdArg.sameRegisterPropertiesAs(expectedLocalForIntParam));
 
-    RegisterOperand fourthArg = child.arguments[4].asRegister();
+    RegisterOperand fourthArg = child.getArguments()[4].asRegister();
     RegisterOperand expectedLocalForLongParam = child.makeLocal(5, fourthArg);
     assertTrue(fourthArg.sameRegisterPropertiesAs(expectedLocalForLongParam));
 
     InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
-    assertEquals(expectedInlineSequence, child.inlineSequence);
+    assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
 
-    Enumeration<Instruction> prologueRealInstr = child.prologue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
 
     Instruction receiverMove = prologueRealInstr.nextElement();
     RegisterOperand expectedReceiver = receiver.copy().asRegister();
@@ -1007,7 +1025,7 @@ public class GenerationContextTest {
 
     assertThatNoMoreInstructionsExist(prologueRealInstr);
 
-    BasicBlock epilogue = child.epilogue;
+    BasicBlock epilogue = child.getEpilogue();
     assertThatEpilogueLabelIsCorrectForInlinedMethod(child,
         expectedInlineSequence, epilogue);
     assertThatEpilogueIsEmpty(epilogue);
@@ -1024,13 +1042,13 @@ public class GenerationContextTest {
   private void assertThatEpilogueLabelIsCorrectForInlinedMethod(
       GenerationContext child, InlineSequence inlineSequence,
       BasicBlock epilogue) {
-    assertThat(child.cfg.lastInCodeOrder(), is(epilogue));
+    assertThat(child.getCfg().lastInCodeOrder(), is(epilogue));
     assertThat(epilogue.firstInstruction().getBytecodeIndex(), is(EPILOGUE_BCI));
     assertTrue(epilogue.firstInstruction().position.equals(inlineSequence));
   }
 
   private void assertThatNoRethrowBlockExists(GenerationContext child) {
-    assertNull(child.unlockAndRethrow);
+    assertNull(child.getUnlockAndRethrow());
   }
 
   private void assertThatNoMoreInstructionsExist(
@@ -1041,18 +1059,18 @@ public class GenerationContextTest {
   private void assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(
       ExceptionHandlerBasicBlockBag ebag, int nodeNumber,
       GenerationContext child) {
-    assertThat(child.prologue.firstInstruction().bcIndex, is(PROLOGUE_BCI));
-    assertThat(child.prologue.firstInstruction().position, is(child.inlineSequence));
-    assertThat(child.prologue.getNumber(), is(nodeNumber));
-    assertThat(child.prologue.exceptionHandlers, is(ebag));
-    assertThat(child.epilogue.firstInstruction().bcIndex, is(EPILOGUE_BCI));
-    assertThat(child.epilogue.firstInstruction().position, is(child.inlineSequence));
-    assertThat(child.epilogue.getNumber(), is(nodeNumber + 1));
-    assertThat(child.epilogue.exceptionHandlers, is(ebag));
+    assertThat(child.getPrologue().firstInstruction().bcIndex, is(PROLOGUE_BCI));
+    assertThat(child.getPrologue().firstInstruction().position, is(child.getInlineSequence()));
+    assertThat(child.getPrologue().getNumber(), is(nodeNumber));
+    assertThat(child.getPrologue().exceptionHandlers, is(ebag));
+    assertThat(child.getEpilogue().firstInstruction().bcIndex, is(EPILOGUE_BCI));
+    assertThat(child.getEpilogue().firstInstruction().position, is(child.getInlineSequence()));
+    assertThat(child.getEpilogue().getNumber(), is(nodeNumber + 1));
+    assertThat(child.getEpilogue().exceptionHandlers, is(ebag));
     int newNodeNumber = nodeNumber + 2;
-    assertThat(child.cfg.numberOfNodes(), is(newNodeNumber));
-    assertThat(child.cfg.firstInCodeOrder(), is(child.prologue));
-    assertThat(child.cfg.lastInCodeOrder(), is(child.epilogue));
+    assertThat(child.getCfg().numberOfNodes(), is(newNodeNumber));
+    assertThat(child.getCfg().firstInCodeOrder(), is(child.getPrologue()));
+    assertThat(child.getCfg().lastInCodeOrder(), is(child.getEpilogue()));
   }
 
   @Test
@@ -1085,7 +1103,7 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
-    gc.cfg.setNumberOfNodes(nodeNumber);
+    gc.getCfg().setNumberOfNodes(nodeNumber);
 
     GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
 
@@ -1093,35 +1111,35 @@ public class GenerationContextTest {
 
     assertThatReturnValueIsVoid(child);
 
-    RegisterOperand thisArg = child.arguments[0].asRegister();
+    RegisterOperand thisArg = child.getArguments()[0].asRegister();
     TypeReference calleeClass = callee.getDeclaringClass().getTypeRef();
     assertSame(thisArg.getType(), calleeClass);
 
     RegisterOperand expectedLocalForReceiverParam = child.makeLocal(0, thisArg);
     assertTrue(thisArg.sameRegisterPropertiesAs(expectedLocalForReceiverParam));
 
-    RegisterOperand firstArg = child.arguments[1].asRegister();
+    RegisterOperand firstArg = child.getArguments()[1].asRegister();
     RegisterOperand expectedLocalForObjectParam = child.makeLocal(1, firstArg);
     assertTrue(firstArg.sameRegisterPropertiesAs(expectedLocalForObjectParam));
 
-    RegisterOperand secondArg = child.arguments[2].asRegister();
+    RegisterOperand secondArg = child.getArguments()[2].asRegister();
     RegisterOperand expectedLocalForDoubleParam = child.makeLocal(2, secondArg);
     assertTrue(secondArg.sameRegisterPropertiesAs(expectedLocalForDoubleParam));
 
-    RegisterOperand thirdArg = child.arguments[3].asRegister();
+    RegisterOperand thirdArg = child.getArguments()[3].asRegister();
     RegisterOperand expectedLocalForIntParam = child.makeLocal(4, thirdArg);
     assertTrue(thirdArg.sameRegisterPropertiesAs(expectedLocalForIntParam));
 
-    RegisterOperand fourthArg = child.arguments[4].asRegister();
+    RegisterOperand fourthArg = child.getArguments()[4].asRegister();
     RegisterOperand expectedLocalForLongParam = child.makeLocal(5, fourthArg);
     assertTrue(fourthArg.sameRegisterPropertiesAs(expectedLocalForLongParam));
 
     InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
-    assertEquals(expectedInlineSequence, child.inlineSequence);
+    assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
 
-    Enumeration<Instruction> prologueRealInstr = child.prologue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
 
     Instruction receiverMove = prologueRealInstr.nextElement();
     RegisterOperand expectedReceiver = receiver.copy().asRegister();
@@ -1145,7 +1163,7 @@ public class GenerationContextTest {
 
     assertThatNoMoreInstructionsExist(prologueRealInstr);
 
-    BasicBlock epilogue = child.epilogue;
+    BasicBlock epilogue = child.getEpilogue();
     assertThatEpilogueLabelIsCorrectForInlinedMethod(child,
         expectedInlineSequence, epilogue);
     assertThatEpilogueIsEmpty(epilogue);
@@ -1202,7 +1220,7 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
-    gc.cfg.setNumberOfNodes(nodeNumber);
+    gc.getCfg().setNumberOfNodes(nodeNumber);
 
     GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
 
@@ -1210,7 +1228,7 @@ public class GenerationContextTest {
 
     assertThatReturnValueIsVoid(child);
 
-    Operand thisArg = child.arguments[0];
+    Operand thisArg = child.getArguments()[0];
 
     RegisterOperand expectedLocalForReceiverParam = child.makeLocal(0, thisArg.getType());
     expectedLocalForReceiverParam.setPreciseType();
@@ -1218,28 +1236,28 @@ public class GenerationContextTest {
     BC2IR.setGuard(expectedLocalForReceiverParam, expectedNullCheckGuard);
     assertNotNull(expectedNullCheckGuard);
 
-    RegisterOperand firstArg = child.arguments[1].asRegister();
+    RegisterOperand firstArg = child.getArguments()[1].asRegister();
     RegisterOperand expectedLocalForObjectParam = child.makeLocal(1, firstArg);
     assertTrue(firstArg.sameRegisterPropertiesAs(expectedLocalForObjectParam));
 
-    RegisterOperand secondArg = child.arguments[2].asRegister();
+    RegisterOperand secondArg = child.getArguments()[2].asRegister();
     RegisterOperand expectedLocalForDoubleParam = child.makeLocal(2, secondArg);
     assertTrue(secondArg.sameRegisterPropertiesAs(expectedLocalForDoubleParam));
 
-    RegisterOperand thirdArg = child.arguments[3].asRegister();
+    RegisterOperand thirdArg = child.getArguments()[3].asRegister();
     RegisterOperand expectedLocalForIntParam = child.makeLocal(4, thirdArg);
     assertTrue(thirdArg.sameRegisterPropertiesAs(expectedLocalForIntParam));
 
-    RegisterOperand fourthArg = child.arguments[4].asRegister();
+    RegisterOperand fourthArg = child.getArguments()[4].asRegister();
     RegisterOperand expectedLocalForLongParam = child.makeLocal(5, fourthArg);
     assertTrue(fourthArg.sameRegisterPropertiesAs(expectedLocalForLongParam));
 
     InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
-    assertEquals(expectedInlineSequence, child.inlineSequence);
+    assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
 
-    Enumeration<Instruction> prologueRealInstr = child.prologue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     Instruction guardMove = prologueRealInstr.nextElement();
     assertThat(guardMove.operator, is(GUARD_MOVE));
     assertThat(guardMove.bcIndex, is(UNKNOWN_BCI));
@@ -1272,7 +1290,7 @@ public class GenerationContextTest {
 
     assertThatNoMoreInstructionsExist(prologueRealInstr);
 
-    BasicBlock epilogue = child.epilogue;
+    BasicBlock epilogue = child.getEpilogue();
     assertThatEpilogueLabelIsCorrectForInlinedMethod(child,
         expectedInlineSequence, epilogue);
     assertThatEpilogueIsEmpty(epilogue);
@@ -1360,7 +1378,7 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 12345;
-    gc.cfg.setNumberOfNodes(nodeNumber);
+    gc.getCfg().setNumberOfNodes(nodeNumber);
 
     GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
 
@@ -1368,7 +1386,7 @@ public class GenerationContextTest {
 
     assertThatReturnValueIsVoid(child);
 
-    RegisterOperand objectParamArg = child.arguments[0].asRegister();
+    RegisterOperand objectParamArg = child.getArguments()[0].asRegister();
     TypeReference calleeClass = callee.getDeclaringClass().getTypeRef();
     assertThatRegOpWasNarrowedToCalleeClass(objectParamArg, calleeClass);
 
@@ -1376,11 +1394,11 @@ public class GenerationContextTest {
     assertTrue(objectParamArg.sameRegisterPropertiesAs(expectedLocalForObjectParam));
 
     InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
-    assertEquals(expectedInlineSequence, child.inlineSequence);
+    assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
 
-    Enumeration<Instruction> prologueRealInstr = child.prologue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
 
     Instruction objectMove = prologueRealInstr.nextElement();
     narrowRegOpToCalleeClass(objectParamCopy, calleeClass);
@@ -1388,7 +1406,7 @@ public class GenerationContextTest {
 
     assertThatNoMoreInstructionsExist(prologueRealInstr);
 
-    BasicBlock epilogue = child.epilogue;
+    BasicBlock epilogue = child.getEpilogue();
     assertThatEpilogueLabelIsCorrectForInlinedMethod(child,
         expectedInlineSequence, epilogue);
     assertThatEpilogueIsEmpty(epilogue);
@@ -1463,15 +1481,15 @@ public class GenerationContextTest {
 
     NormalMethod callee = getNormalMethodForTest("emptySynchronizedStaticMethod");
     Instruction callInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
-    ExceptionHandlerBasicBlockBag ebag = gc.enclosingHandlers;
+    ExceptionHandlerBasicBlockBag ebag = gc.getEnclosingHandlers();
     GenerationContext childContext = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
 
     assertThatExceptionHandlersWereGenerated(childContext);
 
     Operand expectedLockObject = buildLockObjectForStaticMethod(callee);
 
-    assertThatUnlockAndRethrowBlockIsCorrectForInlinedMethod(gc, childContext, childContext.inlineSequence,
-        childContext.prologue, expectedLockObject, childContext.epilogue);
+    assertThatUnlockAndRethrowBlockIsCorrectForInlinedMethod(gc, childContext, childContext.getInlineSequence(),
+        childContext.getPrologue(), expectedLockObject, childContext.getEpilogue());
 
     assertThatChecksWontBeSkipped(gc);
   }
@@ -1479,36 +1497,36 @@ public class GenerationContextTest {
   private void assertThatUnlockAndRethrowBlockIsCorrectForInlinedMethod(GenerationContext parentContext,
       GenerationContext childContext, InlineSequence inlineSequence, BasicBlock prologue,
       Operand lockObject, BasicBlock epilogue) {
-    ExceptionHandlerBasicBlockBag ehbb = childContext.enclosingHandlers;
+    ExceptionHandlerBasicBlockBag ehbb = childContext.getEnclosingHandlers();
     Enumeration<BasicBlock> enumerator = ehbb.enumerator();
 
-    assertThat(childContext.unlockAndRethrow.exceptionHandlers, is(parentContext.enclosingHandlers));
+    assertThat(childContext.getUnlockAndRethrow().exceptionHandlers, is(parentContext.getEnclosingHandlers()));
 
     ExceptionHandlerBasicBlock rethrow = (ExceptionHandlerBasicBlock) enumerator.nextElement();
-    assertSame(rethrow, childContext.unlockAndRethrow);
+    assertSame(rethrow, childContext.getUnlockAndRethrow());
     assertThatRethrowBlockIsCorrect(inlineSequence, lockObject, rethrow);
     checkCodeOrderForRethrowBlock(childContext, prologue, epilogue, rethrow);
 
-    ExceptionHandlerBasicBlockBag parentHandlers = parentContext.enclosingHandlers;
+    ExceptionHandlerBasicBlockBag parentHandlers = parentContext.getEnclosingHandlers();
     Enumeration<BasicBlock> parentHandlerBBEnum = parentHandlers.enumerator();
     HashSet<BasicBlock> parentHandlerBBs = new HashSet<BasicBlock>();
     while (parentHandlerBBEnum.hasMoreElements()) {
       parentHandlerBBs.add(parentHandlerBBEnum.nextElement());
     }
-    BasicBlock childRethrow = childContext.unlockAndRethrow;
+    BasicBlock childRethrow = childContext.getUnlockAndRethrow();
     OutEdgeEnumeration outEdges = childRethrow.outEdges();
     boolean linkedToAllBlocksFromParentHandler = true;
     while (outEdges.hasMoreElements()) {
       BasicBlock target = (BasicBlock) outEdges.nextElement().to();
-      if (!parentHandlerBBs.contains(target) && target != childContext.exit) {
+      if (!parentHandlerBBs.contains(target) && target != childContext.getExit()) {
         linkedToAllBlocksFromParentHandler = false;
         break;
       }
     }
     assertTrue(linkedToAllBlocksFromParentHandler);
 
-    ExceptionHandlerBasicBlockBag ehbbb = childContext.enclosingHandlers;
-    assertSame(parentContext.enclosingHandlers, ehbbb.getCaller());
+    ExceptionHandlerBasicBlockBag ehbbb = childContext.getEnclosingHandlers();
+    assertSame(parentContext.getEnclosingHandlers(), ehbbb.getCaller());
     assertThatEnclosingHandlersContainRethrow(rethrow, ehbbb);
   }
 
@@ -1576,23 +1594,23 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
     int nodeNumber = 23456;
-    gc.cfg.setNumberOfNodes(nodeNumber);
+    gc.getCfg().setNumberOfNodes(nodeNumber);
 
     GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
     InlineSequence expectedInlineSequence = new InlineSequence(callee, callInstr.position, callInstr);
-    assertEquals(expectedInlineSequence, child.inlineSequence);
+    assertEquals(expectedInlineSequence, child.getInlineSequence());
 
     assertThatPrologueAndEpilogueAreWiredCorrectlyForChildContext(ebag, nodeNumber, child);
 
-    Enumeration<Instruction> prologueRealInstr = child.prologue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     Instruction unintBegin = prologueRealInstr.nextElement();
     assertThatInstructionIsUnintMarker(unintBegin, UNINT_BEGIN);
     assertThatNoMoreInstructionsExist(prologueRealInstr);
 
-    Enumeration<Instruction> epilogueRealInstr = child.epilogue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> epilogueRealInstr = child.getEpilogue().forwardRealInstrEnumerator();
     Instruction unintEnd = epilogueRealInstr.nextElement();
     assertThatInstructionIsUnintMarker(unintEnd, UNINT_END);
     assertThatNoMoreInstructionsExist(epilogueRealInstr);
@@ -1614,10 +1632,10 @@ public class GenerationContextTest {
 
     GenerationContext child = GenerationContext.createChildContext(gc, ebag, interruptibleCallee, callInstr);
 
-    Enumeration<Instruction> prologueRealInstr = child.prologue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     assertThatNoMoreInstructionsExist(prologueRealInstr);
 
-    Enumeration<Instruction> epilogueRealInstr = child.epilogue.forwardRealInstrEnumerator();
+    Enumeration<Instruction> epilogueRealInstr = child.getEpilogue().forwardRealInstrEnumerator();
     assertThatNoMoreInstructionsExist(epilogueRealInstr);
   }
 
@@ -1649,48 +1667,36 @@ public class GenerationContextTest {
     GenerationContext child = GenerationContext.createChildContext(parent, ebag, interruptibleCallee, callInstr);
     setTransferableProperties(targetNumberOfNodes, child);
 
-    GenerationContext.transferState(parent, child);
+    child.transferStateToParent();
 
     assertThatStateWasTransferedToOtherContext(parent, targetNumberOfNodes);
   }
 
   private void setTransferableProperties(int targetNumberOfNodes,
       GenerationContext context) {
-    context.allocFrame = true;
-    context.generatedExceptionHandlers = true;
-    context.cfg.setNumberOfNodes(targetNumberOfNodes);
+    context.forceFrameAllocation();
+    context.markExceptionHandlersAsGenerated();
+    context.getCfg().setNumberOfNodes(targetNumberOfNodes);
   }
 
   private void assertThatStateWasTransferedToOtherContext(
       GenerationContext otherContext, int targetNumberOfNodes) {
-    assertTrue(otherContext.allocFrame);
-    assertTrue(otherContext.generatedExceptionHandlers);
-    assertTrue(otherContext.cfg.numberOfNodes() == targetNumberOfNodes);
+    assertTrue(otherContext.requiresStackFrame());
+    assertTrue(otherContext.generatedExceptionHandlers());
+    assertTrue(otherContext.getCfg().numberOfNodes() == targetNumberOfNodes);
   }
 
   private void assertThatContextIsInExpectedState(GenerationContext parent,
       int targetNumberOfNodes) {
-    assertFalse(parent.allocFrame);
-    assertFalse(parent.generatedExceptionHandlers);
-    assertFalse("Assumption in test case wrong, need to change test case", parent.cfg.numberOfNodes() == targetNumberOfNodes);
+    assertFalse(parent.requiresStackFrame());
+    assertFalse(parent.generatedExceptionHandlers());
+    assertFalse("Assumption in test case wrong, need to change test case", parent.getCfg().numberOfNodes() == targetNumberOfNodes);
   }
 
-  @Test
-  public void transferStateDoesNotCheckThatChildIsReallyAChildOfParent() throws Exception {
-    NormalMethod nm = getNormalMethodForTest("emptyStaticMethodWithoutAnnotations");
-    CompiledMethod cm = new OptCompiledMethod(-1, nm);
-    OptOptions opts = new OptOptions();
-    InlineOracle io = new DefaultInlineOracle();
-    GenerationContext parent = new GenerationContext(nm, null, cm, opts, io);
-    int targetNumberOfNodes = 23456789;
-    assertThatContextIsInExpectedState(parent, targetNumberOfNodes);
-
-    GenerationContext nonChild = createMostlyEmptyContext("emptyStaticMethodWithoutAnnotations");
-    setTransferableProperties(targetNumberOfNodes, nonChild);
-
-    GenerationContext.transferState(parent, nonChild);
-
-    assertThatStateWasTransferedToOtherContext(parent, targetNumberOfNodes);
+  @Test(expected = IllegalStateException.class)
+  public void transferStateThrowsExceptionForContextsWithoutParents() throws Exception {
+    GenerationContext gc = createMostlyEmptyContext("emptyStaticMethodWithNoBoundCheckAnnotation");
+    gc.transferStateToParent();
   }
 
   @Test(expected = NullPointerException.class)
@@ -1698,41 +1704,41 @@ public class GenerationContextTest {
     GenerationContext gc = createMostlyEmptyContext("methodForInliningTests");
     ExceptionHandlerBasicBlockBag mockEbag = getMockEbag();
 
-    int parentCfgNodeNumber = gc.cfg.numberOfNodes();
+    int parentCfgNodeNumber = gc.getCfg().numberOfNodes();
 
     GenerationContext synthethicContext = GenerationContext.createSynthetic(gc, mockEbag);
 
     int synthethicNodeNumber = -100000;
-    assertThat(synthethicContext.cfg.numberOfNodes(), is(synthethicNodeNumber));
-    assertThat(synthethicContext.prologue.firstInstruction().bcIndex, is(PROLOGUE_BCI));
-    assertThat(synthethicContext.prologue.firstInstruction().position, is(gc.inlineSequence));
-    assertThat(synthethicContext.prologue.getNumber(), is(parentCfgNodeNumber));
-    assertThat(synthethicContext.prologue.exceptionHandlers, is(mockEbag));
-    assertThat(synthethicContext.epilogue.firstInstruction().bcIndex, is(EPILOGUE_BCI));
-    assertThat(synthethicContext.epilogue.firstInstruction().position, is(gc.inlineSequence));
-    assertThat(synthethicContext.epilogue.getNumber(), is(parentCfgNodeNumber + 1));
-    assertThat(synthethicContext.epilogue.exceptionHandlers, is(mockEbag));
-    assertThat(gc.cfg.numberOfNodes(), is(4));
-    assertThat(synthethicContext.cfg.numberOfNodes(), is(synthethicNodeNumber));
-    assertThat(synthethicContext.cfg.firstInCodeOrder(), is(synthethicContext.prologue));
-    assertThat(synthethicContext.cfg.lastInCodeOrder(), is(synthethicContext.epilogue));
+    assertThat(synthethicContext.getCfg().numberOfNodes(), is(synthethicNodeNumber));
+    assertThat(synthethicContext.getPrologue().firstInstruction().bcIndex, is(PROLOGUE_BCI));
+    assertThat(synthethicContext.getPrologue().firstInstruction().position, is(gc.getInlineSequence()));
+    assertThat(synthethicContext.getPrologue().getNumber(), is(parentCfgNodeNumber));
+    assertThat(synthethicContext.getPrologue().exceptionHandlers, is(mockEbag));
+    assertThat(synthethicContext.getEpilogue().firstInstruction().bcIndex, is(EPILOGUE_BCI));
+    assertThat(synthethicContext.getEpilogue().firstInstruction().position, is(gc.getInlineSequence()));
+    assertThat(synthethicContext.getEpilogue().getNumber(), is(parentCfgNodeNumber + 1));
+    assertThat(synthethicContext.getEpilogue().exceptionHandlers, is(mockEbag));
+    assertThat(gc.getCfg().numberOfNodes(), is(4));
+    assertThat(synthethicContext.getCfg().numberOfNodes(), is(synthethicNodeNumber));
+    assertThat(synthethicContext.getCfg().firstInCodeOrder(), is(synthethicContext.getPrologue()));
+    assertThat(synthethicContext.getCfg().lastInCodeOrder(), is(synthethicContext.getEpilogue()));
 
-    assertFalse(synthethicContext.allocFrame);
-    assertNull(synthethicContext.arguments);
-    assertNull(synthethicContext.branchProfiles);
-    assertNull(synthethicContext.enclosingHandlers);
-    assertNull(synthethicContext.exit);
-    assertFalse(synthethicContext.generatedExceptionHandlers);
-    assertNull(synthethicContext.inlinePlan);
-    assertNull(synthethicContext.inlineSequence);
-    assertNull(synthethicContext.method);
-    assertNull(synthethicContext.options);
-    assertNull(synthethicContext.original_cm);
-    assertNull(synthethicContext.original_method);
-    assertNull(synthethicContext.result);
-    assertNull(synthethicContext.resultReg);
-    assertNull(synthethicContext.temps);
-    assertNull(synthethicContext.unlockAndRethrow);
+    assertFalse(synthethicContext.requiresStackFrame());
+    assertNull(synthethicContext.getArguments());
+    assertNull(synthethicContext.getBranchProfiles());
+    assertNull(synthethicContext.getEnclosingHandlers());
+    assertNull(synthethicContext.getExit());
+    assertFalse(synthethicContext.generatedExceptionHandlers());
+    assertNull(synthethicContext.getInlinePlan());
+    assertNull(synthethicContext.getInlineSequence());
+    assertNull(synthethicContext.getMethod());
+    assertNull(synthethicContext.getOptions());
+    assertNull(synthethicContext.getOriginalCompiledMethod());
+    assertNull(synthethicContext.getOriginalMethod());
+    assertNull(synthethicContext.getResult());
+    assertNull(synthethicContext.getResultReg());
+    assertNull(synthethicContext.getTemps());
+    assertNull(synthethicContext.getUnlockAndRethrow());
 
     synthethicContext.resync(); // check that nc_guards are null
   }
@@ -1952,7 +1958,7 @@ public class GenerationContextTest {
     RegisterOperand thisNullCheckGuard = gc.makeNullCheckGuard(thisReg);
     assertNotNull(thisNullCheckGuard);
 
-    gc.temps.removeRegister(thisReg);
+    gc.getTemps().removeRegister(thisReg);
 
     gc.resync();
 
@@ -1960,9 +1966,6 @@ public class GenerationContextTest {
     assertFalse(newNullCheckGuard.sameRegisterPropertiesAsExceptForScratchObject(thisNullCheckGuard));
   }
 
-  @Ignore("currently fails because resync deletes ALL null check guards." +
-   "This is caused by the use of getValue() instead of getKey() when " +
-   "checking whether to remove a mapping")
   @Test
   public void resyncDoesNotDeleteNullCheckGuardsThatMapToUsedRegisters() throws Exception {
     NormalMethod nm = TestingTools.getNormalMethod(MethodsForTests.class, "emptyInstanceMethodWithoutAnnotations");
@@ -1996,6 +1999,48 @@ public class GenerationContextTest {
     GenerationContext gc = createMostlyEmptyContext("emptyStaticMethodWithoutAnnotations");
     gc.close();
     gc.resync();
+  }
+
+  @Test
+  public void methodIsSelectedForDebuggingWithMethodToPrintReturnsTrueIfMethodOfContextMatches() throws Exception {
+    String methodName = "emptyStaticMethodWithoutAnnotations";
+    NormalMethod nm = getNormalMethodForTest(methodName);
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = buildOptionsWithMethodToPrintOptionSet(methodName);
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext gc = new GenerationContext(nm, null, cm, opts, io);
+    assertThat(gc.methodIsSelectedForDebuggingWithMethodToPrint(), is(true));
+  }
+
+  @Test
+  public void methodIsSelectedForDebuggingWithMethodToPrintReturnsTrueIfOutermostParentMatches() throws Exception {
+    String methodName = "emptyStaticMethodWithoutAnnotations";
+    NormalMethod nm = getNormalMethodForTest(methodName);
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = buildOptionsWithMethodToPrintOptionSet(methodName);
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext gc = new GenerationContext(nm, null, cm, opts, io);
+
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
+    Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
+    GenerationContext nextInnerContext = GenerationContext.createChildContext(gc, ebag, callee, noCheckStoreInstr);
+
+    NormalMethod nextInnerCallee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
+    Instruction noNullCheckInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nextInnerCallee);
+    GenerationContext innermostContext = GenerationContext.createChildContext(nextInnerContext, ebag, nextInnerCallee, noNullCheckInstr);
+
+    assertThat(innermostContext.methodIsSelectedForDebuggingWithMethodToPrint(), is(true));
+  }
+
+  private OptOptions buildOptionsWithMethodToPrintOptionSet(String methodName) {
+    OptOptions opts = new OptOptions();
+    opts.processAsOption("-X:opt:", "method_to_print=" + methodName);
+    assertThat(opts.hasMETHOD_TO_PRINT(), is(true));
+    Iterator<String> iterator = opts.getMETHOD_TO_PRINTs();
+    String methodNameFromOpts = iterator.next();
+    assertThat(methodNameFromOpts, is(methodName));
+    return opts;
   }
 
 }

@@ -12,12 +12,13 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.heap.FreeListPageResource;
 import org.mmtk.utility.heap.Map;
 import org.mmtk.utility.heap.VMRequest;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.Memory;
 
@@ -37,7 +38,7 @@ import org.vmmagic.unboxed.*;
  * in the instance methods of MarkSweepLocal.
  */
 @Uninterruptible
-public abstract class SegregatedFreeListSpace extends Space implements Constants {
+public abstract class SegregatedFreeListSpace extends Space {
 
   /****************************************************************************
   *

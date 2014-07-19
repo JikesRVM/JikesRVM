@@ -12,6 +12,18 @@
  */
 package org.jikesrvm.jni.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_JNI_COMPILER_FAILED;
+
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.NE;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
@@ -22,7 +34,6 @@ import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
 import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.jni.JNIGlobalRefTable;
 import org.jikesrvm.ppc.BaselineConstants;
@@ -43,7 +54,7 @@ import org.vmmagic.unboxed.Offset;
  *                so we can actually test that the refactors are correct.
  */
 public abstract class JNICompiler
-    implements BaselineConstants, AssemblerConstants, JNIStackframeLayoutConstants {
+    implements BaselineConstants, JNIStackframeLayoutConstants {
 
   /**
    * This method creates the stub to link native method.  It will be called
@@ -214,7 +225,7 @@ public abstract class JNICompiler
     ForwardReference notInJava = asm.emitForwardBC(NE);
     asm.emitLVAL(S0, RVMThread.IN_JNI);             // S0  <- new state value
     asm.emitSTWCXr(S0, S1, THREAD_REGISTER);        // attempt to change state to IN_JNI
-    ForwardReference enteredJNIRef = asm.emitForwardBC(Assembler.EQ); // branch if success over slow path
+    ForwardReference enteredJNIRef = asm.emitForwardBC(EQ); // branch if success over slow path
 
     notInJava.resolve(asm);
 
@@ -352,7 +363,7 @@ public abstract class JNICompiler
     TypeReference returnType = method.getReturnType();
     if (returnType.isReferenceType()) {
       asm.emitCMPI(T0, 0);
-      ForwardReference globalRef = asm.emitForwardBC(Assembler.LT);
+      ForwardReference globalRef = asm.emitForwardBC(LT);
 
       // Local ref - load from JNIRefs
       asm.emitLAddrX(T0, S1, T0);         // S1 is still the base of the JNIRefs array
@@ -364,7 +375,7 @@ public abstract class JNICompiler
       asm.emitAND(T1, T0, T3);
       asm.emitLAddrOffset(T2, JTOC, Entrypoints.JNIGlobalRefsField.getOffset());
       asm.emitCMPI(T1, 0);
-      ForwardReference weakGlobalRef = asm.emitForwardBC(Assembler.EQ);
+      ForwardReference weakGlobalRef = asm.emitForwardBC(EQ);
 
       // Strong global references
       asm.emitNEG(T0, T0);
@@ -1449,7 +1460,7 @@ public abstract class JNICompiler
     ForwardReference notInJava = asm.emitForwardBC(NE);
     asm.emitLVAL(S0, RVMThread.IN_JNI);
     asm.emitSTWCXr(S0, S1, THREAD_REGISTER);
-    ForwardReference enteredJNIRef = asm.emitForwardBC(Assembler.EQ);
+    ForwardReference enteredJNIRef = asm.emitForwardBC(EQ);
 
     notInJava.resolve(asm);
 
@@ -1535,7 +1546,7 @@ public abstract class JNICompiler
 
         if (nextOSReg > LAST_OS_PARAMETER_GPR + 1) {
           VM.sysWrite("ERROR: " + meth + " has too many int or long parameters\n");
-          VM.sysExit(VM.EXIT_STATUS_JNI_COMPILER_FAILED);
+          VM.sysExit(EXIT_STATUS_JNI_COMPILER_FAILED);
         }
       }
     }

@@ -153,7 +153,7 @@ public abstract class IRTools {
    * Create an address constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., AC(Address.zero()) ...
+   *    ...&lt;op&gt;.create(...., AC(Address.zero()) ...
    * </pre>
    *
    * @param value    The address constant
@@ -171,7 +171,7 @@ public abstract class IRTools {
    * Create an integer constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., IC(0) ...
+   *    ...&lt;op&gt;.create(...., IC(0) ...
    * </pre>
    *
    * @param value   The int constant
@@ -185,7 +185,7 @@ public abstract class IRTools {
    * Create a long constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., LC(0L) ...
+   *    ...&lt;op&gt;.create(...., LC(0L) ...
    * </pre>
    *
    * @param value the long value
@@ -199,7 +199,7 @@ public abstract class IRTools {
    * Create a long constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., FC(0L) ...
+   *    ...&lt;op&gt;.create(...., FC(0L) ...
    * </pre>
    *
    * @param value the float value
@@ -213,7 +213,7 @@ public abstract class IRTools {
    * Create a long constant operand with a given value.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., DC(0L) ...
+   *    ...&lt;op&gt;.create(...., DC(0L) ...
    * </pre>
    *
    * @param value the double value
@@ -227,7 +227,7 @@ public abstract class IRTools {
    * Create a new TrueGuardOperand.
    * To be used in passthrough expressions like
    * <pre>
-   *    ...<op>.create(...., TG() ...
+   *    ...&lt;op&gt;.create(...., TG() ...
    * </pre>
    *
    * @return true guard operand
@@ -450,10 +450,10 @@ public abstract class IRTools {
    *
    * This routine will create the control struture
    * <pre>
-   * in -> bb -> out.
+   * in -&gt; bb -&gt; out.
    * </pre>
    * <em> Precondition </em>: There is an edge in the control flow graph
-   * from * in -> out.
+   * from * in -&gt; out.
    *
    * @param in the source of the control flow edge
    * @param out the sink of the control flow edge

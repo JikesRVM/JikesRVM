@@ -17,10 +17,12 @@ import org.jikesrvm.VM;
 import org.vmmagic.unboxed.Address;
 import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
 
-/**----------------------------------------------------------------------
+/**
+ * <pre>
+ *-----------------------------------------------------------------------
  *                   Stackframe layout conventions - Intel version.
  *-----------------------------------------------------------------------
- *
+ * </pre>
  * A stack is an array of "slots", declared formally as integers, each slot
  * containing either a primitive (byte, int, float, etc), an object pointer,
  * a machine code pointer (a return address pointer), or a pointer to another
@@ -41,19 +43,19 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *              +---------------+                                            ...
  *              |     IP=0      |                                             .
  *              +---------------+                                             .
- *          +-> |     FP=0      |   <-- "end of vm stack" sentinel            .
+ *          +-&gt; |     FP=0      |   &lt;-- "end of vm stack" sentinel            .
  *          |   +---------------+                                             . caller's frame
- *          |   |    cmid=0      |   <-- "invisible method" id                .
+ *          |   |    cmid=0      |   &lt;-- "invisible method" id                .
  *          |   +---------------+                                          ---.
  *          |   |   parameter0  |  \                                        | .
  *          |   +---------------+   \ parameter area                        | .
  *          |   |   parameter1  |   /  (== caller's operand stack area)     | .
  *   ---    |   +---------------+  /                                        |...
- *    |     |   |   saved IP    |  <-- return address (in caller)           |
+ *    |     |   |   saved IP    |  &lt;-- return address (in caller)           |
  *    |      \  +---------------+                                           |
- *  header FP-> |   saved FP    |  <-- this frame's caller's frame          |
+ *  header FP-&gt; |   saved FP    |  &lt;-- this frame's caller's frame          |
  *    |         +---------------+                                           |
- *    |         |    cmid       |  <-- this frame's compiledmethod id       |
+ *    |         |    cmid       |  &lt;-- this frame's compiledmethod id       |
  *    |         +---------------+                                           |
  *    |         |   saved GPRs  |  \                                        |
  *    |         +---------------+   \ nonvolatile register save area        |
@@ -65,14 +67,14 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *    |         +---------------+  /                                        |
  *    |         |   operand0    |  \                                        |
  *    |         +---------------+   \_operand stack area                    |
- *    |    SP-> |   operand1    |   /                                       |
+ *    |    SP-&gt; |   operand1    |   /                                       |
  *    |         +---------------+  /                                        |
  *    |         |     ...       |                                           |
  *   ---        +===============+                                          ---
  *              |     ...       |
  *              +---------------+
- * stackLimit-> |     ...       | \
- *              +---------------+  \_guard region for detecting & processing stack overflow
+ * stackLimit-&gt; |     ...       | \
+ *              +---------------+  \_guard region for detecting &amp; processing stack overflow
  *              |     ...       |  /
  *              +---------------+ /
  *              |(object header)|
@@ -86,22 +88,22 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *              +---------------+                                            ...
  *              |     IP=0      |                                             .
  *              +---------------+                                             .
- *          +-> |     FP=0      |   <-- "end of vm stack" sentinel           .
+ *          +-&gt; |     FP=0      |   &lt;-- "end of vm stack" sentinel           .
  *          |   +---------------+                                             . caller's frame
- *          |   |    cmid=-1    |   <-- "invisible method" id                .
+ *          |   |    cmid=-1    |   &lt;-- "invisible method" id                .
  *          |   +---------------+                                          ---.
  *          |   |   parameter0  |  \                                        | .
  *          |   +---------------+   \ parameter area                        | .
  *          |   |   parameter1  |   /  (== caller's operand stack area)     | .
  *   ---    |   +---------------+  /                                        |...
- *    |     |   |   saved IP    |  <-- return address (in caller)           |
+ *    |     |   |   saved IP    |  &lt;-- return address (in caller)           |
  *    |      \  +---------------+                                           |
- *  header FP-> |   saved FP    |  <-- this frame's caller's frame          |
+ *  header FP-&gt; |   saved FP    |  &lt;-- this frame's caller's frame          |
  *    |         +---------------+                                           |
- *    |         |    cmid       |  <-- this frame's compiledmethod id       |
+ *    |         |    cmid       |  &lt;-- this frame's compiledmethod id       |
  *   ---        +---------------+                                           |
  *    |         |               |                                           |
- *    |         |  Spill Area   |  <-- spills and other method-specific     |
+ *    |         |  Spill Area   |  &lt;-- spills and other method-specific     |
  *    |         |     ...       |      compiler-managed storage             |
  *    |         +---------------+                                           |
  *    |         |   Saved FP    |     only SaveVolatile Frames              |
@@ -111,7 +113,7 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *    |         |     ...       |     only SaveVolatile Frames              |
  *    |         |  VolGPR[n]    |                                           |
  *    |         +---------------+                                           |
- *   body       |  NVolGPR[k]   |  <-- info.getUnsignedNonVolatileOffset()  | frame
+ *   body       |  NVolGPR[k]   |  &lt;-- info.getUnsignedNonVolatileOffset()  | frame
  *    |         |     ...       |   k == info.getFirstNonVolatileGPR()      |
  *    |         |  NVolGPR[n]   |                                           |
  *    |         +---------------+                                           |
@@ -121,14 +123,14 @@ import static org.jikesrvm.ia32.BaselineConstants.WORDSIZE;
  *    |         +---------------+                                           |
  *    |         |   parameter0  |  \                                        |
  *    |         +---------------+   \_parameters to callee frame            |
- *    |    SP-> |   parameter1  |   /                                       |
+ *    |    SP-&gt; |   parameter1  |   /                                       |
  *    |         +---------------+  /                                        |
  *    |         |     ...       |                                           |
  *   ---        +===============+                                          ---
  *              |     ...       |
  *              +---------------+
- * stackLimit-> |     ...       | \
- *              +---------------+  \_guard region for detecting & processing stack overflow
+ * stackLimit-&gt; |     ...       | \
+ *              +---------------+  \_guard region for detecting &amp; processing stack overflow
  *              |     ...       |  /
  *              +---------------+ /
  *              |(object header)|

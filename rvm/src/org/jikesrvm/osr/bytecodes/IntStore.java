@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_istore;
 
 /**
  * BC_IntStore : {@code istore_<?>}, {@code istore}

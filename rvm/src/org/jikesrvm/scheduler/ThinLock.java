@@ -12,9 +12,23 @@
  */
 package org.jikesrvm.scheduler;
 
-import org.jikesrvm.VM;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_DEDICATED_U16_OFFSET;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_DEDICATED_U16_SHIFT;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_LOCK_COUNT_MASK;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_LOCK_COUNT_SHIFT;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_LOCK_COUNT_UNIT;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_LOCK_ID_MASK;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_LOCK_ID_SHIFT;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_STAT_BIASABLE;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_STAT_FAT;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_STAT_MASK;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_STAT_THIN;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_MASK;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_SHIFT;
+import static org.jikesrvm.objectmodel.ThinLockConstants.TL_UNLOCK_MASK;
+
 import org.jikesrvm.Services;
-import org.jikesrvm.objectmodel.ThinLockConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
@@ -28,7 +42,7 @@ import org.vmmagic.unboxed.Word;
  * Implementation of thin locks.
  */
 @Uninterruptible
-public final class ThinLock implements ThinLockConstants {
+public final class ThinLock {
 
   private static final boolean ENABLE_BIASED_LOCKING = true;
 

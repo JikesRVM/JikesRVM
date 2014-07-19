@@ -113,7 +113,7 @@ public final class DynamicLibrary {
     Iterator<DynamicLibrary> libs = dynamicLibraries.valueIterator();
     while(libs.hasNext()) {
       DynamicLibrary lib = libs.next();
-      if (lib.jniOnLoad == candidate) {
+      if (lib.jniOnLoad.EQ(candidate)) {
         return Address.zero();
       }
     }
@@ -129,7 +129,7 @@ public final class DynamicLibrary {
     Iterator<DynamicLibrary> libs = dynamicLibraries.valueIterator();
     while(libs.hasNext()) {
       DynamicLibrary lib = libs.next();
-      if (lib.jniOnUnload == candidate) {
+      if (lib.jniOnUnload.EQ(candidate)) {
         return Address.zero();
       }
     }

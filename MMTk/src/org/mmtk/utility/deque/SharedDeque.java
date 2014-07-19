@@ -12,9 +12,10 @@
  */
 package org.mmtk.utility.deque;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.RawPageSpace;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM;
@@ -30,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * of the deque.
  */
 @Uninterruptible
-public class SharedDeque extends Deque implements Constants {
+public class SharedDeque extends Deque {
   private static final boolean DISABLE_WAITING = true;
   private static final Offset NEXT_OFFSET = Offset.zero();
   private static final Offset PREV_OFFSET = Offset.fromIntSignExtend(BYTES_IN_ADDRESS);

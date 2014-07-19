@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mmtk.gcspy;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM;
@@ -29,7 +28,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class provides generally useful methods.
  */
-@Uninterruptible public class Util extends org.mmtk.vm.gcspy.Util implements Constants {
+@Uninterruptible public class Util extends org.mmtk.vm.gcspy.Util {
   private static final boolean DEBUG_ = false;
   public static final int KILOBYTE = 1024;
   public static final int MEGABYTE = 1024 * 1024;

@@ -190,4 +190,8 @@ import org.vmmagic.pragma.*;
 
   /** @return {@code true} if this Plan requires a header bit for object logging */
   public boolean needsLogBitInHeader() { return false; }
+
+  /** @return the maximum number of GC threads supported by this plan.
+   * The return value must be a positive number. */
+  public int maxNumGCThreads() { return Integer.MAX_VALUE; }
 }

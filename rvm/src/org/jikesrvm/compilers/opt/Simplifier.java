@@ -3566,9 +3566,9 @@ public abstract class Simplifier extends IRTools {
    * operators to a canoncial form.  The following forms are considered
    * canonical:
    * <ul>
-   * <li> <code> Reg = Reg <op> Reg </code>
-   * <li> <code> Reg = Reg <op> Constant </code>
-   * <li> <code> Reg = Constant <op> Constant </code>
+   * <li> <code> Reg = Reg &lt;op&gt; Reg </code>
+   * <li> <code> Reg = Reg &lt;op&gt; Constant </code>
+   * <li> <code> Reg = Constant &lt;op&gt; Constant </code>
    * </ul>
    */
   private static void canonicalizeCommutativeOperator(Instruction instr) {
@@ -3580,7 +3580,7 @@ public abstract class Simplifier extends IRTools {
   }
 
   /**
-   * Compute 2 raised to the power v, 0 <= v <= 31
+   * Compute 2 raised to the power v, 0 &lt;= v &lt;= 31
    */
   private static int PowerOf2(int v) {
     int i = 31;

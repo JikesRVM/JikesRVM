@@ -32,7 +32,7 @@ import org.vmmagic.pragma.*;
  * This class extends a simple semi-space collector to instrument it for
  * GCspy. <p>
  *
- * See the Jones & Lins GC book, section 2.2 for an overview of the basic
+ * See the Jones &amp; Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
  * (LOS), and an uncollected "immortal" space.<p>
  *

@@ -99,7 +99,7 @@ public class LocalCopyProp extends CompilerPhase {
                   value = value.copy();
                   if (value instanceof RegisterOperand) {
                     // preserve program point specific typing!
-                    ((RegisterOperand) value).copyType(rUse);
+                    ((RegisterOperand) value).copyTypeFrom(rUse);
                   }
                   s.replaceOperand(use, value);
                 }

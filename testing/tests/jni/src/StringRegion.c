@@ -124,9 +124,9 @@ Java_StringRegion_testStringCritical(JNIEnv * env, jclass cls, jstring str)
         ++trouble;
     }
 
-//    if ( isCopy ) {
-//        fprintf(stderr, "> GetStringCritical returned a copy; should not happen!!\n");
-//    }
+    if ( isCopy ) {
+        fprintf(stderr, "> GetStringCritical returned a copy; should not happen!!\n");
+    }
 
     for (i = 0; i < nchars; ++i) {
         int sampIdx = i;

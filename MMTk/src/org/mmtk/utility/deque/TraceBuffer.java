@@ -12,10 +12,22 @@
  */
 package org.mmtk.utility.deque;
 
+import static org.mmtk.utility.Constants.BYTES_IN_ADDRESS;
+import static org.mmtk.utility.TracingConstants.TRACE_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_ARRAY_SET;
+import static org.mmtk.utility.TracingConstants.TRACE_BOOT_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_DEATH;
+import static org.mmtk.utility.TracingConstants.TRACE_EXACT_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_EXACT_IMMORTAL_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_FIELD_SET;
+import static org.mmtk.utility.TracingConstants.TRACE_GCEND;
+import static org.mmtk.utility.TracingConstants.TRACE_GCSTART;
+import static org.mmtk.utility.TracingConstants.TRACE_IMMORTAL_ALLOC;
+import static org.mmtk.utility.TracingConstants.TRACE_STATIC_SET;
+import static org.mmtk.utility.TracingConstants.TRACE_TIB_SET;
+
 import org.mmtk.utility.Log;
-import org.mmtk.utility.TracingConstants;
 import org.mmtk.vm.VM;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -24,8 +36,7 @@ import org.vmmagic.unboxed.*;
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of tracing data
  * and bulk processing of the buffer.
  */
-@Uninterruptible public class TraceBuffer extends LocalQueue
-  implements Constants, TracingConstants {
+@Uninterruptible public class TraceBuffer extends LocalQueue {
 
   /***********************************************************************
    *

@@ -13,7 +13,6 @@
 package org.mmtk.utility.heap;
 
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.options.ProtectOnRelease;
 import org.mmtk.utility.options.Options;
 
@@ -36,7 +35,7 @@ import org.vmmagic.unboxed.*;
  * monotonically before freeing the entire space and starting over).
  */
 @Uninterruptible
-public abstract class PageResource implements Constants {
+public abstract class PageResource {
 
   /****************************************************************************
    *

@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.adaptive.controller;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+
 import java.util.Enumeration;
 import java.util.Vector;
 import org.jikesrvm.VM;
@@ -233,7 +235,7 @@ public class Controller implements Callbacks.ExitMonitor,
   public static void processCommandLineArg(String arg) {
     if (!options.processAsOption("-X:aos", arg)) {
       VM.sysWrite("vm: illegal adaptive configuration directive \"" + arg + "\" specified as -X:aos:" + arg + "\n");
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 

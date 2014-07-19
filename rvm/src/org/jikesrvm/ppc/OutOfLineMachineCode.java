@@ -12,14 +12,20 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
 import org.jikesrvm.jni.ppc.JNIStackframeLayoutConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -36,7 +42,7 @@ import org.vmmagic.unboxed.Offset;
  * via a jtoc offset (obtained from Entrypoints.XXXInstructionsMethod).
  */
 public abstract class OutOfLineMachineCode
-    implements BaselineConstants, JNIStackframeLayoutConstants, AssemblerConstants {
+    implements BaselineConstants, JNIStackframeLayoutConstants {
   public static void init() {
     reflectiveMethodInvokerInstructions = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions = generateSaveThreadStateInstructions();
@@ -47,21 +53,21 @@ public abstract class OutOfLineMachineCode
   }
 
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray reflectiveMethodInvokerInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray saveThreadStateInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray threadSwitchInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray restoreHardwareExceptionStateInstructions;
   @SuppressWarnings("unused")
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray saveVolatilesInstructions;
-  // Accessed via EntryPoints
+  @Entrypoint
   private static ArchitectureSpecific.CodeArray restoreVolatilesInstructions;
 
   /** Machine code for reflective method invocation.

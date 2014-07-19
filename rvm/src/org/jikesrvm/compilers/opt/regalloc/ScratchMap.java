@@ -77,7 +77,7 @@ public final class ScratchMap {
 
     SymbolicInterval i = (SymbolicInterval) pending.get(r);
     i.end = end;
-    pending.remove(i);
+    pending.remove(r);
   }
 
   /**
@@ -165,8 +165,12 @@ public final class ScratchMap {
   }
 
   /**
-   * Note that at GC point s, the real value of register symb is cached in
-   * a dirty scratch register.
+   * Records that the real value of a symbolic register is cached in
+   * a dirty scratch register at a given instruction that is a GC point.
+   *
+   * @param s an instruction that is a GC point. Note: it is the caller's
+   *    responsibility to check this
+   * @param symb the symbolic register
    */
   public void markDirty(Instruction s, Register symb) {
     HashSet<Register> set = dirtyMap.get(s);
@@ -195,13 +199,14 @@ public final class ScratchMap {
    */
   @Override
   public String toString() {
-    String result = "";
+    StringBuilder result = new StringBuilder();
     for (ArrayList<Interval> v : map.values()) {
       for (Interval i : v) {
-        result += i + "\n";
+        result.append(i);
+        result.append("\n");
       }
     }
-    return result;
+    return result.toString();
   }
 
   /**
@@ -211,27 +216,27 @@ public final class ScratchMap {
     /**
      * The instruction before which the scratch range begins.
      */
-    Instruction begin;
+    protected Instruction begin;
     /**
      * The instruction before which the scratch range ends.
      */
-    Instruction end;
+    protected Instruction end;
     /**
      * The physical scratch register or register evicted.
      */
-    final Register scratch;
+    protected final Register scratch;
 
     /**
      * Initialize scratch register
      */
-    Interval(Register scratch) {
+    protected Interval(Register scratch) {
       this.scratch = scratch;
     }
 
     /**
      * Does this interval contain the instruction numbered n?
      */
-    final boolean contains(int n) {
+    protected final boolean contains(int n) {
       return (begin.scratch <= n && end.scratch > n);
     }
   }
@@ -242,11 +247,11 @@ public final class ScratchMap {
    *
    * Note that this interval must not span a basic block.
    */
-  static final class SymbolicInterval extends Interval {
+  private static final class SymbolicInterval extends Interval {
     /**
      * The symbolic register
      */
-    final Register symbolic;
+    private final Register symbolic;
 
     SymbolicInterval(Register symbolic, Register scratch) {
       super(scratch);
@@ -270,7 +275,7 @@ public final class ScratchMap {
    *
    * Note that this interval must not span a basic block.
    */
-  static final class PhysicalInterval extends Interval {
+  private static final class PhysicalInterval extends Interval {
     PhysicalInterval(Register scratch) {
       super(scratch);
     }

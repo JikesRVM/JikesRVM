@@ -17,6 +17,7 @@ import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 
 import static org.jikesrvm.SizeConstants.BYTES_IN_WORD;
@@ -42,6 +43,7 @@ public abstract class MultianewarrayHelper {
    *
    * See also: bytecode 0xc5 ("multianewarray") in BaselineCompilerImpl
    */
+  @Entrypoint
   static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     if (numDimensions == 2) {

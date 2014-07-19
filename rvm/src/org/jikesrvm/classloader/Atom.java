@@ -55,7 +55,7 @@ import org.vmmagic.unboxed.Offset;
 public final class Atom {
 
   /**
-   * Used to canonicalize Atoms: possibly non-canonical Atom => Atom
+   * Used to canonicalize Atoms: possibly non-canonical Atom =&gt; Atom
    */
   private static final ImmutableEntryHashMapRVM<Atom, Atom> dictionary =
     new ImmutableEntryHashMapRVM<Atom, Atom>(12000);
@@ -403,8 +403,8 @@ public final class Atom {
 
   /**
    * Is "this" atom a reserved member name?
-   * Note: Sun has reserved all member names starting with '<' for future use.
-   *       At present, only <init> and <clinit> are used.
+   * Note: Sun has reserved all member names starting with '&lt;' for future use.
+   *       At present, only {@code <init>} and {@code <clinit>} are used.
    */
   @Uninterruptible
   @Pure

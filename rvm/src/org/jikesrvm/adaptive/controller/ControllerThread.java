@@ -44,7 +44,7 @@ import org.vmmagic.pragma.NonMoving;
  *   <li>optimized executables;
  *   <li>static information about a method; or
  *   <li>all of the above.
- * <ul>
+ * </ul>
  */
 @NonMoving
 public final class ControllerThread extends SystemThread {

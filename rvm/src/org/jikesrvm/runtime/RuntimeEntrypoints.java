@@ -12,16 +12,22 @@
  */
 package org.jikesrvm.runtime;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.Registers;
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.Services;
+import org.jikesrvm.VM;
+import org.jikesrvm.classloader.DynamicTypeCheck;
+import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
@@ -76,7 +82,7 @@ import org.vmmagic.unboxed.Offset;
  *   <li> "fp" values that point to interior of "stack" objects
  * </ul>
  */
-public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.StackframeLayoutConstants {
+public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayoutConstants {
 
   //  private static final boolean traceAthrow = false;
   private static final boolean traceAthrow = true;
@@ -228,8 +234,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * May a variable of type "lhs" be assigned a value of type "rhs"?
    * @param lhs type of variable
    * @param rhs type of value
-   * @return true  --> assignment is legal
-   *           false --> assignment is illegal
+   * @return true  --&gt; assignment is legal
+   *           false --&gt; assignment is illegal
    * <strong>Assumption</strong>: caller has already tested "trivial" case
    * (exact type match)
    *             so we need not repeat it here
@@ -585,7 +591,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    * status word.
    *
    * @return object's hashcode.
-   * @see java.lang.Object#hashCode().
+   * @see java.lang.Object#hashCode
    */
   public static int getObjectHashCode(Object object) {
     return ObjectModel.getObjectHashCode(object);
@@ -643,7 +649,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   /**
    * Deliver a software exception to current java thread.
    * @param exceptionObject exception object to deliver
-   * (null --> deliver NullPointerException).
+   * (null --&gt; deliver NullPointerException).
    * does not return
    * (stack is unwound and execution resumes in a catch block)
    *
@@ -679,7 +685,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *           which saves the register state of the trap site into the
    *           "exceptionRegisters" field of the current
    *           Thread object.
-   *           The signal handler also inserts a <hardware trap> frame
+   *           The signal handler also inserts a &lt;hardware trap&gt; frame
    *           onto the stack immediately above this frame, for use by
    *           HardwareTrapGCMapIterator during garbage collection.
    *
@@ -807,7 +813,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    *
    * @param objToUnlock object to unlock
    * @param objToThrow exception object to deliver
-   * ({@code null} --> deliver NullPointerException).
+   * ({@code null} --&gt; deliver NullPointerException).
    */
   @NoInline
   @Entrypoint
@@ -1126,7 +1132,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
   }
 
   /**
-   * Unwind stack frame for an <invisible method>.
+   * Unwind stack frame for an &lt;invisible method&gt;.
    * See also: ExceptionDeliverer.unwindStackFrame()
    * <p>
    * !!TODO: Could be a reflective method invoker frame.

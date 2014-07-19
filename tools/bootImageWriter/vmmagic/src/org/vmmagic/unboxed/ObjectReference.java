@@ -13,7 +13,6 @@
 package org.vmmagic.unboxed;
 
 import org.vmmagic.pragma.*;
-import org.jikesrvm.SizeConstants;
 
 /**
  * The object reference type is used by the runtime system and collector to
@@ -24,7 +23,7 @@ import org.jikesrvm.SizeConstants;
  * pure Java should be allowed on Object.
  */
 @Uninterruptible
-public final class ObjectReference extends ArchitecturalWord implements SizeConstants {
+public final class ObjectReference extends ArchitecturalWord {
   ObjectReference(int value) {
     super(value, true);
   }

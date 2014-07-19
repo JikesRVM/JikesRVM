@@ -12,8 +12,9 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.BITS_IN_INT;
+
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 
@@ -35,7 +36,7 @@ import org.vmmagic.unboxed.*;
  * compiler can perform this decoding at compile time and produce
  * optimal code for the test.
  */
-@Uninterruptible public class SpaceDescriptor implements Constants {
+@Uninterruptible public class SpaceDescriptor {
 
   /****************************************************************************
    *

@@ -35,6 +35,7 @@
   <property name="build.results.file" value="${test.results.dir}/BuildResults.xml"/>
   <property name="test.report.file" value="${test.results.dir}/Report.xml"/>
   <property name="test.report.html" value="${test.results.dir}/Report.html"/>
+  <property name="test.report.dna.xml" value="${test.results.dir}/CompilerDNA.xml"/>
   <property name="temp.aggregate.file" value="${test.results.dir}/Aggregate.xml"/>
 
   <property name="test.scripts.dir" value="${jikesrvm.dir}/testing/tests"/>
@@ -45,6 +46,12 @@
   <property name="cattrack.upload.account" value="regression@jikesrvm.anu.edu.au"/>
   <property name="cattrack.upload.incoming.dir" value="/home/regression/incoming"/>
 
+  <condition property="compiler-dna.run">
+    <or>
+      <equals arg1="${test-run.name}" arg2="compiler-dna"/>
+      <equals arg1="${test-run.name}" arg2="compiler-dna-dacapo-2006-10-MR2"/>
+    </or>
+  </condition>
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
@@ -229,6 +236,9 @@
                   <property name="test.mode" value="${test.config.@{tag}.mode}"/>
                   <property name="test.group.name" value="@{test}"/>
                   <property name="test.config.${test.config.@{tag}.configuration}.extra.rvm.args" value="${test.config.@{tag}.extra.rvm.args}"/>
+                  <!-- Pass down information about compiler-dna status to tests so that they can
+                       do special handling if required (e.g. exclude tests that are not supported on all platforms) -->
+                  <property name="test.compiler-dna" value="${compiler-dna.run}"/>
                   <propertyset>
                     <propertyref prefix="exclude."/>
                   </propertyset>
@@ -368,11 +378,29 @@
 
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
+  <!-- *              Targets for generating a compiler DNA report                * -->
+  <!-- *                                                                          * -->
+  <!-- **************************************************************************** -->
+
+  <target name="gen-report-compiler-dna" depends="gen-xml-report" if="compiler-dna.run">
+    <xslt in="${test.report.file}"
+          out="${test.report.dna.xml}"
+          style="${jikesrvm.dir}/build/testing/report2dna.xsl"
+          force="true">
+      <outputproperty name="method" value="xml"/>
+      <outputproperty name="standalone" value="yes"/>
+      <outputproperty name="encoding" value="US-ASCII"/>
+      <outputproperty name="indent" value="yes"/>
+    </xslt>
+  </target>
+
+  <!-- **************************************************************************** -->
+  <!-- *                                                                          * -->
   <!-- *                  Targets for generating a simple report                  * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="gen-report-html" depends="archive">
+  <target name="gen-report-html" depends="archive,gen-report-compiler-dna">
     <xslt in="${test.report.file}"
           out="${test.report.html}"
           style="${jikesrvm.dir}/build/testing/report2html.xsl"

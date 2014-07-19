@@ -12,17 +12,18 @@
  */
 package org.jikesrvm.compilers.opt.regalloc.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.IA32_MOV_opcode;
+
 import java.util.Enumeration;
 
-import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.MIR_Move;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.regalloc.GenericRegisterPreferences;
 
-public class RegisterPreferences extends GenericRegisterPreferences implements Operators {
+public class RegisterPreferences extends GenericRegisterPreferences {
 
   @Override
   public void initialize(IR ir) {

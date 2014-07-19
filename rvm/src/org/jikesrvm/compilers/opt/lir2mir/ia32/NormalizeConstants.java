@@ -12,13 +12,15 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.ia32;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.MATERIALIZE_FP_CONSTANT;
+
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.Binary;
-import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
+import org.jikesrvm.compilers.opt.ir.Load;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ClassConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.CodeConstantOperand;
@@ -40,7 +42,7 @@ import org.vmmagic.unboxed.Offset;
  * Normalize the use of constants in the LIR
  * to match the patterns supported in LIR2MIR.rules
  */
-public abstract class NormalizeConstants implements Operators {
+public abstract class NormalizeConstants {
 
   /**
    * Only thing we do for IA32 is to restrict the usage of

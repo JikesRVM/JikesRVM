@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.adaptive.recompilation.instrumentation;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.adaptive.util.AOSOptions;
 import org.vmmagic.pragma.Uninterruptible;
 
@@ -22,7 +21,7 @@ import org.vmmagic.pragma.Uninterruptible;
  *  (see InstrumentationSamplingFramework)
  * */
 @Uninterruptible
-public final class CounterBasedSampling implements Constants {
+public final class CounterBasedSampling {
   static final boolean DEBUG = false;
 
   /**

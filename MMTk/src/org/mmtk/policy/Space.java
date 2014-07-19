@@ -12,6 +12,8 @@
  */
 package org.mmtk.policy;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.heap.Map;
@@ -21,7 +23,6 @@ import org.mmtk.utility.heap.SpaceDescriptor;
 import org.mmtk.utility.heap.VMRequest;
 import org.mmtk.utility.options.Options;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Constants;
 
 import org.mmtk.vm.VM;
 
@@ -44,7 +45,7 @@ import org.vmmagic.unboxed.*;
  *
  */
 @Uninterruptible
-public abstract class Space implements Constants {
+public abstract class Space {
 
   /****************************************************************************
    *
@@ -573,7 +574,7 @@ public abstract class Space implements Constants {
         for(Address a = space.headDiscontiguousRegion; !a.isZero(); a = Map.getNextContiguousRegion(a)) {
           Log.write(a); Log.write("->");
           Log.write(a.plus(Map.getContiguousRegionSize(a).minus(1)));
-          if (Map.getNextContiguousRegion(a) != Address.zero())
+          if (!Map.getNextContiguousRegion(a).isZero())
             Log.write(", ");
         }
         Log.writeln("]");
@@ -645,10 +646,12 @@ public abstract class Space implements Constants {
     Address regionStart = Space.getDiscontigStart();
     Address regionEnd = Space.getDiscontigEnd();
     int pages = regionEnd.diff(regionStart).toInt()>>LOG_BYTES_IN_PAGE;
-    Log.write("Mapping discontiguous spaces ");
-    Log.write(regionStart);
-    Log.write("->");
-    Log.writeln(regionEnd.minus(1));
+    if (Options.verbose.getValue() > 2) {
+      Log.write("Mapping discontiguous spaces ");
+      Log.write(regionStart);
+      Log.write("->");
+      Log.writeln(regionEnd.minus(1));
+    }
     Mmapper.ensureMapped(getDiscontigStart(), pages);
   }
 

@@ -12,11 +12,13 @@
  */
 package org.jikesrvm.jni.ia32;
 
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
@@ -29,8 +31,8 @@ import org.jikesrvm.jni.JNICompiledMethod;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
-import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.Statics;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -65,7 +67,7 @@ import org.vmmagic.unboxed.Offset;
  * <li>Convert a reference result (currently a JNI ref) into a true reference</li>
  * <li>Release JNI refs</li>
  * <li>Restore stack and place result in register</li>
- * <ol>
+ * </ol>
  *
  * Prologue generation from C to Java:
  * <ol>
@@ -109,7 +111,7 @@ public abstract class JNICompiler implements BaselineConstants {
   /**
    * Stack frame location for saved JNIEnvironment.JNITopJavaFP that
    * will be clobbered by a transition from Java to C.  Only used in
-   * the prologue & epilogue for JNIFunctions.
+   * the prologue &amp; epilogue for JNIFunctions.
    */
   private static final Offset SAVED_JAVA_FP_OFFSET = Offset.fromIntSignExtend(STACKFRAME_BODY_OFFSET);
 
@@ -141,7 +143,7 @@ public abstract class JNICompiler implements BaselineConstants {
    * <li>Convert a reference result (currently a JNI ref) into a true reference</li>
    * <li>Release JNI refs</li>
    * <li>Restore stack and place result in register</li>
-   * <ol>
+   * </ol>
    */
   public static synchronized CompiledMethod compile(NativeMethod method) {
     // Meaning of constant offset into frame (assuming 4byte word size):
@@ -573,21 +575,21 @@ public abstract class JNICompiler implements BaselineConstants {
    *            Stack on entry            Stack at end of prolog after call
    *             high memory                       high memory
    *            |            |                   |            |
-   *    EBP ->  |saved FP    |                   |saved FP    |
+   *    EBP -&gt;  |saved FP    |                   |saved FP    |
    *            |  ...       |                   |  ...       |
    *            |            |                   |            |
    *            |arg n-1     |                   |arg n-1     |
    * native     |  ...       |                   |  ...       |
    * caller     |arg 0       | JNIEnv*           |arg 0       | JNIEnvironment
-   *    ESP ->  |return addr |                   |return addr |
-   *            |            |           EBP ->  |saved FP    | outer most native frame pointer
+   *    ESP -&gt;  |return addr |                   |return addr |
+   *            |            |           EBP -&gt;  |saved FP    | outer most native frame pointer
    *            |            |                   |methodID    | normal MethodID for JNI function
    *            |            |                   |saved JavaFP| offset to preceeding java frame
    *            |            |                   |saved nonvol| to be used for nonvolatile storage
    *            |            |                   |  ...       |   including ebp on entry
    *            |            |                   |arg 0       | copied in reverse order (JNIEnvironment)
    *            |            |                   |  ...       |
-   *            |            |           ESP ->  |arg n-1     |
+   *            |            |           ESP -&gt;  |arg n-1     |
    *            |            |                   |            | normally compiled Java code continue
    *            |            |                   |            |
    *            |            |                   |            |
@@ -781,7 +783,7 @@ public abstract class JNICompiler implements BaselineConstants {
       T1);
 
     // if we succeeded, move on, else go into slow path
-    ForwardReference doneLeaveJNIRef = asm.forwardJcc(Assembler.EQ);
+    ForwardReference doneLeaveJNIRef = asm.forwardJcc(EQ);
 
     // make the slow call
     asm.emitCALL_Abs(
@@ -916,7 +918,7 @@ public abstract class JNICompiler implements BaselineConstants {
       T1);
 
     // if success, skip the slow path call
-    ForwardReference doneEnterJNIRef = asm.forwardJcc(Assembler.EQ);
+    ForwardReference doneEnterJNIRef = asm.forwardJcc(EQ);
 
     // fast path failed, make the call
     asm.emitCALL_Abs(

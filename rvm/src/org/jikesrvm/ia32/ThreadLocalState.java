@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.ia32;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.assembler.ia32.Assembler;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
@@ -64,7 +65,11 @@ public abstract class ThreadLocalState {
    * @param reg number of the register supplying the new value
    */
   public static void emitMoveRegToField(Assembler asm, Offset offset, GPR reg) {
-    asm.emitMOV_RegDisp_Reg(THREAD_REGISTER, offset, reg);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Reg(THREAD_REGISTER, offset, reg);
+    } else {
+      asm.emitMOV_RegDisp_Reg_Quad(THREAD_REGISTER, offset, reg);
+    }
   }
 
   /**
@@ -76,7 +81,11 @@ public abstract class ThreadLocalState {
    * @param imm immediate value
    */
   public static void emitMoveImmToField(Assembler asm, Offset offset, int imm) {
-    asm.emitMOV_RegDisp_Imm(THREAD_REGISTER, offset, imm);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Imm(THREAD_REGISTER, offset, imm);
+    } else {
+      asm.emitMOV_RegDisp_Imm_Quad(THREAD_REGISTER, offset, imm);
+    }
   }
 
   /**
@@ -88,7 +97,11 @@ public abstract class ThreadLocalState {
    * @param offset of field in the <code>RVMThread</code> object
    */
   public static void emitMoveFieldToReg(Assembler asm, GPR dest, Offset offset) {
-    asm.emitMOV_Reg_RegDisp(dest, THREAD_REGISTER, offset);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(dest, THREAD_REGISTER, offset);
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(dest, THREAD_REGISTER, offset);
+    }
   }
 
   /**
@@ -100,7 +113,11 @@ public abstract class ThreadLocalState {
    * @param imm immediate value to compare with
    */
   public static void emitCompareFieldWithImm(Assembler asm, Offset offset, int imm) {
-    asm.emitCMP_RegDisp_Imm(THREAD_REGISTER, offset, imm);
+    if (VM.BuildFor32Addr) {
+      asm.emitCMP_RegDisp_Imm(THREAD_REGISTER, offset, imm);
+    } else {
+      asm.emitCMP_RegDisp_Imm_Quad(THREAD_REGISTER, offset, imm);
+    }
   }
 
   /**
@@ -113,7 +130,11 @@ public abstract class ThreadLocalState {
    */
   public static void emitCompareAndExchangeField(Assembler asm, Offset offset, GPR srcReg) {
     asm.emitLockNextInstruction();
-    asm.emitCMPXCHG_RegDisp_Reg(THREAD_REGISTER, offset, srcReg);
+    if (VM.BuildFor32Addr) {
+      asm.emitCMPXCHG_RegDisp_Reg(THREAD_REGISTER, offset, srcReg);
+    } else {
+      asm.emitCMPXCHG_RegDisp_Reg_Quad(THREAD_REGISTER, offset, srcReg);
+    }
   }
 
   /**
@@ -124,7 +145,11 @@ public abstract class ThreadLocalState {
    * @param offset of field in the <code>RVMThread</code> object
    */
   public static void emitDecrementField(Assembler asm, Offset offset) {
-    asm.emitDEC_RegDisp(THREAD_REGISTER, offset);
+    if (VM.BuildFor32Addr) {
+      asm.emitDEC_RegDisp(THREAD_REGISTER, offset);
+    } else {
+      asm.emitDEC_RegDisp_Quad(THREAD_REGISTER, offset);
+    }
   }
 
   /**
@@ -178,7 +203,11 @@ public abstract class ThreadLocalState {
    * @param offset offset
    */
   public static void emitStoreThread(Assembler asm, GPR base, Offset offset) {
-    asm.emitMOV_RegDisp_Reg(base, offset, THREAD_REGISTER);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_RegDisp_Reg(base, offset, THREAD_REGISTER);
+    } else {
+      asm.emitMOV_RegDisp_Reg_Quad(base, offset, THREAD_REGISTER);
+    }
   }
 
   /**
@@ -190,7 +219,11 @@ public abstract class ThreadLocalState {
    * @param offset offset
    */
   public static void emitLoadThread(Assembler asm, GPR base, Offset offset) {
-    asm.emitMOV_Reg_RegDisp(THREAD_REGISTER, base, offset);
+    if (VM.BuildFor32Addr) {
+      asm.emitMOV_Reg_RegDisp(THREAD_REGISTER, base, offset);
+    } else {
+      asm.emitMOV_Reg_RegDisp_Quad(THREAD_REGISTER, base, offset);
+    }
   }
 }
 

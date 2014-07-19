@@ -29,7 +29,7 @@ final class InliningBlockLE extends BasicBlockLE {
 
   @Override
   public String toString() {
-    return "(Inline method " + gc.method + ")";
+    return "(Inline method " + gc.getMethod() + ")";
   }
 
   /**
@@ -47,7 +47,7 @@ final class InliningBlockLE extends BasicBlockLE {
    * method to be called very infrequently.
    */
   void deleteAllOutEdges() {
-    for (BasicBlock bb = gc.cfg.firstInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
+    for (BasicBlock bb = gc.getCfg().firstInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       bb.deleteOut();
     }
   }

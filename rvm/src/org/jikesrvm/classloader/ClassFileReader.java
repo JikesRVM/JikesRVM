@@ -13,10 +13,16 @@
 
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_SHORT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Uninterruptible;
@@ -27,7 +33,7 @@ import org.vmmagic.unboxed.Offset;
  * and create the appropriate instance of an RVMClass or UnboxedType.
  * Also low-level support for our internal constant pool format.
  */
-public class ClassFileReader implements Constants, ClassLoaderConstants {
+public class ClassFileReader {
 
   /**
    * Parse and return the constant pool in a class file
@@ -326,7 +332,7 @@ public class ClassFileReader implements Constants, ClassLoaderConstants {
   /**
    * Return the class initializer method among the declared methods of the class
    * @param declaredMethods
-   * @return the class initializer method <cinit> of the class
+   * @return the class initializer method {@code <clinit>} of the class
    */
   static RVMMethod getClassInitializerMethod(RVMMethod[] declaredMethods) {
     for (RVMMethod method : declaredMethods) {

@@ -17,7 +17,7 @@ import org.jikesrvm.Configuration;
 /**
  * Architecture specific constants.
  */
-public interface ArchConstants extends StackframeLayoutConstants, RegisterConstants, TrapConstants {
+public interface ArchConstants extends StackframeLayoutConstants, RegisterConstants {
   boolean SSE2_BASE = Configuration.BuildForSSE2;
   boolean SSE2_FULL = Configuration.BuildForSSE2Full;
 }

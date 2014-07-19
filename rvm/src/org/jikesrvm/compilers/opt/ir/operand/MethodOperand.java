@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.Offset;
  * Refers to a method. Used for method call instructions.
  * Contains a RVMMethod (which may or may not have been resolved yet.)
  * <p>
- * TODO: Create subclasses of MethodOperand for internal & specialized
+ * TODO: Create subclasses of MethodOperand for internal &amp; specialized
  * targets.
  *
  * @see Operand

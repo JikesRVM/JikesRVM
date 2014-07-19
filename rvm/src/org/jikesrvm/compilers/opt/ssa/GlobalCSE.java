@@ -53,7 +53,7 @@ public final class GlobalCSE extends CompilerPhase {
   private DominatorTree dominator;
   /**
    * Available expressions. From Muchnick, "an expression
-   * <em>exp</em>is said to be </em>available</em> at the entry to a
+   * <em>exp</em>is said to be <em>available</em> at the entry to a
    * basic block if along every control-flow path from the entry block
    * to this block there is an evaluation of exp that is not
    * subsequently killed by having one or more of its operands

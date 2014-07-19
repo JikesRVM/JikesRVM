@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
+import static org.jikesrvm.compilers.opt.lir2mir.@_ARCH_@.BURS_Definitions.*;
+
 import org.jikesrvm.*;
 import org.jikesrvm.compilers.opt.*;
 import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
@@ -22,12 +25,14 @@ import org.jikesrvm.compilers.opt.ir.operand.@_ARCH_@.*;
 /**
  * An BURS_TreeNode is a node in a binary tree that is fed
  * as input to BURS.
- * Machine-generated, do not edit.
+ * <p>
+ * Machine-generated, do not edit! If you need to make changes
+ * to this file, edit BURS_TreeNode.template.
  *
  * @see org.jikesrvm.compilers.opt.lir2mir.BURS
  * @see BURS_STATE
  */
-public class BURS_TreeNode implements BURS_Definitions {
+public class BURS_TreeNode {
 
   public ArchitectureSpecificOpt.BURS_TreeNode child1;
   public ArchitectureSpecificOpt.BURS_TreeNode child2;
@@ -45,10 +50,10 @@ public class BURS_TreeNode implements BURS_Definitions {
   private final char opcode;
 
   /**
-   * nonterminal > 0 ==> this tree node is the
+   * nonterminal &gt; 0 ==&gt; this tree node is the
    * root of a "supernode"; the value of nonterminal
    *  identifies the matching non-terminal
-   * nonterminal = 0 ==> this tree node is NOT the
+   * nonterminal = 0 ==&gt; this tree node is NOT the
    * root of a "supernode".
    */
   private byte nonterminal;
@@ -123,7 +128,7 @@ public class BURS_TreeNode implements BURS_Definitions {
   }
 
   public final boolean isREGISTERNode() {
-    return getOpcode() == Operators.REGISTER_opcode;
+    return getOpcode() == REGISTER_opcode;
   }
 
 /**** remainder will be inserted by the BURS generator *********/

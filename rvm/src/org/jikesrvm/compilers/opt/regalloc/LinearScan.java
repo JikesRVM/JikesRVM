@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,11 +25,11 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
 import org.jikesrvm.ArchitectureSpecificOpt.StackManager;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
@@ -49,9 +51,9 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.GraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
-import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.LocalRegPair;
 import org.jikesrvm.osr.MethodVariables;
+import org.jikesrvm.osr.OSRConstants;
 import org.jikesrvm.osr.VariableMapElement;
 import org.vmmagic.unboxed.Word;
 
@@ -250,7 +252,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   }
 
   public static final class LinearScanPhase extends CompilerPhase
-      implements PhysicalRegisterConstants, Operators {
+      implements PhysicalRegisterConstants {
 
     /**
      * An object which manages spill location assignments.
@@ -1702,7 +1704,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   /**
    * phase to compute linear scan intervals.
    */
-  public static final class IntervalAnalysis extends CompilerPhase implements Operators {
+  public static final class IntervalAnalysis extends CompilerPhase {
     /**
      * the governing ir
      */
@@ -2452,7 +2454,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   /**
    * Insert Spill Code after register assignment.
    */
-  static final class SpillCode extends CompilerPhase implements Operators {
+  static final class SpillCode extends CompilerPhase {
     /**
      * Return this instance of this phase. This phase contains no
      * per-compilation instance fields.
@@ -2596,7 +2598,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
               setRealPosition(ir, tuple, sym_reg);
 
               // get another half part of long register
-              if (VM.BuildFor32Addr && (tuple.typeCode == OSRConstants.LongTypeCode)) {
+              if (VM.BuildFor32Addr && (tuple.typeCode == LongTypeCode)) {
 
                 LocalRegPair other = tuple._otherHalf;
                 Operand other_op = other.operand;
@@ -2618,7 +2620,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
               */
             } else if (op.isIntConstant()) {
               setTupleValue(tuple, OSRConstants.ICONST, ((IntConstantOperand) op).value);
-              if (VM.BuildFor32Addr && (tuple.typeCode == OSRConstants.LongTypeCode)) {
+              if (VM.BuildFor32Addr && (tuple.typeCode == LongTypeCode)) {
                 LocalRegPair other = tuple._otherHalf;
                 Operand other_op = other.operand;
 

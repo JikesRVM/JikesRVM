@@ -106,7 +106,7 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  * </ul>
  * <p>
  * Example:
- * <listing>
+ * <pre>
  *   for (int t1=0; t1 &lt; 100; t1++) {
  *      g1 = null_check   l0
  *      g2 = bounds_check l0, t1
@@ -117,11 +117,11 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *      g6 = guard_combine g4,g5
  *           astore t2, l1, t1, g6
  *   }
- * </listing>
+ * </pre>
  *
  * becomes:
  *
- * <listing>
+ * <pre>
  *   goto explicit_test_block
  * successor_to_loops:
  *   g1 = phi g1_1, g1_2
@@ -134,9 +134,9 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *   goto after_loop
  * explicit_test_block:
  *   if l0 == null (unlikely) goto sub_optimal_loop
- *   if 100 >= l0.length (unlikely) goto sub_optimal_loop
+ *   if 100 &gt;= l0.length (unlikely) goto sub_optimal_loop
  *   if l1 == null (unlikely) goto sub_optimal_loop
- *   if 100 >= l1.length (unlikely) goto sub_optimal_loop
+ *   if 100 &gt;= l1.length (unlikely) goto sub_optimal_loop
  *   goto optimal_loop
  * sub_optimal_loop:
  *   for (int t1_1=0; t1_1 &lt; 100; t1_1++) {
@@ -163,12 +163,12 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *   }
  *   goto successor_to_loops
  * after_loop:
- * </listing>
+ * </pre>
  *
  * The optimisation works on the Heap SSA form. A more accurate
  * example of the transformation would be:
  *
- * <listing>
+ * <pre>
  *   heap1 = ...; // previous heap state
  *   t1_1 = 0;
  *   if t1_1 &ge; 100 goto label2
@@ -185,11 +185,11 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *      heap3 = astore t2, l1, t1_2, g6
  *      t1_3 = t1_2 + 1
  *      if t1_3 &lt; 100 label1 *   label2:
- * </listing>
+ * </pre>
  *
  * becomes:
  *
- * <listing>
+ * <pre>
  *   heap1 = ...; // previous heap state
  *   t1_1 = 0;
  *   if t1_1 &ge; 100 goto label2
@@ -209,9 +209,9 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *   goto after_loop
  * explicit_test_block:
  *   g1_2 = if l0 == null (unlikely) goto sub_optimal_loop
- *   g2_2 = if 100 >= l0.length (unlikely) goto sub_optimal_loop
+ *   g2_2 = if 100 &gt;= l0.length (unlikely) goto sub_optimal_loop
  *   g4_2 = if l1 == null (unlikely) goto sub_optimal_loop
- *   g5_2 = if 100 >= l1.length (unlikely) goto sub_optimal_loop
+ *   g5_2 = if 100 &gt;= l1.length (unlikely) goto sub_optimal_loop
  *   goto optimal_loop
  * sub_optimal_loop:
  *   label1_1:
@@ -241,7 +241,7 @@ import org.jikesrvm.compilers.opt.util.GraphNode;
  *   goto successor_to_loops
  * after_loop:
  * label2:
- * </listing>
+ * </pre>
  */
 public final class LoopVersioning extends CompilerPhase {
   // -oO Debug variables Oo-

@@ -18,7 +18,6 @@ import org.mmtk.policy.ImmortalLocal;
 import org.mmtk.policy.LargeObjectLocal;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.alloc.BumpPointer;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM;
@@ -77,7 +76,7 @@ import org.vmmagic.unboxed.*;
  * @see Plan
  */
 @Uninterruptible
-public abstract class MutatorContext implements Constants {
+public abstract class MutatorContext {
 
   /****************************************************************************
    * Initialization
@@ -302,7 +301,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read a boolean. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -362,7 +361,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read a byte. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -422,7 +421,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read a char. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -482,7 +481,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read a short. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -543,7 +542,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read a int. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -626,7 +625,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read a long. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -709,7 +708,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read a float. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -769,7 +768,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read a double. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -829,7 +828,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read a Word. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -912,7 +911,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read an Address. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -995,7 +994,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read an Extent. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -1055,7 +1054,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read an Offset. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -1115,7 +1114,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read an object reference. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param src The object reference holding the field being read.
@@ -1175,7 +1174,7 @@ public abstract class MutatorContext implements Constants {
 
   /**
    * Read an object reference. Take appropriate read barrier action, and
-   * return the value that was read.<p> This is a <b>substituting<b>
+   * return the value that was read.<p> This is a <b>substituting</b>
    * barrier.  The call to this barrier takes the place of a load.<p>
    *
    * @param slot The address of the slot being read.

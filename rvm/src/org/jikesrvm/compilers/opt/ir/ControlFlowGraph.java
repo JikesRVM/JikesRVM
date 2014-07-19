@@ -60,7 +60,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
  * nodes in the doubly linked list ({@link SpaceEffGraphNode#next} and
  * {@link SpaceEffGraphNode#prev}) and the functions
  * ({@link #firstInCodeOrder()}, {@link #lastInCodeOrder()})
- * of <code>ControlFlowGraph<code>.
+ * of <code>ControlFlowGraph</code>.
  * Utility functions are provided here and in {@link SpaceEffGraphNode}
  * to manipulate these orderings.
  *

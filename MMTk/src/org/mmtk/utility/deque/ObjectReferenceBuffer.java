@@ -13,7 +13,6 @@
 package org.mmtk.utility.deque;
 
 import org.mmtk.plan.TransitiveClosure;
-import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -26,7 +25,7 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.TransitiveClosure
  */
 @Uninterruptible
-public abstract class ObjectReferenceBuffer extends TransitiveClosure implements Constants {
+public abstract class ObjectReferenceBuffer extends TransitiveClosure {
   /****************************************************************************
    *
    * Instance variables

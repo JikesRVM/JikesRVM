@@ -14,12 +14,11 @@ package org.mmtk.vm;
 
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
-@Uninterruptible public abstract class Scanning implements Constants {
+@Uninterruptible public abstract class Scanning {
   /**
    * Delegated scanning of a object, processing each pointer field
    * encountered.

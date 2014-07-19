@@ -10,13 +10,9 @@
  *  See the COPYRIGHT.txt file distributed with this work for information
  *  regarding copyright ownership.
  */
-/*
- * NOTE: Operator.java is mechanically generated from
- * Operator.template using the operator definitions in
- * OperatorList.dat and ARCH_IR_DIROperatorList.dat
- *
- * DO NOT MANUALLY EDIT THE JAVA FILE.
- */
+
+/* NOTE: this is a mechanically generated file, see class JavaDoc
+    for details */
 
 package org.jikesrvm.compilers.opt.ir;
 
@@ -36,6 +32,12 @@ import org.jikesrvm.compilers.opt.util.Bits;
  * A common coding practive is to implement the {@link Operators}
  * interface to be able to reference the IR operators within a class
  * without having to prepend 'Operators.' everywhere.
+ * <p>
+ * NOTE: Operator.java is mechanically generated from
+ * Operator.template using the operator definitions in
+ * OperatorList.dat and ARCH_IR_DIROperatorList.dat
+ * <p>
+ * DO NOT MANUALLY EDIT THE JAVA FILE. Instead, edit Operator.template.
  *
  * @see Operators
  * @see Instruction
@@ -542,7 +544,7 @@ $$$$ END IF
   }
 
   /**
-   * Is the operator a compare (val,val) => condition?
+   * Is the operator a compare (val,val) =&gt; condition?
    *
    * @return <code>true</code> if the operator is a compare
    *         or <code>false</code> if it is not.

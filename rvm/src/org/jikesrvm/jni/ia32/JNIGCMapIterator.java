@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.jni.ia32;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.jni.JNIEnvironment;

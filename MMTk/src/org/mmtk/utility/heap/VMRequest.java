@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.heap;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.*;
 
 import org.vmmagic.unboxed.*;
 
@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
  * By encapsulating this aspect of the construction of a space, we greatly
  * reduce the number of constructors required.
  */
-public final class VMRequest implements Constants {
+public final class VMRequest {
 
   public static final int REQUEST_DISCONTIGUOUS = 0;
   public static final int REQUEST_FIXED = 1;
@@ -95,7 +95,6 @@ public final class VMRequest implements Constants {
    * A request for a number of megabytes of memory at the highest available addresses
    *
    * @param mb The number of megabytes
-   * @param top True to request high memory
    * @return The request object
    */
   public static VMRequest highFixedSize(int mb) {

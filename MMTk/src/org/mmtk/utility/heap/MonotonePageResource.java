@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility.heap;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.alloc.EmbeddedMetaData;

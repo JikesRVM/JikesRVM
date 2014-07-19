@@ -212,7 +212,7 @@ public final class RegisterOperand extends Operand {
    * not
    * @param rhs the type to copy information from
    */
-  public void copyType(RegisterOperand rhs) {
+  public void copyTypeFrom(RegisterOperand rhs) {
     this.flags = rhs.flags;
     this.setType(rhs.getType()); // setting type this way will force checking of precision
   }

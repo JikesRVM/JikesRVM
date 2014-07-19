@@ -13,7 +13,6 @@
 package org.mmtk.policy.immix;
 
 import org.mmtk.utility.alloc.ImmixAllocator;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 
@@ -21,8 +20,7 @@ import org.vmmagic.pragma.*;
  *
  */
 @Uninterruptible
-public final class MutatorLocal extends ImmixAllocator
-  implements Constants {
+public final class MutatorLocal extends ImmixAllocator {
   /**
    * Constructor
    *

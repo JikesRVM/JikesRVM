@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.utility.gcspy.drivers.AbstractDriver;
 
 import org.mmtk.vm.Lock;
@@ -37,7 +39,7 @@ import org.vmmagic.unboxed.*;
  * Access to the instances may be synchronized depending on the
  * constructor argument.
  */
-@Uninterruptible public final class DoublyLinkedList implements Constants {
+@Uninterruptible public final class DoublyLinkedList {
 
   /****************************************************************************
    *

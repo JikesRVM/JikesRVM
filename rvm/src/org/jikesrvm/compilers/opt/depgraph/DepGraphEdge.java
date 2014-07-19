@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.depgraph;
 
+import static org.jikesrvm.compilers.opt.depgraph.DepGraphConstants.*;
+
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
@@ -20,7 +22,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
  * Dependence graph edges: connect operands of different instructions
  * represented by dependence graph nodes.
  */
-public final class DepGraphEdge extends SpaceEffGraphEdge implements DepGraphConstants {
+public final class DepGraphEdge extends SpaceEffGraphEdge {
   /**
    * Does this edge represent a register true dependence?
    * @return {@code true} if yes, {@code false} otherwise

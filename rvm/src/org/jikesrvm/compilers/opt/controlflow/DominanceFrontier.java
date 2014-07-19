@@ -29,13 +29,13 @@ import org.jikesrvm.util.BitVector;
  * <pre>
  * for each X in a bottom-up traversal of the dominator tree do
  *
- *      DF(X) < - null
+ *      DF(X) &lt; - null
  *      for each Y in Succ(X) do
- *        if (idom(Y)!=X) then DF(X) <- DF(X) U Y
+ *        if (idom(Y)!=X) then DF(X) &lt;- DF(X) U Y
  *      end
  *      for each Z in {idom(z) = X} do
  *        for each Y in DF(Z) do
- *              if (idom(Y)!=X) then DF(X) <- DF(X) U Y
+ *              if (idom(Y)!=X) then DF(X) &lt;- DF(X) U Y
  *        end
  *      end
  * </pre>

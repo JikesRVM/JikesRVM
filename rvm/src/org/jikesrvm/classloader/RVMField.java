@@ -12,8 +12,22 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_ENUM;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_FINAL;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_PRIVATE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_STATIC;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_SYNTHETIC;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_TRANSIENT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ACC_VOLATILE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.APPLICABLE_TO_FIELDS;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_GETFIELD_BARRIER;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_GETSTATIC_BARRIER;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_PUTFIELD_BARRIER;
+import static org.jikesrvm.mm.mminterface.Barriers.NEEDS_OBJECT_PUTSTATIC_BARRIER;
+
 import java.io.DataInputStream;
 import java.io.IOException;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
@@ -23,7 +37,6 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
-import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 /**
  * A field of a java class.
@@ -31,7 +44,7 @@ import static org.jikesrvm.mm.mminterface.Barriers.*;
 public final class RVMField extends RVMMember {
 
   /**
-   * constant pool index of field's value (0 --> not a "static final constant")
+   * constant pool index of field's value (0 --&gt; not a "static final constant")
    */
   private final int constantValueIndex;
 
@@ -263,7 +276,7 @@ public final class RVMField extends RVMMember {
   /**
    * Get index of constant pool entry containing this
    * "static final constant" field's value.
-   * @return constant pool index (0 --> field is not a "static final constant")
+   * @return constant pool index (0 --&gt; field is not a "static final constant")
    */
   @Uninterruptible
   int getConstantValueIndex() {

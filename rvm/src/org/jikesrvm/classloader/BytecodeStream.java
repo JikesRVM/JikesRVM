@@ -12,8 +12,17 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
@@ -22,7 +31,7 @@ import org.vmmagic.unboxed.Offset;
  * Provides minimal abstraction layer to a stream of bytecodes
  * from the code attribute of a method.
  */
-public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, SizeConstants {
+public class BytecodeStream {
   private final NormalMethod method;
   private final int bcLength;
   private final byte[] bcodes;
@@ -152,7 +161,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
    */
   public final void skipInstruction() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
-    int len = JBC_length[opcode] - 1;
+    int len = JBC_length(opcode) - 1;
     if (wide) len += len;
     if (len >= 0) {
       bcIndex += len;
@@ -170,7 +179,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
    */
   public final void skipInstruction(int opcode, boolean wide) {
     if (VM.VerifyAssertions) VM._assert(bcIndex < bcLength);
-    int len = JBC_length[opcode] - 1;
+    int len = JBC_length(opcode) - 1;
     if (wide) len += len;
     if (len >= 0) {
       bcIndex += len;
@@ -818,7 +827,7 @@ public class BytecodeStream implements BytecodeConstants, ClassLoaderConstants, 
       break;
       case JBC_wide: {
         int oc = getWideOpcode();
-        int len = JBC_length[oc] - 1;
+        int len = JBC_length(oc) - 1;
         bcIndex += len + len;
       }
       break;

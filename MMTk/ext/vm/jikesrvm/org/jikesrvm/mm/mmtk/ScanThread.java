@@ -12,17 +12,19 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.ArchitectureSpecific.Registers;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.mm.mminterface.GCMapIterator;
 import org.jikesrvm.mm.mminterface.GCMapIteratorGroup;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
@@ -35,7 +37,6 @@ import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
-import org.jikesrvm.ArchitectureSpecific.Registers;
 
 /**
  * Class that supports scanning thread stacks for references during
@@ -78,7 +79,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
  * collector, the pointer into the object must be adjusted so it now
  * points into the newly copied object.<p>
  */
-@Uninterruptible public final class ScanThread implements Constants {
+@Uninterruptible public final class ScanThread {
 
   /***********************************************************************
    *
@@ -330,7 +331,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
       compiledMethod.setActiveOnStack();
       ObjectReference code = ObjectReference.fromObject(compiledMethod.getEntryCodeArray());
       Address ipLoc = exReg.getIPLocation();
-      if (VM.VerifyAssertions) VM._assert(ip == ipLoc.loadAddress());
+      if (VM.VerifyAssertions) VM._assert(ip.EQ(ipLoc.loadAddress()));
       processCodeLocation(code, ipLoc);
     }
   }
@@ -611,7 +612,7 @@ import org.jikesrvm.ArchitectureSpecific.Registers;
    * RVM did allow the GC system to move thread stacks, and called a
    * special fixup routine, thread.fixupMovedStack to adjust all of
    * the special interior pointers (SP, FP).  If we implement split C
-   * & Java stacks then we could allow the Java stacks to be moved,
+   * &amp; Java stacks then we could allow the Java stacks to be moved,
    * but we can't move the native stack.
    */
   private void assertImmovableInCurrentCollection() {

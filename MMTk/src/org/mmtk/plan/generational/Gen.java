@@ -12,6 +12,8 @@
  */
 package org.mmtk.plan.generational;
 
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_PAGE;
+
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;

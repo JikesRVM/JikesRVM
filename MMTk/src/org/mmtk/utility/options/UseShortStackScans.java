@@ -27,7 +27,8 @@ public final class UseShortStackScans extends org.vmutil.options.BooleanOption {
           false);
   }
 
+  @Override
   protected void validate() {
-    if (!VM.scanning.supportsReturnBarrier() && value) fail("Use of short stack scans only implemented on IA32");
+    if (!VM.scanning.supportsReturnBarrier() && value) fail("Use of short stack scans only implemented on IA32 32-bit");
   }
 }

@@ -35,7 +35,7 @@ import org.vmmagic.pragma.*;
  * The basic data structure used by the algorithm is a large table,
  * with one word per allocatable unit.  Each word is used in a
  * number of different ways, some combination of "undefined" (32),
- * "free/used" (1), "multi/single" (1), "prev" (15), "next" (15) &
+ * "free/used" (1), "multi/single" (1), "prev" (15), "next" (15) &amp;
  * "size" (15) where field sizes in bits are in parenthesis.
  * <pre>
  *                       +-+-+-----------+-----------+
@@ -66,11 +66,11 @@ import org.vmmagic.pragma.*;
  *         unit block    |              ...          |  ...
  *            |          +-+-+-----------+-----------+
  *            |          |1|1|           |   size    |
- *           >--------  +-+-+-----------+-----------+
+ *           &gt;--------  +-+-+-----------+-----------+
  *   single free unit    |1|0|   prev    |   next    |
- *           >--------  +-+-+-----------+-----------+
+ *           &gt;--------  +-+-+-----------+-----------+
  *   single used unit    |0|0|                       |
- *           >--------  +-+-+-----------------------+
+ *           &gt;--------  +-+-+-----------------------+
  *            |          |0|1|                       |
  *            |          +-+-+-----------+-----------+
  *            |          |0|1|           |   size    |
@@ -89,7 +89,7 @@ import org.vmmagic.pragma.*;
  * coalesce.  The top sentinel also serves as the head and tail of
  * the doubly linked list of free blocks.
  */
-@Uninterruptible abstract class BaseGenericFreeList implements Constants {
+@Uninterruptible abstract class BaseGenericFreeList {
 
   /****************************************************************************
    *

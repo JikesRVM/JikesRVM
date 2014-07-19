@@ -12,6 +12,8 @@
  */
 package org.mmtk.plan.semispace.gctrace;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.plan.semispace.SSMutator;
 import org.mmtk.plan.*;
 import org.mmtk.utility.TraceGenerator;

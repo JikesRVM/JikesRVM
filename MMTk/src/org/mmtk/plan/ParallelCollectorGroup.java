@@ -12,8 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.Monitor;
 import org.mmtk.vm.VM;
 
@@ -24,7 +22,7 @@ import org.vmmagic.pragma.*;
  * to perform collection activity.
  */
 @Uninterruptible
-public class ParallelCollectorGroup implements Constants {
+public class ParallelCollectorGroup {
 
   /****************************************************************************
    * Instance fields

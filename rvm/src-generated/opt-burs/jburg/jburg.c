@@ -610,9 +610,9 @@ emitdefs(Nonterm nts_)
     Nonterm p;
 
     print("package org.jikesrvm.compilers.opt.lir2mir.%s; \n", arch);
-    print("interface BURS_Definitions  {\n");
+    print("final class BURS_Definitions  {\n");
     for (p = nts_; p; p = p->link)
-        print("%1byte %S_NT  \t= %d;\n", p, p->number);
+        print("%1static final byte %S_NT  \t= %d;\n", p, p->number);
     print("\n");
 #if 0
     print("static char *ntname[] = {\n%10,\n");

@@ -12,13 +12,17 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.HeapLayoutConstants.MAXIMUM_MAPPABLE;
+
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_MBYTE;
+
 import org.mmtk.policy.ImmortalSpace;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.heap.VMRequest;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.BootRecord;
-import org.jikesrvm.HeapLayoutConstants;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.SizeConstants;
@@ -26,8 +30,7 @@ import org.jikesrvm.SizeConstants;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
-@Uninterruptible public class Memory extends org.mmtk.vm.Memory
-  implements Constants, HeapLayoutConstants, SizeConstants {
+@Uninterruptible public class Memory extends org.mmtk.vm.Memory {
 
   @Override
   protected final Address getHeapStartConstant() { return BOOT_IMAGE_DATA_START; }

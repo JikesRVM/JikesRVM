@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
@@ -37,7 +38,7 @@ import org.vmmagic.pragma.Entrypoint;
  * NOTE: We believe that only use of invokespecial that could possibly
  * require dynamic linking is that of invoking an object initializer.
  */
-public class TableBasedDynamicLinker implements Constants {
+public class TableBasedDynamicLinker {
 
   /**
    * Linking table keyed by member reference IDs. Value indicates offset of

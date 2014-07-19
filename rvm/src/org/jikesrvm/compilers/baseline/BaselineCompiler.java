@@ -12,9 +12,12 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+
 import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
+import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.MachineCode;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
@@ -75,7 +78,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
          (options.PRINT_MACHINECODE) &&
          (!options.hasMETHOD_TO_PRINT() || options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
-    if (shouldPrint && VM.runningVM && !fullyBootedVM) {
+    if (shouldPrint && VM.runningVM && !VM.fullyBooted) {
       shouldPrint = false;
       if (options.PRINT_METHOD) {
         VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
@@ -105,7 +108,6 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
     if (options.hasMETHOD_TO_PRINT() && options.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
-    fullyBootedVM = true;
   }
 
   /**
@@ -116,7 +118,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
   public static void processCommandLineArg(String prefix, String arg) {
     if (!options.processAsOption(prefix, arg)) {
       VM.sysWrite("BaselineCompiler: Unrecognized argument \"" + arg + "\"\n");
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 

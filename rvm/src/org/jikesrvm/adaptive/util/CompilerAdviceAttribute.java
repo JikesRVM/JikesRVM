@@ -27,12 +27,12 @@ import org.jikesrvm.compilers.common.CompiledMethod;
  * Each attribute encodes an compiler site and the advice for that
  * site:
  * <ul>
- * <li><code>&lt;class></code> <i>string</i> The name of the class</li>
- * <li><code>&lt;method></code> <i>string</i> The name of the method</li>
- * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
- * <li><code>&lt;advice></code> <i>in </i> The integer value for the
+ * <li><code>&lt;class&gt;</code> <i>string</i> The name of the class</li>
+ * <li><code>&lt;method&gt;</code> <i>string</i> The name of the method</li>
+ * <li><code>&lt;signature&gt;</code> <i>string</i> The method signature</li>
+ * <li><code>&lt;advice&gt;</code> <i>in </i> The integer value for the
  * compiler, as given in CompilerInfo</li>
- * <li><code>&lt;optLevel></code> <i>in </i> The optimization level when
+ * <li><code>&lt;optLevel&gt;</code> <i>in </i> The optimization level when
  the Opt compiler is used
  * </ul>
  *

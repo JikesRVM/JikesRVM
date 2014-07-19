@@ -55,7 +55,7 @@ Name of dynamic call graph file
 
 
 V COMPILER_DNA_FILE_NAME String \"\" dna
-Name of compiler DNA file (no name ==> use default DNA).  Discussed in a comment at the head of CompilerDNA.java
+Name of compiler DNA file (default DNA will be used if no name is given).  Discussed in a comment at the head of CompilerDNA.java
 
 
 V COMPILER_ADVICE_FILE_INPUT String null cafi
@@ -67,15 +67,15 @@ File containing information about the hot call sites
 
 
 V BULK_COMPILATION_VERBOSITY int 0
-Control amount of verbosity for bulk compilation (larger ==> more)
+Control amount of verbosity for bulk compilation (larger means more)
 
 
 V LOGGING_LEVEL int 0
-Control amount of event logging (larger ==> more)
+Control amount of event logging (larger means more)
 
 
 V FINAL_REPORT_LEVEL int 0
-Control amount of info reported on exit (larger ==> more)
+Control amount of info reported on exit (larger means more)
 
 
 V DECAY_FREQUENCY int 100

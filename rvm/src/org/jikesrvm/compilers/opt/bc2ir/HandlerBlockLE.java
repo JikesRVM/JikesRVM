@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNTH_CATCH_BCI;
+import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;
+
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
@@ -56,7 +59,7 @@ final class HandlerBlockLE extends BasicBlockLE {
   HandlerBlockLE(int loc, InlineSequence position, TypeOperand eType, RegisterPool temps,
                  int exprStackSize, ControlFlowGraph cfg) {
     super(loc);
-    entryBlock = new ExceptionHandlerBasicBlock(BC2IR.SYNTH_CATCH_BCI, position, eType, cfg);
+    entryBlock = new ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, position, eType, cfg);
     block = new BasicBlock(loc, position, cfg);
     // NOTE: We intentionally use throwable rather than eType to avoid
     // having the complexity of having to regenerate the handler when a
@@ -72,9 +75,9 @@ final class HandlerBlockLE extends BasicBlockLE {
     setStackKnown();
     // entry block contains instructions to transfer the caught
     // exception object to exceptionObject.
-    Instruction s = Nullary.create(BC2IR.GET_CAUGHT_EXCEPTION, exceptionObject.copyD2D());
+    Instruction s = Nullary.create(GET_CAUGHT_EXCEPTION, exceptionObject.copyD2D());
     entryBlock.appendInstruction(s);
-    s.bcIndex = BC2IR.SYNTH_CATCH_BCI;
+    s.bcIndex = SYNTH_CATCH_BCI;
     entryBlock.insertOut(block);
   }
 

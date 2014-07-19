@@ -12,9 +12,10 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.TraceLocal;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Statics;
@@ -28,7 +29,7 @@ import org.vmmagic.pragma.*;
 /**
  * Class that determines all JTOC slots (statics) that hold references
  */
-public final class ScanStatics implements Constants {
+public final class ScanStatics {
   /**
    * Size in 32bits words of a JTOC slot (ie 32bit addresses = 1,
    * 64bit addresses =2)

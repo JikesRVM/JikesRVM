@@ -12,16 +12,40 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ArrayTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeCompiledMethod;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_InvokeStatic;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadDoubleConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadFloatConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadIntConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadLongConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadRetAddrConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadWordConst;
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_ParamInitEnd;
+import static org.jikesrvm.osr.OSRConstants.ReturnAddressTypeCode;
+import static org.jikesrvm.osr.OSRConstants.WordTypeCode;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.ClassLoaderConstants;
-import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.ExceptionHandlerMap;
 import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethods;
 import org.jikesrvm.osr.bytecodes.InvokeStatic;
@@ -56,7 +80,7 @@ import org.jikesrvm.osr.bytecodes.InvokeStatic;
  *      types are same for all PCs.
  * </ol>
  */
-public class BytecodeTraverser implements BytecodeConstants, ClassLoaderConstants, OSRConstants {
+public class BytecodeTraverser {
 
   /////// COMMON
   /* to handle ret address which is not produced by JSR, we need a
@@ -337,7 +361,7 @@ public class BytecodeTraverser implements BytecodeConstants, ClassLoaderConstant
 
       if (TRACE) {
         if (bcode <= JBC_jsr_w) {
-          VM.sysWriteln(pc + " : " + S.depth() + " : " + JBC_name[bcode]);
+          VM.sysWriteln(pc + " : " + S.depth() + " : " + JBC_name(bcode));
         } else {
           VM.sysWriteln(pc + " : " + S.depth() + " : impdep1");
         }
@@ -1179,7 +1203,7 @@ public class BytecodeTraverser implements BytecodeConstants, ClassLoaderConstant
           }
         }
         break;
-        case JBC_xxxunusedxxx:
+        case JBC_invokedynamic:
           break;
 
         case JBC_new:

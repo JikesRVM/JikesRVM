@@ -12,12 +12,14 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.unboxed.Address;
 
 /**
@@ -27,7 +29,7 @@ import org.vmmagic.unboxed.Address;
  *
  * TODO: There is only 1 line of platform dependent code here; refactor?
  */
-public abstract class MultianewarrayHelper implements Constants {
+public abstract class MultianewarrayHelper {
 
   /**
    * Allocate something like {@code new Foo[cnt0][cnt1]...[cntN-1]},
@@ -40,6 +42,7 @@ public abstract class MultianewarrayHelper implements Constants {
    *                      be allocated for each dimension.
    * See also: bytecode 0xc5 ("multianewarray") in Compiler
    */
+  @Entrypoint
   static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)
       throws NoClassDefFoundError, NegativeArraySizeException, OutOfMemoryError {
     if (numDimensions == 2) {

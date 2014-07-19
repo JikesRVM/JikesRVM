@@ -71,7 +71,7 @@ public final class MIRBranchOptimizations extends BranchOptimizationDriver {
    *         A: LABEL
    *            BBEND
    *         B:
-   * <pre>
+   * </pre>
    *
    * <p> Precondition: MIR_Branch.conforms(g)
    *

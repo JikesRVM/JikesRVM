@@ -13,10 +13,9 @@
 package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.*;
+import static org.mmtk.utility.Constants.LOG_BYTES_IN_SHORT;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
-
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
@@ -27,7 +26,7 @@ import org.vmmagic.unboxed.Offset;
  *
  */
 @Uninterruptible
-public class Block implements Constants {
+public class Block  {
 
   static Address align(final Address ptr) {
     return ptr.toWord().and(BLOCK_MASK.not()).toAddress();

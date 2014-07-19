@@ -12,11 +12,13 @@
  */
 package org.jikesrvm.jni;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
-import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
@@ -37,7 +39,7 @@ import org.vmmagic.unboxed.Offset;
  * A JNIEnvironment is created for each Java thread.
  */
 @NonMoving
-public final class JNIEnvironment implements SizeConstants {
+public final class JNIEnvironment {
 
   /**
    * initial size for JNI refs, later grow as needed

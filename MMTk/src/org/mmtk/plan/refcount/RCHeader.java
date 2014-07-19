@@ -12,7 +12,8 @@
  */
 package org.mmtk.plan.refcount;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.BITS_IN_BYTE;
+
 import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -20,7 +21,7 @@ import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Word;
 
 @Uninterruptible
-public class RCHeader implements Constants {
+public class RCHeader {
 
   /* Requirements */
   public static final int LOCAL_GC_BITS_REQUIRED = 0;

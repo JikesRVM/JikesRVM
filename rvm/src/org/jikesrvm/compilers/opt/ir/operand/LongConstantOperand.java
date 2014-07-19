@@ -14,8 +14,6 @@ package org.jikesrvm.compilers.opt.ir.operand;
 
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.util.Bits;
-import org.jikesrvm.runtime.Statics;
-import org.vmmagic.unboxed.Offset;
 
 /**
  * Represents a constant long operand.
@@ -28,19 +26,12 @@ public final class LongConstantOperand extends ConstantOperand {
    * Constant 0, can be copied as convenient
    */
   public static final LongConstantOperand zero =
-    new LongConstantOperand(0, Statics.slotAsOffset(Statics.findOrCreateLongSizeLiteral(0)));
+    new LongConstantOperand(0);
 
   /**
    * Value of this operand.
    */
   public long value;
-
-  /**
-   * Offset in JTOC where this long constant lives. (0 for constants
-   * obtained from constant folding)
-   * TODO is this field still necessary?
-   */
-  public Offset offset;
 
   /**
    * Constructs a new long constant operand with the specified value.
@@ -49,18 +40,6 @@ public final class LongConstantOperand extends ConstantOperand {
    */
   public LongConstantOperand(long v) {
     value = v;
-    offset = Offset.zero();
-  }
-
-  /**
-   * Constructs a new long constant operand with the specified value and JTOC offset.
-   * TODO is this constructor still necessary?
-   * @param v value
-   * @param i offset in the JTOC
-   */
-  public LongConstantOperand(long v, Offset i) {
-    value = v;
-    offset = i;
   }
 
   /**
@@ -95,7 +74,7 @@ public final class LongConstantOperand extends ConstantOperand {
 
   @Override
   public Operand copy() {
-    return new LongConstantOperand(value, offset);
+    return new LongConstantOperand(value);
   }
 
   @Override

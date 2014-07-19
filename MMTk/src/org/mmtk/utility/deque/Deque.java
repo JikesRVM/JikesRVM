@@ -12,7 +12,7 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
+import static org.mmtk.utility.Constants.*;
 
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
  * more efficient to dequeue buffers and, for example, enables sorting of
  * its contents.
  */
-@Uninterruptible class Deque implements Constants {
+@Uninterruptible class Deque {
 
   /****************************************************************************
    *

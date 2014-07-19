@@ -477,6 +477,7 @@ public abstract class AbstractDriver {
    *      <pre>send(event, numTiles);</pre>
    *      Note that AbstractDriver.send takes care of sending the information
    *      for all streams (including control data).
+   * </ol>
    *
    * @param event The event
    */

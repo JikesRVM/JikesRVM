@@ -25,7 +25,7 @@ public final class GCIRMapElement {
   private final Instruction inst;
 
   /**
-   *  The list of references (either symbolic regs or physical regs & spills)
+   *  The list of references (either symbolic regs or physical regs &amp; spills)
    */
   private final List<RegSpillListElement> regSpillList;
 

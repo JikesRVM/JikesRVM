@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt;
 
 import java.lang.reflect.Field;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.Word;
  * getstatic's of initialized static fields
  * by replacing the getstatic with a constant operand.
  */
-public abstract class StaticFieldReader implements SizeConstants {
+public abstract class StaticFieldReader {
 
   /**
    * Read the field from obj and return as the appropriate constant
@@ -50,7 +50,7 @@ public abstract class StaticFieldReader implements SizeConstants {
     if (VM.VerifyAssertions) {
       boolean isFinalField = field.isFinal();
       boolean isInitializedField = field.getDeclaringClass().isInitialized() || field.getDeclaringClass().isInBootImage();
-      if (!(isFinalField || isInitializedField)) {
+      if (!(isFinalField && isInitializedField)) {
         String msg = "Error reading field " + field;
         VM._assert(VM.NOT_REACHED, msg);
       }
@@ -157,9 +157,11 @@ public abstract class StaticFieldReader implements SizeConstants {
    */
   public static ConstantOperand getStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.VerifyAssertions) {
+      boolean fieldIsReady = field.getDeclaringClass().isInitialized() ||
+          field.getDeclaringClass().isInBootImage();
       boolean isFinalField = field.isFinal();
       boolean isStaticField = field.isStatic();
-      if (!(isFinalField || isStaticField)) {
+      if (!(isFinalField && isStaticField && fieldIsReady)) {
         String msg = "Error reading field " + field;
         VM._assert(VM.NOT_REACHED, msg);
       }
@@ -178,7 +180,7 @@ public abstract class StaticFieldReader implements SizeConstants {
       return new IntConstantOperand(val);
     } else if (fieldType.isLongType()) {
       long val = getLongStaticFieldValue(field);
-      return new LongConstantOperand(val, off);
+      return new LongConstantOperand(val);
     } else if (fieldType.isFloatType()) {
       float val = getFloatStaticFieldValue(field);
       return new FloatConstantOperand(val, off);

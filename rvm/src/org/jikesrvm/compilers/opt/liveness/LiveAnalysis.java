@@ -13,8 +13,8 @@
 package org.jikesrvm.compilers.opt.liveness;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
-import static org.jikesrvm.osr.OSRConstants.LongTypeCode;
-import static org.jikesrvm.osr.OSRConstants.VoidTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -409,14 +409,14 @@ public final class LiveAnalysis extends CompilerPhase {
 
   /**
    * Compute summary (local) live variable analysis for a basic block, which
-   * is basically Gen and Kill information.
+   * is basically Gen and Kill information.<p>
+   *
+   * For more details, see the paper "Efficient and Precise Modeling of
+   * Exceptions for the Analysis of Java Programs" by Choi, Grove, Hind
+   * and Sarkar in ACM PASTE99 workshop.
    *
    * @param bblock the basic block
-   * @param ir the governing if
-   * @see "Efficient and Precise Modeling of Exceptions for the
-   *      Analysis of Java Programs" by Choi, Grove, Hind, Sarkar
-   *      in ACM PASTE99 workshop (available at
-   *      www.research.ibm.com/jalapeno)"
+   * @param ir the governing IR
    */
   private void computeBlockGenAndKill(BasicBlock bblock, IR ir) {
     if (VERBOSE) {

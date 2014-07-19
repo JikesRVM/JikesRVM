@@ -12,8 +12,6 @@
  */
 package org.mmtk.utility.deque;
 
-import org.mmtk.utility.Constants;
-
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -23,8 +21,7 @@ import org.vmmagic.pragma.*;
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of
  * object references
  */
-@Uninterruptible public class ObjectReferenceDeque extends LocalDeque
-  implements Constants {
+@Uninterruptible public class ObjectReferenceDeque extends LocalDeque {
 
   /****************************************************************************
    *

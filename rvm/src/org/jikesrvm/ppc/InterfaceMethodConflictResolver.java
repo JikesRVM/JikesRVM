@@ -12,11 +12,13 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.GT;
+import static org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants.LT;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.common.assembler.ppc.Assembler;
-import org.jikesrvm.compilers.common.assembler.ppc.AssemblerConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
@@ -25,7 +27,7 @@ import org.jikesrvm.runtime.Memory;
  * Generates a custom IMT-conflict resolution stub.
  * We create a binary search tree.
  */
-public abstract class InterfaceMethodConflictResolver implements BaselineConstants, AssemblerConstants {
+public abstract class InterfaceMethodConflictResolver implements BaselineConstants {
 
 
   /**

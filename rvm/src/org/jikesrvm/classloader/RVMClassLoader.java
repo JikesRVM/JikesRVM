@@ -12,18 +12,31 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_DOUBLE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_FIELDREF;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_FLOAT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_INT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_INTERFACE_METHODREF;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_LONG;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_MEMBERNAME_AND_DESCRIPTOR;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_METHODREF;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_STRING;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_TYPEREF;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_UNUSED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.TAG_UTF;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
+
 import org.jikesrvm.Properties;
+import org.jikesrvm.VM;
 
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>
  */
-public class RVMClassLoader implements Constants, ClassLoaderConstants {
+public class RVMClassLoader {
 
   private static final boolean DBG_APP_CL = false;
 
@@ -55,17 +68,17 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
    */
   private static boolean assertionsEnabled = false;
   /**
-   * String describing packages and classes to enable assertions on (of the form ":<packagename>...|:<classname>")
+   * String describing packages and classes to enable assertions on (of the form ":&lt;packagename&gt;...|:&lt;classname&gt;")
    */
   private static String[] enabledAssertionStrings;
   /**
-   * String describing packages and classes to disable assertions on (of the form ":<packagename>...|:<classname>")
+   * String describing packages and classes to disable assertions on (of the form ":&lt;packagename&gt;...|:&lt;classname&gt;")
    */
   private static String[] disabledAssertionStrings;
 
   /**
    * Remember the given enable assertions string
-   * @param arg String of the form ":<packagename>...|:<classname>"
+   * @param arg String of the form ":&lt;packagename&gt;...|:&lt;classname&gt;"
    */
   public static void stashEnableAssertionArg(String arg) {
     assertionsEnabled = true;
@@ -81,7 +94,7 @@ public class RVMClassLoader implements Constants, ClassLoaderConstants {
 
   /**
    * Remember the given disable assertions string
-   * @param arg String of the form ":<packagename>...|:<classname>"
+   * @param arg String of the form ":&lt;packagename&gt;...|:&lt;classname&gt;"
    */
   public static void stashDisableAssertionArg(String arg) {
     if (arg == null || arg.equals("")) {

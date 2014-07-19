@@ -230,7 +230,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Given a mapping from BasicBlockPair -> HashSet, find or create the hash
+     * Given a mapping from BasicBlockPair -&gt; HashSet, find or create the hash
      * set corresponding to a given basic block pair
      *
      * @param map the mapping to search

@@ -12,8 +12,11 @@
  */
 package org.jikesrvm.ppc;
 
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.runtime.Reflection.REFLECTION_FPRS_BITS;
+import static org.jikesrvm.runtime.Reflection.REFLECTION_GPRS_BITS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.runtime.Memory;
@@ -99,8 +102,8 @@ public abstract class MachineReflection implements ArchConstants {
     }
 
     // hack to return triple
-    return (Spills << (Constants.REFLECTION_FPRS_BITS + Constants.REFLECTION_GPRS_BITS)) |
-           (FPRs << Constants.REFLECTION_GPRS_BITS) |
+    return (Spills << (REFLECTION_FPRS_BITS + REFLECTION_GPRS_BITS)) |
+           (FPRs << REFLECTION_GPRS_BITS) |
            GPRs;
   }
 
@@ -222,7 +225,7 @@ public abstract class MachineReflection implements ArchConstants {
           GPRs.set(--GPR, val);
         }
       } else {
-        if (VM.VerifyAssertions) VM._assert(Constants.NOT_REACHED);
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
       }
     }
   }

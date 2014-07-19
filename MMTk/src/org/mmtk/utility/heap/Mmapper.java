@@ -23,7 +23,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements mmapping and protection of virtual memory.
  */
-@Uninterruptible public final class Mmapper implements Constants {
+@Uninterruptible public final class Mmapper {
 
   /****************************************************************************
    * Constants

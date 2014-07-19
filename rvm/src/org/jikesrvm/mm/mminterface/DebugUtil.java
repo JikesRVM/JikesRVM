@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMType;
@@ -31,7 +36,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * Common debugging utility functions used by various garbage collectors
  */
 @Uninterruptible
-public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Constants {
+public class DebugUtil {
 
   private static TIB tibForArrayType;
   private static TIB tibForClassType;
@@ -64,8 +69,8 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
   }
 
   /**
-   * Dump all threads & their stacks starting at the frame identified
-   * by the threads saved contextRegisters (ip & fp fields).
+   * Dump all threads &amp; their stacks starting at the frame identified
+   * by the threads saved contextRegisters (ip &amp; fp fields).
    */
   @Uninterruptible
   public static void dumpAllThreadStacks() {
@@ -73,7 +78,7 @@ public class DebugUtil implements org.mmtk.utility.Constants, org.jikesrvm.Const
   }  // dumpAllThreadStacks
 
   /**
-   * Check if a ref, its tib pointer & type pointer are all in the heap
+   * Check if a ref, its tib pointer &amp; type pointer are all in the heap
    */
   @Uninterruptible
   public static boolean validObject(Object ref) {

@@ -12,14 +12,16 @@
  */
 package org.jikesrvm.compilers.opt.driver;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_OPT_COMPILER_FAILED;
+
 import java.util.Vector;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.Callbacks;
+import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.recompilation.CompilerDNA;
+import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.baseline.EdgeCounts;
@@ -86,7 +88,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
       if (e.isFatal) {
         // An unexpected error when building the opt boot image should be fatal
         e.printStackTrace();
-        System.exit(VM.EXIT_STATUS_OPT_COMPILER_FAILED);
+        System.exit(EXIT_STATUS_OPT_COMPILER_FAILED);
       } else {
         VM.sysWrite(msg);
       }
@@ -123,7 +125,7 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
           // An unexpected error when building the opt boot image should be fatal
           VM.sysWriteln("Error compiling method: "+method);
           e.printStackTrace();
-          System.exit(VM.EXIT_STATUS_OPT_COMPILER_FAILED);
+          System.exit(EXIT_STATUS_OPT_COMPILER_FAILED);
         } else {
           boolean printMsg = true;
           if (e instanceof MagicNotImplementedException) {

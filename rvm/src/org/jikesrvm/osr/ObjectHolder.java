@@ -12,8 +12,9 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Inline;
@@ -26,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  * get around of GC problem
  */
 @Uninterruptible
-public class ObjectHolder implements SizeConstants {
+public class ObjectHolder {
 
   // initialize pool size
   private static final int POOLSIZE = 8;

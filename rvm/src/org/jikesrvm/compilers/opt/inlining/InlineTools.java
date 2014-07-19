@@ -19,7 +19,6 @@ import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.Call;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -31,7 +30,7 @@ import org.vmmagic.pragma.Inline;
 /**
  * This class provides some utilities that are useful for inlining.
  */
-public abstract class InlineTools implements OptConstants {
+public abstract class InlineTools {
 
   /**
    * Does class <code>A</code> directly implement the interface <code>B</code>?

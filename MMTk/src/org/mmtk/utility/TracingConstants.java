@@ -17,25 +17,29 @@ import org.vmmagic.unboxed.*;
 /**
  * The constants needed when storing events and then generating the trace.
  */
-public interface TracingConstants {
-  Word TRACE_EXACT_ALLOC = Word.zero();
-  Word TRACE_BOOT_ALLOC = Word.one().lsh(0);
-  Word TRACE_ALLOC = Word.one().lsh(1);
-  Word TRACE_DEATH = Word.one().lsh(2);
-  Word TRACE_FIELD_SET = Word.one().lsh(3);
-  Word TRACE_ARRAY_SET = Word.one().lsh(4);
-  Word TRACE_TIB_SET = Word.one().lsh(5);
-  Word TRACE_STATIC_SET = Word.one().lsh(6);
-  Word TRACE_BOOTSTART = Word.one().lsh(7);
-  Word TRACE_BOOTEND = Word.one().lsh(8);
-  Word TRACE_GCSTART = Word.one().lsh(9);
-  Word TRACE_GCEND = Word.one().lsh(10);
-  Word TRACE_GCROOT = Word.one().lsh(11);
-  Word TRACE_GCBAR = Word.one().lsh(12);
-  Word TRACE_THREAD_SWITCH = Word.one().lsh(13);
-  Word TRACE_STACKDELTA = Word.one().lsh(14);
-  Word TRACE_ROOTPTR = Word.one().lsh(15);
-  Word TRACE_EXACT_IMMORTAL_ALLOC = Word.one().lsh(16);
-  Word TRACE_IMMORTAL_ALLOC = Word.one().lsh(17);
-}
+public final class TracingConstants {
+  public static final Word TRACE_EXACT_ALLOC = Word.zero();
+  public static final Word TRACE_BOOT_ALLOC = Word.one().lsh(0);
+  public static final Word TRACE_ALLOC = Word.one().lsh(1);
+  public static final Word TRACE_DEATH = Word.one().lsh(2);
+  public static final Word TRACE_FIELD_SET = Word.one().lsh(3);
+  public static final Word TRACE_ARRAY_SET = Word.one().lsh(4);
+  public static final Word TRACE_TIB_SET = Word.one().lsh(5);
+  public static final Word TRACE_STATIC_SET = Word.one().lsh(6);
+  public static final Word TRACE_BOOTSTART = Word.one().lsh(7);
+  public static final Word TRACE_BOOTEND = Word.one().lsh(8);
+  public static final Word TRACE_GCSTART = Word.one().lsh(9);
+  public static final Word TRACE_GCEND = Word.one().lsh(10);
+  public static final Word TRACE_GCROOT = Word.one().lsh(11);
+  public static final Word TRACE_GCBAR = Word.one().lsh(12);
+  public static final Word TRACE_THREAD_SWITCH = Word.one().lsh(13);
+  public static final Word TRACE_STACKDELTA = Word.one().lsh(14);
+  public static final Word TRACE_ROOTPTR = Word.one().lsh(15);
+  public static final Word TRACE_EXACT_IMMORTAL_ALLOC = Word.one().lsh(16);
+  public static final Word TRACE_IMMORTAL_ALLOC = Word.one().lsh(17);
 
+  private TracingConstants() {
+    // prevent instantiation
+  }
+
+}

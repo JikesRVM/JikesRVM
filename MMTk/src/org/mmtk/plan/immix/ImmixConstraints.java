@@ -14,6 +14,7 @@ package org.mmtk.plan.immix;
 
 import org.mmtk.plan.StopTheWorldConstraints;
 import org.mmtk.policy.immix.ObjectHeader;
+
 import static org.mmtk.policy.immix.ImmixConstants.MAX_IMMIX_OBJECT_BYTES;
 
 import org.vmmagic.pragma.*;

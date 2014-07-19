@@ -12,9 +12,11 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.FieldReference;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -25,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
  *
  * @see Operand
  */
-public final class LocationOperand extends Operand implements org.jikesrvm.compilers.opt.driver.OptConstants {
+public final class LocationOperand extends Operand {
 
   /*
    * TODO: Now that we don't pay a large penalty for dynamic type checks

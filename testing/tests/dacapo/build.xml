@@ -18,20 +18,48 @@
   <condition property="test.time.limit" value="6000" else="1200">
     <equals arg1="${test.mode}" arg2="gcstress"/>
   </condition>
+  <condition property="compiler.stats" value="Base.bcb/ms Opt.bcb/ms" else="">
+    <equals arg1="${test.mode}" arg2="measure-compilation"/>
+  </condition>
 
   <import file="../../../build/tests.xml"/>
   <ant antfile="../../../build/components/dacapo.xml" target="ensure" inheritall="false" inheritrefs="false"/>
   <property file="${components.file}"/>
 
   <property name="test.class.path" value="${dacapo.jar}"/>
+  <property name="xalanBootClasspath" value="-Xbootclasspath/p:xalan.jar"/>
 
   <target name="extract-xalan-jar" depends="init">
     <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
-    <unzip src="${dacapo.jar}" dest="${build.tests.dir}">
+    <unzip src="${dacapo.jar}" dest="${test.build.dir}">
       <patternset>
         <include name="xalan.jar"/>
       </patternset>
     </unzip>
+  </target>
+
+  <target name="dacapo-init" depends="extract-xalan-jar">
+    <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
+    <property name="projectTag" value="${ant.project.name}"/>
+    <property name="allBenchmarksExceptChart" value="antlr bloat eclipse fop hsqldb jython luindex lusearch pmd xalan"/>
+    <!-- Properties for controlling which targets run -->
+    <condition property="tests.run-together">
+      <equals arg1="${test.mode}" arg2="measure-compilation"/>
+    </condition>
+    <condition property="execution-time.run.dna">
+      <and>
+        <equals arg1="${test.mode}" arg2="performance"/>
+        <istrue value="${test.compiler-dna}"/>
+      </and>
+    </condition>
+    <condition property="execution-time.run.normal">
+      <not>
+        <or>
+          <equals arg1="${test.mode}" arg2="measure-compilation"/>
+          <istrue value="${test.compiler-dna}"/>
+        </or>
+      </not>
+    </condition>
   </target>
 
   <macrodef name="dacapo">
@@ -46,15 +74,28 @@
     </sequential>
   </macrodef>
 
+  <macrodef name="dacapo-dna">
+    <attribute name="name"/>
+    <attribute name="timeLimit" default=""/>
+    <attribute name="heapsize" default=""/>
+    <attribute name="requires-display" default="false"/>
+    <attribute name="bootclasspath" default=""/>
+    <sequential>
+      <rvm tag="@{name}" class="Harness" requires-display="@{requires-display}" args="-converge @{name}" timeLimit="@{timeLimit}" maxHeapSize="@{heapsize}" bootclasspath="@{bootclasspath}"/>
+      <outputSingleStatisticResults tag="@{name}" key="time" pattern="===== DaCapo @{name} PASSED in (.*) msec ====="/>
+    </sequential>
+  </macrodef>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *                            Run the tests                                 * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
 
-  <target name="test" depends="init,extract-xalan-jar">
-    <test-file name="dacapo.jar" location="${jikesrvm.dir}/.ant.properties"/>
+  <target name="test" depends="init,dacapo-init,finish-report">
+  </target>
 
+  <target name="execution-time-test" if="execution-time.run.normal">
     <startResults/>
 
     <!-- Heapsize set to 6x minimum heap size with MarkCompact -->
@@ -68,8 +109,119 @@
     <dacapo name="luindex"  heapsize="120"/>
     <dacapo name="lusearch" heapsize="300"/>
     <dacapo name="pmd"      heapsize="200"/>
-    <dacapo name="xalan"    heapsize="150" bootclasspath="-Xbootclasspath/p:xalan.jar" />
+    <dacapo name="xalan"    heapsize="150" bootclasspath="${xalanBootClasspath}"/>
 
+    <property name="skip.aggregateBestScoreCalculation" value="true"/>
+  </target>
+
+  <target name="execution-time-test-for-dna" if="execution-time.run.dna">
+    <echo>Running benchmarks for compiler DNA gathering (speedup rates).</echo>
+
+    <startResults/>
+
+    <!-- Heapsize set to 6x minimum heap size with MarkCompact -->
+    <dacapo-dna name="antlr"    heapsize="120"/>
+    <dacapo-dna name="bloat"    heapsize="150"/>
+    <!-- Do not run chart because it's not supported on all platforms -->
+    <dacapo-dna name="eclipse"  heapsize="400"/>
+    <dacapo-dna name="fop"      heapsize="180"/>
+    <dacapo-dna name="hsqldb"   heapsize="500"/>
+    <dacapo-dna name="jython"   heapsize="200"/>
+    <dacapo-dna name="luindex"  heapsize="120"/>
+    <dacapo-dna name="lusearch" heapsize="300"/>
+    <dacapo-dna name="pmd"      heapsize="200"/>
+    <dacapo-dna name="xalan"    heapsize="150" bootclasspath="${xalanBootClasspath}"/>
+  </target>
+
+  <target name="execution-time-test-part-2" unless="skip.aggregateBestScoreCalculation"
+    depends="execution-time-test-for-dna, execution-time-test">
+    <outputTestStart tag="${projectTag}"/>
+    <outputStatisticStart/>
+  </target>
+
+  <target name="measure-compilation-test" if="tests.run-together">
+    <echo>Running all benchmarks together to measure compilation rates.</echo>
+
+    <property name="skip.aggregateBestScoreCalculation" value="true"/>
+
+    <startResults/>
+
+    <!-- Max heap size is maximum of all heap sizes from execution-time-test -->
+    <property name="maxHeapSizeForAll" value="500"/>
+
+    <rvm tag="${projectTag}" class="Harness" requires-display="true" args="${allBenchmarksExceptChart}" timeLimit="${test.time.limit}" maxHeapSize="${maxHeapSizeForAll}" bootclasspath="${xalanBootClasspath}"/>
+    <outputTestStart tag="${projectTag}"/>
+    <outputStatisticStart/>
+    <extractCompilerStatistics tag="${projectTag}" statistics="${compiler.stats}"/>
+    <outputStatisticEnd/>
+    <outputTestResults tag="${projectTag}"/>
+    <outputTestEnd/>
+    <displayTestResults tag="${projectTag}"/>
+  </target>
+
+  <target name="insert-execution-time-statistics" depends="measure-compilation-test,
+    execution-time-test-part-2" unless="skip.aggregateBestScoreCalculation">
+    <echo>Computing aggegrate best score from execution time statistics.</echo>
+
+    <property name="execution-time.file.name" value="dacapo-execution-times.txt"/>
+    <property name="execution-time.file.location" value="${test.build.dir}/${execution-time.file.name}"/>
+
+    <!-- Note: do not consider chart because this output is only used
+     for compiler-dna runs which do not use chart.
+     
+     This directly reads out build properties. This might break when we make changes in
+     the file (notably setting macro parameters that are currently not set such
+     as execution).
+      -->
+    <forEach list="${allBenchmarksExceptChart}" property="name">
+      <sequential>
+        <echo file="${execution-time.file.location}" append="true">${test.@{name}.default.statistic.time}${line.separator}</echo>
+        <condition property="a-benchmark-failed" value="true">
+          <and>
+            <isset property="${test.@{name}.default.result}"/>
+            <not>
+              <or>
+                <!-- Note: "default" is the standard value of the execution property
+                 of the rvm macro. -->
+                <equals arg1="${test.@{name}.default.result}" arg2="EXCLUDED"/>
+                <equals arg1="${test.@{name}.default.result}" arg2="SUCCESS"/>
+              </or>
+           </not>
+         </and>
+        </condition>
+      </sequential>
+    </forEach>
+    <!-- Only fail the (subant) build if we're trying to compute compiler DNA and at least
+      one benchmark failed. -->
+    <condition property="compiler-dna-run.failed" value="true">
+      <and>
+        <istrue value="${test.compiler-dna}"/>
+        <istrue value="${a-benchmark-failed}"/>
+      </and>
+    </condition>
+
+    <!--  A failed build will result in a 0 for the aggregate best score. -->
+    <fail message="At least one benchmark in the compiler DNA run failed!">
+      <condition>
+        <istrue value="${compiler-dna-run.failed}"/>
+      </condition>
+    </fail>
+
+    <exec executable="${jikesrvm.dir}/testing/tests/dacapo/computeAggregateBestScore.plx"
+          failonerror="true"
+          output="${test.build.dir}/derived_results.txt">
+      <arg value="${execution-time.file.location}"/>
+    </exec>
+
+    <extractStatistic tag="${projectTag}"
+                      key="aggregate.best.score"
+                      pattern="Bottom Line: Result:\s*(\S*)"
+                      file="${test.build.dir}/derived_results.txt"/>
+    <outputStatisticEnd/>
+    <outputTestEnd/>
+  </target>
+
+  <target name="finish-report" depends="insert-execution-time-statistics">
     <finishResults/>
   </target>
 

@@ -69,13 +69,13 @@ import org.vmmagic.unboxed.Offset;
  *                  +---------------+  |      header
  *                  |    .length    |  |
  *                  +---------------+ /
- *                  |    <empty>    |
+ *                  |    &lt;empty&gt;    |
  *                  +---------------+
  *                  |     ...       |
  *                  +---------------+
- *                  |    <empty>    |
+ *                  |    &lt;empty&gt;    |
  *                  +---------------+
- *    spRegister ->      hi-mem
+ *    spRegister -&gt;      hi-mem
  * </pre>
  *
  * <P> The "ipRegister" field of the boot record points to the first word

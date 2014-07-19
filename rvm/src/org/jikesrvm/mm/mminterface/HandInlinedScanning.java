@@ -12,7 +12,8 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.Constants;
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.objectmodel.ObjectModel;
@@ -40,11 +41,11 @@ public class HandInlinedScanning {
     JavaHeader.objectStartOffset(RVMType.JavaLangObjectType) +
     ObjectModel.computeScalarHeaderSize(RVMType.JavaLangObjectType);
 
-  private static final int FIELD1_OFFSET = FIELD0_OFFSET + Constants.BYTES_IN_ADDRESS;
-  private static final int FIELD2_OFFSET = FIELD1_OFFSET + Constants.BYTES_IN_ADDRESS;
-  private static final int FIELD3_OFFSET = FIELD2_OFFSET + Constants.BYTES_IN_ADDRESS;
-  private static final int FIELD4_OFFSET = FIELD3_OFFSET + Constants.BYTES_IN_ADDRESS;
-  private static final int FIELD5_OFFSET = FIELD4_OFFSET + Constants.BYTES_IN_ADDRESS;
+  private static final int FIELD1_OFFSET = FIELD0_OFFSET + BYTES_IN_ADDRESS;
+  private static final int FIELD2_OFFSET = FIELD1_OFFSET + BYTES_IN_ADDRESS;
+  private static final int FIELD3_OFFSET = FIELD2_OFFSET + BYTES_IN_ADDRESS;
+  private static final int FIELD4_OFFSET = FIELD3_OFFSET + BYTES_IN_ADDRESS;
+  private static final int FIELD5_OFFSET = FIELD4_OFFSET + BYTES_IN_ADDRESS;
 
   /** Master switch */
   public static final boolean ENABLED = true;

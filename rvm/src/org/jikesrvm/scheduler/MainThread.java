@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.scheduler;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -98,16 +100,16 @@ public final class MainThread extends Thread {
       mf = jf.getManifest();
     } catch (Exception e) {
       VM.sysWriteln("vm: IO Exception opening JAR file ", agentJar, ": ", e.getMessage());
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     if (mf == null) {
       VM.sysWriteln("The jar file is missing the manifest: ", agentJar);
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     String agentClassName = mf.getMainAttributes().getValue("Premain-Class");
     if (agentClassName == null) {
       VM.sysWriteln("The jar file is missing the Premain-Class manifest entry for the agent class: ", agentJar);
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
     //TODO: By this stage all agent jars and classes they reference via their manifest
     try {

@@ -12,13 +12,14 @@
  */
 package org.mmtk.utility.options;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.vmmagic.pragma.*;
 
 /**
  * The granularity of the trace being produced.
  */
-public final class TraceRate extends org.vmutil.options.IntOption
-  implements org.mmtk.utility.Constants {
+public final class TraceRate extends org.vmutil.options.IntOption {
   /**
    * Create the option.
    */

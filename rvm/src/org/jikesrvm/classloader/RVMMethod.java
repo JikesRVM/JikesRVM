@@ -31,21 +31,25 @@ import org.vmmagic.pragma.RuntimePure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
+import static org.jikesrvm.SizeConstants.BITS_IN_SHORT;
 import static org.jikesrvm.classloader.TypeReference.baseReflectionClass;
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
+
 
 /**
  * A method of a java class corresponding to a method_info structure
  * in the class file. A method is read from a class file using the
  * {@link #readMethod} method.
  */
-public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
+public abstract class RVMMethod extends RVMMember {
 
   /**
    * current compiled method for this method
    */
   protected CompiledMethod currentCompiledMethod;
   /**
-   * exceptions this method might throw (null --> none)
+   * exceptions this method might throw (null --&gt; none)
    */
   private static final ImmutableEntryHashMapRVM<RVMMethod, TypeReference[]> exceptionTypes =
     new ImmutableEntryHashMapRVM<RVMMethod, TypeReference[]>();
@@ -317,7 +321,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
    * @param constantPool for the class
    * @param memRef the member reference corresponding to this method
    * @param objectInitIndex an index into the constant pool for a
-   * method reference to java.lang.Object.<init>
+   * method reference to {@code java.lang.Object.<init>}
    * @param aFields
    * @param aMethods
    * @return the created method
@@ -550,8 +554,8 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
 
   /**
    * Exceptions thrown by this method -
-   * something like { "java/lang/IOException", "java/lang/EOFException" }
-   * @return info (null --> method doesn't throw any exceptions)
+   * something like <code>{ "java/lang/IOException", "java/lang/EOFException" }</code>
+   * @return info (null --&gt; method doesn't throw any exceptions)
    */
   @Pure
   public final TypeReference[] getExceptionTypes() {
@@ -752,7 +756,7 @@ public abstract class RVMMethod extends RVMMember implements BytecodeConstants {
 
   /**
    * Change machine code that will be used by future executions of this method
-   * (ie. optimized <-> non-optimized)<p>
+   * (ie. optimized &lt;-&gt; non-optimized)<p>
    *
    * Side effect: updates JTOC or method dispatch tables
    * ("type information blocks")

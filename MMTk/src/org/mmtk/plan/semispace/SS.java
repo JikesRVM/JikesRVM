@@ -22,7 +22,7 @@ import org.vmmagic.unboxed.*;
 
 /**
  * This class implements a simple semi-space collector. See the Jones
- * & Lins GC book, section 2.2 for an overview of the basic
+ * &amp; Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
  * (LOS), and an uncollected "immortal" space.<p>
  *

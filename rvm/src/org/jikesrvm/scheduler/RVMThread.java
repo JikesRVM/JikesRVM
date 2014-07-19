@@ -12,6 +12,11 @@
  */
 package org.jikesrvm.scheduler;
 
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_DUMP_STACK_AND_DIE;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN;
+
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -28,7 +33,6 @@ import org.jikesrvm.ArchitectureSpecific.BaselineConstants;
 import org.jikesrvm.ArchitectureSpecific.ThreadLocalState;
 import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
 import org.jikesrvm.ArchitectureSpecific;
-import org.jikesrvm.Constants;
 import org.jikesrvm.VM;
 import org.jikesrvm.Configuration;
 import org.jikesrvm.Services;
@@ -152,7 +156,7 @@ import org.jikesrvm.tuningfork.Feedlet;
  */
 @Uninterruptible
 @NonMoving
-public final class RVMThread extends ThreadContext implements Constants {
+public final class RVMThread extends ThreadContext {
   /*
    * debug and statistics
    */
@@ -295,9 +299,11 @@ public final class RVMThread extends ThreadContext implements Constants {
   }
 
   /** Registers used by return barrier trampoline */
-  private final Registers trampolineRegisters = new Registers();
+  @Entrypoint
+  private Registers trampolineRegisters = new Registers();
 
   /** Return address of stack frame hijacked by return barrier */
+  @Entrypoint
   private Address hijackedReturnAddress;
 
   /** Callee frame pointer for stack frame hijacked by return barrier */
@@ -419,7 +425,7 @@ public final class RVMThread extends ThreadContext implements Constants {
 
   /**
    * Scheduling priority for this thread. Note that:
-   * {@link java.lang.Thread#MIN_PRIORITY} <= priority <=
+   * {@link java.lang.Thread#MIN_PRIORITY} &lt;= priority &lt;=
    * {@link java.lang.Thread#MAX_PRIORITY}.
    */
   private int priority;
@@ -501,16 +507,19 @@ public final class RVMThread extends ThreadContext implements Constants {
   /**
    * FP for current frame, saved in the prologue of every method
    */
+  @Entrypoint
   Address framePointer;
 
   /**
    * "hidden parameter" for interface invocation thru the IMT
    */
+  @Entrypoint
   int hiddenSignatureId;
 
   /**
    * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
    */
+  @Entrypoint
   int arrayIndexTrapParam;
 
   /* --------- END IA-specific fields. NOTE: NEED TO REFACTOR --------- */
@@ -577,7 +586,7 @@ public final class RVMThread extends ThreadContext implements Constants {
 
   /**
    * Should this thread yield at yieldpoints? A value of: 1 means "yes"
-   * (yieldpoints enabled) <= 0 means "no" (yieldpoints disabled)
+   * (yieldpoints enabled) &lt;= 0 means "no" (yieldpoints disabled)
    */
   private int yieldpointsEnabledCount;
 
@@ -911,8 +920,8 @@ public final class RVMThread extends ThreadContext implements Constants {
    * <p>
    * To support efficient sampling of only prologue/epilogues we also encode
    * some extra information into this field. 0 means that the yieldpoint should
-   * not be taken. >0 means that the next yieldpoint of any type should be taken
-   * <0 means that the next prologue/epilogue yieldpoint should be taken
+   * not be taken. &gt;0 means that the next yieldpoint of any type should be taken
+   * &lt;0 means that the next prologue/epilogue yieldpoint should be taken
    * <p>
    * Note the following rules:
    * <ol>
@@ -1034,7 +1043,7 @@ public final class RVMThread extends ThreadContext implements Constants {
   public Word priority_handle;
 
   /**
-   * Scratch area for use for gpr <=> fpr transfers by PPC baseline compiler.
+   * Scratch area for use for gpr &lt;=&gt; fpr transfers by PPC baseline compiler.
    * Used to transfer x87 to SSE registers on IA32
    */
   @SuppressWarnings({ "unused" })
@@ -2737,7 +2746,7 @@ public final class RVMThread extends ThreadContext implements Constants {
         if (VM.TraceExceptionDelivery) {
           VM.sysWriteln("Calling sysExit due to uncaught exception.");
         }
-        callSystemExit(VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
+        callSystemExit(EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION);
       } else if (thread instanceof MainThread) {
         MainThread mt = (MainThread) thread;
         if (!mt.launched) {
@@ -2750,7 +2759,7 @@ public final class RVMThread extends ThreadContext implements Constants {
            * should not support this.) This was discussed on
            * jikesrvm-researchers on 23 Jan 2005 and 24 Jan 2005.
            */
-          callSystemExit(VM.EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
+          callSystemExit(EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH);
         }
       }
       /* Use System.exit so that any shutdown hooks are run. */
@@ -4085,7 +4094,7 @@ public final class RVMThread extends ThreadContext implements Constants {
    *          new size (in bytes)
    * @param exceptionRegisters
    *          register state at which stack overflow trap was encountered (null
-   *          --> normal method call, not a trap)
+   *          --&gt; normal method call, not a trap)
    */
   @Unpreemptible("May block due to allocation")
   public static void resizeCurrentStack(int newSize,
@@ -5337,11 +5346,11 @@ public final class RVMThread extends ThreadContext implements Constants {
       // This is the first time I've been called, attempt to exit "cleanly"
       exitInProgress = true;
       dumpStack(fp);
-      VM.sysExit(VM.EXIT_STATUS_DUMP_STACK_AND_DIE);
+      VM.sysExit(EXIT_STATUS_DUMP_STACK_AND_DIE);
     } else {
       // Another failure occurred while attempting to exit cleanly.
       // Get out quick and dirty to avoid hanging.
-      sysCall.sysExit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
+      sysCall.sysExit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
   }
 

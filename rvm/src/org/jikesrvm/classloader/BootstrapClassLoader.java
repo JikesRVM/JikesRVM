@@ -64,7 +64,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
    * These are the ones that implement the VM and its
    * standard runtime libraries.  This may contain several names separated
    * with colons (':'), just
-   * as a classpath may.   (<code>null</code> ==> use the values specified by
+   * as a classpath may.   (<code>null</code> ==&gt; use the values specified by
    * {@link #setBootstrapRepositories} when the boot image was created.  This
    * feature is not actually used, but may be helpful in avoiding trouble.)
    */

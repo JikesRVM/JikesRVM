@@ -18,7 +18,7 @@ package org.jikesrvm.runtime;
  * must exit with some failure condition.  By default, if all goes well, the
  * virtual machine will exit with status zero.
  */
-public interface ExitStatus {
+public final class ExitStatus {
   /* Exit statuses, pending a better location.
 
      <p>Please keep this list in numerical order.
@@ -30,7 +30,8 @@ public interface ExitStatus {
      (according to Brian Carlstrom) it gets mapped to status 0, and we
      certainly don't want to give a false impression of success!  Please
      replace it with {@link #EXIT_STATUS_MISC_TROUBLE}.
-  */ int EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN = 128;
+  */
+  public static final int EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN = 128;
   /* Note that XARGS uses status codes 123 through 127 specially.  You are
    * warned.  We keep out of the namespace from 129 upwards to 180 or so,
    * because Bash and other SH-compatible shells treat a command that dies
@@ -42,29 +43,34 @@ public interface ExitStatus {
    * To quote the bash manpage, "If a command is found
    *  but is not executable, the return status is 126."
    * We shall adopt those customs here. --Steve Augart*/
-  int EXIT_STATUS_EXECUTABLE_NOT_FOUND = 127;
-  int EXIT_STATUS_COULD_NOT_EXECUTE = 126;
-  int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR = 125;
-  int EXIT_STATUS_DUMP_STACK_AND_DIE = 124;
-  int EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH = 123;
-  int EXIT_STATUS_MISC_TROUBLE = 122;
-  int EXIT_STATUS_SYSFAIL = EXIT_STATUS_DUMP_STACK_AND_DIE;
-  int EXIT_STATUS_SYSCALL_TROUBLE = 121;
-  int EXIT_STATUS_TIMER_TROUBLE = EXIT_STATUS_SYSCALL_TROUBLE;
-  int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS = 120;
-  int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
-  int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
-  int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
+  public static final int EXIT_STATUS_EXECUTABLE_NOT_FOUND = 127;
+  public static final int EXIT_STATUS_COULD_NOT_EXECUTE = 126;
+  public static final int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR = 125;
+  public static final int EXIT_STATUS_DUMP_STACK_AND_DIE = 124;
+  public static final int EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH = 123;
+  public static final int EXIT_STATUS_MISC_TROUBLE = 122;
+  public static final int EXIT_STATUS_SYSFAIL = EXIT_STATUS_DUMP_STACK_AND_DIE;
+  public static final int EXIT_STATUS_SYSCALL_TROUBLE = 121;
+  public static final int EXIT_STATUS_TIMER_TROUBLE = EXIT_STATUS_SYSCALL_TROUBLE;
+  public static final int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS = 120;
+  public static final int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
+  public static final int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
+  public static final int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
   /** same as OPT compiler */
-  int EXIT_STATUS_JNI_COMPILER_FAILED = 101;
-  int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 100;
-  int EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS = 99;
-  int EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS = EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS;
-  int EXIT_STATUS_JNI_TROUBLE = 98;
+  public static final int EXIT_STATUS_JNI_COMPILER_FAILED = 101;
+  public static final int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 100;
+  public static final int EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS = 99;
+  public static final int EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS = EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS;
+  public static final int EXIT_STATUS_JNI_TROUBLE = 98;
   /** Used in 0005fProcess.C */
-  int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
+  public static final int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
   /** What exit status should we use after we have printed out a help message?
    *  Some common utilities exit with 1, some with 0.  Jikes RVM seems
    *  to be using 1, so let's keep doing so. */
-  int EXIT_STATUS_PRINTED_HELP_MESSAGE = 1;
+  public static final int EXIT_STATUS_PRINTED_HELP_MESSAGE = 1;
+
+  private ExitStatus() {
+    // prevent instantiation
+  }
+
 }

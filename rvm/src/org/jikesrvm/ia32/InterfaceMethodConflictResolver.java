@@ -12,6 +12,9 @@
  */
 package org.jikesrvm.ia32;
 
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.GT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LT;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMMethod;
@@ -24,7 +27,7 @@ import org.vmmagic.unboxed.Offset;
 /**
  * An interface conflict resolution stub uses a hidden parameter to
  * distinguish among multiple interface methods of a class that map to
- * the same slot in the class's IMT. </p>
+ * the same slot in the class's IMT.
  *
  * <p><STRONG>Assumption:</STRONG>
  * Register EAX contains the "this" parameter of the
@@ -104,10 +107,10 @@ public abstract class InterfaceMethodConflictResolver implements RegisterConstan
       Offset disp = ArchEntrypoints.hiddenSignatureIdField.getOffset();
       ThreadLocalState.emitCompareFieldWithImm(asm, disp, sigIds[middle]);
       if (low < middle) {
-        asm.emitJCC_Cond_Label(Assembler.LT, bcIndices[(low + middle - 1) / 2]);
+        asm.emitJCC_Cond_Label(LT, bcIndices[(low + middle - 1) / 2]);
       }
       if (middle < high) {
-        asm.emitJCC_Cond_Label(Assembler.GT, bcIndices[(middle + 1 + high) / 2]);
+        asm.emitJCC_Cond_Label(GT, bcIndices[(middle + 1 + high) / 2]);
       }
       // invoke the method for middle.
       RVMMethod target = targets[middle];

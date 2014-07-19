@@ -12,6 +12,8 @@
  */
 package org.jikesrvm;
 
+import static org.jikesrvm.runtime.ExitStatus.*;
+
 import org.vmmagic.pragma.*;
 
 /**
@@ -240,7 +242,7 @@ $$$$ FOREACH OPTION VDATFILE
 $$$$ END FOREACH
 $$$$ END LOOP
 
-    VM.sysExit(VM.EXIT_STATUS_PRINTED_HELP_MESSAGE);
+    VM.sysExit(EXIT_STATUS_PRINTED_HELP_MESSAGE);
   }
 
   // print the options values

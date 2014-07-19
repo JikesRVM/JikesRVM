@@ -177,7 +177,7 @@ public class Entrypoints {
   /** IEEEmagic constant */
   public static final RVMField IEEEmagicField =
       getField(org.jikesrvm.runtime.MathConstants.class, "IEEEmagic", double.class);
-  /** special double value for use in int <--> double conversions */
+  /** special double value for use in int &lt;--&gt; double conversions */
   public static final RVMField I2DconstantField =
       getField(org.jikesrvm.runtime.MathConstants.class,
                "I2Dconstant",

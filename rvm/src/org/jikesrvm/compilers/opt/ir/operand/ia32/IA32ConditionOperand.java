@@ -12,7 +12,24 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand.ia32;
 
-import org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.CONDITION;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.EQ;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.GE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.GT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LGE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LGT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LLE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LLT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.LT;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.NE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.NO;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.NS;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.O;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.PE;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.PO;
+import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.S;
+
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.operand.ConditionOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -20,7 +37,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 /**
  * An IA32 condition operand
  */
-public final class IA32ConditionOperand extends Operand implements AssemblerConstants {
+public final class IA32ConditionOperand extends Operand {
 
   /**
    * Value of this operand (one of the ConditionCode constants operands

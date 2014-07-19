@@ -17,6 +17,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Untraced;
@@ -36,15 +37,19 @@ public abstract class Registers implements RegisterConstants {
 
   /** General purpose registers */
   @Untraced
+  @Entrypoint
   public final WordArray gprs;
   /** Floating point registers */
   @Untraced
+  @Entrypoint
   public final double[] fprs;
   public final WordArray gprsShadow;
   public final double[] fprsShadow;
   /** Instruction address register */
+  @Entrypoint
   public Address ip;
   /** Frame pointer */
+  @Entrypoint
   public Address fp;
 
   /**
@@ -52,6 +57,7 @@ public abstract class Registers implements RegisterConstants {
    * exception handler and RuntimeEntrypoints.athrow and reset by each
    * implementation of ExceptionDeliverer.deliverException
    */
+  @Entrypoint
   public boolean inuse;
 
   public Registers() {
@@ -129,7 +135,7 @@ public abstract class Registers implements RegisterConstants {
   }
 
   /**
-   * set ip & fp. used to control the stack frame at which a scan of
+   * set ip &amp; fp. used to control the stack frame at which a scan of
    * the stack during GC will start, for ex., the top java frame for
    * a thread that is blocked in native code during GC.
    */
@@ -140,7 +146,7 @@ public abstract class Registers implements RegisterConstants {
 
   /**
    * set ip and fp values to those of the caller. used just prior to entering
-   * sigwait to set fp & ip so that GC will scan the threads stack
+   * sigwait to set fp &amp; ip so that GC will scan the threads stack
    * starting at the frame of the method that called sigwait.
    */
   public final void setInnermost() {

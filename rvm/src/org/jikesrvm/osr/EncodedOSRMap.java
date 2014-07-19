@@ -12,10 +12,23 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.ArrayTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.BooleanTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ByteTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CharTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ClassTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.DoubleTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.FloatTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.IntTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.LongTypeCode;
+import static org.jikesrvm.classloader.ClassLoaderConstants.ShortTypeCode;
+import static org.jikesrvm.osr.OSRConstants.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
+
 import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.inlining.CallSiteTree;
@@ -30,7 +43,7 @@ import org.vmmagic.unboxed.Offset;
  * In OptCompiledMethod, an instance of this class will represent
  * all OSR map info for that method.
  */
-public final class EncodedOSRMap implements OptGCMapIteratorConstants, OSRConstants {
+public final class EncodedOSRMap implements OptGCMapIteratorConstants {
 
   /** osr info entries */
   private final long[] mapEntries;

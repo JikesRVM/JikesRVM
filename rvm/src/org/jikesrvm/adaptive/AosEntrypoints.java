@@ -20,31 +20,35 @@ import static org.jikesrvm.runtime.EntrypointHelper.getMethod;
 /**
  * Entrypoints that are valid when the build includes the adaptive optimization system.
  */
-public interface AosEntrypoints {
-  NormalMethod osrGetRefAtMethod =
+public final class AosEntrypoints {
+  public static final NormalMethod osrGetRefAtMethod =
       getMethod(org.jikesrvm.osr.ObjectHolder.class, "getRefAt", "(II)Ljava/lang/Object;");
-  NormalMethod osrCleanRefsMethod = getMethod(org.jikesrvm.osr.ObjectHolder.class, "cleanRefs", "(I)V");
-  RVMField methodListenerNumSamplesField =
+  public static final NormalMethod osrCleanRefsMethod = getMethod(org.jikesrvm.osr.ObjectHolder.class, "cleanRefs", "(I)V");
+  public static final RVMField methodListenerNumSamplesField =
       getField(org.jikesrvm.adaptive.measurements.listeners.MethodListener.class, "numSamples", int.class);
-  RVMField edgeListenerUpdateCalledField =
+  public static final RVMField edgeListenerUpdateCalledField =
       getField(org.jikesrvm.adaptive.measurements.listeners.EdgeListener.class, "updateCalled", int.class);
-  RVMField edgeListenerSamplesTakenField =
+  public static final RVMField edgeListenerSamplesTakenField =
       getField(org.jikesrvm.adaptive.measurements.listeners.EdgeListener.class, "samplesTaken", int.class);
-  RVMField yieldCountListenerNumYieldsField =
+  public static final RVMField yieldCountListenerNumYieldsField =
       getField(org.jikesrvm.adaptive.measurements.listeners.YieldCounterListener.class, "numYields", int.class);
-  RVMField counterArrayManagerCounterArraysField =
+  public static final RVMField counterArrayManagerCounterArraysField =
       getField(org.jikesrvm.adaptive.measurements.instrumentation.CounterArrayManager.class, "counterArrays", double[][].class);
-  RVMField invocationCountsField =
+  public static final RVMField invocationCountsField =
       getField(org.jikesrvm.adaptive.recompilation.InvocationCounts.class, "counts", int[].class);
-  NormalMethod invocationCounterTrippedMethod =
+  public static final NormalMethod invocationCounterTrippedMethod =
       getMethod(org.jikesrvm.adaptive.recompilation.InvocationCounts.class, "counterTripped", "(I)V");
-  RVMField globalCBSField =
+  public static final RVMField globalCBSField =
       getField(org.jikesrvm.adaptive.recompilation.instrumentation.CounterBasedSampling.class, "globalCounter", int.class);
-  RVMField threadCBSField = getField(org.jikesrvm.scheduler.RVMThread.class, "thread_cbs_counter", int.class);
-  RVMField cbsResetValueField =
+  public static final RVMField threadCBSField = getField(org.jikesrvm.scheduler.RVMThread.class, "thread_cbs_counter", int.class);
+  public static final RVMField cbsResetValueField =
       getField(org.jikesrvm.adaptive.recompilation.instrumentation.CounterBasedSampling.class, "resetValue", int.class);
-  RVMField specializedMethodsField =
+  public static final RVMField specializedMethodsField =
       getField(org.jikesrvm.compilers.opt.specialization.SpecializedMethodPool.class,
                "specializedMethods",
                org.jikesrvm.ArchitectureSpecific.CodeArray[].class);
+
+  private AosEntrypoints() {
+    // prevent instantiation
+  }
 }

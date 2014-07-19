@@ -14,7 +14,6 @@ package org.mmtk.policy.immix;
 
 import static org.mmtk.policy.immix.ImmixConstants.*;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
@@ -28,7 +27,7 @@ import org.vmmagic.unboxed.Address;
  *
  */
 @Uninterruptible
-public final class CollectorLocal implements Constants {
+public final class CollectorLocal {
 
   /****************************************************************************
    *

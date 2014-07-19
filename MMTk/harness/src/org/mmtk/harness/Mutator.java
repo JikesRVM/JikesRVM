@@ -12,6 +12,8 @@
  */
 package org.mmtk.harness;
 
+import static org.mmtk.utility.Constants.INSTANCE_FIELD;
+
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -27,7 +29,6 @@ import org.mmtk.harness.scheduler.Scheduler;
 import org.mmtk.harness.vm.ActivePlan;
 import org.mmtk.harness.vm.ObjectModel;
 import org.mmtk.plan.MutatorContext;
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
@@ -293,7 +294,7 @@ public abstract class Mutator {
 
     Address ref = ObjectModel.getDataSlot(object, index);
     if (ActivePlan.constraints.needsIntWriteBarrier()) {
-      context.intWrite(object, ref, value, ref.toWord(), null, Plan.INSTANCE_FIELD);
+      context.intWrite(object, ref, value, ref.toWord(), null, INSTANCE_FIELD);
     } else {
       ref.store(value);
     }
@@ -327,7 +328,7 @@ public abstract class Mutator {
     Clock.start();
 
     if (ActivePlan.constraints.needsObjectReferenceWriteBarrier()) {
-      context.objectReferenceWrite(object, referenceSlot, value, referenceSlot.toWord(), null, Plan.INSTANCE_FIELD);
+      context.objectReferenceWrite(object, referenceSlot, value, referenceSlot.toWord(), null, INSTANCE_FIELD);
       if (gcEveryWB) {
         gc();
       }
@@ -355,7 +356,7 @@ public abstract class Mutator {
     Clock.start();
     int result;
     if (ActivePlan.constraints.needsIntReadBarrier()) {
-      result = context.intRead(object, dataSlot, dataSlot.toWord(), null, Plan.INSTANCE_FIELD);
+      result = context.intRead(object, dataSlot, dataSlot.toWord(), null, INSTANCE_FIELD);
     } else {
       result = dataSlot.loadInt();
     }
@@ -386,7 +387,7 @@ public abstract class Mutator {
     ObjectReference result;
     Clock.start();
     if (ActivePlan.constraints.needsObjectReferenceReadBarrier()) {
-      result = context.objectReferenceRead(object, referenceSlot, referenceSlot.toWord(), null, Plan.INSTANCE_FIELD);
+      result = context.objectReferenceRead(object, referenceSlot, referenceSlot.toWord(), null, INSTANCE_FIELD);
     } else {
       result = referenceSlot.loadObjectReference();
     }

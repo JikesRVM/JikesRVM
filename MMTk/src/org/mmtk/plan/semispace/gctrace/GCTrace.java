@@ -54,7 +54,7 @@ import org.vmmagic.pragma.*;
  *      (Object 6864 was allocated into immortal space, requiring 24 bytes,
  *        with fp 346640 on thread 5; this allocation DOES NOT have perfect
  *        knowledge)
- *    48954->[345]LObject;:blah()V:23   Ljava/lang/Foo;
+ *    48954-&gt;[345]LObject;:blah()V:23   Ljava/lang/Foo;
  *      (Citation for: a) where the was allocated, fp of 48954,
  *         at the method with ID 345 -- or void Object.blah() -- and bytecode
  *         with offset 23; b) the object allocated is of type java.lang.Foo)
@@ -62,7 +62,7 @@ import org.vmmagic.pragma.*;
  *      (Object 342789 became unreachable after 361460 was allocated)
  * </pre>
  * This class implements a simple semi-space collector. See the Jones
- * & Lins GC book, section 2.2 for an overview of the basic
+ * &amp; Lins GC book, section 2.2 for an overview of the basic
  * algorithm. This implementation also includes a large object space
  * (LOS), and an uncollected "immortal" space.<p>
  *

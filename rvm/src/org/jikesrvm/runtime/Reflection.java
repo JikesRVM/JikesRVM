@@ -12,10 +12,14 @@
  */
 package org.jikesrvm.runtime;
 
+import static org.jikesrvm.Configuration.BuildForSSE2Full;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_FIRST_VIRTUAL_METHOD_INDEX;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.MachineReflection;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
@@ -26,12 +30,11 @@ import org.vmmagic.pragma.NoInline;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.WordArray;
 
-import static org.jikesrvm.Configuration.BuildForSSE2Full;
-
 /**
  * Arch-independent portion of reflective method invoker.
  */
-public class Reflection implements Constants {
+public class Reflection {
+
   /** Perform reflection using bytecodes (true) or out-of-line machine code (false) */
   public static boolean bytecodeReflection = false;
   /**
@@ -40,6 +43,15 @@ public class Reflection implements Constants {
    * java.lang.reflect objects.
    */
   public static boolean cacheInvokerInJavaLangReflect = true;
+  /*
+   * Reflection uses an integer return from a function which logically
+   * returns a triple.  The values are packed in the integer return value
+   * by the following masks.
+   */
+  public static final int REFLECTION_GPRS_BITS = 5;
+  public static final int REFLECTION_GPRS_MASK = (1 << REFLECTION_GPRS_BITS) - 1;
+  public static final int REFLECTION_FPRS_BITS = 5;
+  public static final int REFLECTION_FPRS_MASK = (1 << REFLECTION_FPRS_BITS) - 1;
   /**
    * Does the reflective method scheme need to check the arguments are valid?
    * Bytecode reflection doesn't need arguments checking as they are checking as

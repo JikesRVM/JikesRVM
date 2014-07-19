@@ -16,7 +16,6 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.TransitiveClosure;
 import org.mmtk.utility.alloc.BumpPointer;
 import org.mmtk.utility.heap.*;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.Lock;
@@ -29,8 +28,7 @@ import org.vmmagic.pragma.*;
  * This class implements functionality for a simple sliding mark-compact
  * space.
  */
-@Uninterruptible public final class MarkCompactSpace extends Space
-  implements Constants {
+@Uninterruptible public final class MarkCompactSpace extends Space {
 
   /****************************************************************************
    *

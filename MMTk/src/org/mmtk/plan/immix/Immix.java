@@ -166,4 +166,10 @@ public class Immix extends StopTheWorld {
     TransitiveClosure.registerSpecializedScan(SCAN_DEFRAG, ImmixDefragTraceLocal.class);
     super.registerSpecializedMethods();
   }
+
+  @Override
+  @Interruptible
+  public void preCollectorSpawn() {
+    immixSpace.initializeDefrag();
+  }
 }

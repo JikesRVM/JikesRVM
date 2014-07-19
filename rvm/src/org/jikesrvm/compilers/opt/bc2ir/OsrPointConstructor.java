@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
+import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
 import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER_opcode;
 
 import java.util.Enumeration;
@@ -318,7 +319,7 @@ public class OsrPointConstructor extends CompilerPhase {
   private int countNonVoidTypes(byte[] typeCodes) {
     int count = 0;
     for (int idx = 0, size = typeCodes.length; idx < size; idx++) {
-      if (typeCodes[idx] != org.jikesrvm.osr.OSRConstants.VoidTypeCode) {
+      if (typeCodes[idx] != VoidTypeCode) {
         count++;
       }
     }

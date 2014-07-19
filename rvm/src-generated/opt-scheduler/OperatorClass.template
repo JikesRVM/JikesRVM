@@ -13,6 +13,8 @@
 //OperatorClass.java
 package org.jikesrvm.compilers.opt.instrsched;
 
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
+
 import org.jikesrvm.*;
 import org.jikesrvm.compilers.opt.ir.*;
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ import java.util.ArrayList;
  * @see Operator
  * @see Operators
  */
-public final class OperatorClass implements Operators {
+public final class OperatorClass {
 
    // debug level (0 = no debug)
    private static final int verbose = 0;

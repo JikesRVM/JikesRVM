@@ -12,24 +12,26 @@
  */
 package org.jikesrvm.compilers.opt.runtimesupport;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.INSTRUMENTATION_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.UNKNOWN_BCI;
+
 import java.util.ArrayList;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.adaptive.database.callgraph.CallSite;
-import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.MemberReference;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.CallSiteTree;
-import org.jikesrvm.compilers.opt.ir.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.GCIRMap;
 import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.MIR_Call;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -42,15 +44,15 @@ import org.vmmagic.unboxed.Offset;
  *
  * <p> The supported functions are:
  * <ul>
- *  <li> (1) Map from a machine code offset to a GC map (register & stack map).
- *  <li> (2) Map from machinecode offset to <method, bcIndex> pair.
+ *  <li> (1) Map from a machine code offset to a GC map (register &amp; stack map).
+ *  <li> (2) Map from machinecode offset to &lt;method, bcIndex&gt; pair.
  *        Used for:
  *                  <ul>
  *                  <li> dynamic linking
  *                  <li> lazy compilation
  *                  <li> adaptive system profiling
  *                  </ul>
- *  <li> (3) Map from a machine code offset to a tree of <method, bcIndex> pairs
+ *  <li> (3) Map from a machine code offset to a tree of &lt;method, bcIndex&gt; pairs
  *      that encodes the inlining sequence.
  *        Used for:
  *                  <ul>
@@ -68,7 +70,7 @@ import org.vmmagic.unboxed.Offset;
  *       <li>2) methods called at GC time (no allocation allowed!)
  *  </ul>
  */
-public final class OptMachineCodeMap implements Constants, OptConstants {
+public final class OptMachineCodeMap {
 
   /**
    * Private constructor, object should be created via create

@@ -12,6 +12,14 @@
  */
 package org.jikesrvm.tools.bootImageWriter;
 
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_WORD;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -20,7 +28,6 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel.MapMode;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.mm.mminterface.MemoryManager;
@@ -38,7 +45,7 @@ import org.vmmagic.unboxed.Word;
  * "booted".
  */
 public class BootImage extends BootImageWriterMessages
-  implements BootImageWriterConstants, BootImageInterface, SizeConstants {
+  implements BootImageInterface {
 
   /**
    * Talk while we work?

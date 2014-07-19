@@ -12,9 +12,13 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
+import static org.jikesrvm.SizeConstants.BITS_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.util.BitVector;
@@ -67,20 +71,20 @@ import org.vmmagic.unboxed.Word;
  *                     +---------------+
  * literal          -1 |     123       |
  *                     +---------------+       +---------------+
- * [jtoc register]-> 0:|      0        |       |   (header)    |
+ * [jtoc register]-&gt; 0:|      0        |       |   (header)    |
  *                     +---------------+       +---------------+
- * literal           1:|  (objref)   --------->|    "abc"      |
+ * literal           1:|  (objref)   ---------&gt;|    "abc"      |
  *                     +---------------+       +---------------+
  * field             2:|     B.s       |
  *                     +---------------+       +---------------+
  *                   3:|  (coderef)  ------+   |   (header)    |
  *                     +---------------+   |   +---------------+
- *                     |     ...       |   +-->|  machine code |
+ *                     |     ...       |   +--&gt;|  machine code |
  *                     +---------------+       |    for "m"    |
  *                                             +---------------+
  * </pre>
  */
-public class Statics implements Constants {
+public class Statics {
   /**
    * How many 32bit slots do we want in the JTOC to hold numeric (non-reference) values?
    */
@@ -430,7 +434,7 @@ public class Statics implements Constants {
   /**
    * Does specified JTOC slot contain a reference?
    * @param  slot obtained from offsetAsSlot()
-   * @return {@code true} --> slot contains a reference
+   * @return {@code true} --&gt; slot contains a reference
    */
   @Uninterruptible
   public static boolean isReference(int slot) {
@@ -440,7 +444,7 @@ public class Statics implements Constants {
   /**
    * Does specified JTOC slot contain an int sized literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return {@code true} --> slot contains a reference
+   * @return {@code true} --&gt; slot contains a reference
    */
   public static boolean isIntSizeLiteral(int slot) {
     if (isReference(slot) || slot < getLowestInUseSlot()) {
@@ -453,7 +457,7 @@ public class Statics implements Constants {
   /**
    * Does specified JTOC slot contain a long sized literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return {@code true} --> slot contains a reference
+   * @return {@code true} --&gt; slot contains a reference
    */
   public static boolean isLongSizeLiteral(int slot) {
     if (isReference(slot) || slot < getLowestInUseSlot() || ((slot & 1) != 0)) {
@@ -466,7 +470,7 @@ public class Statics implements Constants {
   /**
    * Does specified JTOC slot contain a reference literal?
    * @param  slot obtained from offsetAsSlot()
-   * @return {@code true} --> slot contains a reference
+   * @return {@code true} --&gt; slot contains a reference
    */
   public static boolean isReferenceLiteral(int slot) {
     if (!isReference(slot) || slot > getHighestInUseSlot()) {

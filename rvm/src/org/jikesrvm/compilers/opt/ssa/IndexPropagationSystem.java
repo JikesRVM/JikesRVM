@@ -433,7 +433,7 @@ class IndexPropagationSystem extends DF_System {
   /**
    * Add an equation to the system of the form
    * <pre>
-   * L(A1) = updateDef(L(A2), <VALNUM(array),VALNUM(index)>)
+   * L(A1) = updateDef(L(A2), &lt;VALNUM(array),VALNUM(index)&gt;)
    * </pre>
    *
    * @param A1 variable in the equation
@@ -453,7 +453,7 @@ class IndexPropagationSystem extends DF_System {
   /**
    * Add an equation to the system of the form
    * <pre>
-   * L(A1) = updateUse(L(A2), <VALNUM(array),VALNUM(index)>)
+   * L(A1) = updateUse(L(A2), &lt;VALNUM(array),VALNUM(index)&gt;)
    * </pre>
    *
    * @param A1 variable in the equation
@@ -774,7 +774,7 @@ class IndexPropagationSystem extends DF_System {
    * Represents an UPDATE_DEF function over two ArrayCells.
    * Given two value numbers v1, v2, this function updates a heap variable
    * lattice cell to indicate that element for array v1 at address v2 is
-   * available, but kills any available indices that are not DD from <v1,v2>
+   * available, but kills any available indices that are not DD from &lt;v1,v2&gt;
    */
   class UpdateDefArrayOperator extends DF_Operator {
     /**

@@ -12,16 +12,35 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_if_acmpeq;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_if_acmpne;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_if_icmpeq;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_if_icmpge;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_if_icmpgt;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_if_icmple;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_if_icmplt;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_if_icmpne;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifeq;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifge;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifgt;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifle;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_iflt;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifne;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifnonnull;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_ifnull;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_lookupswitch;
+import static org.jikesrvm.classloader.BytecodeConstants.JBC_tableswitch;
+
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.BytecodeConstants;
 import org.jikesrvm.classloader.BytecodeStream;
 import org.jikesrvm.classloader.NormalMethod;
+
 
 /**
  * Profile data for all conditional branches (including switches)
  * of a single RVMMethod.
  */
-public final class BranchProfiles implements BytecodeConstants {
+public final class BranchProfiles {
   private final NormalMethod method;
   private final int numCounters;
   private final BranchProfile[] data;

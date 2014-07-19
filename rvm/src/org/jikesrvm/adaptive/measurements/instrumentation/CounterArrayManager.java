@@ -12,20 +12,28 @@
  */
 package org.jikesrvm.adaptive.measurements.instrumentation;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.INSTRUMENTATION_BCI;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ADD;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ALOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ASTORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_STORE;
+import static org.jikesrvm.compilers.opt.ir.Operators.INSTRUMENTED_EVENT_COUNTER;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_ALOAD;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.AosEntrypoints;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.InstrumentedEventCounterManager;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.hir2lir.ConvertToLowLevelIR;
 import org.jikesrvm.compilers.opt.ir.ALoad;
 import org.jikesrvm.compilers.opt.ir.AStore;
-import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.ir.InstrumentedCounter;
 import org.jikesrvm.compilers.opt.ir.Operator;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.operand.DoubleConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -41,7 +49,7 @@ import org.vmmagic.unboxed.Offset;
  * NOTE: Much of this class was stolen from CounterArray.java, which
  * is now gone.
  */
-public final class CounterArrayManager extends InstrumentedEventCounterManager implements Operators, OptConstants {
+public final class CounterArrayManager extends InstrumentedEventCounterManager {
 
   static final boolean DEBUG = false;
 

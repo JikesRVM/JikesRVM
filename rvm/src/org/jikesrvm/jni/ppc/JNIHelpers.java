@@ -12,6 +12,17 @@
  */
 package org.jikesrvm.jni.ppc;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
+import static org.jikesrvm.SizeConstants.BITS_IN_BOOLEAN;
+import static org.jikesrvm.SizeConstants.BITS_IN_CHAR;
+import static org.jikesrvm.SizeConstants.BITS_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.BITS_IN_INT;
+import static org.jikesrvm.SizeConstants.BITS_IN_SHORT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+
 import java.lang.reflect.Constructor;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;

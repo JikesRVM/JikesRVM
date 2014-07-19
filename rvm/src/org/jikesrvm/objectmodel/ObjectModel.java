@@ -12,9 +12,13 @@
  */
 package org.jikesrvm.objectmodel;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ADDRESS_BASED_HASHING;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ARRAY_LENGTH_OFFSET;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.HASHCODE_BYTES;
+
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMType;
@@ -58,17 +62,17 @@ import org.vmmagic.unboxed.Word;
  * Every object's header contains the three portions outlined above.
  *
  * <pre>
- * |<- lo memory                                        hi memory ->|
+ * |&lt;- lo memory                                        hi memory -&gt;|
  *
  *   SCALAR LAYOUT:
- * |<---------- scalar header --------->|
+ * |&lt;---------- scalar header ---------&gt;|
  * +----------+------------+------------+------+------+------+--------+
  * | GCHeader | MiscHeader | JavaHeader | fldO | fld1 | fldx | fldN-1 |
  * +----------+------------+------------+------+------+------+--------+
  *                         ^ JHOFF             ^objref
  *                                             .
  *    ARRAY LAYOUT:                            .
- * |<---------- array header ----------------->|
+ * |&lt;---------- array header -----------------&gt;|
  * +----------+------------+------------+------+------+------+------+------+
  * | GCHeader | MiscHeader | JavaHeader | len  | elt0 | elt1 | ...  |eltN-1|
  * +----------+------------+------------+------+------+------+------+------+
@@ -80,9 +84,9 @@ import org.vmmagic.unboxed.Word;
  * <li> Each portion of the header (JavaHeader, GCHeader, MiscHeader)
  *      is some multiple of 4 bytes (possibly 0).  This simplifies access, since we
  *      can access each portion independently without having to worry about word tearing.
- * <li> The JavaHeader exports k (>=0) unused contiguous bits that can be used
+ * <li> The JavaHeader exports k (&gt;=0) unused contiguous bits that can be used
  *      by the GCHeader and MiscHeader.  The GCHeader gets first dibs on these bits.
- *      The GCHeader should use buts 0..i, MiscHeader should use bits i..k.
+ *      The GCHeader should use bits 0..i, MiscHeader should use bits i..k.
  * <li> JHOFF is a constant for a given configuration.
  * </ul>
  *
@@ -126,7 +130,7 @@ import org.vmmagic.unboxed.Word;
  * @see MemoryManager
  */
 @Uninterruptible
-public class ObjectModel implements JavaHeaderConstants, SizeConstants {
+public class ObjectModel {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;
@@ -750,8 +754,8 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     TIB tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
     if (needsIdentityHash) {
-      if (JavaHeader.ADDRESS_BASED_HASHING) {
-        size += JavaHeader.HASHCODE_BYTES;
+      if (ADDRESS_BASED_HASHING) {
+        size += HASHCODE_BYTES;
       } else {
         // TODO: support rehashing or header initialisation for object models
         // that don't support an extra word for the hash code
@@ -835,8 +839,8 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     TIB tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     if (needsIdentityHash) {
-      if (JavaHeader.ADDRESS_BASED_HASHING) {
-        size += JavaHeader.HASHCODE_BYTES;
+      if (ADDRESS_BASED_HASHING) {
+        size += HASHCODE_BYTES;
       } else {
         // TODO: support rehashing or header initialisation for object models
         // that don't support an extra word for the hash code

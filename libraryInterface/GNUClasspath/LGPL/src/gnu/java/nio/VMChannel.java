@@ -587,7 +587,7 @@ public final class VMChannel
    * @return True if the connection succeeded; false if the file descriptor
    *  is in non-blocking mode and the connection did not immediately
    *  succeed.
-   * @throws IOException If an error occurs while connecting.
+   * @throws SocketException If an error occurs while connecting.
    */
   public boolean connect(InetSocketAddress saddr, int timeout)
   throws SocketException

@@ -31,17 +31,17 @@ import org.jikesrvm.classloader.Atom;
  * for one method and has the following format:
  * <p>
  * <pre>
- * <class> <method> <signature> <advice> <optLevel>
+ * &lt;class&gt; &lt;method&gt; &lt;signature&gt; &lt;advice&gt; &lt;optLevel&gt;
  * </pre>
  * Where the types and meanings of the fields is as follows:
  * <ul>
- * <li><code>&lt;class></code> <i>string</i> The name of the class</li>
- * <li><code>&lt;method></code> <i>string</i> The name of the method</li>
- * <li><code>&lt;signature></code> <i>string</i> The method signature</li>
- * <li><code>&lt;advice></code> <i>int</i> The compiler type to be used --
+ * <li><code>&lt;class&gt;</code> <i>string</i> The name of the class</li>
+ * <li><code>&lt;method&gt;</code> <i>string</i> The name of the method</li>
+ * <li><code>&lt;signature&gt;</code> <i>string</i> The method signature</li>
+ * <li><code>&lt;advice&gt;</code> <i>int</i> The compiler type to be used --
  * an integer value corresponding to the compiler enumeration in
  CompiledMethod</li>
- * <li><code>&lt;optLevel></code> <i>int</i> (Optional) The opt level to use
+ * <li><code>&lt;optLevel&gt;</code> <i>int</i> (Optional) The opt level to use
  if compiler is optimizing compiler</li>
  * </ul>
  *

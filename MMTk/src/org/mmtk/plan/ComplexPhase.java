@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.VM;
@@ -26,8 +25,7 @@ import org.vmmagic.pragma.*;
  *
  */
 @Uninterruptible
-public final class ComplexPhase extends Phase
-  implements Constants {
+public final class ComplexPhase extends Phase {
 
   /****************************************************************************
    * Instance fields

@@ -71,7 +71,7 @@ import org.jikesrvm.compilers.opt.ssa.IndexPropagation.ObjectCell;
 
 /**
  * This class implements the redundant load elimination by
- * Fink, Knobe && Sarkar.  See SAS 2000 paper for details.
+ * Fink, Knobe &amp; Sarkar.  See SAS 2000 paper for details.
  */
 public final class LoadElimination extends OptimizationPlanCompositeElement {
 
@@ -261,7 +261,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * NOTE: Even loads can def a heap variable.
    *
    * @param UseRepSet stores the uses(loads) that have been eliminated
-   * @param registers mapping from valueNumber -> temporary register
+   * @param registers mapping from valueNumber -&gt; temporary register
    */
   static void replaceDefs(IR ir, UseRecordSet UseRepSet, HashMap<UseRecord, Register> registers) {
     SSADictionary ssa = ir.HIRInfo.dictionary;

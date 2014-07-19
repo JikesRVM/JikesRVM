@@ -12,21 +12,24 @@
  */
 package org.jikesrvm.compilers.baseline;
 
+import static org.jikesrvm.classloader.BytecodeConstants.*;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
+import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
+
 import org.jikesrvm.ArchitectureSpecific.Assembler;
 import org.jikesrvm.ArchitectureSpecific.MachineCode;
 import org.jikesrvm.ArchitectureSpecific.StackframeLayoutConstants;
-import org.jikesrvm.VM;
 import org.jikesrvm.Services;
-import org.jikesrvm.SizeConstants;
-import org.jikesrvm.classloader.ClassLoaderConstants;
-import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.classloader.BytecodeConstants;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.BytecodeStream;
-import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.FieldReference;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.MethodReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.classloader.RVMClass;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CompiledMethod;
@@ -45,12 +48,7 @@ import org.vmmagic.unboxed.Offset;
  * seen. It is the common base class of the base compiler.
  */
 public abstract class TemplateCompilerFramework
-    implements BytecodeConstants, ClassLoaderConstants, SizeConstants, StackframeLayoutConstants {
-
-  /**
-   * has fullyBootedVM been called by VM.boot?
-   */
-  protected static boolean fullyBootedVM = false;
+    implements StackframeLayoutConstants {
 
   /**
    * The method being compiled
@@ -1579,7 +1577,7 @@ public abstract class TemplateCompilerFramework
           break;
         }
 
-        case JBC_xxxunusedxxx: {
+        case JBC_invokedynamic: {
           if (shouldPrint) asm.noteBytecode(biStart, "unused");
           if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
           break;
@@ -2074,8 +2072,8 @@ public abstract class TemplateCompilerFramework
       if (method.hasUnpreemptibleNoWarnAnnotation()) return;
     }
     // NB generate as a single string to avoid threads splitting output
-    VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
-    "\n   Uninterruptible methods may not contain the following forbidden bytecode\n   " + msg);
+    VM.sysWriteln("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+    ". Uninterruptible methods may not contain the following forbidden bytecode: " + msg);
   }
 
   /**
@@ -2093,13 +2091,13 @@ public abstract class TemplateCompilerFramework
     }
     if (isUninterruptible && !target.isUninterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNINTERRUPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
-      "\n   Uninterruptible method calls non-uninterruptible method " + target + "\n");
+      VM.sysWrite("WARNING: UNINTERRUPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+      ". Uninterruptible method calls non-uninterruptible method " + target + "\n");
     }
     if (isUnpreemptible && target.isInterruptible()) {
       // NB generate as a single string to avoid threads splitting output
-      VM.sysWrite("WARNING: UNPREEMPTIBLE VIOLATION\n   "+ method + " at line " + method.getLineNumberForBCIndex(bci) +
-          "\n   Unpreemptible method calls interruptible method " + target + "\n");
+      VM.sysWrite("WARNING: UNPREEMPTIBLE VIOLATION. " + method + " at line " + method.getLineNumberForBCIndex(bci) +
+          ". Unpreemptible method calls interruptible method " + target + "\n");
     }
   }
 
@@ -3004,7 +3002,7 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Emit code to dynamically link and allocate a scalar object
-   * @param typeRef   {@link TypeReference} to dynamically link & instantiate
+   * @param typeRef   {@link TypeReference} to dynamically link &amp; instantiate
    */
   protected abstract void emit_unresolved_new(TypeReference typeRef);
 
@@ -3016,13 +3014,13 @@ public abstract class TemplateCompilerFramework
 
   /**
    * Emit code to dynamically link the element class and allocate an array
-   * @param typeRef typeReference to dynamically link & instantiate
+   * @param typeRef typeReference to dynamically link &amp; instantiate
    */
   protected abstract void emit_unresolved_newarray(TypeReference typeRef);
 
   /**
    * Emit code to allocate a multi-dimensional array
-   * @param typeRef typeReference to dynamically link & instantiate
+   * @param typeRef typeReference to dynamically link &amp; instantiate
    * @param dimensions the number of dimensions
    */
   protected abstract void emit_multianewarray(TypeReference typeRef, int dimensions);

@@ -12,7 +12,10 @@
  */
 package org.jikesrvm.objectmodel;
 
-import org.jikesrvm.SizeConstants;
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_LONG;
+
 import org.jikesrvm.runtime.Memory;
 
 /**
@@ -25,7 +28,7 @@ import org.jikesrvm.runtime.Memory;
  * This abstract superclass looks after the total object size and
  * alignment.
  */
-public abstract class FieldLayoutContext implements SizeConstants {
+public abstract class FieldLayoutContext {
 
   /* *****************************************************************
    *                         Constants

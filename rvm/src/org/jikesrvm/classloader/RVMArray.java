@@ -12,13 +12,27 @@
  */
 package org.jikesrvm.classloader;
 
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_BOOLEAN;
+import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.SizeConstants.BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_SHORT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_BOOLEAN;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.VM.NOT_REACHED;
+import static org.jikesrvm.classloader.ClassLoaderConstants.*;
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
-import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.Barriers;
+import org.jikesrvm.mm.mminterface.HandInlinedScanning;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
@@ -46,7 +60,7 @@ import org.vmmagic.unboxed.Offset;
  * @see UnboxedType
  */
 @NonMoving
-public final class RVMArray extends RVMType implements Constants, ClassLoaderConstants {
+public final class RVMArray extends RVMType {
 
   /*
    * We hold on to a number of commonly used arrays for easy access.
@@ -533,7 +547,7 @@ public final class RVMArray extends RVMType implements Constants, ClassLoaderCon
   }
 
   /**
-   * Initialization is a no-op (arrays have no <clinit> method).
+   * Initialization is a no-op (arrays have no {@code <clinit>} method).
    */
   @Override
   public void initialize() { }

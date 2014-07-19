@@ -12,18 +12,24 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
+import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
+
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.HeapLayoutConstants;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
@@ -42,7 +48,6 @@ import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
@@ -68,7 +73,7 @@ import org.vmmagic.unboxed.WordArray;
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
 @Uninterruptible
-public final class MemoryManager implements HeapLayoutConstants, Constants {
+public final class MemoryManager {
 
   /***********************************************************************
    *
@@ -171,7 +176,7 @@ public final class MemoryManager implements HeapLayoutConstants, Constants {
   public static void processCommandLineArg(String arg) {
     if (!OptionSet.gc.process(arg)) {
       VM.sysWriteln("Unrecognized command line argument: \"" + arg + "\"");
-      VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
   }
 

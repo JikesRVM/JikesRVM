@@ -12,14 +12,30 @@
  */
 package org.jikesrvm.compilers.opt.ir;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.UNKNOWN_BCI;
+import static org.jikesrvm.compilers.opt.ir.Operators.BBEND;
+import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.GOTO_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.IG_PATCH_POINT_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP2_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LABEL;
+import static org.jikesrvm.compilers.opt.ir.Operators.LONG_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LOOKUPSWITCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.LOWTABLESWITCH_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.MIR_START_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
+
 import java.util.Enumeration;
 
-import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
+import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.LocalCSE;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
-import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
@@ -123,7 +139,7 @@ import org.vmmagic.pragma.NoInline;
  * @see Operand
  * @see BasicBlock
  */
-public final class Instruction implements Constants, Operators, OptConstants {
+public final class Instruction {
 
   /**
    * BITFIELD used to encode {@link #operatorInfo}.
@@ -1079,7 +1095,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
   }
 
   /**
-   * Is the instruction a compare (val,val) => condition?
+   * Is the instruction a compare (val,val) =&gt; condition?
    *
    * @return <code>true</code> if the instruction is a compare
    *         or <code>false</code> if it is not.
@@ -1513,7 +1529,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
 
   /**
    * Replacement: Replace this with newInstr.
-   * We could allow replacement of first & last instrs in the basic block,
+   * We could allow replacement of first &amp; last instrs in the basic block,
    * but it would be a fair amount of work to update everything, and probably
    * isn't useful, so we'll simply disallow it for now.
    *
@@ -1551,7 +1567,7 @@ public final class Instruction implements Constants, Operators, OptConstants {
    *  CFG data structure.....right now we just assume the caller knows what
    *  they are doing and takes care of it.
    *  <p>
-   *  NB: execution of this method nulls out the prev & next fields of this
+   *  NB: execution of this method nulls out the prev &amp; next fields of this
    *
    * @return the previous instruction in the instruction stream
    */

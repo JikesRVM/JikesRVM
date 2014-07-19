@@ -16,7 +16,6 @@ import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.opt.ir.GenericRegisterPool;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.runtime.Magic;
@@ -30,7 +29,7 @@ import org.vmmagic.unboxed.Address;
  *
  * @see org.jikesrvm.compilers.opt.ir.Register
  */
-public abstract class RegisterPool extends GenericRegisterPool implements Operators {
+public abstract class RegisterPool extends GenericRegisterPool {
 
   /**
    * Initializes a new register pool for the method meth.

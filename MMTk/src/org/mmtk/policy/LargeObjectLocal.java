@@ -14,7 +14,6 @@ package org.mmtk.policy;
 
 import org.mmtk.utility.alloc.LargeObjectAllocator;
 import org.mmtk.utility.gcspy.drivers.TreadmillDriver;
-import org.mmtk.utility.Constants;
 
 import org.vmmagic.pragma.*;
 
@@ -31,7 +30,7 @@ import org.vmmagic.pragma.*;
  * instances of this class, one for each CPU, TreadmillSpace pair.
  */
 @Uninterruptible
-public final class LargeObjectLocal extends LargeObjectAllocator implements Constants {
+public final class LargeObjectLocal extends LargeObjectAllocator {
 
   /****************************************************************************
    *

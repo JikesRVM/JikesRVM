@@ -12,7 +12,6 @@
  */
 package org.mmtk.plan;
 
-import org.mmtk.utility.Constants;
 import org.mmtk.utility.statistics.Timer;
 import org.mmtk.utility.Log;
 
@@ -22,8 +21,7 @@ import org.vmmagic.pragma.*;
  * Phases of a garbage collection.
  */
 @Uninterruptible
-public final class SimplePhase extends Phase
-  implements Constants {
+public final class SimplePhase extends Phase {
   /****************************************************************************
    * Instance fields
    */

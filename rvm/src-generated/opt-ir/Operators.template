@@ -32,9 +32,9 @@ $$$$ END IF
  *
  * @see Operator
  */
-public interface Operators {
+public final class Operators {
 
-  MachineSpecificIR helper =
+  public static final MachineSpecificIR helper =
 $$$$ IF ARCHITECTURE == "ia32"
 $$$$ IF ARCH_BITS == "32"
                                               MachineSpecificIRIA.IA32.singleton;
@@ -51,7 +51,7 @@ $$$$ END IF
 $$$$ END IF
 
 $$$$ FOREACH OPERATOR OperatorList.dat
-  char OPERATOR.SYMBOL_opcode = (char)OPERATOR.INDEX;
+  public static final char OPERATOR.SYMBOL_opcode = (char)OPERATOR.INDEX;
 $$$$ END FOREACH
 $$$$ IF ARCHITECTURE != "NONE"
   //////////////////////////
@@ -59,7 +59,7 @@ $$$$ IF ARCHITECTURE != "NONE"
   // BEGIN Architecture Dependent opcodes & MIR.
   //////////////////////////
 $$$$ FOREACH OPERATOR ARCH_OP_LIST
-  char OPERATOR.SYMBOL_opcode = (char)(OPERATOR.INDEX + ARCH_INDEPENDENT_END_opcode);
+  public static final char OPERATOR.SYMBOL_opcode = (char)(OPERATOR.INDEX + ARCH_INDEPENDENT_END_opcode);
 $$$$ END FOREACH
 $$$$ END IF
 
@@ -70,14 +70,14 @@ $$$$ IF USE_EXTRA_OPLIST == "TRUE"
   // BEGIN Architecture Dependent opcodes & MIR.
   //////////////////////////
 $$$$ FOREACH OPERATOR ExtraOperatorList.dat
-  char OPERATOR.SYMBOL_opcode = (char)(OPERATOR.INDEX + ARCH_INDEPENDENT_END_opcode);
+  public static final char OPERATOR.SYMBOL_opcode = (char)(OPERATOR.INDEX + ARCH_INDEPENDENT_END_opcode);
 $$$$ END FOREACH
 $$$$ END IF
 $$$$ END IF
 
 $$$$ FOREACH OPERATOR OperatorList.dat
 $$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
-  Operator OPERATOR.SYMBOL = Operator.OperatorArray[OPERATOR.INDEX];
+  public static final Operator OPERATOR.SYMBOL = Operator.OperatorArray[OPERATOR.INDEX];
 $$$$ END IF
 $$$$ END FOREACH
 $$$$ IF ARCHITECTURE != "NONE"
@@ -86,7 +86,7 @@ $$$$ IF ARCHITECTURE != "NONE"
   // BEGIN Architecture Dependent opcodes & MIR.
   //////////////////////////
 $$$$ FOREACH OPERATOR ARCH_OP_LIST
-  Operator OPERATOR.SYMBOL = Operator.OperatorArray[OPERATOR.INDEX+ARCH_INDEPENDENT_END_opcode];
+  public static final Operator OPERATOR.SYMBOL = Operator.OperatorArray[OPERATOR.INDEX+ARCH_INDEPENDENT_END_opcode];
 $$$$ END FOREACH
 $$$$ END IF
 
@@ -97,7 +97,7 @@ $$$$ IF USE_EXTRA_OPLIST == "TRUE"
   // BEGIN Architecture Dependent opcodes & MIR.
   //////////////////////////
 $$$$ FOREACH OPERATOR ExtraOperatorList.dat
-  Operator OPERATOR.SYMBOL = Operator.OperatorArray[OPERATOR.INDEX+ARCH_INDEPENDENT_END_opcode];
+  public static final Operator OPERATOR.SYMBOL = Operator.OperatorArray[OPERATOR.INDEX+ARCH_INDEPENDENT_END_opcode];
 $$$$ END FOREACH
 $$$$ END IF
 $$$$ END IF

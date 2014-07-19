@@ -13,7 +13,6 @@
 package org.jikesrvm.adaptive;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.Constants;
 import org.jikesrvm.ArchitectureSpecificOpt.BaselineExecutionStateExtractor;
 import org.jikesrvm.ArchitectureSpecificOpt.CodeInstaller;
 import org.jikesrvm.ArchitectureSpecificOpt.OptExecutionStateExtractor;
@@ -40,7 +39,7 @@ import org.vmmagic.unboxed.Offset;
  * The execution of this plan compiles the method, installs the new
  * code, and reschedule the thread.
  */
-public class OnStackReplacementPlan implements Constants {
+public class OnStackReplacementPlan {
   private final int CMID;
   private final Offset tsFromFPoff;
   private final Offset ypTakenFPoff;

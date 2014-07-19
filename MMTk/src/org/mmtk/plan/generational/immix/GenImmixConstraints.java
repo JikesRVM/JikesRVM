@@ -13,6 +13,7 @@
 package org.mmtk.plan.generational.immix;
 
 import org.mmtk.plan.generational.GenConstraints;
+
 import static org.mmtk.policy.immix.ImmixConstants.MAX_IMMIX_OBJECT_BYTES;
 
 import org.vmmagic.pragma.*;

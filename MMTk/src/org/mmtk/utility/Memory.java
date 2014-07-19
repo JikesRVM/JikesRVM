@@ -12,6 +12,8 @@
  */
 package org.mmtk.utility;
 
+import static org.mmtk.utility.Constants.*;
+
 import org.mmtk.vm.VM;
 
 import org.vmmagic.unboxed.*;
@@ -27,7 +29,7 @@ import org.vmmagic.pragma.*;
  * FIXME: Why can't these operations be performed at word-granularity?
  */
 @Uninterruptible
-public class Memory implements Constants {
+public class Memory {
 
   /****************************************************************************
    *

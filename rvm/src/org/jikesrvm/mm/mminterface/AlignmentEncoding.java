@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mminterface;
 
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.objectmodel.JavaHeaderConstants.ALIGNMENT_VALUE;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.JavaHeader;
@@ -108,7 +109,7 @@ public class AlignmentEncoding {
     while (getTibCodeForRegion(region) != alignCode) {
       if (VM.runningVM) {
         // Hack to allow alignment, but no alignment filling during boot
-        region.store(Word.fromIntZeroExtend(ObjectModel.ALIGNMENT_VALUE));
+        region.store(Word.fromIntZeroExtend(ALIGNMENT_VALUE));
       }
       region = region.plus(ALIGNMENT_INCREMENT);
       if (region.GT(limit)) {

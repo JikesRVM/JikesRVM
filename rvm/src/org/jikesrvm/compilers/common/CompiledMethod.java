@@ -15,7 +15,6 @@ package org.jikesrvm.compilers.common;
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.VM;
-import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.runtime.DynamicLink;
@@ -34,7 +33,7 @@ import org.vmmagic.unboxed.Word;
 /**
  * A method that has been compiled into machine code by one of our compilers.
  */
-public abstract class CompiledMethod implements SizeConstants {
+public abstract class CompiledMethod {
 
   /*
    * constants for compiler types
@@ -427,7 +426,7 @@ public abstract class CompiledMethod implements SizeConstants {
    * @param instructionOffset offset of machine instruction from start of this method, in bytes
    * @param exceptionType type of exception being thrown - something like "NullPointerException"
    * @return offset of machine instruction for catch block
-   * (-1 --> no catch block)
+   * (-1 --&gt; no catch block)
    */
   @Unpreemptible
   public abstract int findCatchBlockForInstruction(Offset instructionOffset, RVMType exceptionType);
@@ -452,7 +451,7 @@ public abstract class CompiledMethod implements SizeConstants {
    * <li> The implementation must not cause any allocations,
    * because it executes with
    * GC disabled when called by GCMapIterator.
-   * <ul>
+   * </ul>
    *
    * @param dynamicLink place to put return information
    * @param instructionOffset offset of machine instruction from start of

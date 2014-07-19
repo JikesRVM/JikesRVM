@@ -12,6 +12,26 @@
  */
 package org.jikesrvm.compilers.opt.bc2ir;
 
+import static org.jikesrvm.compilers.opt.driver.OptConstants.EPILOGUE_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.EPILOGUE_BLOCK_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.PROLOGUE_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.PROLOGUE_BLOCK_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNCHRONIZED_MONITORENTER_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNCHRONIZED_MONITOREXIT_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.SYNTH_CATCH_BCI;
+import static org.jikesrvm.compilers.opt.driver.OptConstants.YES;
+import static org.jikesrvm.compilers.opt.ir.Operators.CALL;
+import static org.jikesrvm.compilers.opt.ir.Operators.GET_CAUGHT_EXCEPTION;
+import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
+import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
+import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER;
+import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT;
+import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
+import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
+import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
+
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,8 +40,8 @@ import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.baseline.BranchProfile;
@@ -46,7 +66,6 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.MonitorOp;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.Nullary;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Return;
@@ -67,52 +86,56 @@ import org.vmmagic.unboxed.Offset;
  * a method's bytecodes and populate targetIR with instructions.
  *
  **/
-public final class GenerationContext implements org.jikesrvm.compilers.opt.driver.OptConstants, Operators {
+public final class GenerationContext {
 
   //////////
   // These fields are used to communicate information from its
   // caller to BC2IR
   //////////
+
   /**
-   * The original method (root of the calling context tree)
+   * The parent of this context is the context that called
+   * {@link #createChildContext(GenerationContext, ExceptionHandlerBasicBlockBag, NormalMethod, Instruction)}
+   * to create this context. This field is {@code null} if this context is the outermost
+   * one.
    */
-  NormalMethod original_method;
+  private GenerationContext parent;
 
   /**
    * The compiled method assigned for this compilation of original_method
    */
-  CompiledMethod original_cm;
+  private CompiledMethod original_cm;
 
   /**
    * The method to be generated
    */
-  public NormalMethod method;
+  private NormalMethod method;
 
   /**
    * The BranchProfile data for method, if available
    */
-  BranchProfiles branchProfiles;
+  private BranchProfiles branchProfiles;
 
   /**
    * The options to control the generation
    */
-  public OptOptions options;
+  private OptOptions options;
 
   /**
    * The CFG object into which instructions should be generated.
    */
-  public ControlFlowGraph cfg;
+  private ControlFlowGraph cfg;
 
   /**
    * The register pool to be used during generation
    */
-  public RegisterPool temps;
+  private RegisterPool temps;
 
   /**
    * The parameters which BC2IR should use to seed the local state
    * for the entry basic block.
    */
-  Operand[] arguments;
+  private Operand[] arguments;
 
   /**
    * The basic block into which BC2IR's caller will generate a "prologue."
@@ -125,7 +148,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * (ie prologue can assume it will fallthrough
    * to the first basic block in the ir generated for method.
    */
-  public BasicBlock prologue;
+  private BasicBlock prologue;
 
   /**
    * The basic block into which BC2IR's caller will generate an epilogue.
@@ -143,41 +166,41 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * NOTE: BC2IR assumes that epilogue is a single basic block
    *       (i.e. it has no out edges)
    */
-  public BasicBlock epilogue;
+  private BasicBlock epilogue;
 
   /**
    * The exit node of the outermost CFG
    * (used by BC2IR for not-definitely caught athrows and by OSR_Yieldpoints)
    */
-  public BasicBlock exit;
+  private BasicBlock exit;
 
   /**
    * A catch, unlock, and rethrow exception handler used for
    * synchronized methods.
    */
-  BasicBlock unlockAndRethrow;
+  private BasicBlock unlockAndRethrow;
 
   /**
    * The Register to which BC2IR should assign the return value(s)
    * of the method. It will be null when the method has a void return.
    */
-  Register resultReg;
+  private Register resultReg;
 
   /**
    * The enclosing exception handlers (null if there are none).
    */
-  ExceptionHandlerBasicBlockBag enclosingHandlers;
+  private ExceptionHandlerBasicBlockBag enclosingHandlers;
 
   /**
    * Inlining context of the method to be generated
    */
-  public InlineSequence inlineSequence;
+  private InlineSequence inlineSequence;
 
   /**
    * The InlineOracle to be consulted for all inlining decisions during
    * the generation of this IR.
    */
-  InlineOracle inlinePlan;
+  private InlineOracle inlinePlan;
 
   //////////
   // These fields are used to communicate information from BC2IR to its caller
@@ -186,12 +209,12 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * Did BC2IR generate a reachable exception handler while generating
    * the IR for this method
    */
-  public boolean generatedExceptionHandlers;
+  private boolean generatedExceptionHandlers;
 
   /**
    * Did BC2IR encounter a magic that requires us to allocate a stack frame?
    */
-  public boolean allocFrame;
+  private boolean allocFrame;
 
   /**
    * Used to communicate the meet of the return values back to the caller
@@ -199,7 +222,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * BC2IR object
    * to exploit knowledge the callee BC2IR object had about the result.
    */
-  public Operand result;
+  private Operand result;
 
   //////////
   // Main public methods
@@ -216,7 +239,6 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * @param ip   The InlineOracle to be used for the generation
    */
   GenerationContext(NormalMethod meth, TypeReference[] params, CompiledMethod cm, OptOptions opts, InlineOracle ip) {
-    original_method = meth;
     original_cm = cm;
     method = meth;
     if (opts.frequencyCounters() || opts.inverseFrequencyCounters()) {
@@ -294,7 +316,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   }
 
   /**
-   * Create a child generation context from parent & callerBB to
+   * Create a child generation context from parent &amp; callerBB to
    * generate IR for callsite.
    * Make this 'static' to avoid confusing parent/child fields.
    *
@@ -312,7 +334,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     if (parent.options.frequencyCounters() || parent.options.inverseFrequencyCounters()) {
       child.branchProfiles = EdgeCounts.getBranchProfiles(callee);
     }
-    child.original_method = parent.original_method;
+    child.parent = parent;
     child.original_cm = parent.original_cm;
 
     // Some state gets directly copied to the child
@@ -424,7 +446,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   /**
    * Only for internal use by Inliner (when inlining multiple targets)
    * This is probably not the prettiest way to handle this, but it requires
-   * no changes to BC2IR's & Inliner's high level control logic.
+   * no changes to BC2IR's &amp; Inliner's high level control logic.
    *
    * @param parent the parent GC
    * @param ebag the enclosing exception handlers (null if none)
@@ -463,17 +485,21 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   }
 
   /**
-   * Use this to transfer state back from a child context back to its parent.
+   * Transfers the state from this context back to its direct
+   * parent.
    *
-   * @param parent the parent context that will receive the state
-   * @param child  the child context from which the state will be taken
+   * @throws IllegalStateException when this context does not have a parent
    */
-  public static void transferState(GenerationContext parent, GenerationContext child) {
-    parent.cfg.setNumberOfNodes(child.cfg.numberOfNodes());
-    if (child.generatedExceptionHandlers) {
+  public void transferStateToParent() {
+    if (parent == null) {
+      throw new IllegalStateException("This method may only be called on contexts that have a parent.");
+    }
+
+    parent.cfg.setNumberOfNodes(this.cfg.numberOfNodes());
+    if (this.generatedExceptionHandlers) {
       parent.generatedExceptionHandlers = true;
     }
-    if (child.allocFrame) {
+    if (this.allocFrame) {
       parent.allocFrame = true;
     }
   }
@@ -516,7 +542,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   /**
    * Return the Register used to for local i of TypeReference type
    */
-  public Register localReg(int i, TypeReference type) {
+  Register localReg(int i, TypeReference type) {
     Register[] pool = getPool(type);
     if (pool[i] == null) {
       pool[i] = temps.getReg(type);
@@ -553,7 +579,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    * @param i local variable number
    * @param type desired data type
    */
-  public RegisterOperand makeLocal(int i, TypeReference type) {
+  RegisterOperand makeLocal(int i, TypeReference type) {
     return new RegisterOperand(localReg(i, type), type);
   }
 
@@ -574,7 +600,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   /**
    * Get the local number for a given register
    */
-  public int getLocalNumberFor(Register reg, TypeReference type) {
+  int getLocalNumberFor(Register reg, TypeReference type) {
     Register[] pool = getPool(type);
     for (int i = 0; i < pool.length; i++) {
       if (pool[i] == reg) return i;
@@ -585,7 +611,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   /**
    * Is the operand a particular bytecode local?
    */
-  public boolean isLocal(Operand op, int i, TypeReference type) {
+  boolean isLocal(Operand op, int i, TypeReference type) {
     if (op instanceof RegisterOperand) {
       if (getPool(type)[i] == ((RegisterOperand) op).getRegister()) return true;
     }
@@ -618,7 +644,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
   ///////////
   // Profile data
   ///////////
-  public BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex, boolean backwards) {
+  BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex, boolean backwards) {
     float prob;
     BranchProfile bp;
     if (branchProfiles != null && ((bp = branchProfiles.getEntry(bcIndex)) != null)) {
@@ -641,7 +667,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     return new BranchProfileOperand(prob);
   }
 
-  public SwitchBranchProfile getSwitchProfile(int bcIndex) {
+  SwitchBranchProfile getSwitchProfile(int bcIndex) {
     if (branchProfiles != null) {
       BranchProfile bp = branchProfiles.getEntry(bcIndex);
       return (SwitchBranchProfile) bp;
@@ -661,7 +687,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
 
   /**
    * Fill in the rest of the method prologue.
-   * PRECONDITION: arguments & temps have been setup/initialized.
+   * PRECONDITION: arguments &amp; temps have been setup/initialized.
    */
   private void completePrologue(boolean isOutermost) {
     // Deal with Uninteruptible code.
@@ -688,7 +714,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
 
   /**
    * Fill in the rest of the method epilogue.
-   * PRECONDITION: arguments & temps have been setup/initialized.
+   * PRECONDITION: arguments &amp; temps have been setup/initialized.
    */
   private void completeEpilogue(boolean isOutermost) {
     // Deal with implicit monitorexit for synchronized methods.
@@ -714,8 +740,8 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
 
   /**
    * If the method is synchronized then we wrap it in a
-   * synthetic exception handler that unlocks & rethrows
-   * PRECONDITION: cfg, arguments & temps have been setup/initialized.
+   * synthetic exception handler that unlocks &amp; rethrows
+   * PRECONDITION: cfg, arguments &amp; temps have been setup/initialized.
    */
   private void completeExceptionHandlers(boolean isOutermost) {
     if (method.isSynchronized() && !options.ESCAPE_INVOKEE_THREAD_LOCAL) {
@@ -822,7 +848,7 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
     Iterator<Map.Entry<Register, RegisterOperand>> i = _ncGuards.entrySet().iterator();
     while (i.hasNext()) {
       Map.Entry<Register, RegisterOperand> entry = i.next();
-      if (!(regPool.contains(entry.getValue()))) i.remove();
+      if (!(regPool.contains(entry.getKey()))) i.remove();
     }
   }
 
@@ -831,6 +857,132 @@ public final class GenerationContext implements org.jikesrvm.compilers.opt.drive
    */
   public void close() {
     _ncGuards = null;
+  }
+
+  /**
+   * Is this method selected for debugging with method to print?<p>
+   *
+   * A method is selected if the name of the original method
+   * is contained in the set of methods to print. This ensures that debug
+   * output is not omitted during generation of IR for methods
+   * that are inlined into a method that is supposed to be printed.
+   *
+   *  @see BC2IR#DBG_SELECTIVE
+   */
+  boolean methodIsSelectedForDebuggingWithMethodToPrint() {
+    boolean originalMethodSelected = options.hasMETHOD_TO_PRINT() &&
+        options.fuzzyMatchMETHOD_TO_PRINT(getOriginalMethod().toString());
+    return originalMethodSelected;
+  }
+
+  /**
+   * Forces allocation of a stack frame for this method.
+   */
+  public void forceFrameAllocation() {
+    this.allocFrame = true;
+  }
+
+  public boolean requiresStackFrame() {
+    return allocFrame;
+  }
+
+  public boolean generatedExceptionHandlers() {
+    return generatedExceptionHandlers;
+  }
+
+  public void markExceptionHandlersAsGenerated() {
+    this.generatedExceptionHandlers = true;
+  }
+
+  ///////////
+  // Getters and setters that need to be public
+  ///////////
+
+  public NormalMethod getMethod() {
+    return method;
+  }
+
+  public OptOptions getOptions() {
+    return options;
+  }
+
+  public ControlFlowGraph getCfg() {
+    return cfg;
+  }
+
+  public RegisterPool getTemps() {
+    return temps;
+  }
+
+  public BasicBlock getPrologue() {
+    return prologue;
+  }
+
+  public BasicBlock getEpilogue() {
+    return epilogue;
+  }
+
+  public void setEpilogue(BasicBlock epilogue) {
+    this.epilogue = epilogue;
+  }
+
+  public BasicBlock getExit() {
+    return exit;
+  }
+
+  public InlineSequence getInlineSequence() {
+    return inlineSequence;
+  }
+
+  public Operand getResult() {
+    return result;
+  }
+
+  public void setResult(Operand result) {
+    this.result = result;
+  }
+
+  ///////////
+  // Getters and setters that are only used by the initial transformation to IR
+  ///////////
+
+  /**
+   * @return the original method (root of the calling context tree)
+   */
+  NormalMethod getOriginalMethod() {
+    GenerationContext outermostContext = this;
+    while (outermostContext.parent != null) {
+      outermostContext = outermostContext.parent;
+    }
+    return outermostContext.method;
+  }
+
+  CompiledMethod getOriginalCompiledMethod() {
+    return original_cm;
+  }
+
+  BranchProfiles getBranchProfiles() {
+    return branchProfiles;
+  }
+
+  Operand[] getArguments() {
+    return arguments;
+  }
+
+  BasicBlock getUnlockAndRethrow() {
+    return unlockAndRethrow;
+  }
+
+  Register getResultReg() {
+    return resultReg;
+  }
+
+  ExceptionHandlerBasicBlockBag getEnclosingHandlers() {
+    return enclosingHandlers;
+  }
+
+  InlineOracle getInlinePlan() {
+    return inlinePlan;
   }
 
 }

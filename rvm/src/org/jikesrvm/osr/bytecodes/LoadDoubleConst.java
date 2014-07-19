@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.osr.bytecodes;
 
+import static org.jikesrvm.osr.OSRConstants.PSEUDO_LoadDoubleConst;
 
 /**
  * BC_LoadDoubleConst: ldc2_w

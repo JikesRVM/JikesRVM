@@ -12,23 +12,36 @@
  */
 package org.jikesrvm.jni;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_BYTE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_CHAR;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.BYTES_IN_SHORT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_LONG;
+import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_SHORT;
+import static org.jikesrvm.runtime.ExitStatus.*;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 //import java.security.PrivilegedAction;
 import org.jikesrvm.ArchitectureSpecific.JNIHelpers;
-import org.jikesrvm.VM;
 import org.jikesrvm.Properties;
-import org.jikesrvm.SizeConstants;
-import org.jikesrvm.classloader.RVMArray;
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.MemberReference;
+import org.jikesrvm.classloader.NativeMethod;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.NativeMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.classloader.UTF8Convert;
@@ -41,10 +54,10 @@ import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.util.AddressInputStream;
 
-import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.vmmagic.pragma.NativeBridge;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
+import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -104,9 +117,10 @@ import org.vmmagic.unboxed.Offset;
 @SuppressWarnings({"unused", "UnusedDeclaration"})
 // methods are called from native code
 @NativeBridge
-public class JNIFunctions implements SizeConstants {
+public class JNIFunctions {
   // one message for each JNI function called from native
   public static final boolean traceJNI = Properties.verboseJNI;
+
   // number of JNI function entries
   public static final int FUNCTIONCOUNT = 233; // JNI 1.4
 
@@ -151,7 +165,7 @@ public class JNIFunctions implements SizeConstants {
       } else {
         cl = (ClassLoader) env.getJNIRef(classLoader);
       }
-      AddressInputStream reader = new AddressInputStream(data, Offset.fromIntZeroExtend(dataLen));
+      AddressInputStream reader = new AddressInputStream(data, Extent.fromIntZeroExtend(dataLen));
 
       final RVMType vmType = RVMClassLoader.defineClassInternal(classString, reader, cl);
       return env.pushJNIRef(vmType.getClassForType());
@@ -382,10 +396,10 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       VM.sysWrite(JNIHelpers.createStringFromC(messageAddress));
-      System.exit(VM.EXIT_STATUS_JNI_TROUBLE);
+      System.exit(EXIT_STATUS_JNI_TROUBLE);
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);
-      System.exit(VM.EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
+      System.exit(EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN);
     }
   }
 
@@ -2658,7 +2672,7 @@ public class JNIFunctions implements SizeConstants {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodNameAddress a raw address to a null-terminated string in C for the method name
-   * @param methodSigAddress a raw address to a null-terminated string in C for <DOCUMENTME TODO>
+   * @param methodSigAddress a raw address to a null-terminated string in C for (TODO: document me)
    * @return a method ID or null if it fails
    * @exception NoSuchMethodError if the method is not found
    * @exception ExceptionInInitializerError if the initializer fails
@@ -6074,25 +6088,25 @@ public class JNIFunctions implements SizeConstants {
 
   private static int reserved0(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved1(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved2(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 
   private static int reserved3(JNIEnvironment env) {
     VM.sysWrite("JNI ERROR: reserved function slot not implemented, exiting ...\n");
-    VM.sysExit(VM.EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+    VM.sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return -1;
   }
 }

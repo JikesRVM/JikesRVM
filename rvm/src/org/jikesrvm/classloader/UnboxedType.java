@@ -12,7 +12,11 @@
  */
 package org.jikesrvm.classloader;
 
-import org.jikesrvm.Constants;
+import static org.jikesrvm.SizeConstants.BYTES_IN_ADDRESS;
+import static org.jikesrvm.SizeConstants.BYTES_IN_BYTE;
+import static org.jikesrvm.SizeConstants.BYTES_IN_INT;
+import static org.jikesrvm.VM.NOT_REACHED;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.objectmodel.TIB;
 import org.vmmagic.pragma.NonMoving;
@@ -31,7 +35,7 @@ import org.vmmagic.unboxed.Offset;
  * @see Primitive
  */
 @NonMoving
-public final class UnboxedType extends RVMType implements Constants, ClassLoaderConstants {
+public final class UnboxedType extends RVMType {
   /**
    * The pretty (external) name for this Unboxed type.
    */

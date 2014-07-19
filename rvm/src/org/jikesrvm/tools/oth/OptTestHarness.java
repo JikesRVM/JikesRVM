@@ -36,6 +36,7 @@ import org.jikesrvm.compilers.opt.driver.OptimizingCompiler;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.Time;
+import org.vmmagic.unboxed.Address;
 
 /**
  * A test harness for the optimizing compiler.
@@ -55,15 +56,15 @@ import org.jikesrvm.runtime.Time;
  * In addition, the org.jikesrvm.tools.oth.OptTestHarness supports the following commands:
  * <pre>
  * -useBootOptions           Use the same OptOptions as the bootimage compiler.
- * -longcommandline <filename>    Read commands (one per line) from a file
+ * -longcommandline &lt;filename&gt;    Read commands (one per line) from a file
  * +baseline                      Switch default compiler to baseline
  * -baseline                      Switch default compiler to optimizing
- * -load  <class    >             Load a class
- * -class <class>                 Load a class and compile all its methods
- * -method <class> <method> [-|<descrip>] Compile method with default compiler
- * -methodOpt <class> <method> [-|<descrip>] Compile method with opt compiler
- * -methodBase <class> <method> [-|<descrip>] Compile method with base compiler
- * -er <class> <method> [-|<descrip>] {args} Compile with default compiler and execute a method
+ * -load  &lt;class    &gt;             Load a class
+ * -class &lt;class&gt;                 Load a class and compile all its methods
+ * -method &lt;class&gt; &lt;method&gt; [-|&lt;descrip&gt;] Compile method with default compiler
+ * -methodOpt &lt;class&gt; &lt;method&gt; [-|&lt;descrip&gt;] Compile method with opt compiler
+ * -methodBase &lt;class&gt; &lt;method&gt; [-|&lt;descrip&gt;] Compile method with base compiler
+ * -er &lt;class&gt; &lt;method&gt; [-|&lt;descrip&gt;] {args} Compile with default compiler and execute a method
  * -performance                   Show performance results
  * </pre>
  */
@@ -170,6 +171,12 @@ class OptTestHarness {
   }
 
   static RVMClass loadClass(String s) throws ClassNotFoundException {
+    String className = convertToClassName(s);
+    Class<?> clazz = Class.forName(className, true, cl);
+    return (RVMClass) java.lang.JikesRVMSupport.getTypeForClass(clazz);
+  }
+
+  static String convertToClassName(String s) {
     if (s.startsWith("./")) s = s.substring(2, s.length());
     if (s.endsWith(".java")) s = s.substring(0, s.length() - 5);
     if (s.endsWith(".class")) s = s.substring(0, s.length() - 6);
@@ -180,8 +187,7 @@ class OptTestHarness {
     }
 
     s = s.replace('.', '/');
-
-    return (RVMClass) java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
+    return s;
   }
 
   static void printFormatString() {
@@ -307,8 +313,10 @@ class OptTestHarness {
           }
           if (cm != null) {
             method.replaceCompiledMethod(cm);
-            if (PRINT_CODE_ADDRESS)
-              VM.sysWriteln("Method: " + method + " compiled code: ", Magic.objectAsAddress(cm.getEntryCodeArray()));
+            if (PRINT_CODE_ADDRESS) {
+              Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
+              System.out.println("Method: " + method + " compiled code: " + addrToString(addr));
+            }
           }
           TypeReference[] argDesc = method.getDescriptor().parseForParameterTypes(klass.getClassLoader());
           Object[] reflectMethodArgs = new Object[argDesc.length];
@@ -348,20 +356,22 @@ class OptTestHarness {
   private static void compileMethodsInVector() {
     // Compile all baseline methods first
     int size = baselineMethodVector.size();
-    VM.sysWrite("Compiling " + size + " methods baseline\n");
+    System.out.println("Compiling " + size + " methods baseline");
     // Compile all methods in baseline vector
     for (int i = 0; i < size; i++) {
       NormalMethod method = (NormalMethod) baselineMethodVector.elementAt(i);
       CompiledMethod cm = null;
       cm = BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
-      if (PRINT_CODE_ADDRESS)
-        VM.sysWriteln("Method: " + method + " compiled code: ", Magic.objectAsAddress(cm.getEntryCodeArray()));
+      if (PRINT_CODE_ADDRESS) {
+        Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
+        System.out.println("Method: " + method + " compiled code: " + addrToString(addr));
+      }
     }
 
     // Now compile all methods in opt vector
     size = optMethodVector.size();
-    VM.sysWrite("Compiling " + size + " methods opt\n");
+    System.out.println("Compiling " + size + " methods opt");
     for (int i = 0; i < size; i++) {
       NormalMethod method = (NormalMethod) optMethodVector.elementAt(i);
       OptOptions opts = optOptionsVector.elementAt(i);
@@ -371,8 +381,10 @@ class OptTestHarness {
             new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(opts), null, opts);
         cm = OptimizingCompiler.compile(cp);
         method.replaceCompiledMethod(cm);
-        if (PRINT_CODE_ADDRESS)
-          VM.sysWriteln("Method: " + method + " compiled code: ", Magic.objectAsAddress(cm.getEntryCodeArray()));
+        if (PRINT_CODE_ADDRESS) {
+          Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
+          System.out.println("Method: " + method + " compiled code: " + addrToString(addr));
+        }
       } catch (OptimizingCompilerException e) {
         if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
@@ -401,13 +413,13 @@ class OptTestHarness {
         reflectoid = reflectoidVector.elementAt(i);
         reflectMethodArgs = reflectMethodArgsVector.elementAt(i);
         RVMMethod method = reflectMethodVector.elementAt(i);
-        VM.sysWrite("**** START OF EXECUTION of " + method + " ****.\n");
+        System.out.println("**** START OF EXECUTION of " + method + " ****.");
         Object result = null;
         if (perf != null) perf.reset();
         result = reflectoid.invoke(null, reflectMethodArgs);
         if (perf != null) perf.stop();
-        VM.sysWrite("**** END OF EXECUTION of " + method + " ****.\n");
-        VM.sysWrite("**** RESULT: " + result + "\n");
+        System.out.println("**** END OF EXECUTION of " + method + " ****.");
+        System.out.println("**** RESULT: " + result);
       }
       EXECUTE_WITH_REFLECTION = false;
     }
@@ -419,9 +431,9 @@ class OptTestHarness {
         System.err.println(mainClass + " doesn't have a \"public static void main(String[])\" method to execute\n");
         return;
       }
-      VM.sysWrite("**** START OF EXECUTION of " + mainMethod + " ****.\n");
+      System.out.println("**** START OF EXECUTION of " + mainMethod + " ****.");
       Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
-      VM.sysWrite("**** END OF EXECUTION of " + mainMethod + " ****.\n");
+      System.out.println("**** END OF EXECUTION of " + mainMethod + " ****.");
     }
   }
 
@@ -445,6 +457,16 @@ class OptTestHarness {
       perf.show();
     }
   }
+
+  private static String addrToString(Address addr) {
+    if (VM.BuildFor32Addr) {
+      return Integer.toHexString(addr.toInt());
+    } else if (VM.BuildFor64Addr) {
+      return Long.toHexString(addr.toLong());
+    }
+    return null;
+  }
+
 
   private static class Performance implements Callbacks.ExitMonitor {
     private long start = 0;

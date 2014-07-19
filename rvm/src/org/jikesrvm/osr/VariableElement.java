@@ -12,6 +12,15 @@
  */
 package org.jikesrvm.osr;
 
+import static org.jikesrvm.osr.OSRConstants.DOUBLE;
+import static org.jikesrvm.osr.OSRConstants.FLOAT;
+import static org.jikesrvm.osr.OSRConstants.INT;
+import static org.jikesrvm.osr.OSRConstants.LOCAL;
+import static org.jikesrvm.osr.OSRConstants.LONG;
+import static org.jikesrvm.osr.OSRConstants.REF;
+import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
+import static org.jikesrvm.osr.OSRConstants.WORD;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Word;
@@ -21,7 +30,7 @@ import org.vmmagic.unboxed.Word;
  * (local or stack element).  It is used to generate prologue to
  * recover the runtime state.  It refers to VM architecture.
  */
-public class VariableElement implements OSRConstants {
+public class VariableElement {
 
   //////////////////////////////////
   // instance fields
