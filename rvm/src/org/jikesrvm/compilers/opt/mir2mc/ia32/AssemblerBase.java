@@ -187,6 +187,11 @@ abstract class AssemblerBase extends Assembler
 
   /**
    * Construct Assembler object
+   *
+   * @param bytecodeSize initial machine code buffer size.
+   * @param shouldPrint whether to dump generated machine code.
+   * @param ir the IR object for the opt compilation
+   *
    * @see Assembler
    */
   AssemblerBase(int bytecodeSize, boolean shouldPrint, IR ir) {
@@ -1102,6 +1107,7 @@ abstract class AssemblerBase extends Assembler
    *
    * @param instr  An integer to be interpreted as a PowerPC instruction
    * @param offset the mcoffset (in bytes) of the instruction
+   * @return a printable representation of the machine code
    */
   public String disasm(int instr, int offset) {
     OptimizingCompilerException.TODO("Assembler: disassembler");

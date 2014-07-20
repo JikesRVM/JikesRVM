@@ -13,12 +13,12 @@
 package org.jikesrvm.compilers.common.assembler;
 
 /**
- *  This class has been created to work around a bug whereby the system seems to have gotten
- * confused by the relationship between:<p>
+ * <p>This class has been created to work around a bug whereby the system seems to have gotten
+ * confused by the relationship between:</p>
  *
- * ForwardReference -&gt; ForwardReference.ShortBranch -&gt; Assembler.ShortBranch, and Assembler<p>
+ * <p>ForwardReference -&gt; ForwardReference.ShortBranch -&gt; Assembler.ShortBranch, and Assembler</p>
  *
- * This problem does not exist under IA32 since there is no need for Assembler.ShortBranch<p>
+ * This problem does not exist under IA32 since there is no need for Assembler.ShortBranch.
  */
 public abstract class AbstractAssembler {
   public abstract void patchShortBranch(int sourceMachinecodeIndex);

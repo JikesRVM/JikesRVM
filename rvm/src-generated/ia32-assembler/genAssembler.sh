@@ -3190,7 +3190,13 @@ emitFloatMem() {
       postArg=", FPR dummy"
     fi
     cat >> $FILENAME <<EOF
-  /** top of stack ${op} (${size:-double word}) [reg + disp] */
+  /** 
+   * top of stack ${op} (${size:-double word}) [reg + disp] 
+   * 
+   * @param reg register
+   * @param disp displacement
+   * @param dummy must always be {@code FP0}
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emit${acronym}${pre}_RegDisp${ext}(${preArg}GPR reg, Offset disp${postArg}) {
     int miStart = mi;
@@ -3200,7 +3206,12 @@ emitFloatMem() {
     if (lister != null) lister.RD(miStart, "${acronym}", reg, disp);
   }
 
-  /** top of stack ${op} (${size:-double word}) [reg] */
+  /**
+   * top of stack ${op} (${size:-double word}) [reg]
+   * 
+   * @param reg register
+   * @param dummy must always be {@code FP0}
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emit${acronym}${pre}_RegInd${ext}(${preArg}GPR reg${postArg}) {
     int miStart = mi;
@@ -3210,7 +3221,15 @@ emitFloatMem() {
     if (lister != null) lister.RN(miStart, "${acronym}", reg);
   }
 
-  /** top of stack ${op} (${size:-double word}) [baseReg + idxReg&lt;&lt;scale + disp] */
+  /**
+   * top of stack ${op} (${size:-double word}) [baseReg + idxReg&lt;&lt;scale + disp]
+   * 
+   * @param baseReg base register
+   * @param idxReg index register
+   * @param scale scale for index register
+   * @param disp displacemnet
+   * @param dummy must always be {@code FP0}
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1,2})
   public final void emit${acronym}${pre}_RegIdx${ext}(${preArg}GPR baseReg, GPR idxReg, short scale, Offset disp${postArg}) {
     int miStart = mi;
@@ -3220,7 +3239,14 @@ emitFloatMem() {
     if (lister != null) lister.RXD(miStart, "${acronym}", baseReg, idxReg, scale, disp);
   }
 
-  /** top of stack ${op} (${size:-double word}) [idxReg&lt;&lt;scale + disp] */
+  /**
+   * top of stack ${op} (${size:-double word}) [idxReg&lt;&lt;scale + disp]
+   *
+   * @param idxReg index register
+   * @param scale scale for index register
+   * @param disp displacemnet
+   * @param dummy must always be {@code FP0}
+   */
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={1})
   public final void emit${acronym}${pre}_RegOff${ext}(${preArg}GPR idxReg, short scale, Offset disp${postArg}) {
     int miStart = mi;
@@ -3230,7 +3256,12 @@ emitFloatMem() {
     if (lister != null) lister.RFD(miStart, "${acronym}", idxReg, scale, disp);
   }
 
-  /** top of stack ${op} (${size:-double word}) [disp] */
+  /** 
+   * top of stack ${op} (${size:-double word}) [disp]
+   * 
+   * @param disp displacemnet
+   * @param dummy must always be {@code FP0}
+   */
   public final void emit${acronym}${pre}_Abs${ext}(${preArg}Address disp${postArg}) {
     int miStart = mi;
     if (VM.VerifyAssertions) VM._assert(dummy == FP0);
