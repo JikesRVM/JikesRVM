@@ -59,7 +59,13 @@ public class BURS_STATE extends BURS_Helpers {
 /*                                                               */
 /*****************************************************************/
 
-   /* accessors used by BURS */
+   /**
+    * Gets the state of a BURS node. This accessor is used by BURS.
+    *
+    * @param a the node
+    *
+    * @return the node's state
+    */
    private static BURS_TreeNode STATE(BURS_TreeNode a) { return a; }
 
    /***********************************************************************
@@ -70,6 +76,15 @@ public class BURS_STATE extends BURS_Helpers {
     *    from the file gen.c, from the LCC compiler.
     *
     ************************************************************************/
+   
+   /**
+    * Prints a debug message. No-op if debugging is disabled.
+    *
+    * @param p the BURS node
+    * @param rule the rule
+    * @param cost the rule's cost
+    * @param bestcost the best cost seen so far
+    */
    void trace(BURS_TreeNode p, int rule, int cost, int bestcost) {
      if (BURS.DEBUG) {
        VM.sysWrite(p+" matched "+BURS_Debug.string[rule]+" with cost "+
@@ -78,7 +93,10 @@ public class BURS_STATE extends BURS_Helpers {
    }
 
    /**
-    * This function will dump the tree
+    * Dumps the whole tree starting at the given node. No-op if
+    * debugging is disabled.
+    *
+    * @param p the node to start at
     */
    public static void dumpTree(BURS_TreeNode p) {
      if (BURS.DEBUG) {
@@ -103,8 +121,13 @@ public class BURS_STATE extends BURS_Helpers {
    }
 
    /**
-    * This function will dump the cover of a tree, i.e. the rules
-    * that cover the tree with a minimal cost.
+    * Dumps the cover of a tree, i.e. the rules
+    * that cover the tree with a minimal cost. No-op if debugging is
+    * disabled.
+    *
+    * @param p the tree's root
+    * @param goalnt the goal's non-terminal
+    * @param indent number of spaces to use for indentation
     */
    public static void dumpCover(BURS_TreeNode p, byte goalnt, int indent){
       if (BURS.DEBUG) {

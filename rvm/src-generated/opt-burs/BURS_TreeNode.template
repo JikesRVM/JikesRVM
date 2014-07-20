@@ -101,6 +101,8 @@ public class BURS_TreeNode {
 
   /**
    * Constructor for interior node.
+   *
+   * @param n corresponding node from the dependence graph
    */
   public BURS_TreeNode(DepGraphNode n) {
     Instruction instr = n._instr;
@@ -110,10 +112,12 @@ public class BURS_TreeNode {
 
   /**
    * Constructor for leaf/auxiliary node.
+   *
+   * @param opcode the opcode to use for the node
    */
-  public BURS_TreeNode(char Opcode) {
+  public BURS_TreeNode(char opcode) {
     dg_node = null;
-    opcode = Opcode;
+    this.opcode = opcode;
   }
 
   @Override
