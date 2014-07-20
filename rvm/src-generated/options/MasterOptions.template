@@ -51,6 +51,9 @@ $$$$ FOREACH OPTION VDATFILE
    public static final TYPE ITEM_NAME = CONSTNAME.INDEX;
    /**
     * Is FULL_NAME set to ITEM_NAME?
+    *
+    * @return {@code true} when ITEM_NAME is set to FULL_NAME,
+    *   {@code false} otherwise
     */
    public final boolean QUERRY_NAME() {
      return FULL_NAME == ITEM_NAME;
@@ -72,6 +75,10 @@ $$$$ FOREACH OPTION VDATFILE
    // FULL_NAME
    /**
     * Has the given parameter been added to FULL_NAME set of options?
+    *
+    * @param q the parameter
+    * @return {@code true} when the parameter has been added,
+    *   {@code false} otherwise
     */
    public boolean isFULL_NAME(TYPE q) {
      return FULL_NAME != null && FULL_NAME.contains(q);
@@ -79,6 +86,9 @@ $$$$ FOREACH OPTION VDATFILE
           $$$$ IF TYPE == String
    /**
     * Does the given parameter appear within a set the String of one of the options?
+    *
+    * @param q the parameter to search for
+    * @return {@code true} when it does appear, {@code false} otherwise
     */
    public boolean fuzzyMatchFULL_NAME(TYPE q) {
      if (FULL_NAME != null) {
@@ -92,12 +102,17 @@ $$$$ FOREACH OPTION VDATFILE
           $$$$ END IF TYPE == String
    /**
     * Have any items been placed in the set FULL_NAME?
+    *
+    * @return {@code true} if the set exists and is not empty
     */
    public boolean hasFULL_NAME() {
      return FULL_NAME != null && !FULL_NAME.isEmpty();
    }
    /**
     * Return an iterator over the items in FULL_NAME
+    *
+    * @return an iterator over the items in FULL_NAME. The iterator
+    *   may be empty.
     */
    public java.util.Iterator<TYPE> getFULL_NAMEs() {
      if (FULL_NAME == null) {
@@ -270,7 +285,11 @@ $$$$ END LOOP
     return false;
   }
 
-  /** Print a short description of every option */
+  /**
+   * Prints a short description of every option
+   *
+   * @param prefix the prefix for the option
+   */
   public static void printHelp(String prefix) {
 
     instancePrintHelpHeader(prefix);
