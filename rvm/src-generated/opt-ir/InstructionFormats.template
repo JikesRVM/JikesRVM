@@ -608,7 +608,7 @@ $$$$ LET DOLLARS "$$$$"
   $$$$ END LOOP
   $$$$ IF "VARDORU" != ""
    * @param numVarOps the number of variable length operands that
-   *                  will be stored in the insruction.
+   *                  will be stored in the instruction.
   $$$$ END IF
    * @return the mutated instruction
    */
@@ -659,6 +659,8 @@ $$$$ LET DOLLARS "$$$$"
    * Mutate the argument instruction into an instruction of the
    * OPTYPE.NAME instruction format having the specified
    * operator, operands, and number of variable-length operands.
+   * @param i the instruction to mutate
+   * @param o the instruction's operator
   $$$$ LOOP PARAM OPTYPE.SIG
   $$$$ SPLIT "PARAM" " " USDF NAME TYPE
       DOLLARS IF "I_PARAM.INDEX" != ""
