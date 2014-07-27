@@ -20,10 +20,20 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.Synchronization;
 import org.jikesrvm.scheduler.RVMThread;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
 
 import static org.jikesrvm.mm.mminterface.Barriers.*;
 
+/**
+ * Our implementation of sun.misc.Unsafe maps the operations to
+ * the Jikes RVM compiler intrinsics and its runtime service methods.
+ * <p>
+ * The OpenJDK class libraries (and normal programs using sun.misc.Unsafe)
+ * may expect that the methods in this class are compiler intrinsics (because
+ * that's the case for HotSpot). Therefore, force inlining of all methods
+ * where performance might matter.
+ */
 public final class Unsafe {
   private static final Unsafe unsafe = new Unsafe();
 
@@ -33,6 +43,7 @@ public final class Unsafe {
 
   private Unsafe() {}
 
+  @Inline
   public static Unsafe getUnsafe() {
     SecurityManager sm = System.getSecurityManager();
     if (sm != null)
@@ -40,30 +51,36 @@ public final class Unsafe {
     return unsafe;
   }
 
+  @Inline
   private Offset longToOffset(long offset) {
     return Offset.fromIntSignExtend((int)offset);
   }
 
+  @Inline
   public long objectFieldOffset(Field field) {
     RVMField vmfield = java.lang.reflect.JikesRVMSupport.getFieldOf(field);
     return vmfield.getOffset().toLong();
   }
 
+  @Inline
   public boolean compareAndSwapInt(Object obj,long offset,int expect,int update) {
     Offset off = longToOffset(offset);
     return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
+  @Inline
   public boolean compareAndSwapLong(Object obj,long offset,long expect,long update) {
     Offset off = Offset.fromIntSignExtend((int)offset);
     return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
+  @Inline
   public boolean compareAndSwapObject(Object obj,long offset,Object expect,Object update) {
     Offset off = Offset.fromIntSignExtend((int)offset);
     return Synchronization.tryCompareAndSwap(obj, off, expect, update);
   }
 
+  @Inline
   public void putOrderedInt(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
     Magic.storeStoreBarrier();
@@ -74,6 +91,7 @@ public final class Unsafe {
     }
   }
 
+  @Inline
   public void putOrderedLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
     Magic.storeStoreBarrier();
@@ -84,6 +102,7 @@ public final class Unsafe {
     }
   }
 
+  @Inline
   public void putOrderedObject(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
     Magic.storeStoreBarrier();
@@ -94,6 +113,7 @@ public final class Unsafe {
     }
    }
 
+  @Inline
   public void putIntVolatile(Object obj,long offset,int value) {
     Magic.storeStoreBarrier();
     Offset off = longToOffset(offset);
@@ -105,6 +125,7 @@ public final class Unsafe {
     Magic.fence();
   }
 
+  @Inline
   public void putInt(Object obj,long offset,int value) {
     Offset off = longToOffset(offset);
     if (NEEDS_INT_PUTFIELD_BARRIER) {
@@ -114,6 +135,7 @@ public final class Unsafe {
     }
   }
 
+  @Inline
   public int getIntVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
     int result = Magic.getIntAtOffset(obj,off);
@@ -121,11 +143,13 @@ public final class Unsafe {
     return result;
   }
 
+  @Inline
   public int getInt(Object obj,long offset) {
     Offset off = longToOffset(offset);
     return Magic.getIntAtOffset(obj,off);
   }
 
+  @Inline
   public void putLongVolatile(Object obj,long offset,long value) {
     Magic.storeStoreBarrier();
     Offset off = longToOffset(offset);
@@ -137,6 +161,7 @@ public final class Unsafe {
     Magic.fence();
   }
 
+  @Inline
   public void putLong(Object obj,long offset,long value) {
     Offset off = longToOffset(offset);
     if (NEEDS_LONG_PUTFIELD_BARRIER) {
@@ -146,6 +171,7 @@ public final class Unsafe {
     }
   }
 
+  @Inline
   public long getLongVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
     long result = Magic.getLongAtOffset(obj,off);
@@ -153,11 +179,13 @@ public final class Unsafe {
     return result;
   }
 
+  @Inline
   public long getLong(Object obj,long offset) {
     Offset off = longToOffset(offset);
     return Magic.getLongAtOffset(obj,off);
   }
 
+  @Inline
   public void putObjectVolatile(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
     Magic.storeStoreBarrier();
@@ -169,6 +197,7 @@ public final class Unsafe {
     Magic.fence();
   }
 
+  @Inline
   public void putObject(Object obj,long offset,Object value) {
     Offset off = longToOffset(offset);
     if (NEEDS_OBJECT_PUTFIELD_BARRIER) {
@@ -178,6 +207,7 @@ public final class Unsafe {
     }
   }
 
+  @Inline
   public Object getObjectVolatile(Object obj,long offset) {
     Offset off = longToOffset(offset);
     Object result = Magic.getObjectAtOffset(obj,off);
@@ -185,10 +215,12 @@ public final class Unsafe {
     return result;
   }
 
+  @Inline
   public int arrayBaseOffset(Class<?> arrayClass) {
     return 0;
   }
 
+  @Inline
   public int arrayIndexScale(Class<?> arrayClass) {
     RVMType arrayType = java.lang.JikesRVMSupport.getTypeForClass(arrayClass);
     if (!arrayType.isArrayType()) {
@@ -198,6 +230,7 @@ public final class Unsafe {
     }
   }
 
+  @Inline
   public void unpark(Object thread) {
     RVMThread vmthread = java.lang.JikesRVMSupport.getThread((Thread)thread);
     if (vmthread != null) {
@@ -205,6 +238,7 @@ public final class Unsafe {
     }
   }
 
+  @Inline
   public void park(boolean isAbsolute,long time) throws Throwable  {
     RVMThread vmthread = java.lang.JikesRVMSupport.getThread(Thread.currentThread());
     if (vmthread != null) {
@@ -216,14 +250,17 @@ public final class Unsafe {
     RuntimeEntrypoints.athrow(ex);
   }
 
+  @Inline
   public void loadFence() {
     Magic.combinedLoadBarrier();
   }
 
+  @Inline
   public void storeFence() {
     Magic.fence();
   }
 
+  @Inline
   public void fullFence() {
     Magic.fence();
   }
