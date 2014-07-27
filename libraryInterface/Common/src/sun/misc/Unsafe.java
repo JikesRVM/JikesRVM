@@ -215,4 +215,17 @@ public final class Unsafe {
   public void throwException(Throwable ex) {
     RuntimeEntrypoints.athrow(ex);
   }
+
+  public void loadFence() {
+    Magic.combinedLoadBarrier();
+  }
+
+  public void storeFence() {
+    Magic.fence();
+  }
+
+  public void fullFence() {
+    Magic.fence();
+  }
+
 }
