@@ -30,13 +30,13 @@ import org.vmmagic.unboxed.WordArray;
 public abstract class GCMapIterator {
 
   /** thread whose stack is currently being scanned */
-  public RVMThread thread;
+  protected RVMThread thread;
 
   /** address of stackframe currently being scanned */
-  public Address framePtr;
+  protected Address framePtr;
 
   /** address where each gpr register was saved by previously scanned stackframe(s) */
-  public WordArray registerLocations;
+  protected WordArray registerLocations;
 
   /**
    * Prepare to scan a thread's stack and saved registers for object references.
