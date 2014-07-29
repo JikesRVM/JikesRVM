@@ -92,11 +92,15 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
   private int bridgeSpilledParamInitialOffset;
 
   /**
-   * Constructor. Remember the location array for registers. This array needs to
-   * be updated with the location of any saved registers. This information is
-   * not used by this iterator but must be updated for the other types of
-   * iterators (ones for the opt compiler built frames) The locations are kept
-   * as addresses within the stack.
+   * Constructs a BaselineGCMapIterator for IA32.
+   * <p>
+   * Note: the location array for registers needs to be remembered. It also needs to
+   * be updated with the location of any saved registers. The locations are kept
+   * as addresses within the stack. This information is not used by this iterator
+   * but must be updated for the other types of iterators (e.g. iterators for
+   * the opt compiler built frames).
+   *
+   * @param registerLocations locations of saved registers
    */
   public BaselineGCMapIterator(WordArray registerLocations) {
     this.registerLocations = registerLocations; // (in superclass)
@@ -426,9 +430,6 @@ public abstract class BaselineGCMapIterator extends GCMapIterator implements Bas
     return CompiledMethod.BASELINE;
   }
 
-  /**
-   * For debugging (used with checkRefMap)
-   */
   public int getStackDepth() {
     return maps.getStackDepth(mapId);
   }

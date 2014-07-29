@@ -72,22 +72,10 @@ import org.vmmagic.unboxed.Offset;
  */
 public final class OptMachineCodeMap {
 
-  /**
-   * Private constructor, object should be created via create
-   */
   private OptMachineCodeMap(int[] _MCInformation, int[] _gcMaps, int[] _inlineEncoding) {
     MCInformation = _MCInformation;
     gcMaps = _gcMaps;
     inlineEncoding = _inlineEncoding;
-  }
-
-  /**
-   * Private constructor for no information.
-   */
-  private OptMachineCodeMap() {
-    MCInformation = null;
-    gcMaps = null;
-    inlineEncoding = null;
   }
 
   /**
@@ -239,20 +227,11 @@ public final class OptMachineCodeMap {
     return OptEncodedCallSiteTree.edgePresent(caller.getId(), bcIndex, callee.getId(), inlineEncoding);
   }
 
-  /**
-   * Returns the GC map information for the GC map information entry passed
-   * @param  index     GCmap entry
-   */
   @Uninterruptible
   public int gcMapInformation(int index) {
     return OptGCMap.gcMapInformation(index, gcMaps);
   }
 
-  /**
-   * Determines if the register map information for the entry passed is true
-   * @param  entry            map entry
-   * @param  registerNumber   the register number
-   */
   @Uninterruptible
   public boolean registerIsSet(int entry, int registerNumber) {
     return OptGCMap.registerIsSet(entry, registerNumber, gcMaps);
@@ -817,7 +796,7 @@ public final class OptMachineCodeMap {
   /**
    * A machine code map when no information is present
    */
-  private static final OptMachineCodeMap emptyMachineCodeMap = new OptMachineCodeMap();
+  private static final OptMachineCodeMap emptyMachineCodeMap = new OptMachineCodeMap(null, null, null);
 
   private static final TypeReference TYPE = TypeReference.findOrCreate(OptMachineCodeMap.class);
 }
