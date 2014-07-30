@@ -75,9 +75,11 @@ public class SpaceEffGraphNode implements GraphNodeWithObjectScratch {
 
   public final void clearLoopHeader() { info &= ~LOOP_HEADER; }
 
+  @Deprecated
   @Override
   public int getScratch() { return scratch; }
 
+  @Deprecated
   @Override
   public int setScratch(int scratch) { return this.scratch = scratch; }
 
@@ -766,10 +768,14 @@ public class SpaceEffGraphNode implements GraphNodeWithObjectScratch {
     return Next;
   }
 
+  @Deprecated
+  @Override
   public void setScratchObject(Object scratchObject) {
     this.scratchObject = scratchObject;
   }
 
+  @Deprecated
+  @Override
   public Object getScratchObject() {
     return scratchObject;
   }
