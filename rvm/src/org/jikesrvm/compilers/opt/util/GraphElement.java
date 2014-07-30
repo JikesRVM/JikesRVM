@@ -14,35 +14,14 @@ package org.jikesrvm.compilers.opt.util;
 
 
 /**
- *  Many clients of graph methods expect their graph nodes to
- * implement a pair of scratch fields, one of int type and one of
- * object type.  This is a fairly evil thing to do, but it is deeply
- * embedded in many places, and this interface can be used for such
- * clients.  It is not recommended, to put it mildly.
+ * This interface is useless and will be removed soon.
  *
- * @deprecated Deprecated without replacement. New code should use other means to
- *  store information.
+ * @deprecated scheduled for immediate removal, use {@link GraphNode}
+ * or {@link GraphNodeWithObjectScratch}
  *
  * @see Graph
  */
 @Deprecated
 public interface GraphElement {
 
-  /**
-   * Reads the scratch field of int type.
-   * @return the contents of the int scratch field
-   * @deprecated see class JavaDoc.
-   */
-  @Deprecated
-  int getScratch();
-
-  /**
-   * Sets the scratch field of int type
-   * @param scratch the new contents of the int scratch field
-   * @deprecated see class JavaDoc.
-   * @return semantics of the return value are defined wholly be the
-   *  implementing class
-   */
-  @Deprecated
-  int setScratch(int scratch);
 }

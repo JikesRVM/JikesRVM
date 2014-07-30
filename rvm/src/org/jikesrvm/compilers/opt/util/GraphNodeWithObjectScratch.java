@@ -14,14 +14,35 @@ package org.jikesrvm.compilers.opt.util;
 
 /**
  * This interface is temporary. It serves to identify all graph classes that
- * need object scratch fields. It extends GraphNode because no clients use
- * GraphElement but not GraphNode.
+ * need scratch fields. Those classes expect their graph nodes to
+ * implement a pair of scratch fields, one of int type and one of
+ * object type.  This is a fairly evil thing to do, but it is deeply
+ * embedded in many places, and this interface can be used for such
+ * clients. It is not recommended, to put it mildly.
  *
- * @deprecated New classes <em>MUST NOT</em> implement this interface. It is only intended as an
- *  intermediate step during removal of scratch fields.
+ * @deprecated New classes <em>MUST NOT</em> implement this interface.
+ *  It is only intended as an intermediate step during removal of scratch fields.
  */
 @Deprecated
 public interface GraphNodeWithObjectScratch extends GraphNode {
+
+  /**
+   * Reads the scratch field of int type.
+   * @return the contents of the int scratch field
+   * @deprecated see class JavaDoc.
+   */
+  @Deprecated
+  int getScratch();
+
+  /**
+   * Sets the scratch field of int type
+   * @param scratch the new contents of the int scratch field
+   * @deprecated see class JavaDoc.
+   * @return semantics of the return value are defined wholly be the
+   *  implementing class
+   */
+  @Deprecated
+  int setScratch(int scratch);
 
   /**
    * Sets the scratch object field.

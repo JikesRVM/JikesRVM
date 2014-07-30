@@ -115,20 +115,4 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
     return index;
   }
 
-  private int scratch;
-
-  @Deprecated
-  @Override
-  public int getScratch() {
-    return scratch;
-  }
-
-  @Deprecated
-  @Override
-  public int setScratch(int o) {
-    return (scratch = o);
-  }
 }
-
-
-

@@ -248,17 +248,4 @@ public class DF_Equation implements GraphNode {
     };
   }
 
-  private int scratch;
-
-  @Deprecated
-  @Override
-  public int getScratch() {
-    return scratch;
-  }
-
-  @Deprecated
-  @Override
-  public int setScratch(int o) {
-    return (scratch = o);
-  }
 }
