@@ -150,7 +150,7 @@ public class LSTGraph extends SpaceEffGraph {
     int dfn = 0;
     for (SpaceEffGraphNode node = entry; node != null; node = node.nextSorted) {
       node.clearLoopHeader();
-      node.scratch = dfn++;
+      node.setScratch(dfn++);
       clearBackEdges(node);
     }
     cfg.clearDFS();
@@ -267,14 +267,14 @@ public class LSTGraph extends SpaceEffGraph {
           outEdge.setBackEdge();
           if (DEBUG) {
             System.out.println("backedge from " +
-                               bb.scratch +
+                               bb.getScratch() +
                                " ( " + bb + " ) " +
-                               outbb.scratch +
+                               outbb.getScratch() +
                                " ( " + outbb + " ) ");
           }
         } else if (!outbb.dfsVisited()) {
           // irreducible loop test
-          if (outbb.scratch < bb.scratch) {
+          if (outbb.getScratch() < bb.getScratch()) {
             throw new OptimizingCompilerException("irreducible loop found!");
           }
           // simulate a recursive call

@@ -20,7 +20,8 @@ package org.jikesrvm.compilers.opt.util;
  * embedded in many places, and this interface can be used for such
  * clients.  It is not recommended, to put it mildly.
  *
- * @deprecated
+ * @deprecated Deprecated without replacement. New code should use other means to
+ *  store information.
  *
  * @see Graph
  */
@@ -28,17 +29,19 @@ package org.jikesrvm.compilers.opt.util;
 public interface GraphElement {
 
   /**
-   * read the scratch field of int type
+   * Reads the scratch field of int type.
    * @return the contents of the int scratch field
-   * @deprecated
+   * @deprecated see class JavaDoc.
    */
   @Deprecated
   int getScratch();
 
   /**
-   * set the scratch field of int type
+   * Sets the scratch field of int type
    * @param scratch the new contents of the int scratch field
-   * @deprecated
+   * @deprecated see class JavaDoc.
+   * @return semantics of the return value are defined wholly be the
+   *  implementing class
    */
   @Deprecated
   int setScratch(int scratch);

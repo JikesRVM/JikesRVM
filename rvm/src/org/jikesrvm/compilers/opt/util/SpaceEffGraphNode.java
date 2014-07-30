@@ -28,7 +28,7 @@ public class SpaceEffGraphNode implements GraphNode {
   public Object scratchObject;
 
   /** any optimization can use this for its own purposes */
-  public int scratch;
+  private int scratch;
 
   /**
    * The following word is used for various purposes. The first

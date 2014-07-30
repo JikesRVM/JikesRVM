@@ -807,7 +807,7 @@ public final class IR {
       }
 
       // initialize the mark bit for the bblist test below
-      cur.scratch = 0;
+      cur.setScratch(0);
 
       prev = cur;
       cur = (BasicBlock) cur.getNext();
@@ -886,7 +886,7 @@ public final class IR {
       }
 
       // mark this block because it is the bblist
-      cur.scratch = inBBListMarker;
+      cur.setScratch(inBBListMarker);
     }
 
     // Check to make sure that all blocks connected
@@ -895,7 +895,7 @@ public final class IR {
     for (BasicBlock cur = cfg.firstInCodeOrder(); cur != null; cur = (BasicBlock) cur.getNext()) {
       for (Enumeration<BasicBlock> e = cur.getIn(); e.hasMoreElements();) {
         BasicBlock pred = e.nextElement();
-        if (pred.scratch != inBBListMarker) {
+        if (pred.getScratch() != inBBListMarker) {
           verror(where,
                  "In Method " +
                  method.getName() +
@@ -908,7 +908,7 @@ public final class IR {
       }
       for (Enumeration<BasicBlock> e = cur.getOut(); e.hasMoreElements();) {
         BasicBlock succ = e.nextElement();
-        if (succ.scratch != inBBListMarker) {
+        if (succ.getScratch() != inBBListMarker) {
           // the EXIT block is never in the BB list
           if (succ != cfg.exit()) {
             verror(where,

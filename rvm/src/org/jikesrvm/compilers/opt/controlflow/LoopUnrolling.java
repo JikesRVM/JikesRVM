@@ -846,7 +846,7 @@ public class LoopUnrolling extends CompilerPhase {
     Enumeration<BasicBlock> e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
       e.nextElement().scratchObject = null;
-      e.nextElement().scratch = 0;
+      e.nextElement().setScratch(0);
     }
     LSTGraph lstg = ir.HIRInfo.loopStructureTree;
     if (lstg != null) markHeaders((LSTNode) lstg.firstNode());

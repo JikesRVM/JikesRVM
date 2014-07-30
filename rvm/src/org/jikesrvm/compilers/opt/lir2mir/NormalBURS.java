@@ -198,7 +198,7 @@ final class NormalBURS extends BURS {
     }
     if (n.dg_node != null) {
       n.dg_node.nextSorted = root;
-      n.dg_node.scratch = 0;
+      n.dg_node.setScratch(0);
     }
   }
 
@@ -275,8 +275,8 @@ final class NormalBURS extends BURS {
   // Is goal reachable via any edge in the current tree?
   private boolean reachableRoot(SpaceEffGraphNode current, SpaceEffGraphNode goal, int searchnum) {
     if (current == goal) return true;
-    if (current.scratch == searchnum) return false;
-    current.scratch = searchnum;
+    if (current.getScratch() == searchnum) return false;
+    current.setScratch(searchnum);
     BURS_TreeNode root = (BURS_TreeNode) current.scratchObject;
     return reachableChild(root, goal, searchnum);
   }
@@ -307,7 +307,7 @@ final class NormalBURS extends BURS {
     // Initialize tree root field for all nodes
     for (int i = 0; i < numTreeRoots; i++) {
       BURS_TreeNode n = treeRoots[i];
-      n.dg_node.scratch = 0;
+      n.dg_node.setScratch(0);
       initTreeRootNode(n, n.dg_node);
     }
 
@@ -317,14 +317,14 @@ final class NormalBURS extends BURS {
       for (SpaceEffGraphEdge in = node.firstInEdge(); in != null; in = in.getNextIn()) {
         SpaceEffGraphNode source_treeRoot = in.fromNode().nextSorted;
         if (source_treeRoot != n_treeRoot) {
-          n_treeRoot.scratch++;
+          n_treeRoot.setScratch(n_treeRoot.getScratch() + 1);
         }
       }
     }
     if (DEBUG) {
       for (int i = 0; i < numTreeRoots; i++) {
         BURS_TreeNode n = treeRoots[i];
-        VM.sysWrite(n.dg_node.scratch + ":" + n + "\n");
+        VM.sysWrite(n.dg_node.getScratch() + ":" + n + "\n");
       }
     }
   }
@@ -352,7 +352,7 @@ final class NormalBURS extends BURS {
     // Append tree roots with predCount = 0 to readySet
     for (int i = 0; i < numTreeRoots; i++) {
       BURS_TreeNode n = treeRoots[i];
-      if (n.dg_node.scratch == 0) {
+      if (n.dg_node.getScratch() == 0) {
         readySetInsert(n);
       }
     }
@@ -429,7 +429,10 @@ final class NormalBURS extends BURS {
       for (SpaceEffGraphEdge out = dgnode.firstOutEdge(); out != null; out = out.getNextOut()) {
         SpaceEffGraphNode dest = out.toNode().nextSorted;
         if (source != dest) {
-          int count = --dest.scratch;
+          int temp = dest.getScratch();
+          temp--;
+          dest.setScratch(temp);
+          int count = temp;
           if (DEBUG) VM.sysWrite(count + ": edge " + source + " to " + dest + "\n");
           if (count == 0) {
             readySetInsert((BURS_TreeNode) dest.scratchObject);
