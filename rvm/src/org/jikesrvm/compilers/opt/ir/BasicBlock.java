@@ -305,7 +305,7 @@ public class BasicBlock extends SortedGraphNode {
    * (rename scratchObject manipulations for GCMaps/RegAlloc).
    */
   public final void initializeLiveRange() {
-    scratchObject = null;
+    setScratchObject(null);
   }
 
   /**
@@ -313,7 +313,7 @@ public class BasicBlock extends SortedGraphNode {
    * block.
    */
   public final LiveIntervalEnumeration enumerateLiveIntervals() {
-    return new LiveIntervalEnumeration((LiveIntervalElement) scratchObject);
+    return new LiveIntervalEnumeration((LiveIntervalElement) getScratchObject());
   }
 
   /**
@@ -321,8 +321,8 @@ public class BasicBlock extends SortedGraphNode {
    * @return scratchObject cast as an LiveIntevalElement
    */
   public final LiveIntervalElement getFirstLiveIntervalElement() {
-    if (scratchObject != null) {
-      return (LiveIntervalElement) scratchObject;
+    if (getScratchObject() != null) {
+      return (LiveIntervalElement) getScratchObject();
     } else {
       return null;
     }
@@ -335,8 +335,8 @@ public class BasicBlock extends SortedGraphNode {
    * @param li the live interval element to add
    */
   public final void prependLiveIntervalElement(LiveIntervalElement li) {
-    li.setNext((LiveIntervalElement) scratchObject);
-    scratchObject = li;
+    li.setNext((LiveIntervalElement) getScratchObject());
+    setScratchObject(li);
   }
 
   /**

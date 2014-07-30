@@ -158,7 +158,7 @@ public class LTDominators extends Stack<BasicBlock> {
       BasicBlock block = bbEnum.nextElement();
       // We don't compute a result for the exit node in the forward direction
       if (!forward || !block.isExit()) {
-        block.scratchObject = new LTDominatorInfo(block);
+        block.setScratchObject(new LTDominatorInfo(block));
         if (DEBUG) {
           printNextNodes(block);
         }
@@ -584,7 +584,7 @@ public class LTDominators extends Stack<BasicBlock> {
       if (forward && block.isExit()) {
         continue;
       }
-      LTDominatorInfo info = (LTDominatorInfo) block.scratchObject;
+      LTDominatorInfo info = (LTDominatorInfo) block.getScratchObject();
       System.out.println(" " + block + " " + info);
     }
     // Visit each node in reverse DFS order, except for the root, which

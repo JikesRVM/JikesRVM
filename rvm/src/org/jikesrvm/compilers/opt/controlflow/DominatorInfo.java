@@ -48,7 +48,7 @@ public class DominatorInfo {
    * @return bb's immediate dominator, as cached in bb's DominatorInfo
    */
   public static BasicBlock idom(BasicBlock bb) {
-    DominatorInfo info = (DominatorInfo) bb.scratchObject;
+    DominatorInfo info = (DominatorInfo) bb.getScratchObject();
     return info.idom;
   }
 
@@ -71,7 +71,7 @@ public class DominatorInfo {
    * @return true or false
    */
   static boolean isDominatedBy(BasicBlock slave, BasicBlock master) {
-    return ((DominatorInfo) slave.scratchObject).
+    return ((DominatorInfo) slave.getScratchObject()).
         dominators.get(master.getNumber());
   }
 }

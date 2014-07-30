@@ -187,7 +187,7 @@ public final class ReorderingPhase extends CompilerPhase {
     for (BasicBlock bb = entry; bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       numBlocks++;
       chainHeads.add(bb);
-      bb.scratchObject = bb;
+      bb.setScratchObject(bb);
       BasicBlock ft = bb.getFallThroughBlock();
       if (ft != null) {
         bb.appendInstruction(Goto.create(GOTO, ft.makeJumpTarget()));
@@ -219,7 +219,7 @@ public final class ReorderingPhase extends CompilerPhase {
         if (DEBUG) VM.sysWriteln("\tTarget is not at start of a chain");
         continue;
       }
-      if (e.source.scratchObject == e.target.scratchObject) {
+      if (e.source.getScratchObject() == e.target.getScratchObject()) {
         if (DEBUG) VM.sysWriteln("\tSource and target are in same chain");
         continue;
       }
@@ -228,9 +228,9 @@ public final class ReorderingPhase extends CompilerPhase {
       ir.cfg.linkInCodeOrder(e.source, e.target);
       // Yuck....we should really use near-linear time union find here
       // Doing this crappy thing makes us O(N^2) in the worst case.
-      BasicBlock newChain = (BasicBlock) e.source.scratchObject;
+      BasicBlock newChain = (BasicBlock) e.source.getScratchObject();
       for (BasicBlock ptr = e.target; ptr != null; ptr = ptr.nextBasicBlockInCodeOrder()) {
-        ptr.scratchObject = newChain;
+        ptr.setScratchObject(newChain);
       }
     }
 
@@ -243,9 +243,9 @@ public final class ReorderingPhase extends CompilerPhase {
 
     // (3) Summarize inter-chain edges.
     for (Edge e : edges) {
-      if (e.source.scratchObject != e.target.scratchObject) {
-        Object sourceChain = e.source.scratchObject;
-        Object targetChain = e.target.scratchObject;
+      if (e.source.getScratchObject() != e.target.getScratchObject()) {
+        Object sourceChain = e.source.getScratchObject();
+        Object targetChain = e.target.getScratchObject();
         ChainInfo sourceInfo = chainInfo.get(sourceChain);
         ChainInfo targetInfo = chainInfo.get(targetChain);
         if (DEBUG) VM.sysWriteln("Inter-chain edge " + sourceChain + "->" + targetChain + " (" + e.weight + ")");

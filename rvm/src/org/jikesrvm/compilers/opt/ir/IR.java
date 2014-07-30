@@ -590,7 +590,7 @@ public final class IR {
   public void clearBasicBlockScratchObject() {
     Enumeration<BasicBlock> e = getBasicBlocks();
     while (e.hasMoreElements()) {
-      e.nextElement().scratchObject = null;
+      e.nextElement().setScratchObject(null);
     }
   }
 

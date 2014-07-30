@@ -170,7 +170,7 @@ public class Dominators {
     for (final DF_LatticeCell latticeCell : solution.values()) {
       DominatorCell cell = (DominatorCell) latticeCell;
       BasicBlock b = cell.block;
-      b.scratchObject = new DominatorInfo(cell.dominators);
+      b.setScratchObject(new DominatorInfo(cell.dominators));
       if (DEBUG) {
         System.out.println("Dominators of " + b + ":" + cell.dominators);
       }
@@ -184,7 +184,7 @@ public class Dominators {
   public static void printDominators(IR ir) {
     for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock b = e.nextElement();
-      DominatorInfo i = (DominatorInfo) b.scratchObject;
+      DominatorInfo i = (DominatorInfo) b.getScratchObject();
       System.out.println("Dominators of " + b + ":" + i.dominators);
     }
   }

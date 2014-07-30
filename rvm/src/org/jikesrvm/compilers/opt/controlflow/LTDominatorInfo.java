@@ -261,7 +261,7 @@ class LTDominatorInfo {
    * @return the LTInfo info
    */
   public static LTDominatorInfo getInfo(BasicBlock block) {
-    return (LTDominatorInfo) block.scratchObject;
+    return (LTDominatorInfo) block.getScratchObject();
   }
 
   /**

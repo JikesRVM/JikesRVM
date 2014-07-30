@@ -666,7 +666,7 @@ public class LoopUnrolling extends CompilerPhase {
         while (be.hasMoreElements()) {
           BasicBlock out = be.nextElement();
           if (out != t.header && CFGTransformations.inLoop(out, nloop)) {
-            BasicBlock outCopy = (BasicBlock) out.scratchObject;
+            BasicBlock outCopy = (BasicBlock) out.getScratchObject();
             currentBlock.redirectOuts(out, outCopy, ir);
           }
         }
@@ -682,7 +682,7 @@ public class LoopUnrolling extends CompilerPhase {
             BasicBlock out = be.nextElement();
             if (out == t.header) {
               BasicBlock headerCopy;
-              headerCopy = (BasicBlock) t.header.scratchObject;
+              headerCopy = (BasicBlock) t.header.getScratchObject();
               currentBlock.redirectOuts(t.header, headerCopy, ir);
             }
           }
@@ -845,7 +845,7 @@ public class LoopUnrolling extends CompilerPhase {
   static void linkToLST(IR ir) {
     Enumeration<BasicBlock> e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
-      e.nextElement().scratchObject = null;
+      e.nextElement().setScratchObject(null);
       e.nextElement().setScratch(0);
     }
     LSTGraph lstg = ir.HIRInfo.loopStructureTree;
@@ -856,7 +856,7 @@ public class LoopUnrolling extends CompilerPhase {
   // make the header block point to the corresponding loop structure tree node.
   private static void markHeaders(LSTNode t) {
     BasicBlock header = t.header;
-    header.scratchObject = t;
+    header.setScratchObject(t);
     Enumeration<GraphNode> e = t.outNodes();
     while (e.hasMoreElements()) {
       LSTNode n = (LSTNode) e.nextElement();
@@ -935,7 +935,7 @@ public class LoopUnrolling extends CompilerPhase {
         while (be.hasMoreElements()) {
           BasicBlock out = be.nextElement();
           if (CFGTransformations.inLoop(out, nloop)) {
-            cb.redirectOuts(out, (BasicBlock) out.scratchObject, ir);
+            cb.redirectOuts(out, (BasicBlock) out.getScratchObject(), ir);
           }
         }
         cb.recomputeNormalOut(ir);
@@ -951,7 +951,7 @@ public class LoopUnrolling extends CompilerPhase {
   static BasicBlock copyAndLinkBlock(IR ir, BasicBlock seqLast, BasicBlock block) {
     BasicBlock copy = block.copyWithoutLinks(ir);
     ir.cfg.linkInCodeOrder(seqLast, copy);
-    block.scratchObject = copy;
+    block.setScratchObject(copy);
     return copy;
   }
 

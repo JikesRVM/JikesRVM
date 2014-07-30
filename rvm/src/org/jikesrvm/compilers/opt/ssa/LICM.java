@@ -757,7 +757,7 @@ public class LICM extends CompilerPhase {
       return true;
     }
     //VM.sysWrite ("does " + a + " postdominate " + b + "?: ");
-    DominatorInfo info = (DominatorInfo) b.scratchObject;
+    DominatorInfo info = (DominatorInfo) b.getScratchObject();
     res = info.isDominatedBy(a);
     //VM.sysWrite (res ? "yes\n" : "no\n");
     return res;
