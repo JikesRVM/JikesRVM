@@ -17,7 +17,7 @@ package org.jikesrvm.compilers.opt.util;
  * This interface is useless and will be removed soon.
  *
  * @deprecated scheduled for immediate removal, use {@link GraphNode}
- * or {@link GraphNodeWithObjectScratch}
+ * or {@link GraphNodeWithScratchFields}
  *
  * @see Graph
  */

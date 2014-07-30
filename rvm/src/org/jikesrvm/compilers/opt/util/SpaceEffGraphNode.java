@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
  * list of in edges.  We maintain both to support bidirectional traversal
  * of the graph.
  */
-public class SpaceEffGraphNode implements GraphNodeWithObjectScratch {
+public class SpaceEffGraphNode implements GraphNodeWithScratchFields {
 
   /** scratch field: optimizations use as they wish */
   private Object scratchObject;

@@ -24,7 +24,7 @@ package org.jikesrvm.compilers.opt.util;
  *  It is only intended as an intermediate step during removal of scratch fields.
  */
 @Deprecated
-public interface GraphNodeWithObjectScratch extends GraphNode {
+public interface GraphNodeWithScratchFields extends GraphNode {
 
   /**
    * Reads the scratch field of int type.
