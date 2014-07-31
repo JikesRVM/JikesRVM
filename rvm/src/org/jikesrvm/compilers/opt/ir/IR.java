@@ -806,9 +806,6 @@ public final class IR {
         verror(where, "Instr " + pp + " has next " + p + " but " + p + " has prev " + p.getPrev());
       }
 
-      // initialize the mark bit for the bblist test below
-      cur.setScratch(0);
-
       prev = cur;
       cur = (BasicBlock) cur.getNext();
     }
@@ -821,8 +818,9 @@ public final class IR {
    */
   private void verifyCFG(String where) {
     // Check that the CFG links are well formed
-    final int inBBListMarker = 999;  // actual number is insignificant
     final boolean VERIFY_CFG_EDGES = false;
+    int blockCountEstimate = getMaxBasicBlockNumber();
+    HashSet<BasicBlock> seenBlocks = new HashSet<BasicBlock>(blockCountEstimate);
     HashSet<BasicBlock> origOutSet = null;
     if (VERIFY_CFG_EDGES) origOutSet = new HashSet<BasicBlock>();
 
@@ -885,8 +883,8 @@ public final class IR {
         }
       }
 
-      // mark this block because it is the bblist
-      cur.setScratch(inBBListMarker);
+      // remember this block because it is the bblist
+      seenBlocks.add(cur);
     }
 
     // Check to make sure that all blocks connected
@@ -895,7 +893,7 @@ public final class IR {
     for (BasicBlock cur = cfg.firstInCodeOrder(); cur != null; cur = (BasicBlock) cur.getNext()) {
       for (Enumeration<BasicBlock> e = cur.getIn(); e.hasMoreElements();) {
         BasicBlock pred = e.nextElement();
-        if (pred.getScratch() != inBBListMarker) {
+        if (!seenBlocks.contains(pred)) {
           verror(where,
                  "In Method " +
                  method.getName() +
@@ -908,7 +906,7 @@ public final class IR {
       }
       for (Enumeration<BasicBlock> e = cur.getOut(); e.hasMoreElements();) {
         BasicBlock succ = e.nextElement();
-        if (succ.getScratch() != inBBListMarker) {
+        if (!seenBlocks.contains(succ)) {
           // the EXIT block is never in the BB list
           if (succ != cfg.exit()) {
             verror(where,
