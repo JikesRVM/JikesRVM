@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.controlflow;
 
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -148,13 +149,15 @@ public class LSTGraph extends SpaceEffGraph {
     cfg.clearDFS();
     entry.sortDFS();
     int dfn = 0;
+    Map<SpaceEffGraphNode, Integer> dfnMap = new HashMap<SpaceEffGraphNode, Integer>();
     for (SpaceEffGraphNode node = entry; node != null; node = node.nextSorted) {
       node.clearLoopHeader();
-      node.setScratch(dfn++);
+      dfnMap.put(node, Integer.valueOf(dfn++));
       clearBackEdges(node);
     }
     cfg.clearDFS();
-    findBackEdges(entry, ir.cfg.numberOfNodes());
+    int bbCount = ir.cfg.numberOfNodes();
+    findBackEdges(entry, bbCount, dfnMap);
 
     // entry node is considered the LST head
     LSTNode lstheader = new LSTNode(entry);
@@ -235,8 +238,9 @@ public class LSTGraph extends SpaceEffGraph {
    *  to determine back edges.
    * @param bb        The basic block to process
    * @param numBlocks The number of basic blocks
+   * @param dfnMap numbering from the depth first traversal
    */
-  private void findBackEdges(BasicBlock bb, int numBlocks) {
+  private void findBackEdges(BasicBlock bb, int numBlocks, Map<SpaceEffGraphNode, Integer> dfnMap) {
     Stack<BasicBlock> stack = new Stack<BasicBlock>();
     SpaceEffGraphNode.OutEdgeEnumeration[] BBenum = new SpaceEffGraphNode.OutEdgeEnumeration[numBlocks];
 
@@ -267,14 +271,14 @@ public class LSTGraph extends SpaceEffGraph {
           outEdge.setBackEdge();
           if (DEBUG) {
             System.out.println("backedge from " +
-                               bb.getScratch() +
+                               dfnMap.get(bb) +
                                " ( " + bb + " ) " +
-                               outbb.getScratch() +
+                               dfnMap.get(outbb) +
                                " ( " + outbb + " ) ");
           }
         } else if (!outbb.dfsVisited()) {
           // irreducible loop test
-          if (outbb.getScratch() < bb.getScratch()) {
+          if (dfnMap.get(outbb) < dfnMap.get(bb)) {
             throw new OptimizingCompilerException("irreducible loop found!");
           }
           // simulate a recursive call
