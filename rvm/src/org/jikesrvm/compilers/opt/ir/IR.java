@@ -81,7 +81,6 @@ import org.vmmagic.pragma.NoInline;
  * grouped into {@link BasicBlock factored basic blocks}.
  * In addition to the FCFG, an <code>IR</code> object also
  * contains a variety of other supporting and derived data structures.
- * <p>
  *
  * @see ControlFlowGraph
  * @see BasicBlock
@@ -172,16 +171,10 @@ public final class IR {
    */
   public SSAOptions actualSSAOptions;
 
-  /**
-   * Are we in SSA form?
-   */
   public boolean inSSAForm() {
     return (actualSSAOptions != null) && actualSSAOptions.getScalarValid();
   }
 
-  /**
-   * Are we in SSA form that's broken awaiting re-entry?
-   */
   public boolean inSSAFormAwaitingReEntry() {
     return (actualSSAOptions != null) && !actualSSAOptions.getScalarValid();
   }
@@ -317,7 +310,14 @@ public final class IR {
   }
 
   /**
-   * Should strictfp be adhered to for the given instructions?
+   * Should {@code strictfp} be adhered to for the given instructions?
+   * <p>
+   * Note: we currently don't support {@code strictfp} at all, so this method
+   * is unused.
+   *
+   * @param is a sequence of instruction
+   * @return {@code true} if any of the instructions requires
+   *  {@code strictfp}
    */
   public boolean strictFP(Instruction... is) {
     for (Instruction i : is) {
@@ -454,6 +454,11 @@ public final class IR {
 
   /**
    * How many bytes of parameters does this method take?
+   *
+   * @return number of bytes that are necessary to hold the method's
+   *  parameters, including space for the {@code this} parameter
+   *  if applicable
+   *
    */
   public int incomingParameterBytes() {
     int nWords = method.getParameterWords();
@@ -584,7 +589,7 @@ public final class IR {
   }
 
   /**
-   * Clear (set to {@code null}) the scratch object on
+   * Clears (set to {@code null}) the scratch object on
    * all basic blocks currently in this IR.
    */
   public void clearBasicBlockScratchObject() {
@@ -595,7 +600,10 @@ public final class IR {
   }
 
   /**
-   * Return the number of symbolic registers for this IR
+   * Returns the number of symbolic registers for this IR.
+   *
+   * @return number of symbolic registers that were allocated
+   *  for this IR object
    */
   public int getNumberOfSymbolicRegisters() {
     return regpool.getNumberOfSymbolicRegisters();
@@ -657,17 +665,10 @@ public final class IR {
     }
   }
 
-  /**
-   * States whether liveness for handlers is available
-   * @return whether liveness for handlers is available
-   */
   public boolean getHandlerLivenessComputed() {
     return handlerLivenessComputed;
   }
 
-  /**
-   * Record whether or not liveness information for handlers is available
-   */
   public void setHandlerLivenessComputed(boolean value) {
     handlerLivenessComputed = value;
   }
@@ -1203,8 +1204,10 @@ public final class IR {
   }
 
   /**
-   * Check whether uses follow definitions and that in SSA form
+   * Checks whether uses follow definitions and that in SSA form
    * variables aren't multiply defined
+   *
+   * @param where phrase identifying invoking compilation phase
    */
   private void verifyUseFollowsDef(String where) {
     // Create set of defined variables and add registers that will be
@@ -1233,6 +1236,7 @@ public final class IR {
    * @param curBB the current BB to work on
    * @param visitedBBs the blocks already visited (to avoid cycles)
    * @param path a record of the path taken to reach this basic block
+   * @param maxPathLength the maximum number of basic blocks that will be followed
    * @param traceExceptionEdges    should paths from exceptions be validated?
    */
   private void verifyUseFollowsDef(String where, HashSet<Object> definedVariables, BasicBlock curBB,
