@@ -76,11 +76,6 @@ public class LSTGraph extends SpaceEffGraph {
     return node != null && node.firstOutEdge() == null && node.loop != null;
   }
 
-  /**
-   * Is the edge from source to target an exit from the loop containing source?
-   * @param source the basic block that is the source of the edge
-   * @param target the basic block that is the target of the edge
-   */
   public boolean isLoopExit(BasicBlock source, BasicBlock target) {
     LSTNode snode = loopMap.get(source);
     LSTNode tnode = loopMap.get(target);

@@ -112,9 +112,6 @@ public class LoopUnrolling extends CompilerPhase {
     ir.cfg.compactNodeNumbering();
   }
 
-  /**
-   * unroll the loops in the given IR.
-   */
   void unrollLoops(IR ir) {
     LSTGraph lstg = ir.HIRInfo.loopStructureTree;
 
@@ -124,11 +121,6 @@ public class LoopUnrolling extends CompilerPhase {
     }
   }
 
-  /**
-   * loop unrolling on a given loop structure sub tree
-   * @param t
-   * @param ir
-   */
   int unrollLoopTree(LSTNode t, IR ir, int target) {
     int height = 1;
     Enumeration<GraphNode> e = t.outNodes();
