@@ -27,9 +27,6 @@ public class SpaceEffGraphNode implements GraphNodeWithScratchFields {
   /** scratch field: optimizations use as they wish */
   private Object scratchObject;
 
-  /** any optimization can use this for its own purposes */
-  private int scratch;
-
   /**
    * The following word is used for various purposes. The first
    * 8 bits are used for flags, and the remaining 24 bits for any
@@ -74,14 +71,6 @@ public class SpaceEffGraphNode implements GraphNodeWithScratchFields {
   public final void clearFlags() { info &= ~(DFS_VISITED | TOP_VISITED | ON_STACK); }
 
   public final void clearLoopHeader() { info &= ~LOOP_HEADER; }
-
-  @Deprecated
-  @Override
-  public int getScratch() { return scratch; }
-
-  @Deprecated
-  @Override
-  public int setScratch(int scratch) { return this.scratch = scratch; }
 
   public final void setNumber(int value) {
     info = (info & ~INFO_MASK) | (value & INFO_MASK);
@@ -313,38 +302,8 @@ public class SpaceEffGraphNode implements GraphNodeWithScratchFields {
     to.removeIn(e);
   }
 
-  /* mark nodes in a DFS manner, result written in 'scratch' */
-  /* NOTE: it assummes that the 'dfs' flag has been cleared before */
-
-  public final void markDFN(int DFN) {
-    setDfsVisited();
-    for (SpaceEffGraphEdge e = _outEdgeStart; e != null; e = e.nextOut) {
-      SpaceEffGraphNode n = e.toNode();
-      if (!n.dfsVisited()) {
-        n.markDFN(DFN);
-      }
-    }
-    scratch = DFN - 1;
-  }
-
-  /* mark nodes according to the SCC (Strongly Connected Component Number),
-     result written in 'scratch'
-     NOTE: it assumes that the 'dfs' flag has been cleared before */
-
-  public final void markSCC(int currSCC) {
-    setDfsVisited();
-    scratch = currSCC;
-    for (SpaceEffGraphEdge e = _inEdgeStart; e != null; e = e.nextIn) {
-      SpaceEffGraphNode n = e.fromNode();
-      if (!n.dfsVisited()) {
-        n.markSCC(currSCC);
-      }
-    }
-  }
-
   /* sort nodes according to DFS. result is a list of nodes with the current
      as root.  Note: it assumes that the dfs flags have been cleared before */
-
   public final void sortDFS() {
     _sortDFS(null);
   }

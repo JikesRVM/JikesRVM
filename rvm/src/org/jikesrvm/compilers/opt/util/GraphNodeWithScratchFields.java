@@ -27,24 +27,6 @@ package org.jikesrvm.compilers.opt.util;
 public interface GraphNodeWithScratchFields extends GraphNode {
 
   /**
-   * Reads the scratch field of int type.
-   * @return the contents of the int scratch field
-   * @deprecated see class JavaDoc.
-   */
-  @Deprecated
-  int getScratch();
-
-  /**
-   * Sets the scratch field of int type
-   * @param scratch the new contents of the int scratch field
-   * @deprecated see class JavaDoc.
-   * @return semantics of the return value are defined wholly be the
-   *  implementing class
-   */
-  @Deprecated
-  int setScratch(int scratch);
-
-  /**
    * Sets the scratch object field.
    * @param scratchObject an object
    * @deprecated see class JavaDoc
