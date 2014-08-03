@@ -283,11 +283,24 @@ final class NormalBURS extends BURS {
   // Is goal reachable via any edge in the current tree?
   private boolean reachableRoot(SpaceEffGraphNode current, SpaceEffGraphNode goal, int searchnum) {
     if (current == goal) return true;
-    Integer curPredCount = predecessorCount.get(current);
-    if ((curPredCount != null) && curPredCount.intValue() == searchnum) return false;
+    Integer curPredCount = getAndPossiblyFixupPredCount(current);
+    if (curPredCount.intValue() == searchnum) return false;
     predecessorCount.put(current, Integer.valueOf(searchnum));
     BURS_TreeNode root = (BURS_TreeNode) current.getScratchObject();
     return reachableChild(root, goal, searchnum);
+  }
+
+  private Integer getAndPossiblyFixupPredCount(SpaceEffGraphNode current) {
+    Integer curPredCount = predecessorCount.get(current);
+
+    // The code used int scratch fields a while ago. In that case, it was
+    // guaranteed to return zero if the node was not touched before.
+    // Therefore, null needs to be interpreted as zero.
+    if (curPredCount == null) {
+      curPredCount = Integer.valueOf(0);
+      predecessorCount.put(current, curPredCount);
+    }
+    return curPredCount;
   }
 
   private boolean reachableChild(BURS_TreeNode n, SpaceEffGraphNode goal, int searchnum) {
