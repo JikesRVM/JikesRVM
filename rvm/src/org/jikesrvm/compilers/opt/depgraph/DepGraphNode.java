@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
 /**
  * Dependence graph node: there is one for each instruction in a basic block.
  */
-public final class DepGraphNode extends SpaceEffGraphNode {
+public class DepGraphNode extends SpaceEffGraphNode {
 
   /**
    * Instruction that this node represents.

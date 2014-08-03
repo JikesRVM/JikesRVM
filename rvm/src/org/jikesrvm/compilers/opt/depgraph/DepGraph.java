@@ -53,7 +53,7 @@ import org.jikesrvm.compilers.opt.util.SpaceEffGraph;
 /**
  * Dependence Graph for a single basic block in the program.
  */
-public final class DepGraph extends SpaceEffGraph {
+public class DepGraph extends SpaceEffGraph {
 
   /**
    * Set of variables that are live on entry to at least one catch block that
@@ -113,12 +113,17 @@ public final class DepGraph extends SpaceEffGraph {
    */
   private void createNodes(Instruction start, Instruction end) {
     for (Instruction p = start; ; p = p.nextInstructionInCodeOrder()) {
-      DepGraphNode pnode = new DepGraphNode(p);
+      DepGraphNode pnode = createDepGraphNode(p);
       addGraphNode(pnode);
       if (p == end) {
         break;
       }
     }
+  }
+
+  protected DepGraphNode createDepGraphNode(Instruction p) {
+    DepGraphNode pnode = new DepGraphNode(p);
+    return pnode;
   }
 
   /**

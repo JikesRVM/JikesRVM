@@ -13,8 +13,6 @@
 package org.jikesrvm.compilers.opt.lir2mir;
 
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_Debug;
 import org.jikesrvm.ArchitectureSpecificOpt.BURS_STATE;
@@ -61,8 +59,6 @@ final class NormalBURS extends BURS {
 
   private int numTreeRoots;
 
-  private Map<SpaceEffGraphNode, Integer> predecessorCount;
-
   /**
    * Create a BURS object for the given IR.
    *
@@ -77,7 +73,7 @@ final class NormalBURS extends BURS {
    * then generate MIR instructions based on the labeling.
    * @param dg the dependence graph.
    */
-  public void invoke(DepGraph dg) {
+  public void invoke(NormalBURS_DepGraph dg) {
     if (DEBUG) dg.printDepGraph();
     BURS_STATE burs = new BURS_STATE(this);
     buildTrees(dg);
@@ -94,6 +90,10 @@ final class NormalBURS extends BURS {
   // Implementation
   ////////////////////////////////
 
+  private NormalBURS_DepGraphNode castNode(SpaceEffGraphNode node) {
+    return (NormalBURS_DepGraphNode) node;
+  }
+
   /**
    * Stage 1: Complete the expression trees and identify tree roots.
    * Complete BURS trees by adding leaf nodes as needed, and
@@ -105,8 +105,6 @@ final class NormalBURS extends BURS {
    * @param dg  The dependence graph.
    */
   private void buildTrees(DepGraph dg) {
-    int nodeCount = dg.numberOfNodes();
-    predecessorCount = new HashMap<SpaceEffGraphNode, Integer>(nodeCount);
     DepGraphNode bbNodes = (DepGraphNode) dg.firstNode();
     for (DepGraphNode n = bbNodes; n != null; n = (DepGraphNode) n.getNext()) {
       // Initialize n.treeNode
@@ -206,7 +204,7 @@ final class NormalBURS extends BURS {
     }
     if (n.dg_node != null) {
       n.dg_node.nextSorted = root;
-      predecessorCount.put(n.dg_node, Integer.valueOf(0));
+      castNode(n.dg_node).setPredecessorCount(0);
     }
   }
 
@@ -283,24 +281,10 @@ final class NormalBURS extends BURS {
   // Is goal reachable via any edge in the current tree?
   private boolean reachableRoot(SpaceEffGraphNode current, SpaceEffGraphNode goal, int searchnum) {
     if (current == goal) return true;
-    Integer curPredCount = getAndPossiblyFixupPredCount(current);
-    if (curPredCount.intValue() == searchnum) return false;
-    predecessorCount.put(current, Integer.valueOf(searchnum));
+    if (castNode(current).getPredecessorCount() == searchnum) return false;
+    castNode(current).setPredecessorCount(searchnum);
     BURS_TreeNode root = (BURS_TreeNode) current.getScratchObject();
     return reachableChild(root, goal, searchnum);
-  }
-
-  private Integer getAndPossiblyFixupPredCount(SpaceEffGraphNode current) {
-    Integer curPredCount = predecessorCount.get(current);
-
-    // The code used int scratch fields a while ago. In that case, it was
-    // guaranteed to return zero if the node was not touched before.
-    // Therefore, null needs to be interpreted as zero.
-    if (curPredCount == null) {
-      curPredCount = Integer.valueOf(0);
-      predecessorCount.put(current, curPredCount);
-    }
-    return curPredCount;
   }
 
   private boolean reachableChild(BURS_TreeNode n, SpaceEffGraphNode goal, int searchnum) {
@@ -329,7 +313,7 @@ final class NormalBURS extends BURS {
     // Initialize tree root field for all nodes
     for (int i = 0; i < numTreeRoots; i++) {
       BURS_TreeNode n = treeRoots[i];
-      predecessorCount.put(n.dg_node, Integer.valueOf(0));
+      castNode(n.dg_node).setPredecessorCount(0);
       initTreeRootNode(n, n.dg_node);
     }
 
@@ -339,15 +323,14 @@ final class NormalBURS extends BURS {
       for (SpaceEffGraphEdge in = node.firstInEdge(); in != null; in = in.getNextIn()) {
         SpaceEffGraphNode source_treeRoot = in.fromNode().nextSorted;
         if (source_treeRoot != n_treeRoot) {
-          int predCount = predecessorCount.get(n_treeRoot).intValue();
-          predecessorCount.put(n_treeRoot, Integer.valueOf(predCount + 1));
+          castNode(n_treeRoot).incPredecessorCount();
         }
       }
     }
     if (DEBUG) {
       for (int i = 0; i < numTreeRoots; i++) {
         BURS_TreeNode n = treeRoots[i];
-        VM.sysWrite(predecessorCount.get(n.dg_node) + ":" + n + "\n");
+        VM.sysWrite(castNode(n.dg_node).getPredecessorCount() + ":" + n + "\n");
       }
     }
   }
@@ -375,7 +358,7 @@ final class NormalBURS extends BURS {
     // Append tree roots with predCount = 0 to readySet
     for (int i = 0; i < numTreeRoots; i++) {
       BURS_TreeNode n = treeRoots[i];
-      if (predecessorCount.get(n.dg_node).intValue() == 0) {
+      if (castNode(n.dg_node).getPredecessorCount() == 0) {
         readySetInsert(n);
       }
     }
@@ -452,10 +435,8 @@ final class NormalBURS extends BURS {
       for (SpaceEffGraphEdge out = dgnode.firstOutEdge(); out != null; out = out.getNextOut()) {
         SpaceEffGraphNode dest = out.toNode().nextSorted;
         if (source != dest) {
-          int predCount = predecessorCount.get(dest).intValue();
-          Integer newCount = Integer.valueOf(predCount - 1);
-          predecessorCount.put(dest, newCount);
-          int count = newCount.intValue();
+          castNode(dest).decPredecessorCount();
+          int count = castNode(dest).getPredecessorCount();
           if (DEBUG) VM.sysWrite(count + ": edge " + source + " to " + dest + "\n");
           if (count == 0) {
             readySetInsert((BURS_TreeNode) dest.getScratchObject());
@@ -695,4 +676,5 @@ final class NormalBURS extends BURS {
   private boolean haveProblemEdges() {
     return numProblemEdges > 0;
   }
+
 }
