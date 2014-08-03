@@ -109,7 +109,7 @@ final class NormalBURS extends BURS {
     for (DepGraphNode n = bbNodes; n != null; n = (DepGraphNode) n.getNext()) {
       // Initialize n.treeNode
       BURS_TreeNode cur_parent = new BURS_TreeNode(n);
-      n.setScratchObject(cur_parent);
+      castNode(n).setCurrentParent(cur_parent);
       Instruction instr = n.instruction();
       // cur_parent = current parent node for var length IR instructions
       // loop for USES of an instruction
@@ -128,7 +128,7 @@ final class NormalBURS extends BURS {
           if (e == null) {        // operand is leaf
             child = Register;
           } else {
-            child = (BURS_TreeNode) e.fromNode().getScratchObject();
+            child = castNode(e.fromNode()).getCurrentParent();
           }
         } else if (op instanceof IntConstantOperand) {
           child = new BURS_IntConstantTreeNode(((IntConstantOperand) op).value);
@@ -177,7 +177,7 @@ final class NormalBURS extends BURS {
       }
 
       if (mustBeTreeRoot(n)) {
-        makeTreeRoot((BURS_TreeNode) n.getScratchObject());
+        makeTreeRoot(castNode(n).getCurrentParent());
       }
     }
   }
@@ -236,7 +236,7 @@ final class NormalBURS extends BURS {
       SpaceEffGraphEdge e = problemEdges[i];
       SpaceEffGraphNode src = e.fromNode();
       SpaceEffGraphNode dst = e.toNode();
-      BURS_TreeNode n = (BURS_TreeNode) src.getScratchObject();
+      BURS_TreeNode n = castNode(src).getCurrentParent();
       if (n.isTreeRoot()) continue; // some other problem edge already forced it
       SpaceEffGraphNode srcRoot = src.nextSorted;
       SpaceEffGraphNode dstRoot = dst.nextSorted;
@@ -283,7 +283,7 @@ final class NormalBURS extends BURS {
     if (current == goal) return true;
     if (castNode(current).getPredecessorCount() == searchnum) return false;
     castNode(current).setPredecessorCount(searchnum);
-    BURS_TreeNode root = (BURS_TreeNode) current.getScratchObject();
+    BURS_TreeNode root = castNode(current).getCurrentParent();
     return reachableChild(root, goal, searchnum);
   }
 
@@ -439,7 +439,7 @@ final class NormalBURS extends BURS {
           int count = castNode(dest).getPredecessorCount();
           if (DEBUG) VM.sysWrite(count + ": edge " + source + " to " + dest + "\n");
           if (count == 0) {
-            readySetInsert((BURS_TreeNode) dest.getScratchObject());
+            readySetInsert(castNode(dest).getCurrentParent());
           }
         }
       }
