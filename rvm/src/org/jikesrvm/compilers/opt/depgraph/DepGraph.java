@@ -119,8 +119,7 @@ public class DepGraph extends SpaceEffGraph {
   }
 
   protected DepGraphNode createDepGraphNode(Instruction p) {
-    DepGraphNode pnode = new DepGraphNode(p);
-    return pnode;
+    return new DepGraphNode(p);
   }
 
   /**

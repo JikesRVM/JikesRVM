@@ -31,8 +31,7 @@ public class NormalBURS_DepGraph extends DepGraph {
 
   @Override
   public DepGraphNode createDepGraphNode(Instruction inst) {
-    DepGraphNode node = new NormalBURS_DepGraphNode(inst);
-    return node;
+    return new NormalBURS_DepGraphNode(inst);
   }
 
 }
