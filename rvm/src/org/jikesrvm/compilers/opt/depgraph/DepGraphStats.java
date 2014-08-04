@@ -116,9 +116,11 @@ public class DepGraphStats {
   }
 
   /**
-   * Return an estimate of the number of cycles for a given instruction.
-   * Currently, this estimate is comically simple.
+   * Returns an estimate of the number of cycles for a given instruction.
+   * Currently, this estimate is comically simple (see below).
+   *
    * @param instr the instruction
+   * @return {@code 0} or {@code 1}
    */
   int estimateExecutionTime(Instruction instr) {
     if (instr.operator() == NULL_CHECK) {

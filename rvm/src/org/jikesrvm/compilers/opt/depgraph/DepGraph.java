@@ -108,9 +108,6 @@ public class DepGraph extends SpaceEffGraph {
     }
   }
 
-  /**
-   * Create the dependency graph nodes for instructions start to end
-   */
   private void createNodes(Instruction start, Instruction end) {
     for (Instruction p = start; ; p = p.nextInstructionInCodeOrder()) {
       DepGraphNode pnode = createDepGraphNode(p);
@@ -127,8 +124,11 @@ public class DepGraph extends SpaceEffGraph {
   }
 
   /**
-   * Compute flow and output dependences by doing a forward
+   * Computes flow and output dependences by doing a forward
    * traversal of the instructions from start to end.
+   *
+   * @param start start instruction
+   * @param end end instruction
    */
   private void computeForwardDependences(Instruction start, Instruction end) {
     boolean readsKill = ir.options.READS_KILL;
@@ -210,8 +210,11 @@ public class DepGraph extends SpaceEffGraph {
   }
 
   /**
-   * Compute anti dependences by doing a backwards
+   * Computse anti dependences by doing a backwards
    * traversal of the instructions from start to end.
+   *
+   * @param start start instruction
+   * @param end end instruction
    */
   private void computeBackwardDependences(Instruction start, Instruction end) {
     clearRegisters(start, end);
@@ -275,6 +278,9 @@ public class DepGraph extends SpaceEffGraph {
    * Compute control and barrier (acquire/release) dependences
    * in two passes (one forward, one reverse over the instructions
    * from start to end.
+   *
+   * @param start start instruction
+   * @param end end instruction
    */
   private void computeControlAndBarrierDependences(Instruction start, Instruction end) {
     // (1) In a forward pass, we add the following dependences:
@@ -508,6 +514,8 @@ public class DepGraph extends SpaceEffGraph {
   /**
    * Get the location of a given load or store instruction.
    * @param s the instruction to get the location from.
+   *
+   * @return a location or {@code null}
    */
   private LocationOperand getLocation(Instruction s) {
     // This extra conforms check wouldn't be necessary if the DepGraph
