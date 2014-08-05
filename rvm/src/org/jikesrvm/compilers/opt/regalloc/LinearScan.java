@@ -1985,10 +1985,12 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
 
       // Now search for any free interval.
       if (result == null) {
-        for (SpillLocationInterval s : freeIntervals) {
+        Iterator<SpillLocationInterval> iter = freeIntervals.iterator();
+        while (iter.hasNext()) {
+          SpillLocationInterval s = iter.next();
           if (s.getSize() == spillSize && !s.intersects(ci)) {
             result = s;
-            freeIntervals.remove(result);
+            iter.remove();
             break;
           }
         }
