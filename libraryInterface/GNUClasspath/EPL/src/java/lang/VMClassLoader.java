@@ -24,20 +24,20 @@ import java.lang.instrument.Instrumentation;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.ProtectionDomain;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Vector;
 import java.util.zip.ZipFile;
 
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMType;
-
 import org.jikesrvm.util.ImmutableEntryHashMapRVM;
 
 /**
@@ -136,7 +136,7 @@ final class VMClassLoader {
     StringTokenizer st = new StringTokenizer(
         SystemProperties.getProperty("java.boot.class.path", "."),
         File.pathSeparator);
-    Vector<URL> v = new Vector<URL>();
+    LinkedList<URL> v = new LinkedList<URL>();
     while (st.hasMoreTokens()) {
       File file = new File(st.nextToken());
       if (file.isDirectory()) {
@@ -173,7 +173,7 @@ final class VMClassLoader {
         }
       }
     }
-    return v.elements();
+    return Collections.enumeration(v);
   }
 
   private static String[] getBootPackages() {
@@ -276,7 +276,7 @@ final class VMClassLoader {
   }
 
   static Class<?>[] getAllLoadedClasses() {
-    Vector<Class<?>> classList = new Vector<Class<?>>();
+    LinkedList<Class<?>> classList = new LinkedList<Class<?>>();
     for (ImmutableEntryHashMapRVM<String,Class<?>> classes : loadedClasses.values()) {
       for (Class<?> cl : classes.values()) {
         classList.add(cl);
@@ -289,7 +289,7 @@ final class VMClassLoader {
   static Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
     ImmutableEntryHashMapRVM<String,Class<?>> mapForCL = loadedClasses.get(classLoader);
     if (mapForCL == null) return new Class[]{};
-    Vector<Class<?>> classList = new Vector<Class<?>>();
+    LinkedList<Class<?>> classList = new LinkedList<Class<?>>();
     for (Class<?> cl : mapForCL.values())
       classList.add(cl);
     Class<?>[] result = new Class[classList.size()];

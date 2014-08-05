@@ -14,7 +14,9 @@ package org.jikesrvm.compilers.opt.util;
 
 import static org.junit.Assert.*;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 
 import org.junit.Test;
 
@@ -22,11 +24,12 @@ public class ReverseEnumeratorTest {
 
   @Test
   public void testNextElementAndHasMoreElements() {
-    Vector<Integer> v = new Vector<Integer>();
+    ArrayList<Integer> v = new ArrayList<Integer>();
     v.add(1);
     v.add(2);
     v.add(3);
-    ReverseEnumerator<Integer> re = new ReverseEnumerator<Integer>(v.elements());
+    Enumeration<Integer> enumeration = Collections.enumeration(v);
+    ReverseEnumerator<Integer> re = new ReverseEnumerator<Integer>(enumeration);
     assertTrue(re.hasMoreElements());
     assertEquals((Integer) 3,re.nextElement());
     assertTrue(re.hasMoreElements());

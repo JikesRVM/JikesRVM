@@ -312,7 +312,7 @@ $$$$ END FOREACH
     */
    @Override
    public String toString() {
-      StringBuffer sb = new StringBuffer("Size=");
+      StringBuilder sb = new StringBuilder("Size=");
       sb.append(masks.length).append('\n');
      for (int[] mask : masks) {
        for (int v : mask)
@@ -368,8 +368,8 @@ $$$$ END FOREACH
       if (rrq == pat.length) {
          for (int i = 0; i < masks[comb].length; i++)
             masks[comb][i] = 0;
-         StringBuffer dbSB;
-         if (verbose >= 1) dbSB = new StringBuffer();
+         StringBuilder dbSB;
+         if (verbose >= 1) dbSB = new StringBuilder();
          for (int i = 0; i < pat.length; i++) {
             ResourceReservation pi = pat[i];
             int rc = pi.rclass();
@@ -412,7 +412,7 @@ $$$$ END FOREACH
    // Generates a string of a given length filled by a given character.
    // For internal use only.
    private static String dup(int len, char c) {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       for (int i = 0; i < len; i++)
          sb.append(c);
       return sb.toString();
