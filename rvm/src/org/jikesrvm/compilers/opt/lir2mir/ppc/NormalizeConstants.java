@@ -758,12 +758,6 @@ public abstract class NormalizeConstants extends IRTools {
     return addr;
   }
 
-  /**
-   * Force addr to be a register operand
-   * @param addr
-   * @param s
-   * @param ir
-   */
   static Operand asRegInt(Operand addr, Instruction s, IR ir) {
     if (addr instanceof IntConstantOperand) {
       RegisterOperand rop = ir.regpool.makeTempInt();

@@ -447,11 +447,14 @@ final class NormalBURS extends BURS {
   }
 
   /**
-   * Return {@code true} if node n must be a root of a BURS tree
-   * based only on its register true dependencies.
-   * If the node might later have to be marked as a tree
+   * Checks if the given node needs to be a tree rode.
+   * If the node does not need to be a tree root right now
+   * but might later have to be marked as a tree
    * root, then include in a set of problem nodes.
+   *
    * @param n the dep graph node in question.
+   * @return {@code true} if node n must be a root of a BURS tree
+   * based only on its register true dependencies.
    */
   private boolean mustBeTreeRoot(DepGraphNode n) {
     // A "fan-out" node must be a root of a BURS tree.
@@ -516,6 +519,9 @@ final class NormalBURS extends BURS {
    * Initialize nextSorted for nodes in tree rooted at t i.e.
    * for all register true descendants of t up to but not including
    * any new tree roots.
+   *
+   * @param t the BURS node
+   * @param treeRoot the dependence graph node that belongs to the BURS node
    */
   private void initTreeRootNode(BURS_TreeNode t, SpaceEffGraphNode treeRoot) {
     // Recurse
@@ -580,9 +586,6 @@ final class NormalBURS extends BURS {
   private BURS_TreeNode[] heap = new BURS_TreeNode[16];
   private int numElements = 0;
 
-  /**
-   * Add a node to the ready set.
-   */
   private void readySetInsert(BURS_TreeNode node) {
     Instruction s = node.getInstruction();
     if (s.operator == GUARD_COMBINE ||
@@ -614,16 +617,10 @@ final class NormalBURS extends BURS {
     }
   }
 
-  /**
-   * Are there nodes to process on the stack?
-   */
   private boolean readySetNotEmpty() {
     return numElements > 0;
   }
 
-  /**
-   * Remove a node from the ready set
-   */
   private BURS_TreeNode readySetRemove() {
     BURS_TreeNode ans = heap[1];
     heap[1] = heap[numElements--];

@@ -208,7 +208,6 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    */
   private ConditionOperand cc;
 
-  /** Constructor */
   BURS_Helpers(BURS burs) {
     super(burs);
   }
@@ -511,7 +510,13 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     throw new OptimizingCompilerException("BURS_Helpers", "unexpected 387 constant " + val);
   }
 
-  /** Can the given condition for a compare be converted to a test? */
+  /**
+   * Can the given condition for a compare be converted to a test?
+   *
+   * @param op a condition
+   * @return {@code true} if and only if the condition for the compare
+   *  can be reduced to a test
+   */
   protected final boolean CMP_TO_TEST(ConditionOperand op) {
     switch(op.value) {
     case ConditionOperand.EQUAL:
@@ -580,7 +585,14 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   }
 
   /**
-   * Move op into a register operand if it isn't one already.
+   * Emits code to move the operand into a register operand if it
+   * isn't one already.
+   *
+   * @param movop the Operator that needs to be used for the move
+   * @param op the operand to move
+   * @param s instruction to get source position information
+   * @return a new operand if a move was inserted, the old operand
+   *  otherwise
    */
   private Operand asReg(Instruction s, Operator movop, Operand op) {
     if (op.isRegister()) {
@@ -615,8 +627,10 @@ abstract class BURS_Helpers extends BURS_MemOp_Helpers {
   }
 
   /**
-   * Create a 64bit slot on the stack in memory for a conversion and store the
-   * given long
+   * Creates a 64bit slot on the stack in memory for a conversion and
+   * stores the given long.
+   *
+   * @param op an operand representing a long
    */
   protected final void STORE_LONG_FOR_CONV(Operand op) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
@@ -852,7 +866,9 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Emit code to move 64 bits from FPRs to GPRs
+   * Emits code to move 64 bits from FPRs to GPRs
+   *
+   * @param s instruction to modify for the move
    */
   protected final void FPR2GPR_64(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
@@ -868,7 +884,9 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Emit code to move 64 bits from GPRs to FPRs
+   * Emits code to move 64 bits from GPRs to FPRs.
+   *
+   * @param s instruction to modify for the move
    */
   protected final void GPR2FPR_64(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
@@ -893,6 +911,9 @@ Operand value, boolean signExtend) {
 
   /**
    * Returns the appropriate move operator based on the type of operand.
+   *
+   * @param o an operand
+   * @return correct move operator
    */
   protected final Operator SSE2_MOVE(Operand o) {
     return o.isFloat() ? IA32_MOVSS : IA32_MOVSD;
@@ -900,13 +921,19 @@ Operand value, boolean signExtend) {
 
   /**
    * Returns the size based on the type of operand.
+   *
+   * @param o an operand
+   * @return size in bytes
    */
   protected final byte SSE2_SIZE(Operand o) {
     return o.isFloat() ? DW : QW;
   }
 
   /**
-   * Performs a long -&gt; double/float conversion using x87 and marshalls back to XMMs.
+   * Performs a long -&gt; double/float conversion using x87 and
+   * marshalls back to XMMs.
+   *
+   * @param s instruction to modify for the conversion
    */
   protected final void SSE2_X87_FROMLONG(Instruction s) {
     Operand result = Unary.getResult(s);
@@ -921,7 +948,10 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Performs a long -&gt; double/float conversion using x87 and marshalls between to XMMs.
+   * Performs a long -&gt; double/float conversion using x87 and
+   * marshalls between to XMMs.
+   *
+   * @param s instruction to modify for the conversion
    */
   protected final void SSE2_X87_REM(Instruction s) {
     Operand result = Binary.getClearResult(s);
@@ -940,7 +970,9 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Emit code to move 64 bits from SSE2 FPRs to GPRs
+   * Emits code to move 64 bits from SSE2 FPRs to GPRs
+   *
+   * @param s instruction to modify for the move
    */
   protected final void SSE2_FPR2GPR_64(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
@@ -956,7 +988,9 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Emit code to move 64 bits from GPRs to SSE2 FPRs
+   * Emits code to move 64 bits from GPRs to SSE2 FPRs
+   *
+   * @param s instruction to modify for the move
    */
   protected final void SSE2_GPR2FPR_64(Instruction s) {
     int offset = -burs.ir.stackManager.allocateSpaceForConversion();
@@ -980,7 +1014,9 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Emit code to move 32 bits from FPRs to GPRs
+   * Emits code to move 32 bits from FPRs to GPRs.
+   *
+   * @param s instruction to modify for the move
    */
   protected final void SSE2_FPR2GPR_32(Instruction s) {
     EMIT(MIR_Move.mutate(s, IA32_MOVD, Unary.getResult(s), Unary.getVal(s)));
@@ -991,7 +1027,9 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Emit code to move 32 bits from GPRs to FPRs
+   * Emits code to move 32 bits from GPRs to FPRs.
+   *
+   * @param s instruction to modify for the move
    */
   protected final void SSE2_GPR2FPR_32(Instruction s) {
     EMIT(MIR_Move.mutate(s, IA32_MOVD, Unary.getResult(s), Unary.getVal(s)));
@@ -1003,6 +1041,12 @@ Operand value, boolean signExtend) {
 
   /**
    * BURS expansion of a commutative SSE2 operation.
+   *
+   * @param operator the operator
+   * @param s the instruction in question
+   * @param result the instruction's result operand
+   * @param val1 the instruction's first value operand
+   * @param val2 the instruction's second value operand
    */
   protected void SSE2_COP(Operator operator, Instruction s, Operand result, Operand val1, Operand val2) {
     if(VM.VerifyAssertions) VM._assert(result.isRegister());
@@ -1022,6 +1066,13 @@ Operand value, boolean signExtend) {
 
   /**
    * BURS expansion of a non commutative SSE2 operation.
+   *
+   * @param operator the operator
+   * @param s the instruction in question
+   * @param result the instruction's result operand
+   * @param val1 the instruction's first value operand
+   * @param val2 the instruction's second value operand
+
    */
   protected void SSE2_NCOP(Operator operator, Instruction s, Operand result, Operand val1, Operand val2) {
     if(VM.VerifyAssertions) VM._assert(result.isRegister());
@@ -1045,7 +1096,12 @@ Operand value, boolean signExtend) {
   }
 
   /**
-   * Expansion of SSE2 negation ops
+   * Expansion of SSE2 negation ops.
+   *
+   * @param single {@code true} if 32 bit value (float), {@code false} for 64 bit (double)
+   * @param s the instruction in question
+   * @param result the instruction's result operand
+   * @param value the instruction's value operand
    */
   protected final void SSE2_NEG(boolean single, Instruction s, Operand result, Operand value) {
     if(VM.VerifyAssertions) VM._assert(result.isRegister());
@@ -1060,6 +1116,11 @@ Operand value, boolean signExtend) {
 
   /**
    * Expansion of SSE2 conversions double &lt;-&gt; float
+   *
+   * @param op the operator
+   * @param s the instruction in question
+   * @param result the instruction's result operand
+   * @param value the instruction's value operand
    */
   protected final void SSE2_CONV(Operator op, Instruction s, Operand result, Operand value) {
     if(VM.VerifyAssertions) VM._assert(result.isRegister());
@@ -1068,6 +1129,11 @@ Operand value, boolean signExtend) {
 
   /**
    * Expansion of SSE2 comparison operations
+   *
+   * @param op the operator
+   * @param s the instruction in question
+   * @param val1 the instruction's first value operand
+   * @param val2 the instruction's second value operand
    */
   protected final void SSE2_IFCMP(Operator op, Instruction s, Operand val1, Operand val2) {
     EMIT(CPOS(s, MIR_Compare.create(op, val1, val2)));
@@ -1194,6 +1260,8 @@ Operand value, boolean signExtend) {
 
   /**
    * Expansion of SSE2 floating point constant loads
+   *
+   * @param s the instruction to mutate
    */
   protected final void SSE2_FPCONSTANT(Instruction s) {
     RegisterOperand res = Binary.getResult(s);
@@ -3188,6 +3256,8 @@ Operand value, boolean signExtend) {
 
   /**
    * Expand a prologue by expanding out longs into pairs of ints
+   *
+   * @param s the prologue instruction
    */
   protected final void PROLOGUE(Instruction s) {
     int numFormals = Prologue.getNumberOfFormals(s);

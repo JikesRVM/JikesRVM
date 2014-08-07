@@ -183,18 +183,10 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
     return mo;
   }
 
-  /**
-   * Construct a memory operand for the effective address of the
-   * load instruction
-   */
   protected final MemoryOperand MO_L(Instruction s, byte size) {
     return MO_L(s, size, 0);
   }
 
-  /**
-   * Construct a displaced memory operand for the effective address of the
-   * load instruction
-   */
   protected final MemoryOperand MO_L(Instruction s, byte size, int disp) {
     if (VM.VerifyAssertions) VM._assert(Load.conforms(s));
     return MO(Load.getAddress(s),
@@ -205,18 +197,10 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
               Load.getGuard(s));
   }
 
-  /**
-   * Construct a memory operand for the effective address of the
-   * store instruction
-   */
   protected final MemoryOperand MO_S(Instruction s, byte size) {
     return MO_S(s, size, 0);
   }
 
-  /**
-   * Construct a displaced memory operand for the effective address of the
-   * store instruction
-   */
   protected final MemoryOperand MO_S(Instruction s, byte size, int disp) {
     if (VM.VerifyAssertions) VM._assert(Store.conforms(s));
     return MO(Store.getAddress(s),
@@ -307,18 +291,10 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
     return MemoryOperand.D(disp.toWord().toAddress(), size, loc, guard);
   }
 
-  /**
-   * Construct a memory operand for the effective address of the
-   * array load instruction
-   */
   protected final MemoryOperand MO_AL(Instruction s, byte scale, byte size) {
     return MO_AL(s, scale, size, 0);
   }
 
-  /**
-   * Construct a memory operand for the effective address of the
-   * array load instruction
-   */
   protected final MemoryOperand MO_AL(Instruction s, byte scale, byte size, int disp) {
     if (VM.VerifyAssertions) VM._assert(ALoad.conforms(s));
     return MO_ARRAY(ALoad.getArray(s),
@@ -330,16 +306,11 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
                     ALoad.getGuard(s));
   }
 
-  /**
-   * Construct a memory operand for the effective address of the
-   * array store instruction
-   */
   protected final MemoryOperand MO_AS(Instruction s, byte scale, byte size) {
     return MO_AS(s, scale, size, 0);
   }
 
 
-  // Construct a memory operand for the effective address of the array store instruction
   protected final MemoryOperand MO_AS(Instruction s, byte scale, byte size, int disp) {
     if (VM.VerifyAssertions) VM._assert(AStore.conforms(s));
     return MO_ARRAY(AStore.getArray(s),
@@ -351,9 +322,6 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
                     AStore.getGuard(s));
   }
 
-  /**
-   * Construct memory operand for an array access
-   */
   private MemoryOperand MO_ARRAY(Operand base, Operand index, byte scale, byte size, Offset disp,
                                              LocationOperand loc, Operand guard) {
     if (base instanceof IntConstantOperand) {
@@ -371,9 +339,6 @@ public abstract class BURS_MemOp_Helpers extends BURS_Common_Helpers {
     }
   }
 
-  /**
-   * Construct memory operand for a MATERIALIZE_FP_CONSTANT
-   */
   protected final MemoryOperand MO_MC(Instruction s) {
     Operand base = Binary.getVal1(s); // JTOC
     Operand val = Binary.getVal2(s); // float or double value

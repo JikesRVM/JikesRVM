@@ -58,9 +58,10 @@ final class MinimalBURS extends BURS {
   }
 
   /**
-   * Build BURS trees for dependence graph <code>bb</code>, label the trees, and
+   * Build BURS trees for the basic block <code>bb</code>, label the trees, and
    * then generate MIR instructions based on the labeling.
-   * @param bb   The dependence graph.   XXX Is this correct?
+   *
+   * @param bb the basic block to process
    */
   public void invoke(BasicBlock bb) {
     BURS_STATE burs = new BURS_STATE(this);
@@ -85,6 +86,7 @@ final class MinimalBURS extends BURS {
    * any LIR instruction that has &gt; 2 "real" operands e.g., a CALL.
    *
    * @param s The instruction for which a tree must be built
+   * @return the root of the newly constructed tree
    */
   private BURS_TreeNode buildTree(Instruction s) {
 
@@ -152,7 +154,7 @@ final class MinimalBURS extends BURS {
   /**
    * Generates code for a single tree root.
    * @param k the root to start generation at
-   * @param burs
+   * @param burs the current BURS state
    */
   private void generateTree(BURS_TreeNode k, BURS_STATE burs) {
     BURS_TreeNode child1 = k.child1;
