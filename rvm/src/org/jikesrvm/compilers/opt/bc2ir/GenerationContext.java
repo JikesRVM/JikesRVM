@@ -540,7 +540,11 @@ public final class GenerationContext {
   }
 
   /**
-   * Return the Register used to for local i of TypeReference type
+   * Returns the Register used to for local i of TypeReference type.
+   *
+   * @param i local number
+   * @param type local's type
+   * @return the Register for the local
    */
   Register localReg(int i, TypeReference type) {
     Register[] pool = getPool(type);
@@ -552,43 +556,45 @@ public final class GenerationContext {
   }
 
   /**
-   * Should null checks be generated?
+   * @return {@code true} if and only if null checks should be generated
    */
   boolean noNullChecks() {
     return method.hasNoNullCheckAnnotation();
   }
 
   /**
-   * Should bounds checks be generated?
+   * @return {@code true} if and only if bounds checks should be generated
    */
   boolean noBoundsChecks() {
     return method.hasNoBoundsCheckAnnotation();
   }
 
   /**
-   * Should checkstore checks be generated?
+   * @return {@code true} if and only if checkstore checks should be generated
    */
   boolean noCheckStoreChecks() {
     return method.hasNoCheckStoreAnnotation();
   }
 
   /**
-   * Make a register operand that refers to the given local variable number
+   * Makes a register operand that refers to the given local variable number
    * and has the given type.
    *
    * @param i local variable number
    * @param type desired data type
+   * @return the newly created register operand
    */
   RegisterOperand makeLocal(int i, TypeReference type) {
     return new RegisterOperand(localReg(i, type), type);
   }
 
   /**
-   * Make a register operand that refers to the given local variable number,
+   * Makes a register operand that refers to the given local variable number,
    * and inherits its properties (type, flags) from props
    *
    * @param i local variable number
    * @param props RegisterOperand to inherit flags from
+   * @return the newly created register operand
    */
   RegisterOperand makeLocal(int i, RegisterOperand props) {
     RegisterOperand local = makeLocal(i, props.getType());
@@ -598,7 +604,10 @@ public final class GenerationContext {
   }
 
   /**
-   * Get the local number for a given register
+   * Gets the local number for a given register
+   * @param reg the register whose local number should be found out
+   * @param type the register's type
+   * @return the local number of -1 if not found
    */
   int getLocalNumberFor(Register reg, TypeReference type) {
     Register[] pool = getPool(type);
@@ -610,6 +619,13 @@ public final class GenerationContext {
 
   /**
    * Is the operand a particular bytecode local?
+   *
+   * @param op the operand to check
+   * @param i the local's index
+   * @param type the local's type
+   *
+   * @return {@code true} if and only if the given operand is a
+   *  an operand for the given bytecode local
    */
   boolean isLocal(Operand op, int i, TypeReference type) {
     if (op instanceof RegisterOperand) {
@@ -627,8 +643,11 @@ public final class GenerationContext {
   private HashMap<Register, RegisterOperand> _ncGuards;
 
   /**
-   * Make a register operand to use as a null check guard for the
+   * Makes a register operand to use as a null check guard for the
    * given register.
+   *
+   * @param ref the register to check for null
+   * @return the guard operand
    */
   RegisterOperand makeNullCheckGuard(Register ref) {
     RegisterOperand guard = _ncGuards.get(ref);
@@ -686,8 +705,10 @@ public final class GenerationContext {
   private GenerationContext() {}
 
   /**
-   * Fill in the rest of the method prologue.
+   * Fills in the rest of the method prologue.
    * PRECONDITION: arguments &amp; temps have been setup/initialized.
+   *
+   * @param isOutermost is this the outermost context (i.e. not an inlined context)
    */
   private void completePrologue(boolean isOutermost) {
     // Deal with Uninteruptible code.
@@ -715,6 +736,8 @@ public final class GenerationContext {
   /**
    * Fill in the rest of the method epilogue.
    * PRECONDITION: arguments &amp; temps have been setup/initialized.
+   *
+   * @param isOutermost is this the outermost context (i.e. not an inlined context)
    */
   private void completeEpilogue(boolean isOutermost) {
     // Deal with implicit monitorexit for synchronized methods.
@@ -742,6 +765,8 @@ public final class GenerationContext {
    * If the method is synchronized then we wrap it in a
    * synthetic exception handler that unlocks &amp; rethrows
    * PRECONDITION: cfg, arguments &amp; temps have been setup/initialized.
+   *
+   * @param isOutermost is this the outermost context (i.e. not an inlined context)
    */
   private void completeExceptionHandlers(boolean isOutermost) {
     if (method.isSynchronized() && !options.ESCAPE_INVOKEE_THREAD_LOCAL) {
@@ -795,6 +820,8 @@ public final class GenerationContext {
   /**
    * Get the object for locking for synchronized methods.
    * either the class object or the this ptr.
+   *
+   * @return an operand for the appropriate lock object
    */
   private Operand getLockObject() {
     if (method.isStatic()) {
@@ -867,7 +894,10 @@ public final class GenerationContext {
    * output is not omitted during generation of IR for methods
    * that are inlined into a method that is supposed to be printed.
    *
-   *  @see BC2IR#DBG_SELECTIVE
+   * @return {@code true} if and only if this method is selected for
+   *  debugging as described above
+   *
+   * @see BC2IR#DBG_SELECTIVE
    */
   boolean methodIsSelectedForDebuggingWithMethodToPrint() {
     boolean originalMethodSelected = options.hasMETHOD_TO_PRINT() &&

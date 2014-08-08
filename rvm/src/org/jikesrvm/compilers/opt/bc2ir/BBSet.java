@@ -104,7 +104,6 @@ final class BBSet {
     entry.copyIntoLocalState(localState);
   }
 
-  /** return the entry BBLE */
   BasicBlockLE getEntry() { return entry; }
 
   /**
@@ -115,7 +114,7 @@ final class BBSet {
   void seenJSR() { noJSR = false; }
 
   /**
-   * Return a enumeration of the BasicBlockLE's currently in the BBSet.
+   * @return a enumeration of the BasicBlockLE's currently in the BBSet
    */
   Enumeration<BasicBlockLE> contents() {
     return TreeEnumerator.enumFromRoot(root);
@@ -124,9 +123,11 @@ final class BBSet {
   /**
    * Gets the bytecode index of the block in the set which has the
    * next-higher bytecode index.
-   * Returns bcodes.length() if x is currently the block with the highest
-   * starting bytecode index.
+   *
    * @param x basic block to start at.
+   * @return the bytecode index of the block in the set with the
+   *  next-higher bytecode index. If {@code x} is currently the block with
+   *  the highest starting bytecode index, return {@code bcodes.length()}.
    */
   int getNextBlockBytecodeIndex(BasicBlockLE x) {
     BasicBlockLE nextBBLE = getSuccessor(x, x.low);
@@ -136,8 +137,10 @@ final class BBSet {
   /**
    * Finds the next ungenerated block, starting at the argument
    * block and searching forward, wrapping around to the beginning.
-   * If all blocks are generated, it returns null.
+   *
    * @param start the basic block at which to start looking.
+   * @return {@code null} if all blocks are generated, the next
+   *  ungenerated block otherwise
    */
   BasicBlockLE getNextEmptyBlock(BasicBlockLE start) {
     if (DBG_BBSET) db("getting the next empty block after " + start);
@@ -186,6 +189,7 @@ final class BBSet {
    *                  and to which rectification instructions are added.
    * @param simStack stack state to rectify, or null
    * @param simLocals local state to rectify, or null
+   * @return a block, never {@code null}
    */
   BasicBlockLE getOrCreateBlock(int target, BasicBlockLE from, OperandStack simStack, Operand[] simLocals) {
     if (DBG_BB || BC2IR.DBG_SELECTED) {
@@ -206,6 +210,8 @@ final class BBSet {
    * (1) avoids generating lots of blocks when a CFG predecessor has a
    * pending regeneration and (2) avoids the scan through all blocks when
    * there are no more blocks left to generate.
+   *
+   * @param p the block to mark for regeneration
    */
   private void markBlockForRegeneration(BasicBlockLE p) {
     if (DBG_REGEN) db("marking " + p + " for regeneration");
@@ -447,10 +453,12 @@ final class BBSet {
   /**
    * Do a final pass over the generated basic blocks to create
    * the initial code ordering. All blocks generated for the method
-   * will be inserted after gc.prologue.<p>
-   *
+   * will be inserted after gc.prologue.
+   * <p>
    * NOTE: Only some CFG edges are created here.....
    * we're mainly just patching together a code linearization.
+   *
+   * @param inlinedSomething was a normal method (i.e. non-magic) inlined?
    */
   void finalPass(boolean inlinedSomething) {
     BBSet.TreeEnumerator e = TreeEnumerator.enumFromRoot(root);
@@ -643,7 +651,7 @@ final class BBSet {
   }
 
   /**
-   * Initialize the global exception handler arrays for the method.<p>
+   * Initializes the global exception handler arrays for the method.
    */
   private void parseExceptionTables() {
     ExceptionHandlerMap eMap = gc.getMethod().getExceptionHandlerMap();
@@ -668,6 +676,9 @@ final class BBSet {
    * set to reflect the invariant that a basic block is in exactly one
    * "handler range."<p>
    * Also initializes bble.block.exceptionHandlers.
+   *
+   * @param bble the block whose handlers are to be initialized
+   * @param simLocals local variables
    */
   private void initializeExceptionHandlers(BasicBlockLE bble, Operand[] simLocals) {
     if (startPCs != null) {
@@ -698,6 +709,8 @@ final class BBSet {
    * Given a starting bytecode index, find the greatest bcIndex that
    * is still has the same inscope exception handlers.
    * @param bcIndex the start bytecode index
+   * @return greatest bytecode index with the same in scope exception
+   *  handlers
    */
   private int exceptionEndRange(int bcIndex) {
     int max = bcodes.length();
@@ -735,6 +748,8 @@ final class BBSet {
    * @param simStack  The expression stack to match
    * @param simLocals The local variables to match
    * @param candBBLE  The candidate BaseicBlockLE
+   * @return {@code true} if and only if a matching JSR context (see above)
+   *  was found
    */
   private boolean matchingJSRcontext(OperandStack simStack, Operand[] simLocals, BasicBlockLE candBBLE) {
     if (DBG_INLINE_JSR) {
@@ -799,6 +814,7 @@ final class BBSet {
    *                  and to which rectification instructions are added.
    * @param simStack stack state to rectify, or {@code null}
    * @param simLocals local state to rectify, or {@code null}
+   * @return a new block, never {@code null}
    */
   private BasicBlockLE getOrCreateBlock(BasicBlockLE x, boolean shouldCreate, int target, BasicBlockLE from,
                                         OperandStack simStack, Operand[] simLocals) {
@@ -915,6 +931,7 @@ final class BBSet {
    *                  return addresses when creating a handler block).
    * @param parent parent in Red/Black tree
    * @param left are we creating a left child of parent?
+   * @return a new BBLE
    */
   private BasicBlockLE _createBBLE(int bcIndex, Operand[] simLocals, BasicBlockLE parent, boolean left) {
     BasicBlockLE newBBLE = null;
@@ -958,11 +975,13 @@ final class BBSet {
   }
 
   /**
-   * Returns the basic block which has the next-higher bytecode index.
-   * Returns {@code null} if x is the highest block.
+   * Returns the basic block's sucessor in bytecode sequence.
+   *
    * @param x basic block at which to start the search for a higher block
    * @param value the contents of x.low (makes tail call elim work better
    *              if we avoid the obvious 1 argument wrapper function)
+   * @return {@code null} if x is the block with the highest bytecode index,
+   *  the block with the next-higher bytecode index otherwise.
    */
   private BasicBlockLE getSuccessor(BasicBlockLE x, int value) {
     if (x.right != null) return minimumBB(x.right, value);

@@ -63,6 +63,7 @@ public abstract class GenerateMachineSpecificMagic implements StackframeLayoutCo
    * @param bc2ir the bc2ir object generating the ir containing this magic
    * @param gc == bc2ir.gc
    * @param meth the RVMMethod that is the magic method
+   * @return {@code true} if and only if magic was generated
    */
   public static boolean generateMagic(BC2IR bc2ir, GenerationContext gc, MethodReference meth)
       throws MagicNotImplementedException {

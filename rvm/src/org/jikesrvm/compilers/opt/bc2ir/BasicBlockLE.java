@@ -104,9 +104,6 @@ class BasicBlockLE {
 
   final boolean isInCodeOrder() { return (flags & IN_CODE_ORDER) != 0; }
 
-  /**
-   * Is the BBLE ready to generate?
-   */
   final boolean isReadyToGenerate() {
     // (isStackKnown() && isLocalKnown && !isGenerated)
     byte READY_MASK = STACK_KNOWN | LOCAL_KNOWN | GENERATED;
@@ -125,7 +122,7 @@ class BasicBlockLE {
   }
 
   /**
-   * Return a shallow copy of my local state.
+   * @return a shallow copy of the local state
    */
   final Operand[] copyLocalState() {
     Operand[] ls = new Operand[localState.length];
@@ -134,11 +131,14 @@ class BasicBlockLE {
   }
 
   /**
-   * Add an exception handler BBLE to the handlers array.
+   * Adds an exception handler BBLE to the handlers array.
+   * <p>
    * NOTE: this isn't incredibly efficient, but empirically the expected
    * number of handlers per basic block is 0, with an observed
    * maximum across 10,000+ methods of 3.
    * Until this changes, we just don't care.
+   *
+   * @param handler the handler block to add
    */
   final void addHandler(HandlerBlockLE handler) {
     if (handlers == null) {
@@ -192,8 +192,9 @@ class BasicBlockLE {
   }
 
   /**
-   * Returns a string representation of state that determines if the BBLE
-   * is ready to be generated */
+   * @return a string representation of state that determines if the BBLE
+   * is ready to be generated
+   */
   public String genState() {
     return "(sk=" + isStackKnown() + ", lk=" + isLocalKnown() + ", gen=" + isGenerated() + ")";
   }

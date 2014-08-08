@@ -106,7 +106,13 @@ public class OsrPointConstructor extends CompilerPhase {
     branchOpts.perform(ir);
   }
 
-  /** Iterates instructions, build a list of OsrPoint instructions. */
+  /**
+   * Iterates over all instructions in the IR and builds a list of
+   * OsrPoint instructions.
+   *
+   * @param ir the IR
+   * @return a list of osr point instructions in the IR
+   */
   private LinkedList<Instruction> collectOsrPoints(IR ir) {
     LinkedList<Instruction> osrs = new LinkedList<Instruction>();
 
@@ -126,6 +132,9 @@ public class OsrPointConstructor extends CompilerPhase {
    * For each OsrPoint instruction, traces its OsrBarriers created by
    * inlining. rebuild OsrPoint instruction to hold all necessary
    * information to recover from inlined activation.
+   *
+   * @param ir the IR
+   * @param osrs a list of OSR point instructions in the IR
    */
   private void renovateOsrPoints(LinkedList<Instruction> osrs, IR ir) {
 
@@ -269,7 +278,9 @@ public class OsrPointConstructor extends CompilerPhase {
 
   /**
    * The OsrBarrier instruction is not in IR, so the bc index was not
-   * adjusted in OSR_AdjustBCIndex
+   * adjusted in OSR_AdjustBCIndex.
+   *
+   * @param barrier the OSR barrier instruction
    */
   private void adjustBCIndex(Instruction barrier) {
     NormalMethod source = barrier.position.method;
@@ -278,7 +289,6 @@ public class OsrPointConstructor extends CompilerPhase {
     }
   }
 
-  /** remove OsrBarrier instructions. */
   private void removeOsrBarriers(IR ir) {
     Enumeration<Instruction> instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
@@ -308,7 +318,11 @@ public class OsrPointConstructor extends CompilerPhase {
     VM.sysWriteln(" SANE");
   }
 
-  /** verify barrier is clean by checking the number of valid operands */
+  /**
+   * Determines if the barrier is clean by checking the number of valid operands.
+   * @param barrier the instruction to verifiy
+   * @return {@code true} if and only if the barrier is clean
+   */
   private boolean isBarrierClean(Instruction barrier) {
     OsrTypeInfoOperand typeInfo = OsrBarrier.getTypeInfo(barrier);
     int totalOperands = countNonVoidTypes(typeInfo.localTypeCodes);
@@ -327,10 +341,12 @@ public class OsrPointConstructor extends CompilerPhase {
   }
 
   /**
-   * Split each OsrPoint, and connect it to the exit point.
+   * Splits each OsrPoint, and connects it to the exit point.
+   *
+   * @param osrs all OSR point instructions
+   * @param ir the IR
    */
   private void fixupCFGForOsr(LinkedList<Instruction> osrs, IR ir) {
-
     for (int i = 0, n = osrs.size(); i < n; i++) {
       Instruction osr = osrs.get(i);
       BasicBlock bb = osr.getBasicBlock();
