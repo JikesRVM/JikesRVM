@@ -39,6 +39,8 @@ public class ClassFileReader {
    * Parse and return the constant pool in a class file
    * @param typeRef the canonical type reference for this type.
    * @param input the data stream from which to read the class's description.
+   * @return constant pool as int array
+   * @throws IOException if it occurs during reading of the input stream
    */
   static int[] readConstantPool(TypeReference typeRef, DataInputStream input)  throws ClassFormatError, IOException {
 
@@ -207,10 +209,12 @@ public class ClassFileReader {
 
   /**
    * Read the class' TypeReference
-   * @param typeRef
-   * @param input
-   * @param constantPool
+   * @param typeRef the type reference that we're expecting to read
+   * @param input input stream
+   * @param constantPool constant pool
    * @return the constantPool index of the typeRef of the class we are reading
+   * @throws IOException when a problems occurs while reading the input stream
+   * @throws ClassFormatError when the read type ref does not match up with the expected type ref
    */
   static int readTypeRef(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException, ClassFormatError {
     int myTypeIndex = input.readUnsignedShort();
@@ -235,13 +239,6 @@ public class ClassFileReader {
     return myTypeIndex;
   }
 
-  /**
-   * Read the super class name, load and resolve the super class
-   * @param input
-   * @param constantPool
-   * @param modifiers
-   * @return the super class of the class being read
-   */
   static RVMClass readSuperClass(DataInputStream input, int[] constantPool,
       short modifiers) throws IOException, NoClassDefFoundError {
     TypeReference superType = getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
@@ -252,12 +249,6 @@ public class ClassFileReader {
     return superClass;
   }
 
-  /**
-   * Read the list of interfaces implemented by the class being read
-   * @param input
-   * @param constantPool
-   * @return the interfaces implemented by the class
-   */
   static RVMClass[] readDeclaredInterfaces(DataInputStream input, int[] constantPool) throws IOException, NoClassDefFoundError {
     int numInterfaces = input.readUnsignedShort();
     RVMClass[] declaredInterfaces;
@@ -273,13 +264,6 @@ public class ClassFileReader {
     return declaredInterfaces;
   }
 
-  /**
-   * Read the declared fields of the class being read
-   * @param typeRef
-   * @param input
-   * @param constantPool
-   * @return the list of declared fields
-   */
   static RVMField[] readDeclaredFields(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
     int numFields = input.readUnsignedShort();
     RVMField[] declaredFields;
@@ -303,13 +287,6 @@ public class ClassFileReader {
     return declaredFields;
   }
 
-  /**
-   * Read the declared methods of the class being read
-   * @param typeRef
-   * @param input
-   * @param constantPool
-   * @return the declared methods of the class
-   */
   static RVMMethod[] readDeclaredMethods(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
     int numMethods = input.readUnsignedShort();
     RVMMethod[] declaredMethods;
@@ -330,9 +307,10 @@ public class ClassFileReader {
   }
 
   /**
-   * Return the class initializer method among the declared methods of the class
-   * @param declaredMethods
-   * @return the class initializer method {@code <clinit>} of the class
+   * Returns the class initializer method among the declared methods of the class
+   * @param declaredMethods the methods declared by the class
+   * @return the class initializer method {@code <clinit>} of the class or {@code null}
+   *  if none was found
    */
   static RVMMethod getClassInitializerMethod(RVMMethod[] declaredMethods) {
     for (RVMMethod method : declaredMethods) {
@@ -342,9 +320,13 @@ public class ClassFileReader {
   }
 
   /**
-   * Create an instance of a RVMClass.
+   * Creates an instance of a RVMClass.
    * @param typeRef the canonical type reference for this type.
    * @param input the data stream from which to read the class's description.
+   * @return a newly created class
+   * @throws IOException when data cannot be read from the input stream or
+   *  skipping during class construction reads less data than expected
+   * @throws ClassFormatError when the class data is corrupt
    */
   static RVMClass readClass(TypeReference typeRef, DataInputStream input) throws ClassFormatError, IOException {
 
@@ -519,6 +501,10 @@ public class ClassFileReader {
   /**
    * Get offset of a literal constant, in bytes.
    * Offset is with respect to virtual machine's "table of contents" (jtoc).
+   *
+   * @param constantPool the constant pool
+   * @param constantPoolIndex the index into the constant pool
+   * @return the offset in bytes from the JTOC
    */
   static Offset getLiteralOffset(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
@@ -553,19 +539,12 @@ public class ClassFileReader {
     }
   }
 
-  /**
-   * Get description of a literal constant.
-   */
   static byte getLiteralDescription(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     byte type = unpackCPType(cpValue);
     return type;
   }
 
-  /**
-   * Get contents of a "typeRef" constant pool entry.
-   * @return type that was referenced
-   */
   @Uninterruptible
   static TypeReference getTypeRef(int[] constantPool, int constantPoolIndex) {
     if (constantPoolIndex != 0) {
@@ -577,9 +556,6 @@ public class ClassFileReader {
     }
   }
 
-  /**
-   * Get contents of a "methodRef" constant pool entry.
-   */
   @Uninterruptible
   static MethodReference getMethodRef(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
@@ -587,9 +563,6 @@ public class ClassFileReader {
     return (MethodReference) MemberReference.getMemberRef(unpackUnsignedCPValue(cpValue));
   }
 
-  /**
-   * Get contents of a "methodRef" constant pool entry.
-   */
   @Uninterruptible
   static FieldReference getFieldRef(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
@@ -597,9 +570,6 @@ public class ClassFileReader {
     return (FieldReference) MemberReference.getMemberRef(unpackUnsignedCPValue(cpValue));
   }
 
-  /**
-   * Get contents of a "utf" from a constant pool entry.
-   */
   @Uninterruptible
   static Atom getUtf(int[] constantPool, int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];

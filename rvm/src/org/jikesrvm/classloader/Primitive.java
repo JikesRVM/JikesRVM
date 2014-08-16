@@ -108,8 +108,9 @@ public final class Primitive extends RVMType {
   }
 
   /**
-   * Create an instance of a {@link Primitive}
+   * Creates an instance of a {@link Primitive}.
    * @param tr   The canonical type reference for this primitive
+   * @return a newly created instance of {@link Primitive}
    */
   static Primitive createPrimitive(TypeReference tr) {
     Atom name;

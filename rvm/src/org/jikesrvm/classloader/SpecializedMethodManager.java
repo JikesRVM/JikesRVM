@@ -26,10 +26,13 @@ public final class SpecializedMethodManager {
   /** All the specialized methods */
   private static final SpecializedMethod[] methods = new SpecializedMethod[numSpecializedMethods];
 
-  /** The number of specialized methods */
+  /** @return the number of specialized methods */
   public static int numSpecializedMethods() { return numSpecializedMethods; }
 
-  /** Set up the specialized methods for the given type */
+  /**
+   * Sets up the specialized methods for the given type.
+   * @param type the type that was instantiated
+   */
   public static void notifyTypeInstantiated(RVMType type) {
     for(int i=0; i < numSpecializedMethods; i++) {
       if (methods[i] == null) {
@@ -39,7 +42,10 @@ public final class SpecializedMethodManager {
     }
   }
 
-  /** Set up the specialized methods for the given type */
+  /**
+   * Refreshes the specialized methods for the given type.
+   * @param type the type whose methods need to be refreshed
+   */
   public static void refreshSpecializedMethods(RVMType type) {
     for(int i=0; i < numSpecializedMethods; i++) {
       if (VM.VerifyAssertions) VM._assert(methods[i] != null, "Specialized method missing!");
@@ -47,7 +53,11 @@ public final class SpecializedMethodManager {
     }
   }
 
-  /** Ensure that a specific specialized method now exists. */
+  /**
+   * Initializes a specialized method with a given id. No specialized
+   * method with this id may exist at this point.
+   * @param id id of the specialized
+   */
   private static void initializeSpecializedMethod(int id) {
     if (VM.VerifyAssertions) VM._assert(id >= 0);
     if (VM.VerifyAssertions) VM._assert(id < numSpecializedMethods);

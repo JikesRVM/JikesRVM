@@ -82,6 +82,7 @@ public abstract class MemberReference {
    * @param tRef the type reference
    * @param mn the name of the member
    * @param md the descriptor of the member
+   * @return a member reference, never {@code null}
    */
   public static synchronized MemberReference findOrCreate(TypeReference tRef, Atom mn, Atom md) {
     MemberReference key;
@@ -117,6 +118,8 @@ public abstract class MemberReference {
    * MemberReference), parse it and find/create the appropriate
    * MemberReference. Consumes all of the tokens corresponding to the
    * member reference.
+   * @param parser a parser that fulfills the conditions described above
+   * @return a member reference or {@code null} if parsing fails
    */
   public static MemberReference parse(StringTokenizer parser) {
     return parse(parser, false);
@@ -208,7 +211,7 @@ public abstract class MemberReference {
   }
 
   /**
-   * Is this member reference to a field?
+   * @return {@code true} if this member references a field
    */
   @Uninterruptible
   public final boolean isFieldReference() {
@@ -216,7 +219,7 @@ public abstract class MemberReference {
   }
 
   /**
-   * Is this member reference to a method?
+   * @return {@code true} if this member references a method
    */
   @Uninterruptible
   public final boolean isMethodReference() {
@@ -252,8 +255,10 @@ public abstract class MemberReference {
   }
 
   /**
-   * Force resolution and return the resolved member.
-   * Will cause classloading if necessary
+   * Forces resolution and returns the resolved member.
+   * Will cause classloading if necessary.
+   *
+   * @return the resolved member
    */
   public final RVMMember resolveMember() {
     if (isFieldReference()) {
@@ -266,6 +271,12 @@ public abstract class MemberReference {
   /**
    * Is dynamic linking code required to access "this" member when
    * referenced from "that" method?
+   * <p>
+   * This method is conservative, i.e. it will answer that we need linking
+   * if we don't know if it will be necessary.
+   *
+   * @param that the method to access
+   * @return {@code true} if dynamic linking could be necessary
    */
   public final boolean needsDynamicLink(RVMMethod that) {
     RVMMember resolvedThis = this.peekResolvedMember();

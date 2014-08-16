@@ -67,12 +67,6 @@ public final class RVMAnnotation {
     this.elementValuePairs = elementValuePairs;
   }
 
-  /**
-   * Read an annotation attribute from the class file
-   *
-   * @param constantPool from constant pool being loaded
-   * @param input the data being read
-   */
   static RVMAnnotation readAnnotation(int[] constantPool, DataInputStream input, ClassLoader classLoader)
       throws IOException, ClassNotFoundException {
     TypeReference type;
@@ -128,14 +122,6 @@ public final class RVMAnnotation {
         new AnnotationFactory());
   }
 
-  /**
-   * Read the element_value field of an annotation
-   *
-   * @param type the type of the value to read or null
-   * @param constantPool the constant pool for the class being read
-   * @param input stream to read from
-   * @return object representing the value read
-   */
   static <T> Object readValue(TypeReference type, int[] constantPool, DataInputStream input, ClassLoader classLoader)
       throws IOException, ClassNotFoundException {
     // Read element value's tag
@@ -358,7 +344,6 @@ public final class RVMAnnotation {
     return value;
   }
 
-  /** Handle late resolution of class value annotations */
   static Object firstUse(Object value) {
     if (value instanceof TypeReference) {
       return ((TypeReference)value).resolve().getClassForType();
@@ -425,7 +410,7 @@ public final class RVMAnnotation {
   }
 
   /**
-   * Return a string representation of the annotation of the form
+   * @return a string representation of the annotation of the form
    * "@type(name1=val1, ...nameN=valN)"
    */
   @Override
@@ -450,7 +435,9 @@ public final class RVMAnnotation {
   }
 
   /**
-   * String representation of the value pair of the form
+   * @param name the name
+   * @param value the value
+   * @return string representation of the value pair of the form
    * "name=value"
    */
   private String elementString(String name, Object value) {
@@ -473,7 +460,6 @@ public final class RVMAnnotation {
     }
   }
 
-  /** Find the value for an annotation */
   private Object getElementValue(String name, Class<?> valueType) {
     for (AnnotationMember evp : elementValuePairs) {
       String evpFieldName = evp.getName().toString();
@@ -493,7 +479,6 @@ public final class RVMAnnotation {
     }
   }
 
-  /** Hash code for annotation value */
   private int annotationHashCode() {
     RVMClass annotationInterface = type.resolve().asClass();
     RVMMethod[] annotationMethods = annotationInterface.getDeclaredMethods();
@@ -535,7 +520,6 @@ public final class RVMAnnotation {
     return result;
   }
 
-  /** Are two annotations equal? */
   private boolean annotationEquals(Annotation a, Annotation b) {
     if (a == b) {
       return true;
@@ -577,7 +561,6 @@ public final class RVMAnnotation {
     AnnotationFactory() {
     }
 
-    /** Entry point to factory */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
       if (method.getName().equals("annotationType")) {
@@ -624,21 +607,12 @@ public final class RVMAnnotation {
      * Is this not the first use of the member?
      */
     private boolean notFirstUse = false;
-    /**
-     * Construct a read value pair
-     */
+
     private AnnotationMember(MethodReference meth, Object value) {
       this.meth = meth;
       this.value = value;
     }
 
-    /**
-     * Read the pair from the input stream and create object
-     * @param constantPool the constant pool for the class being read
-     * @param input stream to read from
-     * @param classLoader the class loader being used to load this annotation
-     * @return a newly created annotation member
-     */
     static AnnotationMember readAnnotationMember(TypeReference type, int[] constantPool, DataInputStream input, ClassLoader classLoader)
         throws IOException, ClassNotFoundException {
       // Read name of pair
@@ -683,9 +657,6 @@ public final class RVMAnnotation {
       return value;
     }
 
-    /**
-     * Are two members equivalent?
-     */
     @Override
     public boolean equals(Object o) {
       if (o instanceof AnnotationMember) {
@@ -704,9 +675,6 @@ public final class RVMAnnotation {
       return meth.hashCode();
     }
 
-    /**
-     * Ordering for sorted annotation members
-     */
     @Override
     public int compareTo(AnnotationMember am) {
       if (am.meth != this.meth) {

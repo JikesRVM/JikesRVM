@@ -81,7 +81,7 @@ public abstract class RVMMember extends AnnotatedElement {
   //--------------------------------------------------------------------//
 
   /**
-   * Class that declared this field or method. Not available before
+   * @return the class that declared this field or method. Not available before
    * the class is loaded.
    */
   @Uninterruptible
@@ -90,7 +90,7 @@ public abstract class RVMMember extends AnnotatedElement {
   }
 
   /**
-   * Canonical member reference for this member.
+   * @return canonical member reference for this member.
    */
   @Uninterruptible
   public final MemberReference getMemberRef() {
@@ -98,7 +98,7 @@ public abstract class RVMMember extends AnnotatedElement {
   }
 
   /**
-   * Name of this member.
+   * @return name of this member.
    */
   @Uninterruptible
   public final Atom getName() {
@@ -106,7 +106,7 @@ public abstract class RVMMember extends AnnotatedElement {
   }
 
   /**
-   * Descriptor for this member.
+   * @return Descriptor for this member.
    * something like "I" for a field or "(I)V" for a method.
    */
   @Uninterruptible
@@ -115,16 +115,18 @@ public abstract class RVMMember extends AnnotatedElement {
   }
 
   /**
-   * Generic type for member
+   * @return generic type for member
    */
   public final Atom getSignature() {
     return signature;
   }
 
   /**
-   * Get a unique id for this member.
+   * Gets a unique id for this member.
    * The id is the id of the canonical MemberReference for this member
    * and thus may be used to find the member by first finding the member reference.
+   *
+   * @return id of the canonical member reference for this member
    */
   @Uninterruptible
   public final int getId() {
@@ -146,28 +148,30 @@ public abstract class RVMMember extends AnnotatedElement {
   }
 
   /**
-   * Usable from classes outside its package?
+   * @return {@code true} if the member is usable from classes outside its
+   *  package?
    */
   public final boolean isPublic() {
     return (modifiers & ACC_PUBLIC) != 0;
   }
 
   /**
-   * Usable only from this class?
+   * @return {@code true} if the member is usable only from this class
    */
   public final boolean isPrivate() {
     return (modifiers & ACC_PRIVATE) != 0;
   }
 
   /**
-   * Usable from subclasses?
+   * @return {@code true} if the member is usable from subclasses
    */
   public final boolean isProtected() {
     return (modifiers & ACC_PROTECTED) != 0;
   }
 
   /**
-   * Get the member's modifiers.
+   * @return the member's modifiers
+   * @see ClassLoaderConstants
    */
   public final int getModifiers() {
     return modifiers;
@@ -196,6 +200,8 @@ public abstract class RVMMember extends AnnotatedElement {
    * <li> For a non-static field:  offset of field from start of object
    * <li> For a non-static method: offset of code object reference from start of tib
    * </ul>
+   *
+   * @return offset in bytes as described above
    */
   @Uninterruptible
   public final Offset getOffset() {
@@ -209,6 +215,8 @@ public abstract class RVMMember extends AnnotatedElement {
    * Only meant to be used by ObjectModel.layoutInstanceFields.
    * TODO: refactor system so this functionality is in the classloader package
    * and this method doesn't have to be final.
+   *
+   * @param off new offset for this member
    */
   public final void setOffset(Offset off) {
     offset = off.toInt();

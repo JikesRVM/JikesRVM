@@ -200,8 +200,11 @@ public abstract class TypeDescriptorParsing {
   /**
    * Is this the internal form of a Java class name?  (the one with the "/"
    * instead of the "." separating components?)
-   * Takes a character array (i.e., an exploded string) and the indices of the
-   * first and last characters of the array that are to be checked.
+   *
+   * @param val a string as a char array
+   * @param first the start index of the string to be checked
+   * @param last the last index of the string to be checked
+   * @return {@code true} if the given char array represents an internal java class name
    */
   public static boolean isJavaClassNameInternalForm(char[] val, int first, int last) {
     if (val[first++] != ClassTypeCode) {
@@ -273,8 +276,10 @@ public abstract class TypeDescriptorParsing {
     }
   }
 
-  /** Validate that the String @param s is a valid type descriptor.
-   @throws IllegalArgumentException if it isn't.
+  /**
+   * Validates that the given String is a valid type descriptor.
+   * @param s string to check
+   * @throws IllegalArgumentException if the string is not a valid type descriptor
    */
   @Interruptible
   @Pure
@@ -350,8 +355,6 @@ public abstract class TypeDescriptorParsing {
     }
   }
 
-  /** Gripe and throw <code>IllegalArgumentException</code> if we get a
-   * malformed type name. */
   private static void malformed(String msg, String typeName) throws IllegalArgumentException {
     throw new IllegalArgumentException("Malformed type name" +
                                        ((msg == null) ? "" : ": " + msg) +

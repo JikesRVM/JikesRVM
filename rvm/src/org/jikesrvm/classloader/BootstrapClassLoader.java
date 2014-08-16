@@ -104,7 +104,9 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
   /**
    * Backdoor for use by TypeReference.resolve when !VM.runningVM.
    * As of this writing, it is not used by any other classes.
-   * @throws NoClassDefFoundError
+   * @param className name of the class to be loaded
+   * @return type for the loaded class
+   * @throws NoClassDefFoundError when no definition of the class was found
    */
   synchronized RVMType loadVMClass(String className) throws NoClassDefFoundError {
     try {

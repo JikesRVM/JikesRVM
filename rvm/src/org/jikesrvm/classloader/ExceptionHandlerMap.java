@@ -74,14 +74,6 @@ public final class ExceptionHandlerMap {
    */
   private final TypeReference[] exceptionTypes;
 
-  /**
-   * Construct the exception handler map
-   *
-   * @param startPCs
-   * @param endPCs
-   * @param handlerPCs
-   * @param exceptionTypes
-   */
   private ExceptionHandlerMap(int[] startPCs, int[] endPCs, int[] handlerPCs, TypeReference[] exceptionTypes) {
     this.startPCs = startPCs;
     this.endPCs = endPCs;
@@ -89,11 +81,6 @@ public final class ExceptionHandlerMap {
     this.exceptionTypes = exceptionTypes;
   }
 
-  /**
-   * Read the exception handler map
-   *
-   * @return an exception handler map or null if none were present
-   */
   static ExceptionHandlerMap readExceptionHandlerMap(DataInputStream input, int[] constantPool) throws IOException {
     int cnt = input.readUnsignedShort();
     if (cnt != 0) {

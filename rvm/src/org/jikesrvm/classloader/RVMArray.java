@@ -413,11 +413,6 @@ public final class RVMArray extends RVMType {
     return false;
   }
 
-  /**
-   * Constructor
-   * @param typeRef
-   * @param elementType
-   */
   RVMArray(TypeReference typeRef, RVMType elementType) {
     super(typeRef, typeRef.getDimensionality(), null);
     this.elementType = elementType;

@@ -236,7 +236,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * An "interface" description rather than a "class" description?
+   * @return {@code true} if "this" is an "interface" description rather than a "class" description
    */
   @Uninterruptible
   public boolean isInterface() {
@@ -244,7 +244,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Usable from other packages?
+   * @return whether "this" is usable from other packages
    */
   @Uninterruptible
   public boolean isPublic() {
@@ -252,7 +252,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Non-subclassable?
+   * @return {@code true} if "this" is non-subclassable
    */
   @Uninterruptible
   public boolean isFinal() {
@@ -260,7 +260,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Non-instantiable?
+   * @return {@code true} if "this" is non-instantiable
    */
   @Uninterruptible
   public boolean isAbstract() {
@@ -268,7 +268,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Use new-style "invokespecial" semantics for method calls in this class?
+   * @return {@code true} if "this" uses new-style "invokespecial" semantics for method calls in this class
    */
   @Uninterruptible
   public boolean isSpecial() {
@@ -276,28 +276,28 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Not present in source code file?
+   * @return {@code true} if "this" is not present in source code file
    */
   public boolean isSynthetic() {
     return (modifiers & ACC_SYNTHETIC) != 0;
   }
 
   /**
-   * Is enumeration?
+   * @return {@code true} if "this" is an enumeration
    */
   public boolean isEnum() {
     return (modifiers & ACC_ENUM) != 0;
   }
 
   /**
-   * Annotation type
+   * @return {@code true} if "this" is an annotation type
    */
   public boolean isAnnotation() {
     return (modifiers & ACC_ANNOTATION) != 0;
   }
 
   /**
-   * @return true if this is a representation of an anonymous class
+   * @return {@code true} if this is a representation of an anonymous class
    */
   public boolean isAnonymousClass() {
     if (enclosingClass == null || enclosingClass.peekType() == null) return false;
@@ -331,20 +331,22 @@ public final class RVMClass extends RVMType {
   /**
    * Get the modifiers associated with this class {@link
    * ClassLoaderConstants}.
+   *
+   * @return the modifiers of "this"
    */
   public int getModifiers() {
     return modifiers & APPLICABLE_TO_CLASSES;
   }
 
   /**
-   * Generic type information for class
+   * @return generic type information for class
    */
   public Atom getSignature() {
     return signature;
   }
 
   /**
-   * Name of source file from which class was compiled -
+   * @return Name of source file from which class was compiled -
    * something like "c:\java\src\java\lang\Object.java".
    * ({@code null} --&gt; "unknown - wasn't recorded by compiler").
    */
@@ -353,7 +355,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Superclass of this class ({@code null} means "no superclass",
+   * @return superclass of this class ({@code null} means "no superclass",
    * i.e. class is "java/lang/Object").
    */
   @Uninterruptible
@@ -362,7 +364,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Currently loaded classes that "extend" this class.
+   * @return currently loaded classes that "extend" this class.
    */
   @Uninterruptible
   public RVMClass[] getSubClasses() {
@@ -370,7 +372,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Interfaces implemented directly by this class
+   * @return interfaces implemented directly by this class
    * (ie. not including superclasses).
    */
   @Uninterruptible
@@ -379,7 +381,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Fields defined directly by this class (i.e. not including superclasses).
+   * @return fields defined directly by this class (i.e. not including superclasses).
    */
   @Uninterruptible
   public RVMField[] getDeclaredFields() {
@@ -388,6 +390,8 @@ public final class RVMClass extends RVMType {
 
   /**
    * Does this class directly define a final instance field (has implications for JMM).
+   *
+   * @return {@code true} if this class declares a final instance field
    */
   public boolean declaresFinalInstanceField() {
     for (RVMField f : declaredFields) {
@@ -397,7 +401,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Methods defined directly by this class (i.e. not including superclasses).
+   * @return methods defined directly by this class (i.e. not including superclasses).
    */
   @Uninterruptible
   public RVMMethod[] getDeclaredMethods() {
@@ -405,14 +409,14 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Declared inner and static member classes.
+   * @return declared inner and static member classes
    */
   public TypeReference[] getDeclaredClasses() {
     return declaredClasses;
   }
 
   /**
-   * Class that declared this class, or null if this is not an
+   * @return class that declared this class, or {@code null} if this is not an
    * inner/nested class.
    */
   public TypeReference getDeclaringClass() {
@@ -420,7 +424,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Class that immediately encloses this class, or null if this is not an
+   * @return class that immediately encloses this class, or {@code null} if this is not an
    * inner/nested class.
    */
   public TypeReference getEnclosingClass() {
@@ -428,7 +432,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Set the resolvedMember in all declared members.
+   * Sets the resolvedMember in all declared members.
    */
   void setResolvedMembers() {
     for(RVMField field: declaredFields) {
@@ -450,7 +454,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Static initializer method for this class ({@code null} -&gt; no static initializer
+   * @return static initializer method for this class ({@code null} -&gt; no static initializer
    *  or initializer already been run).
    */
   @Uninterruptible
@@ -571,9 +575,6 @@ public final class RVMClass extends RVMType {
     return mainMethod;
   }
 
-  /**
-   * Add the given cached object.
-   */
   public synchronized void addCachedObject(Object o) {
     Object[] newObjectCache;
     if (objectCache == null) {
@@ -588,9 +589,6 @@ public final class RVMClass extends RVMType {
     objectCache = newObjectCache;
   }
 
-  /**
-   * Set the imt object.
-   */
   public void setIMT(IMT imt) {
     this.imt = imt;
   }
@@ -605,41 +603,31 @@ public final class RVMClass extends RVMType {
 
   /**
    * Get offset of a literal constant, in bytes.
-   * Offset is with respect to virtual machine's "table of contents" (HTOC).
+   * Offset is with respect to virtual machine's "table of contents" JTOC).
+   *
+   * @param constantPoolIndex index into the constant pool
+   * @return offset of the literal constant to the JTOC, in bytes
    */
   public Offset getLiteralOffset(int constantPoolIndex) {
     return ClassFileReader.getLiteralOffset(this.constantPool, constantPoolIndex);
   }
 
-  /**
-   * Get description of a literal constant.
-   */
   public byte getLiteralDescription(int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
     byte type = ClassFileReader.unpackCPType(cpValue);
     return type;
   }
 
-  /**
-   * Get contents of a "typeRef" constant pool entry.
-   * @return type that was referenced
-   */
   @Uninterruptible
   public TypeReference getTypeRef(int constantPoolIndex) {
     return ClassFileReader.getTypeRef(constantPool, constantPoolIndex);
   }
 
-  /**
-   * Get contents of a "methodRef" constant pool entry.
-   */
   @Uninterruptible
   public MethodReference getMethodRef(int constantPoolIndex) {
     return ClassFileReader.getMethodRef(constantPool, constantPoolIndex);
   }
 
-  /**
-   * Get contents of a "fieldRef" constant pool entry.
-   */
   @Uninterruptible
   public FieldReference getFieldRef(int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
@@ -647,9 +635,6 @@ public final class RVMClass extends RVMType {
     return (FieldReference) MemberReference.getMemberRef(ClassFileReader.unpackUnsignedCPValue(cpValue));
   }
 
-  /**
-   * Get contents of a "utf" constant pool entry.
-   */
   @Uninterruptible
   Atom getUtf(int constantPoolIndex) {
     int cpValue = constantPool[constantPoolIndex];
@@ -661,6 +646,9 @@ public final class RVMClass extends RVMType {
    * Should the methods of this class be compiled with special
    * register save/restore logic?
    * @see org.vmmagic.pragma.DynamicBridge
+   *
+   * @return {@code true} if the methods needs special logic for
+   *  register saves and restores
    */
   @Uninterruptible
   public boolean hasDynamicBridgeAnnotation() {
@@ -671,6 +659,9 @@ public final class RVMClass extends RVMType {
    * The methods of this class are only called from native code,
    * they are compiled with
    * a special prolog to interface with the native stack frame.
+   *
+   * @return {@code true} if the methods of this class can only
+   *  be called from native code
    */
   @Uninterruptible
   public boolean hasBridgeFromNativeAnnotation() {
@@ -680,6 +671,9 @@ public final class RVMClass extends RVMType {
   /**
    * Should the methods of this class save incoming registers ?
    * @see org.vmmagic.pragma.SaveVolatile
+   *
+   * @return {@code true} if all volatile registers need to be saved
+   *  when methods of this class are called
    */
   public boolean hasSaveVolatileAnnotation() {
     return isAnnotationDeclared(TypeReference.SaveVolatile);
@@ -690,7 +684,7 @@ public final class RVMClass extends RVMType {
   //--------------------------------------------------------------------//
 
   /**
-   * Does this class override java.lang.Object.finalize()?
+   * @return {@code true} if this class overrides {@code java.lang.Object.finalize()}
    */
   @Override
   @Pure
@@ -700,10 +694,6 @@ public final class RVMClass extends RVMType {
     return hasFinalizer;
   }
 
-  /**
-   * Static fields of this class.
-   * Values in these fields are shared by all class instances.
-   */
   @Override
   @Pure
   public RVMField[] getStaticFields() {
@@ -712,7 +702,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Non-static fields of this class (composed with supertypes, if any).
+   * @return non-static fields of this class (composed with supertypes, if any).
    * Values in these fields are distinct for each class instance.
    */
   @Override
@@ -722,9 +712,6 @@ public final class RVMClass extends RVMType {
     return instanceFields;
   }
 
-  /**
-   * Statically dispatched methods of this class.
-   */
   @Override
   @Pure
   public RVMMethod[] getStaticMethods() {
@@ -733,7 +720,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Constructors ({@code <init>}) methods of this class.
+   * @return constructors ({@code <init>}) methods of this class.
    */
   @Pure
   public RVMMethod[] getConstructorMethods() {
@@ -749,7 +736,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Virtually dispatched methods of this class
+   * @return virtually dispatched methods of this class
    * (composed with supertypes, if any).
    */
   @Override
@@ -792,8 +779,9 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Total size, in bytes, of an instance of this class
-   * (including object header).
+   * @return total size, in bytes, of an instance of this class
+   * (including object header). Note that the class must be resolved
+   * for this information to be available.
    */
   @Uninterruptible
   public int getInstanceSize() {
@@ -802,7 +790,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Total size, in bytes, of an instance of this class (including
+   * @return total size, in bytes, of an instance of this class (including
    * object header). Doesn't perform any verification.
    */
   @Uninterruptible
@@ -814,6 +802,8 @@ public final class RVMClass extends RVMType {
    * Set the size of the instance. Only meant to be called from
    * ObjectModel et al. must be called when lock on class object
    * is already held (ie from resolve).
+   *
+   * @param size computed size for instances of this class
    */
   @Uninterruptible
   public void setInstanceSizeInternal(int size) {
@@ -833,22 +823,16 @@ public final class RVMClass extends RVMType {
     return count;
   }
 
-  /**
-   * Set object representing available holes in the field layout
-   */
   public FieldLayoutContext getFieldLayoutContext() {
     return fieldLayoutContext;
   }
 
-  /**
-   * Set object representing available holes in the field layout
-   */
   public void setFieldLayoutContext(FieldLayoutContext newLayout) {
     fieldLayoutContext = isFinal() ? null : newLayout;
   }
 
   /**
-   * @return alignment for instances of this class type
+   * @return alignment for instances of this class type, in bytes
    */
   @Uninterruptible
   public int getAlignment() {
@@ -859,9 +843,6 @@ public final class RVMClass extends RVMType {
     }
   }
 
-  /**
-   * Set the alignment for instances of this class type
-   */
   public void setAlignment(int align) {
     if (BYTES_IN_ADDRESS != BYTES_IN_DOUBLE) {
       if (VM.VerifyAssertions) VM._assert(align >= alignment);
@@ -926,6 +907,8 @@ public final class RVMClass extends RVMType {
    *
    * @param skip specifies the number of frames back from the
    *             caller to the method whose class's loader is required
+   *
+   * @return the class loader
    */
   public static ClassLoader getClassLoaderFromStackFrame(int skip) {
     skip++; // account for stack frame of this function
@@ -943,6 +926,8 @@ public final class RVMClass extends RVMType {
    *
    * @param skip   Specifies the number of frames back from the
    *               caller to the method whose class is required
+   *
+   * @return the class that declares the method at the desired frame
    */
   public static RVMClass getClassFromStackFrame(int skip) {
     skip++; // account for stack frame of this function
@@ -978,6 +963,8 @@ public final class RVMClass extends RVMType {
    * @param declaredFields fields of the class
    * @param declaredMethods methods of the class
    * @param declaredClasses declared inner classes
+   * @param enclosingClass the class that this class is declared in (for inner classes)
+   * @param enclosingMethod the method that this class is declared in (for anonymous classes)
    * @param declaringClass outer class if an inner class
    * @param sourceName source file name
    * @param classInitializerMethod handle to class initializer method
@@ -1378,7 +1365,10 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Insert the value of a final static field into the JTOC
+   * Inserts the value of a final static field into the JTOC.
+   *
+   * @param field the field whose value we want to insert
+   * @param fieldOffset the field's offset in the JTOC
    */
   private void setFinalStaticJTOCEntry(RVMField field, Offset fieldOffset) {
     if (!field.isFinal()) return;
@@ -1487,6 +1477,8 @@ public final class RVMClass extends RVMType {
   /**
    * Make the passed field a traced field by garbage collection. Also affects all
    * subclasses.
+   *
+   * @param field the field that we want to make traced
    */
   public void makeFieldTraced(RVMField field) {
     int[] oldOffsets = referenceOffsets;
@@ -1634,7 +1626,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Unregisters all native methods
+   * Unregisters all native methods declared by "this".
    */
   public void unregisterNativeMethods() {
     if (VM.VerifyAssertions) VM._assert(isInitialized());
@@ -1647,9 +1639,6 @@ public final class RVMClass extends RVMType {
     }
   }
 
-  /**
-   * Add to list of classes that derive from this one.
-   */
   private synchronized void addSubClass(RVMClass sub) {
     int n = subClasses.length;
     RVMClass[] tmp = new RVMClass[n + 1];
@@ -1671,6 +1660,8 @@ public final class RVMClass extends RVMType {
    * Given a method declared by this class, update all
    * dispatching tables to refer to the current compiled
    * code for the method.
+   *
+   * @param m the method whose tables need to be updated
    */
   public void updateMethod(RVMMethod m) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
@@ -1685,11 +1676,13 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Update the JTOC slot for the given static method to point to
+   * Updates the JTOC slot for the given static method to point to
    * the current compiled code for the given method.
    * NOTE: This method is intentionally not synchronized to avoid deadlocks.
    *       We instead rely on the fact that we are always updating the JTOC with
    *       the most recent instructions for the method.
+   *
+   * @param m the method whose JTOC entry will be updated
    */
   public void updateJTOCEntry(RVMMethod m) {
     if (VM.VerifyAssertions) VM._assert(m.getDeclaringClass() == this);
@@ -1699,11 +1692,13 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Update this class's TIB entry for the given method to point to
+   * Updates this class's TIB entry for the given method to point to
    * the current compiled code for the given method.<p>
    * NOTE: This method is intentionally not synchronized to avoid deadlocks.
    *       We instead rely on the fact that we are always updating the JTOC with
    *       the most recent instructions for the method.
+   *
+   * @param m the method whose class' TIB entry will be updated
    */
   public void updateTIBEntry(RVMMethod m) {
     if (VM.VerifyAssertions) {
@@ -1720,6 +1715,8 @@ public final class RVMClass extends RVMType {
    * NOTE: This method is intentionally not synchronized to avoid deadlocks.
    *       We instead rely on the fact that we are always updating the JTOC with
    *       the most recent instructions for the method.
+   *
+   * @param m the method
    */
   public void updateVirtualMethod(RVMMethod m) {
     RVMMethod dm = findDeclaredMethod(m.getName(), m.getDescriptor());
@@ -1747,6 +1744,8 @@ public final class RVMClass extends RVMType {
    * Classes used as Interfaces get assigned an interface id.
    *   If the class is not an interface, attempting to use this
    *   id will cause an IncompatibleClassChangeError to be thrown
+   *
+   * @return interface id (a non-negative number)
    */
   public int getInterfaceId() {
     if (interfaceId == -1) {
@@ -1831,7 +1830,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Get the offset in instances of this type assigned to the thin lock word.
+   * @return the offset in instances of this type assigned to the thin lock word.
    * Is only known after class has been resolved.
    */
   @Override
@@ -1842,9 +1841,11 @@ public final class RVMClass extends RVMType {
   }
 
  /**
-   * Set the thin lock offset for instances of this type. Can be called at most once.
+   * Sets the thin lock offset for instances of this type. Can be called at most once.
    * and is invoked from ObjectModel.allocateThinLock (in object models which
    * do not allocate thin locks for all scalar object types).
+   *
+   * @param offset the offset for the thin lock
    */
   public void setThinLockOffset(Offset offset) {
     if (VM.VerifyAssertions) VM._assert(thinLockOffset.isMax());
@@ -1853,7 +1854,7 @@ public final class RVMClass extends RVMType {
   }
 
   /**
-   * Get number of superclasses to Object.
+   * @return number of superclasses to Object
    */
   @Override
   @Pure

@@ -85,6 +85,8 @@ public final class UnboxedType extends RVMType {
   /**
    * Create an instance of a {@link UnboxedType}
    * @param tr   The canonical type reference for this primitive
+   *
+   * @return the newly created unboxed type for the type reference
    */
   static UnboxedType createUnboxedType(TypeReference tr) {
     Atom name;
