@@ -93,13 +93,10 @@ final class LiveSetElement {
   }
 
   /**
-   * Returns a string version of this element
    * @return a string version of this element
    */
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder("");
-    buf.append(regOp);
-    return buf.toString();
+    return regOp.toString();
   }
 }
