@@ -347,19 +347,12 @@ public final class LiveAnalysis extends CompilerPhase {
    * @param r2 new register
    */
   public void merge(Register r1, Register r2) {
-    ArrayList<LiveIntervalElement> toRemove = new ArrayList<LiveIntervalElement>(5);
-
-    for (Iterator<LiveIntervalElement> i = iterateLiveIntervals(r2); i.hasNext();) {
+    Iterator<LiveIntervalElement> i = iterateLiveIntervals(r2);
+    while (i.hasNext()) {
       LiveIntervalElement interval = i.next();
       interval.setRegister(r1);
       addToRegisterMap(r1, interval);
-      // defer removing the interval to avoid concurrent modification of
-      // the iterator's backing set.
-      toRemove.add(interval);
-    }
-    // perform deferred removals
-    for (LiveIntervalElement interval : toRemove) {
-      removeFromRegisterMap(r2, interval);
+      i.remove();
     }
   }
 
@@ -374,10 +367,10 @@ public final class LiveAnalysis extends CompilerPhase {
   @SuppressWarnings("unchecked")
   private void computeRegisterMap(IR ir) {
     registerMap = new ArrayList[ir.regpool.getNumberOfSymbolicRegisters()];
-    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
-      BasicBlock bb = (BasicBlock) e.nextElement();
-      for (Enumeration i = bb.enumerateLiveIntervals(); i.hasMoreElements();) {
-        LiveIntervalElement lie = (LiveIntervalElement) i.nextElement();
+    for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
+      BasicBlock bb = e.nextElement();
+      for (Enumeration<LiveIntervalElement> i = bb.enumerateLiveIntervals(); i.hasMoreElements();) {
+        LiveIntervalElement lie = i.nextElement();
         lie.setBasicBlock(bb);
         if (lie.getRegister().isSymbolic()) {
           addToRegisterMap(lie.getRegister(), lie);
@@ -387,19 +380,13 @@ public final class LiveAnalysis extends CompilerPhase {
   }
 
   private void addToRegisterMap(Register r, LiveIntervalElement i) {
-    ArrayList<LiveIntervalElement> set = registerMap[r.getNumber()];
+    int regNumber = r.getNumber();
+    ArrayList<LiveIntervalElement> set = registerMap[regNumber];
     if (set == null) {
       set = new ArrayList<LiveIntervalElement>(3);
-      registerMap[r.getNumber()] = set;
+      registerMap[regNumber] = set;
     }
     set.add(i);
-  }
-
-  private void removeFromRegisterMap(Register r, LiveIntervalElement i) {
-    ArrayList<LiveIntervalElement> set = registerMap[r.getNumber()];
-    if (set != null) {
-      set.remove(i);
-    }
   }
 
   /**
