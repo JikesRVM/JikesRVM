@@ -48,7 +48,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   private final BitSet fpSet;
 
   /**
-   * Return the total number of physical registers.
+   * @return the total number of physical registers.
    */
   public static int getSize() {
     return NUM_GPRS + NUM_FPRS + NUM_SPECIALS;
@@ -60,28 +60,29 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Return the total number of nonvolatile GPRs.
+   * @return the total number of nonvolatile GPRs.
    */
   public static int getNumberOfNonvolatileGPRs() {
     return NUM_NONVOLATILE_GPRS;
   }
 
   /**
-   * Return the total number of GPRs that may hold parameters.
+   * @return the total number of GPRs that may hold parameters.
    */
   public static int getNumberOfGPRParams() {
     return NUM_PARAMETER_GPRS;
   }
 
   /**
-   * Return the total number of FPRs that may hold parameters.
+   * @return the total number of FPRs that may hold parameters.
    */
   public static int getNumberOfFPRParams() {
     return NUM_PARAMETER_FPRS;
   }
 
   /**
-   * Return the (zero-based indexed) nth GPR that may hold a parameter.
+   * @param n register index
+   * @return the (zero-based indexed) nth GPR that may hold a parameter.
    */
   public final Register getGPRParam(int n) {
     if (VM.VerifyAssertions) VM._assert(n < 2);
@@ -93,14 +94,16 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Return the (zero-based indexed) nth FPR that may hold a parameter.
+   * @param n register index
+   * @return the (zero-based indexed) nth FPR that may hold a parameter.
    */
   public final Register getFPRParam(int n) {
     return getFPR(VOLATILE_FPRS[n]);
   }
 
   /**
-   * Return the (zero-based indexed) nth GPR that may hold a return value.
+   * @param n register index
+   * @return the (zero-based indexed) nth GPR that may hold a return value.
    */
   public Register getReturnGPR(int n) {
     if (VM.VerifyAssertions) VM._assert(n < 2);
@@ -111,9 +114,6 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     }
   }
 
-  /**
-   * Constructor: set up a pool of physical registers.
-   */
   protected PhysicalRegisterSet() {
 
     // 1. Create all the physical registers in the pool.
@@ -193,7 +193,8 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Is a particular register subject to allocation?
+   * @param r the register to check
+   * @return {@code true} if and only if a particular register is subject to allocation
    */
   public boolean isAllocatable(Register r) {
     return (r.number < FIRST_SPECIAL && r != getTR() && r != getESP());
@@ -341,9 +342,6 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     return reg[C3];
   }
 
-  /**
-   * @return the nth physical GPR
-   */
   public Register getGPR(GPR n) {
     return reg[FIRST_INT + n.value()];
   }
@@ -354,6 +352,7 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
+   * @param r a physical GPR
    * @return the index into the GPR set corresponding to a given register.
    *
    * PRECONDITION: r is a physical GPR
@@ -403,9 +402,6 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     return getFPR(0);
   }
 
-  /**
-   * @return the nth physical FPR
-   */
   public Register getFPR(FloatingPointMachineRegister n) {
     return reg[FIRST_DOUBLE + n.value()];
   }
@@ -416,9 +412,10 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * @return the index into the GPR set corresponding to a given register.
+   * @param r a physical FPR
+   * @return the index into the FPR set corresponding to a given register.
    *
-   * PRECONDITION: r is a physical GPR
+   * PRECONDITION: r is a physical FPR
    */
   public static int getFPRIndex(Register r) {
     return r.number - FIRST_DOUBLE;
@@ -476,16 +473,19 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Get the register name for a register with a particular number in the
-   * pool
+   * Gets the register name for a register with a particular number in the
+   * pool.
+   *
+   * @param number register number
+   * @return register name
    */
   public static String getName(int number) {
     return registerName[number];
   }
 
   /**
-   * Get the spill size for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG, SPECIAL_REG
+   * @return the spill size for a register with the given type
    */
   public static int getSpillSize(int type) {
     if (VM.VerifyAssertions) {
@@ -499,8 +499,8 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
   }
 
   /**
-   * Get the required spill alignment for a register with a particular type
    * @param type one of INT_REG, DOUBLE_REG,  SPECIAL_REG
+   * @return the required spill alignment for a register with the given type
    */
   public static int getSpillAlignment(int type) {
     if (VM.VerifyAssertions) {
@@ -523,9 +523,6 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     return new RangeEnumeration(FIRST_INT, FIRST_DOUBLE - 1);
   }
 
-  /**
-   * Enumerate all the FPRs in this set.
-   */
   public Enumeration<Register> enumerateFPRs() {
     return new RangeEnumeration(FIRST_DOUBLE, FIRST_SPECIAL - 1);
   }
@@ -571,10 +568,6 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     return new PhysicalRegisterEnumeration(r);
   }
 
-  /**
-   * Enumerate the volatile physical registers of a given class.
-   * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
-   */
   public Enumeration<Register> enumerateVolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
@@ -609,10 +602,6 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     return fpSet;
   }
 
-  /**
-   * Enumerate the nonvolatile physical registers of a given class.
-   * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
-   */
   public Enumeration<Register> enumerateNonvolatiles(int regClass) {
     switch (regClass) {
       case INT_REG:
@@ -626,11 +615,6 @@ public abstract class PhysicalRegisterSet extends GenericPhysicalRegisterSet
     }
   }
 
-  /**
-   * Enumerate the nonvolatile physical registers of a given class,
-   * backwards
-   * @param regClass one of INT_REG, DOUBLE_REG, SPECIAL_REG
-   */
   public Enumeration<Register> enumerateNonvolatilesBackwards(int regClass) {
     return new ReverseEnumerator<Register>(enumerateNonvolatiles(regClass));
   }

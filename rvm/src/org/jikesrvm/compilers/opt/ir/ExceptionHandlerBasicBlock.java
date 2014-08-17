@@ -124,10 +124,11 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
   }
 
   /**
-   * Return an Enumeration of the caught exception types.
-   * Mainly intended for creation of exception tables during
+   * This method is mainly intended for creation of exception tables during
    * final assembly. Most other clients shouldn't care about this
    * level of detail.
+   *
+   * @return an Enumeration of the caught exception types
    */
   public Enumeration<TypeOperand> getExceptionTypes() {
     return new Enumeration<TypeOperand>() {

@@ -23,9 +23,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  */
 public abstract class GenericPhysicalRegisterTools extends IRTools {
 
-  /**
-   * Return the governing IR.
-   */
   public abstract IR getIR();
 
   /**
@@ -104,7 +101,8 @@ public abstract class GenericPhysicalRegisterTools extends IRTools {
   }
 
   /**
-   * Does instruction s have an operand that contains a physical register?
+   * @param s the instruction to check
+   * @return {@code true} if the instruction  has an operand that contains a physical register
    */
   static boolean hasPhysicalOperand(Instruction s) {
     for (Enumeration<Operand> e = s.getOperands(); e.hasMoreElements();) {

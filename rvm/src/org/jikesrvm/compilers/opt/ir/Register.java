@@ -188,9 +188,6 @@ public final class Register {
 
   public Object scratchObject;
 
-  /**
-   * Used in dependence graph construction.
-   */
   public void setdNode(org.jikesrvm.compilers.opt.depgraph.DepGraphNode a) {
     scratchObject = a;
   }
@@ -207,6 +204,9 @@ public final class Register {
 
   /**
    * This accessor is only valid when register lists are valid
+   *
+   * @return the first definition of this register or {@code null} if
+   *  no def list is available
    */
   public Instruction getFirstDef() {
     if (defList == null) {

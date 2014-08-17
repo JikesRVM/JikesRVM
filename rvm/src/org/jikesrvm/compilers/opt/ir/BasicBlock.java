@@ -84,7 +84,6 @@ import org.vmmagic.pragma.NoInline;
  * Conventionally, we refer to the <em>real</em> instructions of
  * the block as those that are between the LABEL and the BBEND.
  * We say that the block is empty if it contains no real instructions.
- * <p>
  *
  * @see IR
  * @see Instruction
@@ -193,9 +192,6 @@ public class BasicBlock extends SortedGraphNode {
 
   final void initInOutSets() { }
 
-  /**
-   * Make an EXIT node.
-   */
   static BasicBlock makeExit() {
     return new BasicBlock();
   }
@@ -685,28 +681,29 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   /**
-   * Return the estimated relative execution frequency of the block
+   * @return the estimated relative execution frequency of the block
    */
   public final float getExecutionFrequency() {
     return freq;
   }
 
-  /**
-   * Set the estimated relative execution frequency of this block.
-   */
   public final void setExecutionFrequency(float f) {
     freq = f;
   }
 
   /**
-   * Scale the estimated relative execution frequency of this block.
+   * Scales the estimated relative execution frequency of this block.
+   *
+   * @param f scale factor
    */
   public final void scaleExecutionFrequency(float f) {
     freq *= f;
   }
 
   /**
-   * Augment the estimated relative execution frequency of this block.
+   * Augments the estimated relative execution frequency of this block.
+   *
+   * @param f value to add
    */
   public final void augmentExecutionFrequency(float f) {
     freq += f;
@@ -1191,6 +1188,8 @@ public class BasicBlock extends SortedGraphNode {
    *
    * TODO check if warning is still current and if there's info on
    *  CMVC Defect 171189 anywhere
+   *
+   * @param ir the containing IR
    */
   public final void recomputeNormalOut(IR ir) {
     deleteNormalOut();
@@ -1413,6 +1412,7 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @param ir the governing IR
    * @param b the block to replicate
+   * @return the replicated basic block
    */
   public final BasicBlock replicateThisOut(IR ir, BasicBlock b) {
     return replicateThisOut(ir, b, this);
@@ -1429,6 +1429,7 @@ public class BasicBlock extends SortedGraphNode {
    * @param ir the governing IR
    * @param b the block to replicate
    * @param pred code order predecessor for new block
+   * @return the replicated basic block
    */
   public final BasicBlock replicateThisOut(IR ir, BasicBlock b, BasicBlock pred) {
     // don't replicate the exit node
@@ -1502,6 +1503,7 @@ public class BasicBlock extends SortedGraphNode {
    *
    * @param b     the original target
    * @param bCopy the future target
+   * @param ir the IR that contains this basic block
    */
   public final void redirectOuts(BasicBlock b, BasicBlock bCopy, IR ir) {
     BranchOperand copyTarget = bCopy.makeJumpTarget();
@@ -1675,6 +1677,8 @@ public class BasicBlock extends SortedGraphNode {
   /**
    * Prune away exceptional out edges that are not reachable given this
    * block's instructions.
+   *
+   * @param ir the IR that contains this block
    */
   final void pruneExceptionalOut(IR ir) {
     int n = getNumberOfExceptionalOut();

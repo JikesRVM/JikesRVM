@@ -330,10 +330,6 @@ public final class LiveAnalysis extends CompilerPhase {
     ir.setHandlerLivenessComputed(storeLiveAtHandlers);
   }
 
-  /**
-   * Return an iterator over all the live interval elements for a given
-   * register.
-   */
   public Iterator<LiveIntervalElement> iterateLiveIntervals(Register r) {
     ArrayList<LiveIntervalElement> set = registerMap[r.getNumber()];
     if (set == null) {
@@ -346,6 +342,9 @@ public final class LiveAnalysis extends CompilerPhase {
   /**
    * Update the data structures to reflect that all live intervals for r2
    * are now intervals for r1.
+   *
+   * @param r1 old register
+   * @param r2 new register
    */
   public void merge(Register r1, Register r2) {
     ArrayList<LiveIntervalElement> toRemove = new ArrayList<LiveIntervalElement>(5);
@@ -365,10 +364,12 @@ public final class LiveAnalysis extends CompilerPhase {
   }
 
   /**
-   * Set up a mapping from each register to the set of live intervals for
+   * Sets up a mapping from each register to the set of live intervals for
    * the register.
    * <p>
    * Side effect: map each live interval element to its basic block.
+   *
+   * @param ir the governing IR
    */
   @SuppressWarnings("unchecked")
   private void computeRegisterMap(IR ir) {
@@ -385,9 +386,6 @@ public final class LiveAnalysis extends CompilerPhase {
     }
   }
 
-  /**
-   * Add the live interval element i to the map for register r.
-   */
   private void addToRegisterMap(Register r, LiveIntervalElement i) {
     ArrayList<LiveIntervalElement> set = registerMap[r.getNumber()];
     if (set == null) {
@@ -397,9 +395,6 @@ public final class LiveAnalysis extends CompilerPhase {
     set.add(i);
   }
 
-  /**
-   * Remove the live interval element i from the map for register r.
-   */
   private void removeFromRegisterMap(Register r, LiveIntervalElement i) {
     ArrayList<LiveIntervalElement> set = registerMap[r.getNumber()];
     if (set != null) {
@@ -624,11 +619,13 @@ public final class LiveAnalysis extends CompilerPhase {
   }
 
   /**
-   *  Compute the in set for this block given the out, gen, and kill set
+   *  Computes the in set for this block given the out, gen, and kill set
    *  @param block the block of interest
    *  @param reuseCurrentSet whether we can reuse the "currentSet" or else
    *                         clear it out and recompute the meet of our succs
    *  @param ir the governing ir
+   *
+   *  @return {@code true} if something changed
    */
   private boolean processBlock(BasicBlock block, boolean reuseCurrentSet, IR ir) {
     if (VERBOSE) {
@@ -749,6 +746,7 @@ public final class LiveAnalysis extends CompilerPhase {
    *  </ul>
    *
    *  @param ir the IR
+   *  @param createGCMaps whether GC maps need to be created
    */
   private void performLocalPropagation(IR ir, boolean createGCMaps) {
     if (DEBUG) {
@@ -1025,10 +1023,6 @@ public final class LiveAnalysis extends CompilerPhase {
     }
   }
 
-  /**
-   * Prints the final maps
-   * @param ir
-   */
   private void printFinalMaps(IR ir) {
     System.out.println("\n  =-=-=-=-=- Final IR-based GC Maps for " +
                        ir.method.getDeclaringClass() +
@@ -1067,6 +1061,10 @@ public final class LiveAnalysis extends CompilerPhase {
   /**
    * Return the set of registers that are live on the control-flow edge
    * basic block bb1 to basic block bb2
+   *
+   * @param bb1 start block of the edge
+   * @param bb2 end block of the edge
+   * @return live registers on the edge
    */
   public HashSet<Register> getLiveRegistersOnEdge(BasicBlock bb1, BasicBlock bb2) {
     HashSet<Register> s1 = getLiveRegistersOnExit(bb1);
@@ -1076,7 +1074,8 @@ public final class LiveAnalysis extends CompilerPhase {
   }
 
   /**
-   * Return the set of registers that are live across a basic block, and who
+   * @param bb the basic block we're interested in
+   * @return the set of registers that are live across a basic block, and who
    * are live after the basic block exit.
    */
   HashSet<Register> getLiveRegistersOnExit(BasicBlock bb) {
@@ -1090,7 +1089,8 @@ public final class LiveAnalysis extends CompilerPhase {
   }
 
   /**
-   * Return the set of registers that are live across a basic block, and who
+   * @param bb the basic block we're interested in
+   * @return the set of registers that are live across a basic block, and who
    * are live before the basic block entry.
    */
   HashSet<Register> getLiveRegistersOnEntry(BasicBlock bb) {
@@ -1198,18 +1198,12 @@ public final class LiveAnalysis extends CompilerPhase {
     private final Instruction inst;
     private final List<RegSpillListElement> list;
 
-    /**
-     * constructor
-     * @param inst
-     * @param list
-     */
     public MapElement(Instruction inst, List<RegSpillListElement> list) {
       this.inst = inst;
       this.list = list;
     }
 
     /**
-     * returns the instruction
      * @return the instruction
      */
     public Instruction getInst() {
@@ -1217,7 +1211,6 @@ public final class LiveAnalysis extends CompilerPhase {
     }
 
     /**
-     * returns the list
      * @return the list
      */
     public List<RegSpillListElement> getList() {

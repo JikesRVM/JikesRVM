@@ -156,6 +156,8 @@ public final class RegisterOperand extends Operand {
    * NOTE: preserves the flags, info and scratchObject.  Preserving is
    * required in all cases as several phases also depend on scratch
    * and/or scratchObject being copied
+   *
+   * @return a copy of this register operand
    */
   public RegisterOperand copyRO() {
     RegisterOperand temp = new RegisterOperand(register, type);
@@ -167,38 +169,37 @@ public final class RegisterOperand extends Operand {
   }
 
   /**
-   * Returns a copy of this use register operand as another use reg operand.
+   * @return a copy of this use register operand as another use reg operand.
    */
   public RegisterOperand copyU2U() {
     return copyRO();
   }
 
   /**
-   * Returns a copy of this def register operand as a use.
+   * @return a copy of this def register operand as a use.
    */
   public RegisterOperand copyD2U() {
     return copyRO();
   }
 
   /**
-   * Returns a copy of this use register operand as a def.
+   * @return a copy of this use register operand as a def.
    */
   public RegisterOperand copyU2D() {
     return copyRO();
   }
 
   /**
-   * Returns a copy of this def register operand as a def.
+   * @return a copy of this def register operand as a def.
    */
   public RegisterOperand copyD2D() {
     return copyRO();
   }
 
   /**
-   * Returns whether the given operand is a register operand and has the same
-   * register object.
-   *
    * @param op operand to compare against
+   * @return whether the given operand is a register operand and has the same
+   * register object.
    */
   @Override
   public boolean similar(Operand op) {
@@ -256,49 +257,42 @@ public final class RegisterOperand extends Operand {
     return type == TypeReference.NULL_TYPE;
   }
 
-  /** Does this register hold a parameter */
   public boolean isParameter() { return (flags & PARAMETER) != 0; }
 
-  /** Set this register as being used to hold parameters */
   public void setParameter() { flags |= PARAMETER; }
 
-  /** Clear this register from being used to hold parameters */
   public void clearParameter() { flags &= ~PARAMETER; }
 
-  /** Is this a volatile register? */
   public boolean isNonVolatile() { return (flags & NON_VOLATILE) != 0; }
 
-  /** Set this register as being non-volatile */
   public void setNonVolatile() { flags |= NON_VOLATILE; }
 
-  /** Set this register as being volatile */
   public void clearNonVolatile() { flags &= ~NON_VOLATILE; }
 
   /**
    * Is this register known to contain either NULL or an object whose class was fully loaded
    * before the current method was called?
    * This fact is used to determine whether we can optimize away inline guards
-   * based on pre-existence based inlining.*/
+   * based on pre-existence based inlining.
+   *
+   * @return {@code true} if this register is extant (see above)
+   */
   public boolean isExtant() { return (flags & EXTANT) != 0; }
 
   /**
-   * Set this register as holding an extant object (or NULL)
+   * Sets this register as holding an extant object (or NULL)
    * (ie, an object whose class was fully loaded before the current method was called).
    * This fact is used to determine whether we can optimize away inline guards based on pre-existence
    * based inlining.
    */
   public void setExtant() { flags |= EXTANT; }
 
-  /** Clear this register from holding an extant value */
   public void clearExtant() { flags &= ~EXTANT; }
 
-  /** Does this register have a declared type? */
   public boolean isDeclaredType() { return (flags & DECLARED_TYPE) != 0; }
 
-  /** Set this register as having a declared type */
   public void setDeclaredType() { flags |= DECLARED_TYPE; }
 
-  /** Clear this register from having a declared type */
   public void clearDeclaredType() { flags &= ~DECLARED_TYPE; }
 
   private void verifyPreciseType() {
@@ -315,56 +309,60 @@ public final class RegisterOperand extends Operand {
       }
     }
   }
-  /** Do we know the precise type of this register? */
+
   public boolean isPreciseType() { return (flags & PRECISE_TYPE) != 0; }
 
-  /** Set this register as having a precise type */
   public void setPreciseType() {
     flags |= PRECISE_TYPE;
     if (VM.VerifyAssertions) verifyPreciseType();
   }
 
-  /** Clear this register from having a precise type */
   public void clearPreciseType() { flags &= ~PRECISE_TYPE; }
 
-  /** Is this register a declared or a precise type? */
   public boolean isDeclaredOrPreciseType() { return (flags & (DECLARED_TYPE | PRECISE_TYPE)) != 0; }
 
-  /** Is this register a positive int? */
   public boolean isPositiveInt() { return (flags & POSITIVE) != 0; }
 
-  /** Set this register as being a positive int */
   public void setPositiveInt() { flags |= POSITIVE; }
 
-  /** Return a byte encoding register flags */
+  /** @return a byte encoding register flags */
   public byte getFlags() {
     return flags;
   }
 
-  /** Clear the flags of a register */
   public void clearFlags() {
     flags = 0;
   }
 
-  /** Merge two sets of register flags */
+  /**
+   * Merges two sets of register flags.
+   * @param inFlag the flags to merge to this register's flags
+   */
   public void addFlags(byte inFlag) {
     flags |= inFlag;
     if (VM.VerifyAssertions) verifyPreciseType();
   }
 
-  /** Currently all flags are inheritable, so copy all flags from src */
+  /**
+   * Currently all flags are inheritable, so copy all flags from src.
+   * @param src the operand to copy the flags from
+   */
   public void setInheritableFlags(RegisterOperand src) {
     flags = src.getFlags();
     if (VM.VerifyAssertions) verifyPreciseType();
   }
 
-  /** Currently all flags are "meetable", so mask flags together */
+  /**
+   * Currently all flags are "meetable", so mask flags together.
+   * @param other the operand to use for computing the meet
+   */
   public void meetInheritableFlags(RegisterOperand other) {
     flags &= other.flags;
   }
 
   /**
-   * Return true if we have any bits set (flag true) that other
+   * @param other operand to compare with
+   * @return {@code true} if we have any bits set (flag true) that other
    * doesn't. It's ok for other to have bits set true that we have set
    * to false.
    */
@@ -372,7 +370,7 @@ public final class RegisterOperand extends Operand {
     return other.getFlags() != (getFlags() | other.getFlags());
   }
 
-  /** Is this a guard operand from a taken branch? */
+  /** @return {@code true} if this is a guard operand from a taken branch */
   public boolean isTaken() { return (flags2 & TAKEN) != 0; }
 
   /** Set this a guard operand from a taken branch */
@@ -381,7 +379,7 @@ public final class RegisterOperand extends Operand {
   /** Clear this from being a guard operand from a taken branch */
   public void clearTaken() { flags2 &= ~TAKEN; }
 
-  /** Is this a guard operand from a not taken branch? */
+  /** @return {@code true} if this is a guard operand from a not taken branch */
   public boolean isNotTaken() { return (flags2 & NOT_TAKEN) != 0; }
 
   /** Set this a guard operand from a not taken branch */
@@ -390,22 +388,16 @@ public final class RegisterOperand extends Operand {
   /** Clear this from being a guard operand from a not taken branch */
   public void clearNotTaken() { flags2 &= ~NOT_TAKEN; }
 
-  /** Is this a guard operand from a bounds check? */
   public boolean isBoundsCheck() { return (flags2 & BOUNDS_CHECK) != 0; }
 
-  /** Set this as a guard operand from a bounds check */
   public void setBoundsCheck() { flags2 |= BOUNDS_CHECK; }
 
-  /** Clear this from being a guard operand from a bounds check */
   public void clearBoundsCheck() { flags2 &= ~BOUNDS_CHECK; }
 
-  /** Is this a guard operand from a null check? */
   public boolean isNullCheck() { return (flags2 & NULL_CHECK) != 0; }
 
-  /** Set this as being a guard operand from a null check */
   public void setNullCheck() { flags2 |= NULL_CHECK; }
 
-  /** Clear this from being a guard operand from a null check */
   public void clearNullCheck() { flags2 &= ~NULL_CHECK; }
 
   /**
@@ -413,6 +405,8 @@ public final class RegisterOperand extends Operand {
    * Since there is not multiple inheritance in Java, I am copying the
    * accessor functions &amp; fields of LinkedListElement.  This field
    * is used to maintain lists of USEs and DEFs
+   *
+   * @param Next next register operand in the list
    */
   public void setNext(RegisterOperand Next) {
     scratchObject = Next;
@@ -420,21 +414,20 @@ public final class RegisterOperand extends Operand {
 
   /**
    * Sets scratch object of the register operand to parameter.
+   *
+   * @param next next register operand in the list
    */
   public void append(RegisterOperand next) {
     scratchObject = next;
   }
 
   /**
-   * Returns the scratch object of the register operand
+   * @return the scratch object of the register operand
    */
   public RegisterOperand getNext() {
     return (RegisterOperand) scratchObject;
   }
 
-  /**
-   * Returns the string representation of this operand.
-   */
   @Override
   public String toString() {
     String s = register.toString();
@@ -453,16 +446,10 @@ public final class RegisterOperand extends Operand {
     return s;
   }
 
-  /**
-   * Modify the register
-   */
   public void setRegister(Register register) {
     this.register = register;
   }
 
-  /**
-   * @return the register
-   */
   public Register getRegister() {
     return register;
   }
@@ -518,7 +505,7 @@ public final class RegisterOperand extends Operand {
    * Does this operand have the same properties as the given Operand? This method
    * checks only the properties specific to RegisterOperand.
    *
-   * @param other
+   * @param other the operand to compare with
    * @return whether the given RegisterOperand could be seen as a copy of this one
    */
   public boolean sameRegisterPropertiesAs(RegisterOperand other) {
@@ -533,7 +520,7 @@ public final class RegisterOperand extends Operand {
    * Does this operand have the same properties as the given Operand? This method
    * checks only the properties specific to RegisterOperand.
    *
-   * @param other
+   * @param other the operand to compare with
    * @return whether the given RegisterOperand could be seen as a copy of this one
    *  if {@link #scratchObject} can be ignored
    */

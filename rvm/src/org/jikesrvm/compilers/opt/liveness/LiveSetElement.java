@@ -50,8 +50,10 @@ final class LiveSetElement {
   }
 
   /**
-   * Change the register operand.  New operand must represent the same register
+   * Changes the register operand.  New operand must represent the same register
    * This is done to promote something of WordType to ReferenceType for the purposes of GC mapping.
+   *
+   * @param newRegOp the register operand that replaces the old one
    */
   public void setRegisterOperand(RegisterOperand newRegOp) {
     if (VM.VerifyAssertions) VM._assert(regOp.getRegister().number == newRegOp.getRegister().number);

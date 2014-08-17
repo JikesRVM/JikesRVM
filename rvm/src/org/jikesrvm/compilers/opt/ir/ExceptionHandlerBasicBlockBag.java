@@ -57,8 +57,10 @@ public final class ExceptionHandlerBasicBlockBag {
   }
 
   /**
-   * take an element out f the bag.  Throw an exception if the block
-   * to remove is not in the bag
+   * Takes an element out of the bag. Throws an exception if the block
+   * to remove is not in the bag.
+   *
+   * @param bb the block to remove
    */
   public void remove(BasicBlock bb) {
     for (int i = 0; i < local.length; i++) {

@@ -72,27 +72,20 @@ public abstract class PhysicalDefUse {
   /** Definitions mask used by dependence graph to show a yield point */
   public static final int maskTSPDefs = maskAF_CF_OF_PF_SF_ZF | maskTR | maskESP;
 
-  /**
-   * @return whether or not an Operator uses the EFLAGS
-   */
   public static boolean usesEFLAGS(Operator op) {
     return (op.implicitUses & maskAF_CF_OF_PF_SF_ZF) != 0;
   }
 
-  /**
-   * @return whether or not an Operator uses the EFLAGS
-   */
   public static boolean definesEFLAGS(Operator op) {
     return (op.implicitDefs & maskAF_CF_OF_PF_SF_ZF) != 0;
   }
 
-  /**
-   * @return whether or not an Operator implicitly uses or defines ESP
-   */
   public static boolean usesOrDefinesESP(Operator op) {
     return ((op.implicitUses & maskESP) != 0) || ((op.implicitDefs & maskESP) != 0);
   }
+
   /**
+   * @param code the encoding of physical registers
    * @return a string representation of the physical registers encoded by
    * an integer
    */

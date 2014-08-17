@@ -583,6 +583,10 @@ public abstract class IRTools {
    * the caller to avoid having to call this function.  Not going
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
+   *
+   * @param u the operand that's a use
+   * @param s the instruction that u is a use in
+   * @return {@code true} if the operand is both a use and a def
    */
   public static boolean useDoublesAsDef(Operand u, Instruction s) {
     for (Enumeration<Operand> d = s.getDefs(); d.hasMoreElements();) {
@@ -595,7 +599,7 @@ public abstract class IRTools {
   }
 
   /**
-   * Is the operand d, which is a def in instruction s, also a def
+   * Is the operand d, which is a def in instruction s, also a use
    * in instruction s?  That is, is this operand defined as a DU operand
    * in InstructionFormatList.dat.
    * <p>
@@ -605,6 +609,11 @@ public abstract class IRTools {
    * the caller to avoid having to call this function.  Not going
    * to put effort into this now, as the whole scratch register
    * architecture has a questionable future.
+   *
+   * @param d the operand that's a def
+   * @param s the instruction that d is a def in
+   * @return {@code true} if the operand is both a use and a def
+
    */
   public static boolean defDoublesAsUse(Operand d, Instruction s) {
     for (Enumeration<Operand> u = s.getUses(); u.hasMoreElements();) {
@@ -616,9 +625,6 @@ public abstract class IRTools {
     return false;
   }
 
-  /**
-   * Does instruction s define register r?
-   */
   public static boolean definedIn(Register r, Instruction s) {
     for (Enumeration<Operand> e = s.getDefs(); e.hasMoreElements();) {
       Operand op = e.nextElement();
@@ -631,9 +637,6 @@ public abstract class IRTools {
     return false;
   }
 
-  /**
-   * Does instruction s use register r?
-   */
   public static boolean usedIn(Register r, Instruction s) {
     for (Enumeration<Operand> e = s.getUses(); e.hasMoreElements();) {
       Operand op = e.nextElement();

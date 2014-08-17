@@ -22,7 +22,8 @@ import java.util.Enumeration;
 public final class IRSummary {
 
   /**
-   * Does this IR have a bounds check expression?
+   * @param ir IR to check
+   * @return {@code true} if this IR has a bounds check expression
    */
   public static boolean hasBoundsCheck(IR ir) {
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {

@@ -131,6 +131,8 @@ public final class LocationOperand extends Operand {
 
   /**
    * Constructs a new location operand with the given JTOC offset
+   *
+   * @param jtocOffset JTOC offset
    */
   public LocationOperand(Offset jtocOffset) {
     type = JTOC_ACCESS;
@@ -139,6 +141,8 @@ public final class LocationOperand extends Operand {
 
   /**
    * Constructs a new location operand with the given spill offset.
+   *
+   * @param index spill offset
    */
   public LocationOperand(int index) {
     if (VM.VerifyAssertions) VM._assert(index <= 0);
@@ -197,6 +201,9 @@ public final class LocationOperand extends Operand {
 
   /**
    * Is the accessed location possibly volatile?
+   *
+   * @return {@code true} if it's possible that the location is volatile,
+   *  {@code false} if the location cannot possibly be volatile
    */
   public boolean mayBeVolatile() {
     if (!isFieldAccess()) return false;

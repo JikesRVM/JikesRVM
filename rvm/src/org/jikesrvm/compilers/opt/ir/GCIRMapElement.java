@@ -30,7 +30,6 @@ public final class GCIRMapElement {
   private final List<RegSpillListElement> regSpillList;
 
   /**
-   * Constructor
    * @param inst the instruction of interest
    * @param regSpillList the list of references either symbolic (before regalloc)
    *                or physical/spill location (after regalloc)
@@ -41,16 +40,18 @@ public final class GCIRMapElement {
   }
 
   /**
-   * Create a twin entry: required when the same MIR GC point
+   * Creates a twin entry: required when the same MIR GC point
    * is split into two instructions, both of which are PEIs
    * after register allocation/GCIRMap creation.
+   *
+   * @param inst the instruction which needs a twin element
+   * @return the twin entry
    */
   public GCIRMapElement createTwin(Instruction inst) {
     return new GCIRMapElement(inst, this.regSpillList);
   }
 
   /**
-   * return the instruction with this entry
    * @return the instruction with this entry
    */
   public Instruction getInstruction() {
@@ -65,16 +66,10 @@ public final class GCIRMapElement {
     return regSpillList;
   }
 
-  /**
-   * Add a new spill list element for this map element
-   */
   public void addRegSpillElement(RegSpillListElement e) {
     regSpillList.add(e);
   }
 
-  /**
-   * Delete a spill list element from this map element
-   */
   public void deleteRegSpillElement(RegSpillListElement e) {
     regSpillList.remove(e);
   }

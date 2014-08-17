@@ -409,12 +409,15 @@ public final class Instruction {
   }
 
   /**
-   * Get the basic block that contains this instruction.
+   * Gets the basic block that contains this instruction.
+   * <p>
    * Note: this instruction takes O(1) time for LABEL and BBEND
    * instructions, but will take O(# of instrs in the block)
    * for all other instructions. Therefore, although it can be used
    * on any instruction, care must be taken when using it to avoid
    * doing silly O(N^2) work for what could be done in O(N) work.
+   *
+   * @return basic block that contains the instruction
    */
   public BasicBlock getBasicBlock() {
     if (isBbFirst()) {
@@ -697,7 +700,8 @@ public final class Instruction {
   }
 
   /**
-   * Does this instruction hold any memory or stack location operands?
+   * @return {@code true} if this instruction holds any memory or
+   *  stack location operands
    */
   public boolean hasMemoryOperand() {
     for (int i = 0; i < ops.length; i++) {
@@ -1992,6 +1996,8 @@ public final class Instruction {
   /**
    * Allow BURS a back door into linkWithNext. This method should only be called
    * within BURS.
+   *
+   * @param other the next instruction
    */
   public void BURS_backdoor_linkWithNext(Instruction other) {
     linkWithNext(other);

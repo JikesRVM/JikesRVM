@@ -379,6 +379,8 @@ public final class ConditionOperand extends Operand {
    *
    * NB this doesn't respect ordered/unordered operation, so it
    * should only be used when it's safe to.
+   *
+   * @return this
    */
   public ConditionOperand translateUNSIGNED() {
     switch (value) {
@@ -749,6 +751,8 @@ public final class ConditionOperand extends Operand {
    * A:
    * </code>
    * Note that this is not the same as calling {@link #flipOperands}.
+   *
+   * @return this
    */
   public ConditionOperand flipCode() {
     switch (value) {
@@ -829,6 +833,8 @@ public final class ConditionOperand extends Operand {
    * if y &gt; x then goto A
    * </code>
    * Note that this is not the same as calling {@link #flipCode}.
+   *
+   * @return this
    */
   public ConditionOperand flipOperands() {
     switch (value) {

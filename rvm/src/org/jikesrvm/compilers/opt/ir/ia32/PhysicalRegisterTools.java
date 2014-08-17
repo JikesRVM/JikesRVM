@@ -35,9 +35,6 @@ public abstract class PhysicalRegisterTools extends GenericPhysicalRegisterTools
   @Override
   public abstract IR getIR();
 
-  /**
-   * Create an MIR instruction to move rhs into lhs
-   */
   public static Instruction makeMoveInstruction(RegisterOperand lhs, RegisterOperand rhs) {
     if (rhs.getRegister().isInteger() || rhs.getRegister().isLong() || rhs.getRegister().isAddress()) {
       if (VM.VerifyAssertions) {

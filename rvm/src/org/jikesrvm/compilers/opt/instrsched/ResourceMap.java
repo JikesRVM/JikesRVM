@@ -38,7 +38,6 @@ final class ResourceMap {
   /** Current size of the RU map. */
   private int size;
 
-  /** Grows the RU map to a given size. For internal use only. */
   private void grow(int s) {
     if (VERBOSE >= 2) {
       debug("Growing from " + size + " to " + s);
@@ -137,17 +136,6 @@ final class ResourceMap {
     return sb.toString();
   }
 
-  //
-  // Returns false if there is a resource conflict.
-
-
-  /**
-   * Binds resources for given resource usage pattern at given time.
-   * @param usage
-   * @param time
-   * @return {@code false} if there's a resource conflict, {@code true}
-   *  otherwise
-   */
   private boolean schedule(int[] usage, int time) {
     grow(time + usage.length);
     if (VERBOSE >= 1) {
@@ -166,11 +154,6 @@ final class ResourceMap {
     return true;
   }
 
-  /**
-   * Unbinds resources for given resource usage pattern at given time.
-   * @param usage
-   * @param time
-   */
   private void unschedule(int[] usage, int time) {
     for (int i = 0; i < usage.length; i++) {
       rumap[time + i] &= ~usage[i];

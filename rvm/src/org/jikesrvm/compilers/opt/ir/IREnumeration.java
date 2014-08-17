@@ -254,6 +254,7 @@ public abstract class IREnumeration {
      * Construct an enumeration for all instructions, both implicit and
      * explicit in the IR, for a given basic block
      *
+     * @param ir the containing IR
      * @param block the basic block whose instructions this enumerates
      */
     public AllInstructionsEnum(IR ir, BasicBlock block) {

@@ -201,10 +201,6 @@ final class Scheduler {
     i2gn[i.scratch] = n;
   }
 
-  /**
-   * Return corresponding graph node for instruction.
-   * @param i given instruction
-   */
   private DepGraphNode getGraphNode(Instruction i) {
     return i2gn[i.scratch];
   }
@@ -235,10 +231,6 @@ final class Scheduler {
     SchedulingInfo.setCriticalPath(i, cp);
   }
 
-  /**
-   * Compute earliest scheduling time for an instruction.
-   * @param i given instruction
-   */
   private int computeEarliestTime(Instruction i) {
     if (VERBOSE >= 5) {
       debug("Computing earliest time for " + i);
@@ -347,6 +339,7 @@ final class Scheduler {
    * Sort basic block by Scheduled Time.
    * Uses bucket sort on time, with equal times ordered by critical path.
    * @param maxtime the maximum scheduled time
+   * @return {@code true} if something was changed
    */
   private boolean sortBasicBlock(int maxtime) {
     boolean changed = false;
