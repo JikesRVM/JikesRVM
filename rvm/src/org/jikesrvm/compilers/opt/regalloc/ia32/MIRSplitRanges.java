@@ -160,11 +160,12 @@ public class MIRSplitRanges extends CompilerPhase {
   }
 
   /**
-   * Find or create a temporary register to cache a symbolic register.
+   * Finds or creates a temporary register to cache a symbolic register.
    *
-   * @param rOp the symbolic register
+   * @param rOp the symbolic register operand
    * @param map a mapping from symbolics to temporaries
    * @param ir the governing IR
+   * @return a register operand to cache the symbolic register
    */
   private static RegisterOperand findOrCreateTemp(RegisterOperand rOp,
                                                       java.util.HashMap<Register, Register> map, IR ir) {
@@ -179,7 +180,11 @@ public class MIRSplitRanges extends CompilerPhase {
   }
 
   /**
-   * Insert an instruction to move r1 into r2 before instruction s
+   * Inserts an instruction to move r1 into r2 before instruction s.
+   *
+   * @param r1 the move source
+   * @param r2 the move target
+   * @param s the instruction before which the move needs to be inserted
    */
   private static void insertMoveBefore(RegisterOperand r2, RegisterOperand r1, Instruction s) {
     Instruction m = PhysicalRegisterTools.makeMoveInstruction(r2, r1);
@@ -187,7 +192,11 @@ public class MIRSplitRanges extends CompilerPhase {
   }
 
   /**
-   * Insert an instruction to move r1 into r2 after instruction s
+   * Insert an instruction to move r1 into r2 after instruction s.
+   *
+   * @param r1 the move source
+   * @param r2 the move target
+   * @param s the instruction after which the move needs to be inserted
    */
   private static void insertMoveAfter(RegisterOperand r2, RegisterOperand r1, Instruction s) {
     Instruction m = PhysicalRegisterTools.makeMoveInstruction(r2, r1);

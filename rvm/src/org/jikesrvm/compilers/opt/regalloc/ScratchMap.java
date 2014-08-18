@@ -116,6 +116,9 @@ public final class ScratchMap {
 
   /**
    * Find or create the set of intervals corresponding to a register r.
+   *
+   * @param r the register to check
+   * @return a possibly empty list of intervals
    */
   private ArrayList<Interval> findOrCreateIntervalSet(Register r) {
     ArrayList<Interval> v = map.get(r);
@@ -144,9 +147,13 @@ public final class ScratchMap {
   }
 
   /**
-   * If a symbolic register resides in a scratch register at an
-   * instruction numbered n, then return the scratch register. Else,
-   * return null.
+   * Gets the scratch register if a matching one exists.
+   *
+   * @param r a symbolic register
+   * @param n the instruction number
+   * @return if a symbolic register resides in a scratch register at an
+   * instruction with the given number, then return the scratch register. Else,
+   * return {@code null}.
    */
   Register getScratch(Register r, int n) {
     ArrayList<Interval> v = map.get(r);
@@ -157,9 +164,6 @@ public final class ScratchMap {
     return null;
   }
 
-  /**
-   * Is this map empty?
-   */
   public boolean isEmpty() {
     return map.isEmpty();
   }
@@ -184,6 +188,11 @@ public final class ScratchMap {
   /**
    * At GC point s, is the value of register r cached in a dirty scratch
    * register?
+   *
+   * @param s an instruction that is a GC point
+   * @param r register to check
+   * @return {@code true} if the register is in a scratch register and
+   *  the scratch register is dirty, {@code false} otherwise
    */
   public boolean isDirty(Instruction s, Register r) {
     HashSet<Register> set = dirtyMap.get(s);
@@ -194,9 +203,6 @@ public final class ScratchMap {
     }
   }
 
-  /**
-   * Return a String representation.
-   */
   @Override
   public String toString() {
     StringBuilder result = new StringBuilder();
@@ -226,15 +232,16 @@ public final class ScratchMap {
      */
     protected final Register scratch;
 
-    /**
-     * Initialize scratch register
-     */
     protected Interval(Register scratch) {
       this.scratch = scratch;
     }
 
     /**
      * Does this interval contain the instruction numbered n?
+     *
+     * @param n instruction number
+     * @return {@code true} if and only if the instruction with the
+     *   given number is contained n this interval
      */
     protected final boolean contains(int n) {
       return (begin.scratch <= n && end.scratch > n);
@@ -261,6 +268,8 @@ public final class ScratchMap {
     /**
      * Return a string representation, assuming the 'scratch' field of
      * Instruction identifies an instruction.
+     *
+     * @return a string representation of this interval
      */
     @Override
     public String toString() {
@@ -283,6 +292,8 @@ public final class ScratchMap {
     /**
      * Return a string representation, assuming the 'scratch' field of
      * Instruction identifies an instruction.
+     *
+     * @return a string representation of this interval
      */
     @Override
     public String toString() {

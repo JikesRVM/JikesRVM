@@ -146,7 +146,9 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   }
 
   /**
-   *  Print the DFN numbers associated with each instruction
+   *  Prints the DFN numbers associated with each instruction.
+   *
+   *  @param ir the IR that contains the instructions
    */
   static void printDfns(IR ir) {
     System.out.println("DFNS: **** " + ir.getMethod() + "****");
@@ -157,9 +159,11 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   }
 
   /**
-   * Return the Depth-first-number of the end of the live interval.
-   * Return the dfn for the end of the basic block if the interval is
-   * open-ended.
+   * @param live the live interval
+   * @param bb the basic block for the live interval
+   * @return the Depth-first-number of the end of the live interval. If the
+   * interval is open-ended, the dfn for the end of the basic block will
+   * be returned instead.
    */
   static int getDfnEnd(LiveIntervalElement live, BasicBlock bb) {
     Instruction end = live.getEnd();
@@ -173,9 +177,11 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   }
 
   /**
-   * Return the Depth-first-number of the beginning of the live interval.
-   * Return the dfn for the beginning of the basic block if the interval is
-   * open-ended.
+   * @param live the live interval
+   * @param bb the basic block for the live interval
+   * @return the Depth-first-number of the beginning of the live interval. If the
+   * interval is open-ended, the dfn for the beginning of the basic block will
+   * be returned instead.
    */
   static int getDfnBegin(LiveIntervalElement live, BasicBlock bb) {
     Instruction begin = live.getBegin();
@@ -265,13 +271,10 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      */
     public IR ir;
 
-    /**
-     * Constructor for this compiler phase
-     */
     private static final Constructor<CompilerPhase> constructor = getCompilerPhaseConstructor(LinearScanPhase.class);
 
     /**
-     * Get a constructor object for this compiler phase
+     * {@inheritDoc}
      * @return compiler phase constructor
      */
     @Override
@@ -280,7 +283,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Register allocation is required
+     * @return {@code true} because register allocation is required
      */
     @Override
     public boolean shouldPerform(OptOptions options) {
@@ -368,9 +371,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      */
     private int end;
 
-    /**
-     * Default constructor.
-     */
     BasicInterval(int begin, int end) {
       this.begin = begin;
       this.end = end;
@@ -391,63 +391,38 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Extend a live interval to a new endpoint
+     * Extends a live interval to a new endpoint.
+     *
+     * @param newEnd the new end point
      */
     final void setEnd(int newEnd) {
       end = newEnd;
     }
 
-    /**
-     * Does this interval start after dfn?
-     * @param dfn the depth first numbering to compare to
-     */
     final boolean startsAfter(int dfn) {
       return begin > dfn;
     }
 
-    /**
-     * Does this interval start before dfn?
-     * @param dfn the depth first numbering to compare to
-     */
     final boolean startsBefore(int dfn) {
       return begin < dfn;
     }
 
-    /**
-     * Does this interval contain a dfn?
-     * @param dfn the depth first numbering to compare to
-     */
     final boolean contains(int dfn) {
       return begin <= dfn && end >= dfn;
     }
 
-    /**
-     * Does this interval start before another?
-     * @param i the interval to compare with
-     */
     final boolean startsBefore(BasicInterval i) {
       return begin < i.begin;
     }
 
-    /**
-     * Does this interval end after another?
-     * @param i the interval to compare with
-     */
     final boolean endsAfter(BasicInterval i) {
       return end > i.end;
     }
 
-    /**
-     * Does this interval represent the same range as another?
-     * @param i the interval to compare with
-     */
     final boolean sameRange(BasicInterval i) {
       return begin == i.begin && end == i.end;
     }
 
-    /**
-     * Redefine equals
-     */
     @Override
     public boolean equals(Object o) {
       if (!(o instanceof BasicInterval)) return false;
@@ -456,34 +431,20 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       return sameRange(i);
     }
 
-    /**
-     * Does this interval end before dfn
-     * @param dfn the depth first numbering to compare to
-     */
     final boolean endsBefore(int dfn) {
       return end < dfn;
     }
 
-    /**
-     * Does this interval end after dfn
-     * @param dfn the depth first numbering to compare to
-     */
     final boolean endsAfter(int dfn) {
       return end > dfn;
     }
 
-    /**
-     * Does this interval intersect with another?
-     */
     final boolean intersects(BasicInterval i) {
       int iBegin = i.getBegin();
       int iEnd = i.getEnd();
       return !(endsBefore(iBegin + 1) || startsAfter(iEnd - 1));
     }
 
-    /**
-     * Return a String representation
-     */
     @Override
     public String toString() {
       String s = "[ " + begin + ", " + end + " ] ";
@@ -507,9 +468,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       this.container = c;
     }
 
-    /**
-     * Redefine equals
-     */
     @Override
     public boolean equals(Object o) {
       if (super.equals(o)) {
@@ -556,14 +514,18 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     SpillLocationInterval getSpillInterval() { return spillInterval; }
 
     /**
-     * Return the register this interval represents
+     * @return the register this interval represents
      */
     Register getRegister() {
       return reg;
     }
 
     /**
-     * Create a new compound interval of a single Basic interval
+     * Creates a new compound interval of a single Basic interval.
+     *
+     * @param dfnBegin interval's begin
+     * @param dfnEnd interval's end
+     * @param register the register for the compund interval
      */
     CompoundInterval(int dfnBegin, int dfnEnd, Register register) {
       BasicInterval newInterval = new MappedBasicInterval(dfnBegin, dfnEnd, this);
@@ -572,7 +534,10 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Create a new compound interval of a single Basic interval
+     * Creates a new compound interval of a single Basic interval.
+     *
+     * @param i interval providing start and end for the new interval
+     * @param register the register for the compound interval
      */
     CompoundInterval(BasicInterval i, Register register) {
       BasicInterval newInterval = new MappedBasicInterval(i.getBegin(), i.getEnd(), this);
@@ -582,13 +547,22 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
 
     /**
      * Dangerous constructor: use with care.
+     * <p>
+     * Creates a compound interval with a register but doesn't actually
+     * add any intervals to the compound interval.
+     *
+     * @param r a register
      */
     CompoundInterval(Register r) {
       reg = r;
     }
 
     /**
-     * Copy the ranges into a new interval associated with a register r.
+     * Copies the ranges from this interval into a new interval associated
+     * with a register.
+     *
+     * @param r the register for the new interval
+     * @return the new interval
      */
     CompoundInterval copy(Register r) {
       CompoundInterval result = new CompoundInterval(r);
@@ -601,8 +575,12 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Copy the ranges into a new interval associated with a register r.
-     * Copy only the basic intervals up to and including stop.
+     * Copies the basic intervals up to and including stop into a new interval.
+     * The new interval is associated with the given register.
+     *
+     * @param r the register for the new interval
+     * @param stop the interval to stop at
+     * @return the new interval
      */
     CompoundInterval copy(Register r, BasicInterval stop) {
       CompoundInterval result = new CompoundInterval(r);
@@ -643,6 +621,8 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      *
      * @param live the live interval being queried
      * @param bb the basic block in which live resides.
+     * @return {@code true} if the interval should be concatenated, {@code false}
+     *  if it should'nt
      */
     private boolean shouldConcatenate(LiveIntervalElement live, BasicBlock bb) {
 
@@ -687,39 +667,43 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       }
     }
 
-    /**
-     * Has this interval been spilled?
-     */
     boolean isSpilled() {
       return (RegisterAllocatorState.getSpill(getRegister()) != 0);
     }
 
     /**
      * Assign this compound interval to a physical register.
+     *
+     * @param r the register to assign to
      */
     void assign(Register r) {
       getRegister().allocateToRegister(r);
     }
 
     /**
-     * Has this interval been assigned to a physical register?
+     * @return {@code true} if this interval has been assigned to
+     *  a physical register
      */
     boolean isAssigned() {
       return (RegisterAllocatorState.getMapping(getRegister()) != null);
     }
 
     /**
-     * Get the physical register this interval is assigned to. null if
-     * none assigned.
+     * @return the physical register this interval is assigned to, {@code null}
+     *  if none assigned
      */
     Register getAssignment() {
       return RegisterAllocatorState.getMapping(getRegister());
     }
 
     /**
-     * Merge this interval with another, non-intersecting interval.
+     * Merges this interval with another, non-intersecting interval.
+     * <p>
      * Precondition: BasicInterval stop is an interval in i.  This version
      * will only merge basic intervals up to and including stop into this.
+     *
+     * @param i a non-intersecting interval for merging
+     * @param stop a interval to stop at
      */
     void addNonIntersectingInterval(CompoundInterval i, BasicInterval stop) {
       SortedSet<BasicInterval> headSet = i.headSetInclusive(stop);
@@ -727,8 +711,12 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Compute the headSet() [from java.util.SortedSet] but include all
-     * elements less than upperBound <em>inclusive</em>
+     * Computes the headSet() [from java.util.SortedSet] but includes all
+     * elements less than upperBound <em>inclusive</em>.
+     *
+     * @param upperBound the interval acting as upper bound
+     * @return the head set
+     * @see SortedSet#headSet(Object)
      */
     SortedSet<BasicInterval> headSetInclusive(BasicInterval upperBound) {
       BasicInterval newUpperBound = new BasicInterval(upperBound.getBegin() + 1, upperBound.getEnd());
@@ -736,8 +724,12 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Compute the headSet() [from java.util.SortedSet] but include all
-     * elements less than upperBound <em>inclusive</em>
+     * Computes the headSet() [from java.util.SortedSet] but includes all
+     * elements less than upperBound <em>inclusive</em>.
+     *
+     * @param upperBound the instruction number acting as upper bound
+     * @return the head set
+     * @see SortedSet#headSet(Object)
      */
     SortedSet<BasicInterval> headSetInclusive(int upperBound) {
       BasicInterval newUpperBound = new BasicInterval(upperBound + 1, upperBound + 1);
@@ -745,8 +737,12 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Compute the tailSet() [from java.util.SortedSet] but include all
-     * elements greater than lowerBound <em>inclusive</em>
+     * Computes the tailSet() [from java.util.SortedSet] but includes all
+     * elements greater than lowerBound <em>inclusive</em>.
+     *
+     * @param lowerBound the instruction number acting as lower bound
+     * @return the tail set
+     * @see SortedSet#tailSet(Object)
      */
     SortedSet<BasicInterval> tailSetInclusive(int lowerBound) {
       BasicInterval newLowerBound = new BasicInterval(lowerBound - 1, lowerBound - 1);
@@ -754,11 +750,15 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Remove some basic intervals from this compound interval, and return
+     * Removes some basic intervals from this compound interval, and returns
      * the intervals actually removed.
-     *
+     * <p>
      * PRECONDITION: all basic intervals in i must appear in this compound
      * interval, unless they end after the end of this interval
+     *
+     * @param i other interval to check for intervals that we want to remove
+     *  from this
+     * @return the basic intervals that were removed
      */
     CompoundInterval removeIntervalsAndCache(CompoundInterval i) {
       CompoundInterval result = new CompoundInterval(i.getRegister());
@@ -806,6 +806,8 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * Else, perhaps I'll ditch use of java.util Collections and write my
      * own collection classes.
      * In the meantime, here's an ugly hack to get around the problem.
+     *
+     * @param c container for the intervals that should be removed
      */
     void removeAll(CompoundInterval c) {
       for (BasicInterval b : c) {
@@ -814,7 +816,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Return the lowest DFN in this compound interval.
+     * @return the lowest DFN in this compound interval
      */
     int getLowerBound() {
       BasicInterval b = first();
@@ -822,16 +824,13 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Return the highest DFN in this compound interval.
+     * @return the highest DFN in this compound interval
      */
     int getUpperBound() {
       BasicInterval b = last();
       return b.getEnd();
     }
 
-    /**
-     * Does this interval intersect with i?
-     */
     boolean intersects(CompoundInterval i) {
 
       if (isEmpty()) return false;
@@ -873,22 +872,19 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Return the first basic interval that contains a given
-     * instruction.
-     *
-     * If there is no such interval, return null;
      * @param s   The instruction in question
+     * @return the first basic interval that contains a given
+     * instruction, {@code null} if there is no such interval
+
      */
     BasicInterval getBasicInterval(Instruction s) {
       return getBasicInterval(getDFN(s));
     }
 
     /**
-     * Return the first basic interval that contains the given
-     * instruction.
-     *
-     * If there is no such interval, return null;
      * @param n The DFN of the instruction in question
+     * @return the first basic interval that contains a given
+     * instruction, {@code null} if there is no such interval
      */
     BasicInterval getBasicInterval(int n) {
       SortedSet<BasicInterval> headSet = headSetInclusive(n);
@@ -900,9 +896,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       }
     }
 
-    /**
-     * Make a String representation
-     */
     @Override
     public String toString() {
       String str = "[" + getRegister() + "]:";
@@ -942,9 +935,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      */
     private boolean spilled;
 
-    /**
-     * Default constructor
-     */
     ActiveSet(IR ir, SpillLocationManager sm) {
       super();
       spilled = false;
@@ -967,9 +957,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       }
     }
 
-    /**
-     * Have we spilled anything?
-     */
     boolean spilledSomething() {
       return spilled;
     }
@@ -1005,9 +992,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       }
     }
 
-    /**
-     * Take action when a basic interval becomes inactive
-     */
     void freeInterval(MappedBasicInterval bi) {
       CompoundInterval container = bi.container;
       Register r = container.getRegister();
@@ -1032,9 +1016,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
 
     }
 
-    /**
-     * Assign a basic interval to either a register or a spill location.
-     */
     void allocate(BasicInterval newInterval, CompoundInterval container) {
 
       if (DEBUG) {
@@ -1193,8 +1174,11 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Update the interval representing the allocations of a physical
-     * register p to include a new interval i
+     * Updates the interval representing the allocations of a physical
+     * register p to include a new interval i.
+     *
+     * @param p a physical register
+     * @param i the new interval
      */
     private void updatePhysicalInterval(Register p, BasicInterval i) {
       // Get a representation of the intervals already assigned to p.
@@ -1214,6 +1198,10 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * Update the interval representing the allocations of a physical
      * register p to include a new compound interval c.  Include only
      * those basic intervals in c up to and including basic interval stop.
+     *
+     * @param p a physical register
+     * @param c the new interval
+     * @param stop the last interval to be included
      */
     private void updatePhysicalInterval(Register p, CompoundInterval c, BasicInterval stop) {
       // Get a representation of the intervals already assigned to p.
@@ -1232,8 +1220,9 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Is a particular physical register currently allocated to an
-     * interval in the active set?
+     * @param r a physical register
+     * @return whether the particular physical register is currently allocated to an
+     * interval in the active set
      */
     boolean currentlyActive(Register r) {
       for (Iterator<BasicInterval> e = iterator(); e.hasNext();) {
@@ -1247,8 +1236,10 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Given that a physical register r is currently allocated to an
-     * interval in the active set, return the interval.
+     * @param r a physical register
+     * @return the interval that the physical register is allocated to
+     * @throws OptimizingCompilerException if the register is not currently
+     *  allocated to any interval
      */
     CompoundInterval getCurrentInterval(Register r) {
       for (Iterator<BasicInterval> e = iterator(); e.hasNext();) {
@@ -1263,8 +1254,9 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * try to find a free physical register to allocate to the compound
-     * interval.  if no free physical register is found, return null;
+     * @param ci interval to allocate
+     * @return a free physical register to allocate to the compound
+     * interval, {@code null} if no free physical register is found
      */
     Register findAvailableRegister(CompoundInterval ci) {
 
@@ -1314,8 +1306,9 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Try to find a free physical register to allocate to a symbolic
-     * register.
+     * @param symb symbolic register to allocate
+     * @return a free physical register to allocate to the symbolic
+     * register, {@code null} if no free physical register is found
      */
     Register findAvailableRegister(Register symb) {
 
@@ -1364,7 +1357,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * highest preference.
      *
      * @param r the symbolic register in question.
-     * @return the preferred register.  null if no preference found.
+     * @return the preferred register, {@code null} if no preference found.
      */
     private Register getPhysicalPreference(Register r) {
       // a mapping from Register to Integer
@@ -1449,7 +1442,8 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * available physical register to which an interval has the highest
      * preference.
      *
-     * @return the preferred register.  null if no preference found.
+     * @param ci the interval in question
+     * @return the preferred register, {@code null} if no preference found
      */
     private Register getPhysicalPreference(CompoundInterval ci) {
       // a mapping from Register to Integer
@@ -1531,8 +1525,13 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Check whether it's ok to allocate an interval i to physical
-     * register p.  If so, return true; If not, return false.
+     * Checks whether it's ok to allocate an interval to a physical
+     * register.
+     *
+     * @param i the interval to allocate
+     * @param p the physical register
+     * @return {@code true} if it's ok to allocate the interval to the
+     *  given physical register, {@code false} otherwise
      */
     private boolean allocateToPhysical(CompoundInterval i, Register p) {
       RegisterRestrictions restrict = ir.stackManager.getRestrictions();
@@ -1560,11 +1559,13 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Check whether it's ok to allocate symbolic register to a physical
-     * register p.  If so, return true; If not, return false.
-     *
      * NOTE: This routine assumes we're processing the first interval of
      * register symb; so p.isAvailable() is the key information needed.
+     *
+     * @param symb the symbolic register
+     * @param p the physical register
+     * @return whether it's ok to allocate the symbolic register to the physical
+     * register
      */
     private boolean allocateNewSymbolicToPhysical(Register symb, Register p) {
       RegisterRestrictions restrict = ir.stackManager.getRestrictions();
@@ -1580,7 +1581,9 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * choose one of the active intervals or the newInterval to spill.
+     * @param newInterval a new interval
+     * @return an interval that can be spilled. This may be chosen from the
+     * existing candidates and the new interval
      */
     private CompoundInterval getSpillCandidate(CompoundInterval newInterval) {
       if (VERBOSE_DEBUG) System.out.println("GetSpillCandidate from " + this);
@@ -1598,8 +1601,11 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Choose the interval with the min unit cost (defined as the number
-     * of defs and uses)
+     * Chooses the interval with the minimal unit cost (defined as the number
+     * of defs and uses).
+     *
+     * @param newInterval a new interval
+     * @return the interval with the minimal number of defs and uses
      */
     private CompoundInterval spillMinUnitCost(CompoundInterval newInterval) {
       if (VERBOSE_DEBUG) {
@@ -1664,10 +1670,12 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Check whether, if we spilled interval spill, we could then assign
-     * interval i to physical register spill.getRegister().
+     * Checks if it would be possible to assign an interval to the physical
+     * register of another interval if that other interval were spilled.
      *
-     * @return true if the allocation would fit.  false otherwise
+     * @param spill the interval that's a candidate for spilling
+     * @param i the interval that we want to assign to the register of the spill interval
+     * @return {@code true} if the allocation would fit,  {@code false} otherwise
      */
     private boolean checkAssignmentIfSpilled(CompoundInterval i, CompoundInterval spill) {
       Register r = spill.getAssignment();
@@ -1689,9 +1697,14 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Find the basic interval for register r containing instruction s.
-     * If there are two such intervals, return the 1st one.
-     * If there is none, return null.
+     * Finds a basic interval for a register so that the interval contains
+     * the instruction.
+     *
+     * @param r the register whose interval is desired
+     * @param s the reference instruction
+     * @return {@code null} if there is no basic interval for the given register
+     *  that contains the instruction, the interval otherwise. If there are
+     *  multiple intervals, the first one will be returned.
      */
     BasicInterval getBasicInterval(Register r, Instruction s) {
       CompoundInterval c = getInterval(r);
@@ -1958,8 +1971,9 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     final HashSet<SpillLocationInterval> freeIntervals = new HashSet<SpillLocationInterval>();
 
     /**
-     * Return a spill location that is valid to hold the contents of
-     * compound interval ci.
+     * @param ci a compound interval that we want to spill
+     * @return a spill location that is valid to hold the contents of
+     * the compound interval
      */
     SpillLocationInterval findOrCreateSpillLocation(CompoundInterval ci) {
       SpillLocationInterval result = null;
@@ -2009,16 +2023,15 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     * Record that a particular interval is potentially available for
-     * reuse
+     * Records that a particular interval is potentially available for
+     * reuse.
+     *
+     * @param i the interval to free
      */
     void freeInterval(SpillLocationInterval i) {
       freeIntervals.add(i);
     }
 
-    /**
-     * Constructor.
-     */
     SpillLocationManager(IR ir) {
       this.ir = ir;
     }
@@ -2252,14 +2265,13 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
 
     /**
      * Create an interval set sorted by increasing start or end number
+     *
+     * @param c comparator to use for sorting
      */
     IntervalSet(Comparator<BasicInterval> c) {
       super(c);
     }
 
-    /**
-     * Return a String representation
-     */
     @Override
     public String toString() {
       String result = "";
@@ -2503,9 +2515,12 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
 
     /**
-     *  Iterate over the IR and replace each symbolic register with its
+     *  Iterates over the IR and replace each symbolic register with its
      *  allocated physical register.
+     *  <p>
      *  Also used by ClassWriter
+     *
+     *  @param ir the IR to process
      */
     public static void replaceSymbolicRegisters(IR ir) {
       for (Enumeration<Instruction> inst = ir.forwardInstrEnumerator(); inst.hasMoreElements();) {

@@ -25,7 +25,8 @@ public class RegSpillListElement {
   private final Register symbolicReg;
 
   /**
-   * this could be either a spill or a real reg number
+   * This could be either a spill or a real reg number. Spills are stored
+   * as they are. For register numbers, we store the negative value.
    */
   private int value;
 

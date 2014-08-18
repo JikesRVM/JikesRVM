@@ -34,6 +34,8 @@ public abstract class PostThreadSwitch implements BaselineConstants {
    * This method must not be inlined to keep the correctness
    * This method is called at the end of threadSwitch, the caller
    * is threadSwitchFrom&lt;...&gt;
+   *
+   * @param myThread the currently running thread
    */
   @NoInline
   public static void postProcess(RVMThread myThread) {

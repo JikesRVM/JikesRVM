@@ -52,7 +52,6 @@ public interface RegisterConstants {
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final GPR[] vals = values();
 
-    /** Constructor a register with the given encoding value */
     private GPR(int v) {
       if (v != ordinal()) {
         throw new Error("Invalid register ordinal");
@@ -130,7 +129,7 @@ public interface RegisterConstants {
     FP0(0), FP1(1), FP2(2), FP3(3), FP4(4), FP5(5), FP6(6), FP7(7);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final FPR[] vals = values();
-    /** Constructor a register with the given encoding value */
+
     FPR(int v) {
       if (v != ordinal()) {
         throw new Error("Invalid register ordinal");
@@ -165,7 +164,7 @@ public interface RegisterConstants {
     MM8(8), MM9(9), MM10(10), MM11(11), MM12(12), MM13(13), MM14(14), MM15(15);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final MM[] vals = values();
-    /** Constructor a register with the given encoding value */
+
     MM(int v) {
       if (v != ordinal()) {
         throw new Error("Invalid register ordinal");
@@ -204,7 +203,7 @@ public interface RegisterConstants {
     XMM8(8), XMM9(9), XMM10(10), XMM11(11), XMM12(12), XMM13(13), XMM14(14), XMM15(15);
     /** Local copy of the backing array. Copied here to avoid calls to clone */
     private static final XMM[] vals = values();
-    /** Constructor a register with the given encoding value */
+
     XMM(int v) {
       if (v != ordinal()) {
         throw new Error("Invalid register ordinal");

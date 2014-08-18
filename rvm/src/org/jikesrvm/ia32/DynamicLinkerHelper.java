@@ -26,13 +26,14 @@ public abstract class DynamicLinkerHelper {
 
   /**
    * Reach up two stack frames into a frame that is compiled
-   * with the DynamicBridge register protocol and grap
+   * with the DynamicBridge register protocol and grab
    * the receiver object of the invoke (ie the first param).
    * NOTE: assumes that caller has disabled GC.
+   *
+   * @return the receiver object for the method invocation
    */
   @NoInline
   public static Object getReceiverObject() {
-
     Address callingFrame = Magic.getCallerFramePointer(Magic.getFramePointer());
     callingFrame = Magic.getCallerFramePointer(callingFrame);
     Address location = Address.zero();

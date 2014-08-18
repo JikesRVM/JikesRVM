@@ -28,7 +28,9 @@ import org.jikesrvm.compilers.opt.ir.Register;
 public class RegisterAllocatorState {
 
   /**
-   *  Resets the physical register info
+   * Resets the physical register info.
+   *
+   * @param ir the IR whose info is to be reset
    */
   static void resetPhysicalRegisters(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -43,7 +45,7 @@ public class RegisterAllocatorState {
     }
   }
 
-  /**
+  /*
    * Special use of scratchObject field as "resurrect lists" for real registers
    * TODO: use another field for safety; scratchObject is also used by
    *  clan LinearScanLiveAnalysis
@@ -55,7 +57,7 @@ public class RegisterAllocatorState {
     r.scratchObject = li;
   }
   */
-  /**
+  /*
    *
    * Special use of scratchObject field as "resurrect lists" for real registers
    * TODO: use another field for safety; scratchObject is also used by
@@ -67,6 +69,7 @@ public class RegisterAllocatorState {
     return (LinearScanLiveInterval) r.scratchObject;
   }
   */
+
   static void setSpill(Register reg, int spill) {
     reg.spillRegister();
     reg.scratch = spill;
@@ -77,11 +80,14 @@ public class RegisterAllocatorState {
   }
 
   /**
-   * Record that register A and register B are associated with each other
+   * Records that register A and register B are associated with each other
    * in a bijection.<p>
    *
    * The register allocator uses this state to indicate that a symbolic
    * register is presently allocated to a physical register.
+   *
+   * @param A first register
+   * @param B second register
    */
   static void mapOneToOne(Register A, Register B) {
     Register aFriend = getMapping(A);
@@ -97,6 +103,7 @@ public class RegisterAllocatorState {
   }
 
   /**
+   * @param r a register
    * @return the register currently mapped 1-to-1 to r
    */
   static Register getMapping(Register r) {
@@ -104,7 +111,9 @@ public class RegisterAllocatorState {
   }
 
   /**
-   * Clear any 1-to-1 mapping for register R.
+   * Clears any 1-to-1 mapping for a register.
+   *
+   * @param r the register whose mapping is to be cleared
    */
   static void clearOneToOne(Register r) {
     if (r != null) {

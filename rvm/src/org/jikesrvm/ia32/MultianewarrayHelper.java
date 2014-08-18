@@ -42,6 +42,8 @@ public abstract class MultianewarrayHelper {
    * be allocated for each dimension.
    *
    * See also: bytecode 0xc5 ("multianewarray") in BaselineCompilerImpl
+   *
+   * @return newly allocated multidimensional array
    */
   @Entrypoint
   static Object newArrayArray(int methodId, int numDimensions, int typeId, int argOffset)

@@ -223,6 +223,8 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *   artificial stackframe created and destroyed
    *   volatile, and scratch registers destroyed
    * </pre>
+   *
+   * @return instructions for the reflective method invoker
    */
   private static ArchitectureSpecific.CodeArray generateReflectiveMethodInvokerInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(100);
@@ -463,6 +465,8 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *    S0, T1 destroyed
    *    Thread state stored into Registers object
    * </pre>
+   *
+   * @return instructions for saving the thread state
    */
   private static ArchitectureSpecific.CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) {
@@ -518,6 +522,8 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    * The key here is to preserve register and stack state so that
    * the caller is oblivious of the detour that occurred during
    * the return.
+   *
+   * @return instructions for the stack trampoline bridge
    */
   private static ArchitectureSpecific.CodeArray generateStackTrampolineBridgeInstructions() {
     if (VM.VerifyAssertions) {
@@ -579,6 +585,8 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *    restores new thread's Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's Registers ip field
    * </pre>
+   *
+   * @return instructions for doing a thread switch
    */
   private static ArchitectureSpecific.CodeArray generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) {
@@ -674,6 +682,8 @@ public abstract class OutOfLineMachineCode implements BaselineConstants {
    *    all registers are restored except THREAD_REGISTER and EFLAGS;
    *    execution resumes at "registers.ip"
    * </pre>
+   *
+   * @return instructions to restore the hardware exception state
    */
   private static ArchitectureSpecific.CodeArray generateRestoreHardwareExceptionStateInstructions() {
     Assembler asm = new ArchitectureSpecific.Assembler(0);

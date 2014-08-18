@@ -496,9 +496,6 @@ public class OptimizationPlanner {
     addComponent(p, new OptimizationPlanAtomicElement(e));
   }
 
-  /**
-   * Add an optimization plan element to a vector.
-   */
   protected static void addComponent(ArrayList<OptimizationPlanElement> p, OptimizationPlanElement e) {
     p.add(e);
   }

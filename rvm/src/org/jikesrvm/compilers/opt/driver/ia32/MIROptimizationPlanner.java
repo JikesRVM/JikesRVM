@@ -39,7 +39,9 @@ import org.jikesrvm.compilers.opt.regalloc.ia32.MIRSplitRanges;
 public class MIROptimizationPlanner extends OptimizationPlanner {
 
   /**
-   * Initialize the "master plan" for the IA32 backend of the opt compiler.
+   * Initializes the "master plan" for the IA32 backend of the opt compiler.
+   *
+   * @param temp the list that will be used for holding the plan
    */
   public static void intializeMasterPlan(ArrayList<OptimizationPlanElement> temp) {
     LIR2MIR(temp);

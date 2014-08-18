@@ -113,21 +113,21 @@ public abstract class Registers implements RegisterConstants {
   }
 
   /**
-   * Return framepointer for the deepest stackframe
+   * @return framepointer for the deepest stackframe
    */
   public final Address getInnermostFramePointer() {
     return fp;
   }
 
   /**
-   * Return next instruction address for the deepest stackframe
+   * @return next instruction address for the deepest stackframe
    */
   public final Address getInnermostInstructionAddress() {
     return ip;
   }
 
   /**
-   * update the machine state as if the stackframe were unwound.
+   * Updates the machine state as if the stackframe were unwound.
    */
   public final void unwindStackFrame() {
     ip = Magic.getReturnAddress(fp, RVMThread.getCurrentThread());
@@ -135,9 +135,12 @@ public abstract class Registers implements RegisterConstants {
   }
 
   /**
-   * set ip &amp; fp. used to control the stack frame at which a scan of
+   * Sets ip &amp; fp. used to control the stack frame at which a scan of
    * the stack during GC will start, for ex., the top java frame for
    * a thread that is blocked in native code during GC.
+   *
+   * @param newip the new instruction pointer
+   * @param newfp the new frame pointer
    */
   public final void setInnermost(Address newip, Address newfp) {
     ip = newip;

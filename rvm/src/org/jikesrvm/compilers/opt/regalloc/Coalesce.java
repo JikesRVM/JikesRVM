@@ -46,9 +46,9 @@ class Coalesce {
    *
    * @param ir the governing IR
    * @param live liveness information for the IR
-   * @param r1
-   * @param r2
-   * @return true if the transformation succeeded, false otherwise.
+   * @param r1 the register that is the target of coalescing (i.e. the one that will remain)
+   * @param r2 the register that we want to coalesce (i.e. the one that will be "removed")
+   * @return {@code true} if the transformation succeeded, {@code false} otherwise.
    */
   public static boolean attempt(IR ir, LiveAnalysis live, Register r1, Register r2) {
 
@@ -91,6 +91,12 @@ class Coalesce {
    *
    * <p> Note: this implementation is not efficient.  The liveness data
    * structures must be re-designed to support this efficiently.
+   *
+   * @param r1 the register that is checked for liveness
+   * @param r2 the register whose defs are checked against liveness
+   * @param live live analysis phase
+   * @return {@code true} if the register is live at any point where the other
+   *  register is defined
    */
   private static boolean isLiveAtDef(Register r1, Register r2, LiveAnalysis live) {
 
@@ -116,6 +122,11 @@ class Coalesce {
 
   /**
    * Is there an instruction r1 = split r2 or r2 = split r1??
+   *
+   * @param r1 a register
+   * @param r2 another register
+   * @return {@code true} if there's an operation that's a split and
+   *  has occurrences of both registers
    */
   private static boolean split(Register r1, Register r2) {
     for (Enumeration<RegisterOperand> e = DefUse.defs(r1); e.hasMoreElements();) {

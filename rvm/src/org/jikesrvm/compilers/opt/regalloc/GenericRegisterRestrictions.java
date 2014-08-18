@@ -43,34 +43,26 @@ public abstract class GenericRegisterRestrictions {
 
   protected final PhysicalRegisterSet phys;
 
-  /**
-   * Default Constructor
-   */
   protected GenericRegisterRestrictions(PhysicalRegisterSet phys) {
     this.phys = phys;
   }
 
-  /**
-   * Record that the register allocator must not spill a symbolic
-   * register.
-   */
   protected final void noteMustNotSpill(Register r) {
     noSpill.add(r);
   }
 
-  /**
-   * Is spilling a register forbidden?
-   */
   public final boolean mustNotSpill(Register r) {
     return noSpill.contains(r);
   }
 
   /**
-   * Record all the register restrictions dictated by an IR.
+   * Records all the register restrictions dictated by an IR.
    *
    * PRECONDITION: the instructions in each basic block are numbered in
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
+   *
+   * @param ir the IR to process
    */
   public final void init(IR ir) {
     // process each basic block
@@ -81,12 +73,14 @@ public abstract class GenericRegisterRestrictions {
   }
 
   /**
-   * Record all the register restrictions dictated by live ranges on a
+   * Records all the register restrictions dictated by live ranges on a
    * particular basic block.<p>
    *
    * PRECONDITION: the instructions in each basic block are numbered in
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
+   *
+   * @param bb the bb to process
    */
   private void processBlock(BasicBlock bb) {
     ArrayList<LiveIntervalElement> symbolic = new ArrayList<LiveIntervalElement>(20);
@@ -165,6 +159,12 @@ public abstract class GenericRegisterRestrictions {
    * PRECONDITION: the instructions in each basic block are numbered in
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
+   *
+   * @param R the live range
+   * @param n the instruction number
+   *
+   * @return {@code true} if and only if the live range contains an instruction
+   *  with the given number
    */
   protected final boolean contains(LiveIntervalElement R, int n) {
     int begin = -1;
@@ -185,6 +185,10 @@ public abstract class GenericRegisterRestrictions {
    * PRECONDITION: the instructions in each basic block are numbered in
    * increasing order before calling this.  The number for each
    * instruction is stored in its <code>scratch</code> field.
+   *
+   * @param li1 first live range
+   * @param li2 second live range
+   * @return {@code true} if and only if the live ranges overlap
    */
   private boolean overlaps(LiveIntervalElement li1, LiveIntervalElement li2) {
     // Under the following conditions: the live ranges do NOT overlap:
@@ -216,8 +220,11 @@ public abstract class GenericRegisterRestrictions {
   }
 
   /**
-   * Record that it is illegal to assign a symbolic register symb to any
-   * volatile physical registers
+   * Records that it is illegal to assign a symbolic register symb to any
+   * volatile physical registerss.
+   *
+   * @param symb the register that must not be assigned to a volatile
+   *  physical register
    */
   final void forbidAllVolatiles(Register symb) {
     RestrictedRegisterSet r = hash.get(symb);
@@ -229,8 +236,12 @@ public abstract class GenericRegisterRestrictions {
   }
 
   /**
-   * Record that it is illegal to assign a symbolic register symb to any
-   * of a set of physical registers
+   * Records that it is illegal to assign a symbolic register symb to any
+   * of a set of physical registers.
+   *
+   * @param symb the symbolic register to be restricted
+   * @param set the physical registers that the symbolic register
+   *  must not be assigned to
    */
   protected final void addRestrictions(Register symb, BitSet set) {
     RestrictedRegisterSet r = hash.get(symb);
@@ -242,8 +253,12 @@ public abstract class GenericRegisterRestrictions {
   }
 
   /**
-   * Record that it is illegal to assign a symbolic register symb to a
-   * physical register p
+   * Record thats it is illegal to assign a symbolic register symb to a
+   * physical register p.
+   *
+   * @param symb the symbolic register to be restricted
+   * @param p the physical register that the symbolic register
+   *  must not be assigned to
    */
   protected final void addRestriction(Register symb, Register p) {
     RestrictedRegisterSet r = hash.get(symb);
@@ -255,8 +270,9 @@ public abstract class GenericRegisterRestrictions {
   }
 
   /**
-   * Return the set of restricted physical register for a given symbolic
-   * register. Return {@code null} if no restrictions.
+   * @param symb the register whose restrictions where interested in
+   * @return the set of restricted physical register for a given symbolic
+   * register, {@code null} if no restrictions.
    */
   final RestrictedRegisterSet getRestrictions(Register symb) {
     return hash.get(symb);
@@ -265,6 +281,7 @@ public abstract class GenericRegisterRestrictions {
   /**
    * Is it forbidden to assign symbolic register symb to any volatile
    * register?
+   * @param symb symbolic register to check
    * @return {@code true}: yes, all volatiles are forbidden.
    *         {@code false} :maybe, maybe not
    */
@@ -280,6 +297,10 @@ public abstract class GenericRegisterRestrictions {
   /**
    * Is it forbidden to assign symbolic register symb to physical register
    * phys?
+   *
+   * @param symb a symbolic register
+   * @param phys a physical register
+   * @return {@code true} if it's forbidden, false otherwise
    */
   public final boolean isForbidden(Register symb, Register phys) {
     if (VM.VerifyAssertions) {
@@ -294,6 +315,11 @@ public abstract class GenericRegisterRestrictions {
   /**
    * Is it forbidden to assign symbolic register symb to physical register r
    * in instruction s?
+   *
+   * @param symb a symbolic register
+   * @param r a physical register
+   * @param s the instruction that's the scope for the check
+   * @return {@code true} if it's forbidden, false otherwise
    */
   public abstract boolean isForbidden(Register symb, Register r, Instruction s);
 
@@ -316,30 +342,18 @@ public abstract class GenericRegisterRestrictions {
 
     void setNoVolatiles() { noVolatiles = true; }
 
-    /**
-     * Default constructor
-     */
     RestrictedRegisterSet(PhysicalRegisterSet phys) {
       bitset = new BitSet(phys);
     }
 
-    /**
-     * Add a particular physical register to the set.
-     */
     void add(Register r) {
       bitset.add(r);
     }
 
-    /**
-     * Add a set of physical registers to this set.
-     */
     void addAll(BitSet set) {
       bitset.addAll(set);
     }
 
-    /**
-     * Does this set contain a particular register?
-     */
     boolean contains(Register r) {
       if (r.isVolatile() && noVolatiles) {
         return true;

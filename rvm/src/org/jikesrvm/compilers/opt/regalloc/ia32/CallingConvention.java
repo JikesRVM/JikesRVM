@@ -80,8 +80,10 @@ public abstract class CallingConvention extends IRTools
   private static final int WORDSIZE = BYTES_IN_ADDRESS;
 
   /**
-   * Expand calling conventions to make physical registers explicit in the
+   * Expands calling conventions to make physical registers explicit in the
    * IR when required for calls, returns, and the prologue.
+   *
+   * @param ir the governing IR
    */
   public static void expandCallingConventions(IR ir) {
     // expand each call and return instruction
@@ -99,7 +101,10 @@ public abstract class CallingConvention extends IRTools
   }
 
   /**
-   * Expand the calling convention for a particular call instruction
+   * Expands the calling convention for a particular call instruction.
+   *
+   * @param call the call instruction
+   * @param ir the IR that contains the call instruction
    */
   private static void callExpand(Instruction call, IR ir) {
     boolean isSysCall = call.operator() == IA32_SYSCALL;
@@ -144,7 +149,10 @@ public abstract class CallingConvention extends IRTools
   }
 
   /**
-   * Expand the calling convention for a particular return instruction
+   * Expands the calling convention for a particular return instruction.
+   *
+   * @param ret the return instruction
+   * @param ir the IR that contains the return instruction
    */
   private static void returnExpand(Instruction ret, IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -207,6 +215,10 @@ public abstract class CallingConvention extends IRTools
    * Explicitly copy the result of a call instruction from the result
    * register to the appropriate symbolic register,
    * as defined by the calling convention.
+   *
+   * @param call the call instruction
+   * @param isSysCall whether the call is a SysCall
+   * @param ir the IR that contains the call
    */
   private static void expandResultOfCall(Instruction call, boolean isSysCall, IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -273,6 +285,10 @@ public abstract class CallingConvention extends IRTools
    *
    * Note: Assumes that ESP points to the word before the slot where the
    * first parameter should be stored.
+   *
+   * @param call the call instruction
+   * @param ir the IR that contains the call
+   * @return number of bytes necessary to hold the parameters
    */
   private static int expandParametersToCall(Instruction call, IR ir) {
     int nGPRParams = 0;
@@ -368,6 +384,7 @@ public abstract class CallingConvention extends IRTools
    * IA32_CALL.
    *
    * @param call the sys call
+   * @param ir the IR that contains the call
    */
   public static void saveNonvolatilesAroundSysCall(Instruction call, IR ir) {
     saveNonvolatilesBeforeSysCall(call, ir);
@@ -385,6 +402,7 @@ public abstract class CallingConvention extends IRTools
    * you're making a system call, you probably don't care.
    *
    * @param call the sys call
+   * @param ir the IR that contains the call
    */
   static void saveNonvolatilesBeforeSysCall(Instruction call, IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -417,6 +435,7 @@ public abstract class CallingConvention extends IRTools
    * you're making a system call, you probably don't care.
    *
    * @param call the sys call
+   * @param ir the IR that contains the call
    */
   static void restoreNonvolatilesAfterSysCall(Instruction call, IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -451,6 +470,9 @@ public abstract class CallingConvention extends IRTools
    * TODO: much of this code is exactly the same as in expandParametersToCall().
    *       factor out the common code.
    *
+   * @param call the call instruction
+   * @param ir the IR that contains the call
+   * @return the number of bytes necessary to hold the parameters
    */
   private static int expandParametersToSysCall(Instruction call, IR ir) {
     int nGPRParams = 0;
@@ -496,6 +518,8 @@ public abstract class CallingConvention extends IRTools
    * spills, allocate space on the stack in preparation.<p>
    *
    * For now, we naively save/restore all nonvolatiles.
+   *
+   * @param ir the governing IR
    */
   public static void allocateSpaceForSysCall(IR ir) {
     StackManager sm = (StackManager) ir.stackManager;
@@ -509,6 +533,9 @@ public abstract class CallingConvention extends IRTools
   /**
    * Calling convention to implement calls to native (C) routines
    * using the Linux linkage conventions.<p>
+   *
+   * @param s the call instruction
+   * @param ir the IR that contains the call
    */
   public static void expandSysCall(Instruction s, IR ir) {
     Operand ip = Call.getClearAddress(s);
@@ -532,9 +559,6 @@ public abstract class CallingConvention extends IRTools
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
   }
 
-  /**
-   * Count the number of FPR parameters in a call instruction.
-   */
   private static int countFPRParams(Instruction call) {
     int result = 0;
     // walk over the parameters
@@ -551,9 +575,6 @@ public abstract class CallingConvention extends IRTools
     return result;
   }
 
-  /**
-   * Count the number of FPR parameters in a prologue instruction.
-   */
   private static int countFPRParamsInPrologue(Instruction p) {
     int result = 0;
     // walk over the parameters
@@ -569,9 +590,6 @@ public abstract class CallingConvention extends IRTools
     return result;
   }
 
-  /**
-   * Expand the prologue instruction.
-   */
   private static void expandPrologue(IR ir) {
     boolean useDU = ir.options.getOptLevel() >= 1;
     if (useDU) {

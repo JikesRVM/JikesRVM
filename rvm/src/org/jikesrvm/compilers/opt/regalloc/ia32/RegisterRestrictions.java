@@ -115,9 +115,6 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
    */
   public static final boolean SCRATCH_IN_PEI = true;
 
-  /**
-   * Default Constructor
-   */
   protected RegisterRestrictions(PhysicalRegisterSet phys) {
     super(phys);
   }
@@ -202,7 +199,8 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   }
 
   /**
-   * Does instruction s contain an 8-bit memory operand?
+   * @param s the instruction to check
+   * @return {@code true} if and only if the instruction contains an 8-bit memory operand
    */
   final boolean has8BitMemoryOperand(Instruction s) {
     for (Enumeration<Operand> me = s.getMemoryOperands(); me.hasMoreElements();) {
@@ -234,8 +232,10 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   }
 
   /**
-   * Ensure that a particular register is only assigned to AL, BL, CL, or
+   * Ensures that a particular register is only assigned to AL, BL, CL, or
    * DL, since these are the only 8-bit registers we normally address.
+   *
+   * @param r the register that needs to be restricted to 8 bits
    */
   final void restrictTo8Bits(Register r) {
     Register ESP = phys.getESP();
@@ -251,6 +251,12 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   /**
    * Given symbolic register r that appears in instruction s, does the
    * architecture demand that r be assigned to a physical register in s?
+   *
+   * @param r a symbolic register
+   * @param s instruction where the register appears
+   *
+   * @return {@code true} if the symbolic register r must use a physical
+   *  register in the instruction, {@code false} if we can use a spill location
    */
   public static boolean mustBeInRegister(Register r, Instruction s) {
     switch (s.getOpcode()) {
@@ -422,7 +428,8 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   }
 
   /**
-   * Can physical register r hold an 8-bit value?
+   * @param r the register to check
+   * @return {@code true} if the physical register r hold an 8-bit value?
    */
   private boolean okFor8(Register r) {
     Register ESP = phys.getESP();

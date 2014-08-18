@@ -29,11 +29,14 @@ import org.vmmagic.unboxed.WordArray;
 public abstract class MachineReflection implements RegisterConstants {
 
   /**
-   * Determine number/type of registers and parameters required to
+   * Determines number/type of registers and parameters required to
    * call specified method.
    * Unlike the PowerPC code we count all the parameters, not just the
    * ones that spill.  This allow us to make enough space on the stack
    * following the calling convention.
+   *
+   * @param method the method whose parameters to count
+   * @return number of parameters, gprs and frps encoded in a triple
    */
   public static int countParameters(RVMMethod method) {
     int GPRs = 0;
@@ -90,8 +93,19 @@ public abstract class MachineReflection implements RegisterConstants {
   }
 
   /**
-   * Collect parameters into arrays of registers/spills, as required to
+   * Collects parameters into arrays of registers/spills, as required to
    * call specified method.
+   *
+   * @param method method whose parameters are to be packaged
+   * @param thisArg the receiver argument
+   * @param otherArgs all other arguments (primitives are boxed)
+   * @param GPRs space for GPRs (empty array if none needed)
+   * @param FPRs space for FPRs (empty array if none needed)
+   * @param FPRmeta meta-data for FPRs ({@code null} if no SSE2)
+   * @param Parameters more space for parameters. Refer to the source code
+   *  to get all the details.
+   *
+   * @see #countParameters(RVMMethod) more machine-specific details
    */
   @UnpreemptibleNoWarn("GC is disabled as Objects are turned into Words."+
     "avoid preemption but still allow calls to preemptible unboxing routines")

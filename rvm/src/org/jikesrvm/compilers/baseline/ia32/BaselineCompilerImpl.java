@@ -134,9 +134,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     return (short)-offset;
   }
 
-  /**
-   * The last true local
-   */
   @Uninterruptible
   public static int getEmptyStackOffset(NormalMethod m) {
     return getFirstLocalOffset(m) - (m.getLocalWords() << LG_WORDSIZE) + WORDSIZE;
@@ -146,6 +143,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * This is misnamed.  It should be getFirstParameterOffset.
    * It will not work as a base to access true locals.
    * TODO!! make sure it is not being used incorrectly
+   *
+   * @param method the method in question
+   *
+   * @return offset of first parameter
    */
   @Uninterruptible
   private static int getFirstLocalOffset(NormalMethod method) {
@@ -230,6 +231,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * Move a value from the stack into a register using the shortest encoding and
    * the appropriate width for 32/64
    *
+   * @param asm the assembler instance
    * @param dest register to load into
    * @param off offset on stack
    */
@@ -257,14 +259,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    * Misc routines not directly tied to a particular bytecode
    */
 
-  /**
-   * Utility to call baselineEmitLoadTIB with int arguments not GPR
-   */
   static void baselineEmitLoadTIB(org.jikesrvm.ArchitectureSpecific.Assembler asm, GPR dest, GPR object) {
     ObjectModel.baselineEmitLoadTIB(asm, dest.value(), object.value());
   }
+
   /**
-   * Notify BaselineCompilerImpl that we are starting code generation for the bytecode biStart
+   * Nothing to do on IA32.
    */
   @Override
   protected final void starting_bytecode() {}
@@ -3554,8 +3554,11 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /**
-   * Emit a conditional branch on the given condition and bytecode target.
+   * Emits a conditional branch on the given condition and bytecode target.
    * The caller has just emitted the instruction sequence to set the condition codes.
+   *
+   * @param cond condition byte
+   * @param bTarget target bytecode index
    */
   private void genCondBranch(byte cond, int bTarget) {
     int mTarget = bytecodeMap[bTarget];
@@ -3721,10 +3724,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /**
-   * Store parameters into local space of the callee's stackframe.
-   * Taken: srcOffset - offset from frame pointer of first parameter in caller's stackframe.
+   * Stores parameters into local space of the callee's stackframe.
+   * <p>
    * Assumption: although some parameters may be passed in registers,
    * space for all parameters is laid out in order on the caller's stackframe.
+   *
+   * @param srcOffset offset from frame pointer of first parameter in caller's stackframe.
    */
   private void genParameterCopy(Offset srcOffset) {
     int gpr = 0;  // number of general purpose registers unloaded
@@ -3854,7 +3859,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /**
-   * Push return value of method from register to operand stack.
+   * Pushes return value of method from register to operand stack.
+   *
+   * @param m the method whose return value is to be pushed
    */
   private void genResultRegisterUnload(MethodReference m) {
     TypeReference t = m.getReturnType();
@@ -4157,7 +4164,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /**
-   * Offset of Java local variable (off stack pointer)
+   * @param local index of local
+   * @return offset of Java local variable (off stack pointer)
    * assuming ESP is still positioned as it was at the
    * start of the current bytecode (biStart)
    */
@@ -4166,9 +4174,12 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   }
 
   /**
-   * Translate a FP offset into an SP offset
+   * Translates a FP offset into an SP offset
    * assuming ESP is still positioned as it was at the
-   * start of the current bytecode (biStart)
+   * start of the current bytecode (biStart).
+   *
+   * @param offset the FP offset
+   * @return the SP offset
    */
   private Offset fp2spOffset(Offset offset) {
     int offsetToFrameHead = (stackHeights[biStart] << LG_WORDSIZE) - firstLocalOffset;

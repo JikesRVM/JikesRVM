@@ -158,6 +158,9 @@ public abstract class CompilerPhase {
   /**
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
+   *
+   * @param klass the compiler phase to construct
+   * @return a no-argument constructor for the compiler phase
    */
   protected static Constructor<CompilerPhase> getCompilerPhaseConstructor(Class<? extends CompilerPhase> klass) {
     return getCompilerPhaseConstructor(klass, null);
@@ -166,6 +169,10 @@ public abstract class CompilerPhase {
   /**
    * Given the name of a compiler phase return the default (no
    * argument) constructor for it.
+   *
+   * @param phaseType the class for the compiler phase
+   * @param initTypes the argument types for the constructor
+   * @return a constructor for the compiler phase
    */
   protected static Constructor<CompilerPhase> getCompilerPhaseConstructor(Class<? extends CompilerPhase> phaseType,
                                                                               Class<?>[] initTypes) {
@@ -179,9 +186,6 @@ public abstract class CompilerPhase {
     }
   }
 
-  /**
-   * Set the containing optimization plan element for this phase
-   */
   public final void setContainer(OptimizationPlanAtomicElement atomEl) {
     container = atomEl;
   }

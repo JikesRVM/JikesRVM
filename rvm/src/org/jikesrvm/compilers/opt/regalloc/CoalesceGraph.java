@@ -41,9 +41,6 @@ class CoalesceGraph extends SpaceEffGraph {
    */
   final HashMap<Register, Node> nodeMap = new HashMap<Register, Node>();
 
-  /**
-   * find or create a node in the graph corresponding to a register.
-   */
   private Node findOrCreateNode(Register r) {
     Node n = nodeMap.get(r);
     if (n == null) {
@@ -54,16 +51,10 @@ class CoalesceGraph extends SpaceEffGraph {
     return n;
   }
 
-  /**
-   * Find the node corresponding to a regsiter.
-   */
   Node findNode(Register r) {
     return nodeMap.get(r);
   }
 
-  /**
-   * find or create an edge in the graph
-   */
   private Edge findOrCreateEdge(Node src, Node dest) {
     Edge edge = null;
     for (GraphEdgeEnumeration<GraphEdge> e = src.outEdges(); e.hasMoreElements();) {
@@ -80,9 +71,6 @@ class CoalesceGraph extends SpaceEffGraph {
     return edge;
   }
 
-  /**
-   * Add an affinity of weight w between registers r1 and r2
-   */
   void addAffinity(int w, Register r1, Register r2) {
     Node src;
     Node dest;

@@ -113,10 +113,9 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Return the size of a type of value, in bytes.
-   * NOTE: For the purpose of register allocation, an x87 FLOAT_VALUE is 64 bits!
-   *
    * @param type one of INT_VALUE, FLOAT_VALUE, or DOUBLE_VALUE
+   * @return the size of a type of value, in bytes.
+   * NOTE: For the purpose of register allocation, an x87 FLOAT_VALUE is 64 bits!
    */
   private static byte getSizeOfType(byte type) {
     switch (type) {
@@ -133,9 +132,8 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Return the move operator for a type of value.
-   *
    * @param type one of INT_VALUE, FLOAT_VALUE, or DOUBLE_VALUE
+   * @return the move operator for a type of value.
    */
   private static Operator getMoveOperator(byte type) {
     switch (type) {
@@ -649,9 +647,6 @@ public abstract class StackManager extends GenericStackManager {
     s.replaceOperand(symb, M);
   }
 
-  /**
-   * Does a memory operand hold a symbolic register?
-   */
   private boolean hasSymbolicRegister(MemoryOperand M) {
     if (M.base != null && !M.base.getRegister().isPhysical()) return true;
     if (M.index != null && !M.index.getRegister().isPhysical()) return true;
@@ -659,8 +654,9 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Is s a MOVE instruction that can be generated without resorting to
-   * scratch registers?
+   * @param s the instruction to check
+   * @return {@code true} if and only if the instruction is a MOVE instruction
+   *  that can be generated without resorting to scratch registers
    */
   private boolean isScratchFreeMove(Instruction s) {
     if (s.operator() != IA32_MOV) return false;
@@ -727,6 +723,9 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Before instruction s, insert code to adjust ESP so that it lies at a
    * particular offset from its usual location.
+   *
+   * @param s the instruction before which ESP must have the desired offset
+   * @param desiredOffset the desired offset
    */
   private void moveESPBefore(Instruction s, int desiredOffset) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -762,7 +761,8 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Attempt to rewrite a move instruction to a NOP.
    *
-   * @return true iff the transformation applies
+   * @param s the instruction to rewrite
+   * @return {@code true} if and only if the transformation applies
    */
   private boolean mutateMoveToNop(Instruction s) {
     Operand result = MIR_Move.getResult(s);
@@ -777,9 +777,11 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Rewrite a move instruction if it has 2 memory operands.
+   * Rewrites a move instruction if it has 2 memory operands.
    * One of the 2 memory operands must be a stack location operand.  Move
    * the SP to the appropriate location and use a push or pop instruction.
+   *
+   * @param s the instruction to rewrite
    */
   private void rewriteMoveInstruction(Instruction s) {
     // first attempt to mutate the move into a noop
@@ -808,7 +810,7 @@ public abstract class StackManager extends GenericStackManager {
   }
 
   /**
-   * Walk through the IR.  For each StackLocationOperand, replace the
+   * Walks through the IR.  For each StackLocationOperand, replace the
    * operand with the appropriate MemoryOperand.
    */
   private void rewriteStackLocations() {
@@ -1002,6 +1004,8 @@ public abstract class StackManager extends GenericStackManager {
   /**
    * Initialize some architecture-specific state needed for register
    * allocation.
+   *
+   * @param ir the IR that's being processed
    */
   @Override
   public void initForArch(IR ir) {

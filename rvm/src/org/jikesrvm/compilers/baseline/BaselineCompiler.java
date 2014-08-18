@@ -112,7 +112,7 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
 
   /**
    * Process a command line argument
-   * @param prefix
+   * @param prefix the argument's prefix
    * @param arg     Command line argument with prefix stripped off
    */
   public static void processCommandLineArg(String prefix, String arg) {

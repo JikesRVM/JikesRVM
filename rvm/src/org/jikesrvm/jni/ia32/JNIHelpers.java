@@ -40,8 +40,13 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
   /**
    * Common code shared by the JNI functions NewObjectA, NewObjectV, NewObject
    * (object creation)
+   * @param cls class whose constructor is to be invoked
    * @param methodID the method ID for a constructor
+   * @param argAddress where to find the arguments for the constructor
+   * @param isJvalue {@code true} if parameters are passed as a jvalue array
+   * @param isDotDotStyle {@code true} if the method uses varargs
    * @return a new object created by the specified constructor
+   * @throws Exception when the reflective invocation of the constructor fails
    */
   public static Object invokeInitializer(Class<?> cls, int methodID, Address argAddress, boolean isJvalue,
                                          boolean isDotDotStyle) throws Exception {
@@ -82,6 +87,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    * @param methodID the method ID
    * @param expectReturnType the return type of the method to be invoked
    * @return an object that may be the return object or a wrapper for the primitive return value
+   * @throws Exception if the return type doesn't match the expected return type
    */
   @NoInline
   @NoOptCompile
@@ -100,6 +106,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    * @param skip4Args  true if the calling JNI Function takes 4 args before the vararg
    *                   false if the calling JNI Function takes 3 args before the vararg
    * @return an object that may be the return object or a wrapper for the primitive return value
+   * @throws Exception if the return type doesn't match the expected return type
    */
   @NoInline
   @NoOptCompile
@@ -194,7 +201,9 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    * Common code shared by the JNI functions CallStatic&lt;type&gt;MethodV
    * @param methodID the method ID
    * @param argAddress a raw address for the variable argument list
+   * @param expectReturnType the return type of the method to be invoked
    * @return an object that may be the return object or a wrapper for the primitive return value
+   * @throws Exception if the return type doesn't match the expected return type
    */
   public static Object invokeWithVarArg(int methodID, Address argAddress, TypeReference expectReturnType)
       throws Exception {
@@ -209,6 +218,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value
+   * @throws Exception if the return type doesn't match the expected return type
    */
   public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
                                         boolean skip4Args) throws Exception {
@@ -219,7 +229,9 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    * Common code shared by the JNI functions CallStatic&lt;type&gt;MethodA
    * @param methodID id of MemberReference
    * @param argAddress a raw address for the argument array
+   * @param expectReturnType the return type of the method to be invoked
    * @return an object that may be the return object or a wrapper for the primitive return value
+   * @throws Exception if the return type doesn't match the expected return type
    */
   public static Object invokeWithJValue(int methodID, Address argAddress, TypeReference expectReturnType)
       throws Exception {
@@ -234,6 +246,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    * @param expectReturnType the return type for checking purpose
    * @param skip4Args received from the JNI function, passed on to Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value
+   * @throws Exception if the return type doesn't match the expected return type
    */
   public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, TypeReference expectReturnType,
                                         boolean skip4Args) throws Exception {
@@ -255,6 +268,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers {
    * @param isVarArg  This flag describes whether the array of parameters is in var arg format or
    *                  jvalue format
    * @return an object that may be the return object or a wrapper for the primitive return value
+   * @throws Exception if the return type doesn't match the expected return type
    */
   @NoInline
   @NoOptCompile

@@ -82,6 +82,10 @@ class SimpleSpillCost extends SpillCostEstimator {
    *
    * NOTE: This is pretty intel-specific.
    * TODO Refactor to arch/ tree.
+   *
+   * @param s the instruction to examine
+   * @return {@code true} if and only if the instruction has such a memory
+   *   operand
    */
   static boolean hasBadSizeMemoryOperand(Instruction s) {
     for (Enumeration<Operand> e = s.getMemoryOperands(); e.hasMoreElements();) {
