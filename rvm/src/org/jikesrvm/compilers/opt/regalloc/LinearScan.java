@@ -28,7 +28,6 @@ import java.util.TreeSet;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
-import org.jikesrvm.ArchitectureSpecificOpt.StackManager;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -2504,7 +2503,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
 
       // Generate spill code if necessary
       if (ir.hasSysCall() || ir.MIRInfo.linearScanState.spilledSomething) {
-        StackManager stackMan = (StackManager) ir.stackManager;
+        GenericStackManager stackMan = ir.stackManager;
         stackMan.insertSpillCode(ir.MIRInfo.linearScanState.active);
         //      stackMan.insertSpillCode();
       }
