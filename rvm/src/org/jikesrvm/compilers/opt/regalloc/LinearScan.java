@@ -537,7 +537,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      *
      * @param r a register
      */
-    CompoundInterval(Register r) {
+    protected CompoundInterval(Register r) {
       reg = r;
     }
 
