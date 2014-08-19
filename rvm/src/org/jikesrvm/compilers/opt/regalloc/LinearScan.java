@@ -307,14 +307,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      */
     @Override
     public void perform(IR ir) {
-
       this.ir = ir;
-
-      //  The registerManager has already been initialized
-      //GenericStackManager sm = ir.stackManager;
-
-      // Get register restrictions
-      // RegisterRestrictions restrict = sm.getRestrictions(); - unused
 
       // Create the object that manages spill locations
       spillManager = new SpillLocationManager(ir);
@@ -2505,7 +2498,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       if (ir.hasSysCall() || ir.MIRInfo.linearScanState.spilledSomething) {
         GenericStackManager stackMan = ir.stackManager;
         stackMan.insertSpillCode(ir.MIRInfo.linearScanState.active);
-        //      stackMan.insertSpillCode();
       }
 
       if (VM.BuildForIA32 && !VM.BuildForSSE2Full) {
