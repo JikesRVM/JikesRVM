@@ -740,26 +740,26 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      * PRECONDITION: all basic intervals in i must appear in this compound
      * interval, unless they end after the end of this interval
      *
-     * @param i other interval to check for intervals that we want to remove
+     * @param other interval to check for intervals that we want to remove
      *  from this
      * @return the basic intervals that were removed
      */
-    CompoundInterval removeIntervalsAndCache(CompoundInterval i) {
-      CompoundInterval result = new CompoundInterval(i.getRegister());
+    CompoundInterval removeIntervalsAndCache(CompoundInterval other) {
+      CompoundInterval result = new CompoundInterval(other.getRegister());
       Iterator<BasicInterval> myIterator = iterator();
-      Iterator<BasicInterval> otherIterator = i.iterator();
+      Iterator<BasicInterval> otherIterator = other.iterator();
       BasicInterval current = myIterator.hasNext() ? myIterator.next() : null;
-      BasicInterval currentI = otherIterator.hasNext() ? otherIterator.next() : null;
+      BasicInterval otherCurrent = otherIterator.hasNext() ? otherIterator.next() : null;
 
-      while (currentI != null && current != null) {
-        if (current.startsBefore(currentI)) {
+      while (otherCurrent != null && current != null) {
+        if (current.startsBefore(otherCurrent)) {
           current = myIterator.hasNext() ? myIterator.next() : null;
-        } else if (currentI.startsBefore(current)) {
-          currentI = otherIterator.hasNext() ? otherIterator.next() : null;
+        } else if (otherCurrent.startsBefore(current)) {
+          otherCurrent = otherIterator.hasNext() ? otherIterator.next() : null;
         } else {
-          if (VM.VerifyAssertions) VM._assert(current.sameRange(currentI));
+          if (VM.VerifyAssertions) VM._assert(current.sameRange(otherCurrent));
 
-          currentI = otherIterator.hasNext() ? otherIterator.next() : null;
+          otherCurrent = otherIterator.hasNext() ? otherIterator.next() : null;
           BasicInterval next = myIterator.hasNext() ? myIterator.next() : null;
           // add the interval to the cache
           result.add(current);
