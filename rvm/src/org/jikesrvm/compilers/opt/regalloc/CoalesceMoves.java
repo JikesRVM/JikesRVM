@@ -71,6 +71,11 @@ public class CoalesceMoves extends CompilerPhase {
     LiveAnalysis live = new LiveAnalysis(false /* GC Maps */, false /* don't skip local
                                                          propagation */);
     live.perform(ir);
+    // TODO: As of August 2014, we're  saving the live analysis results in the
+    // LiveAnalysis instances. This means that we need to retain the compiler
+    // phase object even if we're only interested in the analysis results.
+    // We ought to save the results via the IR object so that we can throw away
+    // the phase object once it has performed its work.
 
     // Compute def-use information.
     DefUse.computeDU(ir);
