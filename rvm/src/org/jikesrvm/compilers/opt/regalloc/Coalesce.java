@@ -17,9 +17,10 @@ import java.util.Iterator;
 
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.SPLIT;
+
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Unary;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
@@ -43,14 +44,13 @@ class Coalesce {
    * <strong>PRECONDITION </strong> def-use chains must be computed and valid.
    * <strong>PRECONDITION </strong> instructions are numbered, with
    * numbers stored in Instruction.scratch
-   *
-   * @param ir the governing IR
    * @param live liveness information for the IR
    * @param r1 the register that is the target of coalescing (i.e. the one that will remain)
    * @param r2 the register that we want to coalesce (i.e. the one that will be "removed")
+   *
    * @return {@code true} if the transformation succeeded, {@code false} otherwise.
    */
-  public static boolean attempt(IR ir, LiveAnalysis live, Register r1, Register r2) {
+  public static boolean attempt(LiveAnalysis live, Register r1, Register r2) {
 
     // make sure r1 and r2 are not simultaneously live
     if (isLiveAtDef(r2, r1, live)) return false;

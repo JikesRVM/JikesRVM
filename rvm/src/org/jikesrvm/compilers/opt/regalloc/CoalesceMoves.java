@@ -96,7 +96,7 @@ public class CoalesceMoves extends CompilerPhase {
           if (val != null && val.isRegister()) {
             Register r2 = val.asRegister().getRegister();
             if (r2.isSymbolic()) {
-              if (Coalesce.attempt(ir, live, r, r2)) {
+              if (Coalesce.attempt(live, r, r2)) {
                 if (DEBUG) System.out.println("COALESCED " + r + " " + r2);
                 dead.add(s);
               }
