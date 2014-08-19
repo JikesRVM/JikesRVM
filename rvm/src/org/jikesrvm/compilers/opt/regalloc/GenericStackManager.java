@@ -974,19 +974,17 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * @param s the instruction to check
+   * @param instructionsBB the block that contains the instruction
    * @return whether the instruction is s a PEI (potentially excepting
    *  instruction, i.e. it can throw an exception) with a reachable catch
    *  block
    */
-  private boolean isPEIWithCatch(Instruction s) {
+  private boolean isPEIWithCatch(Instruction s, BasicBlock instructionsBB) {
     if (s.isPEI()) {
-      // TODO: optimize this away by passing the basic block in.
-      BasicBlock b = s.getBasicBlock();
-
       // TODO: add a more efficient accessor on BasicBlock to
       // determine whether there's a catch block for a particular
       // instruction.
-      if (b.getApplicableExceptionalOut(s).hasMoreElements()) {
+      if (instructionsBB.getApplicableExceptionalOut(s).hasMoreElements()) {
         return true;
       }
     }
@@ -1076,7 +1074,7 @@ public abstract class GenericStackManager extends IRTools {
         restoreScratchRegistersBefore(s);
 
         // we must spill all scratch registers before leaving this basic block
-        if (s.operator == BBEND || isPEIWithCatch(s) || s.isBranch() || s.isReturn()) {
+        if (s.operator == BBEND || isPEIWithCatch(s, bb) || s.isBranch() || s.isReturn()) {
           restoreAllScratchRegistersBefore(s);
         }
 
