@@ -1060,12 +1060,12 @@ public abstract class GenericStackManager extends IRTools {
     // walk over each instruction in the IR
     for (Enumeration<BasicBlock> blocks = ir.getBasicBlocks(); blocks.hasMoreElements();) {
       BasicBlock bb = blocks.nextElement();
+
+      // If the following is true, don't expend effort trying to
+      // optimize scratch assignements
+      boolean beCheap = (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent());
+
       for (Enumeration<Instruction> e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
-
-        // If the following is true, don't expend effort trying to
-        // optimize scratch assignements
-        boolean beCheap = (ir.options.FREQ_FOCUS_EFFORT && bb.getInfrequent());
-
         Instruction s = e.nextElement();
         if (VERBOSE_DEBUG) {
           System.out.println(s);
