@@ -24,7 +24,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
  * An object that returns an estimate of the relative cost of spilling a
  * symbolic register.
  */
-class SimpleSpillCost extends SpillCostEstimator {
+final class SimpleSpillCost extends SpillCostEstimator {
 
   SimpleSpillCost(IR ir) {
     calculate(ir);
