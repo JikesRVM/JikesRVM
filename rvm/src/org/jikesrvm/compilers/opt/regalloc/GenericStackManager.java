@@ -1479,7 +1479,9 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * Class to represent a physical register currently allocated as a
-   * scratch register.
+   * scratch register. A scratch register is a register that is reserved
+   * for use in spills and unspills. It is not available as a normal register
+   * for the register allocation.
    */
   protected static final class ScratchRegister {
     /**
