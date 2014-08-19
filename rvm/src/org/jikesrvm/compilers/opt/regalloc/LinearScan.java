@@ -264,12 +264,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      */
     private SpillLocationManager spillManager;
 
-    /**
-     * The governing IR
-     * Also used by ClassWriter
-     */
-    public IR ir;
-
     private static final Constructor<CompilerPhase> constructor = getCompilerPhaseConstructor(LinearScanPhase.class);
 
     /**
@@ -307,8 +301,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
      */
     @Override
     public void perform(IR ir) {
-      this.ir = ir;
-
       // Create the object that manages spill locations
       spillManager = new SpillLocationManager(ir);
 
@@ -2508,12 +2500,10 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     /**
      *  Iterates over the IR and replace each symbolic register with its
      *  allocated physical register.
-     *  <p>
-     *  Also used by ClassWriter
      *
      *  @param ir the IR to process
      */
-    public static void replaceSymbolicRegisters(IR ir) {
+    private static void replaceSymbolicRegisters(IR ir) {
       for (Enumeration<Instruction> inst = ir.forwardInstrEnumerator(); inst.hasMoreElements();) {
         Instruction s = inst.nextElement();
         for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
