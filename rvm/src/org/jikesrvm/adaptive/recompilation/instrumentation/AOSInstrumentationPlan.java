@@ -24,15 +24,10 @@ import org.jikesrvm.compilers.opt.driver.InstrumentationPlan;
  * information that the non-adaptive opt-compiler can't see.
  */
 public class AOSInstrumentationPlan extends InstrumentationPlan {
-  /**
-   * Construct empty plan, must setup manually
-   **/
+
   public AOSInstrumentationPlan(NormalMethod method) {
   }
 
-  /**
-   * Construct based on options
-   **/
   public AOSInstrumentationPlan(AOSOptions options, NormalMethod method) {
     // If we want to collect method invocation counts.
     if (options.INSERT_METHOD_COUNTERS_OPT) {

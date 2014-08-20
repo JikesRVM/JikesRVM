@@ -110,8 +110,8 @@ public class CompilerDNA {
 
   /**
    * This method returns the expected speedup from going from compiler1 to compiler2
-   * @param compiler1
-   * @param compiler2
+   * @param compiler1 old compiler
+   * @param compiler2 new compiler
    * @return the benefit ratio (speedup) of moving from compiler1 to compiler2
    */
   public static double getBenefitRatio(int compiler1, int compiler2) {
@@ -239,6 +239,7 @@ public class CompilerDNA {
    *  @param in the LineNumberReader object
    *  @param title the title string to look for
    *  @param valueHolder the array to hold the read values
+   *  @throws IOException when there's a failure during processing of the file
    */
   private static void processOneLine(LineNumberReader in, String title, double[] valueHolder) throws IOException {
 
@@ -294,7 +295,7 @@ public class CompilerDNA {
 
   /**
    * maps a compiler constant to a string
-   * @param compiler
+   * @param compiler the constant for the compiler
    * @return the string that represents the passed compiler constant
    */
   public static String getCompilerString(int compiler) {

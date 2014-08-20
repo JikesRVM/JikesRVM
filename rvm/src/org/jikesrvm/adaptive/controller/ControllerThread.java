@@ -199,6 +199,10 @@ public final class ControllerThread extends SystemThread {
    * some initial data in the call graph to work with.  The goal of this
    * restriction is to avoid making early bad decisions that we don't get
    * a chance to revisit because methods get to maxOptLevel too quickly.
+   *
+   * @return {@code true} if we need to restrict the optimization levels
+   *  to ensure that we don't make bad optimization decisions, {@code false}
+   *  if no restriction is necessary
    */
   public boolean earlyRestrictOptLevels() {
     return dcgOrg != null && !dcgOrg.someDataAvailable();
@@ -211,7 +215,7 @@ public final class ControllerThread extends SystemThread {
   ///////////////////////
 
   /**
-   *  Create the compilationThread and schedule it
+   *  Creates and schedules the compilationThread.
    */
   private void createCompilationThread() {
     CompilationThread ct = new CompilationThread();

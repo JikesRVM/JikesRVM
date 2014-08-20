@@ -33,17 +33,11 @@ public abstract class RecompilationStrategy {
 
   //------  Interface -------
 
-  /**
-   * A hot method has been passed to the controller by an organizer
-   */
   ControllerPlan considerHotMethod(CompiledMethod cmpMethod, HotMethodEvent hme) {
     // Default behavior, do nothing.
     return null;
   }
 
-  /**
-   * A hot call edge has been passed to the controller by an organizer
-   */
   void considerHotCallEdge(CompiledMethod cmpMethod, AINewHotEdgeEvent event) {
     // Default behavior, do nothing.
   }
@@ -72,6 +66,8 @@ public abstract class RecompilationStrategy {
    * @param instPlan the instrumentation plan to use
    * @param prevCMID the previous compiled method ID
    * @param expectedSpeedup  expected speedup from this recompilation
+   * @param expectedCompilationTime expected time for compilation
+   *  and execution of the new method
    * @param priority a measure of the oveall benefit we expect to see
    *                 by executing this plan.
    * @return the compilation plan to be used
@@ -92,12 +88,13 @@ public abstract class RecompilationStrategy {
   }
 
   /**
-   * Construct a compilation plan that will compile the given method
+   * Constructs a compilation plan that will compile the given method
    * with instrumentation.
    *
    * @param method The method to be compiled with instrumentation
    * @param optLevel The opt-level to recompile at
    * @param instPlan The instrumentation plan
+   * @return a non-{@code null} compilation plan
    */
   public CompilationPlan createCompilationPlan(NormalMethod method, int optLevel,
                                                    InstrumentationPlan instPlan) {
@@ -180,7 +177,8 @@ public abstract class RecompilationStrategy {
   }
 
   /**
-   *  This method retrieves the previous compiler constant.
+   *  @param cmpMethod the compiled method whose previous compiler we want to know
+   *  @return the constant for the previous compiler
    */
   int getPreviousCompiler(CompiledMethod cmpMethod) {
     switch (cmpMethod.getCompilerType()) {
@@ -224,7 +222,7 @@ public abstract class RecompilationStrategy {
   }
 
   /**
-   * What is the maximum opt level that is vallid according to this strategy?
+   * @return is the maximum opt level that is valid according to this strategy
    */
   int getMaxOptLevel() {
     return Controller.options.DERIVED_MAX_OPT_LEVEL;
@@ -234,8 +232,8 @@ public abstract class RecompilationStrategy {
   private OptOptions[] _options;
 
   /**
-   * Create the default set of &lt;optimization plan, options&gt; pairs
-   * Process optimizing compiler command line options.
+   * Creates the default set of &lt;optimization plan, options&gt; pairs.
+   * Processes optimizing compiler command line options.
    */
   void createOptimizationPlans() {
     OptOptions options = new OptOptions();

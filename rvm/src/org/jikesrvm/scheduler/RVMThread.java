@@ -3932,6 +3932,10 @@ public final class RVMThread extends ThreadContext {
 
   /**
    * Process a taken yieldpoint.
+   *
+   * @param whereFrom source of the yieldpoint (e.g. backedge)
+   * @param yieldpointServiceMethodFP the frame pointer of the service
+   *  method that called this method
    */
   @Unpreemptible("May block if the thread was asked to do so but otherwise does not perform actions that may lead to blocking")
   public static void yieldpoint(int whereFrom, Address yieldpointServiceMethodFP) {

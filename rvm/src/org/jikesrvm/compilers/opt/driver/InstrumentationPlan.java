@@ -24,12 +24,17 @@ import org.jikesrvm.classloader.NormalMethod;
  */
 public abstract class InstrumentationPlan {
   /**
-   * Called before at the beginning of compilation
+   * Called the beginning of compilation, before the optimization plan
+   * is executed.
+   *
+   * @param method the method whose instrumentation is to be initialized
    */
   public abstract void initInstrumentation(NormalMethod method);
 
   /**
-   * Called after compilation completes, but before method is executed
+   * Called after compilation completes, but before the method is executed.
+   *
+   * @param method the method whose instrumentation is to be completed
    */
   public abstract void finalizeInstrumentation(NormalMethod method);
 }

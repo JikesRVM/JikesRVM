@@ -169,6 +169,9 @@ public final class ControllerPlan {
    *   <li>clears inlining information
    *   <li>updates the status of the controller plan
    * </ol>
+   *
+   * @return {@code null} if the compilation was aborted, the new compiled
+   *  method otherwise
    */
   public CompiledMethod doRecompile() {
     CompilationPlan cp = getCompPlan();
@@ -220,32 +223,32 @@ public final class ControllerPlan {
   }
 
   /**
-   * The compilation plan
+   * @return the compilation plan
    */
   public CompilationPlan getCompPlan() { return compPlan; }
 
   /**
-   * The expected speedup <em>for this method </em> due to this recompilation
+   * @return the expected speedup <em>for this method </em> due to this recompilation
    */
   public double getExpectedSpeedup() { return expectedSpeedup; }
 
   /**
-   * The expected compilation time for this method
+   * @return the expected compilation time for this method
    */
   public double getExpectedCompilationTime() { return expectedCompilationTime; }
 
   /**
-   * The priority (how important is it that this plan be executed)
+   * @return the priority (how important is it that this plan be executed)
    */
   public double getPriority() { return priority; }
 
   /**
-   * The time this plan was created
+   * @return the time this plan was created
    */
   public int getTimeCreated() { return timeCreated; }
 
   /**
-   * The time (according to the controller clock) compilation of this plan
+   * @return the time (according to the controller clock) compilation of this plan
    * began.
    */
   public int getTimeInitiated() { return timeInitiated; }
@@ -253,7 +256,7 @@ public final class ControllerPlan {
   public void setTimeInitiated(int t) { timeInitiated = t; }
 
   /**
-   * The time (according to the controller clock) compilation of this plan
+   * @return the time (according to the controller clock) compilation of this plan
    * completed.
    */
   public int getTimeCompleted() { return timeCompleted; }
@@ -261,7 +264,7 @@ public final class ControllerPlan {
   public void setTimeCompleted(int t) { timeCompleted = t; }
 
   /**
-   * CMID (compiled method id) associated with the code produced
+   * @return CMID (compiled method id) associated with the code produced
    * by executing this plan
    */
   public int getCMID() { return CMID; }
@@ -269,13 +272,14 @@ public final class ControllerPlan {
   public void setCMID(int x) { CMID = x; }
 
   /**
-   * CMID (compiled method id) associated with the *PREVIOUS* compiled
+   * @return CMID (compiled method id) associated with the *PREVIOUS* compiled
    * version of this method
    */
   public int getPrevCMID() { return prevCMID; }
 
   /**
-   * Status of this compilation plan, choose from the values above
+   * @return status of this compilation plan, chosen from the values defined
+   *  in this class
    */
   public byte getStatus() { return status; }
 
@@ -299,9 +303,6 @@ public final class ControllerPlan {
     }
   }
 
-  /**
-   * List of plans for a source method
-   */
   public void setPlanList(LinkedList<ControllerPlan> list) { planList = list; }
 
   public String getStatusString() {

@@ -233,12 +233,14 @@ public class ManagedCounterData {
   }
 
   /**
-   * Sort a {@code Vector<Counter>} by decreasing count.
+   * Sorts a {@code Vector<Counter>} by decreasing count.
    * (code borrowed from InstructionSampler.java)
    * <p>
    * Shell sort
    * <p>
    * Reference: "The C Programming Language", Kernighan &amp; Ritchie, p. 116
+   *
+   * @param v the vector to sort
    */
   private void sort(Vector<?> v) {
     int n = v.size();

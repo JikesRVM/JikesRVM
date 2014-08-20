@@ -536,7 +536,7 @@ public class VM extends Properties {
    * <p>
    * This method is called only while the VM boots.
    *
-   * @param className
+   * @param className class whose initializer needs to be run
    */
   @Interruptible
   static void runClassInitializer(String className) {
@@ -644,7 +644,7 @@ public class VM extends Properties {
    * Do this without referencing Integer or Character classes,
    * in order to avoid dynamic linking.
    * TODO: move this method to Services.
-   * @param number
+   * @param number the number to format
    * @return a String with the hex representation of the integer
    */
   @Interruptible
@@ -666,7 +666,7 @@ public class VM extends Properties {
    * Do this without referencing Long or Character classes,
    * in order to avoid dynamic linking.
    * TODO: move this method to Services.
-   * @param number
+   * @param number the number to format
    * @return a String with the hex representation of the long
    */
   @Interruptible
@@ -1011,7 +1011,9 @@ public class VM extends Properties {
   }
   /**
    * Low level print to console.
-   * @param value       print value and left-fill with enough spaces to print at least fieldWidth characters
+   * @param value print value
+   * @param fieldWidth the number of characters that the output should contain. If the value
+   *  is too small, the output will be filled up with enough spaces, starting from the left
    */
   @NoInline
   /* don't waste code space inlining these --dave */
@@ -1080,9 +1082,10 @@ public class VM extends Properties {
     write(b ? "true" : "false");
   }
 
-  /**
+  /*
    * A group of multi-argument sysWrites with optional newline.  Externally visible methods.
    */
+
   @NoInline
   public static void sysWrite(Atom a) {
     swLock();
@@ -2604,6 +2607,8 @@ public class VM extends Properties {
    * enforces a stack discipline; we need it for the JNI Get*Critical and
    * Release*Critical functions.  Should be matched with a subsequent call to
    * enableGC().
+   *
+   * @param recursiveOK whether recursion is allowed.
    */
   @Inline
   @Unpreemptible("We may boost the size of the stack with GC disabled and may get preempted doing this")
@@ -2669,6 +2674,8 @@ public class VM extends Properties {
    * possibly-recursive {@link #disableGC} request.  This enforces a stack discipline;
    * we need it for the JNI Get*Critical and Release*Critical functions.
    * Should be matched with a preceding call to {@link #disableGC}.
+   *
+   * @param recursiveOK unused (!)
    */
   @Inline
   public static void enableGC(boolean recursiveOK) {
@@ -2690,17 +2697,19 @@ public class VM extends Properties {
   }
 
   /**
-   * Is this a build for 32bit addressing? NB. this method is provided
-   * to give a hook to the IA32 assembler that won't be compiled away
-   * by javac
+   * @return whether this is a build for 32bit addressing.
+   * NB. this method is provided to give a hook to the IA32
+   * assembler that won't be compiled away by javac.
    */
   public static boolean buildFor32Addr() {
     return BuildFor32Addr;
   }
 
   /**
-   * Is this a build for SSE2? NB. this method is provided to give a
-   * hook to the IA32 assembler that won't be compiled away by javac
+   * @return whether this is a build for SSE2.
+   * NB. this method is provided to give a hook to the IA32
+   * assembler that won't be compiled away by javac.
+
    */
   public static boolean buildForSSE2() {
     return BuildForSSE2;

@@ -32,8 +32,11 @@ public final class AOSDatabase {
   public static StringEventCounterData debuggingCounterData;
 
   /**
-   * Called at startup
-   **/
+   * This method provides a hook to do initialization and is
+   * intentionally empty by default.
+   *
+   * @param options unused by default
+   */
   public static void boot(AOSOptions options) {
   }
 }

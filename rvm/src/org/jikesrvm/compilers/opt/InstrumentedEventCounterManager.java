@@ -44,15 +44,14 @@ public abstract class InstrumentedEventCounterManager {
   public abstract void resizeCounterSpace(int handle, int countersNeeded);
 
   /**
-   * Get the value of a counter.
-   *
    * @param handle The counter space to look in
    * @param location The counter whose value to return
+   * @return the value of a counter.
    */
   public abstract double getCounter(int handle, int location);
 
   /**
-   * Set the value of a counter.
+   * Sets the value of a counter.
    *
    * @param handle The counter space to look in
    * @param location The counter whose value to return
@@ -73,6 +72,9 @@ public abstract class InstrumentedEventCounterManager {
   /**
    *  Take an event counter instruction and mutate it into IR instructions that
    *  will do the actual counting.
+   *
+   *  @param i the instruction to mutate
+   *  @param ir the IR that contains the instruction
    */
   public abstract void mutateOptEventCounterInstruction(Instruction i, IR ir);
 

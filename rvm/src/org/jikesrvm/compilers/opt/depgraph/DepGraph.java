@@ -209,7 +209,7 @@ public class DepGraph extends SpaceEffGraph {
   }
 
   /**
-   * Computse anti dependences by doing a backwards
+   * Computes anti dependences by doing a backwards
    * traversal of the instructions from start to end.
    *
    * @param start start instruction

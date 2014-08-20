@@ -809,6 +809,12 @@ public class CommandLineArgs {
    *
    * At the moment, we have a maximum limit of an unsigned integer.  If
    *
+   * @param sizeName the option's name
+   * @param sizeFlag the flag's name, e.g. mx (as in "-Xmx")
+   * @param defaultFactor factor for modifying sizes, e.g. "K", "M" or "pages"
+   * @param roundTo round up to a multiple of this number
+   * @param fullArg the full command line argument, e.g. "-Xmx200M"
+   * @param subArg the value for the argument, e.g. "200M"
    * @return Negative values on error.
    *      Otherwise, positive or zero values as bytes.
    * */
@@ -833,9 +839,12 @@ public class CommandLineArgs {
       buf = new byte[buflen];
     }
 
-    /** Read argument # @param i
-     * Assume arguments are encoded in the platform's
-     * "default character set". */
+    /**
+     * Reads an argument assuming that the arguments are encoded in the
+     * platform's "default character set".
+     * @param i the number of the argument to read
+     * @return the read argument
+     */
     @SuppressWarnings({"deprecation"})
     String getArg(int i) {
       int cnt;
@@ -875,7 +884,6 @@ public class CommandLineArgs {
     }
   }
 
-  /** Convenience method for calling stringToBytes */
   private static byte[] s2b(String arg) {
     return stringToBytes(null, arg);
   }

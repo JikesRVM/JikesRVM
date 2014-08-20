@@ -29,7 +29,6 @@ import org.jikesrvm.classloader.Atom;
  * Takes a single argument: the name of the file containing the ascii
  * annotations.  Each line of the file corresponds to an annotation
  * for one method and has the following format:
- * <p>
  * <pre>
  * &lt;class&gt; &lt;method&gt; &lt;signature&gt; &lt;advice&gt; &lt;optLevel&gt;
  * </pre>
@@ -44,7 +43,6 @@ import org.jikesrvm.classloader.Atom;
  * <li><code>&lt;optLevel&gt;</code> <i>int</i> (Optional) The opt level to use
  if compiler is optimizing compiler</li>
  * </ul>
- *
  *
  * @see CompilerAdvice
  * @see CompilerAdviceAttribute

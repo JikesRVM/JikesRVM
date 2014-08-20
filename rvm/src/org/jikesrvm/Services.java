@@ -119,6 +119,7 @@ public class Services {
    *
    * @param dest char array to copy into.
    * @param destOffset Offset into <code>dest</code> where we start copying
+   * @param s string to print
    *
    * @return 1 plus the index of the last character written.  If we were to
    *         write zero characters (which we won't) then we would return
@@ -128,9 +129,8 @@ public class Services {
    *         <code>dest.length</code>, if the array <code>dest</code> was
    *         completely filled by the call, or it may have a value greater
    *         than <code>dest.length</code>, if the info needs more than
-   *         <code>dest.length - offset</code> characters of space.
-   *
-   * @return  -1 if <code>offset</code> is negative.
+   *         <code>dest.length - offset</code> characters of space. If
+   *         <code>destOffset</code> is negative, return -1.
    *
    * the MMTk {@link org.mmtk.utility.Log} class).
    */
@@ -156,6 +156,17 @@ public class Services {
    * @param src Char array to copy from
    * @param srcStart index of the first character of <code>src</code> to copy.
    * @param srcEnd index after the last character of <code>src</code> to copy.
+   *
+  *  @return 1 plus the index of the last character written.  If we were to
+   *  write zero characters (which we won't) then we would return
+   *  <code>offset</code>.  This is intended to represent the first
+   *  unused position in the array <code>dest</code>.  However, it also
+   *  serves as a pseudo-overflow check:  It may have the value
+   *  <code>dest.length</code>, if the array <code>dest</code> was
+   *  completely filled by the call, or it may have a value greater
+   *  than <code>dest.length</code>, if the info needs more than
+   *  <code>dest.length - offset</code> characters of space. If
+   *  <code>destOffset</code> is negative, return -1.
    */
   public static int sprintf(char[] dest, int destOffset, char[] src, int srcStart, int srcEnd) {
     for (int i = srcStart; i < srcEnd; ++i) {
@@ -193,6 +204,7 @@ public class Services {
    *
    * @param dest char array to copy into.
    * @param offset Offset into <code>dest</code> where we start copying
+   * @param l a whole number to write before the string
    *
    * @return 1 plus the index of the last character written.  If we were to
    *         write zero characters (which we won't) then we would return
@@ -202,9 +214,8 @@ public class Services {
    *         <code>dest.length</code>, if the array <code>dest</code> was
    *         completely filled by the call, or it may have a value greater
    *         than <code>dest.length</code>, if the info needs more than
-   *         <code>dest.length - offset</code> characters of space.
-   *
-   * @return  -1 if <code>offset</code> is negative.
+   *         <code>dest.length - offset</code> characters of space. If
+   *         <code>offset</code> is negative, return -1.
    */
   public static int sprintf(char[] dest, int offset, long l) {
     boolean negative = l < 0;
@@ -235,8 +246,10 @@ public class Services {
   }
 
   /**
-   * Get exclusive access to {@link #intBuffer}, the buffer for building
+   * Gets exclusive access to {@link #intBuffer}, the buffer for building
    * string representations of integers.
+   *
+   * @return a buffer to use for building representations of integers (e.g. longs or ints)
    */
   private static char[] grabIntBuffer() {
     if (!intBufferLockOffset.isMax()) {
@@ -257,11 +270,6 @@ public class Services {
     }
   }
 
-  /**
-   * Utility printing function.
-   * @param i
-   * @param blank
-   */
   @Interruptible
   public static String getHexString(int i, boolean blank) {
     StringBuilder buf = new StringBuilder(8);

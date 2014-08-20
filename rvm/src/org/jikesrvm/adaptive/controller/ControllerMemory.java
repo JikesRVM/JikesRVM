@@ -241,8 +241,10 @@ public final class ControllerMemory {
   }
 
   /**
-   * Return {@code true} iff there is a plan to transition from Base to Opt for a
-   * given CMID.
+   * @return {@code true} iff there is a plan to transition from Base to Opt for a
+   * given CMID
+   *
+   * @param cmid the compiled method's ID
    */
   public static synchronized boolean requestedOSR(int cmid) {
     CompiledMethod cm = CompiledMethods.getCompiledMethod(cmid);
@@ -380,9 +382,10 @@ public final class ControllerMemory {
   }
 
   /**
-   *  set the optLevel bit in the passed bitPattern and return the result
-   *  @param bitPattern
-   *  @param optLevel
+   *  Sets the optLevel bit in the passed bitPattern and return the result
+   *  @param bitPattern the given bit pattern
+   *  @param optLevel the new opt level
+   *  @return the new bit pattern
    */
   static int setBitPattern(int bitPattern, int optLevel) {
     int newPattern = 1;
@@ -391,9 +394,9 @@ public final class ControllerMemory {
   }
 
   /**
-   * check if the bit position defined by the 2nd parm is set in the first parm
-   * @param bitPattern
-   * @param optLevel
+   * Checks if the bit position defined by the 2nd parm is set in the first parm
+   * @param bitPattern a bit pattern
+   * @param optLevel the opt level to check for
    * @return whether the passed bit is set
    */
   static boolean bitIsSet(int bitPattern, int optLevel) {

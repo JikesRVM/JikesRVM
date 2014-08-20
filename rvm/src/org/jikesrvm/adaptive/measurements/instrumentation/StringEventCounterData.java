@@ -29,14 +29,11 @@ public class StringEventCounterData extends ManagedCounterData implements Report
   static final boolean DEBUG = false;
 
   /**
-   *  Constructor
-   *
    * @param manager The manager that will provide the counter space
+   * @param name human-readable name for the data
    **/
   StringEventCounterData(InstrumentedEventCounterManager manager, String name) {
-    // Call superclass constructor
     super(manager);
-
     dataName = name;
   }
 
@@ -68,8 +65,9 @@ public class StringEventCounterData extends ManagedCounterData implements Report
   }
 
   /**
-   * Convert a double to string with maximum precision.
+   * Converts a double to string with maximum precision.
    * @param num double to convert
+   * @return the new string
    */
   protected static String doubleToString(double num) {
     long whole = (long) num;

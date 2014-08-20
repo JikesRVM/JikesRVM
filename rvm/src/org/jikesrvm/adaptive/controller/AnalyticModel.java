@@ -40,12 +40,14 @@ abstract class AnalyticModel extends RecompilationStrategy {
   abstract void populateRecompilationChoices();
 
   /**
-   * Compute the set of optimization choices that should be
+   * Computes the set of optimization choices that should be
    * considered by the cost-benefit model, given the previous compiler.
    *
    * @param prevCompiler The compiler compiler that was used to
    *                     compile cmpMethod
    * @param cmpMethod The compiled method being considered
+   *
+   * @return the choices to consider
    */
   abstract RecompilationChoice[] getViableRecompilationChoices(int prevCompiler, CompiledMethod cmpMethod);
 

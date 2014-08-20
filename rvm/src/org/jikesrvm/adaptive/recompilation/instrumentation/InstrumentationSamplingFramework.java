@@ -116,11 +116,6 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   @Override
   public String getName() { return "InstrumentationSamplingFramework"; }
 
-  /**
-   * Perform this phase
-   *
-   * @param ir the governing IR
-   */
   @Override
   public void perform(IR ir) {
 
@@ -137,7 +132,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     if (ir.options.ADAPTIVE_NO_DUPLICATION) {
       performVariationNoDuplication(ir);
     } else {
-      performVariationFullDuplication(ir, this);
+      performVariationFullDuplication(ir);
     }
 
     // Dump method again after phase completes
@@ -160,7 +155,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   //
 
   /**
-   * Initialization to perform after the transformation is applied
+   * Cleans up the IR after the transformation is applied.
+   *
+   * @param ir the IR to clean up
    */
   private void cleanUp(IR ir) {
 
@@ -187,7 +184,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    *
    * @param ir the governing IR
    */
-  private void performVariationFullDuplication(IR ir, CompilerPhase phaseObject) {
+  private void performVariationFullDuplication(IR ir) {
 
     // Initialize
 
@@ -224,7 +221,13 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * the original code.  This gets fixed in
    * adjustPointersInDuplicatedCode
    *
-   * @param ir the governing IR */
+   * @param ir the governing IR
+   * @param origToDupMap a map (initially empty) that will store the mapping
+   *  of original blocks to their duplicates
+   * @param exceptionHandlerBlocks a set that (initially empty) that is used
+   *  to remember the exception handlers. Those need to be known because they
+   *  need special checks (see {@link #insertCBSChecks(IR, HashMap, HashSet)}.
+   */
   private void duplicateCode(IR ir, HashMap<BasicBlock, BasicBlock> origToDupMap,
                              HashSet<BasicBlock> exceptionHandlerBlocks) {
 
@@ -320,6 +323,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * top of file).
    *
    * @param ir the governing IR
+   * @param origToDupMap a mapping of baisc block blocks to their duplicates
+   * @param exceptionHandlerBlocks a set that of exception handler basic blocks
    */
   private void insertCBSChecks(IR ir, HashMap<BasicBlock, BasicBlock> origToDupMap,
                                HashSet<BasicBlock> exceptionHandlerBlocks) {
@@ -386,6 +391,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * @param instBB The basicBlock to jump to if the CBS check succeeds
    * @param fallthroughToInstBB Should checkBB fallthrough to instBB
    *                            (otherwise it must fallthrough to noInstBB)
+   * @param ir the IR that contains the blocks
    */
   private void createCheck(BasicBlock checkBB, BasicBlock noInstBB, BasicBlock instBB,
                            boolean fallthroughToInstBB, IR ir) {
@@ -648,10 +654,13 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   }
 
   /**
-   *  Is the given instruction a yieldpoint?
+   * Is the given instruction a yieldpoint?
+   * <p>
+   * For now we ignore epilogue yieldpoints since we are only concerned with
+   * method entries and backedges.
    *
-   *  For now we ignore epilogue yieldpoints since we are only concerned with
-   *  method entries and backedges.
+   * @param i the instruction to examine
+   * @return whether the instruction is a non-epilogue yieldpoint
    */
   public static boolean isYieldpoint(Instruction i) {
     return i.operator() == YIELDPOINT_PROLOGUE ||
@@ -673,8 +682,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * (either fallthrough or jump to a block in) in the duplicated
    * code.
    * </ol>
-   *
-   * @param ir the governing IR */
+   * @param origToDupMap mapping of basic blocks to their duplicates
+   * @param ir the governing IR
+   */
   private static void adjustPointersInDuplicatedCode(IR ir, HashMap<BasicBlock, BasicBlock> origToDupMap) {
 
     // Iterate over the original version of all duplicate blocks
@@ -722,7 +732,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * instrumentation or you could infinitely loop without executing
    * yieldpoints!
    *
-   * @param ir the governing IR */
+   * @param ir the governing IR
+   * @param origToDupMap mapping of basic blocks to their duplicates
+   */
   private static void removeInstrumentationFromOrig(IR ir, HashMap<BasicBlock, BasicBlock> origToDupMap) {
     // Iterate over the original version of all duplicate blocks
 
@@ -750,6 +762,10 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * <p>
    * PRECONDITION:  the spansBasicBlock bit must be correct by calling
    *                DefUse.recomputeSpansBasicBlock(IR);
+   *
+   * @param bb the basic block to process
+   * @param ir the IR that contains the block
+   * @return the copied block
    */
   private static BasicBlock myCopyWithoutLinks(BasicBlock bb, IR ir) {
 
@@ -762,7 +778,11 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   }
 
   /**
-   * Given an basic block, rename all of the temporary registers that are local to the block.
+   * Given an basic block, rename all of the temporary registers that are
+   * local to the block.
+   *
+   * @param bb the block
+   * @param ir the IR that contains the block
    */
   private static void updateTemps(BasicBlock bb, IR ir) {
 
@@ -799,8 +819,10 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
   }
 
   /**
-   *  Go through all statements in the basic block and clear the
-   *  scratch objects.
+   *  Clears the scratch objects of all statements in a basic block.
+   *
+   *  @param bb the block to process
+   *  @param ir the IR that contains the block
    */
   private static void clearScratchObjects(BasicBlock bb, IR ir) {
     // For each instruction in the block
@@ -833,6 +855,10 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * new register.  This method returns the duplicated
    * register that is associated with the given register.  If a
    * duplicated register does not exist, it is created and recorded.
+   *
+   * @param ro the register operand to duplicate
+   * @param ir the IR that contains the register operand
+   * @return a duplicated register operand
    */
   private static RegisterOperand getOrCreateDupReg(RegisterOperand ro, IR ir) {
 
@@ -850,6 +876,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * Perform the NoDuplication version of the framework (see
    * Arnold-Ryder PLDI 2001).  Instrumentation operations are wrapped
    * in a conditional, but no code duplication is performed.
+   *
+   * @param ir the IR to process
    */
   private void performVariationNoDuplication(IR ir) {
     // The register containing the counter value to check
@@ -884,6 +912,10 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    *    to get A -&gt; B -&gt; C
    *   <li>Add check to A, making it go to B if it succeeds, otherwise C
    * </ol>
+   *
+   * @param ir the IR that contains the instruction
+   * @param i the instruction
+   * @param bb the basic block that contains the instruction
    */
   private void conditionalizeInstrumentationOperation(IR ir, Instruction i, BasicBlock bb) {
 
@@ -915,6 +947,9 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * How to determine whether a given instruction is an
    * "instrumentation instruction".  In other words, it should be
    * executed only when a sample is being taken.
+   *
+   * @param i an instruction
+   * @return {@code true} if and only if this is an instrumentation instruction
    */
   private static boolean isInstrumentationInstruction(Instruction i) {
 
@@ -925,17 +960,10 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
     return InstrumentedCounter.conforms(i);
   }
 
-  /**
-   * Temp debugging code
-   */
   public static void dumpCFG(IR ir) {
-
     for (Enumeration<BasicBlock> allBB = ir.getBasicBlocks(); allBB.hasMoreElements();) {
       BasicBlock curBB = allBB.nextElement();
       curBB.printExtended();
     }
   }
 }
-
-
-

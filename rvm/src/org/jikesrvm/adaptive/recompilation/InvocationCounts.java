@@ -61,6 +61,8 @@ public final class InvocationCounts {
   /**
    * Called from baseline compiled code when a method's invocation counter
    * becomes negative and thus must be handled
+   *
+   * @param id the compiled method id
    */
   static synchronized void counterTripped(int id) {
     counts[id] = 0x7fffffff; // set counter to max int to avoid lots of redundant calls.
@@ -76,10 +78,6 @@ public final class InvocationCounts {
     cp.execute();
   }
 
-  /**
-   * Create the compilation plan according to the default set
-   * of &lt;optimization plan, options&gt; pairs
-   */
   public static CompilationPlan createCompilationPlan(NormalMethod method) {
     return new CompilationPlan(method, _optPlan, null, _options);
   }
