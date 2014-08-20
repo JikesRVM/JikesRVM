@@ -59,7 +59,12 @@ final class BasicBlock {
 
   // --------------- Constructor --------------------------------
 
-  /** This should be called only from the factory. */
+  /**
+   * This should be called only from the factory.
+   *
+   * @param startval byte index where block starts
+   * @param bn the block's number
+   *  */
   BasicBlock(int startval, int bn) {
     blockNumber = bn;
     start = startval;
@@ -68,6 +73,10 @@ final class BasicBlock {
   /**
    * This should be used when building the EXIT block EXIT is likely to have
    * several predecessors.
+   *
+   * @param startval byte index where block starts
+   * @param endval byte index where block starts
+   * @param blockNumber the block's number
    */
   BasicBlock(int startval, int endval, int blockNumber) {
     start = startval;
@@ -78,7 +87,6 @@ final class BasicBlock {
 
   // ------------------ Static Methods -------------------------
 
-  /** transfer predecessor blocks from one block to another */
   public static void transferPredecessors(BasicBlock fromBB,
       BasicBlock toBB) {
     toBB.predcount = fromBB.predcount;
@@ -175,6 +183,8 @@ final class BasicBlock {
   /**
    * This method first checks if a block is already on the predecessor list.
    * Used with try blocks being added to their catch block as predecessors.
+   *
+   * @param predbb block to add as predecessor
    */
   public void addUniquePredecessor(BasicBlock predbb) {
     boolean dupFound = false, checkMade = false;

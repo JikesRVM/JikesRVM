@@ -39,6 +39,8 @@ final class JSRInfo implements BaselineConstants {
   /**
    * Show the basic information for each of the unusual maps. This is for testing
    * use.
+   *
+   * @param bytesPerMap size of each map
    */
   public void showUnusualMapInfo(int bytesPerMap) {
     VM.sysWrite("-------------------------------------------------\n");
@@ -69,6 +71,9 @@ final class JSRInfo implements BaselineConstants {
 
   /**
    * Show the basic information for a single unusualmap. This is for testing use.
+   *
+   * @param mapIndex the map's index
+   * @param bytesPerMap size of a map
    */
   public void showAnUnusualMap(int mapIndex, int bytesPerMap) {
     VM.sysWrite("unusualMap with index = ", mapIndex);

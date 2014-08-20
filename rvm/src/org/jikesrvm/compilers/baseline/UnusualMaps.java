@@ -36,52 +36,67 @@ final class UnusualMaps {
   /** index into the array of normal maps ie the back-pointer */
   int normalMapIndex;
 
-  /** set the index in the stack frame of the return address for this map */
+  /**
+   * Sets the index in the stack frame of the return address for this map.
+   * @param index new index for return address
+   */
   void setReturnAddressIndex(int index) {
     returnAddressIndex = index;
   }
 
-  /** provide the index in the stack frame of the return address for this map */
+  /** @return the index in the stack frame of the return address for this map */
   int getReturnAddressIndex() {
     return returnAddressIndex;
   }
 
-  /** set the  offset of the reference map in the stackmap list of maps */
+  /**
+   * Sets the offset of the reference map in the stackmap list of maps
+   * @param index new index for reference map
+   */
   void setReferenceMapIndex(int index) {
     referenceMapIndex = index;
   }
 
-  /** provide the index in the stackmaps for the reference map */
+  /** @return the index in the stackmaps for the reference map */
   int getReferenceMapIndex() {
     return referenceMapIndex;
   }
 
-  /** set the  offset of the non-reference map in the stackmap list of maps */
+  /**
+   * Sets the  offset of the non-reference map in the stackmap list of maps
+   * @param index new index for non-reference map
+   */
   void setNonReferenceMapIndex(int index) {
     nonReferenceMapIndex = index;
   }
 
-  /** provide the index in the stackmaps for the non-reference map */
+  /** @return the index in the stackmaps for the non-reference map */
   int getNonReferenceMapIndex() {
     return nonReferenceMapIndex;
   }
 
-  /** set the  offset of the returnAddress map in the stackmap list of maps */
+  /**
+   * Sets the  offset of the returnAddress map in the stackmap list of maps
+   * @param index new index for returnAddress map
+   */
   void setReturnAddressMapIndex(int index) {
     returnAddressMapIndex = index;
   }
 
-  /** provide the index in the stackmaps for the return Address map */
+  /** @return the index in the stackmaps for the return Address map */
   int getReturnAddressMapIndex() {
     return returnAddressMapIndex;
   }
 
-  /** provide the normal map index ie the back-pointer */
+  /** @return the normal map index ie the back-pointer */
   int getNormalMapIndex() {
     return normalMapIndex;
   }
 
-  /** set the normal map index ie the back-pointer */
+  /**
+   * Sets the normal map index (i.e. the back-pointer).
+   * @param index new index for normal map
+   */
   void setNormalMapIndex(int index) {
     normalMapIndex = index;
   }

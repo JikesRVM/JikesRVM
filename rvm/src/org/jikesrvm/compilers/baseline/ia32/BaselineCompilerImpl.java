@@ -92,6 +92,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
 
   /**
    * Create a BaselineCompilerImpl object for the compilation of method.
+   *
+   * @param cm the method that will be associated with this compilation
    */
   protected BaselineCompilerImpl(BaselineCompiledMethod cm) {
     super(cm);

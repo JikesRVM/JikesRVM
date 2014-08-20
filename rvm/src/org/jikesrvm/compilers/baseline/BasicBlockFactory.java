@@ -19,6 +19,9 @@ final class BasicBlockFactory {
   /**
    * This should be the usual constructor, we know the start, but don't
    * yet know the end. No predecessors.
+   *
+   * @param startval start byte for the block
+   * @return a newly created block
    */
   BasicBlock newBlock(int startval) {
     int blockNumber = nextBlockNumber++;

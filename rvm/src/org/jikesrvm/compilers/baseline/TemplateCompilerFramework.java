@@ -121,9 +121,6 @@ public abstract class TemplateCompilerFramework
    */
   protected final boolean isUnpreemptible;
 
-  /**
-   * Construct a BaselineCompilerImpl
-   */
   protected TemplateCompilerFramework(CompiledMethod cm) {
     compiledMethod = cm;
     method = (NormalMethod) cm.getMethod();

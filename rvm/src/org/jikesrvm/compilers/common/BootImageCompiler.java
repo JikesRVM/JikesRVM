@@ -40,8 +40,10 @@ public abstract class BootImageCompiler {
   protected abstract void initCompiler(String[] args);
 
   /**
-   * Compile a method with bytecodes.
+   * Compiles a method with bytecodes.
    * @param method the method to compile
+   * @param params the specialized types of the method's parameters.
+   *  This will be {@code null} if the types from the method's signature are used.
    * @return the compiled method
    */
   protected abstract CompiledMethod compileMethod(NormalMethod method, TypeReference[] params);

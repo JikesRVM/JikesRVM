@@ -60,17 +60,17 @@ public abstract class BaselineCompiler extends TemplateCompilerFramework {
 
   /**
    * The types that locals can take.
-   * There are two types of locals. First the parameters of the method, they only have one type
-   * Second, the other locals, numbers get reused when stack shrinks and grows again.
-   * Therefore, these can have more than one type assigned.
-   * The compiler can use this information to assign registers to locals
+   * There are two types of locals:
+   * <ul>
+   *  <li> the parameters of the method. They only have one type.</li>
+   *  <li> the other locals. Numbers get reused when stack shrinks and grows
+   *   again. Therefore, these can have more than one type assigned.
+   * </ul>
+   * The compiler can use this information to assign registers to locals.
    * See the BaselineCompilerImpl constructor.
    */
   protected final byte[] localTypes;
 
-  /**
-   * Construct a BaselineCompilerImpl
-   */
   protected BaselineCompiler(BaselineCompiledMethod cm) {
     super(cm);
     shouldPrint =

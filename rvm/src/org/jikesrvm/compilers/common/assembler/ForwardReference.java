@@ -57,9 +57,6 @@ public abstract class ForwardReference {
     targetBytecodeIndex = btarget;
   }
 
-  /**
-   * No target; for use within cases of the main compiler loop
-   */
   protected ForwardReference(int source) {
     sourceMachinecodeIndex = source;
     targetBytecodeIndex = 0;
@@ -67,11 +64,15 @@ public abstract class ForwardReference {
 
   /**
    * Rewrite source to reference current machine code (in asm's machineCodes)
+   *
+   * @param asm the assembler to use to resolve the reference
    */
   public abstract void resolve(AbstractAssembler asm);
 
   /**
-   * Add a new reference r to a priority queue q
+   * Adds a new reference to a priority queue.
+   * @param q a forward reference acting as a priority queue
+   * @param r a new reference to enqueue
    * @return the updated queue
    */
   public static ForwardReference enqueue(ForwardReference q, ForwardReference r) {
@@ -94,7 +95,12 @@ public abstract class ForwardReference {
   }
 
   /**
-   * Resolve any forward references on priority queue q to bytecode index bi
+   * Resolve any forward references on the priority queue for the given
+   * bytecode index.
+   *
+   * @param asm assembler to use for resolution
+   * @param q priority queue
+   * @param bi bytecode index
    * @return queue of unresolved references
    */
   public static ForwardReference resolveMatching(AbstractAssembler asm, ForwardReference q, int bi) {

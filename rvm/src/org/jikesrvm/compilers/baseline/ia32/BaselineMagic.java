@@ -145,7 +145,7 @@ final class BaselineMagic {
   private static volatile boolean inCheck = false;
   /**
    * Method called to check an object reference is valid
-   * @param value
+   * @param value the reference to check
    */
   @SuppressWarnings("unused")
   @Uninterruptible

@@ -80,6 +80,17 @@ final class BuildReferenceMaps {
    * After the analysis of the blocks of a method, examine the byte codes again, to
    * determine the reference maps for the gc points. Record the maps with
    * referenceMaps.
+   *
+   * @param method the method whose bytecodes are to be examined again
+   * @param stackHeights height of the expression stack at each bytecode
+   * @param localTypes the types that the locals can take
+   * @param referenceMaps the reference map. NB: the map's constructor is still running
+   *  while this method is called!
+   * @param buildBB the buildBB instance that contains the results from the
+   *  previous analysis
+   *
+   * @see BaselineCompiler#localTypes
+   * @see TemplateCompilerFramework#stackHeights
    */
   public void buildReferenceMaps(NormalMethod method, int[] stackHeights, byte[] localTypes,
                                  ReferenceMaps referenceMaps, BuildBB buildBB) {

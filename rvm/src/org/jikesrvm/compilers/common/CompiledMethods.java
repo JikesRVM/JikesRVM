@@ -33,7 +33,7 @@ import org.vmmagic.unboxed.Address;
 
 /**
  * Manage pool of compiled methods. <p>
- * Original extracted from RVMClassLoader. <p>
+ * Original extracted from RVMClassLoader.
  */
 public class CompiledMethods {
   /**
@@ -63,7 +63,9 @@ public class CompiledMethods {
   private static boolean scanForObsoleteMethods = false;
 
   /**
-   * Ensure space in backing array for id
+   * Ensure space in backing array for id.
+   *
+   * @param id the id we need to ensure capacity for
    */
   private static void ensureCapacity(int id) {
     int column = id >> LOG_ROW_SIZE;
@@ -79,7 +81,8 @@ public class CompiledMethods {
   }
 
   /**
-   * Fetch a previously compiled method without checking
+   * @param cmid id of the method
+   * @return a previously compiled method without checking
    */
   @Uninterruptible
   public static CompiledMethod getCompiledMethodUnchecked(int cmid) {
@@ -87,9 +90,6 @@ public class CompiledMethods {
     return compiledMethods[column][cmid & ROW_MASK];
   }
 
-  /**
-   * Set entry in compiled method lookup
-   */
   @Uninterruptible
   private static void setCompiledMethod(int cmid, CompiledMethod cm) {
     int column = cmid >> LOG_ROW_SIZE;
@@ -98,7 +98,8 @@ public class CompiledMethods {
   }
 
   /**
-   * Fetch a previously compiled method.
+   * @param compiledMethodId the id of the compiled method
+   * @return a previously compiled method
    */
   @Uninterruptible
   public static CompiledMethod getCompiledMethod(int compiledMethodId) {
@@ -115,9 +116,6 @@ public class CompiledMethods {
     return getCompiledMethodUnchecked(compiledMethodId);
   }
 
-  /**
-   * Create a CompiledMethod appropriate for the given compilerType
-   */
   public static synchronized CompiledMethod createCompiledMethod(RVMMethod m, int compilerType) {
     int id = currentCompiledMethodId + 1;
     ensureCapacity(id);
@@ -137,7 +135,7 @@ public class CompiledMethods {
   }
 
   /**
-   * Create a CompiledMethod for the synthetic hardware trap frame
+   * @return a CompiledMethod for the synthetic hardware trap frame
    */
   public static synchronized CompiledMethod createHardwareTrapCompiledMethod() {
     int id = currentCompiledMethodId + 1;
@@ -149,7 +147,7 @@ public class CompiledMethods {
   }
 
   /**
-   * Get number of methods compiled so far.
+   * @return number of methods compiled so far.
    */
   @Uninterruptible
   public static int numCompiledMethods() {

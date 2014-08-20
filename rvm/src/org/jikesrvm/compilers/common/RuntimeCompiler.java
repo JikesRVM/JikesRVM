@@ -45,7 +45,7 @@ import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Harness to select which compiler to dynamically
- * compile a method in first invocation.<p>
+ * compile a method in first invocation.
  * <p>
  * A place to put code common to all runtime compilers.
  * This includes instrumentation code to get equivalent data for
@@ -277,7 +277,7 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
   }
 
   /**
-   * Return the current estimate of basline-compiler rate, in bcb/msec
+   * @return the current estimate of basline-compiler rate, in bcb/msec
    */
   public static double getBaselineRate() {
     return Math.exp(totalLogOfRates[BASELINE_COMPILER] / totalLogValueMethods[BASELINE_COMPILER]);
@@ -286,6 +286,7 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
   /**
    * This method will compile the passed method using the baseline compiler.
    * @param method the method to compile
+   * @return the compiled method
    */
   public static CompiledMethod baselineCompile(NormalMethod method) {
     Callbacks.notifyMethodCompile(method, CompiledMethod.BASELINE);
@@ -313,7 +314,10 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
   }
 
   /**
-   * Process command line argument destined for the opt compiler
+   * Processes a command line argument destined for the opt compiler.
+   *
+   * @param prefix the prefix, e.g. "-X:opt:"
+   * @param arg everything after the last ':'
    */
   public static void processOptCommandLineArg(String prefix, String arg) {
     if (VM.BuildForAdaptiveSystem) {
@@ -346,6 +350,7 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
    * Precondition: compilationInProgress "lock" has been acquired
    * @param method the method to compile
    * @param plan the plan to use for compiling the method
+   * @return a compiled method
    */
   private static CompiledMethod optCompile(NormalMethod method, CompilationPlan plan)
       throws OptimizingCompilerException {
@@ -390,6 +395,8 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
    * compilation for all combinations of bootimages &amp; lazy/eager compilation.
    * Be absolutely sure you know what you're doing before changing it !!!
    * @param method the method to compile
+   * @return a compiled method (opt when possible, baseline when the opt compiler
+   *  busy)
    */
   public static synchronized CompiledMethod optCompileWithFallBack(NormalMethod method) {
     if (VM.BuildForOptCompiler) {
@@ -423,6 +430,8 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
    * Be absolutely sure you know what you're doing before changing it !!!
    * @param method the method to compile
    * @param plan the compilation plan to use for the compile
+   * @return a compiled method (opt when possible, baseline when the opt compiler
+   *  busy)
    */
   public static synchronized CompiledMethod optCompileWithFallBack(NormalMethod method,
                                                                       CompilationPlan plan) {
@@ -447,6 +456,8 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
    * This real method that performs the opt compilation.
    * @param method the method to compile
    * @param plan the compilation plan to use
+   * @return a compiled method (opt when possible, baseline when the opt compiler
+   *  busy)
    */
   private static CompiledMethod optCompileWithFallBackInternal(NormalMethod method, CompilationPlan plan) {
     if (VM.BuildForOptCompiler) {
@@ -580,6 +591,7 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
    * A wrapper method for those callers who don't want to make
    * optimization plans
    * @param method the method to recompile
+   * @return a compiled method id or -1 when the compilation failed
    */
   public static int recompileWithOpt(NormalMethod method) {
     if (VM.BuildForOptCompiler) {
@@ -599,6 +611,9 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
    * This method uses the default compiler (baseline) to compile a method
    * It is typically called when a more aggressive compilation fails.
    * This method is safe to invoke from RuntimeCompiler.compile.
+   *
+   * @param method method to compile
+   * @return a baseline compiled method
    */
   protected static CompiledMethod fallback(NormalMethod method) {
     // call the inherited method "baselineCompile"
