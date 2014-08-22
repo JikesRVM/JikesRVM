@@ -58,6 +58,7 @@ public final class InlineDecision {
 
   /**
    * @param targets   The methods to inline
+   * @param guards the chosen guards. will be {@code null} if no guards are necessary
    * @param code the decision code
    * @param reason a string rationale
    */
@@ -132,42 +133,42 @@ public final class InlineDecision {
   }
 
   /**
-   * Is this inline decision a YES?
+   * @return whether this inline decision is a YES
    */
   public boolean isYES() {
     return !isNO();
   }
 
   /**
-   * Is this inline decision a NO?
+   * @return whether this inline decision is a NO
    */
   public boolean isNO() {
     return (code == Code.DECIDE_NO);
   }
 
   /**
-   * Does this inline site need a guard?
+   * @return whether this inline site needs a guard
    */
   public boolean needsGuard() {
     return (code == Code.GUARDED_YES);
   }
 
   /**
-   * Return the methods to inline according to this decision.
+   * @return the methods to inline according to this decision.
    */
   public RVMMethod[] getTargets() {
     return targets;
   }
 
   /**
-   * Return the guards to use according to this decision.
+   * @return the guards to use according to this decision.
    */
   public byte[] getGuards() {
     return guards;
   }
 
   /**
-   * Return the number methods to inline.
+   * @return the number methods to inline
    */
   public int getNumberOfTargets() {
     if (targets == null) {

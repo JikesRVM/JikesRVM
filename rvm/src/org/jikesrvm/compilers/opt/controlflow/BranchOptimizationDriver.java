@@ -144,6 +144,7 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
    * See Muchnick ~p.590
    *
    * @param ir the IR to optimize
+   * @return whether optimizations were applied
    */
   protected boolean applyPeepholeBranchOpts(IR ir) {
     boolean didSomething = false;
@@ -235,10 +236,6 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
 
   // Helper functions
 
-  /**
-   * Given an instruction s, return the first LABEL instruction
-   * following s.
-   */
   protected final Instruction firstLabelFollowing(Instruction s) {
     for (s = s.nextInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
       if (s.operator() == LABEL) {
@@ -248,10 +245,6 @@ public abstract class BranchOptimizationDriver extends CompilerPhase {
     return null;
   }
 
-  /**
-   * Given an instruction s, return the first real (non-label) instruction
-   * following s
-   */
   protected final Instruction firstRealInstructionFollowing(Instruction s) {
     for (s = s.nextInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
       if (s.operator() != LABEL && s.operator() != BBEND) {

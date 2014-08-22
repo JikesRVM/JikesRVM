@@ -253,6 +253,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   /**
    * Is this value modified by the loop?
    *
+   * @param op an operand
    * @return whether the value is modified
    */
   public boolean isInvariant(Operand op) {
@@ -288,7 +289,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Is the loop iterator monotonic?
+   * @return whether the loop iterator is monotonic
    */
   public boolean isMonotonic() {
     return isConstant(strideValue);
@@ -310,7 +311,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Is the loop iterator a monotonic increasing value
+   * @return whether the loop iterator is a monotonic increasing value
    */
   public boolean isMonotonicIncreasing() {
     if ((!isMonotonic()) ||
@@ -325,7 +326,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Is the loop iterator a monotonic decreasing value
+   * @return whether the loop iterator is a monotonic decreasing value
    */
   public boolean isMonotonicDecreasing() {
     if ((!isMonotonic()) ||
@@ -340,7 +341,8 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Does this basic block appear in the loop?
+   * @param block the block to chck for
+   * @return {@code true} if the basic block appears in the loop
    */
   public boolean contains(BasicBlock block) {
     return (block.getNumber() < loop.length()) && loop.get(block.getNumber());
@@ -399,7 +401,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Dump a human readable description of the loop
+   * Dumps a human readable description of the loop.
    */
   public void dump() {
     VM.sysWrite("********* START OF SSA LOOP DUMP in AnnotatedLSTNode FOR " + ir.method + "\n");
@@ -475,10 +477,11 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Convert instruction to String in of AnnotatedLSTNode format
+   * Converts instruction to String in of AnnotatedLSTNode format.
    *
    * @param ir    Containing IR
    * @param instr The instruction to dump
+   * @return the converted string
    */
   static String instructionToString(IR ir, Instruction instr) {
     StringBuilder sb = new StringBuilder();
@@ -733,6 +736,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    *
    * @param block to generate instructions into
    * @param op the operand we hope to use before the loop
+   * @return a (possibly new) operand
    */
   public Operand generateLoopInvariantOperand(BasicBlock block, Operand op) {
     Instruction instr = definingInstruction(op);
@@ -847,9 +851,9 @@ public final class AnnotatedLSTNode extends LSTNode {
 
   /**
    * Find the instruction that defines an operand.
-   * If the operand is a register, return the instruction that defines it, else return the operands instruction
-   *
    * @param op The operand we're searching for the definition of
+   * @return If the operand is a register, return the instruction that defines it.
+   * Else return the operand's instruction.
    */
   public static Instruction definingInstruction(Operand op) {
     Instruction result = op.instruction;
@@ -876,6 +880,7 @@ public final class AnnotatedLSTNode extends LSTNode {
   /**
    * Is the a particular block in this loop?
    *
+   * @param block the block to check for
    * @return {@code true} iff block is in the loop
    */
   public boolean isInLoop(BasicBlock block) {
@@ -926,6 +931,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * Check the edges out of a block are within the loop
    *
    * @param block to check
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void checkOutEdgesAreInLoop(BasicBlock block) throws NonRegularLoopException {
     // The blocks (copy of) that are branched to from this block
@@ -948,6 +954,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * Check the edges into a block are from within the loop
    *
    * @param block to check
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void checkInEdgesAreInLoop(BasicBlock block) throws NonRegularLoopException {
     // The blocks (copy of) that branch to this block
@@ -1007,7 +1014,8 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Process the loop header basic block
+   * Process the loop header basic block.
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void processHeader() throws NonRegularLoopException {
     // The blocks (copy of) that branch to this block
@@ -1045,7 +1053,8 @@ public final class AnnotatedLSTNode extends LSTNode {
   }
 
   /**
-   * Process the loop exit basic block
+   * Process the loop exit basic block.
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void processExit() throws NonRegularLoopException {
     // If the exit isn't the header block, check it doesn't have in edges from outside the loop
@@ -1201,6 +1210,7 @@ public final class AnnotatedLSTNode extends LSTNode {
    * Process a regular block within the loop
    *
    * @param block The basic block to process
+   * @throws NonRegularLoopException if the loop was not regular
    */
   private void processLoopBlock(BasicBlock block) throws NonRegularLoopException {
     checkInEdgesAreInLoop(block);
@@ -1228,16 +1238,13 @@ public final class AnnotatedLSTNode extends LSTNode {
      */
     private final String _summary;
 
-    /**
-     * Constructor
-     */
     NonRegularLoopException(String s) {
       super(s);
       _summary = s;
     }
 
     /**
-     * A brief description of the error
+     * @return a brief description of the error
      */
     String summary() {
       return _summary;

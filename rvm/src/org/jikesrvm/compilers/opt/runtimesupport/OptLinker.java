@@ -42,12 +42,15 @@ public final class OptLinker {
 
   /**
    * Given an opt compiler info and a machine code offset in that method's
-   * instruction array, perform the dynamic linking required by that
+   * instruction array, performs the dynamic linking required by that
    * instruction.
    * <p>
    * We do this by mapping back to the source RVMMethod and bytecode offset,
    * then examining the bytecodes to see what field/method was being
    * referenced, then calling TableBasedDynamicLinker to do the real work.
+   *
+   * @param cm the opt compiled method
+   * @param offset machine code offset
    */
   public static void resolveDynamicLink(OptCompiledMethod cm, Offset offset) throws NoClassDefFoundError {
     OptMachineCodeMap map = cm.getMCMap();

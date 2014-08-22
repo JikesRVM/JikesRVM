@@ -160,7 +160,7 @@ public class EscapeTransformations extends CompilerPhase {
    *            null if no legal transformation found
    */
   private UnsyncReplacer getUnsyncReplacer(Register reg, Instruction inst, IR ir) {
-    if (!synchronizesOn(ir, reg)) {
+    if (!synchronizesOn(reg)) {
       return null;
     }
     return UnsyncReplacer.getReplacer(inst, ir);
@@ -169,9 +169,12 @@ public class EscapeTransformations extends CompilerPhase {
   /**
    * Is there an instruction in this IR which causes synchronization
    * on an object pointed to by a particular register?
+   *
    * PRECONDITION: register lists computed and valid
+   * @param r the object's register
+   * @return whether synchronization occurs on the given object
    */
-  private static boolean synchronizesOn(IR ir, Register r) {
+  private static boolean synchronizesOn(Register r) {
     // walk through uses of r
     for (RegisterOperand use = r.useList; use != null; use = use.getNext()) {
       Instruction s = use.instruction;

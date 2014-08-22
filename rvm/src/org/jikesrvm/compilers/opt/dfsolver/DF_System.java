@@ -187,9 +187,10 @@ public abstract class DF_System {
   }
 
   /**
-   * Find the cell matching this key. If none found, create one.
+   * Finds the cell matching this key. If none found, creates one.
    *
-   * @param key the key for the lattice cell.
+   * @param key the key for the lattice cell
+   * @return a suitable cell
    */
   protected DF_LatticeCell findOrCreateCell(Object key) {
     DF_LatticeCell result = cells.get(key);

@@ -188,7 +188,10 @@ public class ExpressionFolding extends IRTools {
   private static final boolean VERBOSE = false;
 
   /**
-   * Perform expression folding on individual basic blocks
+   * Perform expression folding on individual basic blocks.
+   *
+   * @param ir the IR that contains the blocks
+   * @return whether something was changed
    */
   public static boolean performLocal(IR ir) {
     Instruction outer = ir.cfg.entry().firstRealInstruction();
@@ -504,7 +507,9 @@ public class ExpressionFolding extends IRTools {
 
   /**
    * Prune the candidate set; restrict candidates to only allow transformations
-   * that result in dead code to be eliminated
+   * that result in dead code to be eliminated.
+   *
+   * @param candidates the candidates to prune
    */
   private static void pruneCandidates(HashSet<Register> candidates) {
     for (Iterator<Register> i = candidates.iterator(); i.hasNext();) {

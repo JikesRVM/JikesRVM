@@ -74,9 +74,6 @@ import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 public class LocalCSE extends CompilerPhase {
   private final boolean isHIR;
 
-  /**
-   * Constructor
-   */
   public LocalCSE(boolean isHIR) {
     super(new Object[]{isHIR});
     this.isHIR = isHIR;
@@ -207,16 +204,10 @@ public class LocalCSE extends CompilerPhase {
     }
   }
 
-  /**
-   * Is a given instruction a CSE-able load?
-   */
   public static boolean isLoadInstruction(Instruction s) {
     return GetField.conforms(s) || GetStatic.conforms(s);
   }
 
-  /**
-   * Is a given instruction a CSE-able store?
-   */
   public static boolean isStoreInstruction(Instruction s) {
     return PutField.conforms(s) || PutStatic.conforms(s);
   }
@@ -377,6 +368,7 @@ public class LocalCSE extends CompilerPhase {
   /**
    * Process a check instruction
    *
+   * @param ir the IR that contains the instruction
    * @param cache the cache of available expressions
    * @param inst the instruction begin processed
    */
@@ -432,9 +424,8 @@ public class LocalCSE extends CompilerPhase {
   }
 
   /**
-   * Is this a synchronizing instruction?
-   *
    * @param inst the instruction in question
+   * @return whether this is a synchronizing instruction
    */
   private static boolean isSynchronizing(Instruction inst) {
     switch (inst.getOpcode()) {
@@ -831,37 +822,22 @@ public class LocalCSE extends CompilerPhase {
       return opr.hashCode();
     }
 
-    /**
-     * Does this expression represent the result of a load or store?
-     */
     public boolean isLoadOrStore() {
       return GetField.conforms(opr) || GetStatic.conforms(opr) || PutField.conforms(opr) || PutStatic.conforms(opr);
     }
 
-    /**
-     * Does this expression represent the result of a load?
-     */
     public boolean isLoad() {
       return GetField.conforms(opr) || GetStatic.conforms(opr);
     }
 
-    /**
-     * Does this expression represent the result of a store?
-     */
     public boolean isStore() {
       return PutField.conforms(opr) || PutStatic.conforms(opr);
     }
 
-    /**
-     * Does this expression represent the result of a bounds check?
-     */
     private boolean isBoundsCheck() {
       return BoundsCheck.conforms(opr) || (TrapIf.conforms(opr) && ((TrapCodeOperand) ops[2]).isArrayBounds());
     }
 
-    /**
-     * Is this expression commutative?
-     */
     private boolean isCommutative() {
       return opr.isCommutative();
     }

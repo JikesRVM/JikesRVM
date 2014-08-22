@@ -54,10 +54,6 @@ public class CFGTransformations extends CompilerPhase {
     staticPerform(ir);
   }
 
-  /**
-   * static version of perform
-   * @param ir
-   */
   static void staticPerform(IR ir) {
     if (ir.hasReachableExceptionHandlers()) return;
 
@@ -105,9 +101,7 @@ public class CFGTransformations extends CompilerPhase {
   }
 
   //Implementation
-  /**
-   * treat all loops of the ir
-   */
+
   private static boolean turnWhilesIntoUntils(IR ir) {
     LSTGraph lstg = ir.HIRInfo.loopStructureTree;
     if (lstg != null) {
@@ -116,9 +110,6 @@ public class CFGTransformations extends CompilerPhase {
     return false;
   }
 
-  /**
-   * deal with a sub tree of the loop structure tree
-   */
   private static boolean turnLoopTreeIntoUntils(LSTNode t, IR ir) {
     Enumeration<GraphNode> e = t.outNodes();
     while (e.hasMoreElements()) {
@@ -133,9 +124,6 @@ public class CFGTransformations extends CompilerPhase {
     return false;
   }
 
-  /**
-   * treat all loops of the ir
-   */
   private static void ensureLandingPads(IR ir) {
     LSTGraph lstg = ir.HIRInfo.loopStructureTree;
     if (lstg != null) {
@@ -143,9 +131,6 @@ public class CFGTransformations extends CompilerPhase {
     }
   }
 
-  /**
-   * deal with a sub tree of the loop structure tree
-   */
   private static void ensureLandingPads(LSTNode t, IR ir) {
     Enumeration<GraphNode> e = t.outNodes();
     while (e.hasMoreElements()) {
@@ -194,7 +179,7 @@ public class CFGTransformations extends CompilerPhase {
   }
 
   /**
-   * Transform a given loop
+   * Transforms a given loop.
    *
    * <p> Look for the set S of in-loop predecessors of the loop header h.
    * Make a copy h' of the loop header and redirect all edges going from
@@ -202,6 +187,10 @@ public class CFGTransformations extends CompilerPhase {
    *
    * <p> As an effect of this transformation, the old header is now not anymore
    * part of the loop, but guards it.
+   *
+   * @param n anode
+   * @param ir the governing IR
+   * @return whether anything was changed
    */
   private static boolean turnLoopIntoUntil(LSTNode n, IR ir) {
     BasicBlock header = n.header;
@@ -251,9 +240,6 @@ public class CFGTransformations extends CompilerPhase {
     return true;
   }
 
-  /**
-   * the predecessors of the loop header that are not part of the loop
-   */
   private static BasicBlock[] loopPredecessors(LSTNode n) {
     BasicBlock header = n.header;
     BitVector loop = n.loop;
@@ -273,9 +259,6 @@ public class CFGTransformations extends CompilerPhase {
     return res;
   }
 
-  /**
-   * the predecessors of the loop header that are part of the loop.
-   */
   private static BasicBlock[] inLoopPredecessors(LSTNode n) {
     BasicBlock header = n.header;
     BitVector loop = n.loop;
@@ -295,9 +278,6 @@ public class CFGTransformations extends CompilerPhase {
     return res;
   }
 
-  /**
-   * the successors of the loop header that are part of the loop.
-   */
   private static BasicBlock[] inLoopSuccessors(LSTNode n) {
     BasicBlock header = n.header;
     BitVector loop = n.loop;
@@ -352,6 +332,8 @@ public class CFGTransformations extends CompilerPhase {
    *
    * <p> We do this to provide landing pads for loop-invariant code motion.
    * So we split only edges, where `a' has a lower loop nesting depth than `b'.
+   *
+   * @param ir the IR to process
    */
   public static void splitCriticalEdges(IR ir) {
     Enumeration<BasicBlock> e = ir.getBasicBlocks();

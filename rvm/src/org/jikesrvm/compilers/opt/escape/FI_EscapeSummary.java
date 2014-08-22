@@ -22,7 +22,8 @@ import org.jikesrvm.compilers.opt.ir.Register;
 class FI_EscapeSummary {
 
   /**
-   * Returns {@code true} iff ANY object pointed to by symbolic register r
+   * @param r a symbolic register
+   * @return {@code true} iff ANY object pointed to by a symbolic register
    * MUST be thread local
    */
   boolean isThreadLocal(Register r) {
@@ -31,7 +32,8 @@ class FI_EscapeSummary {
   }
 
   /**
-   * Returns {@code true} iff ANY object pointed to by symbolic register r
+   * @param r a symbolic register
+   * @return {@code true} iff ANY object pointed to by a symbolic register
    * MUST be method local
    */
   boolean isMethodLocal(Register r) {
@@ -40,8 +42,11 @@ class FI_EscapeSummary {
   }
 
   /**
-   * record the fact that ALL object pointed to by symbolic register r
-   * MUST (or may) escape this thread
+   * Records the fact that ALL object pointed to by a symbolic register
+   * MUST (or may) escape this thread.
+   *
+   * @param r a symbolic register
+   * @param b {@code true} if thread-local, {@code false} otherwise
    */
   void setThreadLocal(Register r, boolean b) {
     if (b) {
@@ -52,8 +57,11 @@ class FI_EscapeSummary {
   }
 
   /**
-   * Record the fact that ALL object pointed to by symbolic register r
-   * MUST (or may) escape this method
+   * Records the fact that ALL object pointed to by a symbolic register
+   * MUST (or may) escape this method.
+   *
+   * @param r a symbolic register
+   * @param b {@code true} if method-local, {@code false} otherwise
    */
   void setMethodLocal(Register r, boolean b) {
     if (b) {

@@ -238,9 +238,6 @@ public final class DefUse {
     }
   }
 
-  /**
-   * Remove an instruction and update register lists.
-   */
   public static void removeInstructionAndUpdateDU(Instruction s) {
     for (Enumeration<Operand> e = s.getPureDefs(); e.hasMoreElements();) {
       Operand op = e.nextElement();
@@ -257,10 +254,6 @@ public final class DefUse {
     s.remove();
   }
 
-  /**
-   * Update register lists to account for the effect of a new
-   * instruction s
-   */
   public static void updateDUForNewInstruction(Instruction s) {
     for (Enumeration<Operand> e = s.getPureDefs(); e.hasMoreElements();) {
       Operand op = e.nextElement();
@@ -276,40 +269,24 @@ public final class DefUse {
     }
   }
 
-  /**
-   * Replace an instruction and update register lists.
-   */
   public static void replaceInstructionAndUpdateDU(Instruction oldI, Instruction newI) {
     oldI.insertBefore(newI);
     removeInstructionAndUpdateDU(oldI);
     updateDUForNewInstruction(newI);
   }
 
-  /**
-   * Enumerate all operands that use a given register.
-   */
   public static Enumeration<RegisterOperand> uses(Register reg) {
     return new RegOpListWalker(reg.useList);
   }
 
-  /**
-   * Enumerate all operands that def a given register.
-   */
   public static Enumeration<RegisterOperand> defs(Register reg) {
     return new RegOpListWalker(reg.defList);
   }
 
-  /**
-   * Does a given register have exactly one use?
-   */
   static boolean exactlyOneUse(Register reg) {
     return (reg.useList != null) && (reg.useList.getNext() == null);
   }
 
-  /**
-   * Print all the instructions that def a register.
-   * @param reg
-   */
   static void printDefs(Register reg) {
     VM.sysWrite("Definitions of " + reg + '\n');
     for (Enumeration<RegisterOperand> e = defs(reg); e.hasMoreElements();) {
@@ -317,10 +294,6 @@ public final class DefUse {
     }
   }
 
-  /**
-   * Print all the instructions that usea register.
-   * @param reg
-   */
   static void printUses(Register reg) {
     VM.sysWrite("Uses of " + reg + '\n');
     for (Enumeration<RegisterOperand> e = uses(reg); e.hasMoreElements();) {
@@ -344,8 +317,13 @@ public final class DefUse {
   }
 
   /**
-   * Merge register reg2 into register reg1.
-   * Remove reg2 from the DU information
+   * Merges a register into another register and removes the
+   * merged register from the DU information.
+   *
+   * @param reg1 the register that is being merged into
+   * @param reg2 the register that's being merged (and then removed from the
+   *  DU information)
+   * @param ir the governing IR
    */
   public static void mergeRegisters(IR ir, Register reg1, Register reg2) {
     RegisterOperand lastOperand;
@@ -449,10 +427,10 @@ public final class DefUse {
   }
 
   /**
-   * Have we seen this register in a different basic block?
-   *
    * @param reg the register
    * @param bbNum the number of the basic block
+   * @return {@code true} if the register was seen in a different basic block
+   *  than the one that was passed to this method
    */
   private static boolean seenInDifferentBlock(Register reg, int bbNum) {
     int bb = reg.scratch;

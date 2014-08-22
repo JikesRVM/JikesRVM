@@ -94,16 +94,12 @@ class MethodSummary {
   }
 
   /**
-   * Is analysis of this method in progress?
+   * @return whether the analysis of this method is in progress
    */
   public boolean inProgress() {
     return inProgress;
   }
 
-  /**
-   * Mark that analysis of this method is or is not in progress.
-   * @param b
-   */
   public void setInProgress(boolean b) {
     inProgress = b;
   }

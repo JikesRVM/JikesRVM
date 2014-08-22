@@ -149,7 +149,8 @@ final class OptExceptionTable extends ExceptionTable {
   }
 
   /**
-   * Return an upper bounds on the size of the exception table for an IR.
+   * @param ir the IR with the exception tables
+   * @return an upper bound on the size of the exception table for an IR.
    */
   private static int countExceptionTableSize(IR ir) {
     int tSize = 0;

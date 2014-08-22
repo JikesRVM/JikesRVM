@@ -1504,7 +1504,7 @@ public final class Instruction {
   /**
    * Insertion: Insert newInstr immediately before this in the
    * instruction stream.
-   * Can't insert before a LABEL instruction, since it must be the last
+   * Can't insert before a LABEL instruction, since it must be the first
    * instruction in its basic block.
    *
    * @param newInstr the instruction to insert, must not be in

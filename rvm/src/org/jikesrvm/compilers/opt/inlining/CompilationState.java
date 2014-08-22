@@ -64,78 +64,80 @@ public final class CompilationState {
   }
 
   /**
-   * Return the depth of inlining so far.
+   * @return the depth of inlining so far.
    */
   public int getInlineDepth() {
     return call.position.getInlineDepth();
   }
 
   /**
-   * Return the call instruction being considered for inlining
+   * @return the call instruction being considered for inlining
    */
   public Instruction getCallInstruction() {
     return call;
   }
 
   /**
-   * Obtain the target method from the compilation state.
+   * Obtains the target method from the compilation state.
    * If a computed target is present, use it.
+   *
+   * @return the obtained target
    */
   public RVMMethod obtainTarget() {
     return Call.getMethod(call).getTarget();
   }
 
   /**
-   * Return the controlling compiler options
+   * @return the controlling compiler options
    */
   public OptOptions getOptions() {
     return options;
   }
 
   /**
-   * Return whether or not the receiving object is extant
+   * @return whether or not the receiving object is extant
    */
   public boolean getIsExtant() {
     return isExtant;
   }
 
   /**
-   * Return whether or not the target is precise (ie needs no guard)
+   * @return whether or not the target is precise (ie needs no guard)
    */
   public boolean getHasPreciseTarget() {
     return Call.getMethod(call).hasPreciseTarget();
   }
 
   /**
-   * Return the root method of the compilation
+   * @return the root method of the compilation
    */
   public NormalMethod getRootMethod() {
     return call.position.getRootMethod();
   }
 
   /**
-   * Return the method being compiled
+   * @return the method being compiled
    */
   public NormalMethod getMethod() {
     return call.position.getMethod();
   }
 
   /**
-   * Return the real bytecode index associated with this call
+   * @return the real bytecode index associated with this call
    */
   public int getRealBytecodeIndex() {
     return realBCI;
   }
 
   /**
-   * Return the inlining sequence
+   * @return the inlining sequence
    */
   public InlineSequence getSequence() {
     return call.position;
   }
 
   /**
-   * Return the compiled method
+   * @return the compiled method
    */
   public CompiledMethod getCompiledMethod() {
     return cm;

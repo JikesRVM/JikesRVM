@@ -3570,6 +3570,7 @@ public abstract class Simplifier extends IRTools {
    * <li> <code> Reg = Reg &lt;op&gt; Constant </code>
    * <li> <code> Reg = Constant &lt;op&gt; Constant </code>
    * </ul>
+   * @param instr thre instruction to consider
    */
   private static void canonicalizeCommutativeOperator(Instruction instr) {
     if (Binary.getVal1(instr).isConstant()) {
@@ -3579,9 +3580,6 @@ public abstract class Simplifier extends IRTools {
     }
   }
 
-  /**
-   * Compute 2 raised to the power v, 0 &lt;= v &lt;= 31
-   */
   private static int PowerOf2(int v) {
     int i = 31;
     int power = -1;
@@ -3598,7 +3596,10 @@ public abstract class Simplifier extends IRTools {
   }
 
   /**
-   * Turn the given operand encoding an address constant into an Address
+   * Turns the given operand encoding an address constant into an Address.
+   *
+   * @param op the operand
+   * @return the address that was extracted from the operand
    */
   private static Address getAddressValue(Operand op) {
     if (op instanceof NullConstantOperand) {

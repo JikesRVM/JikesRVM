@@ -217,8 +217,11 @@ public class SpaceEffGraphNode implements GraphNodeWithScratchFields {
   }
 
   /**
-   * replaces the in edge matching e1 with e2.
+   * Replaces the in edge matching e1 with e2.
    * maintains the ordering of edges<p>
+   *
+   * @param e1 original edge
+   * @param e2 new edge
    *
    * TODO YUCK: this data structure is messy.  I assume this is in the name
    * of efficiency, but it makes control flow graph manipulations
@@ -251,34 +254,34 @@ public class SpaceEffGraphNode implements GraphNodeWithScratchFields {
     e1.nextIn = null;
   }
 
-  /* returns true if the node is the single predecessor/successor of
-     this block */
-
+  /**
+   * @param inNode the node that might be the single predecessor
+   * @return {@code true} if the node is the single predecessor of this node
+   */
   public final boolean hasOneIn(SpaceEffGraphNode inNode) {
     SpaceEffGraphEdge first = _inEdgeStart;
     return (first != null) && (first.nextIn == null) && (first.fromNode() == inNode);
   }
 
+  /**
+   *
+   * @param outNode the node that might be the single successor
+   * @return {@code true} if the node is the single successor of this node
+   */
   public final boolean hasOneOut(SpaceEffGraphNode outNode) {
     SpaceEffGraphEdge first = _outEdgeStart;
     return (first != null) && (first.nextOut == null) && (first.toNode() == outNode);
   }
-
-  /* replaces an oldnode with a new node */
 
   public final void replaceOut(SpaceEffGraphNode oldOut, SpaceEffGraphNode newOut) {
     deleteOut(oldOut);
     insertOut(newOut);
   }
 
-  /* inserts an outgoing edge to a node 'to' */
-
   public final void insertOut(SpaceEffGraphNode to, SpaceEffGraphEdge e) {
     this.appendOutEdge(e);
     to.appendInEdge(e);
   }
-
-  /* same as before, if you don't care the edge type */
 
   public final void insertOut(SpaceEffGraphNode to) {
     if (this.pointsOut(to)) return;
@@ -287,14 +290,10 @@ public class SpaceEffGraphNode implements GraphNodeWithScratchFields {
     to.appendInEdge(e);
   }
 
-  /* delete an outgoing edge to a node */
-
   public final void deleteOut(SpaceEffGraphNode node) {
     SpaceEffGraphEdge edge = this.removeOut(node);
     node.removeIn(edge);
   }
-
-  /* delete an outgoing edge  */
 
   public final void deleteOut(SpaceEffGraphEdge e) {
     SpaceEffGraphNode to = e.toNode();

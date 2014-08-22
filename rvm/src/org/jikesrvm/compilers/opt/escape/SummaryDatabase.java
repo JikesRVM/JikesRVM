@@ -25,11 +25,7 @@ import org.jikesrvm.util.ImmutableEntryHashMapRVM;
  *  </ul>
  */
 class SummaryDatabase {
-  /**
-   * Lookup a given method in the database
-   *
-   * @return MethodSummary instance representing method
-   */
+
   public static synchronized MethodSummary findMethodSummary(RVMMethod m) {
     return hash.get(m);
   }
@@ -43,7 +39,6 @@ class SummaryDatabase {
     return result;
   }
 
-  /* Implementation */
   private static final ImmutableEntryHashMapRVM<RVMMethod, MethodSummary> hash =
     new ImmutableEntryHashMapRVM<RVMMethod, MethodSummary>();
 }

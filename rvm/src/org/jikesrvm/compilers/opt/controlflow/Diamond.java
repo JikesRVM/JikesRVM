@@ -47,22 +47,22 @@ final class Diamond {
   private final BasicBlock notTaken;
 
   /**
-   * The top of the diamond
+   * @return the top of the diamond
    */
   BasicBlock getTop() { return top; }
 
   /**
-   * The bottom of the diamond
+   * @return the bottom of the diamond
    */
   BasicBlock getBottom() { return bottom; }
 
   /**
-   * The "taken" branch of the diamond (might be null)
+   * @return the "taken" branch of the diamond (might be {@code null})
    */
   BasicBlock getTaken() { return taken;}
 
   /**
-   * The "not-taken" branch of the diamond (might be null)
+   * @return the "not-taken" branch of the diamond (might be {@code null})
    */
   BasicBlock getNotTaken() { return notTaken; }
 
@@ -77,7 +77,8 @@ final class Diamond {
    * See if bb is the root of a diamond.  If so, return an Diamond
    * representing the structure.
    *
-   * @return a structure representing the diamond.  null if not
+   * @param bb possible root of a diamond
+   * @return a structure representing the diamond, {@code null} if not
    * applicable.
    */
   static Diamond buildDiamond(BasicBlock bb) {
@@ -120,9 +121,6 @@ final class Diamond {
     return null;
   }
 
-  /**
-   * Given that four blocks form a diamond, return the correct structure.
-   */
   private static Diamond fourElementDiamond(BasicBlock top, BasicBlock left, BasicBlock right,
                                                 BasicBlock bottom) {
 
@@ -138,9 +136,6 @@ final class Diamond {
     }
   }
 
-  /**
-   * Given that three blocks form a diamond, return the correct structure.
-   */
   private static Diamond threeElementDiamond(BasicBlock top, BasicBlock side, BasicBlock bottom) {
 
     Instruction cb = top.firstBranchInstruction();
@@ -155,9 +150,6 @@ final class Diamond {
     }
   }
 
-  /**
-   * Return a string representation.
-   */
   @Override
   public String toString() {
     return "[" + top + "," + taken + "," + notTaken + "," + bottom + "]";

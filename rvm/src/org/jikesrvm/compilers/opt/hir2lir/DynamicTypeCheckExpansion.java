@@ -825,6 +825,8 @@ abstract class DynamicTypeCheckExpansion extends ConvertToLowLevelIR {
    *                   evaluates to true
    * @param falseBlock The BasicBlock to continue at if the typecheck
    *                   evaluates to false.
+   * @param oldGuard   A suitable guard operand (not necessarily related
+   *                   the instruction that is to be replaced).
    * @param falseProb   The probability that typecheck will branch to the falseBlock
    * @return the opt instruction immediately before the instruction to
    *         continue expansion.

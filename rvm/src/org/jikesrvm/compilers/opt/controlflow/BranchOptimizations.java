@@ -806,6 +806,9 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
   /**
    * Is a specified condition operand 'safe' to transfer into an FCMP
    * instruction?
+   *
+   * @param c operand to check
+   * @return whether the operand is 'safe'
    */
   private boolean fpConditionOK(ConditionOperand c) {
     // FCOMI sets ZF, PF, and CF as follows:
@@ -847,7 +850,10 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * register?
    *
    * @param bb basic block to search
-   * @param invert invert the sense of the search
+   * @param invert {@code true} if and only if the sense of the search
+   *  should be inverted
+   * @return whether a floating point register (or a non-floating point register)
+   *  is defined in the block
    */
   private static boolean hasFloatingPointDef(BasicBlock bb, boolean invert) {
     if (bb == null) return false;
@@ -866,6 +872,10 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
   /**
    * Do any of the instructions in a basic block define a long
    * register?
+   *
+   * @param bb basic block to search
+   * @return whether an instruction in the block defines a long
+   *  register
    */
   private boolean hasLongDef(BasicBlock bb) {
     if (bb == null) return false;
@@ -884,6 +894,9 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
   /**
    * Do any of the instructions in a basic block preclude eliminating the
    * basic block with conditional moves?
+   *
+   * @param bb the block to check
+   * @return whether the block must be retained
    */
   private boolean hasCMTaboo(BasicBlock bb) {
 
@@ -955,7 +968,11 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
   }
 
   /**
-   * Evaluate the cost of a basic block, in number of real instructions.
+   * Evaluates the cost of a basic block, in number of real instructions
+   * excluding branches.
+   *
+   * @param bb the block to evaluate
+   * @return the number of real instruction, excluding branches.
    */
   private int evaluateCost(BasicBlock bb) {
     int result = 0;
@@ -972,6 +989,11 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * <li> Copy s to s', and store s' in the returned array
    * <li> Insert the function s-&gt;s' in the map
    * </ul>
+   *
+   * @param bb the basic block to process
+   * @param map map for instructions (must be empty at the start)
+   * @return the copied instructions (which are not linked into an
+   *  instruction list)
    */
   private Instruction[] copyAndMapInstructions(BasicBlock bb, HashMap<Instruction, Instruction> map) {
     if (bb == null) return new Instruction[0];
@@ -1000,6 +1022,9 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * For each in a set of instructions, rewrite every def to use a new
    * temporary register.  If a rewritten def is subsequently used, then
    * use the new temporary register instead.
+   *
+   * @param set the instructions to rewrite
+   * @param ir the IR that will provide the temporary registers
    */
   private void rewriteWithTemporaries(Instruction[] set, IR ir) {
 
@@ -1029,7 +1054,10 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
   }
 
   /**
-   * Insert each instruction in a list before instruction s
+   * Inserts each instruction in a list before another instruction.
+   *
+   * @param list the instructions to insert before the other instruction
+   * @param s the instruction before which the insertion should be done
    */
   private void insertBefore(Instruction[] list, Instruction s) {
     for (Instruction x : list) {
@@ -1182,7 +1210,8 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
    * @param ir governing IR
    * @param bb basic block of cb
    * @param cb conditional branch instruction
-   * @return true if the transformation succeeds, false otherwise
+   * @param tb target block the branch instruction
+   * @return {@code true} if and only if the transformation succeeds
    */
   private boolean generateBooleanCompare(IR ir, BasicBlock bb, Instruction cb, BasicBlock tb) {
 

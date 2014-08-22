@@ -79,9 +79,10 @@ public final class OptMachineCodeMap {
   }
 
   /**
-   * Create the map, called during compilation
+   * Creates the map, called during compilation
    * @param ir   the ir object for this method
    * @param machineCodeSize the number of machine code instructions generated.
+   * @return the created map
    */
   static OptMachineCodeMap create(IR ir, int machineCodeSize) {
     /** Dump maps as methods are compiled */
@@ -238,6 +239,7 @@ public final class OptMachineCodeMap {
   }
 
   /**
+   * @param currentIndex index for current location
    * @return the next (relative) location or -1 for no more locations
    */
   @Uninterruptible
@@ -250,11 +252,12 @@ public final class OptMachineCodeMap {
   ///////////////////////////////////////
 
   /**
-   * Do a binary search of the machine code maps to find the index
+   * Does a binary search of the machine code maps to find the index
    * in MCInformation where the entry for the argument machine code
    * offset starts. Will return -1 if the entry doesn't exist.
    *
    * @param MCOffset the machine code offset of interest
+   * @return -1 if no entry exists, the index of the matching entry otherwise
    */
   @Uninterruptible
   private int findMCEntry(Offset MCOffset) {
@@ -310,6 +313,8 @@ public final class OptMachineCodeMap {
    *  It is called during the compilation of the method, not at GC time.
    *  @param irMap  the irmap to translate from
    *  @param DUMP_MAPS dump while we work
+   *
+   *  @return the machine code map
    */
   private static OptMachineCodeMap generateMCInformation(GCIRMap irMap, boolean DUMP_MAPS) {
     CallSiteTree inliningMap = new CallSiteTree();
@@ -566,7 +571,8 @@ public final class OptMachineCodeMap {
   }
 
   /**
-   * Is the entry a big entry?
+   * @param entry the entry's index
+   * @return whether the the entry is a big entry
    */
   @Uninterruptible
   @Inline
@@ -578,7 +584,8 @@ public final class OptMachineCodeMap {
   }
 
   /**
-   * Is the entry a big entry?
+   * @param entry the entry's index
+   * @return whether the the entry is a huge entry
    */
   @Uninterruptible
   @Inline
@@ -604,10 +611,6 @@ public final class OptMachineCodeMap {
     }
   }
 
-  /**
-   * Prints the MCInformation for this entry
-   * @param entry  the entry to print
-   */
   private void printMCInformationEntry(int entry, boolean DUMP_MAPS) {
     if (DUMP_MAPS) {
       String sep = "\tMC: ";
@@ -647,13 +650,6 @@ public final class OptMachineCodeMap {
     }
   }
 
-  /**
-   * Gather cumulative stats about the space consumed by maps.
-   * @param method
-   * @param mapSize
-   * @param machineCodeSize
-   * @param DUMP_MAP_SIZES
-   */
   private void recordStats(RVMMethod method, int mapSize, int machineCodeSize, boolean DUMP_MAP_SIZES) {
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double) mapSize / machineCodeSize;
@@ -673,7 +669,7 @@ public final class OptMachineCodeMap {
   }
 
   /**
-   * Total bytes of machine code maps
+   * @return total bytes of machine code maps
    */
   int size() {
     int size = TYPE.peekType().asClass().getInstanceSize();

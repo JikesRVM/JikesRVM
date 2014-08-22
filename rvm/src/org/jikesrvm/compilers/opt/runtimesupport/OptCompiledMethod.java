@@ -357,7 +357,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Return the number of non-volatile GPRs used by this method.
+   * @return the number of non-volatile GPRs used by this method.
    */
   public int getNumberOfNonvolatileGPRs() {
     if (VM.BuildForPowerPC) {
@@ -371,7 +371,7 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Return the number of non-volatile FPRs used by this method.
+   * @return the number of non-volatile FPRs used by this method.
    */
   public int getNumberOfNonvolatileFPRs() {
     if (VM.BuildForPowerPC) {
@@ -384,9 +384,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     return -1;
   }
 
-  /**
-   * Set the number of non-volatile GPRs used by this method.
-   */
   public void setNumberOfNonvolatileGPRs(short n) {
     if (VM.BuildForPowerPC) {
       setFirstNonVolatileGPR(ArchitectureSpecific.RegisterConstants.NUM_GPRS - n);
@@ -397,9 +394,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     }
   }
 
-  /**
-   * Set the number of non-volatile FPRs used by this method.
-   */
   public void setNumberOfNonvolatileFPRs(short n) {
     if (VM.BuildForPowerPC) {
       setFirstNonVolatileFPR(ArchitectureSpecific.RegisterConstants.NUM_FPRS - n);
@@ -410,9 +404,6 @@ public final class OptCompiledMethod extends CompiledMethod {
     }
   }
 
-  /**
-   * Print the eTable
-   */
   @Interruptible
   public void printExceptionTable() {
     if (eTable != null) ExceptionTable.printExceptionTable(eTable);
@@ -491,7 +482,9 @@ public final class OptCompiledMethod extends CompiledMethod {
   }
 
   /**
-   * Apply the code patches to the INSTRUCTION array of cm
+   * Applies the code patches to the INSTRUCTION array of cm.
+   *
+   * @param cm the method which will be patched
    */
   @Interruptible
   public void applyCodePatches(CompiledMethod cm) {

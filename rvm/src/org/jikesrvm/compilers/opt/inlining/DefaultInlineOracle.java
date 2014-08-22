@@ -439,8 +439,11 @@ public final class DefaultInlineOracle extends InlineTools implements InlineOrac
    * Precondition: lock on {@link RVMClass#classLoadListener} is held.
    *
    * @param caller The caller method
+   * @param singleImpl the method implementation that will be protected by the guard
    * @param callee The callee method
+   * @param state compilation state at this point
    * @param codePatchSupported   Can we use code patching at this call site?
+   * @return the chosen guard
    */
   private byte chooseGuard(RVMMethod caller, RVMMethod singleImpl, RVMMethod callee, CompilationState state,
                            boolean codePatchSupported) {

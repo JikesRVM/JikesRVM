@@ -196,13 +196,13 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
-   * Perform the escape analysis for a method. Returns an
-   * object holding the result of the analysis
+   * Perform the escape analysis for a method.
    *
    * <p> Side effect: updates method summary database to hold
    *                escape analysis result for parameters
    *
    * @param ir IR for the target method
+   * @return an object holding the result of the analysis
    */
   public FI_EscapeSummary simpleEscapeAnalysis(IR ir) {
     final boolean DEBUG = false;
@@ -375,11 +375,12 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
-   * Check a single use, to see if this use may cause the object
+   * Checks a single use, to see if this use may cause the object
    * referenced to escape from this thread.
    *
    * @param use the use to check
    * @param ir the governing IR
+   * @param visited visited registers
    * @return {@code true} if it may escape, {@code false} otherwise
    */
   private static boolean checkEscapesThread(RegisterOperand use, IR ir, Set<Register> visited) {
@@ -576,12 +577,13 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
-   * Check a single use, to see if this use may cause the object
+   * Checks a single use, to see if this use may cause the object
    * referenced to escape from this method.
    *
    * @param use the use to check
    * @param ir the governing IR
-   * @return true if it may escape, false otherwise
+   * @param visited visited registers
+   * @return {@code true} if it may escape, {@code false} otherwise
    */
   private static boolean checkEscapesMethod(RegisterOperand use, IR ir, Set<Register> visited) {
     Instruction inst = use.instruction;
@@ -764,6 +766,11 @@ class SimpleEscape extends CompilerPhase {
   /**
    * Which parameter to a call instruction corresponds to op?
    * <p> PRECONDITION: Call.conforms(s)
+   *
+   * @param op the operand whose parameter is sought
+   * @param s the call instruction
+   * @return the index in the instruction for the parameter that matches
+   *  the operand
    */
   private static int getParameterIndex(Operand op, Instruction s) {
     for (int i = 0; i < Call.getNumberOfParams(s); i++) {
@@ -776,10 +783,21 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
+   * Finds or creates a method summary.
+   * <p>
    * If a method summary exists for a method, get it.
    * Else, iff SIMPLE_ESCAPE_IPA,
    *   perform escape analysis, which will create the method
    *    summary as a side effect, and return the summary
+   * <p>
+   * TODO rethink naming of this method. Other findOrCreate methods
+   * always create something if it does not exists. This one has
+   * conditions for creating an object.
+   *
+   * @param m the method whose summary is sought
+   * @param options options to determine whether to create a summary
+   *  if it does not exist
+   * @return a method summary or {@code null}.
    */
   private static MethodSummary findOrCreateMethodSummary(RVMMethod m, OptOptions options) {
     MethodSummary summ = SummaryDatabase.findMethodSummary(m);
@@ -794,9 +812,6 @@ class SimpleEscape extends CompilerPhase {
     }
   }
 
-  /**
-   * Perform the simple escape analysis for a method.
-   */
   private static void performSimpleEscapeAnalysis(RVMMethod m, OptOptions options) {
     if (!options.ESCAPE_SIMPLE_IPA) {
       return;
@@ -818,10 +833,6 @@ class SimpleEscape extends CompilerPhase {
     }
   }
 
-  /**
-   * Static initializer: set up the compilation plan for
-   * simple escape analysis of a method.
-   */
   private static OptimizationPlanElement initEscapePlan() {
     return OptimizationPlanCompositeElement.compose("Escape Analysis",
                                                         new Object[]{new ConvertBCtoHIR(),
@@ -830,10 +841,11 @@ class SimpleEscape extends CompilerPhase {
   }
 
   /**
-   * Return an iterator over the operands that serve as return values
-   * in an IR
+   * TODO: Move this utility elsewhere
    *
-   * <p> TODO: Move this utility elsewhere
+   * @param ir the IR to search for the return values
+   * @return an iterator over the operands that serve as return values
+   * in an IR
    */
   private static Iterator<Operand> iterateReturnValues(IR ir) {
     ArrayList<Operand> returnValues = new ArrayList<Operand>();
@@ -858,9 +870,7 @@ class SimpleEscape extends CompilerPhase {
      * Was the result "the register must point to method-local objects"?
      */
     final boolean methodLocal;
-    /**
-     * Constructor
-     */
+
     AnalysisResult(boolean tl, boolean ml) {
       threadLocal = tl;
       methodLocal = ml;

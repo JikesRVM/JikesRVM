@@ -3465,6 +3465,7 @@ public final class RVMThread extends ThreadContext {
      * thread may still be running. This method is not called on mutators that
      * have indicated that they are about to terminate.
      *
+     * @param t the thread that will be processed
      * @return {@code false} if not interested in this thread, {@code true} otherwise.
      * Returning {@code true} will cause a soft handshake request to be put through.
      */
@@ -3476,6 +3477,8 @@ public final class RVMThread extends ThreadContext {
      * code. As such, it is safe to perform actions "on the thread's behalf".
      * <p>
      * This implementation does nothing.
+     *
+     * @param t the thread that's stuck in native
      */
     public void notifyStuckInNative(RVMThread t) {
     }

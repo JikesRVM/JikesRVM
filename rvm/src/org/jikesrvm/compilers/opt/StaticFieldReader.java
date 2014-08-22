@@ -43,9 +43,6 @@ import org.vmmagic.unboxed.Word;
  */
 public abstract class StaticFieldReader {
 
-  /**
-   * Read the field from obj and return as the appropriate constant
-   */
   public static ConstantOperand getFieldValueAsConstant(RVMField field, Object obj) throws NoSuchFieldException {
     if (VM.VerifyAssertions) {
       boolean isFinalField = field.isFinal();
@@ -154,6 +151,7 @@ public abstract class StaticFieldReader {
    *
    * @param field the static field whose current value we want to read
    * @return a constant operand representing the current value of the field.
+   * @throws NoSuchFieldException when the field could not be found
    */
   public static ConstantOperand getStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.VerifyAssertions) {
@@ -214,6 +212,7 @@ public abstract class StaticFieldReader {
    *
    * @param field a static field
    * @return the current value of the field
+   * @throws NoSuchFieldException when the field could not be found
    */
   public static int getIntStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
@@ -249,6 +248,7 @@ public abstract class StaticFieldReader {
    *
    * @param field a static field
    * @return the current value of the field
+   * @throws NoSuchFieldException when the field could not be found
    */
   public static float getFloatStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
@@ -270,6 +270,7 @@ public abstract class StaticFieldReader {
    *
    * @param field a static field
    * @return the current value of the field
+   * @throws NoSuchFieldException when the field could not be found
    */
   public static long getLongStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
@@ -290,6 +291,7 @@ public abstract class StaticFieldReader {
    *
    * @param field a static field
    * @return the current value of the field
+   * @throws NoSuchFieldException when the field could not be found
    */
   public static double getDoubleStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
@@ -311,6 +313,7 @@ public abstract class StaticFieldReader {
    *
    * @param field a static field
    * @return the current value of the field
+   * @throws NoSuchFieldException when the field could not be found
    */
   public static Object getObjectStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
@@ -331,6 +334,7 @@ public abstract class StaticFieldReader {
    *
    * @param field a static field
    * @return the current value of the field
+   * @throws NoSuchFieldException when the field could not be found
    */
   public static Address getAddressStaticFieldValue(RVMField field) throws NoSuchFieldException {
     if (VM.runningVM) {
@@ -363,6 +367,7 @@ public abstract class StaticFieldReader {
    *
    * @param field a static field
    * @return {@code true} if the field contains {@code null}, {@code false} otherwise
+   * @throws NoSuchFieldException when the field could not be found
    */
   public static boolean isStaticFieldNull(RVMField field) throws NoSuchFieldException {
     return getObjectStaticFieldValue(field) == null;
@@ -373,6 +378,7 @@ public abstract class StaticFieldReader {
    *
    * @param field a static field
    * @return type of value contained in the field
+   * @throws NoSuchFieldException when the field could not be found
    */
   public static TypeReference getTypeFromStaticField(RVMField field) throws NoSuchFieldException {
     Object o = getObjectStaticFieldValue(field);
@@ -385,7 +391,11 @@ public abstract class StaticFieldReader {
   }
 
   /**
-   * Utilitiy to convert a RVMField to a java.lang.reflect.Field
+   * Converts a RVMField to a java.lang.reflect.Field.
+   *
+   * @param field the internal field representation
+   * @return the java.lang field representation
+   * @throws NoSuchFieldException when the field could not be found
    */
   private static Field getJDKField(RVMField field) throws NoSuchFieldException {
     try {

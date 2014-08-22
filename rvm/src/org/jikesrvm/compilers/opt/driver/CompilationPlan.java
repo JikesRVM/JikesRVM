@@ -106,9 +106,6 @@ public final class CompilationPlan {
     this(m, new OptimizationPlanElement[]{op}, mp, opts);
   }
 
-  /**
-   * Set the inline oracle
-   */
   public void setInlineOracle(InlineOracle o) {
     inlinePlan = o;
   }
@@ -116,6 +113,8 @@ public final class CompilationPlan {
   /**
    * Execute a compilation plan by executing each element
    * in the optimization plan.
+   *
+   * @return the IR created by the execution of the optimization plan
    */
   public IR execute() {
     IR ir = new IR(method, this);

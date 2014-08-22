@@ -60,7 +60,7 @@ public class LTDominators extends Stack<BasicBlock> {
 
   /**
    * The constructor, called by the perform method
-   * @param ir
+   * @param ir the governing IR
    * @param forward Should we compute regular dominators, or post-dominators?
    */
   LTDominators(IR ir, boolean forward) {
@@ -98,9 +98,6 @@ public class LTDominators extends Stack<BasicBlock> {
     dom.analyze(ir);
   }
 
-  /**
-   * analyze dominators
-   */
   protected void analyze(IR ir) {
     if (DEBUG) {
       System.out.println("   Here's the CFG for method: " + ir.method.getName() + "\n" + ir.cfg);
@@ -126,7 +123,9 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * Check to make sure all nodes were reached
+   * Checks that all nodes were reached.
+   *
+   * @param ir the governing IR
    */
   private void checkReachability(IR ir) {
     if (!forward) {
@@ -208,9 +207,9 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * Returns an enumeration of the "next" nodes (either out or in) for the
-   * passed block depending on which way we are viewing the graph
    * @param block the basic block of interest
+   * @return an enumeration of the "next" nodes (either out or in) for the
+   * passed block depending on which way we are viewing the graph
    */
   private Enumeration<BasicBlock> getNextNodes(BasicBlock block) {
     Enumeration<BasicBlock> bbEnum;
@@ -223,9 +222,9 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * Returns an enumeration of the "prev" nodes (either in or out) for the
-   * passed block depending on which way we are viewing the graph
    * @param block the basic block of interest
+   * @return an enumeration of the "prev" nodes (either in or out) for the
+   * passed block depending on which way we are viewing the graph
    */
   private Enumeration<BasicBlock> getPrevNodes(BasicBlock block) {
     Enumeration<BasicBlock> bbEnum;
@@ -476,17 +475,15 @@ public class LTDominators extends Stack<BasicBlock> {
   //
 
   /**
-   * Returns the current dominator for the passed block
-   * @param block
-   * @return the domiator for the passed block
+   * @param block the block whose dominator is of interest
+   * @return the dominator for the passed block
    */
   private BasicBlock getDom(BasicBlock block) {
     return LTDominatorInfo.getInfo(block).getDominator();
   }
 
   /**
-   * Returns the parent for the passed block
-   * @param block
+   * @param block the block whose parent is of interest
    * @return the parent for the passed block
    */
   private BasicBlock getParent(BasicBlock block) {
@@ -494,8 +491,7 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * Returns the ancestor for the passed block
-   * @param block
+   * @param block the block whose ancestor is of interest
    * @return the ancestor for the passed block
    */
   private BasicBlock getAncestor(BasicBlock block) {
@@ -503,9 +499,9 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * returns the label for the passed block or null if the block is null
-   * @param block
-   * @return the label for the passed block or null if the block is null
+   * @param block the block whose label is of interest
+   * @return the label for the passed block or {@code null} if the block is
+   *  {@code null}
    */
   private BasicBlock getLabel(BasicBlock block) {
     if (block == null) {
@@ -515,8 +511,7 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * Returns the current semidominator for the passed block
-   * @param block
+   * @param block the block whose semidominator is of interest
    * @return the semidominator for the passed block
    */
   private int getSemi(BasicBlock block) {
@@ -527,9 +522,8 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * returns the size associated with the block
-   * @param block
-   * @return the size of the block or 0 if the block is null
+   * @param block block the block whose size is of interest
+   * @return the size of the block or 0 if the block is {@code null}
    */
   private int getSize(BasicBlock block) {
     if (block == null) {
@@ -539,8 +533,7 @@ public class LTDominators extends Stack<BasicBlock> {
   }
 
   /**
-   * Get the child node for this block
-   * @param block
+   * @param block the block whose child is of interest
    * @return the child node
    */
   private BasicBlock getChild(BasicBlock block) {

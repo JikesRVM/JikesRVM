@@ -34,8 +34,6 @@ import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;
 
-/**
- **/
 public final class ClassLoaderProxy {
 
   /**
@@ -325,6 +323,10 @@ public final class ClassLoaderProxy {
 
   /**
    * Find the method of the given class that matches the given descriptor.
+   *
+   * @param cls the method's class
+   * @param ref name and descriptor of the method
+   * @return a matching method or {@code null} if none was found
    */
   public static RVMMethod lookupMethod(RVMClass cls, MethodReference ref) {
     RVMMethod newmeth = null;
@@ -342,20 +344,12 @@ public final class ClassLoaderProxy {
   // Constant pool access
   // --------------------------------------------------------------------------
 
-  /**
-   * Get the integer stored at a particular index of a class's constant
-   * pool.
-   */
   public static IntConstantOperand getIntFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     int val = Statics.getSlotContentsAsInt(offset);
     return new IntConstantOperand(val);
   }
 
-  /**
-   * Get the double stored at a particular index of a class's constant
-   * pool.
-   */
   public static DoubleConstantOperand getDoubleFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     long val_raw = Statics.getSlotContentsAsLong(offset);
@@ -363,10 +357,6 @@ public final class ClassLoaderProxy {
     return new DoubleConstantOperand(val, offset);
   }
 
-  /**
-   * Get the float stored at a particular index of a class's constant
-   * pool.
-   */
   public static FloatConstantOperand getFloatFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     int val_raw = Statics.getSlotContentsAsInt(offset);
@@ -374,20 +364,12 @@ public final class ClassLoaderProxy {
     return new FloatConstantOperand(val, offset);
   }
 
-  /**
-   * Get the long stored at a particular index of a class's constant
-   * pool.
-   */
   public static LongConstantOperand getLongFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     long val = Statics.getSlotContentsAsLong(offset);
     return new LongConstantOperand(val);
   }
 
-  /**
-   * Get the String stored at a particular index of a class's constant
-   * pool.
-   */
   public static StringConstantOperand getStringFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {
@@ -399,10 +381,6 @@ public final class ClassLoaderProxy {
     }
   }
 
-  /**
-   * Get the Class stored at a particular index of a class's constant
-   * pool.
-   */
   public static ClassConstantOperand getClassFromConstantPool(RVMClass klass, int index) {
     Offset offset = klass.getLiteralOffset(index);
     try {

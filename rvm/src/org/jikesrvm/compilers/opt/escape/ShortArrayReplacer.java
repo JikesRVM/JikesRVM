@@ -118,12 +118,12 @@ final class ShortArrayReplacer implements AggregateReplacer {
   }
 
   /**
-   * Return an object representing this transformation for a given
-   * allocation site
+   * Returns an object representing this transformation for a given
+   * allocation site.
    *
    * @param inst the allocation site
-   * @param ir
-   * @return the object, or null if illegal
+   * @param ir the governing IR
+   * @return the object, or {@code null} if illegal
    */
   public static ShortArrayReplacer getReplacer(Instruction inst, IR ir) {
     if (inst.operator != NEWARRAY) {
@@ -183,6 +183,8 @@ final class ShortArrayReplacer implements AggregateReplacer {
    * @param use the use to replace
    * @param scalars an array of scalar register operands to replace
    *                  the array with
+   * @param visited TODO currently useless. Is this parameter
+   *  necessary or should it be removed?
    */
   private void scalarReplace(RegisterOperand use, RegisterOperand[] scalars, Set<Register> visited) {
     Instruction inst = use.instruction;
@@ -373,6 +375,9 @@ final class ShortArrayReplacer implements AggregateReplacer {
    * @param ir the governing IR
    * @param reg the register in question
    * @param size the size of the array to scalar replace.
+   * @param vmArray the array to replace
+   * @param visited the registers that were already visited
+   * @return whether the IR contains an unsupported use
    */
   private static boolean containsUnsupportedUse(IR ir, Register reg, int size, RVMArray vmArray, Set<Register> visited) {
     // If an array is accessed by a non-constant integer, what's the maximum size of support array?

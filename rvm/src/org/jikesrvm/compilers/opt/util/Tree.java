@@ -60,6 +60,8 @@ public class Tree {
   /**
    * Sets the root of the tree to be the passed node.
    * WARNING: the tree should be empty when this occurs
+   *
+   * @param node the new root
    */
   public final void setRoot(TreeNode node) {
     node.clear();  // make sure all pointers are pointing anywhere else
@@ -67,8 +69,8 @@ public class Tree {
   }
 
   /**
-   * Provides an undefined enumeration over all elements in the tree
-   * @return enumeration
+   * @return enumeration an enumeration over all elements in the tree
+   *  in no guaranteed order
    */
   public final Enumeration<TreeNode> elements() {
     return new TreeTopDownEnumerator(root);
@@ -123,6 +125,7 @@ public class Tree {
    * @param sb  the string buffer to insert the results
    * @param node the node to process
    * @param depth the current depth (root = 0) in the tree
+   * @return the buffer that was passed in
    */
   private StringBuffer DFS(StringBuffer sb, TreeNode node, int depth) {
     // indent appropriate spaces and print node
