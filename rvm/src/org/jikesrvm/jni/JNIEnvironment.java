@@ -258,7 +258,9 @@ public final class JNIEnvironment {
   }
 
   /**
-   * Atomically copy and install a new JNIRefArray
+   * Atomically copies and installs a new JNIRefArray.
+   *
+   * @param newrefs the new JNIRefArray
    */
   @Uninterruptible
   private void replaceJNIRefs(AddressArray newrefs) {
@@ -273,6 +275,8 @@ public final class JNIEnvironment {
    * NB only used for Intel
    * @param ref reference to place on stack or value of saved frame pointer
    * @param isRef false if the reference isn't a frame pointer
+   * @return new offset of current top in JNIRefs array or 0 if
+   *  the reference is zero and a framepointer
    */
   @Uninterruptible("Encoding arguments on stack that won't be seen by GC")
   @Inline
@@ -483,6 +487,8 @@ public final class JNIEnvironment {
   /**
    * Initialize the array of JNI functions.
    * This function is called during bootimage writing.
+   *
+   * @param functions the function table to initialize
    */
   public static void initFunctionTable(FunctionTable functions) {
     JNIFunctions = functions;

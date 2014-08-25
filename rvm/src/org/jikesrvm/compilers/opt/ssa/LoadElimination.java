@@ -148,10 +148,12 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
   }
 
   /**
-   * Eliminate redundant loads with respect to prior defs and prior
+   * Eliminates redundant loads with respect to prior defs and prior
    * uses.
    *
-   * @return true if any load is eliminated.
+   * @param ir the governing IR
+   * @param available results of index propagation analysis
+   * @return {@code true} if any load is eliminated.
    */
   static boolean eliminateLoads(IR ir, DF_Solution available) {
     // maintain a mapping from value number to temporary register
@@ -172,6 +174,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * @param ir the IR
    * @param available information on which values are available
    * @param registers a place to store information about temp registers
+   * @return mapping from heap variables to value numbers
    */
   static UseRecordSet replaceLoads(IR ir, DF_Solution available, HashMap<UseRecord, Register> registers) {
     UseRecordSet result = new UseRecordSet();
@@ -248,6 +251,9 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * Replace a Load instruction s with a load from a scalar register r
    * <p>
    * TODO: factor this functionality out elsewhere
+   *
+   * @param r the register to load from
+   * @param load the load instruction
    */
   static void replaceLoadWithMove(Register r, Instruction load) {
     RegisterOperand dest = ResultCarrier.getResult(load);
@@ -260,6 +266,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * <p>
    * NOTE: Even loads can def a heap variable.
    *
+   * @param ir the governing IR
    * @param UseRepSet stores the uses(loads) that have been eliminated
    * @param registers mapping from valueNumber -&gt; temporary register
    */
@@ -341,8 +348,12 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
   }
 
   /**
-   * Append an instruction after a store instruction that caches
+   * Append a move instruction after a store instruction that caches
    * value in register r.
+   *
+   * @param r move target
+   * @param src move source
+   * @param store the instruction after which the move will be inserted
    */
   static void appendMove(Register r, Operand src, Instruction store) {
     TypeReference type = src.getType();
@@ -356,10 +367,12 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    *
    * @param heapType a TypeReference or RVMField identifying the array SSA
    *                    heap type
-   * @param valueNumber
+   * @param valueNumber the value number
    * @param registers a mapping from value number to temporary register
    * @param pool register pool to allocate new temporaries from
    * @param type the type to store in the new register
+   *
+   * @return the temporary register allocated for the value number
    */
   static Register findOrCreateRegister(Object heapType, int valueNumber, HashMap<UseRecord, Register> registers,
                                            RegisterPool pool, TypeReference type) {
@@ -384,6 +397,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * @param registers a mapping from value number to temporary register
    * @param pool register pool to allocate new temporaries from
    * @param type the type to store in the new register
+   * @return the temporary register allocated for the pair
    */
   static Register findOrCreateRegister(Object heapType, int v1, int v2, HashMap<UseRecord, Register> registers,
                                            RegisterPool pool, TypeReference type) {
@@ -465,6 +479,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
   }
 
   /**
+   * @param <T> the type for the collection returned as value in the mapping
    * @param map a mapping from key to HashSet
    * @param key a key into the map
    * @return the set map(key).  create one if none exists.
@@ -490,6 +505,10 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * <p>
    * The result contains objects of type RVMField and TypeReference, whose
    * narrowest common ancestor is Object.
+   *
+   * @param ir the governing IR
+   *
+   * @return the types that are candidates for redundant load elimination
    */
   @SuppressWarnings("unchecked")
   public static HashSet<Object> getCandidates(IR ir) {
@@ -669,9 +688,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
    * elimination
    */
   public static class LoadEliminationPreparation extends CompilerPhase {
-    /**
-     * Cosntructor
-     */
+
     public LoadEliminationPreparation(int round) {
       super(new Object[]{round});
       this.round = round;
@@ -735,9 +752,6 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
 
     private final int round;
 
-    /**
-     * Constructor
-     */
     public GVNPreparation(int round) {
       super(new Object[]{round});
       this.round = round;

@@ -39,9 +39,6 @@ public final class SpecializedMethod {
    */
   final SpecializationContext context;
 
-  /**
-   * constructor for OPT compiler.
-   */
   SpecializedMethod(NormalMethod source, SpecializationContext context) {
     this.method = source;
     this.context = context;
@@ -49,7 +46,7 @@ public final class SpecializedMethod {
   }
 
   /**
-   * generate the specialized code for this method
+   * Generates the specialized code for this method.
    */
   void compile() {
     compiledMethod = context.specialCompile(method);

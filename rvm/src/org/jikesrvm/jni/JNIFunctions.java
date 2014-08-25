@@ -144,9 +144,9 @@ public class JNIFunctions {
    * @param data buffer containing the <tt>.class</tt> file
    * @param dataLen buffer length
    * @return a JREF index for the Java Class object, or 0 if not found
-   * @exception ClassFormatError if the class data does not specify a valid class
-   * @exception ClassCircularityError (not implemented)
-   * @exception OutOfMemoryError (not implemented)
+   * @throws ClassFormatError if the class data does not specify a valid class
+   * @throws ClassCircularityError (not implemented)
+   * @throws OutOfMemoryError (not implemented)
    */
   private static int DefineClass(JNIEnvironment env, Address classNameAddress, int classLoader, Address data,
                                  int dataLen) {
@@ -181,11 +181,11 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classNameAddress a raw address to a null-terminated string in C for the class name
    * @return a JREF index for the Java Class object, or 0 if not found
-   * @exception ClassFormatError (not implemented)
-   * @exception ClassCircularityError (not implemented)
-   * @exception NoClassDefFoundError if the class cannot be found
-   * @exception OutOfMemoryError (not implemented)
-   * @exception ExceptionInInitializerError (not implemented)
+   * @throws ClassFormatError (not implemented)
+   * @throws ClassCircularityError (not implemented)
+   * @throws NoClassDefFoundError if the class cannot be found
+   * @throws OutOfMemoryError (not implemented)
+   * @throws ExceptionInInitializerError (not implemented)
    */
   private static int FindClass(JNIEnvironment env, Address classNameAddress) {
     if (traceJNI) VM.sysWrite("JNI called: FindClass  \n");
@@ -471,8 +471,8 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @return a JREF index for the uninitialized object
-   * @exception InstantiationException if the class is abstract or is an interface
-   * @exception OutOfMemoryError if no more memory to allocate
+   * @throws InstantiationException if the class is abstract or is an interface
+   * @throws OutOfMemoryError if no more memory to allocate
    */
   private static int AllocObject(JNIEnvironment env, int classJREF) throws InstantiationException, OutOfMemoryError {
     if (traceJNI) VM.sysWrite("JNI called: AllocObject  \n");
@@ -507,8 +507,8 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the new object instance
-   * @exception InstantiationException if the class is abstract or is an interface
-   * @exception OutOfMemoryError if no more memory to allocate
+   * @throws InstantiationException if the class is abstract or is an interface
+   * @throws OutOfMemoryError if no more memory to allocate
    */
   private static int NewObject(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: NewObject  \n");
@@ -541,8 +541,8 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or
    *                   2-words of the appropriate type for the constructor invocation
    * @return the new object instance
-   * @exception InstantiationException if the class is abstract or is an interface
-   * @exception OutOfMemoryError if no more memory to allocate
+   * @throws InstantiationException if the class is abstract or is an interface
+   * @throws OutOfMemoryError if no more memory to allocate
    */
   private static int NewObjectV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -574,8 +574,8 @@ public class JNIFunctions {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and
    *                   hold an argument of the appropriate type for the constructor invocation
-   * @exception InstantiationException if the class is abstract or is an interface
-   * @exception OutOfMemoryError if no more memory to allocate
+   * @throws InstantiationException if the class is abstract or is an interface
+   * @throws OutOfMemoryError if no more memory to allocate
    * @return the new object instance
    */
   private static int NewObjectA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
@@ -654,9 +654,9 @@ public class JNIFunctions {
    * @param methodNameAddress a raw address to a null-terminated string in C for the method name
    * @param methodSigAddress a raw address to a null-terminated string in C for the method signature
    * @return id of a MethodReference
-   * @exception NoSuchMethodError if the method cannot be found
-   * @exception ExceptionInInitializerError if the class or interface static initializer fails
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws NoSuchMethodError if the method cannot be found
+   * @throws ExceptionInInitializerError if the class or interface static initializer fails
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int GetMethodID(JNIEnvironment env, int classJREF, Address methodNameAddress,
                                  Address methodSigAddress) {
@@ -714,6 +714,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallObjectMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallObjectMethod  \n");
@@ -738,6 +739,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallObjectMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -763,6 +765,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallObjectMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -789,6 +792,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallBooleanMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallBooleanMethod  \n");
@@ -813,6 +817,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallBooleanMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -838,6 +843,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallBooleanMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -864,6 +870,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallByteMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallByteMethod  \n");
@@ -888,6 +895,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallByteMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -913,6 +921,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallByteMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -939,6 +948,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallCharMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallCharMethod  \n");
@@ -963,6 +973,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallCharMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -988,6 +999,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallCharMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1014,6 +1026,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallShortMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallShortMethod  \n");
@@ -1038,6 +1051,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallShortMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1063,6 +1077,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallShortMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1089,6 +1104,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the int value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallIntMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallIntMethod  \n");
@@ -1113,6 +1129,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallIntMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1138,6 +1155,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallIntMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1164,6 +1182,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallLongMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallLongMethod  \n");
@@ -1188,6 +1207,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallLongMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1213,6 +1233,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallLongMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1239,6 +1260,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallFloatMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallFloatMethod  \n");
@@ -1263,6 +1285,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallFloatMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1288,6 +1311,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallFloatMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1314,6 +1338,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallDoubleMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallDoubleMethod  \n");
@@ -1338,6 +1363,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallDoubleMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1363,6 +1389,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallDoubleMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1388,6 +1415,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param methodID id of a MethodReference
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallVoidMethod(JNIEnvironment env, int objJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallVoidMethod  \n");
@@ -1409,6 +1437,7 @@ public class JNIFunctions {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallVoidMethodV(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1431,6 +1460,7 @@ public class JNIFunctions {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallVoidMethodA(JNIEnvironment env, int objJREF, int methodID, Address argAddress)
       throws Exception {
@@ -1456,6 +1486,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualObjectMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -1482,6 +1513,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualObjectMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                  Address argAddress) throws Exception {
@@ -1508,6 +1540,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualObjectMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                  Address argAddress) throws Exception {
@@ -1535,6 +1568,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallNonvirtualBooleanMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -1561,6 +1595,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallNonvirtualBooleanMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                       Address argAddress) throws Exception {
@@ -1587,6 +1622,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallNonvirtualBooleanMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                       Address argAddress) throws Exception {
@@ -1614,6 +1650,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallNonvirtualByteMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -1640,6 +1677,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallNonvirtualByteMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -1666,6 +1704,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallNonvirtualByteMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -1693,6 +1732,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallNonvirtualCharMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -1719,6 +1759,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallNonvirtualCharMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -1745,6 +1786,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallNonvirtualCharMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -1772,6 +1814,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallNonvirtualShortMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -1798,6 +1841,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallNonvirtualShortMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
@@ -1824,6 +1868,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallNonvirtualShortMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
@@ -1851,6 +1896,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the int value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualIntMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -1877,6 +1923,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the int value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualIntMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
@@ -1903,6 +1950,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallNonvirtualIntMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                               Address argAddress) throws Exception {
@@ -1930,6 +1978,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallNonvirtualLongMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -1956,6 +2005,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallNonvirtualLongMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -1982,6 +2032,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallNonvirtualLongMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -2009,6 +2060,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallNonvirtualFloatMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -2035,6 +2087,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallNonvirtualFloatMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
@@ -2061,6 +2114,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallNonvirtualFloatMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
@@ -2088,6 +2142,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallNonvirtualDoubleMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -2114,6 +2169,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallNonvirtualDoubleMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                     Address argAddress) throws Exception {
@@ -2140,6 +2196,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallNonvirtualDoubleMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                     Address argAddress) throws Exception {
@@ -2166,6 +2223,7 @@ public class JNIFunctions {
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
    * @param methodID id of a MethodReference
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallNonvirtualVoidMethod(JNIEnvironment env, int objJREF, int classJREF, int methodID)
       throws Exception {
@@ -2189,6 +2247,7 @@ public class JNIFunctions {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to a variable argument list, each element is
    *              1-word or 2-words of the appropriate type for the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallNonvirtualVoidMethodV(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -2212,6 +2271,7 @@ public class JNIFunctions {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word
    *        and hold an argument of the appropriate type for the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallNonvirtualVoidMethodA(JNIEnvironment env, int objJREF, int classJREF, int methodID,
                                                 Address argAddress) throws Exception {
@@ -2235,9 +2295,9 @@ public class JNIFunctions {
    * @param descriptorAddress a raw address to a null-terminated string in C for the descriptor
    * @return the fieldID of an instance field given the class, field name
    *         and type. Return 0 if the field is not found
-   * @exception NoSuchFieldError if the specified field cannot be found
-   * @exception ExceptionInInitializerError if the class initializer fails
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws NoSuchFieldError if the specified field cannot be found
+   * @throws ExceptionInInitializerError if the class initializer fails
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int GetFieldID(JNIEnvironment env, int classJREF, Address fieldNameAddress,
                                 Address descriptorAddress) {
@@ -2673,9 +2733,9 @@ public class JNIFunctions {
    * @param methodNameAddress a raw address to a null-terminated string in C for the method name
    * @param methodSigAddress a raw address to a null-terminated string in C for (TODO: document me)
    * @return a method ID or null if it fails
-   * @exception NoSuchMethodError if the method is not found
-   * @exception ExceptionInInitializerError if the initializer fails
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws NoSuchMethodError if the method is not found
+   * @throws ExceptionInInitializerError if the initializer fails
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int GetStaticMethodID(JNIEnvironment env, int classJREF, Address methodNameAddress,
                                        Address methodSigAddress) {
@@ -2727,6 +2787,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticObjectMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticObjectMethod  \n");
@@ -2750,6 +2811,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticObjectMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -2774,6 +2836,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the JREF index for the object returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticObjectMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -2799,6 +2862,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallStaticBooleanMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticBooleanMethod  \n");
@@ -2822,6 +2886,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallStaticBooleanMethodV(JNIEnvironment env, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
@@ -2846,6 +2911,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the boolean value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static boolean CallStaticBooleanMethodA(JNIEnvironment env, int classJREF, int methodID,
                                                   Address argAddress) throws Exception {
@@ -2871,6 +2937,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallStaticByteMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticByteMethod  \n");
@@ -2894,6 +2961,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallStaticByteMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -2918,6 +2986,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the byte value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static byte CallStaticByteMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -2943,6 +3012,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallStaticCharMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticCharMethod  \n");
@@ -2966,6 +3036,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallStaticCharMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -2990,6 +3061,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the char value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static char CallStaticCharMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3015,6 +3087,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallStaticShortMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticShortMethod  \n");
@@ -3038,6 +3111,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallStaticShortMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3062,6 +3136,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the short value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static short CallStaticShortMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3087,6 +3162,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticIntMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticIntMethod  \n");
@@ -3110,6 +3186,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticIntMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3134,6 +3211,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the integer value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static int CallStaticIntMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3159,6 +3237,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallStaticLongMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticLongMethod  \n");
@@ -3182,6 +3261,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallStaticLongMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3206,6 +3286,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the long value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static long CallStaticLongMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3231,6 +3312,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallStaticFloatMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticFloatMethod  \n");
@@ -3254,6 +3336,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallStaticFloatMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3278,6 +3361,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the float value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static float CallStaticFloatMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3303,6 +3387,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class object
    * @param methodID an id of a MethodReference
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallStaticDoubleMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticDoubleMethod  \n");
@@ -3326,6 +3411,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to a  variable argument list, each element is 1-word or 2-words
    *                   of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallStaticDoubleMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3350,6 +3436,7 @@ public class JNIFunctions {
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
    * @return the double value returned from the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static double CallStaticDoubleMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3374,6 +3461,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param classJREF a JREF index for the class object
    * @param methodID id of a MethodReference
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallStaticVoidMethod(JNIEnvironment env, int classJREF, int methodID) throws Exception {
     if (traceJNI) VM.sysWrite("JNI called: CallStaticVoidMethod  \n");
@@ -3394,6 +3482,7 @@ public class JNIFunctions {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallStaticVoidMethodV(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3415,6 +3504,7 @@ public class JNIFunctions {
    * @param methodID id of a MethodReference
    * @param argAddress a raw address to an array of unions in C, each element is 2-word and hold an argument
    *                   of the appropriate type for the method invocation
+   * @throws Exception exceptions thrown by the called method
    */
   private static void CallStaticVoidMethodA(JNIEnvironment env, int classJREF, int methodID, Address argAddress)
       throws Exception {
@@ -3437,9 +3527,9 @@ public class JNIFunctions {
    * @param descriptorAddress a raw address to a null-terminated string in C for the descriptor
    * @return the offset of a static field given the class, field name
    *         and type. Return 0 if the field is not found
-   * @exception NoSuchFieldError if the specified field cannot be found
-   * @exception ExceptionInInitializerError if the class initializer fails
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws NoSuchFieldError if the specified field cannot be found
+   * @throws ExceptionInInitializerError if the class initializer fails
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int GetStaticFieldID(JNIEnvironment env, int classJREF, Address fieldNameAddress,
                                       Address descriptorAddress) {
@@ -3863,7 +3953,7 @@ public class JNIFunctions {
    * @param len the number of chars in the C array
    * @return the allocated String Object, converted to a JREF index
    *         or 0 if an OutOfMemoryError Exception has been thrown
-   * @exception OutOfMemoryError
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewString(JNIEnvironment env, Address uchars, int len) {
     if (traceJNI) VM.sysWrite("JNI called: NewString  \n");
@@ -3907,7 +3997,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of isCopy jboolean (an int)
    * @return address of a copy of the String unicode characters
    *         and *isCopy is set to 1 (TRUE)
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetStringChars(JNIEnvironment env, int strJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringChars  \n");
@@ -3966,7 +4056,7 @@ public class JNIFunctions {
    * @param utf8bytes address of C array of 8 bit utf8 bytes
    * @return the allocated String Object, converted to a JREF index
    *         or 0 if an OutOfMemoryError Exception has been thrown
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewStringUTF(JNIEnvironment env, Address utf8bytes) {
     if (traceJNI) VM.sysWrite("JNI called: NewStringUTF  \n");
@@ -4009,7 +4099,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of isCopy jboolean (an int)
    * @return address of a copy of the String unicode characters
    *         and *isCopy is set to 1 (TRUE)
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetStringUTFChars(JNIEnvironment env, int strJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetStringUTFChars  \n");
@@ -4083,7 +4173,7 @@ public class JNIFunctions {
    * @param classJREF a JREF index for the class of the element
    * @param initElementJREF a JREF index for the value to initialize the array elements
    * @return the new Object array initialized
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewObjectArray(JNIEnvironment env, int length, int classJREF, int initElementJREF) {
     if (traceJNI) VM.sysWrite("JNI called: NewObjectArray  \n");
@@ -4128,7 +4218,7 @@ public class JNIFunctions {
    * @param arrayJREF a JREF index for the source array
    * @param index the index for the targeted element
    * @return the object at the specified index
-   * @exception ArrayIndexOutOfBoundsException if the index is out of range
+   * @throws ArrayIndexOutOfBoundsException if the index is out of range
    */
   private static int GetObjectArrayElement(JNIEnvironment env, int arrayJREF, int index) {
     if (traceJNI) VM.sysWrite("JNI called: GetObjectArrayElement  \n");
@@ -4166,7 +4256,7 @@ public class JNIFunctions {
    * @param arrayJREF a JREF index for the source array
    * @param index the index for the targeted element
    * @param objectJREF a JREF index for the object to store into the array
-   * @exception ArrayStoreException if the element types do not match
+   * @throws ArrayStoreException if the element types do not match
    *            ArrayIndexOutOfBoundsException if the index is out of range
    */
   private static void SetObjectArrayElement(JNIEnvironment env, int arrayJREF, int index, int objectJREF) {
@@ -4187,7 +4277,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new boolean array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewBooleanArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewBooleanArray  \n");
@@ -4208,7 +4298,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new byte array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewByteArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewByteArray  \n");
@@ -4229,7 +4319,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new char array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewCharArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewCharArray  \n");
@@ -4250,7 +4340,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new short array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewShortArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewShortArray  \n");
@@ -4271,7 +4361,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new integer array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewIntArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewIntArray  \n");
@@ -4292,7 +4382,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new long array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewLongArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewLongArray  \n");
@@ -4313,7 +4403,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new float array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewFloatArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewFloatArray  \n");
@@ -4334,7 +4424,7 @@ public class JNIFunctions {
    * @param env A JREF index for the JNI environment object
    * @param length the size of the new array
    * @return the new long array
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static int NewDoubleArray(JNIEnvironment env, int length) {
     if (traceJNI) VM.sysWrite("JNI called: NewDoubleArray  \n");
@@ -4357,7 +4447,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the boolean array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetBooleanArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetBooleanArrayElements  \n");
@@ -4395,7 +4485,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the byte array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetByteArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetByteArrayElements \n");
@@ -4440,7 +4530,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the char array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetCharArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetCharArrayElements  \n");
@@ -4483,7 +4573,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the short array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetShortArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetShortArrayElements  \n");
@@ -4526,7 +4616,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the integer array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetIntArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetIntArrayElements  \n");
@@ -4568,7 +4658,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the long array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetLongArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetLongArrayElements  \n");
@@ -4610,7 +4700,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the float array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetFloatArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetFloatArrayElements  \n");
@@ -4653,7 +4743,7 @@ public class JNIFunctions {
    * @param isCopyAddress address of a flag to indicate whether the returned array is a copy or a direct pointer
    * @return A pointer to the double array and the isCopy flag is set to true if it's a copy
    *         or false if it's a direct pointer
-   * @exception OutOfMemoryError if the system runs out of memory
+   * @throws OutOfMemoryError if the system runs out of memory
    */
   private static Address GetDoubleArrayElements(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
     if (traceJNI) VM.sysWrite("JNI called: GetDoubleArrayElements  \n");
@@ -5017,7 +5107,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetBooleanArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                             Address bufAddress) {
@@ -5045,7 +5135,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetByteArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5074,7 +5164,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetCharArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5105,7 +5195,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetShortArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
@@ -5136,7 +5226,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetIntArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                         Address bufAddress) {
@@ -5167,7 +5257,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetLongArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5198,7 +5288,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetFloatArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
@@ -5229,7 +5319,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the destination address in native to copy to
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void GetDoubleArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                            Address bufAddress) {
@@ -5260,7 +5350,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetBooleanArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                             Address bufAddress) {
@@ -5289,7 +5379,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetByteArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5318,7 +5408,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetCharArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5349,7 +5439,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetShortArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
@@ -5380,7 +5470,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetIntArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                         Address bufAddress) {
@@ -5411,7 +5501,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetLongArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                          Address bufAddress) {
@@ -5442,7 +5532,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetFloatArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                           Address bufAddress) {
@@ -5473,7 +5563,7 @@ public class JNIFunctions {
    * @param startIndex the starting index to copy
    * @param length the number of elements to copy
    * @param bufAddress the source address in native to copy from
-   * @exception ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
+   * @throws ArrayIndexOutOfBoundsException if one of the indices in the region is not valid
    */
   private static void SetDoubleArrayRegion(JNIEnvironment env, int arrayJREF, int startIndex, int length,
                                            Address bufAddress) {
@@ -5504,7 +5594,7 @@ public class JNIFunctions {
    * @param methodsAddress the address of an array of native methods to be registered
    * @param nmethods the number of native methods in the array
    * @return 0 is successful -1 if failed
-   * @exception NoSuchMethodError if a specified method cannot be found or is not native
+   * @throws NoSuchMethodError if a specified method cannot be found or is not native
    */
   private static int RegisterNatives(JNIEnvironment env, int classJREF, Address methodsAddress, int nmethods) {
     if (traceJNI) VM.sysWrite("JNI called: RegisterNatives  \n");
@@ -5750,6 +5840,12 @@ public class JNIFunctions {
    * We could implement this more fancily, but it seems that we hardly need
    * to, since we allow an unlimited number of local refs.  One could force
    * running out of memory in a long-running loop in JNI, of course.
+   *
+   * @param capacity number of local references to allow. This parameter
+   *  is ignored since we don't put any limits on the number of local
+   *  references.
+   * @param env A JREF index for the JNI environment object
+   * @return always 0
    */
   private static int PushLocalFrame(JNIEnvironment env, int capacity) {
     if (traceJNI) VM.sysWrite("JNI called: PushLocalFrame \n");
@@ -5758,15 +5854,6 @@ public class JNIFunctions {
     return 0;                   // OK
   }
 
-  /** Push a local frame for local references.
-   * We could implement this more fancily, but it seems that we hardly need
-   * to, since we allow an unlimited number of local refs.  One could force
-   * running out of memory in a long-running loop in JNI, of course, and this
-   * might save us from that.  Let's hold off until we need it.  TODO.
-   *
-   * @return a local reference in the old frame that refers to the same object
-   *   as oldJREF.
-   */
   private static int PopLocalFrame(JNIEnvironment env, int resultJREF) {
     if (traceJNI) VM.sysWrite("JNI called: PopLocalFrame \n");
     RuntimeEntrypoints.checkJNICountDownToGC();
@@ -5817,7 +5904,7 @@ public class JNIFunctions {
    *  @param start index to start reading characters from the string
    *  @param len how many characters to read
    *  @param buf the buffer to copy the region into
-   *  @exception StringIndexOutOfBoundsException if asked for an out-of-range
+   *  @throws StringIndexOutOfBoundsException if asked for an out-of-range
    *        region of the string.
    */
   private static void GetStringRegion(JNIEnvironment env, int strJREF, int start, int len, Address buf) {
@@ -5851,7 +5938,7 @@ public class JNIFunctions {
    *  @param start index to start reading characters from the string
    *  @param len how many characters to read from the string
    *  @param buf the buffer to copy the region into -- assume it's big enough
-   *  @exception StringIndexOutOfBoundsException if asked for an out-of-range
+   *  @throws StringIndexOutOfBoundsException if asked for an out-of-range
    *        region of the string.
    */
   private static void GetStringUTFRegion(JNIEnvironment env, int strJREF, int start, int len, Address buf) {
@@ -5880,7 +5967,7 @@ public class JNIFunctions {
    * @param arrayJREF a JREF index for the primitive array in Java
    * @param isCopyAddress address of isCopy jboolean (an int)
    * @return The address of the primitive array, and the jboolean pointed to by isCopyAddress is set to false, indicating that this is not a copy.   Address zero (null) on error.
-   * @exception OutOfMemoryError is specified but will not be thrown in this implementation
+   * @throws OutOfMemoryError is specified but will not be thrown in this implementation
    *            since no copy will be made
    */
   private static Address GetPrimitiveArrayCritical(JNIEnvironment env, int arrayJREF, Address isCopyAddress) {
@@ -5917,7 +6004,7 @@ public class JNIFunctions {
    * to the array, no copyback update is necessary;  GC is simply reenabled.
    * @param env A JREF index for the JNI environment object
    * @param arrayJREF a JREF index for the primitive array in Java
-   * @param arrayCopyAddress
+   * @param arrayCopyAddress the address of the array copy
    * @param mode a flag indicating whether to update the Java array with the
    *            copy and whether to free the copy. For this implementation,
    *            no copy was made so this flag has no effect.
@@ -6021,7 +6108,7 @@ public class JNIFunctions {
     return env.getException() == null ? 0 : 1;
   }
 
-  /*******************************************************************
+  /*
    * These functions are in JNI 1.4
    */
 
@@ -6073,7 +6160,7 @@ public class JNIFunctions {
     }
   }
 
-  /*******************************************************************
+  /*
    * Empty Slots
    */
 

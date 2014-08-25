@@ -77,7 +77,7 @@ import org.jikesrvm.util.Pair;
  * <a href="http://www.research.ibm.com/jalapeno/publication.html#sas00">
  *  Unified Analysis of Arrays and Object References in Strongly Typed
  *  Languages </a> for an overview of Array SSA form.  More implementation
- *  details are documented in {@link SSA <code> SSA.java</code>}.
+ *  details are documented in {@link SSA}.
  *
  * @see SSA
  * @see SSAOptions
@@ -588,6 +588,8 @@ public class EnterSSA extends CompilerPhase {
    * @param defs defs[i] represents the basic blocks that define
    *            symbolic register i.
    * @param symbolics symbolics[i] is symbolic register number i
+   * @param excludeGuards whether guard registers should be excluded
+   *  from SSA
    */
   private void insertPhiFunctions(IR ir, BitVector[] defs, Register[] symbolics, boolean excludeGuards) {
     for (int r = 0; r < defs.length; r++) {
@@ -1072,9 +1074,6 @@ public class EnterSSA extends CompilerPhase {
     }
   }
 
-  /**
-   * Remove all phis that are unreachable
-   */
   private void removeAllUnreachablePhis(HashSet<Instruction> scalarPhis) {
     boolean iterateAgain = false;
     do {
@@ -1107,11 +1106,6 @@ public class EnterSSA extends CompilerPhase {
     } while (iterateAgain);
   }
 
-  /**
-   * Remove all unreachable operands from scalar phi functions<p>
-   *
-   * NOT CURRENTLY USED
-   */
   @SuppressWarnings("unused")
   private void removeUnreachableOperands(HashSet<Instruction> scalarPhis) {
     for (Instruction phi : scalarPhis) {
@@ -1145,6 +1139,7 @@ public class EnterSSA extends CompilerPhase {
    * SIDE EFFECT: bashes the Instruction scratch field.
    *
    * @param s phi instruction
+   * @return the meet of the types
    */
   private static TypeReference meetPhiType(Instruction s) {
 
@@ -1180,12 +1175,6 @@ public class EnterSSA extends CompilerPhase {
     return result;
   }
 
-  /**
-   * Find a parameter type.
-   *
-   * <p> Given a register that holds a parameter, look at the register's
-   * use chain to find the type of the parameter
-   */
   @SuppressWarnings("unused")
   private TypeReference findParameterType(Register p) {
     RegisterOperand firstUse = p.useList;

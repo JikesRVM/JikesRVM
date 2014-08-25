@@ -236,6 +236,7 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
      * @param map the mapping to search
      * @param b1 the first basic block in the pair
      * @param b2 the second basic block in the pair
+     * @return the set corresponding to the basic block pair
      */
     private static HashSet<Register> findOrCreateSplitSet(HashMap<BasicBlockPair, HashSet<Register>> map,
                                                               BasicBlock b1, BasicBlock b2) {

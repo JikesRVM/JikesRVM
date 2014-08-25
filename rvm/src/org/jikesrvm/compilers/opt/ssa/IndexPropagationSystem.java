@@ -657,10 +657,6 @@ class IndexPropagationSystem extends DF_System {
     @Override
     public String toString() { return "UPDATE-DEF<" + valueNumber + ">"; }
 
-    /**
-     * Create an operator with a given value number
-     * @param     valueNumber
-     */
     UpdateDefObjectOperator(int valueNumber) {
       this.valueNumber = valueNumber;
     }
@@ -724,10 +720,6 @@ class IndexPropagationSystem extends DF_System {
     @Override
     public String toString() { return "UPDATE-USE<" + valueNumber + ">"; }
 
-    /**
-     * Create an operator with a given value number
-     * @param     valueNumber
-     */
     UpdateUseObjectOperator(int valueNumber) {
       this.valueNumber = valueNumber;
     }

@@ -625,6 +625,9 @@ public final class LoopVersioning extends CompilerPhase {
    * all register definitions must be unique.
    * @param loop - the loop to examine
    * @param registers - vector to which defined registers are added
+   * @param types list to which the register's types are added
+   * @param definingInstructions list to which the defining instructions for
+   *  the registers are added
    */
   private void getRegistersDefinedInLoop(AnnotatedLSTNode loop, ArrayList<Register> registers,
                                          ArrayList<TypeReference> types,
@@ -658,6 +661,7 @@ public final class LoopVersioning extends CompilerPhase {
    * Generate into a new block phi nodes that define the original
    * register defined by the loop and use two newly created
    * registers.
+   * @param loop the loop to process
    * @param registers - vector to which defined registers need to be
    * created registers.x used in creating phi nodes
    * @param types - vector of corresponding types of registers.
@@ -708,6 +712,8 @@ public final class LoopVersioning extends CompilerPhase {
    * @param loop - loop to clone
    * @param regMap - mapping of original definition to new
    * definition
+   * @param regToBlockMap mapping of registers to new, unoptimized blocks. This starts
+   *  empty and will be filled during execution of the method.
    * @return a mapping from original BBs to created BBs
    */
   private HashMap<BasicBlock, BasicBlock> createCloneLoop(AnnotatedLSTNode loop,
@@ -919,6 +925,11 @@ public final class LoopVersioning extends CompilerPhase {
    * When phi nodes were generated the basic blocks weren't known for
    * the predecessors, fix this up now. (It may also not be possible
    * to reach the unoptimized loop any more)
+   *
+   * @param phiInstructions a list of phi nodes
+   * @param unoptimizedLoopExit the exit block of the unoptimized loop.
+   *  This may be {@code null} if the unoptimized loop is no longer reachable.
+   * @param optimizedLoopExit the exit block of the optimized loop
    */
   private void fixUpPhiPredecessors(ArrayList<Instruction> phiInstructions, BasicBlock unoptimizedLoopExit,
                                     BasicBlock optimizedLoopExit) {
@@ -938,7 +949,9 @@ public final class LoopVersioning extends CompilerPhase {
     }
   }
 
-  /**
+  /*
+   * TODO better JavaDoc comment.
+   * <p>
    * Create the block containing explict branches to either the
    * optimized or unoptimized loops
    * @param optimalRegMap - mapping used to map eliminated bound and
@@ -1287,7 +1300,10 @@ public final class LoopVersioning extends CompilerPhase {
    * Can we eliminate a null check as it has lready been performed?
    * NB SSA guarantees that if a value is null it must always be null
    *
+   * @param header loop header basic block
    * @param instr null check instruction
+   * @return the guard for the null check if it has already been performed,
+   * {@code null} if the check hasn't been performed yet
    */
   private RegisterOperand nullCheckPerformedInLoopPredecessors(BasicBlock header, Instruction instr) {
     if (VM.VerifyAssertions) VM._assert(NullCheck.conforms(instr));
@@ -1306,11 +1322,12 @@ public final class LoopVersioning extends CompilerPhase {
   }
 
   /**
-   * Get the array length reference ignoring instructions that adjust
-   * its result by a fixed amount
+   * Gets the array length reference ignoring instructions that adjust
+   * its result by a fixed amount.
    *
    * @param op operand to chase arraylength opcode to
    * constant value from an array length
+   * @return the array length as defined above
    */
   private Operand getConstantAdjustedArrayLengthRef(Operand op) {
     Operand result = null;
@@ -1336,6 +1353,7 @@ public final class LoopVersioning extends CompilerPhase {
    * that adjust the array length result by a constant amount
    *
    * @param op operand to chase arraylength opcode to
+   * @return the array length as defined above
    */
   private int getConstantAdjustedArrayLengthDistance(Operand op) {
     Instruction opInstr = AnnotatedLSTNode.definingInstruction(op);
@@ -1364,7 +1382,9 @@ public final class LoopVersioning extends CompilerPhase {
     }
   }
 
-  /**
+  /*
+   * TODO Convert to JavaDoc and add missing tags.
+   * <p>
    * Remove loop and replace register definitions in the original loop
    * with phi instructions
    */
@@ -1485,9 +1505,6 @@ public final class LoopVersioning extends CompilerPhase {
     loop.exit.insertOut(loop.successor);
   }
 
-  /**
-   * Remove unreachable unoptimized loop
-   */
   private void removeUnoptimizedLoop(AnnotatedLSTNode loop,
                                      HashMap<BasicBlock, BasicBlock> unoptimizedLoopMap) {
     Enumeration<BasicBlock> blocks = loop.getBasicBlocks();
@@ -1526,7 +1543,8 @@ public final class LoopVersioning extends CompilerPhase {
     return loopRegisterSet.contains(reg);
   }
 
-  /**
+  /*
+   * TODO Convert to JavaDoc and add missing tags.
    * Rename the iterators for optimized loops so we can tell they are still optimized
    */
   private void renameOptimizedLoops(HashMap<Register, Register> subOptimalRegMap,

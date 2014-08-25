@@ -781,6 +781,8 @@ final class ValueGraph {
    * Note: treat PI instructions like MOVES
    *
    * @param op the RegisterOperand
+   * @return the first def in the chain that is not the result of
+   *  move if it can be found, the original operand otherwise
    */
   private Operand bypassMoves(Operand op) {
     if (!op.isRegister()) return op;

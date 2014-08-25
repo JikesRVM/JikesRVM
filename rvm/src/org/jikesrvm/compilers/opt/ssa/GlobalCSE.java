@@ -243,10 +243,6 @@ public final class GlobalCSE extends CompilerPhase {
     }
   }
 
-  /**
-   * Get the result operand of the instruction
-   * @param inst
-   */
   private RegisterOperand getResult(Instruction inst) {
     if (ResultCarrier.conforms(inst)) {
       return ResultCarrier.getResult(inst);
@@ -257,10 +253,6 @@ public final class GlobalCSE extends CompilerPhase {
     return null;
   }
 
-  /**
-   * should this instruction be cse'd  ?
-   * @param inst
-   */
   private boolean shouldCSE(Instruction inst) {
 
     if ((inst.isAllocation()) ||

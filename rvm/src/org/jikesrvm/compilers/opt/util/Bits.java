@@ -22,7 +22,8 @@ import org.vmmagic.unboxed.Offset;
 public class Bits {
 
   /**
-   * Return the lower 16 bits to
+   * @param value the value to mask
+   * @return the lower 16 bits to
    * be used in a PPC immediate field
    */
   public static int PPCMaskLower16(int value) {
@@ -30,7 +31,8 @@ public class Bits {
   }
 
   /**
-   * Return the lower 16 bits to
+   * @param value the value to mask
+   * @return the lower 16 bits to
    * be used in a PPC immediate field
    */
   public static int PPCMaskLower16(Offset value) {
@@ -38,7 +40,8 @@ public class Bits {
   }
 
   /**
-   * Return the upper 16 bits to be used in a PPC
+   * @param value the value to mask
+   * @return the upper 16 bits to be used in a PPC
    * immediate field
    */
   public static int PPCMaskUpper16(int value) {
@@ -47,7 +50,8 @@ public class Bits {
   }
 
   /**
-   * Return the upper 16 bits to be used in a PPC
+   * @param value the value to mask
+   * @return the upper 16 bits to be used in a PPC
    * immediate field, make sure fits in 32 bits
    */
   public static int PPCMaskUpper16(Offset value) {
@@ -55,49 +59,58 @@ public class Bits {
   }
 
   /**
-   * Return the lower 8 bits (as an int) of an int
+   * @param value the value to mask
+   * @return the lower 8 bits (as an int) of an int
    */
   public static int lower8(int value) {
     return (value & 0xff);
   }
 
   /**
-   * Return the lower 16 bits (as an int) of  an int
+   * @param value the value to mask
+   * @return the lower 16 bits (as an int) of  an int
    */
   public static int lower16(int value) {
     return (value & 0xffff);
   }
 
   /**
-   * Return the upper 16 bits (as an int) of an int
+   * @param value the value to mask
+   * @return the upper 16 bits (as an int) of an int
    */
   public static int upper16(int value) {
     return value >>> 16;
   }
 
   /**
-   * Return the upper 24 bits (as an int) of an int
+   * @param value the value to mask
+   * @return the upper 24 bits (as an int) of an int
    */
   public static int upper24(int value) {
     return value >>> 8;
   }
 
   /**
-   * Return the lower 32 bits (as an int) of a long
+   * @param value the value to mask
+   * @return the lower 32 bits (as an int) of a long
    */
   public static int lower32(long value) {
     return (int) value;
   }
 
   /**
-   * Return the upper 32 bits (as an int) of a long
+   * @param value the value to mask
+   * @return the upper 32 bits (as an int) of a long
    */
   public static int upper32(long value) {
     return (int) (value >>> 32);
   }
 
   /**
-   * Does a long literal val fit in bits bits?
+   * @param val the value to check
+   * @param bits the number of bits
+   * @return whether the long literal fits in
+   *  the given number of bits
    */
   public static boolean fits(long val, int bits) {
     val = val >> bits - 1;
@@ -105,21 +118,30 @@ public class Bits {
   }
 
   /**
-   * Does an offset literal val fit in bits bits?
+   * @param val the value to check
+   * @param bits the number of bits
+   * @return whether the Offset literal fits in
+   *  the given number of bits
    */
   public static boolean fits(Offset val, int bits) {
     return (VM.BuildFor32Addr) ? fits(val.toInt(), bits) : fits(val.toLong(), bits);
   }
 
   /**
-   * Does an address literal val fit in bits bits?
+   * @param val the value to check
+   * @param bits the number of bits
+   * @return whether the Address literal fits in
+   *  the given number of bits
    */
   public static boolean fits(Address val, int bits) {
     return (VM.BuildFor32Addr) ? fits(val.toInt(), bits) : fits(val.toLong(), bits);
   }
 
   /**
-   * Does an int literal val fit in bits bits?
+   * @param val the value to check
+   * @param bits the number of bits
+   * @return whether the int literal fits in
+   *  the given number of bits
    */
   public static boolean fits(int val, int bits) {
     val = val >> bits - 1;

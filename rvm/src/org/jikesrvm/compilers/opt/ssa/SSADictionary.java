@@ -108,7 +108,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
  * <a href="http://www.research.ibm.com/jalapeno/publication.html#sas00">
  *  Unified Analysis of Arrays and Object References in Strongly Typed
  *  Languages </a> for an overview of Array SSA form.  More implementation
- *  details are documented in {@link SSA <code> SSA.java </code>}.
+ *  details are documented in {@link SSA}.
  *
  * @see SSA
  */
@@ -244,6 +244,9 @@ public final class SSADictionary {
    *                  if null, create all heap arrays
    * @param uphi Should we use uphi functions? (ie. loads create a new
    *                             name for heap arrays)
+   * @param insertPEIDeps whether to model PEIs and stores to the heap
+   *  via an explicit exception state heap variable
+   * @param ir pointer back to the IR
    */
   SSADictionary(Set<Object> heapTypes, boolean uphi, boolean insertPEIDeps, IR ir) {
     this.heapTypes = heapTypes;
@@ -563,9 +566,10 @@ public final class SSADictionary {
   }
 
   /**
-   * Is heap variable H exposed on procedure exit?
+   * Checks whether a heap variable is exposed on procedure exit.
    *
-   * @return true or false as appropriate
+   * @param H the heap variable
+   * @return {@code true} or {@code false} as appropriate
    */
   boolean isExposedOnExit(HeapVariable<Object> H) {
     for (Iterator<HeapOperand<Object>> i = iterateHeapUses(H); i.hasNext();) {
@@ -1316,6 +1320,9 @@ public final class SSADictionary {
    * Returns a copy of H with an additional free slot at position 0
    *
    * @param H the array of HeapOperands to be extended.
+   * @return an array with the same contents as the given array and an
+   *  additional free slot at 0. If the array is null, an empty array
+   *  with length 1 will be returned.
    */
   @SuppressWarnings("unchecked")
   private static HeapOperand<Object>[] extendHArray(HeapOperand<Object>[] H) {
@@ -1533,6 +1540,7 @@ public final class SSADictionary {
      * explicit in the IR, for a given basic block
      *
      * @param     bb the basic block whose instructions this enumerates
+     * @param dict the Heap Array SSA information
      */
     AllInstructionEnumeration(BasicBlock bb, SSADictionary dict) {
       explicitInstructions = bb.forwardInstrEnumerator();

@@ -375,7 +375,9 @@ public final class PiNodes extends CompilerPhase {
     ir.actualSSAOptions = null;
   }
 
-  /**
+  /*
+   * TODO Convert to JavaDoc and add missing tags.
+   * <p>
    * Get the instruction a Pi node is linked to.
    * <strong>PRECONDITION: </strong> register lists computed and valid.
    */
@@ -388,7 +390,9 @@ public final class PiNodes extends CompilerPhase {
     return link;
   }
 
-  /**
+  /*
+   * TODO Convert to JavaDoc and add missing tags.
+   * <p>
    * Is an instruction a Pi node linked to the <em>not taken</em> edge of
    * a conditional branch instruction?
    */
@@ -400,7 +404,9 @@ public final class PiNodes extends CompilerPhase {
     return g.asRegister().isNotTaken();
   }
 
-  /**
+  /*
+   * TODO Convert to JavaDoc and add missing tags.
+   * <p>
    * Is an instruction a Pi node linked to the <em>taken</em> edge of
    * a conditional branch instruction?
    */
@@ -412,7 +418,9 @@ public final class PiNodes extends CompilerPhase {
     return g.asRegister().isTaken();
   }
 
-  /**
+  /*
+   * TODO Convert to JavaDoc and add missing tags.
+   * <p>
    * Is an instruction a Pi node linked to a bounds-check?
    */
   public static boolean isBoundsCheckPi(Instruction def) {
@@ -423,7 +431,9 @@ public final class PiNodes extends CompilerPhase {
     return g.asRegister().isBoundsCheck();
   }
 
-  /**
+  /*
+   * TODO Convert to JavaDoc and add missing tags.
+   * <p>
    * Is an instruction a Pi node linked to a null-check?
    */
   public static boolean isNullCheckPi(Instruction def) {

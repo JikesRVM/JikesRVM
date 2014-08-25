@@ -116,10 +116,6 @@ public class SSAOptions {
     scalarValid = b;
   }
 
-  /**
-   * Set up instructions for an form of heap Array SSA, or turn it
-   * off
-   */
   SSAOptions(boolean scalarsOnly, boolean backwards, boolean insertUsePhis, java.util.Set<Object> heapTypes) {
     this.scalarsOnly = scalarsOnly;
     this.backwards = backwards;
@@ -150,6 +146,7 @@ public class SSAOptions {
    * describe enough information to satisfy the desire?
    *
    * @param d the desired SSA options
+   * @return whether this set of options satisfies the desired set
    */
   boolean satisfies(SSAOptions d) {
     // 1. At a minimum , scalars must be valid

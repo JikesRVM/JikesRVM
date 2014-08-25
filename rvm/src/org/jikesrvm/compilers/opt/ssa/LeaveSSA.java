@@ -208,9 +208,7 @@ public class LeaveSSA extends CompilerPhase {
     }
   }
 
-  /**
-   * substitute variables renamed in control parents
-   */
+  // substitute variables renamed in control parents
   private void performRename(BasicBlock bb, DominatorTree dom, VariableStacks s) {
     if (DEBUG) VM.sysWriteln("performRename: " + bb);
 
@@ -604,6 +602,8 @@ public class LeaveSSA extends CompilerPhase {
    * Special treatment for guard registers:
    * Remove guard-phis by evaluating operands into same register.
    * If this target register is not unique, unite the alternatives.
+   *
+   * @param ir the governing IR, currently in SSA form
    */
   private void unSSAGuards(IR ir) {
     // 0. initialization
@@ -618,6 +618,8 @@ public class LeaveSSA extends CompilerPhase {
 
   /**
    * Initialization for removal of guard phis.
+   *
+   * @param ir the governing IR, currently in SSA form
    */
   private void unSSAGuardsInit(IR ir) {
     guardPhis = null;
@@ -667,6 +669,8 @@ public class LeaveSSA extends CompilerPhase {
 
   /**
    * Determine target register for guard phi operands
+   *
+   * @param ir the governing IR, currently in SSA form
    */
   private void unSSAGuardsDetermineReg(IR ir) {
     Instruction inst = guardPhis;
@@ -689,6 +693,8 @@ public class LeaveSSA extends CompilerPhase {
 
   /**
    * Rename registers and delete Phis.
+   *
+   * @param ir the governing IR, currently in SSA form
    */
   private void unSSAGuardsFinalize(IR ir) {
     DefUse.computeDU(ir);
@@ -713,9 +719,6 @@ public class LeaveSSA extends CompilerPhase {
     }
   }
 
-  /**
-   * union step of union/find for guard registers during unSSA
-   */
   private Register guardUnion(Register from, Register to) {
     Register a = guardFind(from);
     Register b = guardFind(to);
@@ -733,9 +736,6 @@ public class LeaveSSA extends CompilerPhase {
     return b;
   }
 
-  /**
-   * find step of union/find for guard registers during unSSA
-   */
   private Register guardFind(Register r) {
     Register start = r;
     if (VM.VerifyAssertions) VM._assert(r.scratchObject != null);

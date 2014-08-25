@@ -70,7 +70,7 @@ final class TreeTopDownEnumerator implements Enumeration<TreeNode> {
 
   /**
    * A preorder depth first traversal, adding nodes to the list
-   * @param node
+   * @param node the node to start at
    */
   private void DFS(TreeNode node) {
     list.add(node);

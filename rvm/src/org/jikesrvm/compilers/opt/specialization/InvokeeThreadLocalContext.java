@@ -30,10 +30,6 @@ public final class InvokeeThreadLocalContext implements SpecializationContext {
   public InvokeeThreadLocalContext() {
   }
 
-  /**
-   * Find or create a specialized method in this context.
-   * @param source
-   */
   @Override
   public SpecializedMethod findOrCreateSpecializedVersion(NormalMethod source) {
     // first check if the specialization database contains
@@ -56,10 +52,6 @@ public final class InvokeeThreadLocalContext implements SpecializationContext {
     return spMethod;
   }
 
-  /**
-   * Create specialized method in this context.
-   * @param method
-   */
   private SpecializedMethod createSpecializedMethod(NormalMethod method) {
     return (new SpecializedMethod(method, this));
   }
@@ -67,7 +59,7 @@ public final class InvokeeThreadLocalContext implements SpecializationContext {
   /**
    * Generate code to specialize a method in this context. Namely, invoke
    * the opt compiler with the INVOKEE_THREAD_LOCAL option.
-   * @param source
+   * @param source the method to compile
    */
   @Override
   public CompiledMethod specialCompile(NormalMethod source) {

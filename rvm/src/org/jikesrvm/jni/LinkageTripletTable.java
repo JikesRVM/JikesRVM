@@ -31,6 +31,7 @@ public final class LinkageTripletTable implements RuntimeTable<AddressArray> {
 
   /**
    * Private constructor. Can not create instances.
+   * @param size the table's size
    */
   private LinkageTripletTable(int size) {
     this.data = new AddressArray[size];
