@@ -131,7 +131,7 @@ public class AlignmentEncoding {
   /**
    * Extract the encoded value from a TIB pointer,
    * represented as a raw address.
-   * @param address
+   * @param address the TIB's address
    * @return the encoded value from a TIB pointer
    */
   @Uninterruptible
@@ -142,7 +142,7 @@ public class AlignmentEncoding {
 
   /**
    * Extract the encoded value from an object's TIB pointer
-   * @param object
+   * @param object the object
    * @return the encoded value from a TIB pointer
    */
   @Uninterruptible

@@ -98,7 +98,8 @@ public final class SpecializedScanMethod extends SpecializedMethod {
   }
 
   /**
-   * Get the pattern index for a given type
+   * @param type the type to scan
+   * @return the index for the given pattern
    */
   @Interruptible
   private static int getPattern(RVMType type) {
@@ -190,7 +191,6 @@ public final class SpecializedScanMethod extends SpecializedMethod {
     fallback(object, trace);
   }
 
-  /** Fallback */
   public static void fallback(Object object, TransitiveClosure trace) {
     ObjectReference objectRef = ObjectReference.fromObject(object);
     RVMType type = ObjectModel.getObjectType(objectRef.toObject());
@@ -208,7 +208,7 @@ public final class SpecializedScanMethod extends SpecializedMethod {
     }
   }
 
-  /** All Scalars */
+  // All Scalars
   public static void scalar(Object object, TransitiveClosure trace) {
     Address base = Magic.objectAsAddress(object);
     int[] offsets = ObjectModel.getObjectType(object).getReferenceOffsets();
@@ -217,7 +217,7 @@ public final class SpecializedScanMethod extends SpecializedMethod {
     }
   }
 
-  /** Reference Arrays */
+  // Reference Arrays
   public static void referenceArray(Object object, TransitiveClosure trace) {
     Address base = Magic.objectAsAddress(object);
     int length = ObjectModel.getArrayLength(object);
@@ -226,10 +226,10 @@ public final class SpecializedScanMethod extends SpecializedMethod {
     }
   }
 
-  /** No Reference fields / Primitive Arrays */
+  // No Reference fields / Primitive Arrays
   public static void noReferences(Object object, TransitiveClosure trace) {}
 
-  /** All patterns bottom out here */
+  // All patterns bottom out here
   @Inline
   public static void pattern(int pattern, Object object, TransitiveClosure trace) {
     Address base = Magic.objectAsAddress(object).plus(FIELD_ZERO_OFFSET);

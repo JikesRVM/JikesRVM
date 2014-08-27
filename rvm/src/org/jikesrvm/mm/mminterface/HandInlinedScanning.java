@@ -114,6 +114,12 @@ public class HandInlinedScanning {
    * are ordered in descending frequency of patterns.
    *
    * This entry point falls back to specialized scanning if it is enabled.
+   *
+   * @param code the code to use for specialized scanning. This determines
+   *  the pattern that will be used.
+   * @param id the id of the specialized scan method
+   * @param object the object to scan
+   * @param trace the closure to use
    */
   @Inline
   @Uninterruptible
@@ -126,6 +132,11 @@ public class HandInlinedScanning {
    * are ordered in descending frequency of patterns.
    * <p>
    * This entry point does not fall back to specialized scanning.
+   *
+   * @param code the code to use for specialized scanning. This determines
+   *  the pattern that will be used.
+   * @param object the object to scan
+   * @param trace the closure to use
    */
   @Inline
   @Uninterruptible

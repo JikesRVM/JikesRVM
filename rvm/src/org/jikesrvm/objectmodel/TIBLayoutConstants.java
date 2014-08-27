@@ -17,8 +17,6 @@ import org.jikesrvm.classloader.SpecializedMethodManager;
 
 /**
  * Layout the TIB (Type Information Block).
- * <p>
- *
  *  <pre>
  *  --------------------------------------------------------------------------------------------
  *                        Type Information Block (TIB) Layout Constants

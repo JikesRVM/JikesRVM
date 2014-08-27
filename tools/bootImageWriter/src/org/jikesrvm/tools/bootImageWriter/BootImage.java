@@ -266,7 +266,7 @@ public class BootImage extends BootImageWriterMessages
    * @param numElements number of elements
    * @param needsIdentityHash needs an identity hash value
    * @param identityHashValue the value for the identity hash
-   * @param alignment special alignment value
+   * @param align special alignment value
    * @param alignCode Alignment-encoded value (AlignmentEncoding.ALIGN_CODE_NONE for none)
    * @return address of object within bootimage
    */

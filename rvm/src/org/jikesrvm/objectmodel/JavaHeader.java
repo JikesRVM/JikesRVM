@@ -126,22 +126,18 @@ public class JavaHeader {
   }
 
   /**
-   * Return the TIB offset.
+   * @return the TIB offset.
    */
   public static Offset getTibOffset() {
     return TIB_OFFSET;
   }
 
   /**
-   * What is the offset of the first word after the class?
-   * For use by ObjectModel.layoutInstanceFields
-   */
-  public static Offset objectEndOffset(RVMClass klass) {
-    return Offset.fromIntSignExtend(klass.getInstanceSizeInternal() - OBJECT_REF_OFFSET);
-  }
-
-  /**
    * What is the first word after the class?
+   *
+   * @param obj the object in question
+   * @param type the object's class
+   * @return first word after the scalar object
    */
   public static Address getObjectEndAddress(Object obj, RVMClass type) {
     int size = type.getInstanceSize();
@@ -157,6 +153,11 @@ public class JavaHeader {
 
   /**
    * What is the first word after the array?
+   *
+   * @param obj the object in question
+   * @param type the object's class
+   * @param numElements the number of elements in the array
+   * @return the first word after the array
    */
   public static Address getObjectEndAddress(Object obj, RVMArray type, int numElements) {
     int size = type.getInstanceSize(numElements);
@@ -172,13 +173,18 @@ public class JavaHeader {
 
   /**
    * What is the offset of the first word of the class?
+   *
+   * @param klass unused
+   * @return offset of the first word of the class from the object
+   *  reference
    */
   public static int objectStartOffset(RVMClass klass) {
     return -OBJECT_REF_OFFSET;
   }
 
   /**
-   * What is the last word of the header from an out-to-in perspective?
+   * @return offset of the last word of the header from an
+   *  out-to-in perspective
    */
   public static int getHeaderEndOffset() {
     return SCALAR_HEADER_SIZE - OBJECT_REF_OFFSET;
@@ -187,6 +193,8 @@ public class JavaHeader {
   /**
    * How small is the minimum object header size?
    * Can be used to pick chunk sizes for allocators.
+   *
+   * @return the minimum object size
    */
   public static int minimumObjectSize() {
     return SCALAR_HEADER_SIZE;
@@ -195,27 +203,39 @@ public class JavaHeader {
   /**
    * Given a reference, return an address which is guaranteed to be inside
    * the memory region allocated to the object.
+   *
+   * @param ref an object reference
+   * @return an address inside the object's memory
    */
   public static Address getPointerInMemoryRegion(ObjectReference ref) {
     return ref.toAddress().plus(TIB_OFFSET);
   }
 
   /**
-   * Get the TIB for an object.
+   * @param o an object
+   * @return the TIB for an object.
    */
   public static TIB getTIB(Object o) {
     return Magic.getTIBAtOffset(o, TIB_OFFSET);
   }
 
   /**
-   * Set the TIB for an object.
+   * Sets the TIB for an object.
+   *
+   * @param ref the object
+   * @param tib the TIB to set for the object
    */
   public static void setTIB(Object ref, TIB tib) {
     Magic.setObjectAtOffset(ref, TIB_OFFSET, tib);
   }
 
   /**
-   * Set the TIB for an object.
+   * Sets the TIB for an object during bootimage writing.
+   *
+   * @param bootImage the bootimage
+   * @param refOffset the object's address in the bootimage
+   * @param tibAddr the TIB's address in the bootimage
+   * @param type the object's type
    */
   @Interruptible
   public static void setTIB(BootImageInterface bootImage, Address refOffset, Address tibAddr, RVMType type) {
@@ -223,7 +243,9 @@ public class JavaHeader {
   }
 
   /**
-   * how many bytes are needed when the scalar object is copied by GC?
+   * @param fromObj the object to copy
+   * @param type the object's type
+   * @return number of needed bytes when the scalar object is copied by GC
    */
   public static int bytesRequiredWhenCopied(Object fromObj, RVMClass type) {
     int size = type.getInstanceSize();
@@ -237,7 +259,9 @@ public class JavaHeader {
   }
 
   /**
-   * how many bytes are used by the scalar object?
+   * @param obj the object
+   * @param type the object's type
+   * @return number of bytes are used by the scalar object
    */
   public static int bytesUsed(Object obj, RVMClass type) {
     int size = type.getInstanceSize();
@@ -254,6 +278,11 @@ public class JavaHeader {
 
   /**
    * how many bytes are needed when the array object is copied by GC?
+   *
+   * @param fromObj the object to copy
+   * @param type the object's type
+   * @param numElements the array length
+   * @return the number of bytes that are required for the copy
    */
   public static int bytesRequiredWhenCopied(Object fromObj, RVMArray type, int numElements) {
     int size = type.getInstanceSize(numElements);
@@ -268,6 +297,10 @@ public class JavaHeader {
 
   /**
    * how many bytes are used by the array object?
+   * @param obj the object to copy
+   * @param type the object's type
+   * @param numElements the array length
+   * @return the number of bytes that the array uses
    */
   public static int bytesUsed(Object obj, RVMArray type, int numElements) {
     int size = type.getInstanceSize(numElements);
@@ -283,8 +316,11 @@ public class JavaHeader {
   }
 
   /**
-   * Map from the object ref to the lowest address of the storage
-   * associated with the object
+   * Maps from the object ref to the lowest address of the storage
+   * associated with the object.
+   *
+   * @param obj the object reference
+   * @return the lowest address in the object's memory region
    */
   @Inline
   public static Address objectStartRef(ObjectReference obj) {
@@ -305,6 +341,9 @@ public class JavaHeader {
    * a dynamic hash offset or not using address based
    * hashing. However, the GC algorithm could safely do this in the
    * nursery so we can't assert DYNAMIC_HASH_OFFSET.
+   *
+   * @param start the lowest word in the storage of an allocated object
+   * @return the object reference for the object
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
     while ((start.loadWord().toInt() & ALIGNMENT_MASK) == ALIGNMENT_MASK) {
@@ -314,16 +353,22 @@ public class JavaHeader {
   }
 
   /**
-   * Get an object reference from the address the lowest word of the
+   * Gets an object reference from the address the lowest word of the
    * object was allocated.
+   *
+   * @param start the lowest word in the storage of an allocated object
+   * @return the object reference for the object
    */
   public static ObjectReference getScalarFromStartAddress(Address start) {
     return getObjectFromStartAddress(start);
   }
 
   /**
-   * Get an object reference from the address the lowest word of the
+   * Gets an object reference from the address the lowest word of the
    * object was allocated.
+   *
+   * @param start the lowest word in the storage of an allocated object
+   * @return the object reference for the object
    */
   public static ObjectReference getArrayFromStartAddress(Address start) {
     return getObjectFromStartAddress(start);
@@ -334,6 +379,11 @@ public class JavaHeader {
    * allocation. Handles alignment issues only when there are no GC or
    * Misc header words. In the case there are we probably have to ask
    * MemoryManager to distinguish this for us.
+   *
+   * @param obj the present object
+   * @param size the object's size
+   * @return the next object, provided that the constraints from above are
+   *  met
    */
   protected static ObjectReference getNextObject(ObjectReference obj, int size) {
     if (VM.VerifyAssertions) VM._assert(OTHER_HEADER_BYTES == 0);
@@ -342,8 +392,12 @@ public class JavaHeader {
   }
 
   /**
-   * Get the next scalar in the heap under contiguous
-   * allocation. Handles alignment issues
+   * Get the next object in the heap under contiguous
+   * allocation. Handles alignment issues.
+   *
+   * @param obj the current object, which must be a scalar
+   * @param type the object's type
+   * @return the next scalar object in the heap
    */
   public static ObjectReference getNextObject(ObjectReference obj, RVMClass type) {
     return getObjectFromStartAddress(getObjectEndAddress(obj.toObject(), type));
@@ -351,14 +405,24 @@ public class JavaHeader {
 
   /**
    * Get the next array in the heap under contiguous
-   * allocation. Handles alignment issues
+   * allocation. Handles alignment issues.
+   *
+   * @param obj the current object, which must be an array
+   * @param type the object's type
+   * @param numElements the length of the array
+   * @return the next scalar object in the heap
    */
   public static ObjectReference getNextObject(ObjectReference obj, RVMArray type, int numElements) {
     return getObjectFromStartAddress(getObjectEndAddress(obj.toObject(), type, numElements));
   }
 
   /**
-   * Get the reference of an array when copied to the specified region.
+   * Gets the reference of an array when copied to the specified region.
+   *
+   * @param obj the object to copy
+   * @param to the target address for the copy
+   * @param type the array's type
+   * @return the reference of the copy
    */
   @Inline
   public static Object getReferenceWhenCopiedTo(Object obj, Address to, RVMArray type) {
@@ -367,6 +431,11 @@ public class JavaHeader {
 
   /**
    * Get the reference of a scalar when copied to the specified region.
+   *
+   * @param obj the object to copy
+   * @param to the target address for the copy
+   * @param type the scalar's type
+   * @return the reference of the copy
    */
   @Inline
   public static Object getReferenceWhenCopiedTo(Object obj, Address to, RVMClass type) {
@@ -387,7 +456,13 @@ public class JavaHeader {
   }
 
   /**
-   * Copy a scalar to the given raw storage address
+   * Copy a scalar to the given raw storage address.
+   *
+   * @param toAddress the target address
+   * @param fromObj the object to copy
+   * @param numBytes how many bytes to copy
+   * @param type the scalar's type
+   * @return the reference for the object's copy
    */
   @Inline
   public static Object moveObject(Address toAddress, Object fromObj, int numBytes, RVMClass type) {
@@ -397,7 +472,13 @@ public class JavaHeader {
   }
 
   /**
-   * Copy an array to the given location.
+   * Copies a scalar to the given location.
+   *
+   * @param fromObj the scalar to copy
+   * @param toObj target address for copy
+   * @param numBytes how many bytes to copy
+   * @param type the scalar's type
+   * @return the reference for the object's copy
    */
   @Inline
   public static Object moveObject(Object fromObj, Object toObj, int numBytes, RVMClass type) {
@@ -407,7 +488,13 @@ public class JavaHeader {
   }
 
   /**
-   * Copy an array to the given raw storage address
+   * Copies an array to the given raw storage address.
+   *
+   * @param toAddress the target address
+   * @param fromObj the object to copy
+   * @param numBytes how many bytes to copy
+   * @param type the array's type
+   * @return the reference for the object's copy
    */
   @Inline
   public static Object moveObject(Address toAddress, Object fromObj, int numBytes, RVMArray type) {
@@ -417,7 +504,13 @@ public class JavaHeader {
   }
 
   /**
-   * Copy an array to the given location.
+   * Copies an array to the given location.
+   *
+   * @param fromObj the object to copy
+   * @param toObj the target object
+   * @param numBytes the number of bytes to copy
+   * @param type the array's type
+   * @return the reference for the array's copy
    */
   @Inline
   public static Object moveObject(Object fromObj, Object toObj, int numBytes, RVMArray type) {
@@ -427,7 +520,15 @@ public class JavaHeader {
   }
 
   /**
-   * Copy an object to the given raw storage address
+   * Copies an object to the given raw storage address.
+   *
+   * @param toObj the target object. If this is non-{@code null}, the target
+   *  address must be {@code Address.zero()}.
+   * @param toAddress the target address. If this is not {@code Address.zero()},
+   *  the target object must be {@code null}.
+   * @param fromObj the object to copy from
+   * @param numBytes the number of bytes to copy
+   * @return the reference of the object's copy
    */
   @Inline
   public static Object moveObject(Address toAddress, Object fromObj, Object toObj, int numBytes) {
@@ -490,9 +591,6 @@ public class JavaHeader {
     return toObj;
   }
 
-  /**
-   * Get the hash code of an object.
-   */
   @Inline
   @Interruptible
   public static int getObjectHashCode(Object o) {
@@ -535,7 +633,6 @@ public class JavaHeader {
     }
   }
 
-  /** Install a new hashcode (only used if !ADDRESS_BASED_HASHING) */
   @NoInline
   @Interruptible
   protected static int installHashCode(Object o) {
@@ -557,39 +654,30 @@ public class JavaHeader {
     }
   }
 
-  /**
-   * Get the offset of the thin lock word in this object
-   */
   public static Offset getThinLockOffset(Object o) {
     return STATUS_OFFSET;
   }
 
-  /**
-   * what is the default offset for a thin lock?
-   */
   public static Offset defaultThinLockOffset() {
     return STATUS_OFFSET;
   }
 
   /**
-   * Allocate a thin lock word for instances of the type
+   * Allocates a thin lock word for instances of the type
    * (if they already have one, then has no effect).
+   *
+   * @param t the type that is supposed to receive a thin
+   *  lock word
    */
   public static void allocateThinLock(RVMType t) {
     // nothing to do (all objects have thin locks in this object model);
   }
 
-  /**
-   * Generic lock
-   */
   @Unpreemptible("Become another thread when lock is contended, don't preempt in other cases")
   public static void genericLock(Object o) {
     ThinLock.lock(o, STATUS_OFFSET);
   }
 
-  /**
-   * Generic unlock
-   */
   @Unpreemptible("No interruption unless of exceptions")
   public static void genericUnlock(Object o) {
     ThinLock.unlock(o, STATUS_OFFSET);
@@ -621,6 +709,9 @@ public class JavaHeader {
 
   /**
    * Non-atomic read of word containing available bits
+   *
+   * @param o the object to read
+   * @return the available bits word
    */
   public static Word readAvailableBitsWord(Object o) {
     return Magic.getWordAtOffset(o, STATUS_OFFSET);
@@ -628,13 +719,18 @@ public class JavaHeader {
 
   /**
    * Non-atomic read of byte containing available bits
+   * @param o the object to read
+   * @return the available bits bytes
    */
   public static byte readAvailableByte(Object o) {
     return Magic.getByteAtOffset(o, AVAILABLE_BITS_OFFSET);
   }
 
   /**
-   * Non-atomic write of word containing available bits
+   * Non-atomic write of word containing available bits.
+   *
+   * @param o the object whose word will be written
+   * @param val the available bits word
    */
   public static void writeAvailableBitsWord(Object o, Word val) {
     Magic.setWordAtOffset(o, STATUS_OFFSET, val);
@@ -642,6 +738,10 @@ public class JavaHeader {
 
   /**
    * Non-atomic write of word containing available bits
+   *
+   * @param bootImage the bootimage
+   * @param ref an object reference whose word will be written
+   * @param val the available bits word
    */
   @Interruptible
   public static void writeAvailableByte(BootImageInterface bootImage, Address ref, byte val) {
@@ -650,13 +750,18 @@ public class JavaHeader {
 
   /**
    * Non-atomic write of byte containing available bits
+   *
+   * @param o the object whose available byte will be written
+   * @param val the value to write to the available byte
    */
   public static void writeAvailableByte(Object o, byte val) {
     Magic.setByteAtOffset(o, AVAILABLE_BITS_OFFSET, val);
   }
 
   /**
-   * Return true if argument bit is 1, false if it is 0
+   * @param o the object whose bit will be tested
+   * @param idx the index in the bits
+   * @return {@code true} if argument bit is 1, {@code false} if it is 0
    */
   public static boolean testAvailableBit(Object o, int idx) {
     Word mask = Word.fromIntSignExtend(1 << idx);
@@ -665,7 +770,11 @@ public class JavaHeader {
   }
 
   /**
-   * Set argument bit to 1 if value is true, 0 if value is false
+   * Sets argument bit to 1 if value is true, 0 if value is false
+   *
+   * @param o the object whose bit will be set
+   * @param idx the index in the bits
+   * @param flag {@code true} for 1, {@code false} for 0
    */
   public static void setAvailableBit(Object o, int idx, boolean flag) {
     Word status = Magic.getWordAtOffset(o, STATUS_OFFSET);
@@ -679,8 +788,10 @@ public class JavaHeader {
   }
 
   /**
-   * Freeze the other bits in the byte containing the available bits
+   * Freezes the other bits in the byte containing the available bits
    * so that it is safe to update them using setAvailableBits.
+   *
+   * @param o the object whose available bytes will be initialized
    */
   @Interruptible
   public static void initializeAvailableByte(Object o) {
@@ -688,14 +799,31 @@ public class JavaHeader {
   }
 
   /**
-   * A prepare on the word containing the available bits
+   * A prepare on the word containing the available bits.
+   * <p>
+   * Note: this method is intended to be used in conjunction
+   * with the attempt method.
+   *
+   * @param o the object which has the available bits
+   * @return the current value of the word
+   * @see #attemptAvailableBits(Object, Word, Word)
    */
   public static Word prepareAvailableBits(Object o) {
     return Magic.prepareWord(o, STATUS_OFFSET);
   }
 
   /**
-   * An attempt on the word containing the available bits
+   * An attempt on the word containing the available bits.
+   * <p>
+   * Note: this method is intended to be used in conjunction
+   * with the prepare method. If the method returns {@code false},
+   * callers must update their information about the old value of
+   * the available bits word before retrying again.
+   *
+   * @param o the object which has the available bits
+   * @param oldVal the old value that the word is expected to have
+   * @param newVal the new value that will be written, if possible
+   * @return whether the write occurred
    */
   public static boolean attemptAvailableBits(Object o, Word oldVal, Word newVal) {
     return Magic.attemptWord(o, STATUS_OFFSET, oldVal, newVal);
@@ -704,6 +832,10 @@ public class JavaHeader {
   /**
    * Given the smallest base address in a region, return the smallest
    * object reference that could refer to an object in the region.
+   *
+   * @param regionBaseAddr the smallest base address in the region
+   * @return the smallest address in the region that could possibly
+   *  refer to an object in the region
    */
   public static Address minimumObjectRef(Address regionBaseAddr) {
     return regionBaseAddr.plus(OBJECT_REF_OFFSET);
@@ -712,67 +844,79 @@ public class JavaHeader {
   /**
    * Given the largest base address in a region, return the largest
    * object reference that could refer to an object in the region.
+   *
+   * @param regionHighAddr the highest base address in the region
+   * @return the largest address in the region that could possibly
+   *  refer to an object in the region
    */
   public static Address maximumObjectRef(Address regionHighAddr) {
     return regionHighAddr.plus(OBJECT_REF_OFFSET - SCALAR_HEADER_SIZE);
   }
 
   /**
-   * Compute the header size of an instance of the given type.
+   * Computes the header size of an instance of the given type.
+   *
+   * @param type the instance's type
+   * @return size of the head in bytes
    */
   public static int computeScalarHeaderSize(RVMClass type) {
     return SCALAR_HEADER_SIZE;
   }
 
   /**
-   * Compute the header size of an instance of the given type.
+   * Computes the header size of an instance of the given type.
+   *
+   * @param type the instance's type
+   * @return size of the head in bytes
    */
   public static int computeArrayHeaderSize(RVMArray type) {
     return ARRAY_HEADER_SIZE;
   }
 
   /**
-   * Return the desired aligment of the alignment point returned by
-   * getOffsetForAlignment in instances of the argument RVMClass.
    * @param t RVMClass instance being created
+   * @return the desired alignment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument RVMClass.
    */
   public static int getAlignment(RVMClass t) {
     return t.getAlignment();
   }
 
   /**
-   * Return the desired aligment of the alignment point returned by
-   * getOffsetForAlignment in instances of the argument RVMClass.
    * @param t RVMClass instance being copied
    * @param obj the object being copied
+   * @return the desired alignment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument RVMClass.
    */
   public static int getAlignment(RVMClass t, Object obj) {
     return t.getAlignment();
   }
 
   /**
-   * Return the desired alignment of the alignment point returned by
-   * getOffsetForAlignment in instances of the argument RVMArray.
    * @param t RVMArray instance being created
+   * @return the desired alignment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument RVMArray.
    */
   public static int getAlignment(RVMArray t) {
     return t.getAlignment();
   }
 
   /**
-   * Return the desired alignment of the alignment point returned by
-   * getOffsetForAlignment in instances of the argument RVMArray.
    * @param t RVMArray instance being copied
    * @param obj the object being copied
+   * @return the desired alignment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument RVMArray.
    */
   public static int getAlignment(RVMArray t, Object obj) {
     return t.getAlignment();
   }
 
   /**
-   * Return the offset relative to physical beginning of object
-   * that must be aligned.
    * @param t RVMClass instance being created
+   * @param needsIdentityHash TODO document this parameter. Is it still needed?
+   *  It's never set to true.
+   * @return the offset relative to physical beginning of object
+   * that must be aligned.
    */
   public static int getOffsetForAlignment(RVMClass t, boolean needsIdentityHash) {
     /* Align the first field - note that this is one word off from
@@ -784,10 +928,10 @@ public class JavaHeader {
   }
 
   /**
-   * Return the offset relative to physical beginning of object
-   * that must be aligned.
    * @param t RVMClass instance being copied
    * @param obj the object being copied
+   * @return the offset relative to physical beginning of object
+   * that must be aligned.
    */
   public static int getOffsetForAlignment(RVMClass t, ObjectReference obj) {
     if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET) {
@@ -800,9 +944,11 @@ public class JavaHeader {
   }
 
   /**
-   * Return the offset relative to physical beginning of object that must
-   * be aligned.
    * @param t RVMArray instance being created
+   * @param needsIdentityHash TODO document this parameter. Is it still needed?
+   *  It's never set to true.
+   * @return the offset relative to physical beginning of object that must
+   * be aligned.
    */
   public static int getOffsetForAlignment(RVMArray t, boolean needsIdentityHash) {
     /* although array_header_size == object_ref_offset we say this
@@ -814,10 +960,10 @@ public class JavaHeader {
   }
 
   /**
-   * Return the offset relative to physical beginning of object that must
-   * be aligned.
    * @param t RVMArray instance being copied
    * @param obj the object being copied
+   * @return the offset relative to physical beginning of object that must
+   * be aligned.
    */
   public static int getOffsetForAlignment(RVMArray t, ObjectReference obj) {
     /* although array_header_size == object_ref_offset we say this
@@ -836,6 +982,7 @@ public class JavaHeader {
    * @param ptr the raw storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
+   * @return the object whose header was initialized
    */
   public static Object initializeScalarHeader(Address ptr, TIB tib, int size) {
     // (TIB set by ObjectModel)
@@ -878,6 +1025,7 @@ public class JavaHeader {
    * @param ptr the raw storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
+   * @return the array whose header was initialized
    */
   public static Object initializeArrayHeader(Address ptr, TIB tib, int size) {
     Object ref = Magic.addressAsObject(ptr.plus(OBJECT_REF_OFFSET));
@@ -893,6 +1041,8 @@ public class JavaHeader {
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
    * @param numElements the number of elements in the array
+   * @param needsIdentityHash needs an identity hash value
+   * @param identityHashValue the value for the identity hash
    * @return the address used for a reference to this object
    */
   @Interruptible

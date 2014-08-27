@@ -51,9 +51,9 @@ public final class CollectorThread extends SystemThread {
    */
 
   /**
-   * Constructor
-   *
    * @param stack The stack this thread will run on
+   * @param context the context that will provide the thread's
+   *  functionality
    */
   public CollectorThread(byte[] stack, CollectorContext context) {
     super(stack, context.getClass().getName() + " [" + nextId + "]");

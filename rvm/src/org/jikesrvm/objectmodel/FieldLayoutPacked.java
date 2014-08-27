@@ -35,9 +35,6 @@ public class FieldLayoutPacked extends FieldLayout {
     private short slot1;
     private short slot2;
 
-    /**
-     * Get the value for a given slot.
-     */
     private short get(int logSize) {
       switch (logSize) {
         case 0: return slot0;
@@ -48,9 +45,6 @@ public class FieldLayoutPacked extends FieldLayout {
       }
     }
 
-    /**
-     * Set the value for a given slot.
-     */
     private void set(int logSize, int value) {
       if (VM.VerifyAssertions) VM._assert(value >= 0 && value < Short.MAX_VALUE);
       short shortValue = (short)value;

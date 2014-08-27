@@ -614,6 +614,7 @@ public class Barriers {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean intTryCompareAndSwap(Object ref, Offset offset, int old, int value) {
@@ -725,6 +726,7 @@ public class Barriers {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean longTryCompareAndSwap(Object ref, Offset offset, long old, long value) {
@@ -1038,6 +1040,7 @@ public class Barriers {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean wordTryCompareAndSwap(Object ref, Offset offset, Word old, Word value) {
@@ -1104,6 +1107,7 @@ public class Barriers {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean addressTryCompareAndSwap(Object ref, Offset offset, Address old, Address value) {
@@ -1377,6 +1381,7 @@ public class Barriers {
    * @param offset the offset of the field to be modified
    * @param old the old value to swap out
    * @param value the new value for the field
+   * @return {@code true} if and only if the swap was successful
    */
   @Inline
   public static boolean objectTryCompareAndSwap(Object ref, Offset offset, Object old, Object value) {

@@ -50,6 +50,8 @@ public abstract class OptionSet {
    * Register the option to this set, computing its key in the process.
    *
    * @param o The option to register.
+   * @param name the option's name
+   * @return the computed key for the option
    */
   final String register(Option o, String name) {
     if (tail == null) {
@@ -152,6 +154,8 @@ public abstract class OptionSet {
 
   /**
    * Log a string.
+   *
+   * @param s the string to log
    */
   protected abstract void logString(String s);
 

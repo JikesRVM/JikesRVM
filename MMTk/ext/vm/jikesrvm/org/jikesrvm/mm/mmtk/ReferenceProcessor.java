@@ -376,6 +376,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Add a reference to the list of soft references.
    * @param ref the SoftReference to add
+   * @param referent the object that the reference points to
    */
   @Interruptible
   public static void addSoftCandidate(SoftReference<?> ref, ObjectReference referent) {
@@ -385,6 +386,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Add a reference to the list of weak references.
    * @param ref the WeakReference to add
+   * @param referent the object that the reference points to
    */
   @Interruptible
   public static void addWeakCandidate(WeakReference<?> ref, ObjectReference referent) {
@@ -394,6 +396,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Add a reference to the list of phantom references.
    * @param ref the PhantomReference to add
+   * @param referent the object that the reference points to
    */
   @Interruptible
   public static void addPhantomCandidate(PhantomReference<?> ref, ObjectReference referent) {

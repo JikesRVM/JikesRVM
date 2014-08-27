@@ -386,7 +386,7 @@ public abstract class Plan {
    * a boot time.
    *
    * @param reference the reference value that is to be stored
-   * @return The raw value to be
+   * @return The raw value to be stored
    */
   public Word bootTimeWriteBarrier(Word reference) {
     return reference;
@@ -973,11 +973,6 @@ public abstract class Plan {
     return false;
   }
 
-  /**
-   * Log a message from within 'poll'
-   * @param space
-   * @param message
-   */
   protected void logPoll(Space space, String message) {
     if (Options.verbose.getValue() >= 5) {
       Log.write("  [POLL] ");
@@ -1057,13 +1052,14 @@ public abstract class Plan {
    */
 
   /**
-   * Register specialized methods.
+   * Registers specialized methods.
    */
   @Interruptible
   protected void registerSpecializedMethods() {}
 
   /**
-   * Get the specialized scan with the given id.
+   * @param id the id of the specialized scan class
+   * @return the specialized scan with the given id
    */
   public final Class<?> getSpecializedScanClass(int id) {
     return TransitiveClosure.getSpecializedScanClass(id);

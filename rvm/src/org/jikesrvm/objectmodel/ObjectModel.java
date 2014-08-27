@@ -167,49 +167,46 @@ public class ObjectModel {
   /**
    * Given a reference, return an address which is guaranteed to be inside
    * the memory region allocated to the object.
+   *
+   * @param ref an object
+   * @return an address that's inside the memory region allocated to the
+   *  object
    */
   public static Address getPointerInMemoryRegion(ObjectReference ref) {
     return JavaHeader.getPointerInMemoryRegion(ref);
   }
 
   /**
-   * Return the offset of the array length field from an object reference
+   * @return the offset of the array length field from an object reference
    * (in bytes)
    */
   public static Offset getArrayLengthOffset() {
     return ARRAY_LENGTH_OFFSET;
   }
 
-  /**
-   * Get the TIB for an object.
-   */
   public static TIB getTIB(ObjectReference ptr) {
     return getTIB(ptr.toObject());
   }
 
-  /**
-   * Get the TIB for an object.
-   */
   public static TIB getTIB(Object o) {
     return JavaHeader.getTIB(o);
   }
 
-  /**
-   * Set the TIB for an object.
-   */
   public static void setTIB(ObjectReference ptr, TIB tib) {
     setTIB(ptr.toObject(), tib);
   }
 
-  /**
-   * Set the TIB for an object.
-   */
   public static void setTIB(Object ref, TIB tib) {
     JavaHeader.setTIB(ref, tib);
   }
 
   /**
-   * Set the TIB for an object.
+   * Sets the TIB for an object during bootimage writing.
+   *
+   * @param bootImage the bootimage
+   * @param refAddress the object's address
+   * @param tibAddr the TIB's address
+   * @param type the object's type
    */
   @Interruptible
   public static void setTIB(BootImageInterface bootImage, Address refAddress, Address tibAddr, RVMType type) {
@@ -217,7 +214,10 @@ public class ObjectModel {
   }
 
   /**
-   * Get the pointer just past an object
+   * Get the pointer just past an object.
+   *
+   * @param obj the object in question
+   * @return first word after the object
    */
   public static Address getObjectEndAddress(Object obj) {
     TIB tib = getTIB(obj);
@@ -231,14 +231,23 @@ public class ObjectModel {
   }
 
   /**
-   * Get the pointer just past an object
+   * Gets the pointer just past an object.
+   *
+   * @param object the object in question
+   * @param type the object's class
+   * @return first word after the scalar object
    */
   public static Address getObjectEndAddress(Object object, RVMClass type) {
     return JavaHeader.getObjectEndAddress(object, type);
   }
 
   /**
-   * Get the pointer just past an object
+   * Gets the pointer just past an object.
+   *
+   * @param object the object in question
+   * @param type the object's class
+   * @param elements the array's length
+   * @return the first word after the array
    */
   public static Address getObjectEndAddress(Object object, RVMArray type, int elements) {
     return JavaHeader.getObjectEndAddress(object, type, elements);
@@ -246,27 +255,37 @@ public class ObjectModel {
 
   /**
    * Get an object reference from the address the lowest word of the object was allocated.
+   *
+   * @param start the lowest word in the storage of an allocated object
+   * @return the object reference for the object
    */
   public static ObjectReference getObjectFromStartAddress(Address start) {
     return JavaHeader.getObjectFromStartAddress(start);
   }
 
   /**
-   * Get an object reference from the address the lowest word of the object was allocated.
+   * Gets an object reference from the address the lowest word of the object was allocated.
+   *
+   * @param start the lowest word in the storage of an allocated object
+   * @return the object reference for the object
    */
   public static ObjectReference getScalarFromStartAddress(Address start) {
     return JavaHeader.getScalarFromStartAddress(start);
   }
 
   /**
-   * Get an object reference from the address the lowest word of the object was allocated.
+   * Gets an object reference from the address the lowest word of the object was allocated.
+   *
+   * @param start the lowest word in the storage of an allocated object
+   * @return the object reference for the object
    */
   public static ObjectReference getArrayFromStartAddress(Address start) {
     return JavaHeader.getArrayFromStartAddress(start);
   }
 
   /**
-   * Get the next object in the heap under contiguous allocation.
+   * @param obj an object
+   * @return the next object in the heap under contiguous allocation
    */
   public static ObjectReference getNextObject(ObjectReference obj) {
     TIB tib = getTIB(obj);
@@ -280,7 +299,11 @@ public class ObjectModel {
   }
 
   /**
-   * Get the next object after this scalar under contiguous allocation.
+   * Gets the next object after this scalar under contiguous allocation.
+   *
+   * @param obj the current object, which must be a scalar
+   * @param type the object's type
+   * @return the next scalar object in the heap
    */
   public static ObjectReference getNextObject(ObjectReference obj, RVMClass type) {
     return JavaHeader.getNextObject(obj, type);
@@ -288,13 +311,22 @@ public class ObjectModel {
 
   /**
    * Get the next object after this array under contiguous allocation.
+   *
+   * @param obj the current object, which must be an array
+   * @param type the object's type
+   * @param numElements the length of the array
+   * @return the next scalar object in the heap
    */
   public static ObjectReference getNextObject(ObjectReference obj, RVMArray type, int numElements) {
     return JavaHeader.getNextObject(obj, type, numElements);
   }
 
   /**
-   * how many bytes are used by the object?
+   * Gets the reference of an object after copying to a specified region.
+   *
+   * @param obj the object to copy
+   * @param to the target address for the copy
+   * @return the reference of the copy
    */
   public static Object getReferenceWhenCopiedTo(Object obj, Address to) {
     TIB tib = getTIB(obj);
@@ -307,7 +339,8 @@ public class ObjectModel {
   }
 
   /**
-   * how many bytes are used by the object?
+   * @param obj an object
+   * @return the number of bytes used by the object
    */
   public static int bytesUsed(Object obj) {
     TIB tib = getTIB(obj);
@@ -322,6 +355,10 @@ public class ObjectModel {
 
   /**
    * how many bytes are used by the scalar?
+   *
+   * @param obj an object
+   * @param type the object's type
+   * @return the number of bytes used by the object
    */
   public static int bytesUsed(Object obj, RVMClass type) {
     return JavaHeader.bytesUsed(obj, type);
@@ -329,13 +366,19 @@ public class ObjectModel {
 
   /**
    * how many bytes are used by the array?
+   *
+   * @param obj an object
+   * @param type the object's type
+   * @param numElements the array's length
+   * @return the number of bytes used by the object
    */
   public static int bytesUsed(Object obj, RVMArray type, int numElements) {
     return JavaHeader.bytesUsed(obj, type, numElements);
   }
 
   /**
-   * how many bytes are required when the object is copied by GC?
+   * @param obj the object
+   * @return number of bytes that are required when the object is copied by GC
    */
   public static int bytesRequiredWhenCopied(Object obj) {
     TIB tib = getTIB(obj);
@@ -350,6 +393,10 @@ public class ObjectModel {
 
   /**
    * how many bytes are needed when the scalar object is copied by GC?
+   *
+   * @param fromObj the object to copy
+   * @param type the object's type
+   * @return number of needed bytes when the scalar object is copied by GC
    */
   public static int bytesRequiredWhenCopied(Object fromObj, RVMClass type) {
     return JavaHeader.bytesRequiredWhenCopied(fromObj, type);
@@ -357,14 +404,22 @@ public class ObjectModel {
 
   /**
    * how many bytes are needed when the array object is copied by GC?
+   *
+   * @param fromObj the object to copy
+   * @param type the object's type
+   * @param numElements the number of elements in the array
+   * @return the number of bytes that are required for the copy
    */
   public static int bytesRequiredWhenCopied(Object fromObj, RVMArray type, int numElements) {
     return JavaHeader.bytesRequiredWhenCopied(fromObj, type, numElements);
   }
 
   /**
-   * Map from the object ref to the lowest address of the storage
-   * associated with the object
+   * Maps from the object ref to the lowest address of the storage
+   * associated with the object.
+   *
+   * @param obj the object reference
+   * @return the lowest address in the object's memory region
    */
   @Inline
   public static Address objectStartRef(ObjectReference obj) {
@@ -373,6 +428,11 @@ public class ObjectModel {
 
   /**
    * Get the reference of an object after copying to a specified region.
+   *
+   * @param obj the object to copy
+   * @param region the target address for the copy
+   * @param type the scalar's type
+   * @return the reference of the copy
    */
   public static Object getReferenceWhenCopiedTo(Object obj, Address region, RVMClass type) {
     return JavaHeader.getReferenceWhenCopiedTo(obj, region, type);
@@ -380,27 +440,50 @@ public class ObjectModel {
 
   /**
    * Get the reference of an object after copying to a specified region.
+   *
+   * @param obj the object to copy
+   * @param region the target address for the copy
+   * @param type the array's type
+   * @return the reference of the copy
    */
   public static Object getReferenceWhenCopiedTo(Object obj, Address region, RVMArray type) {
     return JavaHeader.getReferenceWhenCopiedTo(obj, region, type);
   }
 
   /**
-   * Copy a scalar object to the given raw storage address
+   * Copies a scalar object to the given raw storage address.
+   *
+   * @param fromObj the scalar to copy
+   * @param toObj target address for copy
+   * @param numBytes how many bytes to copy
+   * @param type the scalar's type
+   * @return the reference for the object's copy
    */
   public static Object moveObject(Object fromObj, Object toObj, int numBytes, RVMClass type) {
     return JavaHeader.moveObject(fromObj, toObj, numBytes, type);
   }
 
   /**
-   * Copy an array object to the given raw storage address
+   * Copy an array object to the given raw storage address.
+   *
+   * @param fromObj the object to copy
+   * @param toObj the target object
+   * @param numBytes the number of bytes to copy
+   * @param type the array's type
+   * @return the reference for the array's copy
    */
   public static Object moveObject(Object fromObj, Object toObj, int numBytes, RVMArray type) {
     return JavaHeader.moveObject(fromObj, toObj, numBytes, type);
   }
 
   /**
-   * Copy a scalar object to the given raw storage address
+   * Copy a scalar object to the given raw storage address.
+   *
+   * @param toAddress the target address
+   * @param fromObj the object to copy
+   * @param numBytes how many bytes to copy
+   * @param type the scalar's type
+   * @return the reference for the object's copy
    */
   public static Object moveObject(Address toAddress, Object fromObj, int numBytes, RVMClass type) {
     return JavaHeader.moveObject(toAddress, fromObj, numBytes, type);
@@ -408,75 +491,74 @@ public class ObjectModel {
 
   /**
    * Copy an array object to the given raw storage address
+   *
+   * @param toAddress the target address
+   * @param fromObj the object to copy
+   * @param numBytes how many bytes to copy
+   * @param type the array's type
+   * @return the reference for the object's copy
    */
   public static Object moveObject(Address toAddress, Object fromObj, int numBytes, RVMArray type) {
     return JavaHeader.moveObject(toAddress, fromObj, numBytes, type);
   }
 
   /**
-   * Get the type of an object.
+   * @param o an object
+   * @return the type of an object
    */
   public static RVMType getObjectType(Object o) {
     return Magic.getObjectType(o);
   }
 
   /**
-   * Get the length of an array
+   * @param o an array
+   * @return the length of an array
    */
   public static int getArrayLength(Object o) {
     return Magic.getIntAtOffset(o, getArrayLengthOffset());
   }
 
   /**
-   * Set the length of an array
+   * Sets the length of an array.
+   *
+   * @param o an array
+   * @param len the length of the array
    */
   public static void setArrayLength(Object o, int len) {
     Magic.setIntAtOffset(o, getArrayLengthOffset(), len);
   }
 
-  /**
-   * Get the hash code of an object.
-   */
   @Interruptible
   public static int getObjectHashCode(Object o) {
     if (HASH_STATS) hashRequests++;
     return JavaHeader.getObjectHashCode(o);
   }
 
-  /**
-   * Get the offset of the thin lock word in this object
-   */
   public static Offset getThinLockOffset(Object o) {
     return JavaHeader.getThinLockOffset(o);
   }
 
-  /**
-   * what is the default offset for a thin lock?
-   */
   public static Offset defaultThinLockOffset() {
     return JavaHeader.defaultThinLockOffset();
   }
 
   /**
-   * Allocate a thin lock word for instances of the type
+   * Allocates a thin lock word for instances of the type
    * (if they already have one, then has no effect).
+   *
+   * @param t the type that is supposed to receive a thin
+   *  lock word
    */
   public static void allocateThinLock(RVMType t) {
     JavaHeader.allocateThinLock(t);
   }
 
-  /**
-   * Generic lock
-   */
   @Entrypoint
   @Unpreemptible("Become another thread when lock is contended, don't preempt in other cases")
   public static void genericLock(Object o) {
     JavaHeader.genericLock(o);
   }
 
-  /**
-   * Generic unlock
-   */
   @Entrypoint
   @Unpreemptible("No preemption normally, but may raise exceptions")
   public static void genericUnlock(Object o) {
@@ -509,6 +591,9 @@ public class ObjectModel {
 
   /**
    * Non-atomic read of word containing available bits
+   *
+   * @param o the object to read
+   * @return the available bits word
    */
   public static Word readAvailableBitsWord(Object o) {
     return JavaHeader.readAvailableBitsWord(o);
@@ -516,13 +601,18 @@ public class ObjectModel {
 
   /**
    * Non-atomic read of byte containing available bits
+   * @param o the object to read
+   * @return the available bits bytes
    */
   public static byte readAvailableByte(Object o) {
     return JavaHeader.readAvailableByte(o);
   }
 
   /**
-   * Non-atomic write of word containing available bits
+   * Non-atomic write of word containing available bits.
+   *
+   * @param o the object whose word will be written
+   * @param val the available bits word
    */
   public static void writeAvailableBitsWord(Object o, Word val) {
     JavaHeader.writeAvailableBitsWord(o, val);
@@ -530,28 +620,39 @@ public class ObjectModel {
 
   /**
    * Non-atomic write of byte containing available bits
+   *
+   * @param o the object whose available byte will be written
+   * @param val the value to write to the available byte
    */
   public static void writeAvailableByte(Object o, byte val) {
     JavaHeader.writeAvailableByte(o, val);
   }
 
   /**
-   * Return true if argument bit is 1, false if it is 0
+   * @param o the object whose bit will be tested
+   * @param idx the index in the bits
+   * @return {@code true} if argument bit is 1, {@code false} if it is 0
    */
   public static boolean testAvailableBit(Object o, int idx) {
     return JavaHeader.testAvailableBit(o, idx);
   }
 
   /**
-   * Set argument bit to 1 if flag is true, 0 if flag is false
+   * Sets argument bit to 1 if value is true, 0 if value is false
+   *
+   * @param o the object whose bit will be set
+   * @param idx the index in the bits
+   * @param flag {@code true} for 1, {@code false} for 0
    */
   public static void setAvailableBit(Object o, int idx, boolean flag) {
     JavaHeader.setAvailableBit(o, idx, flag);
   }
 
   /**
-   * Freeze the other bits in the byte containing the available bits
+   * Freezes the other bits in the byte containing the available bits
    * so that it is safe to update them using setAvailableBits.
+   *
+   * @param o the object whose available bytes will be initialized
    */
   @Interruptible
   public static void initializeAvailableByte(Object o) {
@@ -559,14 +660,31 @@ public class ObjectModel {
   }
 
   /**
-   * A prepare on the word containing the available bits
+   * A prepare on the word containing the available bits.
+   * <p>
+   * Note: this method is intended to be used in conjunction
+   * with the attempt method.
+   *
+   * @param o the object which has the available bits
+   * @return the current value of the word
+   * @see #attemptAvailableBits(Object, Word, Word)
    */
   public static Word prepareAvailableBits(Object o) {
     return JavaHeader.prepareAvailableBits(o);
   }
 
   /**
-   * An attempt on the word containing the available bits
+   * An attempt on the word containing the available bits.
+   * <p>
+   * Note: this method is intended to be used in conjunction
+   * with the prepare method. If the method returns {@code false},
+   * callers must update their information about the old value of
+   * the available bits word before retrying again.
+   *
+   * @param o the object which has the available bits
+   * @param oldVal the old value that the word is expected to have
+   * @param newVal the new value that will be written, if possible
+   * @return whether the write occurred
    */
   public static boolean attemptAvailableBits(Object o, Word oldVal, Word newVal) {
     return JavaHeader.attemptAvailableBits(o, oldVal, newVal);
@@ -575,6 +693,10 @@ public class ObjectModel {
   /**
    * Given the smallest base address in a region, return the smallest
    * object reference that could refer to an object in the region.
+   *
+   * @param regionBaseAddr the smallest base address in the region
+   * @return the smallest address in the region that could possibly
+   *  refer to an object in the region
    */
   public static Address minimumObjectRef(Address regionBaseAddr) {
     return JavaHeader.minimumObjectRef(regionBaseAddr);
@@ -583,13 +705,20 @@ public class ObjectModel {
   /**
    * Given the largest base address in a region, return the largest
    * object reference that could refer to an object in the region.
+   *
+   * @param regionHighAddr the highest base address in the region
+   * @return the largest address in the region that could possibly
+   *  refer to an object in the region
    */
   public static Address maximumObjectRef(Address regionHighAddr) {
     return JavaHeader.maximumObjectRef(regionHighAddr);
   }
 
   /**
-   * Compute the header size of an instance of the given type.
+   * Computes the header size of an instance of the given type.
+   *
+   * @param type the instance's type
+   * @return size of the head in bytes
    */
   @Inline
   public static int computeHeaderSize(RVMType type) {
@@ -601,7 +730,10 @@ public class ObjectModel {
   }
 
   /**
-   * Compute the header size of an object
+   * Computes the header size of an object.
+   *
+   * @param ref the object whose header size is of interest
+   * @return the object's header size
    */
   @Interruptible
   public static int computeHeaderSize(Object ref) {
@@ -609,7 +741,10 @@ public class ObjectModel {
   }
 
   /**
-   * Compute the header size of an instance of the given type.
+   * Computes the header size of an instance of the given type.
+   *
+   * @param type the instance's type
+   * @return size of the head in bytes
    */
   @Inline
   public static int computeScalarHeaderSize(RVMClass type) {
@@ -617,14 +752,20 @@ public class ObjectModel {
   }
 
   /**
-   * Compute the header size of an instance of the given type.
+   * Computes the header size of an instance of the given type.
+   *
+   * @param type the instance's type
+   * @return size of the head in bytes
    */
   public static int computeArrayHeaderSize(RVMArray type) {
     return JavaHeader.computeArrayHeaderSize(type);
   }
 
   /**
-   * Given a TIB, compute the header size of an instance of the TIB's class
+   * Given a TIB, compute the header size of an instance of the TIB's class.
+   *
+   * @param tib a TIB
+   * @return the header size of an object from the class given by the TIB
    */
   public static int computeHeaderSize(Object[] tib) {
     return computeHeaderSize(Magic.objectAsType(tib[0]));
@@ -633,6 +774,9 @@ public class ObjectModel {
   /**
    * For a reference to an object, what is the offset in bytes to the
    * last word of the header from an out-to-in perspective for the object?
+   *
+   * @return offset of the last word of the header from an
+   *  out-to-in perspective
    */
   public static int getHeaderEndOffset() {
     return JavaHeader.getHeaderEndOffset();
@@ -641,82 +785,91 @@ public class ObjectModel {
   /**
    * For a reference to an object, what is the offset in bytes to the bottom
    * word of the object?
+   *
+   * @param t the class of the object
+   * @return offset of the first word of the class from the object
+   *  reference
    */
   public static int objectStartOffset(RVMClass t) {
     return JavaHeader.objectStartOffset(t);
   }
 
   /**
-   * Return the desired aligment of the alignment point in the object returned
-   * by getScalarOffsetForAlignment.
    * @param t RVMClass instance being created
+   * @return the desired alignment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument RVMClass.
    */
   public static int getAlignment(RVMClass t) {
     return JavaHeader.getAlignment(t);
   }
 
   /**
-   * Return the desired alignment of the alignment point returned by
-   * getOffsetForAlignment in instances of the argument RVMClass.
    * @param t RVMClass instance being copied
    * @param obj the object being copied
+   * @return the desired alignment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument RVMClass.
    */
+
   public static int getAlignment(RVMClass t, Object obj) {
     return JavaHeader.getAlignment(t, obj);
   }
 
   /**
-   * Return the desired alignment of the alignment point returned by
-   * getOffsetForAlignment in instances of the argument RVMArray.
    * @param t RVMArray instance being created
+   * @return the desired alignment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument RVMArray.
    */
   public static int getAlignment(RVMArray t) {
     return JavaHeader.getAlignment(t);
   }
 
   /**
-   * Return the desired alignment of the alignment point returned by
-   * getOffsetForAlignment in instances of the argument RVMArray.
    * @param t RVMArray instance being copied
    * @param obj the object being copied
+   * @return the desired alignment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument RVMArray.
    */
   public static int getAlignment(RVMArray t, Object obj) {
     return JavaHeader.getAlignment(t, obj);
   }
 
   /**
-   * Return the offset relative to physical beginning of object
-   * that must be aligned.
    * @param t RVMClass instance being created
+   * @param needsIdentityHash TODO document this parameter. IIs it still needed?
+   *  It's never set to true.
+   * @return the offset relative to physical beginning of object
+   * that must be aligned.
    */
   public static int getOffsetForAlignment(RVMClass t, boolean needsIdentityHash) {
     return JavaHeader.getOffsetForAlignment(t, needsIdentityHash);
   }
 
   /**
-   * Return the offset relative to physical beginning of object
-   * that must be aligned.
    * @param t RVMClass instance being copied
    * @param obj the object being copied
+   * @return the offset relative to physical beginning of object
+   * that must be aligned.
    */
   public static int getOffsetForAlignment(RVMClass t, ObjectReference obj) {
     return JavaHeader.getOffsetForAlignment(t, obj);
   }
 
   /**
-   * Return the offset relative to physical beginning of object that must
-   * be aligned.
    * @param t RVMArray instance being created
+   * @param needsIdentityHash TODO document this parameter. Is it still needed?
+   *  It's never set to true.
+   * @return the offset relative to physical beginning of object that must
+   * be aligned.
    */
   public static int getOffsetForAlignment(RVMArray t, boolean needsIdentityHash) {
     return JavaHeader.getOffsetForAlignment(t, needsIdentityHash);
   }
 
   /**
-   * Return the offset relative to physical beginning of object that must
-   * be aligned.
    * @param t RVMArray instance being copied
    * @param obj the object being copied
+   * @return the offset relative to physical beginning of object that must
+   * be aligned.
    */
   public static int getOffsetForAlignment(RVMArray t, ObjectReference obj) {
     return JavaHeader.getOffsetForAlignment(t, obj);
@@ -729,6 +882,7 @@ public class ObjectModel {
    * @param ptr address of raw storage
    * @param tib the type information block
    * @param size number of bytes of raw storage allocated.
+   * @return the object whose storage was initialized
    */
   @Inline
   public static Object initializeScalar(Address ptr, TIB tib, int size) {
@@ -772,7 +926,11 @@ public class ObjectModel {
   }
 
   /**
-   * Fill an alignment gap with the alignment value
+   * Fills an alignment gap with the alignment value
+   *
+   * @param bootImage the bootimage being compiled
+   * @param address the start address for the gap that needs to be filled
+   * @param size the size of the gap to be filled
    */
   @Interruptible
   public static void fillAlignmentGap(BootImageInterface bootImage, Address address, Extent size) {
@@ -792,6 +950,7 @@ public class ObjectModel {
    * @param tib the type information block
    * @param numElems number of elements in the array
    * @param size number of bytes of raw storage allocated.
+   * @return the array whose header was initialized
    */
   @Inline
   public static Object initializeArray(Address ptr, TIB tib, int numElems, int size) {
@@ -831,7 +990,8 @@ public class ObjectModel {
    * @param numElements number of elements
    * @param needsIdentityHash needs an identity hash value
    * @param identityHashValue the value for the identity hash
-   * @param alignCode TODO
+   * @param align special alignment value
+   * @param alignCode the alignment-encoded value
    * @return Address of object in bootimage (in bytes)
    */
   @Interruptible
@@ -904,7 +1064,9 @@ public class ObjectModel {
   }
 
   /**
-   * For debugging.
+   * For debugging: dumps descriptor of an object.
+   *
+   * @param addr the object to dump
    */
   public static void describeObject(ObjectReference addr) {
     Object obj = addr.toObject();

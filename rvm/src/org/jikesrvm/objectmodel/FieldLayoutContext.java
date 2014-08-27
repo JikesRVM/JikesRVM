@@ -45,7 +45,12 @@ public abstract class FieldLayoutContext {
   /** The size of the current object as laid out */
   private int objectSize = 0;
 
-  /** Return the offset of a new field of the given size */
+  /**
+   *
+   * @param size the field's size in bytes
+   * @param isReference whether the field is a reference field
+   * @return the offset of a new field of the given size
+   */
   abstract int nextOffset(int size, boolean isReference);
 
   /* *****************************************************************
@@ -53,9 +58,7 @@ public abstract class FieldLayoutContext {
   */
 
   /**
-   * Constructor for a (the) top-level object.
-   *
-   * @param alignment
+   * @param alignment the alignment to use for this context
    */
   protected FieldLayoutContext(byte alignment) {
     this.alignment = alignment;
@@ -65,8 +68,8 @@ public abstract class FieldLayoutContext {
    * Constructor for an object with a superclass.  The superclass
    * is used to initialize the layout.
    *
-   * @param alignment
-   * @param superLayout
+   * @param alignment the alignment to use for this context
+   * @param superLayout the super class' layout
    */
   protected FieldLayoutContext(byte alignment, FieldLayoutContext superLayout) {
     this.alignment = alignment;
@@ -83,7 +86,7 @@ public abstract class FieldLayoutContext {
    * Adjust alignment to the next highest value.  In Java, the only 2
    * possibilities are int-aligned or long-aligned.
    *
-   * @param fieldSize
+   * @param fieldSize the size of the field in bytes
    */
   protected void adjustAlignment(int fieldSize) {
     alignment = (fieldSize == BYTES_IN_LONG) ? BYTES_IN_LONG : alignment;
@@ -105,6 +108,8 @@ public abstract class FieldLayoutContext {
 
   /**
    * Set the current size of the object (excluding header)
+   *
+   * @param size the object's size, excluding the header
    */
   protected void setObjectSize(int size) {
     objectSize = size;
