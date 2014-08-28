@@ -52,10 +52,15 @@ public class Reflection {
   public static final int REFLECTION_GPRS_MASK = (1 << REFLECTION_GPRS_BITS) - 1;
   public static final int REFLECTION_FPRS_BITS = 5;
   public static final int REFLECTION_FPRS_MASK = (1 << REFLECTION_FPRS_BITS) - 1;
+
   /**
    * Does the reflective method scheme need to check the arguments are valid?
    * Bytecode reflection doesn't need arguments checking as they are checking as
    * they are unwrapped
+   *
+   * @param invoker the invoker to use for the reflective invokation
+   * @return whether the reflective method scheme needs to to be check
+   *  the arguments for validity
    */
   @Inline
   public static boolean needsCheckArgs(ReflectionBase invoker) {
@@ -66,11 +71,12 @@ public class Reflection {
   /**
    * Call a method.
    * @param method method to be called
+   * @param invoker the invoker to use for the invocation, may be {@code null} in
+   *  certain cases
    * @param thisArg "this" argument (ignored if method is static)
    * @param otherArgs remaining arguments
-   *
-   * isNonvirtual flag is false if the method of the real class of this
-   * object is to be invoked; true if a method of a superclass may be invoked
+   * @param isNonvirtual flag is {@code false} if the method of the real class of this
+   * object is to be invoked; {@code true} if a method of a superclass may be invoked
    * @return return value (wrapped if primitive)
    * See also: java/lang/reflect/Method.invoke()
    */

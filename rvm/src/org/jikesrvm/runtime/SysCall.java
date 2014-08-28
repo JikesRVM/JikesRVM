@@ -184,10 +184,10 @@ public abstract class SysCall {
   public abstract int sysNumProcessors();
 
   /**
-   * Create a native thread (aka "unix kernel thread", "pthread").
-   * @param tr
-   * @param ip
-   * @param fp
+   * Creates a native thread (aka "unix kernel thread", "pthread").
+   * @param tr the address of the RVMThread object for the thread
+   * @param ip the current instruction pointer
+   * @param fp the frame pointer
    * @return native thread's o/s handle
    */
   @SysCallTemplate
@@ -234,12 +234,17 @@ public abstract class SysCall {
    * use some other locking mechanism (for example, on systems that don't
    * have recursive mutexes you could imagine the recursive feature to be
    * emulated).
+   *
+   * @return pointer to the created monitor for use in other monitor sys calls
    */
   @SysCallTemplate
   public abstract Word sysMonitorCreate();
   /**
    * Destroy the monitor pointed to by the argument and free its memory
    * by calling free.
+   *
+   * @param monitor the pointer to the monitor that is supposed to be
+   *  destroyed
    */
   @SysCallTemplate
   public abstract void sysMonitorDestroy(Word monitor);
@@ -311,7 +316,21 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract int sysPrimitiveParseInt(byte[] buf);
 
-  /** Parse memory sizes passed as command-line arguments.
+  /**
+   * Primitive parsing of memory sizes, with proper error handling,
+   * and so on. For all the gory details, see the code in the
+   * bootimage runner.
+   * <p>
+   * Note: all byte array parameters for this method represent Strings.
+   *
+   * @param sizeName the option's name
+   * @param sizeFlag the flag's name, e.g. mx (as in "-Xmx")
+   * @param defaultFactor factor for modifying sizes, e.g. "K", "M" or "pages"
+   * @param roundTo round up to a multiple of this number
+   * @param argToken the full command line argument, e.g. "-Xmx200M"
+   * @param subArg the value for the argument, e.g. "200M"
+   * @return Negative values on error.
+   *      Otherwise, positive or zero values as bytes.
    */
   @SysCallTemplate
   public abstract long sysParseMemorySize(byte[] sizeName, byte[] sizeFlag, byte[] defaultFactor, int roundTo,

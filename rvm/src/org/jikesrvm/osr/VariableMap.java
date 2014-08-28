@@ -35,7 +35,7 @@ public final class VariableMap {
     return list.size();
   }
 
-  /*
+  /**
    * Inserts a new entry into the GCIRMap
    * @param inst      the IR instruction we care about
    * @param mvarList  the set of symbolic registers as a list
@@ -47,6 +47,9 @@ public final class VariableMap {
 
   /**
    * Inserts a new entry at the begin of the list.
+   *
+   * @param inst      the IR instruction we care about
+   * @param mvarList  the set of symbolic registers as a list
    */
   public void insertFirst(Instruction inst, LinkedList<MethodVariables> mvarList) {
     list.addFirst(new VariableMapElement(inst, mvarList));
@@ -77,6 +80,3 @@ public final class VariableMap {
     return buf.toString();
   }
 }
-
-
-

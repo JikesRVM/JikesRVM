@@ -29,6 +29,9 @@ public final class BitVector implements Serializable {
 
   /**
    * Convert bitIndex to a subscript into the bits[] array.
+   *
+   * @param bitIndex the bit index
+   * @return subscript into the array
    */
   private static int subscript(int bitIndex) {
     return bitIndex >> LOG_BITS_PER_UNIT;
@@ -55,9 +58,6 @@ public final class BitVector implements Serializable {
     System.arraycopy(s.bits, 0, this.bits, 0, s.bits.length);
   }
 
-  /**
-   * Sets all bits.
-   */
   public void setAll() {
     for (int i = 0; i < bits.length; i++) {
       bits[i] = MASK;
@@ -94,6 +94,7 @@ public final class BitVector implements Serializable {
   /**
    * Gets a bit.
    * @param bit the bit to be gotten
+   * @return the value of the bit, {@code 0} for {@code false}
    */
   public boolean get(int bit) {
     int shiftBits = bit & LOW_MASK;
@@ -110,9 +111,6 @@ public final class BitVector implements Serializable {
     }
   }
 
-  /**
-   * Return the NOT of a bit string
-   */
   public static BitVector not(BitVector s) {
     BitVector b = new BitVector(s);
     b.not();
@@ -133,9 +131,6 @@ public final class BitVector implements Serializable {
     }
   }
 
-  /**
-   * Return a new bit string as the AND of two others.
-   */
   public static BitVector and(BitVector b1, BitVector b2) {
     BitVector b = new BitVector(b1);
     b.and(b2);
@@ -156,9 +151,6 @@ public final class BitVector implements Serializable {
     }
   }
 
-  /**
-   * Return a new BitVector as the OR of two others
-   */
   public static BitVector or(BitVector b1, BitVector b2) {
     BitVector b = new BitVector(b1);
     b.or(b2);
@@ -177,8 +169,8 @@ public final class BitVector implements Serializable {
   }
 
   /**
-   * Check if the intersection of the two sets is empty
    * @param other the set to check intersection with
+   * @return whether the intersection of the two sets is empty
    */
   public boolean intersectionEmpty(BitVector other) {
     int n = bits.length;
@@ -196,9 +188,6 @@ public final class BitVector implements Serializable {
     System.arraycopy(set.bits, 0, this.bits, 0, set.bits.length);
   }
 
-  /**
-   * Gets the hashcode.
-   */
   @Override
   public int hashCode() {
     int h = 1234;
@@ -209,7 +198,7 @@ public final class BitVector implements Serializable {
   }
 
   /**
-   * How many bits are set?
+   * @return number of bits that are set
    */
   public int populationCount() {
     int count = 0;
@@ -222,6 +211,8 @@ public final class BitVector implements Serializable {
   /**
    * Calculates and returns the set's size in bits.
    * The maximum element in the set is the size - 1st element.
+   *
+   * @return the length of this set in bits
    */
   public int length() {
     return bits.length << LOG_BITS_PER_UNIT;
@@ -263,9 +254,6 @@ public final class BitVector implements Serializable {
     return new BitVector(this);
   }
 
-  /**
-   * Converts the BitVector to a String.
-   */
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder();

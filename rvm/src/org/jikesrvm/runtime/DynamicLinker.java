@@ -83,11 +83,10 @@ public class DynamicLinker {
   private static class DL_Helper {
 
     /**
-     * Discover method reference to be invoked via dynamic bridge.
-     * <pre>
-     * Taken:       nothing (call stack is examined to find invocation site)
-     * Returned:    DynamicLink that describes call site.
-     * </pre>
+     * Discovers a method reference to be invoked via dynamic bridge. The call
+     * stack is examined to find the invocation site.
+     *
+     * @return an DynamicLink describing the call site
      */
     @NoInline
     static DynamicLink resolveDynamicInvocation() {
@@ -112,11 +111,10 @@ public class DynamicLinker {
     }
 
     /**
-     * Resolve method ref into appropriate RVMMethod
-     * <pre>
-     * Taken:       DynamicLink that describes call site.
-     * Returned:    RVMMethod that should be invoked.
-     * </pre>
+     * Resolves a method ref into appropriate RVMMethod.
+     *
+     * @param dynamicLink a DynamicLink that describes call site
+     * @return the RVMMethod that should be invoked.
      */
     @NoInline
     static RVMMethod resolveMethodRef(DynamicLink dynamicLink) {
@@ -142,7 +140,9 @@ public class DynamicLinker {
     }
 
     /**
-     * Compile (if necessary) targetMethod and patch the appropriate disaptch tables
+     * Compile (if necessary) targetMethod and patch the appropriate dispatch tables.
+     *
+     * @param dynamicLink a DynamicLink that describes call site.
      * @param targetMethod the RVMMethod to compile (if not already compiled)
      */
     @NoInline

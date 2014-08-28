@@ -229,7 +229,8 @@ public final class DynamicLibrary {
   }
 
   /**
-   * Resolve a symbol to an address in a currently loaded dynamic library.
+   * Resolves a symbol to an address in a currently loaded dynamic library.
+   * @param symbol the symbol to resolves
    * @return the address of the symbol of Address.zero() if it cannot be resolved
    */
   public static synchronized Address resolveSymbol(String symbol) {

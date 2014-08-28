@@ -429,6 +429,7 @@ public final class ThinLock {
    *
    * @param o the object to get a heavy-weight lock
    * @param lockOffset the offset of the thin lock word in the object.
+   * @param l the lock to attempt to inflate
    * @return the inflated lock; either the one you gave, or another one, if the lock
    *         was inflated by some other thread.
    */

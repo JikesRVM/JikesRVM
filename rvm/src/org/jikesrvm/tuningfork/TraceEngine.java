@@ -125,9 +125,10 @@ public final class TraceEngine {
    */
 
   /**
-   * Define an EventType
+   * Defines an EventType.
    * @param name The name to give the event
    * @param description A human readable description of the event for display in the TuningFork UI.
+   * @return the event type instance
    */
   public EventType defineEvent(String name, String description) {
     if (state == State.SHUT_DOWN) return null;
@@ -137,10 +138,11 @@ public final class TraceEngine {
   }
 
   /**
-   * Define an EventType
+   * Define an EventType.
    * @param name The name to give the event
    * @param description A human readable description of the event for display in the TuningFork UI.
    * @param attribute Description of the event's single data value
+   * @return the event type instance
    */
   public EventType defineEvent(String name, String description, EventAttribute attribute) {
     if (state == State.SHUT_DOWN) return null;
@@ -150,10 +152,11 @@ public final class TraceEngine {
   }
 
   /**
-   * Define an EventType
+   * Defines an EventType.
    * @param name The name to give the event
    * @param description A human readable description of the event for display in the TuningFork UI.
    * @param attributes Descriptions of the event's data values
+   * @return the event type instance
    */
   public EventType defineEvent(String name, String description, EventAttribute[] attributes) {
     if (state == State.SHUT_DOWN) return null;

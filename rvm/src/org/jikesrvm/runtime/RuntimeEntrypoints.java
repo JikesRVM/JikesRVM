@@ -172,9 +172,6 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
     }
   }
 
-  /**
-   * Perform aastore bytecode
-   */
   @Entrypoint
   static void aastore(Object[] arrayRef, int index, Object value) throws ArrayStoreException, ArrayIndexOutOfBoundsException {
     checkstore(arrayRef, value);
@@ -186,9 +183,6 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
     }
   }
 
-  /**
-   * Perform uninterruptible aastore bytecode
-   */
   @Entrypoint
   @Uninterruptible
   static void aastoreUninterruptible(Object[] arrayRef, int index, Object value) {
@@ -199,9 +193,6 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
     Services.setArrayUninterruptible(arrayRef, index, value);
   }
 
-  /**
-   * Throw exception iff array assignment is illegal.
-   */
   @Entrypoint
   @Inline
   static void checkstore(Object array, Object arrayElement) throws ArrayStoreException {
@@ -257,7 +248,8 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
 
   /**
    * Allocate something like "new Foo()".
-   * @param id id of type reference of class to create.
+   * @param id id of type reference of class to create
+   * @param site the site id of the calling allocation site
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
@@ -396,6 +388,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * @param allocator int that encodes which allocator should be used
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
+   * @param site the site id of the calling allocation site
    * @return array object with header installed and all elements set
    *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
@@ -431,6 +424,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    *
    * @param obj the object to clone
    * @return the cloned object
+   * @throws CloneNotSupportedException when the object does not support cloning
    */
   public static Object clone(Object obj) throws OutOfMemoryError, CloneNotSupportedException {
     RVMType type = Magic.getObjectType(obj);
@@ -464,6 +458,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * @param obj the object to clone
    * @param type the type information for the class
    * @return the cloned object
+   * @throws CloneNotSupportedException when the object does not support cloning
    */
   private static Object cloneClass(Object obj, RVMType type) throws OutOfMemoryError, CloneNotSupportedException {
     if (!(obj instanceof Cloneable)) {
@@ -588,7 +583,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    *
    * Side effect: hash value is generated and stored into object's
    * status word.
-   *
+   * @param object the object to hash
    * @return object's hashcode.
    * @see java.lang.Object#hashCode
    */
@@ -604,6 +599,8 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * Prepare a class for use prior to first allocation,
    * field access, or method invocation.
    * Made public so that it is accessible from java.lang.reflect.*.
+   *
+   * @param cls the class to prepare for dynamic link
    * @see MemberReference#needsDynamicLink
    */
   public static void initializeClassForDynamicLink(RVMClass cls) {
@@ -823,6 +820,8 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * Create and throw a java.lang.ArrayIndexOutOfBoundsException.
    * Only used in some configurations where it is easier to make a call
    * then recover the array index from a trap instruction.
+   *
+   * @param index the failing index
    */
   @NoInline
   @Entrypoint
@@ -968,6 +967,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * @param numElements Number of elements to allocate for each dimension
    * @param dimIndex Current dimension to build
    * @param arrayType type of array that will result
+   * @return a multi-dimensional array
    */
   public static Object buildMDAHelper(RVMMethod method, int[] numElements, int dimIndex, RVMArray arrayType) {
 
@@ -1085,6 +1085,7 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    *
    * @param currfp The current frame is expected to be one of the JNI functions
    *            called from C, below which is one or more native stack frames
+   * @return the frame pointer for the appropriate frame
    */
   @Uninterruptible
   public static Address unwindNativeStackFrame(Address currfp) {
@@ -1122,6 +1123,9 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * below which is one or more native stack frames.
    * Skip over all frames below which do not contain any object
    * references.
+   *
+   * @param currfp the frame pointer of the current frame
+   * @return the frame pointer for the appropriate frame
    */
   @Uninterruptible
   public static Address unwindNativeStackFrameForGC(Address currfp) {
@@ -1138,6 +1142,8 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
    * (I don't think our current implementations of reflective method
    *  invokers save/restore any nonvolatiles, so we're probably ok.
    *  --dave 6/29/01
+   *
+   *  @param registers exception registers
    */
   @Uninterruptible
   private static void unwindInvisibleStackFrame(Registers registers) {
@@ -1185,8 +1191,8 @@ public class RuntimeEntrypoints implements ArchitectureSpecific.StackframeLayout
   }
 
   /**
-   * Return {@code true} if we are stress testing garbage collector and the system is in state where we
-   * can force a garbage collection.
+   * @return {@code true} if we are stress testing garbage collector and the
+   *  system is in state where we can force a garbage collection.
    */
   @Inline
   @Uninterruptible

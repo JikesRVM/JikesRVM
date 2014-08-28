@@ -79,8 +79,8 @@ public class SpecialCompiler {
    * NOTE: this is different from optCompile which resets the
   *    bytecode after compilation. I believe this minimizes the
   *    work to change both compilers.
-   * @param state
-   * @return a BaselineCompiledMethod
+   * @param state the execution state for the compilation
+   * @return the compiled method produced by the baseline compiler
    */
   public static CompiledMethod baselineCompile(ExecutionState state) {
     NormalMethod method = state.getMethod();
@@ -131,6 +131,9 @@ public class SpecialCompiler {
    *   <li>compile the method.
    *   <li>restore bytecode, exception, linenumber map to the original one.
    * </ol>
+   *
+   * @param state the execution state for the compilation
+   * @return the compiled method produced by the optimizing compiler
    */
   public static CompiledMethod optCompile(ExecutionState state) {
 

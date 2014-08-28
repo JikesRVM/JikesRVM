@@ -31,7 +31,10 @@ abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
   abstract static class AbstractBucket<T> {
     /**
      * Change the next bucket after this bucket, possibly constructing a new
-     * abstract bucket
+     * abstract bucket.
+     *
+     * @param next the new value for the next bucket
+     * @return previous bucket of the given bucket
      */
     abstract AbstractBucket<T> setNext(AbstractBucket<T> next);
 
@@ -58,6 +61,8 @@ abstract class AbstractHashSetRVM<T>  implements Iterable<T> {
   /**
    * Advise against growing the buckets if they are immortal, as it will lead
    * to multiple sets of buckets that will be scanned
+   *
+   * @return whether the map is allowed to grow
    */
   private boolean growMapAllowed() {
     return !VM.runningVM || !MemoryManager.isImmortal(buckets);

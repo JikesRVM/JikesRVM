@@ -86,6 +86,8 @@ public class StackTrace {
    * Walk the stack counting the number of stack frames encountered.
    * The stack being walked is our stack, so code is Uninterruptible to stop the
    * stack moving.
+   *
+   * @param stackTraceThread the thread whose stack is walked
    * @return number of stack frames encountered
    */
   @Uninterruptible
@@ -119,6 +121,8 @@ public class StackTrace {
    * Walk the stack recording the stack frames encountered
    * The stack being walked is our stack, so code is Uninterrupible to stop the
    * stack moving.
+   *
+   * @param stackTraceThread the thread whose stack is walked
    */
   @Uninterruptible
   @NoInline
@@ -168,7 +172,13 @@ public class StackTrace {
     private final boolean isInvisible;
     /** Is this a hardware trap method? */
     private final boolean isTrap;
-    /** Constructor for non-opt compiled methods */
+
+    /**
+     * Constructor for non-opt compiled methods
+     * @param cm the compiled method
+     * @param off offset of the instruction from start of machine code,
+     *  in bytes
+     */
     Element(CompiledMethod cm, int off) {
       isInvisible = (cm == null);
       if (!isInvisible) {
@@ -186,14 +196,20 @@ public class StackTrace {
         lineNumber = 0;
       }
     }
-    /** Constructor for opt compiled methods */
+
+    /**
+     * Constructor for opt compiled methods.
+     * @param method the method that was called
+     * @param ln the line number
+     */
     Element(RVMMethod method, int ln) {
       this.method = method;
       lineNumber = ln;
       isTrap = false;
       isInvisible = false;
     }
-    /** Get source file name */
+
+    /** @return source file name */
     public String getFileName() {
       if (isInvisible || isTrap) {
         return null;
@@ -202,7 +218,7 @@ public class StackTrace {
         return (fn != null)  ? fn.toString() : null;
       }
     }
-    /** Get class name */
+
     public String getClassName() {
       if (isInvisible || isTrap) {
         return "";
@@ -210,14 +226,14 @@ public class StackTrace {
         return method.getDeclaringClass().toString();
       }
     }
-    /** Get class */
+
     public Class<?> getElementClass() {
       if (isInvisible || isTrap) {
         return null;
       }
       return method.getDeclaringClass().getClassForType();
     }
-    /** Get method name */
+
     public String getMethodName() {
       if (isInvisible) {
         return "<invisible method>";
@@ -227,10 +243,11 @@ public class StackTrace {
         return method.getName().toString();
       }
     }
-    /** Get line number */
+
     public int getLineNumber() {
       return lineNumber;
     }
+
     public boolean isNative() {
       if (isInvisible || isTrap) {
         return false;
@@ -240,9 +257,6 @@ public class StackTrace {
     }
   }
 
-  /**
-   * Get the compiled method at element
-   */
   private CompiledMethod getCompiledMethod(int element) {
     if ((element >= 0) && (element < compiledMethods.length)) {
       int mid = compiledMethods[element];
@@ -253,7 +267,10 @@ public class StackTrace {
     return null;
   }
 
-  /** Return the stack trace for use by the Throwable API */
+  /**
+   * @param cause the throwable that caused the stack trace
+   * @return the stack trace for use by the Throwable API
+   */
   public Element[] getStackTrace(Throwable cause) {
     int first = firstRealMethod(cause);
     int last = lastRealMethod(first);
@@ -305,6 +322,7 @@ public class StackTrace {
    * Count number of stack frames including those inlined by the opt compiler
    * @param first the first compiled method to look from
    * @param last the last compiled method to look to
+   * @return the number of stack frames
    */
   private int countFrames(int first, int last) {
     int numElements=0;

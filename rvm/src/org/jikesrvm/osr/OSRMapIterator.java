@@ -86,12 +86,12 @@ public class OSRMapIterator {
     }
   }
 
-  /** has next method id to iterate? */
+  /** @return whether another method id is available */
   private boolean hasMoreMethodId() {
     return this.moreMethId;
   }
 
-  /** has next element of this method id to iterate? */
+  /** @return whether there's more elements for the current method id */
   private boolean hasMoreElements() {
     return this.moreElemnt;
   }
@@ -113,37 +113,31 @@ public class OSRMapIterator {
 
   /* for the current element, provide a list of queries. */
 
-  /** what kind. */
   public boolean getKind() {
     return (maps[curidx] & KIND_MASK) >> KIND_SHIFT != 0;
   }
 
-  /** type code. */
   public byte getTypeCode() {
     return (byte)((maps[curidx] & TCODE_MASK) >> TCODE_SHIFT);
   }
 
-  /** number */
   public char getNumber() {
     return (char)((maps[curidx] & NUM_MASK) >> NUM_SHIFT);
   }
 
-  /** value type */
   public byte getValueType() {
     return (byte)((maps[curidx] & VTYPE_MASK) >> VTYPE_SHIFT);
   }
 
-  /** value */
   public int getValue() {
     return maps[curidx + 1];
   }
 
-  /** current mid */
   public int getMethodId() {
     return this.curmid;
   }
 
-  /** current pc */
+  /** @return the current program counter */
   public int getBcIndex() {
     return this.curmpc;
   }

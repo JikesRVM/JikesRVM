@@ -31,7 +31,10 @@ public class SoftLatch {
 
   private boolean open;
 
-  /** Create a new latch, with the given open/closed state. */
+  /**
+   * Creates a new latch, with the given open/closed state.
+   * @param open whether the latch is open at the beginning
+   */
   public SoftLatch(boolean open) {
     this.open = open;
   }

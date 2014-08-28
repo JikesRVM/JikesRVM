@@ -724,35 +724,62 @@ public final class RVMThread extends ThreadContext {
   @Uninterruptible
   @NonMoving
   public abstract static class BlockAdapter {
-    /** Should the given thread be blocked for this block adapter?  If this returns true,
-        the thread is guaranteed to block. */
+
+    /**
+     * @param t a thread
+     * @return whether the given thread should be blocked for this block
+     *  adapter. If {@code true}, the thread is guaranteed to block.
+     */
     abstract boolean isBlocked(RVMThread t);
 
-    /** Specify that the thread is either blocked (value == true) or not blocked
-        (value == false) for this block adapter.  This call indicates a statement of
-        fact by the thread itself - it's used either to acknowledge a block request
-        (see hasBlockRequest below) or to respond to a request to unblock. */
+    /**
+     * Specifies that the thread is either blocked {@code (value == true)} or not
+     * blocked {@code (value == false)} for this block adapter.  This call
+     * indicates a statement of fact by the thread itself - it's used either
+     * to acknowledge a block request (see {@link #hasBlockRequest(RVMThread)}
+     * below) or to respond to a request to unblock.
+     * @param t the thread
+     * @param value the new value of the status for blocking as described above
+     */
     abstract void setBlocked(RVMThread t, boolean value);
 
-    /** Request that the thread block, for this block adapter, at its earliest
-        convenience.  Called from RVMThread.block() and associated methods.  Some
-        block adapters allow for multiple requests to block; in that case this will
-        return a "token" that can be passed to hasBlockRequest() to check, not only
-        whether there is a block request, but whether that block request is still
-        associated with a particular call to requestBlock().  This is used to prevent
-        a suspend() call from stalling due to a concurrent resume() and second
-        suspend().  Note that most block adapers don't care about this scenario, and
-        will just return 0 (or some other meaningless number) here. */
+    /**
+     * Requests that the thread block, for this block adapter, at its earliest
+     * convenience.
+     * <p>
+     * Called from RVMThread.block() and associated methods.  Some block adapters
+     * allow for multiple requests to block; in that case this will return a
+     * "token" that can be passed to hasBlockRequest() to check, not only whether
+     * there is a block request, but whether that block request is still
+     * associated with a particular call to requestBlock().  This is used to
+     * prevent a suspend() call from stalling due to a concurrent resume() and
+     * second suspend(). Note that most block adapers don't care about this
+     * scenario, and will just return 0 (or some other meaningless number) here.
+     *
+     * @param t the thread that needs to block
+     * @return a token as described above
+     */
     abstract int requestBlock(RVMThread t);
 
-    /** Does the thread have a request to block for this block adapter? */
+    /**
+     * @param t the thread
+     * @return whether the thread has a request to block for this
+     *  block adapter
+     */
     abstract boolean hasBlockRequest(RVMThread t);
 
-    /** Does the thread have a request to block associated with the given requestBlock()
-        call? */
+    /**
+     * @param t the thread to check for block requests
+     * @param token a token, see {@link #requestBlock(RVMThread)}
+     * @return whether the thread has a block request
+     *  associated with the given requestBlock() call
+     */
     abstract boolean hasBlockRequest(RVMThread t, int token);
 
-    /** Clear any blocking requests. */
+    /**
+     * Clears any blocking requests for the thread.
+     * @param t thread whose block requests will be cleared
+     */
     abstract void clearBlockRequest(RVMThread t);
   }
 
@@ -1224,7 +1251,8 @@ public final class RVMThread extends ThreadContext {
   public Feedlet feedlet;
 
   /**
-   * Get a NoYieldpointsCondLock for a given thread slot.
+   * @param slot the thread's slot
+   * @return a NoYieldpointsCondLock for a given thread slot.
    */
   static NoYieldpointsMonitor monitorForSlot(int slot) {
     NoYieldpointsMonitor result = monitorBySlot[slot];
@@ -1234,7 +1262,7 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Get the NoYieldpointsCondLock for this thread.
+   * @return the NoYieldpointsCondLock for this thread.
    */
   public NoYieldpointsMonitor monitor() {
     return monitorForSlot(threadSlot);
@@ -1618,7 +1646,12 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Create a thread with default stack and with the given name.
+   * Creates a thread with default stack and with the given name. The
+   * thread will be a daemon thread that runs at normal priority and is not
+   * associated with a {@link Thread} object.
+   *
+   * @param systemThread the associated system thread
+   * @param name human-readable name
    */
   public RVMThread(SystemThread systemThread, String name) {
     this(MemoryManager.newStack(STACK_SIZE_NORMAL), null, // java.lang.Thread
@@ -1631,6 +1664,10 @@ public final class RVMThread extends ThreadContext {
    * Create a thread with the given stack and name. Used by
    * {@link org.jikesrvm.mm.mminterface.CollectorThread} and the
    * boot image writer for the boot thread.
+   *
+   * @param systemThread the associated system thread
+   * @param stack the thread's stack
+   * @param name human-readable name of the thread
    */
   public RVMThread(SystemThread systemThread, byte[] stack, String name) {
     this(stack, null, // java.lang.Thread
@@ -1642,6 +1679,12 @@ public final class RVMThread extends ThreadContext {
   /**
    * Create a thread with ... called by java.lang.VMThread.create. System thread
    * isn't set.
+   *
+   * @param thread the associated Java thread
+   * @param stacksize stack size in bytes
+   * @param name human-readable name
+   * @param daemon whether the thread is a daemon
+   * @param priority the priority for the thread
    */
   public RVMThread(Thread thread, long stacksize, String name, boolean daemon, int priority) {
     this(MemoryManager.newStack((stacksize <= 0) ? STACK_SIZE_NORMAL : (int) stacksize), thread, name, daemon, null, priority);
@@ -1722,15 +1765,19 @@ public final class RVMThread extends ThreadContext {
 
   /**
    * Should the thread by eligible for sampling by the timer thread?
+   * <p>
    * Heuristically, we use timer-based sampling the in the adaptive system
    * to determine where the program is spending time (and thus what to optimize).
    * This doesn't have to be a 100% accurate, but it must be non-blocking
    * and also closely approximate whether or not the thread is executing.
    * For now, approximate just as being in JAVA.
+   * <p>
    * As a future item, we may want to actually correctly attribute time
    * spent in native code to the top native method on the frame when the timer
    * goes off.  This will require work in the JNI enter/exit sequence to deal with
    * timer samples appropriately.
+   *
+   * @return whether this thread should be sampled by the timer thread.
    */
   public boolean shouldBeSampled() {
     return execStatus == IN_JAVA;
@@ -1908,6 +1955,8 @@ public final class RVMThread extends ThreadContext {
    * GC) that are waiting for this thread to stop are notified that the thread has
    * instead chosen to exit Java.  As well, any requests to perform a soft handshake
    * must be serviced and acknowledged.
+   *
+   * @param jni whether this method is called for entering JNI or not
    */
   private void enterNativeBlockedImpl(boolean jni) {
     if (traceReallyBlock)
@@ -2040,7 +2089,7 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Attempt to block the thread, and return the state it is in after the
+   * Attempts to block the thread, and return the state it is in after the
    * attempt. If we're blocking ourselves, this will always return IN_JAVA. If
    * the thread signals to us the intention to die as we are trying to block it,
    * this will return TERMINATED. NOTE: the thread's execStatus will not
@@ -2050,6 +2099,12 @@ public final class RVMThread extends ThreadContext {
    * asynchronous==false.  Waiting for another thread to stop is not in itself
    * interruptible - so if you ask another thread to block and they ask you
    * to block, you might deadlock.
+   *
+   * @param ba the adapter to block on
+   * @param asynchronous {@code true} if the request is asynchronous (i.e. the
+   *  receiver is only notified), {@code false} if the caller waits for the
+   *  receiver to block
+   * @return the new state of the thread
    */
   @Unpreemptible("Only blocks if the receiver is the current thread, or if asynchronous is set to false and the thread is not already blocked")
   int block(BlockAdapter ba, boolean asynchronous) {
@@ -2426,7 +2481,7 @@ public final class RVMThread extends ThreadContext {
     }
   }
 
-  /** Are we allowed to take yieldpoints? */
+  /** @return whether the thread is allowed to take yieldpoints */
   @Inline
   public boolean yieldpointsEnabled() {
     return yieldpointsEnabledCount == 1;
@@ -2500,30 +2555,29 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Get the current java.lang.Thread.
+   * @return the current java.lang.Thread.
    */
   public Thread getJavaLangThread() {
     return thread;
   }
 
   /**
-   * Get current thread's JNI environment.
+   * @return current thread's JNI environment.
    */
   public JNIEnvironment getJNIEnv() {
     return jniEnv;
   }
 
-  /** Get the disable GC depth */
+  /** @return the disable GC depth */
   public int getDisableGCDepth() {
     return disableGCDepth;
   }
 
-  /** Modify the disable GC depth */
   public void setDisableGCDepth(int d) {
     disableGCDepth = d;
   }
 
-  /** Are allocations allowed by this thread? */
+  /** @return whether allocations by this thread are disallowed */
   public boolean getDisallowAllocationsByThisThread() {
     return disallowAllocationsByThisThread;
   }
@@ -2550,8 +2604,8 @@ public final class RVMThread extends ThreadContext {
    * Indicate whether the stack of this Thread contains any C frame (used in
    * RuntimeEntrypoints.deliverHardwareException for stack resize)
    *
-   * @return false during the prolog of the first Java to C transition true
-   *         afterward
+   * @return {@code false} during the prolog of the first Java to C transition,
+   *  {@code true} afterward
    */
   public boolean hasNativeStackFrame() {
     return jniEnv != null && jniEnv.hasNativeStackFrame();
@@ -2786,9 +2840,9 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Call System.exit() with the correct security status.
+   * Calls {@link System#exit(int)} with the correct security status.
    *
-   * @param exitStatus
+   * @param exitStatus the exit status to pass on
    */
   @Interruptible
   private void callSystemExit(final int exitStatus) {
@@ -3138,6 +3192,9 @@ public final class RVMThread extends ThreadContext {
   /**
    * Suspend execution of current thread for specified number of seconds (or
    * fraction).
+   *
+   * @param ns the number of nanoseconds to sleep for
+   * @throws InterruptedException when the sleep is interrupted
    */
   @Interruptible
   public static void sleep(long ns) throws InterruptedException {
@@ -3172,7 +3229,11 @@ public final class RVMThread extends ThreadContext {
 
   /**
    * Suspend execution of current thread for specified number of seconds (or
-   * fraction).
+   * fraction). The time from both parameters is added up.
+   *
+   * @param ns the number of nanoseconds to sleep for
+   * @param millis the number of milliseconds to sleep for
+   * @throws InterruptedException when the sleep is interrupted
    */
   @Interruptible
   public static void sleep(long millis, int ns) throws InterruptedException {
@@ -3441,6 +3502,8 @@ public final class RVMThread extends ThreadContext {
    * Get this thread's id for use in lock ownership tests. This is just the
    * thread's slot as returned by {@link #getThreadSlot()}, shifted appropriately
    * so it can be directly used in the ownership tests.
+   *
+   * @return the thread's id for use in lock owner ship tests
    */
   public int getLockingId() {
     return lockingId;
@@ -3533,6 +3596,8 @@ public final class RVMThread extends ThreadContext {
    * Currently we only use this mechanism for code patch isync requests on PPC,
    * but this mechanism is powerful enough to be used by sliding-views style
    * concurrent GC.
+   *
+   * @param v the visitor to use for the handshake
    */
   @NoCheckStore
   @Unpreemptible("Does not perform actions that lead to blocking, but may wait for threads to rendezvous with the soft handshake")
@@ -3621,8 +3686,10 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Check and clear the need for a soft handshake rendezvous.  This method
+   * Checks and clears the need for a soft handshake rendezvous.  This method
    * cannot do anything that leads to a write barrier or allocation.
+   *
+   * @return whether the soft handshake can be committed
    */
   public boolean softRendezvousCheckAndClear() {
     boolean result = false;
@@ -3636,7 +3703,7 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Commit the soft handshake rendezvous.  This method cannot do anything
+   * Commits the soft handshake rendezvous.  This method cannot do anything
    * that leads to a write barrier or allocation.
    */
   public void softRendezvousCommit() {
@@ -4307,6 +4374,10 @@ public final class RVMThread extends ThreadContext {
    *       +-------------------+---------------+
    *        &circ;newStack           &circ;newFP          &circ;newTop
    * </pre>
+   *
+   * @param newStack space for the new stack
+   * @return offset that needs to be applied to all interior references of
+   *  the new stack
    */
   private static Offset copyStack(byte[] newStack) {
     RVMThread myThread = getCurrentThread();
@@ -4340,6 +4411,8 @@ public final class RVMThread extends ThreadContext {
    * why it isn't called setDaemon.
    * <p>
    * Public so that java.lang.Thread can use it.
+   *
+   * @param on new status for daemon flag
    */
   public void makeDaemon(boolean on) {
     if (daemon == on) {
@@ -4390,41 +4463,45 @@ public final class RVMThread extends ThreadContext {
     }
   }
 
-  /** @return The value of {@link #isBootThread} */
+  /** @return whether this is the primordial thread, i.e.
+   *    the thread that boots the VM before starting the
+   *    main thread
+*  */
   public boolean isBootThread() {
     return this == bootThread;
   }
 
-  /** @return Is this the MainThread ? */
+  /** @return whether this is the main thread */
   private boolean isMainThread() {
     return thread instanceof MainThread;
   }
 
-  /** Is this a system thread? */
+  /** @return whether this is a system thread */
   public boolean isSystemThread() {
     return systemThread != null;
   }
 
-  /** Get the collector thread this RVMTHread is running */
+  /** @return the collector thread this RVMTHread is running */
   public CollectorThread getCollectorThread() {
     if (VM.VerifyAssertions) VM._assert(isCollectorThread());
     return (CollectorThread)systemThread;
   }
 
-  /** Returns the value of {@link #daemon}. */
+  /** @return the value of {@link #daemon}. */
   public boolean isDaemonThread() {
     return daemon;
   }
 
   /**
-   * Should this thread run concurrently with STW GC and ignore handshakes?
+   * @return whether this thread should run concurrently with
+   * stop-the-world garbage collection and ignore handshakes
    */
   public boolean ignoreHandshakesAndGC() {
     if (systemThread == null) return false;
     return systemThread instanceof TimerThread;
   }
 
-  /** Is the thread started and not terminated */
+  /** @return whether the thread started and not terminated */
   public boolean isAlive() {
     monitor().lockNoHandshake();
     observeExecStatus();
@@ -4447,6 +4524,7 @@ public final class RVMThread extends ThreadContext {
    * Gets the name of the thread
    *
    * @see java.lang.Thread#getName()
+   * @return name of the thread
    */
   public String getName() {
     return name;
@@ -4517,7 +4595,7 @@ public final class RVMThread extends ThreadContext {
   /**
    * Set the priority of the thread
    *
-   * @param priority
+   * @param priority the thread's priority
    * @see java.lang.Thread#getPriority()
    */
   public void setPriority(int priority) {
@@ -4594,6 +4672,7 @@ public final class RVMThread extends ThreadContext {
    *          milliseconds to wait
    * @param ns
    *          nanoseconds to wait
+   * @throws InterruptedException when the thread is interrupted
    */
   @Interruptible
   public void join(long ms, int ns) throws InterruptedException {
@@ -4629,7 +4708,9 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Count the stack frames of this thread
+   * Counts the stack frames of this thread.
+   *
+   * @return the number of stack frames in this thread
    */
   @Interruptible
   public int countStackFrames() {
@@ -4674,7 +4755,7 @@ public final class RVMThread extends ThreadContext {
     collectionAttempt++;
   }
 
-  /** Set the initial attempt. */
+  /** @return the number of collection attempts */
   public int getCollectionAttempt() {
     return collectionAttempt;
   }
@@ -4684,7 +4765,7 @@ public final class RVMThread extends ThreadContext {
     collectionAttempt = 0;
   }
 
-  /** Get the physical allocation failed flag. */
+  /** @return the physical allocation failed flag. */
   public boolean physicalAllocationFailed() {
     return physicalAllocationFailed;
   }
@@ -4700,21 +4781,21 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Returns the outstanding OutOfMemoryError.
+   * @return the outstanding OutOfMemoryError.
    */
   public static OutOfMemoryError getOutOfMemoryError() {
     return outOfMemoryError;
   }
 
   /**
-   * Number of active threads in the system.
+   * @return number of active threads in the system.
    */
   public static int getNumActiveThreads() {
     return numActiveThreads;
   }
 
   /**
-   * Number of active daemon threads.
+   * @return number of active daemon threads.
    */
   public static int getNumActiveDaemons() {
     return numActiveDaemons;
@@ -4962,6 +5043,10 @@ public final class RVMThread extends ThreadContext {
    * <p>
    * This is identical to calling {@link #dump(char[],int)} with an
    * <code>offset</code> of zero.
+   *
+   * @param dest array to dump the info into
+   *
+   * @return see {@link #dump(char[], int)}
    */
   public int dump(char[] dest) {
     return dump(dest, 0);
@@ -4983,14 +5068,19 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Print out message in format "[j] (cez#td) who: what", where: j = java
-   * thread id z* = RVMThread.getCurrentThread().yieldpointsEnabledCount (0
-   * means yieldpoints are enabled outside of the call to debug) t* =
-   * numActiveThreads d* = numActiveDaemons * parenthetical values, printed only
-   * if traceDetails = true)
+   * Prints out message in format {@code "[j] (td) who: what"}, where:
+   * <ul>
+   *  <li>{@code j = java thread id}
+   *  <li>{@code t = numActiveThreads}
+   *  <li>{@code d = numActiveDaemon}
+   * </ul>
+   * The parenthetical values are printed only if {@link #traceDetails} is true.
    * <p>
    * We serialize against a mutex to avoid intermingling debug output from
    * multiple threads.
+   *
+   * @param who the string for the who parameter
+   * @param what the string for the what parameter
    */
   public static void trace(String who, String what) {
     outputLock.lockNoHandshake();
@@ -5012,16 +5102,22 @@ public final class RVMThread extends ThreadContext {
     outputLock.unlock();
   }
 
-  /**
-   * Print out message in format "p[j] (cez#td) who: what howmany", where: p =
-   * processor id j = java thread id c* = java thread id of the owner of
-   * threadCreationMutex (if any) e* = java thread id of the owner of
-   * threadExecutionMutex (if any) t* = numActiveThreads d* = numActiveDaemons *
-   * parenthetical values, printed only if traceDetails = true)
-   * <p>
-   * We serialize against a mutex to avoid intermingling debug output from
-   * multiple threads.
-   */
+ /**
+  * Prints out message in format {@code "[j] (td) who: what howmany"}, where:
+  * <ul>
+  *  <li>{@code j = java thread id}
+  *  <li>{@code t = numActiveThreads}
+  *  <li>{@code d = numActiveDaemon}
+  * </ul>
+  * The parenthetical values are printed only if {@link #traceDetails} is true.
+  * <p>
+  * We serialize against a mutex to avoid intermingling debug output from
+  * multiple threads.
+  *
+  * @param who the string for the who parameter
+  * @param what the string for the what parameter
+  * @param howmany the count for the howmany parameter
+  */
   public static void trace(String who, String what, int howmany) {
     _trace(who, what, howmany, false);
   }
@@ -5085,6 +5181,8 @@ public final class RVMThread extends ThreadContext {
    * Note: the system could be in a fragile state when this method is called, so
    * we try to rely on as little runtime functionality as possible (eg. use no
    * bytecodes that require RuntimeEntrypoints support).
+   *
+   * @param message the message to write before the actual traceback
    */
   public static void traceback(String message) {
     if (VM.runningVM) {
@@ -5290,8 +5388,8 @@ public final class RVMThread extends ThreadContext {
   /**
    * Show a method where getCompiledMethod returns null
    *
-   * @param compiledMethodId
-   * @param fp
+   * @param compiledMethodId the id of the compiled method
+   * @param fp the frame pointer of the method's frame
    */
   private static void showMethod(int compiledMethodId, Address fp) {
     showPrologue(fp);
@@ -5301,11 +5399,11 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Show a method that we can't show (ie just a text description of the stack
+   * Shows a method that we can't show (ie just a text description of the stack
    * frame
    *
-   * @param name
-   * @param fp
+   * @param name the method's name
+   * @param fp the frame pointer of the method's frame
    */
   private static void showMethod(String name, Address fp) {
     showPrologue(fp);
@@ -5317,6 +5415,10 @@ public final class RVMThread extends ThreadContext {
   /**
    * Helper function for {@link #dumpStack(Address,Address)}. Print a stack
    * frame showing the method.
+   *
+   * @param method the underlying method
+   * @param lineNumber the line number for the stack trace
+   * @param fp the frame pointer of the method's frame
    */
   private static void showMethod(RVMMethod method, int lineNumber, Address fp) {
     showPrologue(fp);
@@ -5359,14 +5461,14 @@ public final class RVMThread extends ThreadContext {
   }
 
   /**
-   * Is it safe to start forcing garbage collects for stress testing?
+   * @return whether it is safe to start forcing garbage collects for stress testing
    */
   public static boolean safeToForceGCs() {
     return gcEnabled();
   }
 
   /**
-   * Is it safe to start forcing garbage collects for stress testing?
+   * @return whether garbage collection is enabled
    */
   public static boolean gcEnabled() {
     return threadingInitialized && getCurrentThread().yieldpointsEnabled();

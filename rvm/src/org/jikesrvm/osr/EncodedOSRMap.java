@@ -64,7 +64,11 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
   }
 
   /**
-   * mark a register as reference type
+   * Marks a register as a reference type.
+   *
+   * @param map the map
+   * @param regnum the register's number
+   * @return the updated map
    */
   private static int setRegister(int map, int regnum) {
     int bitpos = getRegBitPosition(regnum);
@@ -72,9 +76,6 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
     return map;
   }
 
-  /**
-   * get register bit position
-   */
   @Inline
   private static int getRegBitPosition(int regnum) {
     return regnum - FIRST_GCMAP_REG + 1;
@@ -87,7 +88,10 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
     this.lastEntry = -1;
   }
 
-  /** Constructor that builds EncodedOSRMap from variable map */
+  /**
+   * @param varMap the variable map to use for building
+   *  the EncodedOSRMap
+   */
   private EncodedOSRMap(VariableMap varMap) {
     int entries = varMap.getNumberOfElements();
 
@@ -108,8 +112,11 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
   }
 
   /**
-   * Encode the given variable map returning the canonical empty map if the map
-   * is empty
+   * Encodes the given variable map as OSRMap.
+   *
+   * @param varMap the variable map to encode
+   * @return the canonical empty map if the map
+   * is empty, an encoded osr map otherwise
    */
   public static EncodedOSRMap makeMap(VariableMap varMap) {
     if (varMap.getNumberOfElements() > 0) {
@@ -120,9 +127,14 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
   }
 
   /**
-   * Translates a list of OSR_MapElement to encoding,
+   * Translates a list of OSR_MapElement to encoding.
+   * <p>
    * we can not trust the osrlist is in the increasing order of
    * machine code offset. Sort it first.
+   *
+   * @param tempOsrMaps an empty list that will hold temporary
+   *  OSR map information
+   * @param osrlist information about instructions and variables
    */
   private void translateMap(ArrayList<Integer> tempOsrMaps, LinkedList<VariableMapElement> osrlist) {
 
@@ -198,6 +210,11 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
    * available.
    * <p>
    * The MSB of mpc indicates if the next is a valid pair
+   *
+   * @param tempOsrMaps temporary OSR map information. This method will
+   *  fill this data structure.
+   * @param mVarList information about variables
+   * @return the index of the first integer in the map
    */
   private int generateOsrMaps(ArrayList<Integer> tempOsrMaps, LinkedList<MethodVariables> mVarList) {
 
@@ -219,7 +236,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
    * @param tempOsrMaps the maps under construction
    * @param regMapIndex used to patch the register map
    * @param mVar the method variables
-   * @param lastMid
+   * @param lastMid whether this is the last method in the inlined chain
    */
   private void _generateMapForOneMethodVariable(ArrayList<Integer> tempOsrMaps, int regMapIndex, MethodVariables mVar, boolean lastMid) {
     // Is this the last method in the inlined chain?
@@ -248,10 +265,11 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
   }
 
   /**
-   * Process on 32-bit tuple.
-   * <p>
-   * tuple, maps the local to register, spill
-   * isLast, indicates to set NEXT_BIT
+   * Process a 32-bit tuple.
+
+   * @param tempOsrMaps the temporary osr maps
+   * @param tuple mapping of the local to register
+   * @param isLast whether to set {@link OSRConstants#NEXT_BIT}
    */
   private void processTuple(ArrayList<Integer> tempOsrMaps, LocalRegPair tuple, boolean isLast) {
 
@@ -359,20 +377,25 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
   ////////////////////////////////////
   // INTERFACE
   ///////////////////////////////////
+
   /**
-   * Does the OSR map exist for a machine instruction offset
+   * @param mcOffset the machine instruction offset
+   * @return whether there's an OSR map exist for
+   *  the machine instruction offset
    */
   public boolean hasOSRMap(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
     return (entry != NO_OSR_ENTRY);
   }
 
-  /* WARNING:
-   * It is the caller's reposibility to make sure there are OSR
-   * entry exist for a machine instruction offset.
-   */
   /**
    * Get bytecode index for a given instruction offset in bytes.
+   * <p>
+   * NOTE: It is the caller's reponsibility to make sure there are OSR
+   * entry exist for a machine instruction offset.
+   *
+   * @param mcOffset the instruction offset in bytes
+   * @return the bytecode index
    */
   public int getBytecodeIndexForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
@@ -387,7 +410,10 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
   }
 
   /**
-   * get register's reference map for the machine instruction offset
+   * Gets register's reference map for the machine instruction offset
+   *
+   * @param mcOffset the instruction offset in bytes
+   * @return the desired OSR map
    */
   public int getRegisterMapForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
@@ -398,8 +424,12 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
   /**
    * given a MC offset, return an iterator over the
    * elements of this map.
+   * <p>
    * NOTE: the map index is gotten from 'findOSRMapIndex'.
    * This has to be changed....
+   *
+   * @param mcOffset the instruction offset in bytes
+   * @return an iterator
    */
   public OSRMapIterator getOsrMapIteratorForMCOffset(Offset mcOffset) {
     int entry = findOSREntry(mcOffset);
@@ -412,7 +442,10 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
   ////////////////////////////////
   /**
    * Do a binary search, find the entry for the machine code offset.
-   * Return -1 if no entry was found.
+   *
+   * @param mcOffset the instruction offset in bytes
+   * @return {@link OSRConstants#NO_OSR_ENTRY} if no entry was found, the
+   *  entry otherwise
    */
   private int findOSREntry(Offset mcOffset) {
 
