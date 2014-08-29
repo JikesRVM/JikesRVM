@@ -38,7 +38,10 @@ import org.vmmagic.pragma.*;
  *
  * Failing to handle this properly will lead to very hard to trace bugs
  * where the allocation that caused a GC or allocations immediately following
- * GC are run incorrectly.
+ * GC are run incorrectly.<p>
+ *
+ * TODO the comments in this class need to be rephrased from using the
+ * particle terminology to alignments.
  */
 @Uninterruptible
 public abstract class Allocator {
@@ -83,6 +86,8 @@ public abstract class Allocator {
    * @param alignment The requested alignment
    * @param offset The offset from the alignment
    * @param knownAlignment The statically known minimum alignment.
+   * @param fillAlignmentGap whether to fill up holes in the alignment
+   *  with the alignment value ({@link Constants#ALIGNMENT_VALUE})
    * @return The aligned up address.
    */
   @Inline
@@ -186,6 +191,8 @@ public abstract class Allocator {
    *
    * @param size The number of bytes (not aligned).
    * @param alignment The requested alignment (some factor of 2).
+   * @return the minimum size (in bytes) that's necessary to guarantee allocation
+   *  at the given alignment
    */
   @Inline
   public static int getMaximumAlignedSize(int size, int alignment) {
@@ -200,7 +207,10 @@ public abstract class Allocator {
    * @param alignment The requested alignment (some factor of 2).
    * @param knownAlignment The known minimum alignment. Specifically for use in
    * allocators that enforce greater than particle alignment. It is a <b>precondition</b>
-   * that size is aligned to knownAlignment, and that knownAlignment &gt;= MIN_ALGINMENT.
+   * that size is aligned to knownAlignment, and that knownAlignment &gt;=
+   * {@link Constants#MIN_ALIGNMENT}.
+   * @return the minimum size (in bytes) that's necessary to guarantee allocation
+   *  at the given alignment
    */
   @Inline
   public static int getMaximumAlignedSize(int size, int alignment, int knownAlignment) {
