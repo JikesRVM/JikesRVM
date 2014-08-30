@@ -41,7 +41,7 @@ public final class ObjectReference {
   }
 
   /**
-   * Return a {@code null} reference
+   * @return a {@code null} reference
    */
   public static ObjectReference nullReference() {
     return null;
@@ -57,14 +57,14 @@ public final class ObjectReference {
   }
 
   /**
-   * Get a heap address for the object.
+   * @return a heap address for the object.
    */
   public Address toAddress() {
     return null;
   }
 
   /**
-   * Is this a null reference?
+   * @return whether this is a null reference
    */
   public boolean isNull() {
     return false;

@@ -24,9 +24,9 @@ import org.vmmagic.pragma.RawStorage;
 public final class Word {
 
   /**
-   * Convert an int to a word. On 64-bit machines, sign-extend the high order bit.
+   * Converts an int to a word. On 64-bit machines, sign-extend the high order bit.
    *
-   * @param val
+   * @param val the value to convert to a word
    * @return A word instance whose value is val, sign-extended on 64 bit machines
    */
   public static Word fromIntSignExtend(int val) {
@@ -34,9 +34,9 @@ public final class Word {
   }
 
   /**
-   * Convert an int to a word. On 64-bit machines, zero-extend the high order bit.
+   * Converts an int to a word. On 64-bit machines, zero-extend the high order bit.
    *
-   * @param val
+   * @param val the value to convert to a word
    * @return A word instance whose value is val, zero-extended on 64 bit machines
    */
   public static Word fromIntZeroExtend(int val) {
@@ -44,9 +44,9 @@ public final class Word {
   }
 
   /**
-   * Convert a long to a word. On 64-bit this is a no-op, on 32-bit the long is truncated.
+   * Converts a long to a word. On 64-bit this is a no-op, on 32-bit the long is truncated.
    *
-   * @param val
+   * @param val the value to convert to a word
    * @return A word instance whose value is val on 32 bit machine this truncates the upper 32 bits.
    */
   public static Word fromLong(long val) {
@@ -55,7 +55,7 @@ public final class Word {
 
   /**
    * The Word constant 0.
-   * Equivalent to Word.fromIntSignExtend(0), but more readable.
+   * Equivalent to {@code Word.fromIntSignExtend(0)}, but more readable.
    *
    * @return the Word constant 0.
    */
@@ -65,7 +65,7 @@ public final class Word {
 
   /**
    * The Word constant 1.
-   * Equivalent to Word.fromIntSignExtend(1), but more readable.
+   * Equivalent to {@code Word.fromIntSignExtend(1)}, but more readable.
    *
    * @return the Word constant 1.
    */
@@ -100,25 +100,25 @@ public final class Word {
     return 0L;
   }
 
-  /** Type-cast to an address. */
+  /** @return this word type-cast to an address. */
   public Address toAddress() {
     return null;
   }
 
-  /** Type-cast to an offset */
+  /** @return this word type-cast to an offset */
   public Offset toOffset() {
     return null;
   }
 
-  /** Type-cast to an extent */
+  /** @return this word type-cast to an extent */
   public Extent toExtent() {
     return null;
   }
 
   /**
-   * Add two words
+   * Adds two words.
    *
-   * @param w2
+   * @param w2 the word to add
    * @return The word whose value is this+w2
    */
   public Word plus(Word w2) {
@@ -127,7 +127,7 @@ public final class Word {
 
   /**
    * Add an offset to a word
-   * @param w2
+   * @param w2 the offset to add
    * @return The word whose value is this+w2
    */
   public Word plus(Offset w2) {
@@ -136,7 +136,7 @@ public final class Word {
 
   /**
    * Add an extent to a word
-   * @param w2
+   * @param w2 the extent to add
    * @return The word whose value is this+w2
    */
   public Word plus(Extent w2) {
@@ -145,7 +145,7 @@ public final class Word {
 
   /**
    * Subtract two words
-   * @param w2
+   * @param w2 the word to subtract
    * @return The word whose value is this-w2
    */
   public Word minus(Word w2) {
@@ -154,7 +154,7 @@ public final class Word {
 
   /**
    * Subtract an offset from a word
-   * @param w2
+   * @param w2 the offset to subtract
    * @return The word whose value is this-w2
    */
   public Word minus(Offset w2) {
@@ -163,7 +163,7 @@ public final class Word {
 
   /**
    * Subtract an extent from a word.
-   * @param w2
+   * @param w2 the extent to subtract
    * @return The word whose value is this-w2
    */
   public Word minus(Extent w2) {
@@ -171,16 +171,18 @@ public final class Word {
   }
 
   /**
-   * Test for zero.  Equivalent to .EQ(Word.zero())
-   * @return return true if this is equal to Word.zero(), false otherwise
+   * Test for zero.  Equivalent to {@code .EQ(Word.zero())}
+   * @return {@code true} if this is equal to {@code Word.zero()},
+   *  {@code false} otherwise
    */
   public boolean isZero() {
     return false;
   }
 
   /**
-   * Test for zero.  Equivalent to .EQ(Word.max())
-   * @return true if this is equal to Word.max(), false otherwise
+   * Test for zero.  Equivalent to {@code .EQ(Word.max())}
+   * @return {@code true} if this is equal to {@code Word.max()},
+   *  {@code false} otherwise
    */
   public boolean isMax() {
     return false;
@@ -188,7 +190,7 @@ public final class Word {
 
   /**
    * Less-than comparison
-   * @param addr2
+   * @param addr2 the address to compare with
    * @return true if this <code>Word</code> instance is <i>less than</i> <code>addr2</code>
    */
   public boolean LT(Word addr2) {
@@ -197,7 +199,7 @@ public final class Word {
 
   /**
    * Less-than or equal comparison
-   * @param w2
+   * @param w2 the word to compare with
    * @return true if this <code>Word</code> instance is <i>less than or equal to</i> <code>w2</code>
    */
   public boolean LE(Word w2) {
@@ -206,7 +208,7 @@ public final class Word {
 
   /**
    * Greater-than comparison
-   * @param w2
+   * @param w2 the word to compare with
    * @return true if this <code>Word</code> instance is <i>greater than</i> <code>w2</code>
    */
   public boolean GT(Word w2) {
@@ -215,7 +217,7 @@ public final class Word {
 
   /**
    * Greater-than or equal comparison
-   * @param w2
+   * @param w2 the word to compare with
    * @return true if this <code>Word</code> instance is <i>greater than or equal to</i> <code>w2</code>
    */
   public boolean GE(Word w2) {
@@ -224,7 +226,7 @@ public final class Word {
 
   /**
    * Equality comparison
-   * @param w2
+   * @param w2 the word to compare with
    * @return true if this <code>Word</code> instance is <i>equal to</i> <code>w2</code>
    */
   public boolean EQ(Word w2) {
@@ -233,7 +235,7 @@ public final class Word {
 
   /**
    * Not-equal comparison
-   * @param w2
+   * @param w2 the word to compare with
    * @return true if this <code>Word</code> instance is <i>not equal to</i> <code>w2</code>
    */
   public boolean NE(Word w2) {
@@ -242,7 +244,7 @@ public final class Word {
 
   /**
    * Bit-wise and of two words.
-   * @param w2
+   * @param w2 the word to and with
    * @return The word whose value is the bitwise and of this and w2
    */
   public Word and(Word w2) {
@@ -251,7 +253,7 @@ public final class Word {
 
   /**
    * Bit-wise or of two words.
-   * @param w2
+   * @param w2 the word to or with
    * @return The word whose value is the bitwise not of this and w2
    */
   public Word or(Word w2) {
@@ -268,7 +270,7 @@ public final class Word {
 
   /**
    * Bit-wise exclusive or of two words.
-   * @param w2
+   * @param w2 the word to xor with
    * @return The word whose value is the bitwise xor of this and w2
    */
   public Word xor(Word w2) {

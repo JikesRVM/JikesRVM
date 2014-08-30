@@ -31,6 +31,6 @@ public @interface RuntimePure {
     /** the return value is unavailable until runtime*/
     Unavailable
   }
-  /** What value should be returned */
+  /** @return what value should be returned */
   ReturnValue value() default ReturnValue.Unavailable;
 }
