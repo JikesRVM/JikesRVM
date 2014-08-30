@@ -29,11 +29,7 @@ import org.jikesrvm.classloader.BootstrapClassLoader;
  */
 
 public class VMSystemProperties {
-  /** VMRuntime.insertSystemProperties is used by Classpath versions through
-   *  Classpath  0.12.   Starting with Classpath 0.13, we use
-   *  gnu.classpath.VMSystemProperties.preInit and
-   *  gnu.classpath.VMSystemProperties.postInit.
- */
+
   public static void preInit(Properties p) {
     p.put("java.version", "1.6.0"); /* This is a lie, of course -- we don't
                                        really support all 1.6 features, such
@@ -159,6 +155,8 @@ public class VMSystemProperties {
    * is, in fact, the process we actually follow.  I do not understand this
    * code.  I do not understand why we are adding something to
    * java.library.path.  --Steve Augart, 3/23/2004 XXX
+   *
+   * @param p the properties to modify
    */
   private static void insertLibraryPath(Properties p) {
     String jlp = CommandLineArgs.getEnvironmentArg("java.library.path");
@@ -168,7 +166,8 @@ public class VMSystemProperties {
   }
 
 
-  /** Override the default SystemProperties code; insert the command-line
+  /**
+   * Override the default SystemProperties code; insert the command-line
    * arguments.
    * <p>
    * The following are set by the "runrvm" script before we go into the C
@@ -189,6 +188,8 @@ public class VMSystemProperties {
    * <p>
    * In any case, this function isn't used in Jikes RVM.  Our boot sequence
    * is already handling this OK.
+   *
+   * @param properties the properties to modify
    */
   public static void postInit(Properties properties) {
   }
