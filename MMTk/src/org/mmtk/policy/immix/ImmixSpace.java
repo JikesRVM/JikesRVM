@@ -130,6 +130,8 @@ public final class ImmixSpace extends Space {
 
   /**
    * Prepare for a new collection increment.
+   *
+   * @param majorGC whether the collection will be a full heap collection
    */
   public void prepare(boolean majorGC) {
     if (majorGC) {
@@ -144,7 +146,8 @@ public final class ImmixSpace extends Space {
 
   /**
    * A new collection increment has completed.  Release global resources.
-   * @param majorGC TODO
+   * @param majorGC whether the collection was a full heap collection
+   * @return whether defragmentation occurred
    */
   public boolean release(boolean majorGC) {
     boolean didDefrag = defrag.inDefrag();
@@ -254,7 +257,10 @@ public final class ImmixSpace extends Space {
    *
    * @param hot True if the requesting context is for hot allocations (used for
    * allocations from high allocation volume sites).
-   * @return The pointer into the alloc table containing usable blocks.
+   * @param copy TODO needs documentation
+   * @param lineUseCount TODO needs documentation
+   * @return the pointer into the alloc table containing usable blocks, {@code null}
+   *  if no usable blocks are available
    */
   public Address getSpace(boolean hot, boolean copy, int lineUseCount) {
     Address rtn;
@@ -359,6 +365,7 @@ public final class ImmixSpace extends Space {
   * Perform any required post allocation initialization
   *
   * @param object the object ref to the storage to be initialized
+  * @param bytes size of the allocated object in bytes
   */
   @Inline
   public void postAlloc(ObjectReference object, int bytes) {
@@ -374,6 +381,7 @@ public final class ImmixSpace extends Space {
   * a copying GC.
   *
   * @param object the object ref to the storage to be initialized
+  * @param bytes size of the copied object in bytes
   * @param majorGC Is this copy happening during a major gc?
   */
   @Inline
@@ -499,6 +507,7 @@ public final class ImmixSpace extends Space {
    * @param trace The trace performing the transitive closure
    * @param object The object to be traced.
    * @param allocator The allocator to which any copying should be directed
+   * @param nurseryCollection whether the current collection is a nursery collection
    * @return Either the object or a forwarded object, if it was forwarded.
    */
   @Inline
@@ -779,7 +788,8 @@ public final class ImmixSpace extends Space {
   */
 
   /**
-   *
+   * @param ptr the block's address
+   * @return whether the block has the {@link ImmixConstants#RECYCLE_ALLOC_CHUNK_MASK} flag
    */
   public static boolean isRecycleAllocChunkAligned(Address ptr) {
     return ptr.toWord().and(RECYCLE_ALLOC_CHUNK_MASK).EQ(Word.zero());

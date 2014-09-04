@@ -72,6 +72,7 @@ public final class BlockAllocator {
    * Allocate a block, returning the address of the first usable byte
    * in the block.
    *
+   * @param space the space to request the memory from
    * @param blockSizeClass The size class for the block to be allocated.
    * @return The address of the first usable byte in the block, or
    * zero on failure.
@@ -91,6 +92,7 @@ public final class BlockAllocator {
    * not completely free, then the block is added to the free list.
    * Otherwise the block is returned to the virtual memory resource.
    *
+   * @param space the space that contains the block
    * @param block The address of the block to be freed
    */
   public static void free(Space space, Address block) {
@@ -188,6 +190,7 @@ public final class BlockAllocator {
    * to block size class).
    *
    * @param block The address of interest
+   * @param blocksc the block's size class
    * @param sc The value to which this field is to be set
    */
   @Inline
@@ -299,9 +302,9 @@ public final class BlockAllocator {
    */
 
   /**
-   * Mark the metadata for this block.
+   * Marks the metadata for this block.
    *
-   * @param ref
+   * @param ref the block's reference
    */
   @Inline
   public static void markBlockMeta(ObjectReference ref) {

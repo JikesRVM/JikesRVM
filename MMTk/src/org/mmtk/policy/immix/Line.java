@@ -42,7 +42,10 @@ public class Line {
   */
 
   /**
+   * Marks a line.
    *
+   * @param address the line's address
+   * @param markValue the value to use for marking
    */
   static void mark(Address address, final byte markValue) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!Block.isUnused(Block.align(address)));
@@ -66,7 +69,8 @@ public class Line {
    */
 
   /**
-   *
+   * @param chunk the chunk's address
+   * @return the address of the chunk mark table
    */
   public static Address getChunkMarkTable(Address chunk) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(Chunk.isAligned(chunk));

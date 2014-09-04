@@ -126,7 +126,8 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Create a reference processor for a given semantics
    *
-   * @param semantics
+   * @param semantics the semantics this processor should use
+   *  (i.e. the types of references that it will process)
    */
   private ReferenceProcessor(Semantics semantics) {
     this.semantics = semantics;
@@ -134,8 +135,10 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   }
 
   /**
-   * Factory method.
    * Creates an instance of the appropriate reference type processor.
+   *
+   * @param semantics the semantics that the reference processor should
+   *  use (i.e. the type of references that it will process)
    * @return the reference processor
    */
   @Interruptible
@@ -153,6 +156,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Add a reference at the end of the table
    * @param ref The reference to add
+   * @param referent the object pointed to by the reference
    */
   private void addReference(Reference<?> ref, ObjectReference referent) {
     ObjectReference reference = ObjectReference.fromObject(ref);
@@ -187,11 +191,13 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Grow the reference table by GROWTH_FACTOR.
    *
-   * <p>Logically Uninterruptible because it can GC when it allocates, but
+   * <p>Marked as UninterruptibleNoWarn because it can GC when it allocates, but
    * the rest of the code can't tolerate GC.
    *
    * <p>This method is called without the reference processor lock held,
    * but with the flag <code>growingTable</code> set.
+   *
+   * @return the start address of the new reference table
    */
   @UninterruptibleNoWarn
   private AddressArray growReferenceTable() {
@@ -410,10 +416,12 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    */
 
   /**
-   * Process a reference with the current semantics.
+   * Processes a reference with the current semantics.
    * @param reference the address of the reference. This may or may not
    * be the address of a heap object, depending on the VM.
    * @param trace the thread local trace element.
+   * @return an updated reference (e.g. with a new address) if the reference
+   *  is still live, {@code ObjectReference.nullReference()} otherwise
    */
   @UninterruptibleNoWarn("Call out to ReferenceQueue API")
   public ObjectReference processReference(TraceLocal trace, ObjectReference reference) {
@@ -525,9 +533,12 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Weak and soft references always clear the referent
    * before enqueueing. We don't actually call
-   * Reference.clear() as the user could have overridden the
+   * {@code Reference.clear()} as the user could have overridden the
    * implementation and we don't want any side-effects to
    * occur.
+   *
+   * @param newReference the reference whose referent is to
+   *  be cleared
    */
   protected void clearReferent(ObjectReference newReference) {
     setReferent(newReference, ObjectReference.nullReference());

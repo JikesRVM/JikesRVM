@@ -31,7 +31,8 @@ import org.vmmagic.pragma.*;
 public final class GenImmixMatureTraceLocal extends GenMatureTraceLocal{
 
   /**
-   * Constructor
+   * @param global the global trace class to use
+   * @param plan the state of the generational collector
    */
   public GenImmixMatureTraceLocal(Trace global, GenCollector plan) {
     super(GenImmix.SCAN_IMMIX, global, plan);

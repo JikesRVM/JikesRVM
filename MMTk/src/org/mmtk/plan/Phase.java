@@ -27,7 +27,7 @@ import org.vmmagic.pragma.*;
  * or collector.<p>
  *
  * Phases are executed within a stack and all synchronization between
- * parallel GC threads is managed from within this class.<p>
+ * parallel GC threads is managed from within this class.
  *
  * @see MutatorContext#collectionPhase
  */
@@ -72,7 +72,10 @@ public abstract class Phase {
     return phases[id];
   }
 
-  /** Get the phase id component of an encoded phase */
+  /**
+   * @param scheduledPhase an encoded phase
+   * @return the phase id component of an encoded phase
+   */
   protected static short getPhaseId(int scheduledPhase) {
     short phaseId = (short)(scheduledPhase & 0x0000FFFF);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(phaseId > 0);
@@ -87,14 +90,20 @@ public abstract class Phase {
     return phases[phaseId].name;
   }
 
-  /** Get the ordering component of an encoded phase */
+  /**
+   * @param scheduledPhase an encoded phase
+   * @return the ordering component of an encoded phase
+   */
   protected static short getSchedule(int scheduledPhase) {
     short ordering = (short)((scheduledPhase >> 16) & 0x0000FFFF);
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(ordering > 0);
     return ordering;
   }
 
-  /** Get the ordering component of an encoded phase */
+  /**
+   * @param ordering the ordering component of a phase
+   * @return human-readable name for the schedule
+   */
   protected static String getScheduleName(short ordering) {
     switch (ordering) {
       case SCHEDULE_GLOBAL:      return "Global";
@@ -108,9 +117,10 @@ public abstract class Phase {
   }
 
   /**
-   * Construct a phase.
+   * Constructs a phase.
    *
    * @param name Display name of the phase
+   * @return the id of the simple phase
    */
   @Interruptible
   public static short createSimple(String name) {
@@ -118,9 +128,11 @@ public abstract class Phase {
   }
 
   /**
-   * Construct a phase, re-using a specified timer.
+   * Constructs a phase, re-using a specified timer.
    *
    * @param name Display name of the phase
+   * @param timer the time to re-use
+   * @return the id of the simple phase
    */
   @Interruptible
   public static short createSimple(String name, Timer timer) {
@@ -128,10 +140,11 @@ public abstract class Phase {
   }
 
   /**
-   * Construct a complex phase.
+   * Constructs a complex phase.
    *
    * @param name Display name of the phase
    * @param scheduledPhases The phases in this complex phase.
+   * @return the phase's id
    */
   @Interruptible
   public static short createComplex(String name,int... scheduledPhases) {
@@ -139,11 +152,12 @@ public abstract class Phase {
   }
 
   /**
-   * Construct a complex phase, re-using a specified timer.
+   * Constructs a complex phase, re-using a specified timer.
    *
    * @param name Display name of the phase
    * @param timer Timer for this phase to contribute to
    * @param scheduledPhases The phases in this complex phase.
+   * @return the phase's id
    */
   @Interruptible
   public static short createComplex(String name, Timer timer, int... scheduledPhases) {
@@ -151,10 +165,11 @@ public abstract class Phase {
   }
 
   /**
-   * Construct a phase.
+   * Constructs a phase.
    *
    * @param name Display name of the phase
    * @param atomicScheduledPhase The corresponding atomic phase to run in a stop the world collection
+   * @return the phase's id
    */
   @Interruptible
   public static final short createConcurrent(String name, int atomicScheduledPhase) {
@@ -167,6 +182,7 @@ public abstract class Phase {
    * @param name Display name of the phase
    * @param timer Timer for this phase to contribute to
    * @param atomicScheduledPhase The corresponding atomic phase to run in a stop the world collection
+   * @return the phase's id
    */
   @Interruptible
   public static final short createConcurrent(String name, Timer timer, int atomicScheduledPhase) {
@@ -393,7 +409,11 @@ public abstract class Phase {
   }
 
   /**
-   * Process the phase stack. This method is called by multiple threads.
+   * Processes the phase stack. This method is called by multiple threads.
+   *
+   * @param resume whether to resume garbage collection. If set to {@code true},
+   *  GC status will be set to {@link Plan#GC_PROPER} when the first phase
+   *  is processed.
    */
   private static void processPhaseStack(boolean resume) {
     /* Global and Collector instances used in phases */
@@ -550,20 +570,27 @@ public abstract class Phase {
   }
 
   /**
-   * Get the next phase.
+   * @param isEvenPhase whether an even or odd phase will be returned
+   * @return the next phase
    */
   private static int getCurrentPhase(boolean isEvenPhase) {
     return isEvenPhase ? evenScheduledPhase : oddScheduledPhase;
   }
 
   /**
-   * Do we need a mutator reset rendezvous in this phase?
+   * @param isEvenPhase whether the phase is even or odd
+   * @return whether we need a mutator reset rendezvous in this phase
    */
   private static boolean needsMutatorResetRendezvous(boolean isEvenPhase) {
     return isEvenPhase ? evenMutatorResetRendezvous : oddMutatorResetRendezvous;
   }
   /**
-   * Set the next phase. If we are in an even phase the next phase is odd.
+   * Sets the next phase. If we are in an even phase the next phase is odd.
+   *
+   * @param isEvenPhase whether the phase is even
+   * @param scheduledPhase the scheduled phase
+   * @param needsResetRendezvous whether it's necessary to rendezvous. This is
+   *  only necessary for consecutive mutator phases.
    */
   private static void setNextPhase(boolean isEvenPhase, int scheduledPhase, boolean needsResetRendezvous) {
     if (isEvenPhase) {
@@ -716,6 +743,7 @@ public abstract class Phase {
 
   /**
    * Pop off the scheduled phase at the top of the work stack.
+   * @return the scheduled phase at the top of the work stack
    */
   @Inline
   private static int popScheduledPhase() {
@@ -724,6 +752,7 @@ public abstract class Phase {
 
   /**
    * Peek the scheduled phase at the top of the work stack.
+   * @return the scheduled phase at the top of the work stack
    */
   @Inline
   private static int peekScheduledPhase() {
@@ -736,7 +765,7 @@ public abstract class Phase {
   private static boolean allowConcurrentPhase;
 
   /**
-   * Get the current phase Id.
+   * @return the current phase Id.
    */
   public static short getConcurrentPhaseId() {
     return concurrentPhaseId;
@@ -760,6 +789,9 @@ public abstract class Phase {
    * Notify that the concurrent phase has completed successfully. This must
    * only be called by a single thread after it has determined that the
    * phase has been completed successfully.
+   *
+   * @return {@code true} if more concurrent work needs to be done right now,
+   * {@code false} otherwise
    */
   @Unpreemptible
   public static boolean notifyConcurrentPhaseComplete() {

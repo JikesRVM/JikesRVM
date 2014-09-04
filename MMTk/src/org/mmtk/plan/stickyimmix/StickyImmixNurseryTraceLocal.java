@@ -42,9 +42,6 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
    */
  private final ObjectReferenceDeque modBuffer;
 
-  /**
-   * Constructor
-   */
   public StickyImmixNurseryTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
     super(StickyImmix.SCAN_NURSERY, trace);
     this.modBuffer = modBuffer;
@@ -82,7 +79,7 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
    * collection (i.e. this object is definitely not an unforwarded
    * object).
    *
-   * @param object
+   * @param object the object that might move
    * @return {@code true} if this object is guaranteed not to move during this
    *         collection.
    */

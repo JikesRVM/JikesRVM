@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  * Specifically, this class defines <i>SS</i> mutator-time allocation, write
  * barriers, and per-mutator collection semantics.<p>
  *
- * See {@link GCTrace} for an overview of the GC trace algorithm.<p>
+ * See {@link GCTrace} for an overview of the GC trace algorithm.
  *
  * @see SSMutator
  * @see GCTrace

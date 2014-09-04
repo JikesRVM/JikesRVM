@@ -222,6 +222,7 @@ import org.vmmagic.unboxed.*;
    * object allocation to the trace buffer, triggers the necessary collection
    * work at exact allocations, and output the data in the trace buffer.
    *
+   * @param isImmortal whether the allocation goes to an immortal space
    * @param ref The address of the object just allocated.
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the object being allocated

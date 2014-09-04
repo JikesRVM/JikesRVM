@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * The global instance defines and manages static resources
  * (such as memory and virtual memory resources).  This mapping of threads to
  * instances is crucial to understanding the correctness and
- * performance properties of MMTk plans.<p>
+ * performance properties of MMTk plans.
  */
 @Uninterruptible
 public class StickyMS extends MS {

@@ -24,7 +24,7 @@ import org.vmmagic.unboxed.ObjectReference;
  *
  * The general pattern for use of the GC byte is that the high order bits
  * successively reserved for global use, as necessary.  Any GC policy may use
- * those bits that are not reserved for global use.<p>
+ * those bits that are not reserved for global use.
  */
 @Uninterruptible
 public class HeaderByte {

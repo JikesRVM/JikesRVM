@@ -21,7 +21,7 @@ import org.vmmagic.pragma.*;
 /**
  * This class implements <i>per-collector thread</i> behavior
  * and state for the <i>CMS</i> plan, which implements a full-heap
- * concurrent mark-sweep collector.<p>
+ * concurrent mark-sweep collector.
  */
 @Uninterruptible
 public class CMSCollector extends ConcurrentCollector {

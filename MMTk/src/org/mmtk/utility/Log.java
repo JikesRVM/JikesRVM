@@ -402,6 +402,9 @@ public class Log {
    * @see #write(double, int)
    *
    * @param d the double to be logged
+   * @param postDecimalDigits the number of digits to be logged after
+   * the decimal point.  If less than or equal to zero no digits are
+   * logged, but the decimal point is.
    */
   public static void writeln(double d, int postDecimalDigits) {
     writeln(d, postDecimalDigits, true); }
@@ -547,6 +550,9 @@ public class Log {
    * @see #write(double, int)
    *
    * @param d the double to be logged
+   * @param postDecimalDigits the number of digits to be logged after
+   * the decimal point.  If less than or equal to zero no digits are
+   * logged, but the decimal point is.
    * @param flush if <code>true</code> then flushes the buffer
    */
   public static void writeln(double d, int postDecimalDigits, boolean flush) {
@@ -824,7 +830,7 @@ public class Log {
   }
 
   /**
-   * gets the buffer for building string representations of integers.
+   * @return the buffer for building string representations of integers.
    * There is one of these buffers for each Log instance.
    */
   private static char[] getIntBuffer() {
@@ -832,7 +838,7 @@ public class Log {
   }
 
   /**
-   * gets the buffer for building string representations of integers.
+   * @return the buffer for building string representations of integers
    */
   private char[] getTempBuffer() {
     return tempBuffer;

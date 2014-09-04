@@ -88,9 +88,8 @@ public abstract class PageResource {
   }
 
   /**
-   * Constructor
-   *
    * @param space The space to which this resource is attached
+   * @param contiguous whether the space is contiguous or discontiguous
    */
   private PageResource(Space space, boolean contiguous) {
     this.contiguous = contiguous;
@@ -99,7 +98,7 @@ public abstract class PageResource {
   }
 
   /**
-   * Constructor for discontiguous spaces
+   * Constructor for discontiguous spaces.
    *
    * @param space The space to which this resource is attached
    */
@@ -108,9 +107,10 @@ public abstract class PageResource {
   }
 
   /**
-   * Constructor for contiguous spaces
+   * Constructor for contiguous spaces.
    *
    * @param space The space to which this resource is attached
+   * @param start start address of the space
    */
   PageResource(Space space, Address start) {
     this(space, true);
@@ -172,6 +172,9 @@ public abstract class PageResource {
 
   /**
    * Update the zeroing approach for this page resource.
+   *
+   * @param nontemporal whether to use non-temporal instructions for zeroing
+   * @param concurrent whether to do the zeroing concurrently
    */
   @Interruptible
   public void updateZeroingApproach(boolean nontemporal, boolean concurrent) {

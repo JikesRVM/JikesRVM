@@ -32,7 +32,7 @@ import org.vmmagic.unboxed.Word;
  * This class manages the allocation of pages for a space.  When a
  * page is requested by the space both a page budget and the use of
  * virtual address space are checked.  If the request for space can't
- * be satisfied (for either reason) a GC may be triggered.<p>
+ * be satisfied (for either reason) a GC may be triggered.
  */
 @Uninterruptible
 public final class MonotonePageResource extends PageResource {
@@ -296,8 +296,11 @@ public final class MonotonePageResource extends PageResource {
   }
 
   /**
-   * Release a range of pages associated with this page resource, optionally
+   * Releases a range of pages associated with this page resource, optionally
    * zeroing on release and optionally memory protecting on release.
+   *
+   * @param first start address of memory to be released
+   * @param bytes number of bytes in the memory region
    */
   @Inline
   private void releasePages(Address first, Extent bytes) {

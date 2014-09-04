@@ -62,12 +62,12 @@ public abstract class RCBaseCollector extends StopTheWorldCollector {
   }
 
   /**
-   * Get the modified processor to use.
+   * @return the modified processor to use.
    */
   protected abstract TransitiveClosure getModifiedProcessor();
 
   /**
-   * Get the root trace to use.
+   * @return the root trace to use.
    */
   protected abstract TraceLocal getRootTrace();
 

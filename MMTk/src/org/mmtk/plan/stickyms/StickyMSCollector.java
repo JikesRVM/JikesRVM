@@ -29,7 +29,7 @@ import org.vmmagic.pragma.*;
  * (through <code>trace</code> and the <code>collectionPhase</code>
  * method).<p>
  *
- * @see StickyMS for an overview of the algorithm.<p>
+ * @see StickyMS for an overview of the algorithm.
  * @see StickyMSMutator
  * @see StopTheWorldCollector
  * @see CollectorContext

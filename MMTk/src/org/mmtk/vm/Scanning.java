@@ -23,6 +23,7 @@ import org.vmmagic.unboxed.*;
    * Delegated scanning of a object, processing each pointer field
    * encountered.
    *
+   * @param trace the trace to use for scanning
    * @param object The object to be scanned.
    */
   public abstract void scanObject(TransitiveClosure trace, ObjectReference object);
@@ -50,6 +51,8 @@ import org.vmmagic.unboxed.*;
    * Called the first time during a collection that thread's stacks
    * have been scanned. This can be used (for example) to clean up
    * obsolete compiled methods that are no longer being executed.
+   *
+   * @param partialScan whether the scan was partial or full-heap
    */
   public abstract void notifyInitialThreadScanComplete(boolean partialScan);
 

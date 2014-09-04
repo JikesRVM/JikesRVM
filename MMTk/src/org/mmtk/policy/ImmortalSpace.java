@@ -113,8 +113,11 @@ import org.vmmagic.pragma.*;
   }
 
   /**
-   * Used to mark boot image objects during a parallel scan of objects during GC
-   * Returns {@code true} if marking was done.
+   * Used to mark boot image objects during a parallel scan of objects during GC.
+   *
+   * @param object the object to mark
+   * @param value the mark value
+   * @return {@code true} if marking was done.
    */
   @Inline
   private static boolean testAndMark(ObjectReference object, byte value) {

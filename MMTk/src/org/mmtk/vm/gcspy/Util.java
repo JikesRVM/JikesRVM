@@ -73,10 +73,9 @@ import org.vmmagic.pragma.*;
    * @param format A format string
    * @param bufsize The size of a buffer large enough to hold the formatted result
    * @param size The size in bytes
+   * @return start address of the buffer allocated by this call
    */
   public abstract Address formatSize(String format, int bufsize, int size);
-
-//  public abstract Address formatSize(String format, int bufsize, int size);
 
   /**
    * Place a string representation of a long in an array of bytes

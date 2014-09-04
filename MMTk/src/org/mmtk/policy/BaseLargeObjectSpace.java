@@ -68,9 +68,11 @@ public abstract class BaseLargeObjectSpace extends Space {
   }
 
   /**
-   * Calculate the header size required for the large object.
+   * Calculates the header size required for the large object.
    *
    * Must be multiple of MIN_ALIGNMENT.
+   *
+   * @return the calculated header size
    */
   public final int getHeaderSize() {
     return superPageHeaderSize() + cellHeaderSize();

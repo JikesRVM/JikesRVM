@@ -81,6 +81,8 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    * Allocate an entry in the table. This should be called from an unpreemptible
    * context so that the entry can be filled. This method is responsible for growing
    * the table if necessary.
+   *
+   * @param object the object to add to the table of candidates
    */
   @NoInline
   @UnpreemptibleNoWarn("Non-preemptible but yield when table needs to be grown")
@@ -227,21 +229,21 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    */
 
   /**
-   * The number of entries in the table.
+   * @return the number of entries in the table.
    */
   public int count() {
     return maxIndex;
   }
 
   /**
-   * The number of entries ready to be finalized.
+   * @return the number of entries ready to be finalized.
    */
   public int countReady() {
     return ((lastReadyIndex - nextReadyIndex) + readyForFinalize.length) % readyForFinalize.length;
   }
 
   /**
-   * The number of entries ready to be finalized.
+   * @return the number of entries ready to be finalized.
    */
   public int freeReady() {
     return readyForFinalize.length - countReady();
@@ -251,7 +253,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    * Static methods.
    */
 
-  /** Get the singleton */
+  /** @return the processor singleton */
   public static FinalizableProcessor getProcessor() {
     return finalizableProcessor;
   }
@@ -266,7 +268,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   }
 
   /**
-   * Get an object to call the finalize() method on it.
+   * @return an object to call the finalize() method on it
    */
   @Unpreemptible("Non-preemptible but may pause if table is being grown")
   public static Object getForFinalize() {
@@ -274,7 +276,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   }
 
   /**
-   * The number of objects waiting for finalize() calls.
+   * @return the number of objects waiting for finalize() calls.
    */
   public static int countReadyForFinalize() {
     return finalizableProcessor.countReady();

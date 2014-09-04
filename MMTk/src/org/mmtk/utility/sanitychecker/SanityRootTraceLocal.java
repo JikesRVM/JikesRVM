@@ -25,9 +25,6 @@ import org.vmmagic.unboxed.*;
 @Uninterruptible
 public final class SanityRootTraceLocal extends TraceLocal {
 
-  /**
-   * Constructor
-   */
   public SanityRootTraceLocal(Trace trace) {
     super(trace);
   }
@@ -40,6 +37,8 @@ public final class SanityRootTraceLocal extends TraceLocal {
   /**
    * Copy root values across to the 'real' single-threaded trace that will do
    * the sanity checking.
+   *
+   * @param trace the trace that will do the sanity checking
    */
   @Inline
   public void copyRootValuesTo(TraceLocal trace) {

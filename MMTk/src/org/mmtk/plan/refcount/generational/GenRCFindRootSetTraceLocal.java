@@ -31,9 +31,6 @@ public final class GenRCFindRootSetTraceLocal extends TraceLocal {
 
   private final ObjectReferenceDeque rootBuffer;
 
-  /**
-   * Constructor
-   */
   public GenRCFindRootSetTraceLocal(Trace trace, ObjectReferenceDeque rootBuffer) {
     super(trace);
     this.rootBuffer = rootBuffer;

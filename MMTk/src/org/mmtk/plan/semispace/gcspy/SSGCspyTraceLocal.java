@@ -25,8 +25,9 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public final class SSGCspyTraceLocal extends SSTraceLocal {
+
   /**
-   * Constructor
+   * @param trace the associated global trace
    */
   public SSGCspyTraceLocal(Trace trace) {
     super(trace);

@@ -447,7 +447,10 @@ import org.vmmagic.unboxed.Word;
   }
 
   /**
-   * Store the limit value at the end of the region.
+   * Stores the limit value at the end of the region.
+   *
+   * @param region region address
+   * @param limit the limit value
    */
   public static void setRegionLimit(Address region, Address limit) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(!region.isZero());
@@ -490,6 +493,7 @@ import org.vmmagic.unboxed.Word;
    *
    * @param start The start of the new region
    * @param size The size of the new region (rounded up to block-alignment)
+   * @param bytes the size of the pending allocation, if any
    */
   @Inline
   private void updateMetaData(Address start, Extent size, int bytes) {

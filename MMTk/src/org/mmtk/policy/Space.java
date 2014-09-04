@@ -41,7 +41,7 @@ import org.vmmagic.unboxed.*;
  *
  * In addition to tracking virtual memory use and the mapping to
  * policy, spaces also manage memory consumption (<i>used</i> virtual
- * memory).<p>
+ * memory).
  *
  */
 @Uninterruptible
@@ -204,43 +204,43 @@ public abstract class Space {
    * Accessor methods
    */
 
-  /** Start of discontig getter @return The start of the discontiguous space */
+  /** @return The start of the discontiguous space */
   public static Address getDiscontigStart() { return heapCursor; }
 
-  /** End of discontig getter @return The end of the discontiguous space */
+  /** @return The end of the discontiguous space */
   public static Address getDiscontigEnd() { return heapLimit.minus(1); }
 
-  /** Name getter @return The name of this space */
+  /** @return The name of this space */
   public final String getName() { return name; }
 
-  /** Start getter @return The start address of this space */
+  /** @return The start address of this space */
   public final Address getStart() { return start; }
 
-  /** Extent getter @return The size (extent) of this space */
+  /** @return The size (extent) of this space */
   public final Extent getExtent() { return extent; }
 
-  /** Descriptor method @return The integer descriptor for this space */
+  /** @return The integer descriptor for this space */
   public final int getDescriptor() { return descriptor; }
 
-  /** Index getter @return The index (ordinal number) of this space */
+  /** @return The index (ordinal number) of this space */
   public final int getIndex() { return index; }
 
-  /** Immortal getter @return {@code true} if this space is never collected */
+  /** @return {@code true} if this space is never collected */
   public final boolean isImmortal() { return immortal; }
 
-  /** Movable getter @return {@code true} if objects in this space may move */
+  /** @return {@code true} if objects in this space may move */
   public boolean isMovable() { return movable; }
 
-  /** ReservedPages getter @return The number of reserved pages */
+  /** @return The number of reserved pages */
   public final int reservedPages() { return pr.reservedPages(); }
 
-  /** CommittedPages getter @return The number of committed pages */
+  /** @return The number of committed pages */
   public final int committedPages() { return pr.committedPages(); }
 
-  /** AvailablePages getter @return The number of pages available for allocation */
+  /** @return The number of pages available for allocation */
   public final int availablePhysicalPages() { return pr.getAvailablePhysicalPages(); }
 
-  /** Cumulative committed pages getter @return Cumulative committed pages. */
+  /** @return Cumulative committed pages. */
   public static long cumulativeCommittedPages() {
     return PageResource.cumulativeCommittedPages();
   }
@@ -373,7 +373,10 @@ public abstract class Space {
    */
 
   /**
-   * Update the zeroing approach for this space.
+   * Updates the zeroing approach for this space.
+   *
+   * @param useNT whether to use non-temporal instructions for zeroing
+   * @param concurrent whether zeroing will be done concurrently
    */
   @Interruptible
   public void setZeroingApproach(boolean useNT, boolean concurrent) {

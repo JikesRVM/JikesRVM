@@ -117,9 +117,7 @@ import org.vmmagic.unboxed.*;
    */
 
   /**
-   * Return true if this descriptor describes a contiguous space
-   *
-   * @param descriptor
+   * @param descriptor a descriptor for a space
    * @return {@code true} if this descriptor describes a contiguous space
    */
   @Inline
@@ -128,10 +126,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return true if this descriptor describes a contiguous space that
-   * is at the top of the virtual address space
-   *
-   * @param descriptor
+   * @param descriptor a descriptor for a space
    * @return {@code true} if this descriptor describes a contiguous space that
    * is at the top of the virtual address space
    */
@@ -141,9 +136,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return the start of this region of memory encoded in this descriptor
-   *
-   * @param descriptor
+   * @param descriptor a descriptor for a space
    * @return The start of this region of memory encoded in this descriptor
    */
   @Inline
@@ -155,10 +148,7 @@ import org.vmmagic.unboxed.*;
   }
 
   /**
-   * Return the size of the region of memory encoded in this
-   * descriptor, in chunks
-   *
-   * @param descriptor
+   * @param descriptor a descriptor for a space
    * @return The size of the region of memory encoded in this
    * descriptor, in chunks
    */

@@ -35,6 +35,7 @@ import org.vmmagic.pragma.*;
   /**
    * Constructor
    *
+   * @param n the human-readable name of this queue
    * @param queue The shared queue to which this queue will append
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.

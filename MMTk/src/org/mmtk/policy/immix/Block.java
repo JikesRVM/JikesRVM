@@ -44,8 +44,10 @@ public class Block  {
    * Block marking
    */
 
+
   /**
-   *
+   * @param address the block's address
+   * @return whether the block is unallocated
    */
   public static boolean isUnused(final Address address) {
     return getBlockMarkState(address) == UNALLOCATED_BLOCK_STATE;
@@ -105,7 +107,15 @@ public class Block  {
    */
 
   /**
+   * Sweeps one block.<p>
    *
+   * TODO: needs better documentation.
+   *
+   * @param block the block's address
+   * @param markHistogram the mark histogram
+   * @param markState the mark value
+   * @param resetMarkState whether to reset the mark state
+   * @return number of marked lines
    */
   static short sweepOneBlock(Address block, int[] markHistogram, final byte markState, final boolean resetMarkState) {
     if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(isAligned(block));
@@ -158,7 +168,8 @@ public class Block  {
    */
 
   /**
-   *
+   * @param address the block's address
+   * @return whether the defrag state is {@link #BLOCK_IS_DEFRAG_SOURCE}
    */
   public static boolean isDefragSource(Address address) {
     return getDefragStateAddress(address).loadShort() == BLOCK_IS_DEFRAG_SOURCE;

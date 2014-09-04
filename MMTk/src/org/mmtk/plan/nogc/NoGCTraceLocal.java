@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.*;
 public final class NoGCTraceLocal extends TraceLocal {
 
   /**
-   * Constructor
+   * @param trace the associated global trace
    */
   public NoGCTraceLocal(Trace trace) {
     super(trace);

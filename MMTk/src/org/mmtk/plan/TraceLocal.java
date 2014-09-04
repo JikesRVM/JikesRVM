@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.*;
  * This abstract class and its global counterpart implement the core
  * functionality for a transitive closure over the heap graph. This class
  * specifically implements the unsynchronized thread-local component
- * (ie the 'fast path') of the trace mechanism.<p>
+ * (ie the 'fast path') of the trace mechanism.
  *
  * @see org.mmtk.plan.Plan
  * @see org.mmtk.plan.Trace
@@ -75,7 +75,7 @@ public abstract class TraceLocal extends TransitiveClosure {
    */
 
   /**
-   * Should reference values be overwritten as the heap is traced?
+   * @return whether reference values should be overwritten as the heap is traced
    */
   protected boolean overwriteReferenceDuringTrace() {
     return true;

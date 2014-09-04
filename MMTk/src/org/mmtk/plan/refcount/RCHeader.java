@@ -164,7 +164,8 @@ public class RCHeader {
   public static final Word READ_MASK = refSticky;
 
   /**
-   * Has this object been marked by the most recent backup trace.
+   * @param object an object
+   * @return whether the object been marked by the most recent backup trace
    */
   @Inline
   public static boolean isMarked(ObjectReference object) {
@@ -172,7 +173,8 @@ public class RCHeader {
   }
 
   /**
-   * Has this object been marked by the most recent backup trace.
+   * Clears the mark status for the given object.
+   * @param object the object whose status will be cleared
    */
   @Inline
   public static void clearMarked(ObjectReference object) {
@@ -185,7 +187,8 @@ public class RCHeader {
   }
 
   /**
-   * Has this object been marked by the most recent backup trace.
+   * @param header the header
+   * @return whether the header has been marked
    */
   @Inline
   private static boolean isHeaderMarked(Word header) {
@@ -193,7 +196,11 @@ public class RCHeader {
   }
 
   /**
-   * Attempt to atomically mark this object. Return <code>true</code> if the mark was performed.
+   * Attempts to atomically mark this object.
+   *
+   * @param object the object to mark
+   * @return {@code true} if the mark was performed, {@code false}
+   *  otherwise
    */
   @Inline
   public static boolean testAndMark(ObjectReference object) {
@@ -209,7 +216,8 @@ public class RCHeader {
   }
 
   /**
-   * Has this object been marked as new.
+   * @param object an object
+   * @return whether the object has been marked as new
    */
   @Inline
   public static boolean isNew(ObjectReference object) {
@@ -217,7 +225,8 @@ public class RCHeader {
   }
 
   /**
-   * Has this object been marked as new.
+   * @param header an object's header
+   * @return whether the header has a new marking
    */
   @Inline
   private static boolean isHeaderNew(Word header) {
@@ -393,7 +402,8 @@ public class RCHeader {
   }
 
   /**
-   * Has this object been stuck
+   * @param value a word
+   * @return whether the word contains a sticky marking
    */
   @Inline
   private static boolean isStuck(Word value) {

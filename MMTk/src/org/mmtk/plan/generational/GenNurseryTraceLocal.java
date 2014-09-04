@@ -43,7 +43,8 @@ public final class GenNurseryTraceLocal extends TraceLocal {
   private final AddressPairDeque arrayRemset;
 
   /**
-   * Constructor
+   * @param trace the global trace class to use
+   * @param plan the state of the generational collector
    */
   public GenNurseryTraceLocal(Trace trace, GenCollector plan) {
     super(Gen.SCAN_NURSERY, trace);

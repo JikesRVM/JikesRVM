@@ -136,7 +136,7 @@ public abstract class ConcurrentCollector extends SimpleCollector {
   }
 
   /**
-   * Has all work been completed?
+   * @return whether all work has been completed
    */
   protected abstract boolean concurrentTraceComplete();
 

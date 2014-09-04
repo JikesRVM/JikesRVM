@@ -27,7 +27,7 @@ import org.vmmagic.unboxed.*;
  *
  * Specifically, this class defines <i>MS</i> mutator-time allocation
  * and per-mutator thread collection semantics (flushing and restoring
- * per-mutator allocator state).<p>
+ * per-mutator allocator state).
  *
  * @see MS
  * @see MSCollector

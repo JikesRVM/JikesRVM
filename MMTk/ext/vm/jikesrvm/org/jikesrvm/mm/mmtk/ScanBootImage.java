@@ -209,6 +209,13 @@ public class ScanBootImage {
    * Take a bytemap encoding of all references in the boot image, and
    * produce an encoded byte array.  Return the total length of the
    * encoding.
+   *
+   * @param bootImageRMap space for the compressed reference map. The map
+   *  is initially empty and will be filled during execution of this method.
+   * @param referenceMap the (uncompressed) reference map for the bootimage
+   * @param referenceMapLimit the highest index in the referenceMap that
+   *  contains a reference
+   * @return the total length of the encoding
    */
   public static int encodeRMap(byte[] bootImageRMap, byte[] referenceMap,
       int referenceMapLimit) {

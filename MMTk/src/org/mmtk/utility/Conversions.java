@@ -106,22 +106,6 @@ import org.vmmagic.pragma.*;
     return pages << (LOG_BYTES_IN_PAGE - LOG_BYTES_IN_KBYTE);
   }
 
-  /**
-    @deprecated : use int bytesToPagesUp(Extent bytes) if possible
-   */
-  @Deprecated
-  public static int bytesToPagesUp(int bytes) {
-    return bytesToPagesUp(Extent.fromIntZeroExtend(bytes));
-  }
-
-  /**
-    @deprecated : use int bytesToPagesUp(Extent bytes) if possible
-   */
-  @Deprecated
-  public static int bytesToPages(int bytes) {
-    return bytesToPages(Extent.fromIntZeroExtend(bytes));
-  }
-
   public static int bytesToPagesUp(Extent bytes) {
     return bytes.plus(BYTES_IN_PAGE-1).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
   }

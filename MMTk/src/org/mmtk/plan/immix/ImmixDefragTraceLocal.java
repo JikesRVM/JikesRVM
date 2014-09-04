@@ -40,7 +40,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
 
  /**
    * Constructor
-   * @param trace TODO
+   * @param trace the associated global trace
    * @param modBuffer TODO
    */
   public ImmixDefragTraceLocal(Trace trace, ObjectReferenceDeque modBuffer) {
@@ -90,7 +90,7 @@ public final class ImmixDefragTraceLocal extends TraceLocal {
    * collection (i.e. this object is defintely not an unforwarded
    * object).
    *
-   * @param object
+   * @param object the object whose status is of interest
    * @return {@code true} if this object is guaranteed not to move during this
    *         collection.
    */

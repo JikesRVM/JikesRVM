@@ -29,7 +29,7 @@ import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Word;
 
 /**
- * This class manages the mapping of spaces to virtual memory ranges.<p>
+ * This class manages the mapping of spaces to virtual memory ranges.
  *
  */
 @Uninterruptible
@@ -290,7 +290,7 @@ public class Map {
   }
 
   /**
-   * Return the ordinal number for some free list space wishing to share a discontiguous region.
+   * @param pr the resource that wants to share the discontiguous region
    * @return The ordinal number for a free list space wishing to share a discontiguous region
    */
   @Interruptible

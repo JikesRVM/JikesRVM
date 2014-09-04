@@ -55,9 +55,8 @@ public final class Treadmill {
    */
 
   /**
-   * @param granularity
+   * @param granularity TODO needs documentation
    * @param shared <code>true</code> if the created instance will be shared between threads. If it is shared, accesses will be synchronized using locks.
-   *
    */
   public Treadmill(int granularity, boolean shared) {
     fromSpace = new DoublyLinkedList(granularity, shared);
@@ -67,7 +66,10 @@ public final class Treadmill {
   }
 
   /**
-   * Add a node to the treadmill. This is usually performed on allocation.
+   * Adds a node to the treadmill. This is usually performed on allocation.
+   *
+   * @param node the node to add
+   * @param nursery whether to add to the nursery or to the to-space
    */
   @Inline
   public void addToTreadmill(Address node, boolean nursery) {
@@ -78,7 +80,9 @@ public final class Treadmill {
   }
 
   /**
-   * Remove a node from the nursery list.
+   * Removes a node from the nursery list.
+   *
+   * @return the removed node
    */
   @Inline
   public Address popNursery() {
@@ -86,7 +90,9 @@ public final class Treadmill {
   }
 
   /**
-   * Remove a node from the mature list.
+   * Removes a node from the mature list.
+   *
+   * @return the removed node
    */
   @Inline
   public Address pop() {
@@ -94,7 +100,11 @@ public final class Treadmill {
   }
 
   /**
-   * Copy a node (during gc tracing).
+   * Copies a node (during gc tracing).
+   *
+   * @param node the node to copy
+   * @param isInNursery whether the node is in the nursery or the
+   *  from-space
    */
   @Inline
   public void copy(Address node, boolean isInNursery) {
@@ -107,7 +117,7 @@ public final class Treadmill {
   }
 
   /**
-   * Is the to-space empty?
+   * @return whether the to-space is empty
    */
   @Inline
   public boolean toSpaceEmpty() {
@@ -115,7 +125,7 @@ public final class Treadmill {
   }
 
   /**
-   * Is the from-space empty?
+   * @return whether the from-space is empty
    */
   @Inline
   public boolean fromSpaceEmpty() {
@@ -123,7 +133,7 @@ public final class Treadmill {
   }
 
   /**
-   * Is the nursery empty?
+   * @return whether the nursery is empty
    */
   @Inline
   public boolean nurseryEmpty() {
@@ -131,7 +141,9 @@ public final class Treadmill {
   }
 
   /**
-   * Flip the roles of the spaces in preparation for a collection.
+   * Flips the roles of the spaces in preparation for a collection.
+   *
+   * @param fullHeap whether the collection is full heap
    */
   public void flip(boolean fullHeap) {
     DoublyLinkedList tmp = allocNursery;
@@ -150,7 +162,7 @@ public final class Treadmill {
    */
 
   /**
-   *
+   * @return the header size
    */
   @Inline
   public static int headerSize() {

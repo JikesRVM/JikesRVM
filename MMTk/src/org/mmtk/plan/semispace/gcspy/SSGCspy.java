@@ -222,6 +222,7 @@ import org.vmmagic.pragma.*;
    * TODO is this the best name or should we call it LargeObjectSpaceDriver?
    * @param name Name of the space
    * @param space The space
+   * @param mainSpace whether the space will be the main space
    * @return A new GCspy driver for this space
    */
   @Interruptible

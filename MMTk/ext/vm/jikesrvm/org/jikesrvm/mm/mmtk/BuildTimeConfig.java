@@ -48,7 +48,7 @@ public class BuildTimeConfig extends org.mmtk.vm.BuildTimeConfig {
    * @param property_file_property The name of the property that sets
    * the location of the properties file
    * @param default_property_file The default properties file.
-   *
+   * @return the built properties
    */
   private Properties getProperties(String property_file_property, String default_property_file) {
     Properties props = new Properties();

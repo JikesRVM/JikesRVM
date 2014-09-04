@@ -118,12 +118,14 @@ public abstract class SegregatedFreeListSpace extends Space {
   }
 
   /**
-   * Should SegregatedFreeListSpace manage a side bitmap to keep track of live objects?
+   * @return whether SegregatedFreeListSpace should manage a side bitmap
+   *  to keep track of live objects
    */
   protected abstract boolean maintainSideBitmap();
 
   /**
-   * Do we need to preserve free lists as we move blocks around.
+   * @return whether free lists need to be preserved when blocks
+   *  are moved around
    */
   protected abstract boolean preserveFreeList();
 
@@ -133,7 +135,7 @@ public abstract class SegregatedFreeListSpace extends Space {
    */
 
   /**
-   * Return a block to the global pool.
+   * Returns a block to the global pool.
    *
    * @param block The block to return
    * @param sizeClass The size class
@@ -386,7 +388,7 @@ public abstract class SegregatedFreeListSpace extends Space {
   }
 
   /**
-   * The number of distinct size classes.
+   * @return the number of distinct size classes.
    */
   @Inline
   public static int sizeClassCount() {
@@ -403,6 +405,7 @@ public abstract class SegregatedFreeListSpace extends Space {
    *
    * @param block The new block
    * @param sizeClass The block's sizeclass.
+   * @return the head of the free list
    */
   protected abstract Address advanceToBlock(Address block, int sizeClass);
 
@@ -521,10 +524,15 @@ public abstract class SegregatedFreeListSpace extends Space {
   }
 
   /**
-   * Sweep a block, freeing it and adding to the list given by availableHead
+   * Sweeps a block, freeing it and adding to the list given by availableHead
    * if it contains no free objects.
    *
+   * @param block the block's address
+   * @param sizeClass the block's size class
+   * @param blockSize the block's size, in bytes
+   * @param availableHead the head of the blocks that still need to be swept
    * @param clearMarks should we clear block mark bits as we process.
+   * @return updated head of the blocks that still need to be swept
    */
   protected final Address sweepBlock(Address block, int sizeClass, Extent blockSize, Address availableHead, boolean clearMarks) {
     boolean liveBlock = containsLiveCell(block, blockSize, clearMarks);
@@ -668,7 +676,9 @@ public abstract class SegregatedFreeListSpace extends Space {
   }
 
   /**
-   * Sweep all blocks for free objects.
+   * Sweeps all blocks for free objects.
+   *
+   * @param sweeper the sweeper to use
    */
   public void sweepCells(Sweeper sweeper) {
     for (int sizeClass = 0; sizeClass < sizeClassCount(); sizeClass++) {
@@ -695,8 +705,14 @@ public abstract class SegregatedFreeListSpace extends Space {
   }
 
   /**
-   * Sweep a block, freeing it and adding to the list given by availableHead
+   * Sweeps a block, freeing it and adding to the list given by availableHead
    * if it contains no free objects.
+   *
+   * @param sweeper the sweeper to use
+   * @param block the block's address
+   * @param sizeClass the block's size class
+   * @param availableHead the head of the blocks that still need to be swept
+   * @return new head of the blocks that still need to be swept
    */
   private Address sweepCells(Sweeper sweeper, Address block, int sizeClass, Address availableHead) {
     boolean liveBlock = sweepCells(sweeper, block, sizeClass);
@@ -711,10 +727,12 @@ public abstract class SegregatedFreeListSpace extends Space {
   }
 
   /**
-   * Sweep a block, freeing it and making it available if any live cells were found.
+   * Sweeps a block, freeing it and making it available if any live cells were found.
    * if it contains no free objects.<p>
    *
    * This is designed to be called in parallel by multiple collector threads.
+   *
+   * @param sweeper the sweeper to use
    */
   public void parallelSweepCells(Sweeper sweeper) {
     for (int sizeClass = 0; sizeClass < sizeClassCount(); sizeClass++) {
@@ -767,9 +785,6 @@ public abstract class SegregatedFreeListSpace extends Space {
     return Address.zero();
   }
 
-  /**
-   * Does this block contain any live cells?
-   */
   @Inline
   public boolean sweepCells(Sweeper sweeper, Address block, int sizeClass) {
     Extent blockSize = Extent.fromIntSignExtend(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
@@ -845,6 +860,7 @@ public abstract class SegregatedFreeListSpace extends Space {
    * for live bit is strictly not possible
    *
    * @param object The object whose live bit is to be set.
+   * @return whether the live bit was set before the update
    */
   @Inline
   public static boolean unsyncSetLiveBit(ObjectReference object) {
@@ -857,6 +873,7 @@ public abstract class SegregatedFreeListSpace extends Space {
    * @param address The address whose live bit is to be set.
    * @param set {@code true} if the bit is to be set, as opposed to cleared
    * @param atomic {@code true} if we want to perform this operation atomically
+   * @return whether the live bit was set before the update
    */
   @Inline
   private static boolean updateLiveBit(Address address, boolean set, boolean atomic) {
@@ -875,22 +892,11 @@ public abstract class SegregatedFreeListSpace extends Space {
     return oldValue.and(mask).NE(mask);
   }
 
-  /**
-   * Test the live bit for a given object
-   *
-   * @param object The object whose live bit is to be set.
-   */
   @Inline
   protected static boolean liveBitSet(ObjectReference object) {
     return liveBitSet(VM.objectModel.refToAddress(object));
   }
 
-  /**
-   * Set the live bit for a given address
-   *
-   * @param address The address whose live bit is to be set.
-   * @return {@code true} if this operation changed the state of the live bit.
-   */
   @Inline
   protected static boolean liveBitSet(Address address) {
     Address liveWord = getLiveWordAddress(address);
@@ -940,7 +946,10 @@ public abstract class SegregatedFreeListSpace extends Space {
   }
 
   /**
-   * Clear all live bits for a block
+   * Clear all live bits for a block.
+   *
+   * @param block the block's address
+   * @param sizeClass the block's size class
    */
   protected void clearLiveBits(Address block, int sizeClass) {
     int blockSize = BlockAllocator.blockSize(blockSizeClass[sizeClass]);

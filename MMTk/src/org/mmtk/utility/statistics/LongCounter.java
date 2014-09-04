@@ -86,7 +86,7 @@ public abstract class LongCounter extends Counter {
    */
 
   /**
-   *
+   * @return the current value of this counter
    */
   protected abstract long getCurrentValue();
 
