@@ -1098,44 +1098,44 @@ sysThreadStartup(void *args)
 
     jmp_buf *jb = (jmp_buf*)malloc(sizeof(jmp_buf));
     if (setjmp(*jb)) {
-	// this is where we come to terminate the thread
+        // this is where we come to terminate the thread
 #ifdef RVM_FOR_HARMONY
         hythread_detach(NULL);
 #endif
-	free(jb);
-	*(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
-	
-	stack.ss_flags = SS_DISABLE;
-	sigaltstack(&stack, 0);
-	delete[] stackBuf;
+        free(jb);
+        *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
+
+        stack.ss_flags = SS_DISABLE;
+        sigaltstack(&stack, 0);
+        delete[] stackBuf;
     } else {
         setThreadLocal(TerminateJmpBufKey, (void*)jb);
-	
-	Address ip       = ((Address *)args)[1];
-	Address fp       = ((Address *)args)[2];
-	
+
+        Address ip       = ((Address *)args)[1];
+        Address fp       = ((Address *)args)[2];
+
 #ifdef DEBUG_THREAD
 #ifndef RVM_FOR_32_ADDR
-	    fprintf(SysTraceFile, "%s: sysThreadStartup: pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, tr, ip, fp);
+        fprintf(SysTraceFile, "%s: sysThreadStartup: pr=0x%016llx ip=0x%016llx fp=0x%016llx\n", Me, tr, ip, fp);
 #else
         fprintf(SysTraceFile, "%s: sysThreadStartup: pr=0x%08x ip=0x%08x fp=0x%08x\n", Me, tr, ip, fp);
 #endif
 #endif
-	// branch to vm code
-	//
+        // branch to vm code
+        //
 #ifndef RVM_FOR_POWERPC
-	{
-	    *(Address *) (tr + Thread_framePointer_offset) = fp;
-	    Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
-	    bootThread((void*)ip, (void*)tr, (void*)sp);
-	}
+        {
+            *(Address *) (tr + Thread_framePointer_offset) = fp;
+            Address sp = fp + Constants_STACKFRAME_BODY_OFFSET;
+            bootThread((void*)ip, (void*)tr, (void*)sp);
+        }
 #else
-	bootThread((int)(Word)getJTOC(), tr, ip, fp);
+        bootThread((int)(Word)getJTOC(), tr, ip, fp);
 #endif
-	
-	// not reached
-	//
-	fprintf(SysTraceFile, "%s: sysThreadStartup: failed\n", Me);
+
+        // not reached
+        //
+        fprintf(SysTraceFile, "%s: sysThreadStartup: failed\n", Me);
     }
 #ifdef RVM_FOR_HARMONY
     return 0;
