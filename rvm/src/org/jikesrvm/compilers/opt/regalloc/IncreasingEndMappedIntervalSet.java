@@ -14,8 +14,6 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.Comparator;
 
-import org.jikesrvm.compilers.opt.regalloc.LinearScan.MappedBasicInterval;
-
 /**
  * Implements a set of Basic Intervals, sorted by end number.
  * This version uses container-mapping as a function in the comparator.

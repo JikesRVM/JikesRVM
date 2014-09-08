@@ -158,37 +158,4 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     }
     return dfnBegin;
   }
-
-  /**
-   * A basic interval contained in a CompoundInterval.
-   */
-  static class MappedBasicInterval extends BasicInterval {
-    final CompoundInterval container;
-
-    MappedBasicInterval(BasicInterval b, CompoundInterval c) {
-      super(b.begin, b.end);
-      this.container = c;
-    }
-
-    MappedBasicInterval(int begin, int end, CompoundInterval c) {
-      super(begin, end);
-      this.container = c;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (super.equals(o)) {
-        MappedBasicInterval i = (MappedBasicInterval) o;
-        return container == i.container;
-      } else {
-        return false;
-      }
-    }
-
-    @Override
-    public String toString() {
-      return "<" + container.getRegister() + ">:" + super.toString();
-    }
-
-  }
 }

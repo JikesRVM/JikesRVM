@@ -19,7 +19,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.regalloc.LinearScan.MappedBasicInterval;
 
 /**
  * Implements a live interval with holes; ie; a list of basic live

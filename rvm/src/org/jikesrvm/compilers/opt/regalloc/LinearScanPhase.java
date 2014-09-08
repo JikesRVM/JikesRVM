@@ -18,7 +18,6 @@ import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterConstants;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.regalloc.LinearScan.MappedBasicInterval;
 
 public final class LinearScanPhase extends CompilerPhase
     implements PhysicalRegisterConstants {
