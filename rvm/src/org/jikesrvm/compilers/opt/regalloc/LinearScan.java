@@ -211,51 +211,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
     public ActiveSet active;
   }
 
-  /**
-   * A phase to compute register restrictions.
-   */
-  static final class RegisterRestrictionsPhase extends CompilerPhase {
-
-    /**
-     * Return this instance of this phase. This phase contains no
-     * per-compilation instance fields.
-     * @param ir not used
-     * @return this
-     */
-    @Override
-    public CompilerPhase newExecution(IR ir) {
-      return this;
-    }
-
-    @Override
-    public boolean shouldPerform(OptOptions options) {
-      return true;
-    }
-
-    @Override
-    public String getName() {
-      return "Register Restrictions";
-    }
-
-    @Override
-    public boolean printingEnabled(OptOptions options, boolean before) {
-      return false;
-    }
-
-    /**
-     *  @param ir the IR
-     */
-    @Override
-    public void perform(IR ir) {
-
-      //  The registerManager has already been initialized
-      GenericStackManager sm = ir.stackManager;
-
-      // Set up register restrictions
-      sm.computeRestrictions(ir);
-    }
-  }
-
   public static final class LinearScanPhase extends CompilerPhase
       implements PhysicalRegisterConstants {
 
