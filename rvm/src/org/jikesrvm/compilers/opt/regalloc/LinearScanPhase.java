@@ -22,7 +22,6 @@ import org.jikesrvm.compilers.opt.regalloc.LinearScan.ActiveSet;
 import org.jikesrvm.compilers.opt.regalloc.LinearScan.BasicInterval;
 import org.jikesrvm.compilers.opt.regalloc.LinearScan.CompoundInterval;
 import org.jikesrvm.compilers.opt.regalloc.LinearScan.MappedBasicInterval;
-import org.jikesrvm.compilers.opt.regalloc.LinearScan.SpillLocationManager;
 
 public final class LinearScanPhase extends CompilerPhase
     implements PhysicalRegisterConstants {
