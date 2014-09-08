@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
-import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1578,41 +1577,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       BasicInterval first = first();
       BasicInterval last = last();
       return frameOffset + (first.getBegin() << 4) + (last.getEnd() << 12);
-    }
-  }
-
-  /**
-   * Implements a set of Basic Intervals, sorted by end number.
-   * This version uses container-mapping as a function in the comparator.
-   */
-  static class IncreasingEndMappedIntervalSet extends IntervalSet {
-    /** Support for Set serialization */
-    static final long serialVersionUID = -3121737650157210290L;
-
-    private static class EndComparator implements Comparator<BasicInterval> {
-      @Override
-      public int compare(BasicInterval b1, BasicInterval b2) {
-        int result = b1.getEnd() - b2.getEnd();
-        if (result == 0) {
-          result = b1.getBegin() - b2.getBegin();
-        }
-        if (result == 0) {
-          if (b1 instanceof MappedBasicInterval) {
-            if (b2 instanceof MappedBasicInterval) {
-              MappedBasicInterval mb1 = (MappedBasicInterval) b1;
-              MappedBasicInterval mb2 = (MappedBasicInterval) b2;
-              return mb1.container.getRegister().number - mb2.container.getRegister().number;
-            }
-          }
-        }
-        return result;
-      }
-    }
-
-    static final EndComparator c = new EndComparator();
-
-    IncreasingEndMappedIntervalSet() {
-      super(c);
     }
   }
 }
