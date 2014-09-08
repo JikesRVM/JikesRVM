@@ -14,7 +14,6 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.Comparator;
 
-import org.jikesrvm.compilers.opt.regalloc.LinearScan.BasicInterval;
 import org.jikesrvm.compilers.opt.regalloc.LinearScan.MappedBasicInterval;
 
 /**

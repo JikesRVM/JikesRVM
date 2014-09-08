@@ -480,7 +480,7 @@ public abstract class GenericStackManager extends IRTools {
    */
   public boolean isDeadBefore(Register r, Instruction s) {
 
-    LinearScan.BasicInterval bi = activeSet.getBasicInterval(r, s);
+    BasicInterval bi = activeSet.getBasicInterval(r, s);
     // If there is no basic interval containing s, then r is dead before
     // s.
     if (bi == null) {

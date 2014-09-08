@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
-import org.jikesrvm.compilers.opt.regalloc.LinearScan.BasicInterval;
 
 /**
  * The following represents the intervals assigned to a particular spill

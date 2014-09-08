@@ -15,8 +15,6 @@ package org.jikesrvm.compilers.opt.regalloc;
 import java.util.Comparator;
 import java.util.TreeSet;
 
-import org.jikesrvm.compilers.opt.regalloc.LinearScan.BasicInterval;
-
 abstract class IntervalSet extends TreeSet<BasicInterval> {
 
   /**

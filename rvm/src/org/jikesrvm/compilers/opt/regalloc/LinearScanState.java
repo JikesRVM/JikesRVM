@@ -14,8 +14,6 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.ArrayList;
 
-import org.jikesrvm.compilers.opt.regalloc.LinearScan.BasicInterval;
-
 public final class LinearScanState {
   /**
    * The live interval information, a set of Basic Intervals
