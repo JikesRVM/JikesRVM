@@ -37,7 +37,6 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
@@ -1896,80 +1895,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       }
       return result;
     }
-  }
-
-  /**
-   * Insert Spill Code after register assignment.
-   */
-  static final class SpillCode extends CompilerPhase {
-    /**
-     * Return this instance of this phase. This phase contains no
-     * per-compilation instance fields.
-     * @param ir not used
-     * @return this
-     */
-    @Override
-    public CompilerPhase newExecution(IR ir) {
-      return this;
-    }
-
-    @Override
-    public boolean shouldPerform(OptOptions options) {
-      return true;
-    }
-
-    @Override
-    public String getName() {
-      return "Spill Code";
-    }
-
-    @Override
-    public boolean printingEnabled(OptOptions options, boolean before) {
-      return false;
-    }
-
-    /**
-     *  @param ir the IR
-     */
-    @Override
-    public void perform(IR ir) {
-      replaceSymbolicRegisters(ir);
-
-      // Generate spill code if necessary
-      if (ir.hasSysCall() || ir.MIRInfo.linearScanState.spilledSomething) {
-        GenericStackManager stackMan = ir.stackManager;
-        stackMan.insertSpillCode(ir.MIRInfo.linearScanState.active);
-      }
-
-      if (VM.BuildForIA32 && !VM.BuildForSSE2Full) {
-        Operators.helper.rewriteFPStack(ir);
-      }
-    }
-
-    /**
-     *  Iterates over the IR and replace each symbolic register with its
-     *  allocated physical register.
-     *
-     *  @param ir the IR to process
-     */
-    private static void replaceSymbolicRegisters(IR ir) {
-      for (Enumeration<Instruction> inst = ir.forwardInstrEnumerator(); inst.hasMoreElements();) {
-        Instruction s = inst.nextElement();
-        for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
-          Operand op = ops.nextElement();
-          if (op.isRegister()) {
-            RegisterOperand rop = op.asRegister();
-            Register r = rop.getRegister();
-            if (r.isSymbolic() && !r.isSpilled()) {
-              Register p = RegisterAllocatorState.getMapping(r);
-              if (VM.VerifyAssertions) VM._assert(p != null);
-              rop.setRegister(p);
-            }
-          }
-        }
-      }
-    }
-
   }
 
   /**
