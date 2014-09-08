@@ -35,11 +35,9 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.GCIRMapElement;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operators;
-import org.jikesrvm.compilers.opt.ir.RegSpillListElement;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
@@ -1897,120 +1895,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
         result = result + b + "\n";
       }
       return result;
-    }
-  }
-
-  /**
-   * Update GC Maps again, to account for changes induced by spill code.
-   */
-  static final class UpdateGCMaps2 extends CompilerPhase {
-    /**
-     * Return this instance of this phase. This phase contains no
-     * per-compilation instance fields.
-     * @param ir not used
-     * @return this
-     */
-    @Override
-    public CompilerPhase newExecution(IR ir) {
-      return this;
-    }
-
-    @Override
-    public boolean shouldPerform(OptOptions options) {
-      return true;
-    }
-
-    @Override
-    public String getName() {
-      return "Update GCMaps 2";
-    }
-
-    @Override
-    public boolean printingEnabled(OptOptions options, boolean before) {
-      return false;
-    }
-
-    /**
-     *  @param ir the IR
-     */
-    @Override
-    public void perform(IR ir) {
-      PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-      ScratchMap scratchMap = ir.stackManager.getScratchMap();
-
-      if (GC_DEBUG) {
-        System.out.println("SCRATCH MAP:\n" + scratchMap);
-      }
-      if (scratchMap.isEmpty()) return;
-
-      // Walk over each instruction that has a GC point.
-      for (GCIRMapElement GCelement : ir.MIRInfo.gcIRMap) {
-        // new elements to add to the gc map
-        HashSet<RegSpillListElement> newElements = new HashSet<RegSpillListElement>();
-
-        Instruction GCinst = GCelement.getInstruction();
-
-        // Get the linear-scan DFN for this instruction.
-        int dfn = GCinst.scratch;
-
-        if (GC_DEBUG) {
-          VM.sysWrite("GCelement at " + dfn + " , " + GCelement);
-        }
-
-        // a set of elements to delete from the GC Map
-        HashSet<RegSpillListElement> toDelete = new HashSet<RegSpillListElement>(3);
-
-        // For each element in the GC Map ...
-        for (RegSpillListElement elem : GCelement.regSpillList()) {
-          if (GC_DEBUG) {
-            VM.sysWrite("Update " + elem + "\n");
-          }
-          if (elem.isSpill()) {
-            // check if the spilled value currently is cached in a scratch
-            // register
-            Register r = elem.getSymbolicReg();
-            Register scratch = scratchMap.getScratch(r, dfn);
-            if (scratch != null) {
-              if (GC_DEBUG) {
-                VM.sysWrite("cached in scratch register " + scratch + "\n");
-              }
-              // we will add a new element noting that the scratch register
-              // also must be including in the GC map
-              RegSpillListElement newElem = new RegSpillListElement(r);
-              newElem.setRealReg(scratch);
-              newElements.add(newElem);
-              // if the scratch register is dirty, then delete the spill
-              // location from the map, since it doesn't currently hold a
-              // valid value
-              if (scratchMap.isDirty(GCinst, r)) {
-                toDelete.add(elem);
-              }
-            }
-          } else {
-            // check if the physical register is currently spilled.
-            int n = elem.getRealRegNumber();
-            Register r = phys.get(n);
-            if (scratchMap.isScratch(r, dfn)) {
-              // The regalloc state knows where the physical register r is
-              // spilled.
-              if (GC_DEBUG) {
-                VM.sysWrite("CHANGE to spill location " + RegisterAllocatorState.getSpill(r) + "\n");
-              }
-              elem.setSpill(RegisterAllocatorState.getSpill(r));
-            }
-          }
-
-        }
-        // delete all obsolete elements
-        for (RegSpillListElement deadElem : toDelete) {
-          GCelement.deleteRegSpillElement(deadElem);
-        }
-
-        // add each new Element to the gc map
-        for (RegSpillListElement newElem : newElements) {
-          GCelement.addRegSpillElement(newElem);
-        }
-      }
     }
   }
 
