@@ -978,7 +978,7 @@ sysThreadCreate(Address tr, Address ip, Address fp)
 
     // create arguments
     //
-    sysThreadArguments = new Address[3];
+    sysThreadArguments = (Address*) malloc(sizeof(Address) * 3);
     sysThreadArguments[0] = tr;
     sysThreadArguments[1] = ip;
     sysThreadArguments[2] = fp;
@@ -1086,7 +1086,7 @@ sysThreadStartup(void *args)
     char *stackBuf;
 
     memset (&stack, 0, sizeof stack);
-    stack.ss_sp = stackBuf = new char[SIGSTKSZ];
+    stack.ss_sp = stackBuf = (char*) malloc(sizeof(char) * SIGSTKSZ);
     stack.ss_flags = 0;
     stack.ss_size = SIGSTKSZ;
     if (sigaltstack (&stack, 0)) {
@@ -1107,7 +1107,7 @@ sysThreadStartup(void *args)
 
         stack.ss_flags = SS_DISABLE;
         sigaltstack(&stack, 0);
-        delete[] stackBuf;
+        free(stackBuf);
     } else {
         setThreadLocal(TerminateJmpBufKey, (void*)jb);
 
@@ -1198,7 +1198,7 @@ sysSetupHardwareTrapHandler()
     stack_t stack;
 
     memset (&stack, 0, sizeof stack);
-    stack.ss_sp = new char[SIGSTKSZ];
+    stack.ss_sp = (char*) malloc(sizeof(char) * SIGSTKSZ);
 
     stack.ss_size = SIGSTKSZ;
     if (sigaltstack (&stack, 0)) {
@@ -1373,7 +1373,7 @@ sysMonitorCreate()
     hythread_monitor_t monitor;
     hythread_monitor_init_with_name(&monitor, 0, NULL);
 #else
-    vmmonitor_t *monitor = new vmmonitor_t;
+    vmmonitor_t *monitor = (vmmonitor_t*) malloc(sizeof(vmmonitor_t));
     pthread_mutex_init(&monitor->mutex, NULL);
     pthread_cond_init(&monitor->cond, NULL);
 #endif
@@ -1389,7 +1389,7 @@ sysMonitorDestroy(Word _monitor)
     vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
     pthread_mutex_destroy(&monitor->mutex);
     pthread_cond_destroy(&monitor->cond);
-    delete monitor;
+    free(monitor);
 #endif
 }
 
