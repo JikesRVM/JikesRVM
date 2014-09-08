@@ -27,7 +27,6 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.regalloc.LinearScan.BasicInterval;
-import org.jikesrvm.compilers.opt.regalloc.LinearScan.CompoundInterval;
 
 /**
  * phase to compute linear scan intervals.
