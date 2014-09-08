@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
@@ -1675,27 +1674,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
 
     IncreasingEndMappedIntervalSet() {
       super(c);
-    }
-  }
-
-  abstract static class IntervalSet extends TreeSet<BasicInterval> {
-
-    /**
-     * Create an interval set sorted by increasing start or end number
-     *
-     * @param c comparator to use for sorting
-     */
-    IntervalSet(Comparator<BasicInterval> c) {
-      super(c);
-    }
-
-    @Override
-    public String toString() {
-      String result = "";
-      for (BasicInterval b : this) {
-        result = result + b + "\n";
-      }
-      return result;
     }
   }
 }
