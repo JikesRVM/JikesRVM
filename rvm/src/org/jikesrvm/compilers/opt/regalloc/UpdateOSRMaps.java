@@ -143,7 +143,7 @@ public final class UpdateOSRMaps extends CompilerPhase {
         } // for each tuple
       } // for each inlined method
     } // for each osr instruction
-  } // end of method
+  }
 
   void setRealPosition(IR ir, LocalRegPair tuple, Register sym_reg) {
     if (VM.VerifyAssertions) VM._assert(sym_reg != null);
@@ -163,15 +163,15 @@ public final class UpdateOSRMaps extends CompilerPhase {
       dumpIR(ir, "PANIC");
       throw new RuntimeException("LinearScan PANIC in OSRMAP, " + sym_reg + " is not alive");
     }
-  } // end of setRealPosition
+  }
 
   static void setTupleValue(LocalRegPair tuple, byte type, int value) {
     tuple.valueType = type;
     tuple.value = Word.fromIntSignExtend(value);
-  } // end of setTupleValue
+  }
 
   static void setTupleValue(LocalRegPair tuple, byte type, Word value) {
     tuple.valueType = type;
     tuple.value = value;
-  } // end of setTupleValue
-} // end of inner class
+  }
+}
