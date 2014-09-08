@@ -13,7 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
-import org.jikesrvm.compilers.opt.regalloc.LinearScan;
+import org.jikesrvm.compilers.opt.regalloc.LinearScanState;
 import org.jikesrvm.osr.VariableMap;
 
 /**
@@ -76,7 +76,7 @@ public final class MIRInfo {
   /**
    * Information needed for linear scan.
    */
-  public LinearScan.LinearScanState linearScanState = null;
+  public LinearScanState linearScanState = null;
 
   public MIRInfo(IR ir) {
     ir.compiledMethod.setSaveVolatile(ir.method.getDeclaringClass().hasSaveVolatileAnnotation());

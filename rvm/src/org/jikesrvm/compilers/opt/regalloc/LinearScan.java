@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.compilers.opt.regalloc;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -173,24 +172,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
       dfnBegin = getDFN(bb.firstInstruction());
     }
     return dfnBegin;
-  }
-
-  public static final class LinearScanState {
-    /**
-     * The live interval information, a set of Basic Intervals
-     * sorted by increasing start point
-     */
-    public final ArrayList<BasicInterval> intervals = new ArrayList<BasicInterval>();
-
-    /**
-     * Was any register spilled?
-     */
-    public boolean spilledSomething = false;
-
-    /**
-     * Analysis information used by linear scan.
-     */
-    public ActiveSet active;
   }
 
   /**
