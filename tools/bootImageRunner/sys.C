@@ -1109,9 +1109,21 @@ sysThreadStartup(void *args)
         checkFree(jb);
         *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;
 
+        // disable the signal stack (first retreiving the current one)
+        sigaltstack(0, &stack);
         stack.ss_flags = SS_DISABLE;
         sigaltstack(&stack, 0);
+
+        // check if the signal stack is the one in stackBuf
+        if (stack.ss_sp != stackBuf) {
+            // no; release it as well
+            checkFree(stack.ss_sp);
+        }
+
+        // release signal stack allocated here
         checkFree(stackBuf);
+        // release arguments
+        checkFree(args);
     } else {
         setThreadLocal(TerminateJmpBufKey, (void*)jb);
 
