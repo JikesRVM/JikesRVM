@@ -83,7 +83,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    */
   static final boolean DEBUG = false;
   static final boolean VERBOSE_DEBUG = false;
-  private static final boolean GC_DEBUG = false;
+  static final boolean GC_DEBUG = false;
   private static final boolean DEBUG_COALESCE = false;
 
   /**
@@ -1897,75 +1897,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
         result = result + b + "\n";
       }
       return result;
-    }
-  }
-
-  /**
-   * Update GC maps after register allocation but before inserting spill
-   * code.
-   */
-  static final class UpdateGCMaps1 extends CompilerPhase {
-
-    @Override
-    public boolean shouldPerform(OptOptions options) {
-      return true;
-    }
-
-    /**
-     * Return this instance of this phase. This phase contains no
-     * per-compilation instance fields.
-     * @param ir not used
-     * @return this
-     */
-    @Override
-    public CompilerPhase newExecution(IR ir) {
-      return this;
-    }
-
-    @Override
-    public String getName() {
-      return "Update GCMaps 1";
-    }
-
-    @Override
-    public boolean printingEnabled(OptOptions options, boolean before) {
-      return false;
-    }
-
-    /**
-     *  Iterate over the IR-based GC map collection and for each entry
-     *  replace the symbolic reg with the real reg or spill it was allocated
-     *  @param ir the IR
-     */
-    @Override
-    public void perform(IR ir) {
-
-      for (GCIRMapElement GCelement : ir.MIRInfo.gcIRMap) {
-        if (GC_DEBUG) {
-          VM.sysWrite("GCelement " + GCelement);
-        }
-
-        for (RegSpillListElement elem : GCelement.regSpillList()) {
-          Register symbolic = elem.getSymbolicReg();
-
-          if (GC_DEBUG) {
-            VM.sysWrite("get location for " + symbolic + '\n');
-          }
-
-          if (symbolic.isAllocated()) {
-            Register ra = RegisterAllocatorState.getMapping(symbolic);
-            elem.setRealReg(ra);
-            if (GC_DEBUG) { VM.sysWrite(ra + "\n"); }
-
-          } else if (symbolic.isSpilled()) {
-            int spill = symbolic.getSpillAllocated();
-            elem.setSpill(spill);
-            if (GC_DEBUG) { VM.sysWrite(spill + "\n"); }
-          } else {
-            OptimizingCompilerException.UNREACHABLE("LinearScan", "register not alive:", symbolic.toString());
-          }
-        }
-      }
     }
   }
 
