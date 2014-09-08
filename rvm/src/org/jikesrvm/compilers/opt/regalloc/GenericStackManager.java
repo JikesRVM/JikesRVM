@@ -250,7 +250,7 @@ public abstract class GenericStackManager extends IRTools {
    * If so, the following holds a pointer to some information from linear
    * scan analysis.
    */
-  private LinearScan.ActiveSet activeSet = null;
+  private ActiveSet activeSet = null;
 
   /**
    * Replaces all occurrences of register r1 in an instruction with register
@@ -1046,7 +1046,7 @@ public abstract class GenericStackManager extends IRTools {
    *
    * @param set information from linear scan analysis (may be {@code null})
    */
-  public void insertSpillCode(LinearScan.ActiveSet set) {
+  public void insertSpillCode(ActiveSet set) {
     if (USE_LINEAR_SCAN) {
       activeSet = set;
     }
