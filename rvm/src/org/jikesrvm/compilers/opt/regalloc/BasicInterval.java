@@ -26,11 +26,11 @@ class BasicInterval {
   /**
    * DFN of the beginning instruction of this interval
    */
-  final int begin;
+  protected final int begin;
   /**
    * DFN of the last instruction of this interval
    */
-  int end;
+  protected int end;
 
   BasicInterval(int begin, int end) {
     this.begin = begin;
