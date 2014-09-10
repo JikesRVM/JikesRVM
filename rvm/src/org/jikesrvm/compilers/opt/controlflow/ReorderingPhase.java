@@ -181,13 +181,14 @@ public final class ReorderingPhase extends CompilerPhase {
     int numBlocks = 0;
     TreeSet<Edge> edges = new TreeSet<Edge>();
     LinkedHashSet<BasicBlock> chainHeads = new LinkedHashSet<BasicBlock>();
+    HashMap<BasicBlock, BasicBlock> associatedChain = new HashMap<BasicBlock, BasicBlock>();
     BasicBlock entry = ir.cfg.entry();
     if (VM.VerifyAssertions) VM._assert(ir.cfg.entry() == ir.cfg.firstInCodeOrder());
 
     for (BasicBlock bb = entry; bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       numBlocks++;
       chainHeads.add(bb);
-      bb.setScratchObject(bb);
+      associatedChain.put(bb, bb);
       BasicBlock ft = bb.getFallThroughBlock();
       if (ft != null) {
         bb.appendInstruction(Goto.create(GOTO, ft.makeJumpTarget()));
@@ -219,8 +220,8 @@ public final class ReorderingPhase extends CompilerPhase {
         if (DEBUG) VM.sysWriteln("\tTarget is not at start of a chain");
         continue;
       }
-      Object sourceChain = e.source.getScratchObject();
-      Object targetChain = e.target.getScratchObject();
+      BasicBlock sourceChain = associatedChain.get(e.source);
+      BasicBlock targetChain = associatedChain.get(e.target);
       if (sourceChain == targetChain) {
         if (DEBUG) VM.sysWriteln("\tSource and target are in same chain");
         continue;
@@ -230,9 +231,9 @@ public final class ReorderingPhase extends CompilerPhase {
       ir.cfg.linkInCodeOrder(e.source, e.target);
       // Yuck....we should really use near-linear time union find here
       // Doing this crappy thing makes us O(N^2) in the worst case.
-      BasicBlock newChain = (BasicBlock) sourceChain;
+      BasicBlock newChain = sourceChain;
       for (BasicBlock ptr = e.target; ptr != null; ptr = ptr.nextBasicBlockInCodeOrder()) {
-        ptr.setScratchObject(newChain);
+        associatedChain.put(ptr, newChain);
       }
     }
 
@@ -245,8 +246,8 @@ public final class ReorderingPhase extends CompilerPhase {
 
     // (3) Summarize inter-chain edges.
     for (Edge e : edges) {
-      Object sourceChain = e.source.getScratchObject();
-      Object targetChain = e.target.getScratchObject();
+      BasicBlock sourceChain = associatedChain.get(e.source);
+      BasicBlock targetChain = associatedChain.get(e.target);
       if (sourceChain != targetChain) {
         ChainInfo sourceInfo = chainInfo.get(sourceChain);
         ChainInfo targetInfo = chainInfo.get(targetChain);
