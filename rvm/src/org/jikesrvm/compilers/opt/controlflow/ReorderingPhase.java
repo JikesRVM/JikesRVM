@@ -252,10 +252,10 @@ public final class ReorderingPhase extends CompilerPhase {
         ChainInfo sourceInfo = chainInfo.get(sourceChain);
         ChainInfo targetInfo = chainInfo.get(targetChain);
         if (DEBUG) VM.sysWriteln("Inter-chain edge " + sourceChain + "->" + targetChain + " (" + e.weight + ")");
-        Object value = sourceInfo.outWeights.get(targetInfo);
+        Float value = sourceInfo.outWeights.get(targetInfo);
         float weight = e.weight;
         if (value != null) {
-          weight += (Float) value;
+          weight += value;
         }
         sourceInfo.outWeights.put(targetInfo, weight);
         targetInfo.inWeight += e.weight;
@@ -290,7 +290,7 @@ public final class ReorderingPhase extends CompilerPhase {
       if (chainInfo.isEmpty()) break; // no chains left to place.
       for (ChainInfo target : nextChoice.outWeights.keySet()) {
         if (DEBUG) VM.sysWrite("\toutedge " + target);
-        float weight = (Float) nextChoice.outWeights.get(target);
+        float weight = nextChoice.outWeights.get(target);
         if (DEBUG) VM.sysWriteln(" = " + weight);
         target.placedWeight += weight;
         target.inWeight -= weight;
@@ -344,7 +344,7 @@ public final class ReorderingPhase extends CompilerPhase {
     final BasicBlock head;
     float placedWeight;
     float inWeight;
-    final HashMap<ChainInfo, Object> outWeights = new HashMap<ChainInfo, Object>();
+    final HashMap<ChainInfo, Float> outWeights = new HashMap<ChainInfo, Float>();
 
     ChainInfo(BasicBlock h) {
       head = h;
