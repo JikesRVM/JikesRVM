@@ -367,7 +367,7 @@ public final class ReorderingPhase extends CompilerPhase {
 
     @Override
     public String toString() {
-      return weight + ": " + source.toString() + " -> " + target.toString();
+      return weight + ": " + source + " -> " + target;
     }
 
     @Override
