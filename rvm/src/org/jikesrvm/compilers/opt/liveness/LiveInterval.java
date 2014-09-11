@@ -37,7 +37,7 @@ final class LiveInterval {
    * @param inst the instruction where the register's live range ends,
    *             null represents the end of the basic block
    */
-  public static void createEndLiveRange(LiveSet set, BasicBlock block, Instruction inst) {
+  public void createEndLiveRange(LiveSet set, BasicBlock block, Instruction inst) {
     if (DEBUG) {
       if (inst == null) {
         System.out.println("The following are live on exit of block " + block.getNumber() + "\n" + set);
@@ -69,7 +69,7 @@ final class LiveInterval {
    * @param block The basic block
    * @param inst  The end instruction to use, if we have to create a neode.
    */
-  public static void createEndLiveRange(Register reg, BasicBlock block, Instruction inst) {
+  public void createEndLiveRange(Register reg, BasicBlock block, Instruction inst) {
 
     if (DEBUG) {
       System.out.println("Marking Register " +
@@ -99,7 +99,7 @@ final class LiveInterval {
    * @param inst  the "begin" instruction
    * @param block the basic block of interest
    */
-  public static void setStartLiveRange(Register reg, Instruction inst, BasicBlock block) {
+  public void setStartLiveRange(Register reg, Instruction inst, BasicBlock block) {
     if (DEBUG) {
       System.out.println("Marking Register " +
                          reg +
@@ -158,7 +158,7 @@ final class LiveInterval {
    *
    * @param block the basic block of interest
    */
-  public static void moveUpwardExposedRegsToFront(BasicBlock block) {
+  public void moveUpwardExposedRegsToFront(BasicBlock block) {
 
     LiveIntervalElement prev = block.getFirstLiveIntervalElement();
     if (prev == null) {
@@ -194,7 +194,7 @@ final class LiveInterval {
    * @return <code>true</code> if it does or <code>false</code>
    *         if it does not
    */
-  private static boolean containsUnresolvedElement(BasicBlock block, Register reg) {
+  private boolean containsUnresolvedElement(BasicBlock block, Register reg) {
 
     if (DEBUG) {
       System.out.println("containsUnresolvedElement called, block: " + block + " register: " + reg);
@@ -215,7 +215,7 @@ final class LiveInterval {
    *
    * @param block the block
    */
-  public static void printLiveIntervalList(BasicBlock block) {
+  public void printLiveIntervalList(BasicBlock block) {
     System.out.println("Live Interval List for " + block);
     for (LiveIntervalElement elem = block.getFirstLiveIntervalElement(); elem != null; elem = elem.getNext()) {
       System.out.println("  " + elem);
