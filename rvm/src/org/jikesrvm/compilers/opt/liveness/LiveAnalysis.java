@@ -147,7 +147,7 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   private ArrayList<LiveIntervalElement>[] registerMap;
 
-  private LiveInterval liveInterval;
+  private LiveInterval liveIntervals;
 
   /** Debugging info */
   private static final boolean DEBUG = false;
@@ -244,7 +244,7 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   @Override
   public void perform(IR ir) {
-    liveInterval = new LiveInterval();
+    liveIntervals = new LiveInterval();
 
     // Debugging information
     // Live Intervals, GC Maps, and fixed-point results
@@ -331,6 +331,7 @@ public final class LiveAnalysis extends CompilerPhase {
 
     // record whether or not we stored liveness information for handlers.
     ir.setHandlerLivenessComputed(storeLiveAtHandlers);
+    ir.setLivenessInformation(liveIntervals);
   }
 
   public Iterator<LiveIntervalElement> iterateLiveIntervals(Register r) {
@@ -372,7 +373,7 @@ public final class LiveAnalysis extends CompilerPhase {
     registerMap = new ArrayList[ir.regpool.getNumberOfSymbolicRegisters()];
     for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock bb = e.nextElement();
-      for (Enumeration<LiveIntervalElement> i = bb.enumerateLiveIntervals(); i.hasMoreElements();) {
+      for (Enumeration<LiveIntervalElement> i = liveIntervals.enumerateLiveIntervals(bb); i.hasMoreElements();) {
         LiveIntervalElement lie = i.nextElement();
         lie.setBasicBlock(bb);
         if (lie.getRegister().isSymbolic()) {
@@ -784,11 +785,8 @@ public final class LiveAnalysis extends CompilerPhase {
                            local);
       }
 
-      // initialize live range for this block
-      block.initializeLiveRange();
-
       // For each item in "local", create live interval info for this block.
-      liveInterval.createEndLiveRange(local, block, null);
+      liveIntervals.createEndLiveRange(local, block, null);
 
       // Process the block, an instruction at a time.
       for (Instruction inst = block.lastInstruction(); inst != block.firstInstruction(); inst =
@@ -807,7 +805,7 @@ public final class LiveAnalysis extends CompilerPhase {
 
           // For each item in "exceptionBlockSummary", create live interval
           // info for this block.
-          liveInterval.createEndLiveRange(exceptionBlockSummary, block, inst);
+          liveIntervals.createEndLiveRange(exceptionBlockSummary, block, inst);
         }
 
         // compute In set for this instruction & GC point info
@@ -830,7 +828,7 @@ public final class LiveAnalysis extends CompilerPhase {
               }
 
               // mark this instruction as the start of the live range for reg
-              liveInterval.setStartLiveRange(regOp.getRegister(), inst, block);
+              liveIntervals.setStartLiveRange(regOp.getRegister(), inst, block);
             }
           } // if operand is a Register
         }   // defs
@@ -885,7 +883,7 @@ public final class LiveAnalysis extends CompilerPhase {
                 System.out.println("local: " + local);
               }
               // mark this instruction as the end of the live range for reg
-              liveInterval.createEndLiveRange(regOp.getRegister(), block, inst);
+              liveIntervals.createEndLiveRange(regOp.getRegister(), block, inst);
             }
           }     // if operand is a Register
         }     // uses
@@ -903,7 +901,7 @@ public final class LiveAnalysis extends CompilerPhase {
 
       // The register allocator prefers that any registers that are live
       // on entry be listed first.  This call makes it so.
-      liveInterval.moveUpwardExposedRegsToFront(block);
+      liveIntervals.moveUpwardExposedRegsToFront(block);
       if (createGCMaps) {
         // empty the stack, insert the information into the map
         while (!blockStack.isEmpty()) {
@@ -1034,7 +1032,7 @@ public final class LiveAnalysis extends CompilerPhase {
                        ir.method.getName());
     for (BasicBlock block = ir.firstBasicBlockInCodeOrder(); block != null; block =
         block.nextBasicBlockInCodeOrder()) {
-      liveInterval.printLiveIntervalList(block);
+      liveIntervals.printLiveIntervalList(block);
     }
     System.out.println("  *+*+*+*+*+ End Final Live Intervals\n");
   }
@@ -1070,7 +1068,7 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   HashSet<Register> getLiveRegistersOnExit(BasicBlock bb) {
     HashSet<Register> result = new HashSet<Register>(10);
-    for (Enumeration<LiveIntervalElement> e = bb.enumerateLiveIntervals(); e.hasMoreElements();) {
+    for (Enumeration<LiveIntervalElement> e = liveIntervals.enumerateLiveIntervals(bb); e.hasMoreElements();) {
       LiveIntervalElement lie = e.nextElement();
       Instruction end = lie.getEnd();
       if (end == null) result.add(lie.getRegister());
@@ -1085,7 +1083,7 @@ public final class LiveAnalysis extends CompilerPhase {
    */
   HashSet<Register> getLiveRegistersOnEntry(BasicBlock bb) {
     HashSet<Register> result = new HashSet<Register>(10);
-    for (Enumeration<LiveIntervalElement> e = bb.enumerateLiveIntervals(); e.hasMoreElements();) {
+    for (Enumeration<LiveIntervalElement> e = liveIntervals.enumerateLiveIntervals(bb); e.hasMoreElements();) {
       LiveIntervalElement lie = e.nextElement();
       Instruction begin = lie.getBegin();
       if (begin == null) result.add(lie.getRegister());

@@ -57,6 +57,7 @@ import org.jikesrvm.compilers.opt.ir.operand.HeapOperand;
 import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
+import org.jikesrvm.compilers.opt.liveness.LiveInterval;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
 import org.jikesrvm.compilers.opt.runtimesupport.OptCompiledMethod;
 import org.jikesrvm.compilers.opt.ssa.HeapVariable;
@@ -230,6 +231,11 @@ public final class IR {
    *  Was liveness for handlers computed?
    */
   private boolean handlerLivenessComputed = false;
+
+  /**
+   * Information about liveness, {@code null} if not yet computed.
+   */
+  private LiveInterval livenessInformation;
 
   /**
    * Pointer to the HIRInfo for this method.
@@ -671,6 +677,14 @@ public final class IR {
 
   public void setHandlerLivenessComputed(boolean value) {
     handlerLivenessComputed = value;
+  }
+
+  public LiveInterval getLivenessInformation() {
+    return livenessInformation;
+  }
+
+  public void setLivenessInformation(LiveInterval liveInterval) {
+    this.livenessInformation = liveInterval;
   }
 
   /**
@@ -1429,4 +1443,5 @@ public final class IR {
     VM.sysWriteln("VERIFY: " + where + " " + msg);
     throw new OptimizingCompilerException("VERIFY: " + where, msg);
   }
+
 }

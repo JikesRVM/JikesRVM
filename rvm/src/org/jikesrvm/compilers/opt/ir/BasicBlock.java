@@ -37,8 +37,6 @@ import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.operand.BasicBlockOperand;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
-import org.jikesrvm.compilers.opt.liveness.LiveIntervalEnumeration;
-import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 import org.jikesrvm.compilers.opt.util.SortedGraphNode;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphEdge;
 import org.jikesrvm.compilers.opt.util.SpaceEffGraphNode;
@@ -294,45 +292,6 @@ public class BasicBlock extends SortedGraphNode {
       VM.sysWrite(inst.bcIndex + ":\t" + inst + "\n");
     }
     VM.sysWrite("\n");
-  }
-
-  /**
-   * Clear the scratch object from previous uses
-   * (rename scratchObject manipulations for GCMaps/RegAlloc).
-   */
-  public final void initializeLiveRange() {
-    setScratchObject(null);
-  }
-
-  /**
-   * @return an enumeration of the live interval elements for this basic
-   * block.
-   */
-  public final LiveIntervalEnumeration enumerateLiveIntervals() {
-    return new LiveIntervalEnumeration((LiveIntervalElement) getScratchObject());
-  }
-
-  /**
-   * Returns NULL or an LiveIntervalElement (GCMaps/RegAlloc).
-   * @return scratchObject cast as an LiveIntevalElement
-   */
-  public final LiveIntervalElement getFirstLiveIntervalElement() {
-    if (getScratchObject() != null) {
-      return (LiveIntervalElement) getScratchObject();
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * Prepend a live interval element to the list being maintained
-   * in scratchObject (GCMaps/RegAlloc).
-   *
-   * @param li the live interval element to add
-   */
-  public final void prependLiveIntervalElement(LiveIntervalElement li) {
-    li.setNext((LiveIntervalElement) getScratchObject());
-    setScratchObject(li);
   }
 
   /**

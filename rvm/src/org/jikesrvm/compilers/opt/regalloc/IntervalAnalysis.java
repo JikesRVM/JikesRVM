@@ -26,6 +26,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.liveness.LiveInterval;
 
 /**
  * phase to compute linear scan intervals.
@@ -116,7 +117,8 @@ public final class IntervalAnalysis extends CompilerPhase {
     for (BasicBlock bb = listOfBlocks; bb != null; bb = (BasicBlock) bb.nextSorted) {
 
       // visit each live interval for this basic block
-      for (LiveIntervalElement live = bb.getFirstLiveIntervalElement(); live != null; live = live.getNext()) {
+      LiveInterval liveIntervals = ir.getLivenessInformation();
+      for (LiveIntervalElement live = liveIntervals.getFirstLiveIntervalElement(bb); live != null; live = live.getNext()) {
 
         // check that we process live intervals in order of increasing
         // begin.

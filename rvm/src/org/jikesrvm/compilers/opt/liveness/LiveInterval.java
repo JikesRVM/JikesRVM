@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.compilers.opt.liveness;
 
+import java.util.HashMap;
+
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
@@ -19,11 +21,17 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
 
 /**
- * This class contains useful methods for managing liveIntervals.
+ * This class contains liveness information.
  */
-final class LiveInterval {
+public final class LiveInterval {
 
   private static final boolean DEBUG = false;
+
+  private HashMap<BasicBlock, LiveIntervalElement> liveIntervals;
+
+  public LiveInterval() {
+    liveIntervals = new HashMap<BasicBlock, LiveIntervalElement>();
+  }
 
   /**
    * This method iterates over each element in the the passed live set.
@@ -83,10 +91,14 @@ final class LiveInterval {
 
     if (!containsUnresolvedElement(block, reg)) {
       LiveIntervalElement elem = new LiveIntervalElement(reg, null, inst);
-
-      // add elem to the list for the basic block
-      block.prependLiveIntervalElement(elem);
+      prependLiveIntervalElement(block, elem);
     }
+  }
+
+  private void prependLiveIntervalElement(BasicBlock block,
+      LiveIntervalElement elem) {
+    elem.setNext(liveIntervals.get(block));
+    liveIntervals.put(block, elem);
   }
 
   /**
@@ -110,7 +122,7 @@ final class LiveInterval {
     }
 
     LiveIntervalElement prev = null;
-    LiveIntervalElement elem = block.getFirstLiveIntervalElement();
+    LiveIntervalElement elem = getFirstLiveIntervalElement(block);
     while (elem != null) {
       if (elem.getRegister() == reg && elem.getBegin() == null) {
         break;
@@ -132,7 +144,7 @@ final class LiveInterval {
         prev.setNext(elem.getNext());
 
         // add it to the begining
-        block.prependLiveIntervalElement(elem);
+        prependLiveIntervalElement(block, elem);
       }
 
       // if prev == null, the element is already first in the list!
@@ -143,7 +155,7 @@ final class LiveInterval {
       // In this case, we create a LiveIntervalElement node with begining
       // and ending instruction "inst"
       LiveIntervalElement newElem = new LiveIntervalElement(reg, inst, inst);
-      block.prependLiveIntervalElement(newElem);
+      prependLiveIntervalElement(block, newElem);
     }
 
     if (DEBUG) {
@@ -160,7 +172,7 @@ final class LiveInterval {
    */
   public void moveUpwardExposedRegsToFront(BasicBlock block) {
 
-    LiveIntervalElement prev = block.getFirstLiveIntervalElement();
+    LiveIntervalElement prev = getFirstLiveIntervalElement(block);
     if (prev == null) {
       return;
     }
@@ -174,7 +186,7 @@ final class LiveInterval {
         prev.setNext(elem.getNext());
 
         // add it to the begining, se
-        block.prependLiveIntervalElement(elem);
+        prependLiveIntervalElement(block, elem);
 
         // the next victum is the *new* one after prev
         elem = prev.getNext();
@@ -201,13 +213,21 @@ final class LiveInterval {
       printLiveIntervalList(block);
     }
 
-    for (LiveIntervalElement elem = block.getFirstLiveIntervalElement(); elem != null; elem = elem.getNext()) {
+    for (LiveIntervalElement elem = getFirstLiveIntervalElement(block); elem != null; elem = elem.getNext()) {
       // if we got an element, down case it to LiveIntervalElement
       if (elem.getRegister() == reg && elem.getBegin() == null) {
         return true;
       }
     }
     return false;
+  }
+
+  public LiveIntervalElement getFirstLiveIntervalElement(BasicBlock bb) {
+    return liveIntervals.get(bb);
+  }
+
+  public LiveIntervalEnumeration enumerateLiveIntervals(BasicBlock bb) {
+    return new LiveIntervalEnumeration(liveIntervals.get(bb));
   }
 
   /**
@@ -217,7 +237,7 @@ final class LiveInterval {
    */
   public void printLiveIntervalList(BasicBlock block) {
     System.out.println("Live Interval List for " + block);
-    for (LiveIntervalElement elem = block.getFirstLiveIntervalElement(); elem != null; elem = elem.getNext()) {
+    for (LiveIntervalElement elem = getFirstLiveIntervalElement(block); elem != null; elem = elem.getNext()) {
       System.out.println("  " + elem);
     }
   }

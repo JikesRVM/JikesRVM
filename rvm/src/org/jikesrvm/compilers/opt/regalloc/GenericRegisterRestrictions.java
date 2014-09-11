@@ -16,14 +16,18 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.CALL_SAVE_VOLATILE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
+
 import org.jikesrvm.compilers.opt.ir.Register;
+import org.jikesrvm.compilers.opt.liveness.LiveInterval;
 import org.jikesrvm.compilers.opt.util.BitSet;
 
 /**
@@ -65,10 +69,12 @@ public abstract class GenericRegisterRestrictions {
    * @param ir the IR to process
    */
   public final void init(IR ir) {
+    LiveInterval livenessInformation = ir.getLivenessInformation();
+
     // process each basic block
     for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock b = e.nextElement();
-      processBlock(b);
+      processBlock(b, livenessInformation);
     }
   }
 
@@ -81,14 +87,15 @@ public abstract class GenericRegisterRestrictions {
    * instruction is stored in its <code>scratch</code> field.
    *
    * @param bb the bb to process
+   * @param liveness liveness information for the IR
    */
-  private void processBlock(BasicBlock bb) {
+  private void processBlock(BasicBlock bb, LiveInterval liveness) {
     ArrayList<LiveIntervalElement> symbolic = new ArrayList<LiveIntervalElement>(20);
     ArrayList<LiveIntervalElement> physical = new ArrayList<LiveIntervalElement>(20);
 
     // 1. walk through the live intervals and identify which correspond to
     // physical and symbolic registers
-    for (Enumeration<LiveIntervalElement> e = bb.enumerateLiveIntervals(); e.hasMoreElements();) {
+    for (Enumeration<LiveIntervalElement> e = liveness.enumerateLiveIntervals(bb); e.hasMoreElements();) {
       LiveIntervalElement li = e.nextElement();
       Register r = li.getRegister();
       if (r.isPhysical()) {
