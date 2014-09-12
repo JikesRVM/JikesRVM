@@ -260,7 +260,7 @@ public class CompilerDNA {
       token = parser.nextToken();
 
       // convert token to a double
-      valueHolder[i] = Double.valueOf(token);
+      valueHolder[i] = Double.parseDouble(token);
     }
   }
 
