@@ -856,7 +856,6 @@ public class CommandLineArgs {
         buflen += 1024;
         buf = new byte[buflen];
       }
-      if (VM.VerifyAssertions) VM._assert(cnt != -1);
       /*
        * Implementation note: Do NOT use the line below, which uses the
        * three-argument constructor for String, the one that respects the native
