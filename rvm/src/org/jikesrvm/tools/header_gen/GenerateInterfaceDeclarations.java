@@ -266,15 +266,13 @@ public class GenerateInterfaceDeclarations {
       }
     }
 
-    // Sort them in ascending offset order
-    //
-    SortableField[] fields = new SortableField[fieldCount];
+    RVMField[] fields = new RVMField[fieldCount];
     for (int i = 0, j = 0; i < allFields.length; i++) {
       if (!allFields[i].isStatic()) {
-        fields[j++] = new SortableField(allFields[i]);
+        fields[j++] = allFields[i];
       }
     }
-    Arrays.sort(fields);
+    Arrays.sort(fields, new AscendingOffsetComparator());
 
     // Emit field declarations
     //
@@ -288,13 +286,13 @@ public class GenerateInterfaceDeclarations {
     // Header Space for objects
     int startOffset = ObjectModel.objectStartOffset(cls);
     Offset current = Offset.fromIntSignExtend(startOffset);
-    for (int i = 0; current.sLT(fields[0].f.getOffset()); i++) {
+    for (int i = 0; current.sLT(fields[0].getOffset()); i++) {
       pln("  uint32_t    headerPadding" + i + ";\n");
       current = current.plus(4);
     }
 
     for (int i = 0; i < fields.length; i++) {
-      RVMField field = fields[i].f;
+      RVMField field = fields[i];
       TypeReference t = field.getType();
       Offset offset = field.getOffset();
       String name = field.getName().toString();
