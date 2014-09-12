@@ -144,7 +144,9 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
         try {
           return exceptionTypes[idx++];
         } catch (ArrayIndexOutOfBoundsException e) {
-          throw new java.util.NoSuchElementException("ExceptionHandlerBasicBlock.getExceptionTypes");
+          java.util.NoSuchElementException nse = new java.util.NoSuchElementException("ExceptionHandlerBasicBlock.getExceptionTypes");
+          nse.initCause(e);
+          throw nse;
         }
       }
     };

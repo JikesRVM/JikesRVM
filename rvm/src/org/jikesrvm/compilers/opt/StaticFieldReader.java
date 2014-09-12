@@ -131,18 +131,20 @@ public abstract class StaticFieldReader {
           return null;
         }
       } catch (IllegalArgumentException e) {
-        throw new NoSuchFieldException(field.toString());
+        throwNoSuchFieldExceptionWithCause(field, e);
       } catch (IllegalAccessException e) {
-        throw new NoSuchFieldException(field.toString());
+        throwNoSuchFieldExceptionWithCause(field, e);
       } catch (NoSuchFieldError e) {
-        throw new NoSuchFieldException(field.toString());
+        throwNoSuchFieldExceptionWithCause(field, e);
       } catch (ClassNotFoundException e) {
-        throw new NoSuchFieldException(field.toString());
+        throwNoSuchFieldExceptionWithCause(field, e);
       } catch (NoClassDefFoundError e) {
-        throw new NoSuchFieldException(field.toString());
+        throwNoSuchFieldExceptionWithCause(field, e);
       } catch (IllegalAccessError e) {
-        throw new NoSuchFieldException(field.toString());
+        throwNoSuchFieldExceptionWithCause(field, e);
       }
+      assertNotReached();
+      return null;
     }
   }
 
@@ -236,10 +238,12 @@ public abstract class StaticFieldReader {
           throw new OptimizingCompilerException("Unsupported type " + field + "\n");
         }
       } catch (IllegalAccessException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       } catch (IllegalArgumentException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       }
+      assertNotReached();
+      return 0;
     }
   }
 
@@ -258,10 +262,12 @@ public abstract class StaticFieldReader {
       try {
         return getJDKField(field).getFloat(null);
       } catch (IllegalAccessException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       } catch (IllegalArgumentException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       }
+      assertNotReached();
+      return 0f;
     }
   }
 
@@ -279,10 +285,12 @@ public abstract class StaticFieldReader {
       try {
         return getJDKField(field).getLong(null);
       } catch (IllegalAccessException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       } catch (IllegalArgumentException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       }
+      assertNotReached();
+      return 0L;
     }
   }
 
@@ -301,10 +309,12 @@ public abstract class StaticFieldReader {
       try {
         return getJDKField(field).getDouble(null);
       } catch (IllegalAccessException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       } catch (IllegalArgumentException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       }
+      assertNotReached();
+      return 0d;
     }
   }
 
@@ -322,10 +332,12 @@ public abstract class StaticFieldReader {
       try {
         return getJDKField(field).get(null);
       } catch (IllegalAccessException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       } catch (IllegalArgumentException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       }
+      assertNotReached();
+      return null;
     }
   }
 
@@ -355,10 +367,12 @@ public abstract class StaticFieldReader {
           return Address.zero();
         }
       } catch (IllegalAccessException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       } catch (IllegalArgumentException e) {
-        throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+        throwOptimizingCompilerExceptionBecauseOfIllegalAccess(field, e);
       }
+      assertNotReached();
+      return Address.zero();
     }
   }
 
@@ -410,15 +424,38 @@ public abstract class StaticFieldReader {
       f.setAccessible(true);
       return f;
     } catch (NoSuchFieldError e) {
-      throw new NoSuchFieldException(field.toString());
+      throwNoSuchFieldExceptionWithCause(field, e);
     } catch (ClassNotFoundException e) {
-      throw new NoSuchFieldException(field.toString());
+      throwNoSuchFieldExceptionWithCause(field, e);
     } catch (NoClassDefFoundError e) {
-      throw new NoSuchFieldException(field.toString());
+      throwNoSuchFieldExceptionWithCause(field, e);
     } catch (IllegalAccessError e) {
-      throw new NoSuchFieldException(field.toString());
+      throwNoSuchFieldExceptionWithCause(field, e);
     } catch (UnsatisfiedLinkError e) {
-      throw new NoSuchFieldException(field.toString());
+      throwNoSuchFieldExceptionWithCause(field, e);
+    }
+    assertNotReached();
+    return null;
+  }
+
+  private static void throwOptimizingCompilerExceptionBecauseOfIllegalAccess(
+      RVMField field, Throwable e) {
+    throw new OptimizingCompilerException("Accessing " + field + " caused " + e);
+  }
+
+  private static void throwNoSuchFieldExceptionWithCause(RVMField field, Throwable cause)
+      throws NoSuchFieldException {
+    NoSuchFieldException e = new NoSuchFieldException(field.toString());
+    e.initCause(cause);
+    throw e;
+  }
+
+  private static void assertNotReached() {
+    if (VM.VerifyAssertions) {
+      VM._assert(VM.NOT_REACHED, "Exception should have been thrown beforehand");
+    } else {
+      VM.sysFail("An exception should have been thrown before this point was reached!");
     }
   }
+
 }

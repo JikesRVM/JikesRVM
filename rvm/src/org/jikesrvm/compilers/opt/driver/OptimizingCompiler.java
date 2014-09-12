@@ -76,10 +76,11 @@ public final class OptimizingCompiler implements Callbacks.StartupMonitor {
       e.isFatal = true;
       throw e;
     } catch (Throwable e) {
-      VM.sysWriteln(e.toString());
-      throw new OptimizingCompilerException("Compiler",
-                                                "untrapped failure during init, " +
-                                                " Converting to OptimizingCompilerException");
+      OptimizingCompilerException oe = new OptimizingCompilerException("Compiler",
+          "untrapped failure during init, " +
+          " Converting to OptimizingCompilerException");
+      oe.initCause(e);
+      throw oe;
     }
   }
 

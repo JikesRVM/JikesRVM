@@ -171,7 +171,9 @@ public class ClassFileReader {
         }
       }
     } catch (java.io.UTFDataFormatException x) {
-      throw new ClassFormatError(x.toString());
+      ClassFormatError error = new ClassFormatError(x.toString());
+      error.initCause(x);
+      throw error;
     }
 
     //

@@ -108,7 +108,7 @@ public final class UnboxedType extends RVMType {
     try {
       classForType = Class.forName(name.classNameFromDescriptor());
     } catch (Exception e) {
-      throw new Error("Error getting java.lang.Class wrapper for type " + name.classNameFromDescriptor());
+      throw new Error("Error getting java.lang.Class wrapper for type " + name.classNameFromDescriptor(), e);
     }
 
     return new UnboxedType(tr, classForType, name, stackWords, memoryBytes);

@@ -107,7 +107,9 @@ public final class ExceptionHandlerBasicBlockBag {
         try {
           ans = cur_bag.local[cur_idx++];
         } catch (NullPointerException e) {
-          throw new java.util.NoSuchElementException();
+          java.util.NoSuchElementException nse = new java.util.NoSuchElementException();
+          nse.initCause(e);
+          throw nse;
         }
         // Now advance state to point to next element.
         if (cur_idx == cur_bag.local.length) {

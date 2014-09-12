@@ -140,7 +140,7 @@ final class VMCommonLibrarySupport {
         .findDeclaredField(Atom.findOrCreateUnicodeAtom(fieldName));
       field.setObjectValueUnchecked(null, stream);
     } catch (Exception e) {
-      throw new Error(e.toString());
+      throw new Error("Error setting stream field " + fieldName + " of java.lang.System", e);
     }
   }
   /**
