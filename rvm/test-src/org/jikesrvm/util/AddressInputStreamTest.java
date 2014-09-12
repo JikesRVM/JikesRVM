@@ -86,7 +86,7 @@ public class AddressInputStreamTest {
 
   @Test
   public void availableForNewlyCreatedRegionIsEqualToRegionLength() throws IOException {
-    assertEquals(createEmptyRegion().available(), 0);
+    assertEquals(0, createEmptyRegion().available());
     int length = 13;
     AddressInputStream aRegion = new AddressInputStream(Address.zero(), Extent.fromIntZeroExtend(length));
     toBeClosedAfterTestMethodRuns = aRegion;
