@@ -121,14 +121,13 @@ public class CodePatchSyncRequestVisitorTest {
      }
     }
 
-    protected abstract void idleImpl() throws InterruptedException, IllegalMonitorStateException;
+    protected abstract void idleImpl() throws InterruptedException;
 
   }
 
   private static class WaitingThread extends IdlingThread {
     @Override
-    protected void idleImpl() throws InterruptedException,
-        IllegalMonitorStateException {
+    protected void idleImpl() throws InterruptedException {
       while (true) {
         wait();
       }
@@ -137,16 +136,14 @@ public class CodePatchSyncRequestVisitorTest {
 
   private static class SleepingThread extends IdlingThread {
     @Override
-    protected void idleImpl() throws InterruptedException,
-        IllegalMonitorStateException {
+    protected void idleImpl() throws InterruptedException {
       sleep(Long.MAX_VALUE);
     }
   }
 
   private static class ParkedThread extends IdlingThread {
     @Override
-    protected void idleImpl() throws InterruptedException,
-        IllegalMonitorStateException {
+    protected void idleImpl() throws InterruptedException {
       try {
         RVMThread.getCurrentThread().park(true, Long.MAX_VALUE);
       } catch (Throwable e) {
