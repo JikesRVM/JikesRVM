@@ -126,10 +126,13 @@ public class CodePatchSyncRequestVisitorTest {
   }
 
   private static class WaitingThread extends IdlingThread {
+
+    private Object waitOnMe = new Object();
+
     @Override
     protected void idleImpl() throws InterruptedException {
       while (true) {
-        wait();
+        waitOnMe.wait();
       }
     }
   }
