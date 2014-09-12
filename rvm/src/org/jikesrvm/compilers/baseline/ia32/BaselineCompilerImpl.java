@@ -2891,7 +2891,7 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     int instanceSize = typeRef.getInstanceSize();
     Offset tibOffset = typeRef.getTibOffset();
     int whichAllocator = MemoryManager.pickAllocator(typeRef, method);
-    int align = ObjectModel.getAlignment(typeRef, false);
+    int align = ObjectModel.getAlignment(typeRef);
     int offset = ObjectModel.getOffsetForAlignment(typeRef, false);
     int site = MemoryManager.getAllocationSite(true);
     asm.emitPUSH_Imm(instanceSize);
