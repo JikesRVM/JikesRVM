@@ -59,9 +59,6 @@ public abstract class DF_AbstractCell implements DF_LatticeCell {
   }
 
   @Override
-  public abstract String toString();
-
-  @Override
   public void addUse(DF_Equation eq) {
     uses.add(eq);
   }
