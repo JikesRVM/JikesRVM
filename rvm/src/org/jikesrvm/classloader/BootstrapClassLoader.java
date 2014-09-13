@@ -292,13 +292,13 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
       @Override
       public void process(ZipFile zf, ZipEntry ze) throws Exception {
         if (urls == null) urls = new Vector<URL>();
-        urls.addElement(new URL("jar", null, -1, "file:" + zf.getName() + "!/" + name));
+        urls.add(new URL("jar", null, -1, "file:" + zf.getName() + "!/" + name));
       }
 
       @Override
       public void process(File file) throws Exception {
         if (urls == null) urls = new Vector<URL>();
-        urls.addElement(new URL("file", null, -1, file.getName()));
+        urls.add(new URL("file", null, -1, file.getName()));
       }
     };
 

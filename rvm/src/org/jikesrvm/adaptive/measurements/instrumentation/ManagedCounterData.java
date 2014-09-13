@@ -215,7 +215,7 @@ public class ManagedCounterData {
       if (count > 0.0) {
         sum += count;
         String s = f.getName(i);
-        vec.addElement(new Counter(s, count));
+        vec.add(new Counter(s, count));
       }
     }
 
@@ -247,8 +247,8 @@ public class ManagedCounterData {
     for (int gap = n / 2; gap > 0; gap /= 2) {
       for (int i = gap; i < n; ++i) {
         for (int j = i - gap; j >= 0; j -= gap) {
-          double a = ((Counter) v.elementAt(j)).count;
-          double b = ((Counter) v.elementAt(j + gap)).count;
+          double a = ((Counter) v.get(j)).count;
+          double b = ((Counter) v.get(j + gap)).count;
           if (a >= b) break;
           swap(v, j, j + gap);
         }
@@ -258,9 +258,9 @@ public class ManagedCounterData {
 
   // Interchange vec[i] with vec[j]
   private <T> void swap(Vector<T> vec, int i, int j) {
-    T t = vec.elementAt(i);
-    vec.setElementAt(vec.elementAt(j), i);
-    vec.setElementAt(t, j);
+    T t = vec.get(i);
+    vec.set(i, vec.get(j));
+    vec.set(j, t);
   }
 
   /* -----   Implementation   ---- */

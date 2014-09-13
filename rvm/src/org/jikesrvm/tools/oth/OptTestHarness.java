@@ -212,12 +212,12 @@ class OptTestHarness {
     if (isBaseline) {
       // Method to be baseline compiled
       if (!baselineMethodVector.contains(method)) {
-        baselineMethodVector.addElement(method);
+        baselineMethodVector.add(method);
       }
     } else if (!optMethodVector.contains(method)) {
       // Method to be opt compiled
-      optMethodVector.addElement(method);
-      optOptionsVector.addElement(opts);
+      optMethodVector.add(method);
+      optOptionsVector.add(opts);
     }
   }
 
@@ -322,9 +322,9 @@ class OptTestHarness {
           Object[] reflectMethodArgs = new Object[argDesc.length];
           i = parseMethodArgs(argDesc, args, i, reflectMethodArgs);
           java.lang.reflect.Method reflectoid = java.lang.reflect.JikesRVMSupport.createMethod(method);
-          reflectoidVector.addElement(reflectoid);
-          reflectMethodVector.addElement(method);
-          reflectMethodArgsVector.addElement(reflectMethodArgs);
+          reflectoidVector.add(reflectoid);
+          reflectMethodVector.add(method);
+          reflectMethodArgsVector.add(reflectMethodArgs);
           options = options.dup();
         } else if (arg.equals("-main")) {
           EXECUTE_MAIN = true;
@@ -359,7 +359,7 @@ class OptTestHarness {
     System.out.println("Compiling " + size + " methods baseline");
     // Compile all methods in baseline vector
     for (int i = 0; i < size; i++) {
-      NormalMethod method = (NormalMethod) baselineMethodVector.elementAt(i);
+      NormalMethod method = (NormalMethod) baselineMethodVector.get(i);
       CompiledMethod cm = null;
       cm = BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
@@ -373,8 +373,8 @@ class OptTestHarness {
     size = optMethodVector.size();
     System.out.println("Compiling " + size + " methods opt");
     for (int i = 0; i < size; i++) {
-      NormalMethod method = (NormalMethod) optMethodVector.elementAt(i);
-      OptOptions opts = optOptionsVector.elementAt(i);
+      NormalMethod method = (NormalMethod) optMethodVector.get(i);
+      OptOptions opts = optOptionsVector.get(i);
       try {
         CompiledMethod cm = null;
         CompilationPlan cp =
@@ -410,9 +410,9 @@ class OptTestHarness {
 
       int size = reflectoidVector.size();
       for (int i = 0; i < size; i++) {
-        reflectoid = reflectoidVector.elementAt(i);
-        reflectMethodArgs = reflectMethodArgsVector.elementAt(i);
-        RVMMethod method = reflectMethodVector.elementAt(i);
+        reflectoid = reflectoidVector.get(i);
+        reflectMethodArgs = reflectMethodArgsVector.get(i);
+        RVMMethod method = reflectMethodVector.get(i);
         System.out.println("**** START OF EXECUTION of " + method + " ****.");
         Object result = null;
         if (perf != null) perf.reset();

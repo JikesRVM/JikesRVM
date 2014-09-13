@@ -174,9 +174,9 @@ public final class OptimizingBootImageCompiler extends BootImageCompiler {
       OptimizationPlanElement[] optimizationPlan;
       OptOptions cloneOptions = masterOptions.dup();
       optimizationPlan = OptimizationPlanner.createOptimizationPlan(cloneOptions);
-      optimizationPlans.addElement(optimizationPlan);
-      optimizationPlanLocks.addElement(Boolean.TRUE);
-      options.addElement(cloneOptions);
+      optimizationPlans.add(optimizationPlan);
+      optimizationPlanLocks.add(Boolean.TRUE);
+      options.add(cloneOptions);
       return optimizationPlanLocks.size() - 1;
     }
   }

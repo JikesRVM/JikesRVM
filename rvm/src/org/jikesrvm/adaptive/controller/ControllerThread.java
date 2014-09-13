@@ -229,7 +229,7 @@ public final class ControllerThread extends SystemThread {
   private void createDynamicCallGraphOrganizer() {
     if (dcgOrg == null) {
       dcgOrg = new DynamicCallGraphOrganizer(new EdgeListener());
-      Controller.organizers.addElement(dcgOrg);
+      Controller.organizers.add(dcgOrg);
     }
   }
 
@@ -241,7 +241,7 @@ public final class ControllerThread extends SystemThread {
     AOSOptions opts = Controller.options;
 
     if (opts.GATHER_PROFILE_DATA) {
-      Controller.organizers.addElement(new AccumulatingMethodSampleOrganizer());
+      Controller.organizers.add(new AccumulatingMethodSampleOrganizer());
 
       createDynamicCallGraphOrganizer();
     }
@@ -258,11 +258,11 @@ public final class ControllerThread extends SystemThread {
       Controller.methodSamples = new MethodCountData();
 
       // Install organizer to drive method recompilation
-      Controller.organizers.addElement(new MethodSampleOrganizer(opts.DERIVED_FILTER_OPT_LEVEL));
+      Controller.organizers.add(new MethodSampleOrganizer(opts.DERIVED_FILTER_OPT_LEVEL));
       // Additional set up for feedback directed inlining
       if (opts.ADAPTIVE_INLINING) {
         Organizer decayOrganizer = new DecayOrganizer(new YieldCounterListener(opts.DECAY_FREQUENCY));
-        Controller.organizers.addElement(decayOrganizer);
+        Controller.organizers.add(decayOrganizer);
         createDynamicCallGraphOrganizer();
       }
     }

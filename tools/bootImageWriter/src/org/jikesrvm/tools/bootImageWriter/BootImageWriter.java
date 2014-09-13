@@ -1282,7 +1282,7 @@ public class BootImageWriter extends BootImageWriterMessages {
       // debugging:
       TypeDescriptorParsing.validateAsTypeDescriptor(typeName);
       if (TypeDescriptorParsing.isValidTypeDescriptor(typeName))
-        typeNames.addElement(typeName);
+        typeNames.add(typeName);
       else
         fail(fileName + ":" + in.getLineNumber() +
              ": syntax error: \"" +
