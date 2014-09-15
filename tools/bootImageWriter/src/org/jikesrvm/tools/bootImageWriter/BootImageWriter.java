@@ -280,7 +280,7 @@ public class BootImageWriter extends BootImageWriterMessages {
   private static final class ClassNameComparator implements Comparator<BootImageMap.Entry> {
     @Override
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
-      return -a.jdkObject.getClass().toString().compareTo(b.jdkObject.getClass().toString());
+      return b.jdkObject.getClass().toString().compareTo(a.jdkObject.getClass().toString());
     }
   }
 
@@ -399,11 +399,11 @@ public class BootImageWriter extends BootImageWriterMessages {
       } else {
         double aSize = (double)getNumberOfNonFinalReferences(aRef.peekType(), a.jdkObject) / (double)getSize(aRef.peekType(), a.jdkObject);
         double bSize = (double)getNumberOfNonFinalReferences(bRef.peekType(), b.jdkObject) / (double)getSize(bRef.peekType(), b.jdkObject);
-        int result = Double.compare(aSize, bSize);
+        int result = Double.compare(bSize, aSize);
         if (result == 0) {
           return identicalSizeComparator.compare(a, b);
         } else {
-          return -result;
+          return result;
         }
       }
     }
@@ -431,11 +431,11 @@ public class BootImageWriter extends BootImageWriterMessages {
       } else {
         double aSize = (double)getNumberOfReferences(aRef.peekType(), a.jdkObject) / (double)getSize(aRef.peekType(), a.jdkObject);
         double bSize = (double)getNumberOfReferences(bRef.peekType(), b.jdkObject) / (double)getSize(bRef.peekType(), b.jdkObject);
-        int result = Double.compare(aSize, bSize);
+        int result = Double.compare(bSize, aSize);
         if (result == 0) {
           return identicalSizeComparator.compare(a, b);
         } else {
-          return -result;
+          return result;
         }
       }
     }

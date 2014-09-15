@@ -108,7 +108,7 @@ public class CommandLineArgs {
     /** Sorting method for Comparable. Sort by string value */
     @Override
     public int compareTo(Prefix o) {
-      return -value.compareTo(o.value);
+      return o.value.compareTo(value);
     }
     /** Equals method to be consistent with Comparable */
     @Override
