@@ -66,7 +66,7 @@ public final class JNIEnvironment {
    * a function pointer.
    * This is an array of such triples that matches JNIFunctions.
    */
-  public static LinkageTripletTable LinkageTriplets;
+  public static LinkageTripletTable linkageTriplets;
 
   /**
    * This is the pointer to the shared JNIFunction table.
@@ -80,7 +80,7 @@ public final class JNIEnvironment {
   // used by native code
   @Entrypoint
   private final Address externalJNIFunctions =
-      VM.BuildForPowerOpenABI ? Magic.objectAsAddress(LinkageTriplets) : Magic.objectAsAddress(JNIFunctions);
+      VM.BuildForPowerOpenABI ? Magic.objectAsAddress(linkageTriplets) : Magic.objectAsAddress(JNIFunctions);
 
   /**
    * For saving processor register on entry to native,
@@ -494,9 +494,9 @@ public final class JNIEnvironment {
     JNIFunctions = functions;
     if (VM.BuildForPowerOpenABI) {
       // Allocate the linkage triplets in the bootimage too (so they won't move)
-      LinkageTriplets = LinkageTripletTable.allocate(functions.length());
+      linkageTriplets = LinkageTripletTable.allocate(functions.length());
       for (int i = 0; i < functions.length(); i++) {
-        LinkageTriplets.set(i, AddressArray.create(3));
+        linkageTriplets.set(i, AddressArray.create(3));
       }
     }
   }
@@ -509,7 +509,7 @@ public final class JNIEnvironment {
     if (VM.BuildForPowerOpenABI) {
       // fill in the TOC and IP entries for each linkage triplet
       for (int i = 0; i < JNIFunctions.length(); i++) {
-        AddressArray triplet = LinkageTriplets.get(i);
+        AddressArray triplet = linkageTriplets.get(i);
         triplet.set(1, Magic.getTocPointer());
         triplet.set(0, Magic.objectAsAddress(JNIFunctions.get(i)));
       }

@@ -113,7 +113,7 @@ public class Memory {
    * @return {@code true} if the region is zeroed
    */
   @Inline
-  public static boolean IsZeroed(Address start, int bytes) {
+  public static boolean isZeroed(Address start, int bytes) {
     return isSet(start, bytes, false, 0);
   }
 

@@ -41,7 +41,7 @@ public final class MIRInfo {
   /**
    * The frame size of the current method
    */
-  public int FrameSize;
+  public int frameSize;
 
   /**
    * The number of floating point stack slots allocated.

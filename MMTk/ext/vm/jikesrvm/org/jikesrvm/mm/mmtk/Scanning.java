@@ -135,7 +135,7 @@ public final class Scanning extends org.mmtk.vm.Scanning {
       trace.processRootEdge(jniFunctions.plus(i << LOG_BYTES_IN_ADDRESS), true);
     }
 
-    Address linkageTriplets = Magic.objectAsAddress(JNIEnvironment.LinkageTriplets);
+    Address linkageTriplets = Magic.objectAsAddress(JNIEnvironment.linkageTriplets);
     if (!linkageTriplets.isZero()) {
       for(int i=start; i < end; i++) {
         trace.processRootEdge(linkageTriplets.plus(i << LOG_BYTES_IN_ADDRESS), true);
