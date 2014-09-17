@@ -398,7 +398,7 @@ $$$$ FOREACH OPTION VDATFILE
           $$$$ LOOP CONSTNAME OPTION.ENUMS
                $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
     if (FULL_NAME == ITEM_NAME)
-       result.append("\tPCMD_NAME = ITEM_NAME").append("\n");
+       result.append("\tPCMD_NAME = ITEM_NAME\n");
                $$$$ END LET PCMD
                $$$$ END SPLIT CONSTNAME
           $$$$ END LOOP CONSTNAME
