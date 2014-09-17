@@ -417,21 +417,23 @@ public final class RVMAnnotation {
   public String toString() {
     RVMClass annotationInterface = type.resolve().asClass();
     RVMMethod[] annotationMethods = annotationInterface.getDeclaredMethods();
-    String result = "@" + type.resolve().getClassForType().getName() + "(";
+    StringBuilder result = new StringBuilder("@");
+    result.append(type.resolve().getClassForType().getName());
+    result.append('(');
     try {
       for (int i=0; i < annotationMethods.length; i++) {
         String name=annotationMethods[i].getName().toUnicodeString();
         Object value=getElementValue(name, annotationMethods[i].getReturnType().resolve().getClassForType());
-        result += elementString(name, value);
+        result.append(elementString(name, value));
         if (i < (annotationMethods.length - 1)) {
-          result += ", ";
+          result.append(", ");
         }
       }
     } catch (java.io.UTFDataFormatException e) {
       throw new Error(e);
     }
-    result += ")";
-    return result;
+    result.append(')');
+    return result.toString();
   }
 
   /**

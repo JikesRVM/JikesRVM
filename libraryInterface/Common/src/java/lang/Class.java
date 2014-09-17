@@ -558,16 +558,18 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
 
   @NoInline
   private void throwNoSuchMethodException(String name, Class<?>... parameterTypes) throws NoSuchMethodException {
-    String typeString;
+    StringBuilder typeString;
     if (parameterTypes == null || parameterTypes.length == 0) {
-      typeString = "()";
+      typeString = new StringBuilder("()");
     } else {
-      typeString = "(";
+      typeString = new StringBuilder("(");
       for (int i=0; i < parameterTypes.length-1; i++) {
         Class<?> c = parameterTypes[i];
-        typeString += c.toString() + ", ";
+        typeString.append(c.toString());
+        typeString.append(", ");
       }
-      typeString += parameterTypes[parameterTypes.length-1].toString() + ")";
+      typeString.append(parameterTypes[parameterTypes.length-1]);
+      typeString.append(')');
     }
     throw new NoSuchMethodException(name + typeString);
   }

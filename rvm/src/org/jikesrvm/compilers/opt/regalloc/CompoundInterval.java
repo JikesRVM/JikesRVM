@@ -433,11 +433,13 @@ class CompoundInterval extends IncreasingStartIntervalSet {
 
   @Override
   public String toString() {
-    String str = "[" + getRegister() + "]:";
+    StringBuilder str = new StringBuilder("[");
+    str.append(getRegister());
+    str.append("]:");
     for (Iterator<BasicInterval> i = iterator(); i.hasNext();) {
       BasicInterval b = i.next();
-      str = str + b;
+      str.append(b);
     }
-    return str;
+    return str.toString();
   }
 }

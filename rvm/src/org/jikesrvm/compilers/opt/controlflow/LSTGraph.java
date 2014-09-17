@@ -109,11 +109,12 @@ public class LSTGraph extends SpaceEffGraph {
   }
 
   private String dumpIt(LSTNode n) {
-    String ans = n.toString() + "\n";
+    StringBuilder ans = new StringBuilder(n.toString());
+    ans.append('\n');
     for (Enumeration<LSTNode> e = n.getChildren(); e.hasMoreElements();) {
-      ans += dumpIt(e.nextElement());
+      ans.append(dumpIt(e.nextElement()));
     }
-    return ans;
+    return ans.toString();
   }
 
   /*

@@ -197,17 +197,19 @@ public final class ExceptionHandlerBasicBlock extends BasicBlock {
    */
   @Override
   public String toString() {
-    String exmsg = " (catches ";
+    StringBuilder exmsg = new StringBuilder(" (catches ");
     for (int i = 0; i < exceptionTypes.length - 1; i++) {
-      exmsg = exmsg + exceptionTypes[i].toString() + ", ";
+      exmsg.append(exceptionTypes[i]);
+      exmsg.append(", ");
     }
-    exmsg = exmsg + exceptionTypes[exceptionTypes.length - 1].toString();
-    exmsg = exmsg + " for";
+    exmsg.append(exceptionTypes[exceptionTypes.length - 1]);
+    exmsg.append(" for");
     Enumeration<BasicBlock> in = getIn();
     while (in.hasMoreElements()) {
-      exmsg = exmsg + " " + in.nextElement().toString();
+      exmsg.append(' ');
+      exmsg.append(in.nextElement());
     }
-    exmsg = exmsg + ")";
+    exmsg.append(')');
 
     return super.toString() + exmsg;
   }

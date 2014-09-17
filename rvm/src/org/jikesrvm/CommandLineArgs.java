@@ -474,17 +474,19 @@ public class CommandLineArgs {
     }
 
     // concatenate all bootclasspath entries
-    String result = vmClasses;
+    StringBuilder result = new StringBuilder(vmClasses);
 
     for(int c = 0; c < prependClasses.length; c++) {
-      result = prependClasses[c] + ":" + result;
+      result.insert(0, ":");
+      result.insert(0, prependClasses[c]);
     }
 
     for(int c = 0; c < appendClasses.length; c++) {
-      result = result + ":" + appendClasses[c];
+      result.append(":");
+      result.append(appendClasses[c]);
     }
 
-    return result;
+    return result.toString();
   }
 
   /**

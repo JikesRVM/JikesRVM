@@ -51,10 +51,13 @@ public final class MethodCountSet {
    */
   @Override
   public String toString() {
-    String ans = "";
+    StringBuilder ans = new StringBuilder();
     for (int i = 0; i < cms.length; i++) {
-      ans += cms[i] + " = " + counters[i] + "\n";
+      ans.append(cms[i]);
+      ans.append(" = ");
+      ans.append(counters[i]);
+      ans.append("\n");
     }
-    return ans;
+    return ans.toString();
   }
 }

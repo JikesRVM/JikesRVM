@@ -106,12 +106,15 @@ public abstract class DF_System {
    */
   @Override
   public String toString() {
-    String result = "EQUATIONS:\n";
+    StringBuilder result = new StringBuilder("EQUATIONS:\n");
     Enumeration<GraphNode> v = equations.enumerateNodes();
     for (int i = 0; i < equations.numberOfNodes(); i++) {
-      result = result + i + " : " + v.nextElement() + "\n";
+      result.append(i);
+      result.append(" : ");
+      result.append(v.nextElement());
+      result.append('\n');
     }
-    return result;
+    return result.toString();
   }
 
   /**

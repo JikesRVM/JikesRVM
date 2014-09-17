@@ -183,29 +183,31 @@ public final class InlineDecision {
 
   @Override
   public String toString() {
-    String s = code.toString();
+    StringBuilder s = new StringBuilder(code.toString());
     if (testFailedOSR) {
-      s += "(OSR off-branch)";
+      s.append("(OSR off-branch)");
     }
-    s += ":" + rationale;
+    s.append(':');
+    s.append(rationale);
     if (targets != null) {
       for (int i = 0; i < targets.length; i++) {
-        s += " " + targets[i];
+        s.append(' ');
+        s.append(targets[i]);
         if (guards != null) {
           switch (guards[i]) {
             case OptOptions.INLINE_GUARD_METHOD_TEST:
-              s += " (method test)";
+              s.append(" (method test)");
               break;
             case OptOptions.INLINE_GUARD_CLASS_TEST:
-              s += " (class test)";
+              s.append(" (class test)");
               break;
             case OptOptions.INLINE_GUARD_CODE_PATCH:
-              s += " (code patch)";
+              s.append(" (code patch)");
               break;
           }
         }
       }
     }
-    return s;
+    return s.toString();
   }
 }

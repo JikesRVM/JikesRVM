@@ -28,10 +28,11 @@ abstract class IntervalSet extends TreeSet<BasicInterval> {
 
   @Override
   public String toString() {
-    String result = "";
+    StringBuilder result = new StringBuilder();
     for (BasicInterval b : this) {
-      result = result + b + "\n";
+      result.append(b);
+      result.append('\n');
     }
-    return result;
+    return result.toString();
   }
 }

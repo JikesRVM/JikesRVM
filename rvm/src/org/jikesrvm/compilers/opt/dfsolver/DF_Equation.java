@@ -79,12 +79,15 @@ public class DF_Equation implements GraphNode {
     if (operands[0] == null) {
       return ("NULL LHS");
     }
-    String result = operands[0].toString();
-    result = result + " " + operator + " ";
+    StringBuilder result = new StringBuilder(operands[0].toString());
+    result.append(' ');
+    result.append(operator);
+    result.append(' ');
     for (int i = 1; i < operands.length; i++) {
-      result = result + operands[i] + "  ";
+      result.append(operands[i]);
+      result.append("  ");
     }
-    return result;
+    return result.toString();
   }
 
   /**
