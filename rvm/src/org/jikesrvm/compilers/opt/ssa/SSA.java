@@ -163,7 +163,7 @@ class SSA {
           }
           System.out.print(" )");
         }
-        System.out.print("\n");
+        System.out.print('\n');
       }
     }
     System.out.println("*********   END OF IR DUMP in SSA FOR " + ir.method);

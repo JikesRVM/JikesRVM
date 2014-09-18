@@ -330,7 +330,7 @@ public final class Class<T> implements Serializable, Type, AnnotatedElement, Gen
       return getComponentType().getSimpleName() + "[]";
     } else {
       String fullName = getName();
-      return fullName.substring(fullName.lastIndexOf(".") + 1);
+      return fullName.substring(fullName.lastIndexOf('.') + 1);
     }
   }
 

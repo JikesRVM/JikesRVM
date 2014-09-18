@@ -187,7 +187,7 @@ public class GenerateInterfaceDeclarations {
     System.err.println(msg);
     System.err.print("The build system will delete the output file");
     if (outFileName != null) {
-      System.err.print(" ");
+      System.err.print(' ');
       System.err.print(outFileName);
     }
     System.err.println();

@@ -295,7 +295,7 @@ public abstract class RecompilationStrategy {
       }
       if (!optCompilerOption1.startsWith("opt:")) {
         // must specify optimization level!
-        int endPoint = optCompilerOption1.indexOf(":");
+        int endPoint = optCompilerOption1.indexOf(':');
         if (endPoint == -1) {
           VM.sysWrite("vm: Unrecognized optimization level in optimizing compiler command line argument: \"" +
                       optCompilerOption1 +

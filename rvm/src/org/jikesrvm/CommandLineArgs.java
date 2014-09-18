@@ -739,7 +739,7 @@ public class CommandLineArgs {
           break;
         case JAVAAGENT_ARG:
           /* Extract jar file from the -javaagent:<jar>[=options] form */
-          int equalsPos = arg.indexOf("=");
+          int equalsPos = arg.indexOf('=');
           String jarPath;
           if (equalsPos != -1) {
             jarPath = arg.substring(0, equalsPos);

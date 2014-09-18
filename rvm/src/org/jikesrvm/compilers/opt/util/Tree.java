@@ -130,9 +130,9 @@ public class Tree {
   private StringBuffer DFS(StringBuffer sb, TreeNode node, int depth) {
     // indent appropriate spaces and print node
     for (int i = 0; i < 2 * depth; i++) {
-      sb.append(" ");
+      sb.append(' ');
     }
-    sb.append(node).append("\n");
+    sb.append(node).append('\n');
 
     Enumeration<TreeNode> childEnum = node.getChildren();
     while (childEnum.hasMoreElements()) {

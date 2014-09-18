@@ -200,7 +200,7 @@ public class LTDominators extends Stack<BasicBlock> {
     }
     Enumeration<BasicBlock> e = getNextNodes(block);
     while (e.hasMoreElements()) {
-      System.out.print(" ");
+      System.out.print(' ');
       System.out.print(e.nextElement());
     }
     System.out.println();
@@ -564,7 +564,7 @@ public class LTDominators extends Stack<BasicBlock> {
         System.out.println("Dominators of " + block + ":" + LTDominatorInfo.getInfo(block).dominators(block, ir));
       }
     }
-    System.out.println("\n");
+    System.out.println('\n');
   }
 
   /**

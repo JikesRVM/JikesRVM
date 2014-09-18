@@ -214,7 +214,7 @@ public final class RVMClass extends RVMType {
    */
   public String getPackageName() {
     String className = toString();
-    int lastDot = className.lastIndexOf(".");
+    int lastDot = className.lastIndexOf('.');
     return (lastDot >= 0) ? className.substring(0, lastDot) : "";
   }
 
