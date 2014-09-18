@@ -1168,7 +1168,7 @@ public final class LiveAnalysis extends CompilerPhase {
      */
     @Override
     public String toString() {
-      StringBuilder buf = new StringBuilder("");
+      StringBuilder buf = new StringBuilder();
       buf.append(" Gen: ").append(gen).append("\n");
       buf.append(" BB Kill: ").append(BBKillSet).append("\n");
       buf.append(" first PEI Kill: ").append(firstPEIKillSet).append("\n");

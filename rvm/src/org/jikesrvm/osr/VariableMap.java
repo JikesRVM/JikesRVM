@@ -68,7 +68,7 @@ public final class VariableMap {
    */
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder("");
+    StringBuilder buf = new StringBuilder();
 
     if (list.isEmpty()) {
       buf.append("empty");

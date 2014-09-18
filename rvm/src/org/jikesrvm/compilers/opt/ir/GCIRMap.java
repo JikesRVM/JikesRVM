@@ -194,7 +194,7 @@ public final class GCIRMap implements Iterable<GCIRMapElement> {
    */
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder("");
+    StringBuilder buf = new StringBuilder();
     if (list.isEmpty()) {
       buf.append("empty");
     } else {

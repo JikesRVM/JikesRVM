@@ -105,7 +105,7 @@ public class RegSpillListElement {
    */
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder("");
+    StringBuilder buf = new StringBuilder();
     buf.append("(").append(symbolicReg).append(", ");
     if (isSpill()) {
       buf.append("Sp: ").append(getSpill());
