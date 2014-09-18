@@ -319,11 +319,7 @@ public final class BootstrapClassLoader extends java.lang.ClassLoader {
           ZipFile zf = zipFileCache.get(path);
           if (zf == null) {
             zf = new ZipFile(path);
-            if (zf == null) {
-              continue;
-            } else {
-              zipFileCache.put(path, zf);
-            }
+            zipFileCache.put(path, zf);
           }
           // Zip spec. states that separator must be '/' in the path
           if (File.separatorChar != '/') {
