@@ -29,8 +29,9 @@ final class ResourceMap {
   }
 
   private static String toBinaryPad32(int value) {
-    String s = Integer.toBinaryString(value);
-    return String.format("%032s", s);
+    String binaryString = Integer.toBinaryString(value);
+    String spacePaddedString = String.format("%32s", binaryString);
+    return spacePaddedString.replace(' ', '0');
   }
 
   /** GROWABLE Resource Usage map. */
