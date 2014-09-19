@@ -89,7 +89,7 @@ public class Inliner {
     for (int i = 0; i < Call.getNumberOfParams(callSite); i++) {
       Operand arg = Call.getParam(callSite, i);
       if (arg instanceof RegisterOperand) {
-        ((RegisterOperand) arg).scratchObject = null;
+        ((RegisterOperand) arg).setScratchObject(null);
       }
     }
     // We need to ensure that inlining the CALL instruction does not
@@ -209,7 +209,7 @@ public class Inliner {
 
       if (inlDec.OSRTestFailed()) {
         // note where we're storing the osr barrier instruction
-        Instruction lastOsrBarrier = (Instruction)callSite.scratchObject;
+        Instruction lastOsrBarrier = (Instruction)callSite.getScratchObject();
         Instruction s = BC2IR._osrHelper(lastOsrBarrier);
         s.position = callSite.position;
         s.bcIndex = callSite.bcIndex;

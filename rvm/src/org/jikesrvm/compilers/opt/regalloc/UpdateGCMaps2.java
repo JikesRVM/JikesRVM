@@ -75,7 +75,7 @@ final class UpdateGCMaps2 extends CompilerPhase {
       Instruction GCinst = GCelement.getInstruction();
 
       // Get the linear-scan DFN for this instruction.
-      int dfn = GCinst.scratch;
+      int dfn = GCinst.getScratch();
 
       if (LinearScan.GC_DEBUG) {
         VM.sysWrite("GCelement at " + dfn + " , " + GCelement);

@@ -637,7 +637,7 @@ public class LeaveSSA extends CompilerPhase {
 
       // force all operands of Phis into registers.
 
-      inst.scratchObject = guardPhis;
+      inst.setScratchObject(guardPhis);
       guardPhis = inst;
 
       int values = Phi.getNumberOfValues(inst);
@@ -662,8 +662,8 @@ public class LeaveSSA extends CompilerPhase {
     // visit all guard registers, init union/find
     for (Register r = ir.regpool.getFirstSymbolicRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
-      r.scratch = 1;
-      r.scratchObject = r;
+      r.setScratch(1);
+      r.setScratchObject(r);
     }
   }
 
@@ -687,7 +687,7 @@ public class LeaveSSA extends CompilerPhase {
           }
         }
       }
-      inst = (Instruction) inst.scratchObject;
+      inst = (Instruction) inst.getScratchObject();
     }
   }
 
@@ -715,7 +715,7 @@ public class LeaveSSA extends CompilerPhase {
     Instruction inst = guardPhis;
     while (inst != null) {
       inst.remove();
-      inst = (Instruction) inst.scratchObject;
+      inst = (Instruction) inst.getScratchObject();
     }
   }
 
@@ -723,26 +723,26 @@ public class LeaveSSA extends CompilerPhase {
     Register a = guardFind(from);
     Register b = guardFind(to);
     if (a == b) return a;
-    if (a.scratch == b.scratch) {
-      a.scratch++;
-      b.scratchObject = a;
+    if (a.getScratch() == b.getScratch()) {
+      a.setScratch(a.getScratch() + 1);
+      b.setScratchObject(a);
       return a;
     }
-    if (a.scratch > b.scratch) {
-      b.scratchObject = a;
+    if (a.getScratch() > b.getScratch()) {
+      b.setScratchObject(a);
       return a;
     }
-    a.scratchObject = b;
+    a.setScratchObject(b);
     return b;
   }
 
   private Register guardFind(Register r) {
     Register start = r;
-    if (VM.VerifyAssertions) VM._assert(r.scratchObject != null);
-    while (r.scratchObject != r) r = (Register) r.scratchObject;
-    while (start.scratchObject != r) {
-      start.scratchObject = r;
-      start = (Register) start.scratchObject;
+    if (VM.VerifyAssertions) VM._assert(r.getScratchObject() != null);
+    while (r.getScratchObject() != r) r = (Register) r.getScratchObject();
+    while (start.getScratchObject() != r) {
+      start.setScratchObject(r);
+      start = (Register) start.getScratchObject();
     }
     return r;
   }

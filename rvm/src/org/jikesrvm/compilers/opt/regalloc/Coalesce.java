@@ -105,11 +105,11 @@ class Coalesce {
       BasicBlock bb = elem.getBasicBlock();
       Instruction begin = (elem.getBegin() == null) ? bb.firstInstruction() : elem.getBegin();
       Instruction end = (elem.getEnd() == null) ? bb.lastInstruction() : elem.getEnd();
-      int low = begin.scratch;
-      int high = end.scratch;
+      int low = begin.getScratch();
+      int high = end.getScratch();
       for (Enumeration<RegisterOperand> defs = DefUse.defs(r2); defs.hasMoreElements();) {
         Operand def = defs.nextElement();
-        int n = def.instruction.scratch;
+        int n = def.instruction.getScratch();
         if (n >= low && n < high) {
           return true;
         }

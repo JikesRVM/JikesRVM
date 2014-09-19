@@ -41,7 +41,7 @@ final class SchedulingInfo {
    * @param i instruction
    */
   public static void createInfo(Instruction i) {
-    i.scratchObject = new SchedulingInfo();
+    i.setScratchObject(new SchedulingInfo());
   }
 
   /**
@@ -50,7 +50,7 @@ final class SchedulingInfo {
    * @param i instruction
    */
   public static void removeInfo(Instruction i) {
-    i.scratchObject = null;
+    i.setScratchObject(null);
   }
 
   /**
@@ -60,7 +60,7 @@ final class SchedulingInfo {
    * @return scheduling info for instruction
    */
   public static SchedulingInfo getInfo(Instruction i) {
-    return (SchedulingInfo) i.scratchObject;
+    return (SchedulingInfo) i.getScratchObject();
   }
 
   /**

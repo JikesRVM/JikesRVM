@@ -840,7 +840,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
             // This register does not span multiple basic blocks.  It
             // will be touched by the register duplication, so clear
             // its scratch reg.
-            ro.getRegister().scratchObject = null;
+            ro.getRegister().setScratchObject(null);
           }
         }
       }
@@ -864,12 +864,12 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
 
     // Check if the register associated with this regOperand already
     // has a paralles operand
-    if (ro.getRegister().scratchObject == null) {
+    if (ro.getRegister().getScratchObject() == null) {
       // If no dup register exists, make a new one and remember it.
       RegisterOperand dupRegOp = ir.regpool.makeTemp(ro.getType());
-      ro.getRegister().scratchObject = dupRegOp.getRegister();
+      ro.getRegister().setScratchObject(dupRegOp.getRegister());
     }
-    return new RegisterOperand((Register) ro.getRegister().scratchObject, ro.getType());
+    return new RegisterOperand((Register) ro.getRegister().getScratchObject(), ro.getType());
   }
 
   /**

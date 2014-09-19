@@ -749,7 +749,7 @@ public abstract class Operand {
             }
             return false;
           }
-          if ((rop1.scratchObject instanceof Operand) &&
+          if ((rop1.getScratchObject() instanceof Operand) &&
               ((type2 == TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
                (type2.isWordLikeType() && op2.asAddressConstant().value.EQ(Address.zero())) ||
@@ -918,10 +918,10 @@ public abstract class Operand {
               VM.sysWrite("mismatch\n");
             }
             RegisterOperand res = new RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
-            if (rop1.scratchObject instanceof Operand &&
-                rop2.scratchObject instanceof Operand &&
-                (((Operand) rop1.scratchObject).similar(((Operand) rop2.scratchObject)))) {
-              res.scratchObject = rop1.scratchObject; // compatible, so preserve onto res
+            if (rop1.getScratchObject() instanceof Operand &&
+                rop2.getScratchObject() instanceof Operand &&
+                (((Operand) rop1.getScratchObject()).similar(((Operand) rop2.getScratchObject())))) {
+              res.setScratchObject(rop1.getScratchObject()); // compatible, so preserve onto res
             }
             res.meetInheritableFlags(rop2);
             return res;
@@ -952,11 +952,11 @@ public abstract class Operand {
             // even if both op1 & op2 are precise,
             // op1.type != op2.type, so clear it on res
             res.clearPreciseType();
-            if (rop1.scratchObject instanceof Operand &&
-                rop2.scratchObject instanceof Operand &&
-                (((Operand) rop1.scratchObject).similar(((Operand) rop2.scratchObject)))) {
+            if (rop1.getScratchObject() instanceof Operand &&
+                rop2.getScratchObject() instanceof Operand &&
+                (((Operand) rop1.getScratchObject()).similar(((Operand) rop2.getScratchObject())))) {
               // it matched, so preserve onto res.
-              res.scratchObject = rop1.scratchObject;
+              res.setScratchObject(rop1.getScratchObject());
             }
             return res;
           } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
@@ -988,11 +988,11 @@ public abstract class Operand {
             res.meetInheritableFlags(rop2);
             res.clearPreciseType();     // invalid on res
             res.clearDeclaredType();    // invalid on res
-            if (rop1.scratchObject instanceof Operand &&
-                rop2.scratchObject instanceof Operand &&
-                (((Operand) rop1.scratchObject).similar(((Operand) rop2.scratchObject)))) {
+            if (rop1.getScratchObject() instanceof Operand &&
+                rop2.getScratchObject() instanceof Operand &&
+                (((Operand) rop1.getScratchObject()).similar(((Operand) rop2.getScratchObject())))) {
               // it matched, so preserve onto res.
-              res.scratchObject = rop1.scratchObject;
+              res.setScratchObject(rop1.getScratchObject());
             }
             return res;
           }
@@ -1016,13 +1016,13 @@ public abstract class Operand {
             res = res.copyU2U();
             res.clearPreciseType();
           }
-          if ((rop1.scratchObject instanceof Operand) &&
+          if ((rop1.getScratchObject() instanceof Operand) &&
               ((type2 == TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
                (type2.isWordLikeType() && op2.asAddressConstant().value.isZero()) ||
                (type2.isLongType() && op2.asLongConstant().value == 0L))) {
             res = res.copyU2U();
-            res.scratchObject = null;
+            res.setScratchObject(null);
           }
           if (DBG_OPERAND_LATTICE) {
             if (res == rop1) {

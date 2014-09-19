@@ -72,11 +72,11 @@ public class RegisterAllocatorState {
 
   static void setSpill(Register reg, int spill) {
     reg.spillRegister();
-    reg.scratch = spill;
+    reg.setScratch(spill);
   }
 
   public static int getSpill(Register reg) {
-    return reg.scratch;
+    return reg.getScratch();
   }
 
   /**

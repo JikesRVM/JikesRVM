@@ -95,7 +95,7 @@ public abstract class FinalMIRExpansion extends IRTools {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       p.setmcOffset(-1);
-      p.scratchObject = null;
+      p.setScratchObject(null);
       switch (p.getOpcode()) {
         case MIR_LOWTABLESWITCH_opcode: {
 

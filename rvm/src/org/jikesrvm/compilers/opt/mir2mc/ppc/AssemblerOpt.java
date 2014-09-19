@@ -111,7 +111,7 @@ public abstract class AssemblerOpt implements ArchConstants {
           // The Label instructions scratchObject holds the head of a
           // linked list of the (forward) branch instructions with this
           // label as their target.
-          for (BranchSrcElement bSrc = (BranchSrcElement) p.scratchObject; bSrc != null; bSrc = bSrc.next) {
+          for (BranchSrcElement bSrc = (BranchSrcElement) p.getScratchObject(); bSrc != null; bSrc = bSrc.next) {
             Instruction branchStmt = bSrc.source;
             int bo = branchStmt.getmcOffset() - (1 << LG_INSTRUCTION_WIDTH);
             int bi = bo >> LG_INSTRUCTION_WIDTH;
@@ -1257,7 +1257,7 @@ public abstract class AssemblerOpt implements ArchConstants {
       // Unresolved forward branch stmts will form a linked list
       // via the scratchObject of the label instruction.
       // These branch stmts will be back-patched as part of assembly of LABEL
-      tgt.scratchObject = new BranchSrcElement(src, (BranchSrcElement) tgt.scratchObject);
+      tgt.setScratchObject(new BranchSrcElement(src, (BranchSrcElement) tgt.getScratchObject()));
       return 0;
     } else {
       // backward branch target, which has been fixed.

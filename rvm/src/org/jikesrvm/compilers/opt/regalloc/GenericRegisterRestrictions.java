@@ -125,7 +125,7 @@ public abstract class GenericRegisterRestrictions {
       Instruction s = ie.nextElement();
       if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
         for (LiveIntervalElement symb : symbolic) {
-          if (contains(symb, s.scratch)) {
+          if (contains(symb, s.getScratch())) {
             forbidAllVolatiles(symb.getRegister());
           }
         }
@@ -138,7 +138,7 @@ public abstract class GenericRegisterRestrictions {
       if (s.operator == YIELDPOINT_OSR) {
         for (LiveIntervalElement symb : symbolic) {
           if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb, s.scratch)) {
+            if (contains(symb, s.getScratch())) {
               forbidAllVolatiles(symb.getRegister());
             }
           }
@@ -177,10 +177,10 @@ public abstract class GenericRegisterRestrictions {
     int begin = -1;
     int end = Integer.MAX_VALUE;
     if (R.getBegin() != null) {
-      begin = R.getBegin().scratch;
+      begin = R.getBegin().getScratch();
     }
     if (R.getEnd() != null) {
-      end = R.getEnd().scratch;
+      end = R.getEnd().getScratch();
     }
 
     return ((begin <= n) && (n <= end));
@@ -209,18 +209,18 @@ public abstract class GenericRegisterRestrictions {
     int end2 = -1;
 
     if (li1.getBegin() != null) {
-      begin1 = li1.getBegin().scratch;
+      begin1 = li1.getBegin().getScratch();
     }
     if (li2.getEnd() != null) {
-      end2 = li2.getEnd().scratch;
+      end2 = li2.getEnd().getScratch();
     }
     if (end2 <= begin1 && end2 > -1) return false;
 
     if (li1.getEnd() != null) {
-      end1 = li1.getEnd().scratch;
+      end1 = li1.getEnd().getScratch();
     }
     if (li2.getBegin() != null) {
-      begin2 = li2.getBegin().scratch;
+      begin2 = li2.getBegin().getScratch();
     }
     return end1 > begin2 || end1 <= -1;
 

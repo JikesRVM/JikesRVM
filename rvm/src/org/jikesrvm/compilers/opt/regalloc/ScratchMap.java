@@ -54,7 +54,7 @@ public final class ScratchMap {
    */
   void beginSymbolicInterval(Register r, Register scratch, Instruction begin) {
     if (DEBUG) {
-      System.out.println("beginSymbolicInterval " + r + " " + scratch + " " + begin.scratch);
+      System.out.println("beginSymbolicInterval " + r + " " + scratch + " " + begin.getScratch());
     }
 
     SymbolicInterval i = new SymbolicInterval(r, scratch);
@@ -72,7 +72,7 @@ public final class ScratchMap {
    */
   public void endSymbolicInterval(Register r, Instruction end) {
     if (DEBUG) {
-      System.out.println("endSymbolicInterval " + r + " " + end.scratch);
+      System.out.println("endSymbolicInterval " + r + " " + end.getScratch());
     }
 
     SymbolicInterval i = (SymbolicInterval) pending.get(r);
@@ -89,7 +89,7 @@ public final class ScratchMap {
    */
   void beginScratchInterval(Register r, Instruction begin) {
     if (DEBUG) {
-      System.out.println("beginScratchInterval " + r + " " + begin.scratch);
+      System.out.println("beginScratchInterval " + r + " " + begin.getScratch());
     }
     PhysicalInterval p = new PhysicalInterval(r);
     p.begin = begin;
@@ -107,7 +107,7 @@ public final class ScratchMap {
    */
   public void endScratchInterval(Register r, Instruction end) {
     if (DEBUG) {
-      System.out.println("endScratchInterval " + r + " " + end.scratch);
+      System.out.println("endScratchInterval " + r + " " + end.getScratch());
     }
     PhysicalInterval p = (PhysicalInterval) pending.get(r);
     p.end = end;
@@ -244,7 +244,7 @@ public final class ScratchMap {
      *   given number is contained n this interval
      */
     protected final boolean contains(int n) {
-      return (begin.scratch <= n && end.scratch > n);
+      return (begin.getScratch() <= n && end.getScratch() > n);
     }
   }
 
@@ -273,7 +273,7 @@ public final class ScratchMap {
      */
     @Override
     public String toString() {
-      return "SI: " + symbolic + " " + scratch + " [" + begin.scratch + "," + end.scratch + "]";
+      return "SI: " + symbolic + " " + scratch + " [" + begin.getScratch() + "," + end.getScratch() + "]";
     }
   }
 
@@ -297,7 +297,7 @@ public final class ScratchMap {
      */
     @Override
     public String toString() {
-      return "PI: " + scratch + " [" + begin.scratch + "," + end.scratch + "]";
+      return "PI: " + scratch + " [" + begin.getScratch() + "," + end.getScratch() + "]";
     }
   }
 }

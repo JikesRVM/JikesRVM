@@ -198,7 +198,7 @@ public final class Instruction {
    *   <li>store an index into a lookaside array of other information.
    * </ul>
    */
-  public int scratch;
+  private int scratch;
 
   /**
    * A scratch object to be used as needed by analyses/optimizations to store
@@ -211,7 +211,7 @@ public final class Instruction {
    * lookaside arrays are not desirable.<p>
    * Typical uses:  attribute objects or links to shared data
    */
-  public Object scratchObject;
+  private Object scratchObject;
 
   /**
    * The operator for this instruction.<p>
@@ -2016,5 +2016,21 @@ public final class Instruction {
       return LocationCarrier.getLocation(this).mayBeVolatile();
     }
     return false;
+  }
+
+  public int getScratch() {
+    return scratch;
+  }
+
+  public void setScratch(int scratch) {
+    this.scratch = scratch;
+  }
+
+  public Object getScratchObject() {
+    return scratchObject;
+  }
+
+  public void setScratchObject(Object scratchObject) {
+    this.scratchObject = scratchObject;
   }
 }

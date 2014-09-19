@@ -46,14 +46,14 @@ public final class DefUse {
     for (Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
       reg.defList = null;
       reg.useList = null;
-      reg.scratch = -1;
+      reg.setScratch(-1);
       reg.clearSeenUse();
     }
     for (Enumeration<Register> e = ir.regpool.getPhysicalRegisterSet().enumerateAll(); e.hasMoreElements();) {
       Register reg = e.nextElement();
       reg.defList = null;
       reg.useList = null;
-      reg.scratch = -1;
+      reg.setScratch(-1);
       reg.clearSeenUse();
     }
 
@@ -380,7 +380,7 @@ public final class DefUse {
   public static void recomputeSpansBasicBlock(IR ir) {
     // clear fields
     for (Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
-      reg.scratch = -1;
+      reg.setScratch(-1);
       reg.clearSpansBasicBlock();
     }
     // iterate over the basic blocks
@@ -423,7 +423,7 @@ public final class DefUse {
    * @param bbNum the number of the basic block
    */
   private static void logAppearance(Register reg, int bbNum) {
-    reg.scratch = bbNum;
+    reg.setScratch(bbNum);
   }
 
   /**
@@ -433,7 +433,7 @@ public final class DefUse {
    *  than the one that was passed to this method
    */
   private static boolean seenInDifferentBlock(Register reg, int bbNum) {
-    int bb = reg.scratch;
+    int bb = reg.getScratch();
     return (bb != -1) && (bb != bbNum);
   }
 

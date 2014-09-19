@@ -3573,28 +3573,28 @@ public final class BC2IR {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
-        VM._assert((rop.scratchObject == null) ||
-                   (rop.scratchObject instanceof RegisterOperand) ||
-                   (rop.scratchObject instanceof TrueGuardOperand));
+        VM._assert((rop.getScratchObject() == null) ||
+                   (rop.getScratchObject() instanceof RegisterOperand) ||
+                   (rop.getScratchObject() instanceof TrueGuardOperand));
       }
-      return rop.scratchObject != null;
+      return rop.getScratchObject() != null;
     } else {
       return op.isConstant();
     }
   }
 
   public static boolean hasGuard(RegisterOperand rop) {
-    return rop.scratchObject != null;
+    return rop.getScratchObject() != null;
   }
 
   public static boolean hasLessConservativeGuard(RegisterOperand rop1, RegisterOperand rop2) {
-    if (rop1.scratchObject == rop2.scratchObject) {
+    if (rop1.getScratchObject() == rop2.getScratchObject()) {
       return false;
     }
-    if (rop1.scratchObject instanceof Operand) {
-      if (rop2.scratchObject instanceof Operand) {
-        Operand op1 = (Operand) rop1.scratchObject;
-        Operand op2 = (Operand) rop2.scratchObject;
+    if (rop1.getScratchObject() instanceof Operand) {
+      if (rop2.getScratchObject() instanceof Operand) {
+        Operand op1 = (Operand) rop1.getScratchObject();
+        Operand op2 = (Operand) rop2.getScratchObject();
         if (op2 instanceof TrueGuardOperand) {
           // rop2 is top therefore rop1 can't be less conservative!
           return false;
@@ -3613,21 +3613,21 @@ public final class BC2IR {
   public void markGuardlessNonNull(RegisterOperand rop) {
     RegisterOperand g = gc.makeNullCheckGuard(rop.getRegister());
     appendInstruction(Move.create(GUARD_MOVE, g, new TrueGuardOperand()));
-    rop.scratchObject = g.copy();
+    rop.setScratchObject(g.copy());
   }
 
   public static Operand getGuard(Operand op) {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
-        VM._assert((rop.scratchObject == null) ||
-                   (rop.scratchObject instanceof RegisterOperand) ||
-                   (rop.scratchObject instanceof TrueGuardOperand));
+        VM._assert((rop.getScratchObject() == null) ||
+                   (rop.getScratchObject() instanceof RegisterOperand) ||
+                   (rop.getScratchObject() instanceof TrueGuardOperand));
       }
-      if (rop.scratchObject == null) {
+      if (rop.getScratchObject() == null) {
         return null;
       } else {
-        return ((Operand) rop.scratchObject).copy();
+        return ((Operand) rop.getScratchObject()).copy();
       }
     }
     if (VM.VerifyAssertions) {
@@ -3637,7 +3637,7 @@ public final class BC2IR {
   }
 
   public static void setGuard(RegisterOperand rop, Operand guard) {
-    rop.scratchObject = guard;
+    rop.setScratchObject(guard);
   }
 
   private void setCurrentGuard(Operand guard) {
@@ -4691,7 +4691,7 @@ public final class BC2IR {
     // verify it
     if (this.osrGuardedInline) {
       if (VM.VerifyAssertions) VM._assert(lastOsrBarrier != null);
-      callSite.scratchObject = lastOsrBarrier;
+      callSite.setScratchObject(lastOsrBarrier);
     }
 
     // Execute the inline decision.
@@ -4984,7 +4984,7 @@ public final class BC2IR {
   public static Instruction _osrHelper(Instruction barrier) {
     Instruction inst = OsrPoint.create(YIELDPOINT_OSR, null,  // currently unknown
                                            0);    // currently unknown
-    inst.scratchObject = barrier;
+    inst.setScratchObject(barrier);
     return inst;
   }
 

@@ -785,27 +785,27 @@ public class LICM extends CompilerPhase {
   }
 
   BasicBlock getBlock(Instruction inst) {
-    return block[inst.scratch];
+    return block[inst.getScratch()];
   }
 
   void setBlock(Instruction inst, BasicBlock b) {
-    block[inst.scratch] = b;
+    block[inst.getScratch()] = b;
   }
 
   Instruction getEarlyPos(Instruction inst) {
-    return earlyPos[inst.scratch];
+    return earlyPos[inst.getScratch()];
   }
 
   void setEarlyPos(Instruction inst, Instruction pos) {
-    earlyPos[inst.scratch] = pos;
+    earlyPos[inst.getScratch()] = pos;
   }
 
   BasicBlock getOrigBlock(Instruction inst) {
-    return origBlock[inst.scratch];
+    return origBlock[inst.getScratch()];
   }
 
   void setOrigBlock(Instruction inst, BasicBlock b) {
-    origBlock[inst.scratch] = b;
+    origBlock[inst.getScratch()] = b;
   }
 
   /**
@@ -814,7 +814,7 @@ public class LICM extends CompilerPhase {
    * @return the instruction's state
    */
   int getState(Instruction inst) {
-    return state[inst.scratch];
+    return state[inst.getScratch()];
   }
 
   /**
@@ -823,7 +823,7 @@ public class LICM extends CompilerPhase {
    * @param s the state
    */
   void setState(Instruction inst, int s) {
-    state[inst.scratch] = s;
+    state[inst.getScratch()] = s;
   }
 
   //------------------------------------------------------------
@@ -852,8 +852,8 @@ public class LICM extends CompilerPhase {
       Iterator<Instruction> pe = ssad.getHeapPhiInstructions(b);
       while (pe.hasNext()) {
         Instruction inst = pe.next();
-        inst.scratch = instructions++;
-        inst.scratchObject = null;
+        inst.setScratch(instructions++);
+        inst.setScratchObject(null);
       }
     }
     state = new int[instructions];

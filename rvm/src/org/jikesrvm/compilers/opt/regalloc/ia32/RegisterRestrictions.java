@@ -177,7 +177,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
         // No floating point register survives across an FNINIT
         for (LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb, s.scratch)) {
+            if (contains(symb, s.getScratch())) {
               addRestrictions(symb.getRegister(), phys.getFPRs());
             }
           }
@@ -186,7 +186,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
         // Only some FPRs survive across an FCLEAR
         for (LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb, s.scratch)) {
+            if (contains(symb, s.getScratch())) {
               int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
               for (int i = nSave; i < NUM_FPRS; i++) {
                 addRestriction(symb.getRegister(), phys.getFPR(i));

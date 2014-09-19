@@ -792,7 +792,7 @@ public class EnterSSA extends CompilerPhase {
           if (DEBUG) System.out.println("PUSH " + r2 + " FOR " + r1 + " BECAUSE " + A);
           S[r1.getNumber()].push(new RegisterOperand(r2, rop.getType()));
           rop.setRegister(r2);
-          r2.scratchObject = r1;
+          r2.setScratchObject(r1);
         }
       }
     } // end of first loop
@@ -848,7 +848,7 @@ public class EnterSSA extends CompilerPhase {
         Register newReg = newOp.asRegister().getRegister();
         if (newReg.isSSA()) continue;
         if (newReg.isPhysical()) continue;
-        Register r1 = (Register) newReg.scratchObject;
+        Register r1 = (Register) newReg.getScratchObject();
         S[r1.getNumber()].pop();
         if (DEBUG) System.out.println("POP " + r1);
       }
@@ -1049,13 +1049,13 @@ public class EnterSSA extends CompilerPhase {
       boolean didSomething = false;
       for (Iterator<Instruction> i = scalarPhis.iterator(); i.hasNext();) {
         Instruction phi = i.next();
-        phi.scratch = NO_NULL_TYPE;
+        phi.setScratch(NO_NULL_TYPE);
         if (DEBUG) System.out.println("PHI: " + phi);
         TypeReference meet = meetPhiType(phi);
         if (DEBUG) System.out.println("MEET: " + meet);
         if (meet != null) {
           didSomething = true;
-          if (phi.scratch == NO_NULL_TYPE) i.remove();
+          if (phi.getScratch() == NO_NULL_TYPE) i.remove();
           RegisterOperand result = (RegisterOperand) Phi.getResult(phi);
           result.setType(meet);
           for (Enumeration<RegisterOperand> e = DefUse.uses(result.getRegister()); e.hasMoreElements();) {
@@ -1149,7 +1149,7 @@ public class EnterSSA extends CompilerPhase {
       if (val instanceof UnreachableOperand) continue;
       TypeReference t = val.getType();
       if (t == null) {
-        s.scratch = FOUND_NULL_TYPE;
+        s.setScratch(FOUND_NULL_TYPE);
       } else if (result == null) {
         result = t;
       } else {

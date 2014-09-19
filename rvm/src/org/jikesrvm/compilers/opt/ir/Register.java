@@ -186,7 +186,7 @@ public final class Register {
 
   public void clearValidation() { flags &= ~VALIDATION; }
 
-  public Object scratchObject;
+  private Object scratchObject;
 
   public void setdNode(org.jikesrvm.compilers.opt.depgraph.DepGraphNode a) {
     scratchObject = a;
@@ -224,7 +224,7 @@ public final class Register {
   /**
    * A field optimizations can use as they choose
    */
-  public int scratch;
+  private int scratch;
 
   public Register(int Number) {
     number = Number;
@@ -379,4 +379,20 @@ public final class Register {
     return Next;
   }
   /* end of inlined behavior */
+
+  public Object getScratchObject() {
+    return scratchObject;
+  }
+
+  public void setScratchObject(Object scratchObject) {
+    this.scratchObject = scratchObject;
+  }
+
+  public int getScratch() {
+    return scratch;
+  }
+
+  public void setScratch(int scratch) {
+    this.scratch = scratch;
+  }
 }

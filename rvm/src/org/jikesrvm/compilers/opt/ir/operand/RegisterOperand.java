@@ -46,7 +46,7 @@ public final class RegisterOperand extends Operand {
    * Optimizations can use it for different purposes, as long as they
    * are not used simultaneously
    */
-  public Object scratchObject;
+  private Object scratchObject;
 
   /**
    * 16bit scratch word that can be used for different optimizations.
@@ -527,5 +527,13 @@ public final class RegisterOperand extends Operand {
   public boolean sameRegisterPropertiesAsExceptForScratchObject(RegisterOperand other) {
     return this.register == other.register && this.flags == other.flags &&
         this.flags2 == other.flags2 && this.info == other.info;
+  }
+
+  public Object getScratchObject() {
+    return scratchObject;
+  }
+
+  public void setScratchObject(Object scratchObject) {
+    this.scratchObject = scratchObject;
   }
 }

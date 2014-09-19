@@ -198,11 +198,11 @@ final class Scheduler {
    * @param n dependence graph node for instruction
    */
   private void setGraphNode(Instruction i, DepGraphNode n) {
-    i2gn[i.scratch] = n;
+    i2gn[i.getScratch()] = n;
   }
 
   private DepGraphNode getGraphNode(Instruction i) {
-    return i2gn[i.scratch];
+    return i2gn[i.getScratch()];
   }
 
   /**
@@ -344,7 +344,7 @@ final class Scheduler {
   private boolean sortBasicBlock(int maxtime) {
     boolean changed = false;
     InstructionBucket[] pool = new InstructionBucket[maxtime + 1];
-    int num = bb.firstInstruction().scratch;
+    int num = bb.firstInstruction().getScratch();
     Instruction ins;
     while ((ins = bb.firstRealInstruction()) != null) {
       InstructionBucket.insert(pool, ins);
@@ -353,8 +353,8 @@ final class Scheduler {
     for (int i = 0; i <= maxtime; i++) {
       for (InstructionBucket t = pool[i]; t != null; t = t.next) {
         bb.appendInstruction(t.instruction);
-        changed = changed || num > t.instruction.scratch;
-        num = t.instruction.scratch;
+        changed = changed || num > t.instruction.getScratch();
+        num = t.instruction.getScratch();
       }
     }
     return changed;

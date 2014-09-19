@@ -759,8 +759,8 @@ public class LoopUnrolling extends CompilerPhase {
       if (!Move.conforms(def)) return use;
       if (defs.hasMoreElements()) {return use;}
 
-      if (def.scratch == theVisit) return use;
-      def.scratch = theVisit;
+      if (def.getScratch() == theVisit) return use;
+      def.setScratch(theVisit);
 
       use = Move.getVal(def);
     }
@@ -985,10 +985,10 @@ public class LoopUnrolling extends CompilerPhase {
 
       res = defs.nextElement();
       Instruction inst = res.instruction;
-      if (!(Move.conforms(inst)) || inst.scratch == theVisit) {
+      if (!(Move.conforms(inst)) || inst.getScratch() == theVisit) {
         return res;
       }
-      inst.scratch = theVisit;
+      inst.setScratch(theVisit);
 
       others = new RealDefs(Move.getVal(inst), theVisit);
       if (!(others.hasMoreElements())) return res;

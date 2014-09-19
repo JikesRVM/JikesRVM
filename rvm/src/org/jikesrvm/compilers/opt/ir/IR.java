@@ -578,7 +578,7 @@ public final class IR {
     int num = 0;
     for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
         instr.nextInstructionInCodeOrder(), num++) {
-      instr.scratch = num;
+      instr.setScratch(num);
     }
     return num;
   }
@@ -592,7 +592,7 @@ public final class IR {
   public void setInstructionScratchWord(int value) {
     for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
         instr.nextInstructionInCodeOrder()) {
-      instr.scratch = value;
+      instr.setScratch(value);
     }
   }
 
@@ -611,7 +611,7 @@ public final class IR {
   public void clearInstructionScratchObject() {
     for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
         instr.nextInstructionInCodeOrder()) {
-      instr.scratchObject = null;
+      instr.setScratchObject(null);
     }
   }
 

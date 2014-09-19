@@ -80,7 +80,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    *  @param interval the live interval
    */
   static void setInterval(Register reg, CompoundInterval interval) {
-    reg.scratchObject = interval;
+    reg.setScratchObject(interval);
   }
 
   /**
@@ -89,7 +89,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    *  @return the live interval or {@code null}
    */
   static CompoundInterval getInterval(Register reg) {
-    return (CompoundInterval) reg.scratchObject;
+    return (CompoundInterval) reg.getScratchObject();
   }
 
   /**
@@ -98,7 +98,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    *  @return the associated dfn
    */
   static int getDFN(Instruction inst) {
-    return inst.scratch;
+    return inst.getScratch();
   }
 
   /**
@@ -107,7 +107,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    *  @param dfn the dfn number
    */
   static void setDFN(Instruction inst, int dfn) {
-    inst.scratch = dfn;
+    inst.setScratch(dfn);
   }
 
   /**
