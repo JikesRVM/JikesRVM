@@ -835,7 +835,9 @@ public class LICM extends CompilerPhase {
     relocated = new HashSet<Instruction>();
     // Note: the following unfactors the CFG
     new DominatorsPhase(true).perform(ir);
-    Dominators.computeApproxPostdominators(ir);
+    Dominators dominators = new Dominators();
+    dominators.computeApproxPostdominators(ir);
+    ir.setDominators(dominators);
     dominator = ir.HIRInfo.dominatorTree;
     if (DEBUG) VM.sysWrite("" + dominator.toString() + "\n");
     int instructions = ir.numberInstructions();

@@ -51,7 +51,7 @@ public class Dominators {
    *
    * @param ir the IR in question
    */
-  public static void perform(IR ir) {
+  public void perform(IR ir) {
     if (ir.hasReachableExceptionHandlers()) {
       throw new OperationNotImplementedException("IR with exception handlers");
     }
@@ -93,7 +93,7 @@ public class Dominators {
    *
    * @param ir the IR in question
    */
-  public static void computeApproxDominators(IR ir) {
+  public void computeApproxDominators(IR ir) {
     DominatorSystem system = new DominatorSystem(ir);
     if (DEBUG) {
       System.out.print("Solving...");
@@ -129,7 +129,7 @@ public class Dominators {
    *
    * @param ir the IR in question
    */
-  public static void computeApproxPostdominators(IR ir) {
+  public void computeApproxPostdominators(IR ir) {
     Dominators.COMPUTE_POST_DOMINATORS = true;
     DominatorSystem system = new DominatorSystem(ir);
     if (DEBUG) {
@@ -166,7 +166,7 @@ public class Dominators {
    *
    * @param solution the solution to the Dominators equations
    */
-  public static void updateBlocks(DF_Solution solution) {
+  public void updateBlocks(DF_Solution solution) {
     for (final DF_LatticeCell latticeCell : solution.values()) {
       DominatorCell cell = (DominatorCell) latticeCell;
       BasicBlock b = cell.block;
@@ -181,7 +181,7 @@ public class Dominators {
    * Print the (already calculated) dominators.
    * @param ir the IR
    */
-  public static void printDominators(IR ir) {
+  public void printDominators(IR ir) {
     for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock b = e.nextElement();
       DominatorInfo i = (DominatorInfo) b.getScratchObject();

@@ -47,6 +47,7 @@ import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
+import org.jikesrvm.compilers.opt.controlflow.Dominators;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.InstrumentationPlan;
@@ -236,6 +237,15 @@ public final class IR {
    * Information about liveness, {@code null} if not yet computed.
    */
   private LiveInterval livenessInformation;
+
+  /**
+   * Information about dominators as used for global code placement
+   * during SSA. This dominator information is not to be confused
+   * with the dominator information that is used to leave SSA form.
+   * The field will be {@code null} if the dominator information
+   * was not computed yet.
+   */
+  private Dominators dominators;
 
   /**
    * Pointer to the HIRInfo for this method.
@@ -685,6 +695,14 @@ public final class IR {
 
   public void setLivenessInformation(LiveInterval liveInterval) {
     this.livenessInformation = liveInterval;
+  }
+
+  public Dominators getDominators() {
+    return dominators;
+  }
+
+  public void setDominators(Dominators dominators) {
+    this.dominators = dominators;
   }
 
   /**
