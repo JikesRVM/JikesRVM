@@ -616,17 +616,6 @@ public final class IR {
   }
 
   /**
-   * Clears (set to {@code null}) the scratch object on
-   * all basic blocks currently in this IR.
-   */
-  public void clearBasicBlockScratchObject() {
-    Enumeration<BasicBlock> e = getBasicBlocks();
-    while (e.hasMoreElements()) {
-      e.nextElement().setScratchObject(null);
-    }
-  }
-
-  /**
    * Returns the number of symbolic registers for this IR.
    *
    * @return number of symbolic registers that were allocated

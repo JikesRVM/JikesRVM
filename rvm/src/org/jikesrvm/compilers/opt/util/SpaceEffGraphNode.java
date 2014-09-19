@@ -22,7 +22,7 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
  * list of in edges.  We maintain both to support bidirectional traversal
  * of the graph.
  */
-public class SpaceEffGraphNode implements GraphNodeWithScratchFields {
+public class SpaceEffGraphNode implements GraphNode {
 
   /** scratch field: optimizations use as they wish */
   private Object scratchObject;
@@ -726,17 +726,4 @@ public class SpaceEffGraphNode implements GraphNodeWithScratchFields {
     return Next;
   }
 
-  @Deprecated
-  @Override
-  public void setScratchObject(Object scratchObject) {
-    this.scratchObject = scratchObject;
-  }
-
-  @Deprecated
-  @Override
-  public Object getScratchObject() {
-    return scratchObject;
-  }
 }
-
-
