@@ -25,6 +25,8 @@ import static org.jikesrvm.compilers.opt.ir.Operators.INT_SUB;
 
 import java.lang.reflect.Constructor;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -56,6 +58,12 @@ public class LoopUnrolling extends CompilerPhase {
 
   static final boolean DEBUG = false;
   static final int MAX_BLOCKS_FOR_NAIVE_UNROLLING = 20;
+
+  private final Map<BasicBlock, BasicBlock> copiedBlocks;
+
+  public LoopUnrolling() {
+    copiedBlocks = new HashMap<BasicBlock, BasicBlock>();
+  }
 
   /**
    * Returns the name of the phase.
@@ -658,7 +666,7 @@ public class LoopUnrolling extends CompilerPhase {
         while (be.hasMoreElements()) {
           BasicBlock out = be.nextElement();
           if (out != t.header && CFGTransformations.inLoop(out, nloop)) {
-            BasicBlock outCopy = (BasicBlock) out.getScratchObject();
+            BasicBlock outCopy = copiedBlocks.get(out);
             currentBlock.redirectOuts(out, outCopy, ir);
           }
         }
@@ -674,7 +682,7 @@ public class LoopUnrolling extends CompilerPhase {
             BasicBlock out = be.nextElement();
             if (out == t.header) {
               BasicBlock headerCopy;
-              headerCopy = (BasicBlock) t.header.getScratchObject();
+              headerCopy = copiedBlocks.get(t.header);
               currentBlock.redirectOuts(t.header, headerCopy, ir);
             }
           }
@@ -834,29 +842,8 @@ public class LoopUnrolling extends CompilerPhase {
     }
   }
 
-  static void linkToLST(IR ir) {
-    Enumeration<BasicBlock> e = ir.getBasicBlocks();
-    while (e.hasMoreElements()) {
-      e.nextElement().setScratchObject(null);
-    }
-    LSTGraph lstg = ir.HIRInfo.loopStructureTree;
-    if (lstg != null) markHeaders((LSTNode) lstg.firstNode());
-  }
-
-  // for all loops:
-  // make the header block point to the corresponding loop structure tree node.
-  private static void markHeaders(LSTNode t) {
-    BasicBlock header = t.header;
-    header.setScratchObject(t);
-    Enumeration<GraphNode> e = t.outNodes();
-    while (e.hasMoreElements()) {
-      LSTNode n = (LSTNode) e.nextElement();
-      markHeaders(n);
-    }
-  }
-
   // inserts unrollFactor copies of the loop after seqStart
-  static BasicBlock[] makeSomeCopies(int unrollFactor, IR ir, BitVector nloop, int blocks,
+  BasicBlock[] makeSomeCopies(int unrollFactor, IR ir, BitVector nloop, int blocks,
                                          BasicBlock header, BasicBlock exitBlock, BasicBlock seqStart) {
     // make some copies of the original loop
 
@@ -926,7 +913,7 @@ public class LoopUnrolling extends CompilerPhase {
         while (be.hasMoreElements()) {
           BasicBlock out = be.nextElement();
           if (CFGTransformations.inLoop(out, nloop)) {
-            cb.redirectOuts(out, (BasicBlock) out.getScratchObject(), ir);
+            cb.redirectOuts(out, copiedBlocks.get(out), ir);
           }
         }
         cb.recomputeNormalOut(ir);
@@ -939,10 +926,10 @@ public class LoopUnrolling extends CompilerPhase {
     return handles;
   }
 
-  static BasicBlock copyAndLinkBlock(IR ir, BasicBlock seqLast, BasicBlock block) {
+  BasicBlock copyAndLinkBlock(IR ir, BasicBlock seqLast, BasicBlock block) {
     BasicBlock copy = block.copyWithoutLinks(ir);
     ir.cfg.linkInCodeOrder(seqLast, copy);
-    block.setScratchObject(copy);
+    copiedBlocks.put(block, copy);
     return copy;
   }
 
