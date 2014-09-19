@@ -83,6 +83,7 @@ public class LTDominators extends Stack<BasicBlock> {
       }
     }
     LTDominators dom = new LTDominators(ir, forward);
+    ir.setLtDominators(dom);
     dom.analyze(ir);
   }
 
@@ -95,6 +96,7 @@ public class LTDominators extends Stack<BasicBlock> {
    */
   public static void approximate(IR ir, boolean forward) {
     LTDominators dom = new LTDominators(ir, forward);
+    ir.setLtDominators(dom);
     dom.analyze(ir);
   }
 

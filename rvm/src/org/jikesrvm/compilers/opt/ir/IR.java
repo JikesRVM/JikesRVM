@@ -48,6 +48,7 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.controlflow.Dominators;
+import org.jikesrvm.compilers.opt.controlflow.LTDominators;
 import org.jikesrvm.compilers.opt.driver.CompilationPlan;
 import org.jikesrvm.compilers.opt.driver.CompilerPhase;
 import org.jikesrvm.compilers.opt.driver.InstrumentationPlan;
@@ -246,6 +247,16 @@ public final class IR {
    * was not computed yet.
    */
   private Dominators dominators;
+
+  /**
+   * Information about dominators as used for leaving SSA form.
+   * This dominator information is not to be confused
+   * with the dominator information that is used to do global code
+   * placement in the SSA form.
+   * The field will be {@code null} if the dominator information
+   * was not computed yet.
+   */
+  private LTDominators ltDominators;
 
   /**
    * Pointer to the HIRInfo for this method.
@@ -703,6 +714,14 @@ public final class IR {
 
   public void setDominators(Dominators dominators) {
     this.dominators = dominators;
+  }
+
+  public LTDominators getLtDominators() {
+    return ltDominators;
+  }
+
+  public void setLtDominators(LTDominators ltDominators) {
+    this.ltDominators = ltDominators;
   }
 
   /**
