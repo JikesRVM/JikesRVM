@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.opt.controlflow;
 
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jikesrvm.compilers.opt.OperationNotImplementedException;
 import org.jikesrvm.compilers.opt.dfsolver.DF_LatticeCell;
@@ -42,6 +44,8 @@ public class Dominators {
    * false by default.
    */
   static boolean COMPUTE_POST_DOMINATORS = false;
+
+  private Map<BasicBlock, DominatorInfo> dominatorInfo;
 
   /**
    * Calculate the dominators for an IR.
@@ -167,10 +171,12 @@ public class Dominators {
    * @param solution the solution to the Dominators equations
    */
   public void updateBlocks(DF_Solution solution) {
+    int capacityToPreventRehash = (int) (solution.size() * 1.4f);
+    dominatorInfo = new HashMap<BasicBlock, DominatorInfo>(capacityToPreventRehash);
     for (final DF_LatticeCell latticeCell : solution.values()) {
       DominatorCell cell = (DominatorCell) latticeCell;
       BasicBlock b = cell.block;
-      b.setScratchObject(new DominatorInfo(cell.dominators));
+      dominatorInfo.put(b, new DominatorInfo(cell.dominators));
       if (DEBUG) {
         System.out.println("Dominators of " + b + ":" + cell.dominators);
       }
@@ -184,8 +190,12 @@ public class Dominators {
   public void printDominators(IR ir) {
     for (Enumeration<BasicBlock> e = ir.getBasicBlocks(); e.hasMoreElements();) {
       BasicBlock b = e.nextElement();
-      DominatorInfo i = (DominatorInfo) b.getScratchObject();
+      DominatorInfo i = dominatorInfo.get(b);
       System.out.println("Dominators of " + b + ":" + i.dominators);
     }
+  }
+
+  public DominatorInfo getDominatorInfo(BasicBlock b) {
+    return dominatorInfo.get(b);
   }
 }

@@ -342,7 +342,7 @@ public class LICM extends CompilerPhase {
 
     /* don't put memory stores or PEIs on speculative path */
     if ((inst.isPEI() && !ir.options.SSA_LICM_IGNORE_PEI) || inst.isImplicitStore()) {
-      while (!postDominates(getBlock(inst), getBlock(_earlyPos))) {
+      while (!postDominates(getBlock(inst), getBlock(_earlyPos), ir)) {
         _earlyPos = dominanceSuccessor(_earlyPos, inst);
       }
     }
@@ -769,15 +769,16 @@ public class LICM extends CompilerPhase {
    * does a post dominate b?
    * @param a the possible post-dominator
    * @param b the possibly post-dominated block
+   * @param ir the IR that contains the blocks
    * @return whether the first block post-dominates the second block
    */
-  boolean postDominates(BasicBlock a, BasicBlock b) {
+  boolean postDominates(BasicBlock a, BasicBlock b, IR ir) {
     boolean res;
     if (a == b) {
       return true;
     }
     //VM.sysWrite ("does " + a + " postdominate " + b + "?: ");
-    DominatorInfo info = (DominatorInfo) b.getScratchObject();
+    DominatorInfo info = ir.getDominators().getDominatorInfo(b);
     res = info.isDominatedBy(a);
     //VM.sysWrite (res ? "yes\n" : "no\n");
     return res;

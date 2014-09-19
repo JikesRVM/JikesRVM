@@ -39,20 +39,6 @@ public class DominatorInfo {
   }
 
   /**
-   * Return the immediate dominator of a basic block.
-   *
-   * <p> Note: the dominator info must be calculated before calling this
-   * routine
-   *
-   * @param bb the basic block in question
-   * @return bb's immediate dominator, as cached in bb's DominatorInfo
-   */
-  public static BasicBlock idom(BasicBlock bb) {
-    DominatorInfo info = (DominatorInfo) bb.getScratchObject();
-    return info.idom;
-  }
-
-  /**
    * Is the basic block represented by this structure dominated by another
    * basic block?
    *
@@ -63,18 +49,4 @@ public class DominatorInfo {
     return dominators.get(bb.getNumber());
   }
 
-  /**
-   * Is one basic block (the slave) dominated by another (the master)?
-   *
-   * @param slave the potential dominatee
-   * @param master the potential dominator
-   * @return true or false
-   */
-  static boolean isDominatedBy(BasicBlock slave, BasicBlock master) {
-    return ((DominatorInfo) slave.getScratchObject()).
-        dominators.get(master.getNumber());
-  }
 }
-
-
-
