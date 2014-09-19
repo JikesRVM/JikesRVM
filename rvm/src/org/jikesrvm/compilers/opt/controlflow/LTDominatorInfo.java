@@ -75,7 +75,7 @@ class LTDominatorInfo {
     // the dominator tree.
     BitVector dominators = new BitVector(ir.getMaxBasicBlockNumber() + 1);
     dominators.set(block.getNumber());
-    while ((block = getIdom(block)) != null) {
+    while ((block = getIdom(block, ir)) != null) {
       dominators.set(block.getNumber());
     }
     return dominators;
@@ -87,17 +87,18 @@ class LTDominatorInfo {
    *   before reaching "block"
    *
    *   @param block the block we care about
-   *   @param master the potential dominating block
+   * @param master the potential dominating block
+   * @param ir the IR that contains the blocks
    *   @return whether master dominates block
    */
-  public static boolean isDominatedBy(BasicBlock block, BasicBlock master) {
+  public static boolean isDominatedBy(BasicBlock block, BasicBlock master, IR ir) {
     if (block == master) {
       return true;
     }
     // walk up the dominator tree looking for the passed block
-    block = getIdom(block);
+    block = getIdom(block, ir);
     while (block != null && block != master) {
-      block = getIdom(block);
+      block = getIdom(block, ir);
     }
     // If we found the master, the condition is true
     return block == master;
@@ -258,20 +259,22 @@ class LTDominatorInfo {
   /**
    * Helper method to return the Info field associated with a block
    * @param block the block of interest
+   * @param ir the IR that contains the information about the dominators
    * @return the LTInfo info
    */
-  public static LTDominatorInfo getInfo(BasicBlock block) {
-    return (LTDominatorInfo) block.getScratchObject();
+  public static LTDominatorInfo getInfo(BasicBlock block, IR ir) {
+    return ir.getLtDominators().getInfo(block);
   }
 
   /**
    * return the immediate dominator of a basic block.
    * Note: the dominator info must be pre-calculated
    * @param bb the basic block in question
+   * @param ir the IR that contains the information about the dominators
    * @return bb's immediate dominator
    */
-  public static BasicBlock getIdom(BasicBlock bb) {
-    return getInfo(bb).dominator;
+  public static BasicBlock getIdom(BasicBlock bb, IR ir) {
+    return getInfo(bb, ir).dominator;
   }
 
   /**

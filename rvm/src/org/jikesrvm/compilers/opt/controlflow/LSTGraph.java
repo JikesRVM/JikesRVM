@@ -44,6 +44,8 @@ public class LSTGraph extends SpaceEffGraph {
   /** Map of bb to LSTNode of innermost loop containing bb */
   private final HashMap<BasicBlock, LSTNode> loopMap;
 
+  private IR ir;
+
   /**
    * The main entry point
    * @param ir the IR to process
@@ -136,6 +138,7 @@ public class LSTGraph extends SpaceEffGraph {
    * @param  ir the IR
    */
   private LSTGraph(IR ir) {
+    this.ir = ir;
     loopMap = new HashMap<BasicBlock, LSTNode>();
 
     ControlFlowGraph cfg = ir.cfg;
@@ -262,7 +265,7 @@ public class LSTGraph extends SpaceEffGraph {
         SpaceEffGraphEdge outEdge = (SpaceEffGraphEdge) e.next();
 
         BasicBlock outbb = (BasicBlock) outEdge.toNode();
-        if (LTDominatorInfo.isDominatedBy(bb, outbb)) {   // backedge
+        if (LTDominatorInfo.isDominatedBy(bb, outbb, ir)) {   // backedge
           outbb.setLoopHeader();
           outEdge.setBackEdge();
           if (DEBUG) {

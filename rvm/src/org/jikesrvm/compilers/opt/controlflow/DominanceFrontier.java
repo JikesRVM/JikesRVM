@@ -126,7 +126,7 @@ public class DominanceFrontier extends CompilerPhase {
           continue;
         }
         // if (idom(Y)!=X) then DF(X) <- DF(X) U Y
-        if (LTDominatorInfo.getIdom(Y) != X) {
+        if (LTDominatorInfo.getIdom(Y, ir) != X) {
           DF.set(Y.getNumber());
         }
       }
@@ -144,7 +144,7 @@ public class DominanceFrontier extends CompilerPhase {
         for (Enumeration<BasicBlock> y = zVertex.domFrontierEnumerator(ir); y.hasMoreElements();) {
           BasicBlock Y = y.nextElement();
           // if (idom(Y)!=X) then DF(X) <- DF(X) U Y
-          if (LTDominatorInfo.getIdom(Y) != X) {
+          if (LTDominatorInfo.getIdom(Y, ir) != X) {
             DF.set(Y.getNumber());
           }
         }
