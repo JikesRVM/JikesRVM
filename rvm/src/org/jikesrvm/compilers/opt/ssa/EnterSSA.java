@@ -760,6 +760,9 @@ public class EnterSSA extends CompilerPhase {
    */
   private void search(BasicBlock X, Stack<RegisterOperand>[] S) {
     if (DEBUG) System.out.println("SEARCH " + X);
+
+    HashMap<Register, Register> pushedRegs = new HashMap<Register, Register>();
+
     for (Enumeration<Instruction> ie = X.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction A = ie.nextElement();
       if (A.operator() != PHI) {
@@ -792,7 +795,7 @@ public class EnterSSA extends CompilerPhase {
           if (DEBUG) System.out.println("PUSH " + r2 + " FOR " + r1 + " BECAUSE " + A);
           S[r1.getNumber()].push(new RegisterOperand(r2, rop.getType()));
           rop.setRegister(r2);
-          r2.setScratchObject(r1);
+          pushedRegs.put(r2, r1);
         }
       }
     } // end of first loop
@@ -848,7 +851,7 @@ public class EnterSSA extends CompilerPhase {
         Register newReg = newOp.asRegister().getRegister();
         if (newReg.isSSA()) continue;
         if (newReg.isPhysical()) continue;
-        Register r1 = (Register) newReg.getScratchObject();
+        Register r1 = pushedRegs.get(newReg);
         S[r1.getNumber()].pop();
         if (DEBUG) System.out.println("POP " + r1);
       }
