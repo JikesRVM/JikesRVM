@@ -616,6 +616,8 @@ public class LeaveSSA extends CompilerPhase {
 
   Instruction guardPhis = null;
 
+  private HashMap<Instruction, Instruction> inst2guardPhi;
+
   /**
    * Initialization for removal of guard phis.
    *
@@ -627,6 +629,8 @@ public class LeaveSSA extends CompilerPhase {
 
     // visit all instructions, looking for guard phis
 
+    inst2guardPhi = new HashMap<Instruction, Instruction>();
+
     while (e.hasMoreElements()) {
       Instruction inst = e.nextElement();
       if (!Phi.conforms(inst)) continue;
@@ -636,8 +640,7 @@ public class LeaveSSA extends CompilerPhase {
       if (!r.isValidation()) continue;
 
       // force all operands of Phis into registers.
-
-      inst.setScratchObject(guardPhis);
+      inst2guardPhi.put(inst, guardPhis);
       guardPhis = inst;
 
       int values = Phi.getNumberOfValues(inst);
@@ -687,7 +690,7 @@ public class LeaveSSA extends CompilerPhase {
           }
         }
       }
-      inst = (Instruction) inst.getScratchObject();
+      inst = inst2guardPhi.get(inst);
     }
   }
 
@@ -715,7 +718,7 @@ public class LeaveSSA extends CompilerPhase {
     Instruction inst = guardPhis;
     while (inst != null) {
       inst.remove();
-      inst = (Instruction) inst.getScratchObject();
+      inst = inst2guardPhi.get(inst);
     }
   }
 
