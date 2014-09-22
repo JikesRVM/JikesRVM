@@ -617,6 +617,8 @@ public class LeaveSSA extends CompilerPhase {
   Instruction guardPhis = null;
 
   private HashMap<Instruction, Instruction> inst2guardPhi;
+  private HashMap<Register, Integer> guardRegUnion;
+  private HashMap<Register, Register> associatedRegisters;
 
   /**
    * Initialization for removal of guard phis.
@@ -662,11 +664,13 @@ public class LeaveSSA extends CompilerPhase {
       }
     }
 
+    guardRegUnion = new HashMap<Register, Integer>();
+    associatedRegisters = new HashMap<Register, Register>();
     // visit all guard registers, init union/find
     for (Register r = ir.regpool.getFirstSymbolicRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
-      r.setScratch(1);
-      r.setScratchObject(r);
+      guardRegUnion.put(r, Integer.valueOf(1));
+      associatedRegisters.put(r, r);
     }
   }
 
@@ -726,26 +730,28 @@ public class LeaveSSA extends CompilerPhase {
     Register a = guardFind(from);
     Register b = guardFind(to);
     if (a == b) return a;
-    if (a.getScratch() == b.getScratch()) {
-      a.setScratch(a.getScratch() + 1);
-      b.setScratchObject(a);
+    int aUnion = guardRegUnion.get(a);
+    int bUnion = guardRegUnion.get(b);
+    if (aUnion == bUnion) {
+      guardRegUnion.put(a, Integer.valueOf(aUnion+1));
+      associatedRegisters.put(b, a);
       return a;
     }
-    if (a.getScratch() > b.getScratch()) {
-      b.setScratchObject(a);
+    if (aUnion > bUnion) {
+      associatedRegisters.put(b, a);
       return a;
     }
-    a.setScratchObject(b);
+    associatedRegisters.put(a, b);
     return b;
   }
 
   private Register guardFind(Register r) {
     Register start = r;
-    if (VM.VerifyAssertions) VM._assert(r.getScratchObject() != null);
-    while (r.getScratchObject() != r) r = (Register) r.getScratchObject();
-    while (start.getScratchObject() != r) {
-      start.setScratchObject(r);
-      start = (Register) start.getScratchObject();
+    if (VM.VerifyAssertions) VM._assert(associatedRegisters.get(r) != null);
+    while (associatedRegisters.get(r) != r) r = associatedRegisters.get(r);
+    while (associatedRegisters.get(start) != r) {
+      associatedRegisters.put(start, r);
+      start = associatedRegisters.get(start);
     }
     return r;
   }
