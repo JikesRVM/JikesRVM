@@ -14,7 +14,10 @@ package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.classloader.ClassLoaderConstants.VoidTypeCode;
 import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER;
 
+import java.lang.reflect.Constructor;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedList;
 
@@ -43,26 +46,27 @@ public class OsrPointConstructor extends CompilerPhase {
     return VM.runningVM && options.OSR_GUARDED_INLINING;
   }
 
-  /**
-   * Return this instance of this phase. This phase contains no
-   * per-compilation instance fields.
-   * @param ir not used
-   * @return this
-   */
-  @Override
-  public CompilerPhase newExecution(IR ir) {
-    return this;
-  }
-
   @Override
   public final String getName() {
     return "OsrPointConstructor";
   }
 
+  @Override
+  public Constructor<CompilerPhase> getClassConstructor() {
+    return constructor;
+  }
+
+  private static final Constructor<CompilerPhase> constructor =
+      getCompilerPhaseConstructor(OsrPointConstructor.class);
+
   /**
    * Need to run branch optimizations after
    */
   private final BranchOptimizations branchOpts;
+
+  private Collection<Instruction> osrBarriers;
+
+  private LinkedList<Instruction> osrPoints;
 
   /**
    * Constructor
@@ -76,13 +80,13 @@ public class OsrPointConstructor extends CompilerPhase {
    */
   @Override
   public void perform(IR ir) {
-    // 1. collecting OsrPoint instructions
-    LinkedList<Instruction> osrs = collectOsrPoints(ir);
+    // 1. collecting OsrPoint and OsrBarrier instructions
+    collectOsrPointsAndBarriers(ir);
 
     //    new IRPrinter("before renovating osrs").perform(ir);
 
     // 2. trace OsrBarrier for each OsrPoint, and rebuild OsrPoint
-    renovateOsrPoints(osrs, ir);
+    renovateOsrPoints(ir);
 
     //    new IRPrinter("before removing barriers").perform(ir);
 
@@ -92,7 +96,7 @@ public class OsrPointConstructor extends CompilerPhase {
     //    new IRPrinter("after removing barriers").perform(ir);
 
     // 4. reconstruct CFG, cut off pieces after OsrPoint.
-    fixupCFGForOsr(osrs, ir);
+    fixupCFGForOsr(ir);
 /*
         if (VM.TraceOnStackReplacement && (0 != osrs.size())) {
       new IRPrinter("After OsrPointConstructor").perform(ir);
@@ -108,38 +112,36 @@ public class OsrPointConstructor extends CompilerPhase {
 
   /**
    * Iterates over all instructions in the IR and builds a list of
-   * OsrPoint instructions.
+   * OsrPoint instructions and OsrBarrier instructions.
    *
    * @param ir the IR
-   * @return a list of osr point instructions in the IR
    */
-  private LinkedList<Instruction> collectOsrPoints(IR ir) {
-    LinkedList<Instruction> osrs = new LinkedList<Instruction>();
+  private void collectOsrPointsAndBarriers(IR ir) {
+    osrPoints = new LinkedList<Instruction>();
+    osrBarriers = new LinkedList<Instruction>();
 
     Enumeration<Instruction> instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
       Instruction inst = instenum.nextElement();
 
       if (OsrPoint.conforms(inst)) {
-        osrs.add(inst);
+        osrPoints.add(inst);
+      } else if (inst.operator() == OSR_BARRIER) {
+        osrBarriers.add(inst);
       }
     }
-
-    return osrs;
   }
 
   /**
    * For each OsrPoint instruction, traces its OsrBarriers created by
    * inlining. rebuild OsrPoint instruction to hold all necessary
    * information to recover from inlined activation.
-   *
    * @param ir the IR
-   * @param osrs a list of OSR point instructions in the IR
    */
-  private void renovateOsrPoints(LinkedList<Instruction> osrs, IR ir) {
+  private void renovateOsrPoints(IR ir) {
 
-    for (int osrIdx = 0, osrSize = osrs.size(); osrIdx < osrSize; osrIdx++) {
-      Instruction osr = osrs.get(osrIdx);
+    for (int osrIdx = 0, osrSize = osrPoints.size(); osrIdx < osrSize; osrIdx++) {
+      Instruction osr = osrPoints.get(osrIdx);
       LinkedList<Instruction> barriers = new LinkedList<Instruction>();
 
       // Step 1: collect barriers put before inlined method
@@ -291,12 +293,8 @@ public class OsrPointConstructor extends CompilerPhase {
   }
 
   private void removeOsrBarriers(IR ir) {
-    Enumeration<Instruction> instenum = ir.forwardInstrEnumerator();
-    while (instenum.hasMoreElements()) {
-      Instruction inst = instenum.nextElement();
-      if (OsrBarrier.conforms(inst)) {
-        inst.remove();
-      }
+    for (Instruction inst : osrBarriers) {
+      inst.remove();
     }
     ir.gc.discardOSRBarrierInformation();
   }
@@ -342,13 +340,11 @@ public class OsrPointConstructor extends CompilerPhase {
 
   /**
    * Splits each OsrPoint, and connects it to the exit point.
-   *
-   * @param osrs all OSR point instructions
    * @param ir the IR
    */
-  private void fixupCFGForOsr(LinkedList<Instruction> osrs, IR ir) {
-    for (int i = 0, n = osrs.size(); i < n; i++) {
-      Instruction osr = osrs.get(i);
+  private void fixupCFGForOsr(IR ir) {
+    for (int i = 0, n = osrPoints.size(); i < n; i++) {
+      Instruction osr = osrPoints.get(i);
       BasicBlock bb = osr.getBasicBlock();
       BasicBlock newBB = bb.segregateInstruction(osr, ir);
       bb.recomputeNormalOut(ir);
