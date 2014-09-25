@@ -145,7 +145,8 @@ public class OsrPointConstructor extends CompilerPhase {
       // Step 1: collect barriers put before inlined method
       //         in the order of from inner to outer
       {
-        Instruction bar = (Instruction) osr.getScratchObject();
+        GenerationContext gc = ir.gc;
+        Instruction bar = gc.getOSRBarrierFromInst(osr);
 
         if (osr.position == null) osr.position = bar.position;
 
@@ -165,7 +166,7 @@ public class OsrPointConstructor extends CompilerPhase {
 
           Instruction callsite = bar.position.getCallSite();
           if (callsite != null) {
-            bar = (Instruction) callsite.getScratchObject();
+            bar = gc.getOSRBarrierFromInst(callsite);
 
             if (bar == null) {
               VM.sysWrite("call site :" + callsite);
@@ -293,12 +294,11 @@ public class OsrPointConstructor extends CompilerPhase {
     Enumeration<Instruction> instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
       Instruction inst = instenum.nextElement();
-      // clean the scratObjects of each instruction
-      inst.setScratchObject(null);
       if (OsrBarrier.conforms(inst)) {
         inst.remove();
       }
     }
+    ir.gc.discardOSRBarrierInformation();
   }
 
   @SuppressWarnings("unused")

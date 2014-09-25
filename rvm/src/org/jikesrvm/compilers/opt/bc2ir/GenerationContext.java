@@ -27,15 +27,18 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT;
+import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_END;
+import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterPool;
@@ -224,6 +227,20 @@ public final class GenerationContext {
    */
   private Operand result;
 
+  /////////
+  // Information for on-stack replacement barriers
+  /////////
+
+  /**
+   * Mapping of instructions to on-stack replacement (OSR) barriers. The
+   * key is always a call instruction or an OSR yieldpoint instruction,
+   * the value is an OSR barrier instruction.
+   * <p>
+   * Child contexts save this information in their outermost parent
+   * context, so this field will be {@code null} for child contexts.
+   */
+  private Map<Instruction, Instruction> instToOSRBarriers;
+
   //////////
   // Main public methods
   /////////
@@ -309,6 +326,7 @@ public final class GenerationContext {
     }
 
     enclosingHandlers = null;
+    instToOSRBarriers = new LinkedHashMap<Instruction, Instruction>();
 
     completePrologue(true);
     completeEpilogue(true);
@@ -924,6 +942,29 @@ public final class GenerationContext {
     this.generatedExceptionHandlers = true;
   }
 
+  public void saveOSRBarrierForInst(Instruction osrBarrier,
+      Instruction inst) {
+    if (VM.VerifyAssertions) {
+      VM._assert(osrBarrier.operator() == OSR_BARRIER,
+          "Unexpected operator for OSR barrier");
+      boolean sourceInstOk = inst.operator() == CALL ||
+          inst.operator() == YIELDPOINT_OSR;
+      VM._assert(sourceInstOk,
+          "Unexpected operator for instruction that has a barrier");
+    }
+
+    getOutermostContext().instToOSRBarriers.put(inst, osrBarrier);
+  }
+
+  public Instruction getOSRBarrierFromInst(Instruction inst) {
+    return getOutermostContext().instToOSRBarriers.get(inst);
+  }
+
+  public void discardOSRBarrierInformation() {
+    instToOSRBarriers = null;
+  }
+
+
   ///////////
   // Getters and setters that need to be public
   ///////////
@@ -980,11 +1021,7 @@ public final class GenerationContext {
    * @return the original method (root of the calling context tree)
    */
   NormalMethod getOriginalMethod() {
-    GenerationContext outermostContext = this;
-    while (outermostContext.parent != null) {
-      outermostContext = outermostContext.parent;
-    }
-    return outermostContext.method;
+    return getOutermostContext().method;
   }
 
   CompiledMethod getOriginalCompiledMethod() {
@@ -1013,6 +1050,14 @@ public final class GenerationContext {
 
   InlineOracle getInlinePlan() {
     return inlinePlan;
+  }
+
+  private GenerationContext getOutermostContext() {
+    GenerationContext outermostContext = this;
+    while (outermostContext.parent != null) {
+      outermostContext = outermostContext.parent;
+    }
+    return outermostContext;
   }
 
 }

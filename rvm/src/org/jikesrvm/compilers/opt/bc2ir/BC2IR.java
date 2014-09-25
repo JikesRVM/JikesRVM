@@ -4691,7 +4691,7 @@ public final class BC2IR {
     // verify it
     if (this.osrGuardedInline) {
       if (VM.VerifyAssertions) VM._assert(lastOsrBarrier != null);
-      callSite.setScratchObject(lastOsrBarrier);
+      gc.saveOSRBarrierForInst(lastOsrBarrier, callSite);
     }
 
     // Execute the inline decision.
@@ -4979,12 +4979,13 @@ public final class BC2IR {
    * after BC2IR, before any other optimizations.
    *
    * @param barrier the OSR barrier instruction
+   * @param gc context that has information about OSR
    * @return the osr point instruction
    */
-  public static Instruction _osrHelper(Instruction barrier) {
+  public static Instruction _osrHelper(Instruction barrier, GenerationContext gc) {
     Instruction inst = OsrPoint.create(YIELDPOINT_OSR, null,  // currently unknown
                                            0);    // currently unknown
-    inst.setScratchObject(barrier);
+    gc.saveOSRBarrierForInst(barrier, inst);
     return inst;
   }
 

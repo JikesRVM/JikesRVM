@@ -209,8 +209,8 @@ public class Inliner {
 
       if (inlDec.OSRTestFailed()) {
         // note where we're storing the osr barrier instruction
-        Instruction lastOsrBarrier = (Instruction)callSite.getScratchObject();
-        Instruction s = BC2IR._osrHelper(lastOsrBarrier);
+        Instruction lastOsrBarrier = parent.getOSRBarrierFromInst(callSite);
+        Instruction s = BC2IR._osrHelper(lastOsrBarrier, parent);
         s.position = callSite.position;
         s.bcIndex = callSite.bcIndex;
         testFailed.appendInstruction(s);

@@ -30,6 +30,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.IR_PROLOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITORENTER;
 import static org.jikesrvm.compilers.opt.ir.Operators.MONITOREXIT;
+import static org.jikesrvm.compilers.opt.ir.Operators.OSR_BARRIER;
 import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.RETURN;
 import static org.jikesrvm.compilers.opt.ir.Operators.UNINT_BEGIN;
@@ -67,6 +68,7 @@ import org.jikesrvm.compilers.opt.ir.MonitorOp;
 import org.jikesrvm.compilers.opt.ir.Move;
 import org.jikesrvm.compilers.opt.ir.Nullary;
 import org.jikesrvm.compilers.opt.ir.Operator;
+import org.jikesrvm.compilers.opt.ir.OsrBarrier;
 import org.jikesrvm.compilers.opt.ir.Prologue;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.Return;
@@ -2041,6 +2043,109 @@ public class GenerationContextTest {
     String methodNameFromOpts = iterator.next();
     assertThat(methodNameFromOpts, is(methodName));
     return opts;
+  }
+
+  @Test
+  public void canSaveInformationAboutOSRBarriers() throws Exception {
+    GenerationContext gc = createMostlyEmptyContext("emptyStaticMethodWithoutAnnotations");
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    gc.saveOSRBarrierForInst(osrBarrier, call);
+    Instruction barrier = gc.getOSRBarrierFromInst(call);
+    assertThat(barrier, is(osrBarrier));
+  }
+
+  @Test
+  public void childContextsSaveOSRBarrierInformationInOutermostParent() throws Exception {
+    NormalMethod nm = getNormalMethodForTest("methodForInliningTests");
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = new OptOptions();
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext outermost = new GenerationContext(nm, null, cm, opts, io);
+
+    Class<?>[] classArgs = {Object.class};
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
+
+    MethodOperand methOp = MethodOperand.STATIC(callee);
+    Register regMinus1 = new Register(-1);
+    RegisterOperand result = new RegisterOperand(regMinus1, TypeReference.JavaLangObject);
+    Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
+    Register regMinus2 = new Register(-2);
+    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    Call.setParam(callInstr, 0, objectParam);
+    callInstr.position = new InlineSequence(nm);
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+
+    GenerationContext child = GenerationContext.createChildContext(outermost, ebag, callee, callInstr);
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    child.saveOSRBarrierForInst(osrBarrier, call);
+    assertThat(outermost.getOSRBarrierFromInst(call), is(osrBarrier));
+
+    GenerationContext child2 = GenerationContext.createChildContext(child, ebag, callee, callInstr);
+    Instruction osrBarrier2 = createMockOSRBarrier();
+    Instruction call2 = createMockCall();
+    child2.saveOSRBarrierForInst(osrBarrier2, call2);
+    assertThat(outermost.getOSRBarrierFromInst(call2), is(osrBarrier2));
+  }
+
+  @Test
+  public void childContextsQueryOSRBarrierInformationViaOutermostParent() throws Exception {
+    NormalMethod nm = getNormalMethodForTest("methodForInliningTests");
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = new OptOptions();
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext outermost = new GenerationContext(nm, null, cm, opts, io);
+
+    Class<?>[] classArgs = {Object.class};
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
+
+    MethodOperand methOp = MethodOperand.STATIC(callee);
+    Register regMinus1 = new Register(-1);
+    RegisterOperand result = new RegisterOperand(regMinus1, TypeReference.JavaLangObject);
+    Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
+    Register regMinus2 = new Register(-2);
+    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    Call.setParam(callInstr, 0, objectParam);
+    callInstr.position = new InlineSequence(nm);
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+
+    GenerationContext child = GenerationContext.createChildContext(outermost, ebag, callee, callInstr);
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    child.saveOSRBarrierForInst(osrBarrier, call);
+    assertThat(outermost.getOSRBarrierFromInst(call), is(osrBarrier));
+    assertThat(child.getOSRBarrierFromInst(call), is(osrBarrier));
+
+    GenerationContext child2 = GenerationContext.createChildContext(outermost, ebag, callee, callInstr);
+    assertThat(child2.getOSRBarrierFromInst(call), is(osrBarrier));
+  }
+
+  private Instruction createMockCall() {
+    return Call.create(CALL, null, null, null, 0);
+  }
+
+  private Instruction createMockOSRBarrier() {
+    return OsrBarrier.create(OSR_BARRIER, null, 0);
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void savingNoLongerWorksAfterOSRBarrierInformationWasDiscarded() throws Exception {
+    GenerationContext gc = createMostlyEmptyContext("methodForInliningTests");
+    gc.discardOSRBarrierInformation();
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    gc.saveOSRBarrierForInst(osrBarrier, call);
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void getOSRBarrierCausesNPEAfterOSRBarrierInformationWasDiscarded() throws Exception {
+    GenerationContext gc = createMostlyEmptyContext("methodForInliningTests");
+    Instruction osrBarrier = createMockOSRBarrier();
+    Instruction call = createMockCall();
+    gc.saveOSRBarrierForInst(osrBarrier, call);
+    gc.discardOSRBarrierInformation();
+    gc.getOSRBarrierFromInst(call);
   }
 
 }
