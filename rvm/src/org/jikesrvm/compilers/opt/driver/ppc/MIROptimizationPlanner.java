@@ -87,7 +87,7 @@ public abstract class MIROptimizationPlanner extends OptimizationPlanner {
     ////////////////////
 
     // currently nothing to do
-    
+
     ////////////////////
     // GCMapping part1 and RegisterAllocation
     ////////////////////
