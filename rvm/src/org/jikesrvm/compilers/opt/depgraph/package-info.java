@@ -14,9 +14,8 @@
 /**
  * Provides classes that implement a dependence graph.
  * <p>
- * Dependence graphs are used during BURS and for instruction scheduling.
+ * Dependence graphs are used during BURS.
  *
- * @see org.jikesrvm.compilers.opt.instrsched
  * @see org.jikesrvm.compilers.opt.lir2mir
  */
 package org.jikesrvm.compilers.opt.depgraph;

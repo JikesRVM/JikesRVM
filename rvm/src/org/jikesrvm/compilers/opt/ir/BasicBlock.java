@@ -98,8 +98,9 @@ public class BasicBlock extends SortedGraphNode {
   static final short EXCEPTION_HANDLER = 0x04;
   /** Bitfield used in flag encoding */
   static final short REACHABLE_FROM_EXCEPTION_HANDLER = 0x08;
-  /** Bitfield used in flag encoding */
-  static final short UNSAFE_TO_SCHEDULE = 0x10;
+
+  // the flag for 0x10 was removed and is now free
+
   /** Bitfield used in flag encoding */
   static final short INFREQUENT = 0x20;
   /** Bitfield used in flag encoding */
@@ -375,17 +376,6 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   /**
-   * Has the block been marked as being unsafe to schedule
-   * (due to the presence of Magic)?
-   *
-   * @return <code>true</code> if the block is marked as unsafe
-   *         to schedule or <code>false</code> if it is not
-   */
-  public final boolean isUnsafeToSchedule() {
-    return (flags & UNSAFE_TO_SCHEDULE) != 0;
-  }
-
-  /**
    * Has the block been marked as being infrequently executed?
    * NOTE: Only blocks that are truly icy cold should be marked
    * as infrequent.
@@ -446,13 +436,6 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   /**
-   * Mark the block as being unsafe to schedule.
-   */
-  public final void setUnsafeToSchedule() {
-    flags |= UNSAFE_TO_SCHEDULE;
-  }
-
-  /**
    * Mark the block as being infrequently executed.
    */
   public final void setInfrequent() {
@@ -504,13 +487,6 @@ public class BasicBlock extends SortedGraphNode {
   }
 
   /**
-   * Clear the unsafe to schedule property of the block
-   */
-  public final void clearUnsafeToSchedule() {
-    flags &= ~UNSAFE_TO_SCHEDULE;
-  }
-
-  /**
    * Clear the infrequently executed property of the block
    */
   public final void clearInfrequent() {
@@ -554,14 +530,6 @@ public class BasicBlock extends SortedGraphNode {
       setExceptionHandlerBasicBlock();
     } else {
       clearExceptionHandlerBasicBlock();
-    }
-  }
-
-  private void setUnsafeToSchedule(boolean v) {
-    if (v) {
-      setUnsafeToSchedule();
-    } else {
-      clearUnsafeToSchedule();
     }
   }
 
@@ -1269,7 +1237,6 @@ public class BasicBlock extends SortedGraphNode {
     BB2.exceptionHandlers = BB1.exceptionHandlers;
     BB2.setCanThrowExceptions(BB1.canThrowExceptions());
     BB2.setMayThrowUncaughtException(BB1.mayThrowUncaughtException());
-    BB2.setUnsafeToSchedule(BB1.isUnsafeToSchedule());
     BB2.setExecutionFrequency(BB1.getExecutionFrequency());
 
     BB1.deleteNormalOut();
@@ -1516,7 +1483,6 @@ public class BasicBlock extends SortedGraphNode {
     temp.exceptionHandlers = exceptionHandlers;
     temp.setCanThrowExceptions(canThrowExceptions());
     temp.setMayThrowUncaughtException(mayThrowUncaughtException());
-    temp.setUnsafeToSchedule(isUnsafeToSchedule());
     temp.setExecutionFrequency(getExecutionFrequency() * wf);
     for (Enumeration<BasicBlock> e = getOut(); e.hasMoreElements();) {
       BasicBlock out = e.nextElement();
@@ -1601,7 +1567,6 @@ public class BasicBlock extends SortedGraphNode {
     // Merge misc BB state
     setCanThrowExceptions(canThrowExceptions() || succBB.canThrowExceptions());
     setMayThrowUncaughtException(mayThrowUncaughtException() || succBB.mayThrowUncaughtException());
-    setUnsafeToSchedule(isUnsafeToSchedule() || succBB.isUnsafeToSchedule());
     if (succBB.getInfrequent()) setInfrequent();
 
     return true;

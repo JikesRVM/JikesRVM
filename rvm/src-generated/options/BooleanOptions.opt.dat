@@ -190,9 +190,6 @@ Plant virtual calls via the JTOC rather than from the tib of anobject when possi
 L2M_HANDLER_LIVENESS 2 false
 Store liveness for handlers to improve dependence graph at PEIs
 
-L2M_SCHEDULE_PREPASS -1 false
-Perform prepass instruction scheduling
-
 ##########
 # Options during register allocation
 ##########
@@ -256,12 +253,6 @@ Print SSA form
 PRINT_DG_BURS -1 false
 Print dependence graph before burs
 
-PRINT_DG_SCHED_PRE -1 false
-Print dependence graph before prepass scheduling
-
-PRINT_DG_SCHED_POST -1 false
-Print dependence graph before postpass scheduling
-
 ## Options for IR printing at various points in compilation
 PRINT_HIGH -1 false
 Print IR after initial generation
@@ -283,9 +274,6 @@ Print IR just before conversion to machine code
 
 PRINT_CFG -1 false
 Print control flow graph too when IR is printed
-
-PRINT_SCHEDULE_PRE -1 false
-Print IR after prepass scheduling
 
 PRINT_REGALLOC -1 false
 Print IR before and after register allocation

@@ -20,7 +20,6 @@ import org.jikesrvm.compilers.opt.controlflow.MIRBranchOptimizations;
 import org.jikesrvm.compilers.opt.driver.IRPrinter;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanner;
-import org.jikesrvm.compilers.opt.instrsched.PrePassScheduler;
 import org.jikesrvm.compilers.opt.lir2mir.ConvertLIRtoMIR;
 import org.jikesrvm.compilers.opt.lir2mir.SplitBasicBlock;
 import org.jikesrvm.compilers.opt.liveness.LiveAnalysis;
@@ -86,8 +85,9 @@ public abstract class MIROptimizationPlanner extends OptimizationPlanner {
     ////////////////////
     // MIR OPTS(1) (before register allocation)
     ////////////////////
-    // INSTRUCTION SCHEDULING (PRE-PASS --- PRIOR TO REGISTER ALLOCATION)
-    addComponent(p, new PrePassScheduler());
+
+    // currently nothing to do
+    
     ////////////////////
     // GCMapping part1 and RegisterAllocation
     ////////////////////
@@ -111,6 +111,7 @@ public abstract class MIROptimizationPlanner extends OptimizationPlanner {
     //       most trivial optimizations from
     //       here on out without having to some potentially complex bookkeeping.
     ////////////////////
+
     // Peephole branch optimizations
     addComponent(p, new MIRBranchOptimizations(1));
   }

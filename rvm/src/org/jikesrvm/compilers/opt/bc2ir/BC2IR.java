@@ -2900,14 +2900,6 @@ public final class BC2IR {
     if (DBG_INSTR || DBG_SELECTED) db("-> " + s.bcIndex + ":\t" + s);
   }
 
-  /**
-   * HACK: Mark current basic block unsafe for scheduling.
-   * TODO: remove when we've got UNINT_BEGIN/END working correctly.
-   */
-  void markBBUnsafeForScheduling() {
-    currentBBLE.block.setUnsafeToSchedule();
-  }
-
   //// MAKE A FIELD REFERENCE.
   /**
    * Make a field reference operand referring to the given field with the

@@ -19,7 +19,6 @@ package org.jikesrvm.compilers.opt.ir;
 import org.jikesrvm.*;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.*;
-import org.jikesrvm.compilers.opt.instrsched.OperatorClass;
 import org.jikesrvm.compilers.opt.util.Bits;
 
 /**
@@ -101,30 +100,6 @@ $$$$ IF ARCHITECTURE == "ppc"
    */
   public int instTemplate;
 $$$$ END IF
-
-  /**
-   * Operator Class of the operator; used for instruction scheduling.
-   */
-  OperatorClass opClass;
-
-  /**
-   * Sets the operator class.
-   *
-   * @param opClass operator class
-   */
-  public void setOpClass(OperatorClass opClass) {
-    this.opClass = opClass;
-  }
-
-  /**
-   * Gets the operator class.
-   *
-   * @return operator class
-   */
-  public OperatorClass getOpClass() {
-    return opClass;
-  }
-
 $$$$ END IF
 
   /**

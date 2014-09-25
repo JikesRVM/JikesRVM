@@ -136,10 +136,6 @@ public class GenerateMagic {
 
     if (gc.getMethod().hasNoInlinePragma()) gc.forceFrameAllocation();
 
-    // HACK: Don't schedule any bbs containing unsafe magics.
-    // TODO: move this to individual magics that are unsafe.
-    // -- igor 08/13/1999
-    bc2ir.markBBUnsafeForScheduling();
     Atom methodName = meth.getName();
 
     boolean address = (meth.getType() == TypeReference.Address);
