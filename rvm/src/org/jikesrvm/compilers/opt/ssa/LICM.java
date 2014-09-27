@@ -853,7 +853,6 @@ public class LICM extends CompilerPhase {
       while (pe.hasNext()) {
         Instruction inst = pe.next();
         inst.setScratch(instructions++);
-        inst.setScratchObject(null);
       }
     }
     state = new int[instructions];

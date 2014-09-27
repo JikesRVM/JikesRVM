@@ -125,7 +125,6 @@ public class FinalMIRExpansion extends IRTools {
     for (Instruction next, p = ir.firstInstructionInCodeOrder(); p != null; p = next) {
       next = p.nextInstructionInCodeOrder();
       p.setmcOffset(-1);
-      p.setScratchObject(null);
 
       switch (p.getOpcode()) {
         case IA32_TEST_opcode:

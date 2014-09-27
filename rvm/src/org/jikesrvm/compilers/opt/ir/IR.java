@@ -605,17 +605,6 @@ public final class IR {
   }
 
   /**
-   * Clear (set to {@code null}) the scratch object on
-   * all instructions currently in this IR.
-   */
-  public void clearInstructionScratchObject() {
-    for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
-        instr.nextInstructionInCodeOrder()) {
-      instr.setScratchObject(null);
-    }
-  }
-
-  /**
    * Returns the number of symbolic registers for this IR.
    *
    * @return number of symbolic registers that were allocated

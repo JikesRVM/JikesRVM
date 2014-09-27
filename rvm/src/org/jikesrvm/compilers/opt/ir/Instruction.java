@@ -2026,11 +2026,4 @@ public final class Instruction {
     this.scratch = scratch;
   }
 
-  public Object getScratchObject() {
-    return scratchObject;
-  }
-
-  public void setScratchObject(Object scratchObject) {
-    this.scratchObject = scratchObject;
-  }
 }
