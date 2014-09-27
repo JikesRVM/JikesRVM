@@ -14,6 +14,12 @@ package org.jikesrvm.compilers.opt.mir2mc.ppc;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.*;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Iterator;
+
 import org.jikesrvm.ArchitectureSpecific;
 import org.jikesrvm.ArchitectureSpecificOpt;
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
@@ -50,6 +56,7 @@ import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCTrapOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
 import org.jikesrvm.ppc.ArchConstants;
 import org.jikesrvm.ppc.Disassembler;
+import org.jikesrvm.util.EmptyIterator;
 
 /**
  * Assemble PowerPC MIR into binary code.
@@ -85,6 +92,8 @@ public abstract class AssemblerOpt implements ArchConstants {
 
   private int unresolvedBranches = 0;
 
+  private BranchInformationForBackPatching branchBackPatching;
+
   /**
    * Generate machine code into ir.MIRInfo.machinecode.
    *
@@ -101,6 +110,8 @@ public abstract class AssemblerOpt implements ArchConstants {
     int mi = 0;
     CodeArray machinecodes = ir.MIRInfo.machinecode;
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    int labelCountEstimate = ir.cfg.numberOfNodes();
+    branchBackPatching = new BranchInformationForBackPatching(labelCountEstimate);
     boolean unsafeCondDispl = machinecodes.length() > MAX_COND_DISPL;
     //boolean unsafeDispl = machinecodes.length() > MAX_DISPL;
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
@@ -1169,20 +1180,6 @@ public abstract class AssemblerOpt implements ArchConstants {
   }
 
   /**
-   * Used to build a link list of unresolved forward branches
-   * on the target label instr.
-   */
-  private static final class BranchSrcElement {
-    Instruction source;
-    BranchSrcElement next;
-
-    BranchSrcElement(Instruction src, BranchSrcElement Next) {
-      source = src;
-      next = Next;
-    }
-  }
-
-  /**
    * Back-patches any forward branches to the given instruction.
    * <p>
    * Note: The updated index into the machine code array would normally need
@@ -1193,12 +1190,9 @@ public abstract class AssemblerOpt implements ArchConstants {
    * @param machineCodeIndex current index into the machine code array
    */
   private void backpatchForwardBranches(Instruction branchTarget, CodeArray machinecodes, int machineCodeIndex) {
-    // The Label instructions scratchObject holds the head of a
-    // linked list of the (forward) branch instructions with this
-    // label as their target.
-
-    for (BranchSrcElement bSrc = (BranchSrcElement) branchTarget.getScratchObject(); bSrc != null; bSrc = bSrc.next) {
-      Instruction branchStmt = bSrc.source;
+    Iterator<Instruction> branchSources = branchBackPatching.getBranchSources(branchTarget);
+    while (branchSources.hasNext()) {
+      Instruction branchStmt = branchSources.next();
       int bo = branchStmt.getmcOffset() - (1 << LG_INSTRUCTION_WIDTH);
       int bi = bo >> LG_INSTRUCTION_WIDTH;
       int targetOffset = (machineCodeIndex - bi) << LG_INSTRUCTION_WIDTH;
@@ -1268,10 +1262,9 @@ public abstract class AssemblerOpt implements ArchConstants {
     if (tgt.getmcOffset() < 0) {
       unresolvedBranches++;
       // forward branch target, which has not been fixed yet.
-      // Unresolved forward branch stmts will form a linked list
-      // via the scratchObject of the label instruction.
-      // These branch stmts will be back-patched as part of assembly of LABEL
-      tgt.setScratchObject(new BranchSrcElement(src, (BranchSrcElement) tgt.getScratchObject()));
+      // Unresolved forward branch stmts will be saved now and
+      // will be back-patched later as part of the assembly of LABEL
+      branchBackPatching.addBranchSourceForLabel(src, tgt);
       return 0;
     } else {
       // backward branch target, which has been fixed.
@@ -1341,5 +1334,46 @@ public abstract class AssemblerOpt implements ArchConstants {
      */
     // make a B IMM instruction
     code.set(patchOffset, (18 << 26) | (rel32 & LI_MASK));
+  }
+
+  /**
+   * Contains information about of unresolved forward branches
+   * for the respective target label instructions.
+   */
+  private static final class BranchInformationForBackPatching {
+    /**
+     * An estimate for the number of sources that a branch target may have.
+     * <p>
+     * TODO This could likely be improved by information from measurements.
+     * The current value was chosen merely because the default capacity
+     * of 16 is likely too large.
+     */
+    private static final int BRANCH_SOURCE_COUNT_ESTIMATE = 4;
+
+    private Map<Instruction, Deque<Instruction>> labelToBranchSources;
+
+    BranchInformationForBackPatching(int labelCountEstimate) {
+      int noRehashCapacity = (labelCountEstimate / 2) * 3;
+      labelToBranchSources =
+        new HashMap<Instruction, Deque<Instruction>>(noRehashCapacity);
+    }
+
+    void addBranchSourceForLabel(Instruction branchSource, Instruction label) {
+      Deque<Instruction> queue = labelToBranchSources.get(label);
+      if (queue == null) {
+        queue = new ArrayDeque(BRANCH_SOURCE_COUNT_ESTIMATE);
+        labelToBranchSources.put(label, queue);
+      }
+      queue.addFirst(branchSource);
+    }
+
+    Iterator<Instruction> getBranchSources(Instruction label) {
+      Deque<Instruction> sources = labelToBranchSources.get(label);
+      if (sources == null) {
+        return EmptyIterator.<Instruction>getInstance();
+      }
+      return sources.iterator();
+    }
+
   }
 }
