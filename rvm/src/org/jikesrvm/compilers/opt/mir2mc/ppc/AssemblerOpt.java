@@ -107,69 +107,7 @@ public abstract class AssemblerOpt implements ArchConstants {
       int inst = p.operator().instTemplate;
       switch (p.getOpcode()) {
         case LABEL_opcode:
-          // Back-patch any forward branches to it.
-          // The Label instructions scratchObject holds the head of a
-          // linked list of the (forward) branch instructions with this
-          // label as their target.
-          for (BranchSrcElement bSrc = (BranchSrcElement) p.getScratchObject(); bSrc != null; bSrc = bSrc.next) {
-            Instruction branchStmt = bSrc.source;
-            int bo = branchStmt.getmcOffset() - (1 << LG_INSTRUCTION_WIDTH);
-            int bi = bo >> LG_INSTRUCTION_WIDTH;
-            int targetOffset = (mi - bi) << LG_INSTRUCTION_WIDTH;
-            boolean setLink = false;
-
-            if (targetOffset > MAX_DISPL << LG_INSTRUCTION_WIDTH) {
-              throw new OptimizingCompilerException("CodeGen", "Branch positive offset too large: ", targetOffset);
-            }
-
-            switch (branchStmt.getOpcode()) {
-              case PPC_B_opcode:
-              case PPC_BL_opcode:
-                machinecodes.set(bi, machinecodes.get(bi) | targetOffset & LI_MASK);
-                break;
-              case PPC_DATA_LABEL_opcode:
-                machinecodes.set(bi, targetOffset);
-                break;
-                // Since resolveBranch and patch already check the range
-                // of target offset, and will fail if it is out of range
-              case IG_PATCH_POINT_opcode:
-                // do nothing
-                break;
-              case PPC_BCL_opcode:
-                setLink = true;
-                // fall through!
-              default:          // conditional branches
-                if (targetOffset <= MAX_COND_DISPL << 2) {// one word is enough
-                  machinecodes.set(bi, machinecodes.get(bi) | targetOffset & BD_MASK);
-                  if (DEBUG) {
-                    VM.sysWrite("**** Forward Short Cond. Branch ****\n");
-                    VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
-                  }
-                } else {          // one word is not enough
-                  // we're moving the "real" branch ahead 1 instruction
-                  // if it's a GC point (eg BCL for yieldpoint) then we must
-                  // make sure the GCMap is generated at the correct mc offset.
-                  branchStmt.setmcOffset(branchStmt.getmcOffset() + (1 << LG_INSTRUCTION_WIDTH));
-                  // flip the condition and skip the next branch instruction
-                  machinecodes.set(bi, flipCondition(machinecodes.get(bi)));
-                  machinecodes.set(bi, machinecodes.get(bi) | (2 << LG_INSTRUCTION_WIDTH));
-                  machinecodes.set(bi, machinecodes.get(bi) & 0xfffffffe);       // turn off link bit.
-                  // make a long branch
-                  machinecodes.set(bi + 1, Btemplate | ((targetOffset - 4) & LI_MASK));
-                  if (setLink) {
-                    machinecodes.set(bi + 1, machinecodes.get(bi + 1) | 1);          // turn on link bit.
-                  }
-                  if (DEBUG) {
-                    VM.sysWrite("**** Forward Long Cond. Branch ****\n");
-                    VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
-                    VM.sysWrite(disasm(machinecodes.get(bi + 1), 0) + "\n");
-                  }
-                }
-                break;
-            }
-            unresolvedBranches--;
-          }
-          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+          backpatchForwardBranches(p, machinecodes, mi);
           break;
 
         case BBEND_opcode:
@@ -1242,6 +1180,82 @@ public abstract class AssemblerOpt implements ArchConstants {
       source = src;
       next = Next;
     }
+  }
+
+  /**
+   * Back-patches any forward branches to the given instruction.
+   * <p>
+   * Note: The updated index into the machine code array would normally need
+   * to be returned but this method currently does not modify the index.
+   *
+   * @param branchTarget the LABEL instruction to process
+   * @param machinecodes machine code array
+   * @param machineCodeIndex current index into the machine code array
+   */
+  private void backpatchForwardBranches(Instruction branchTarget, CodeArray machinecodes, int machineCodeIndex) {
+    // The Label instructions scratchObject holds the head of a
+    // linked list of the (forward) branch instructions with this
+    // label as their target.
+
+    for (BranchSrcElement bSrc = (BranchSrcElement) branchTarget.getScratchObject(); bSrc != null; bSrc = bSrc.next) {
+      Instruction branchStmt = bSrc.source;
+      int bo = branchStmt.getmcOffset() - (1 << LG_INSTRUCTION_WIDTH);
+      int bi = bo >> LG_INSTRUCTION_WIDTH;
+      int targetOffset = (machineCodeIndex - bi) << LG_INSTRUCTION_WIDTH;
+      boolean setLink = false;
+
+      if (targetOffset > MAX_DISPL << LG_INSTRUCTION_WIDTH) {
+        throw new OptimizingCompilerException("CodeGen", "Branch positive offset too large: ", targetOffset);
+      }
+
+      switch (branchStmt.getOpcode()) {
+        case PPC_B_opcode:
+        case PPC_BL_opcode:
+          machinecodes.set(bi, machinecodes.get(bi) | targetOffset & LI_MASK);
+          break;
+        case PPC_DATA_LABEL_opcode:
+          machinecodes.set(bi, targetOffset);
+          break;
+          // Since resolveBranch and patch already check the range
+          // of target offset, and will fail if it is out of range
+        case IG_PATCH_POINT_opcode:
+          // do nothing
+          break;
+        case PPC_BCL_opcode:
+          setLink = true;
+          // fall through!
+        default:          // conditional branches
+          if (targetOffset <= MAX_COND_DISPL << 2) {// one word is enough
+            machinecodes.set(bi, machinecodes.get(bi) | targetOffset & BD_MASK);
+            if (DEBUG) {
+              VM.sysWrite("**** Forward Short Cond. Branch ****\n");
+              VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
+            }
+          } else {          // one word is not enough
+            // we're moving the "real" branch ahead 1 instruction
+            // if it's a GC point (eg BCL for yieldpoint) then we must
+            // make sure the GCMap is generated at the correct mc offset.
+            branchStmt.setmcOffset(branchStmt.getmcOffset() + (1 << LG_INSTRUCTION_WIDTH));
+            // flip the condition and skip the next branch instruction
+            machinecodes.set(bi, flipCondition(machinecodes.get(bi)));
+            machinecodes.set(bi, machinecodes.get(bi) | (2 << LG_INSTRUCTION_WIDTH));
+            machinecodes.set(bi, machinecodes.get(bi) & 0xfffffffe);       // turn off link bit.
+            // make a long branch
+            machinecodes.set(bi + 1, Btemplate | ((targetOffset - 4) & LI_MASK));
+            if (setLink) {
+              machinecodes.set(bi + 1, machinecodes.get(bi + 1) | 1);          // turn on link bit.
+            }
+            if (DEBUG) {
+              VM.sysWrite("**** Forward Long Cond. Branch ****\n");
+              VM.sysWrite(disasm(machinecodes.get(bi), 0) + "\n");
+              VM.sysWrite(disasm(machinecodes.get(bi + 1), 0) + "\n");
+            }
+          }
+          break;
+      }
+      unresolvedBranches--;
+    }
+    branchTarget.setmcOffset(machineCodeIndex << LG_INSTRUCTION_WIDTH);
   }
 
   /**
