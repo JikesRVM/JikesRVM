@@ -523,16 +523,6 @@ public class BasicBlock extends SortedGraphNode {
     }
   }
 
-  @SuppressWarnings("unused")
-  // FIXME can this be deleted ??
-  private void setIsExceptionHandlerBasicBlock(boolean v) {
-    if (v) {
-      setExceptionHandlerBasicBlock();
-    } else {
-      clearExceptionHandlerBasicBlock();
-    }
-  }
-
   final void setInfrequent(boolean v) {
     if (v) {
       setInfrequent();
