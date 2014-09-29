@@ -41,6 +41,8 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
    */
   private final IR ir;
 
+  private final RegisterAllocatorState regAllocState;
+
   /**
    * Manager of spill locations;
    */
@@ -60,6 +62,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
     super();
     spilled = false;
     this.ir = ir;
+    this.regAllocState = ir.MIRInfo.regAllocState;
     this.spillManager = sm;
 
     switch (ir.options.REGALLOC_SPILL_COST_ESTIMATE) {
@@ -122,7 +125,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
       return;
     }
 
-    if (container.isSpilled()) {
+    if (container.isSpilled(regAllocState)) {
       // free the spill location iff this is the last interval in the
       // compound interval.
       BasicInterval last = container.last();
@@ -131,8 +134,8 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
       }
     } else {
       // free the assigned register
-      if (VM.VerifyAssertions) VM._assert(container.getAssignment().isAllocated());
-      container.getAssignment().deallocateRegister();
+      if (VM.VerifyAssertions) VM._assert(container.getAssignment(regAllocState).isAllocated());
+      container.getAssignment(regAllocState).deallocateRegister();
     }
 
   }
@@ -145,15 +148,15 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
 
     Register r = container.getRegister();
 
-    if (container.isSpilled()) {
+    if (container.isSpilled(regAllocState)) {
       // We previously decided to spill the compound interval.  No further
       // action is needed.
       if (LinearScan.VERBOSE_DEBUG) System.out.println("Previously spilled " + container);
     } else {
-      if (container.isAssigned()) {
+      if (container.isAssigned(regAllocState)) {
         // The compound interval was previously assigned to a physical
         // register.
-        Register phys = container.getAssignment();
+        Register phys = container.getAssignment(regAllocState);
         if (!currentlyActive(phys)) {
           // The assignment of newInterval to phys is still OK.
           // Update the live ranges of phys to include the new basic
@@ -200,8 +203,8 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
             }
             CompoundInterval toSpill = (costA < costB) ? container : currentAssignment;
             // spill it.
-            Register p = toSpill.getAssignment();
-            toSpill.spill(spillManager);
+            Register p = toSpill.getAssignment(regAllocState);
+            toSpill.spill(spillManager, regAllocState);
             spilled = true;
             if (LinearScan.VERBOSE_DEBUG) {
               System.out.println("Spilled " + toSpill + " from " + p);
@@ -255,19 +258,19 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
           // active set must be spilled.  Choose a spill candidate.
           CompoundInterval spillCandidate = getSpillCandidate(container);
           if (VM.VerifyAssertions) {
-            VM._assert(!spillCandidate.isSpilled());
+            VM._assert(!spillCandidate.isSpilled(regAllocState));
             VM._assert((spillCandidate.getRegister().getType() == r.getType()) ||
                        (spillCandidate.getRegister().isNatural() && r.isNatural()));
             VM._assert(!ir.stackManager.getRestrictions().mustNotSpill(spillCandidate.getRegister()));
-            if (spillCandidate.getAssignment() != null) {
+            if (spillCandidate.getAssignment(regAllocState) != null) {
               VM._assert(!ir.stackManager.getRestrictions().
-                  isForbidden(r, spillCandidate.getAssignment()));
+                  isForbidden(r, spillCandidate.getAssignment(regAllocState)));
             }
           }
           if (spillCandidate != container) {
             // spill a previously allocated interval.
-            phys = spillCandidate.getAssignment();
-            spillCandidate.spill(spillManager);
+            phys = spillCandidate.getAssignment(regAllocState);
+            spillCandidate.spill(spillManager, regAllocState);
             spilled = true;
             if (LinearScan.VERBOSE_DEBUG) {
               System.out.println("Spilled " + spillCandidate + " from " + phys);
@@ -286,7 +289,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
           } else {
             // spill the new interval.
             if (LinearScan.VERBOSE_DEBUG) System.out.println("spilled " + container);
-            container.spill(spillManager);
+            container.spill(spillManager, regAllocState);
             spilled = true;
           }
         }
@@ -349,7 +352,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
     for (Iterator<BasicInterval> e = iterator(); e.hasNext();) {
       MappedBasicInterval i = (MappedBasicInterval) e.next();
       CompoundInterval container = i.container;
-      if (RegisterAllocatorState.getMapping(container.getRegister()) == r) {
+      if (regAllocState.getMapping(container.getRegister()) == r) {
         return true;
       }
     }
@@ -366,7 +369,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
     for (Iterator<BasicInterval> e = iterator(); e.hasNext();) {
       MappedBasicInterval i = (MappedBasicInterval) e.next();
       CompoundInterval container = i.container;
-      if (RegisterAllocatorState.getMapping(container.getRegister()) == r) {
+      if (regAllocState.getMapping(container.getRegister()) == r) {
         return container;
       }
     }
@@ -499,7 +502,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
       if (neighbor.isSymbolic()) {
         // if r is assigned to a physical register r2, treat the
         // affinity as an affinity for r2
-        Register r2 = RegisterAllocatorState.getMapping(r);
+        Register r2 = regAllocState.getMapping(r);
         if (r2 != null && r2.isPhysical()) {
           neighbor = r2;
         }
@@ -526,7 +529,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
       if (neighbor.isSymbolic()) {
         // if r is assigned to a physical register r2, treat the
         // affinity as an affinity for r2
-        Register r2 = RegisterAllocatorState.getMapping(r);
+        Register r2 = regAllocState.getMapping(r);
         if (r2 != null && r2.isPhysical()) {
           neighbor = r2;
         }
@@ -586,7 +589,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
       if (neighbor.isSymbolic()) {
         // if r is assigned to a physical register r2, treat the
         // affinity as an affinity for r2
-        Register r2 = RegisterAllocatorState.getMapping(r);
+        Register r2 = regAllocState.getMapping(r);
         if (r2 != null && r2.isPhysical()) {
           neighbor = r2;
         }
@@ -613,7 +616,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
       if (neighbor.isSymbolic()) {
         // if r is assigned to a physical register r2, treat the
         // affinity as an affinity for r2
-        Register r2 = RegisterAllocatorState.getMapping(r);
+        Register r2 = regAllocState.getMapping(r);
         if (r2 != null && r2.isPhysical()) {
           neighbor = r2;
         }
@@ -751,7 +754,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
       CompoundInterval i = b.container;
       Register newR = i.getRegister();
       if (LinearScan.VERBOSE_DEBUG) {
-        if (i.isSpilled()) {
+        if (i.isSpilled(regAllocState)) {
           System.out.println(" not candidate, already spilled: " + newR);
         }
         if ((r.getType() != newR.getType()) || (r.isNatural() && newR.isNatural())) {
@@ -762,7 +765,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
         }
       }
       if (!newR.isPhysical() &&
-          !i.isSpilled() &&
+          !i.isSpilled(regAllocState) &&
           (r.getType() == newR.getType() || (r.isNatural() && newR.isNatural())) &&
           !restrict.mustNotSpill(newR)) {
         // Found a potential spill interval. Check if the assignment
@@ -799,7 +802,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
    * @return {@code true} if the allocation would fit,  {@code false} otherwise
    */
   private boolean checkAssignmentIfSpilled(CompoundInterval i, CompoundInterval spill) {
-    Register r = spill.getAssignment();
+    Register r = spill.getAssignment(regAllocState);
 
     RegisterRestrictions restrict = ir.stackManager.getRestrictions();
     if (restrict.isForbidden(i.getRegister(), r)) return false;

@@ -73,7 +73,6 @@ import org.jikesrvm.compilers.opt.ir.operand.StackLocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
 import org.jikesrvm.compilers.opt.regalloc.GenericStackManager;
-import org.jikesrvm.compilers.opt.regalloc.RegisterAllocatorState;
 import org.jikesrvm.ia32.ArchConstants;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.STACKFRAME_ALIGNMENT;
 import org.jikesrvm.runtime.ArchEntrypoints;
@@ -627,7 +626,7 @@ public abstract class StackManager extends GenericStackManager {
 
     // Get the spill location previously assigned to the symbolic
     // register.
-    int location = RegisterAllocatorState.getSpill(symb.getRegister());
+    int location = regAllocState.getSpill(symb.getRegister());
 
     // Create a memory operand M representing the spill location.
     int size;

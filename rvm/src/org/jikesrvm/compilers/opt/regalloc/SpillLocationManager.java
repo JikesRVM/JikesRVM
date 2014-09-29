@@ -127,6 +127,8 @@ class SpillLocationManager implements PhysicalRegisterConstants {
     // Return null if no affinities.
     if (node == null) return null;
 
+    RegisterAllocatorState regAllocState = ir.MIRInfo.regAllocState;
+
     // walk through all in edges of the node, searching for spill
     // location affinity
     for (Enumeration<GraphEdge> in = node.inEdges(); in.hasMoreElements();) {
@@ -134,7 +136,7 @@ class SpillLocationManager implements PhysicalRegisterConstants {
       CoalesceGraph.Node src = (CoalesceGraph.Node) edge.from();
       Register neighbor = src.getRegister();
       if (neighbor.isSymbolic() && neighbor.isSpilled()) {
-        int spillOffset = RegisterAllocatorState.getSpill(neighbor);
+        int spillOffset = regAllocState.getSpill(neighbor);
         // if this is a candidate interval, update its weight
         for (SpillLocationInterval s : freeIntervals) {
           if (s.getOffset() == spillOffset && s.getSize() == spillSize && !s.intersects(ci)) {
@@ -158,7 +160,7 @@ class SpillLocationManager implements PhysicalRegisterConstants {
       CoalesceGraph.Node dest = (CoalesceGraph.Node) edge.to();
       Register neighbor = dest.getRegister();
       if (neighbor.isSymbolic() && neighbor.isSpilled()) {
-        int spillOffset = RegisterAllocatorState.getSpill(neighbor);
+        int spillOffset = regAllocState.getSpill(neighbor);
         // if this is a candidate interval, update its weight
         for (SpillLocationInterval s : freeIntervals) {
           if (s.getOffset() == spillOffset && s.getSize() == spillSize && !s.intersects(ci)) {

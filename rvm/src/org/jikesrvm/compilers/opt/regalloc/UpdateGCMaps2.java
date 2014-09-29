@@ -61,6 +61,7 @@ final class UpdateGCMaps2 extends CompilerPhase {
   public void perform(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     ScratchMap scratchMap = ir.stackManager.getScratchMap();
+    RegisterAllocatorState regAllocState = ir.MIRInfo.regAllocState;
 
     if (LinearScan.GC_DEBUG) {
       System.out.println("SCRATCH MAP:\n" + scratchMap);
@@ -118,9 +119,9 @@ final class UpdateGCMaps2 extends CompilerPhase {
             // The regalloc state knows where the physical register r is
             // spilled.
             if (LinearScan.GC_DEBUG) {
-              VM.sysWrite("CHANGE to spill location " + RegisterAllocatorState.getSpill(r) + "\n");
+              VM.sysWrite("CHANGE to spill location " + regAllocState.getSpill(r) + "\n");
             }
-            elem.setSpill(RegisterAllocatorState.getSpill(r));
+            elem.setSpill(regAllocState.getSpill(r));
           }
         }
 

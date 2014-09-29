@@ -60,6 +60,7 @@ final class UpdateGCMaps1 extends CompilerPhase {
    */
   @Override
   public void perform(IR ir) {
+    RegisterAllocatorState regAllocState = ir.MIRInfo.regAllocState;
 
     for (GCIRMapElement GCelement : ir.MIRInfo.gcIRMap) {
       if (LinearScan.GC_DEBUG) {
@@ -74,7 +75,7 @@ final class UpdateGCMaps1 extends CompilerPhase {
         }
 
         if (symbolic.isAllocated()) {
-          Register ra = RegisterAllocatorState.getMapping(symbolic);
+          Register ra = regAllocState.getMapping(symbolic);
           elem.setRealReg(ra);
           if (LinearScan.GC_DEBUG) { VM.sysWrite(ra + "\n"); }
 

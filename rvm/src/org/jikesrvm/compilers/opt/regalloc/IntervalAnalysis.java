@@ -206,9 +206,11 @@ public final class IntervalAnalysis extends CompilerPhase {
    * Initialize the interval for each register to null.
    */
   private void initializeRegisters() {
+    RegisterAllocatorState regAllocState = ir.MIRInfo.regAllocState;
+
     for (Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
       LinearScan.setInterval(reg, null);
-      RegisterAllocatorState.setSpill(reg, 0);
+      regAllocState.setSpill(reg, 0);
       // clear the 'long' type if it's persisted to here.
       if (VM.BuildFor32Addr && reg.isLong()) {
         reg.clearType();

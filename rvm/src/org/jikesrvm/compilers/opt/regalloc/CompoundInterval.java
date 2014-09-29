@@ -192,18 +192,19 @@ class CompoundInterval extends IncreasingStartIntervalSet {
    * Assign this compound interval to a free spill location.
    *
    * @param spillManager governing spill location manager
+   * @param regAllocState current state of the register allocator
    */
-  void spill(SpillLocationManager spillManager) {
+  void spill(SpillLocationManager spillManager, RegisterAllocatorState regAllocState) {
     spillInterval = spillManager.findOrCreateSpillLocation(this);
-    RegisterAllocatorState.setSpill(reg, spillInterval.getOffset());
-    RegisterAllocatorState.clearOneToOne(reg);
+    regAllocState.setSpill(reg, spillInterval.getOffset());
+    regAllocState.clearOneToOne(reg);
     if (LinearScan.VERBOSE_DEBUG) {
       System.out.println("Assigned " + reg + " to location " + spillInterval.getOffset());
     }
   }
 
-  boolean isSpilled() {
-    return (RegisterAllocatorState.getSpill(getRegister()) != 0);
+  boolean isSpilled(RegisterAllocatorState regAllocState) {
+    return (regAllocState.getSpill(getRegister()) != 0);
   }
 
   /**
@@ -216,19 +217,21 @@ class CompoundInterval extends IncreasingStartIntervalSet {
   }
 
   /**
+   * @param regAllocState current state of the register allocator
    * @return {@code true} if this interval has been assigned to
    *  a physical register
    */
-  boolean isAssigned() {
-    return (RegisterAllocatorState.getMapping(getRegister()) != null);
+  boolean isAssigned(RegisterAllocatorState regAllocState) {
+    return (regAllocState.getMapping(getRegister()) != null);
   }
 
   /**
+   * @param regAllocState current state of the register allocator
    * @return the physical register this interval is assigned to, {@code null}
    *  if none assigned
    */
-  Register getAssignment() {
-    return RegisterAllocatorState.getMapping(getRegister());
+  Register getAssignment(RegisterAllocatorState regAllocState) {
+    return regAllocState.getMapping(getRegister());
   }
 
   /**

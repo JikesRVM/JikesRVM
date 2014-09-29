@@ -79,6 +79,8 @@ final class SpillCode extends CompilerPhase {
    *  @param ir the IR to process
    */
   private static void replaceSymbolicRegisters(IR ir) {
+    RegisterAllocatorState regAllocState = ir.MIRInfo.regAllocState;
+
     for (Enumeration<Instruction> inst = ir.forwardInstrEnumerator(); inst.hasMoreElements();) {
       Instruction s = inst.nextElement();
       for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
@@ -87,7 +89,7 @@ final class SpillCode extends CompilerPhase {
           RegisterOperand rop = op.asRegister();
           Register r = rop.getRegister();
           if (r.isSymbolic() && !r.isSpilled()) {
-            Register p = RegisterAllocatorState.getMapping(r);
+            Register p = regAllocState.getMapping(r);
             if (VM.VerifyAssertions) VM._assert(p != null);
             rop.setRegister(p);
           }

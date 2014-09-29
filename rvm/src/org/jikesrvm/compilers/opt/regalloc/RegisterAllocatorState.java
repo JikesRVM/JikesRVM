@@ -32,7 +32,7 @@ public class RegisterAllocatorState {
    *
    * @param ir the IR whose info is to be reset
    */
-  static void resetPhysicalRegisters(IR ir) {
+  void resetPhysicalRegisters(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     for (Enumeration<Register> e = phys.enumerateAll(); e.hasMoreElements();) {
       Register reg = e.nextElement();
@@ -44,12 +44,12 @@ public class RegisterAllocatorState {
     }
   }
 
-  static void setSpill(Register reg, int spill) {
+  void setSpill(Register reg, int spill) {
     reg.spillRegister();
     reg.setScratch(spill);
   }
 
-  public static int getSpill(Register reg) {
+  public int getSpill(Register reg) {
     return reg.getScratch();
   }
 
@@ -63,7 +63,7 @@ public class RegisterAllocatorState {
    * @param A first register
    * @param B second register
    */
-  static void mapOneToOne(Register A, Register B) {
+  void mapOneToOne(Register A, Register B) {
     Register aFriend = getMapping(A);
     Register bFriend = getMapping(B);
     if (aFriend != null) {
@@ -80,7 +80,7 @@ public class RegisterAllocatorState {
    * @param r a register
    * @return the register currently mapped 1-to-1 to r
    */
-  static Register getMapping(Register r) {
+  Register getMapping(Register r) {
     return r.mapsToRegister;
   }
 
@@ -89,7 +89,7 @@ public class RegisterAllocatorState {
    *
    * @param r the register whose mapping is to be cleared
    */
-  static void clearOneToOne(Register r) {
+  void clearOneToOne(Register r) {
     if (r != null) {
       Register s = getMapping(r);
       if (s != null) {
