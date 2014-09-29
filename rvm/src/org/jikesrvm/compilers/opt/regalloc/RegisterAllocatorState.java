@@ -38,37 +38,11 @@ public class RegisterAllocatorState {
       Register reg = e.nextElement();
       reg.deallocateRegister();
       reg.mapsToRegister = null;  // mapping from real to symbolic
-      //    putPhysicalRegResurrectList(reg, null);
       reg.defList = null;
       reg.useList = null;
       setSpill(reg, 0);
     }
   }
-
-  /*
-   * Special use of scratchObject field as "resurrect lists" for real registers
-   * TODO: use another field for safety; scratchObject is also used by
-   *  clan LinearScanLiveAnalysis
-   */
-  /*
-  static void putPhysicalRegResurrectList(Register r,
-                                          LinearScanLiveInterval li) {
-    if (VM.VerifyAssertions) VM._assert(r.isPhysical());
-    r.scratchObject = li;
-  }
-  */
-  /*
-   *
-   * Special use of scratchObject field as "resurrect lists" for real registers
-   * TODO: use another field for safety; scratchObject is also used by
-   *  clan LinearScanLiveAnalysis
-   */
-  /*
-  static LinearScanLiveInterval getPhysicalRegResurrectList(Register r) {
-    if (VM.VerifyAssertions) VM._assert(r.isPhysical());
-    return (LinearScanLiveInterval) r.scratchObject;
-  }
-  */
 
   static void setSpill(Register reg, int spill) {
     reg.spillRegister();
