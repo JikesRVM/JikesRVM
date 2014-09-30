@@ -78,7 +78,7 @@ public class OptTestHarnessTest {
   }
 
   @Test
-  public void doesNotCrashWhenNoOptCompilerIsAvailabe() throws InvocationTargetException, IllegalAccessException{
+  public void doesNotCrashWhenNoOptCompilerIsAvailable() throws InvocationTargetException, IllegalAccessException{
     assumeThat(VM.BuildForOptCompiler, is(false));
     String[] emptyArgs = {};
     OptTestHarness.main(emptyArgs);
