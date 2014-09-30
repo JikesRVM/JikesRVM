@@ -184,8 +184,7 @@ public class OptTestHarnessTest {
   private TypeReference getTypeReferenceForClass(String className) {
     Atom classDescriptorAsAtom = Atom.findAsciiAtom(className).descriptorFromClassName();
     ClassLoader appCl = ApplicationClassLoader.getSystemClassLoader();
-    TypeReference tRef = TypeReference.findOrCreate(appCl, classDescriptorAsAtom);
-    return tRef;
+    return TypeReference.findOrCreate(appCl, classDescriptorAsAtom);
   }
 
   @Test
@@ -232,8 +231,7 @@ public class OptTestHarnessTest {
   }
 
   private String replacePointsWithSlashes(String s) {
-    s = s.replace(".", "/");
-    return s;
+    return s.replace(".", "/");
   }
 
   private void assertClassIsNotLoaded(String className) {
