@@ -78,12 +78,10 @@ public final class PostDominatorsPhase extends CompilerPhase {
       // and it doesn't return normally
       ir.HIRInfo.postDominatorsAreComputed = false;
 
-      // compute post-dominators,
-      // leaves info in scratch object of basic blocks
+      // compute post-dominators
       LTDominators.perform(ir, false, unfactor);
 
-      // create the dominator tree, relies on dominator info being
-      // in scratch object of basic blocks
+      // create the dominator tree
       DominatorTree.perform(ir, false);
 
       // computation completed, so set flag

@@ -119,10 +119,11 @@ public class LiveRangeSplitting extends OptimizationPlanCompositeElement {
       }
 
       // 2. Compute liveness.
-      // YUCK: We will later retrieve the live analysis info, relying on the
-      // scratchObject field of the Basic Blocks.  Thus, liveness must be
-      // computed AFTER the dominators, since the dominator phase also uses
-      // the scratchObject field.
+      // TODO It was previously necessary to perform liveness analysis after
+      // dominators had been computed to prevent probelms with usage of scratch
+      // fields. Scratch fields have since been removed. It is now possible to
+      // change the order if we ever get around to fixing SSA and testing the
+      // compiler phases that rely on it.
       LiveAnalysis live = new LiveAnalysis(false,  // don't create GC maps
                                                    false,  // don't skip (final) local
                                                    // propagation step of live analysis

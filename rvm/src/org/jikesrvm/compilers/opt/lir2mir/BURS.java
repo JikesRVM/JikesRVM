@@ -38,7 +38,6 @@ public abstract class BURS {
   protected final BURS_TreeNode Register = new BURS_TreeNode(REGISTER_opcode);
   protected final BURS_TreeNode BranchTarget = new BURS_TreeNode(BRANCH_TARGET_opcode);
 
-  // initialize scratch field for expression tree labeling.
   BURS(IR ir) {
     this.ir = ir;
     NullTreeNode.setNumRegisters(0);

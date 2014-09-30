@@ -44,8 +44,6 @@ public class DominatorTree extends Tree {
   /**
    * Build a dominator tree from an IR. NOTE: the dominator
    * information MUST be computed BEFORE calling this method!
-   * We assume the scratch object of each basic block contains
-   * the LTDominatorInfo object holding this information.
    *
    * @param ir the governing IR
    * @param forward are we building regular dominators or post-dominators?

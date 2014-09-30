@@ -49,9 +49,6 @@ public class Dominators {
 
   /**
    * Calculate the dominators for an IR.
-   * <p> After this pass, each basic block's scrach field points to
-   * an <code> DominatorInfo </code> object, which holds the dominators
-   * of the basic block.
    *
    * @param ir the IR in question
    */
@@ -91,10 +88,6 @@ public class Dominators {
    * dominators in the factored CFG rather than the normal CFG.
    * <p> (No exception is thrown if the input IR has handler blocks.)
    *
-   * <p> After this pass, each basic block's scratch field points to
-   * an DominatorInfo object, which holds the dominators
-   * of the basic block.
-   *
    * @param ir the IR in question
    */
   public void computeApproxDominators(IR ir) {
@@ -127,9 +120,6 @@ public class Dominators {
 
   /**
    * Calculate the postdominators for an IR.
-   * <p> After this pass, each basic block's scrach field points to
-   * an DominatorInfo object, which holds the postdominators
-   * of the basic block.
    *
    * @param ir the IR in question
    */
@@ -164,9 +154,8 @@ public class Dominators {
   }
 
   /**
-   * For each basic block in the data flow system solution,
-   * create an <code> DominatorInfo </code> and store it in the basic
-   * blocks scratchObject
+   * Creates a {@code DominatorInfo} for each basic block
+   * in the data flow system solution.
    *
    * @param solution the solution to the Dominators equations
    */
