@@ -95,6 +95,7 @@ Building Options:
      --comp-cache-dir Specify a cache location for component downloads
      --clear-cc       Clear out the component caches
      --harmony        Build with harmony (instead of classpath)
+     --answer-yes     Answer yes for all messages from the script that require confirmation. This option may be useful for headless builds.
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -144,6 +145,7 @@ GetOptions(
   "s|suffix=s" => \$suffix,
   "m|mmtk-config=s" => \$mmtk_config,
   "nuke" => \$nuke,
+  "answer-yes" => \$answeryes,
   "c|cross-to=s" => \$target,
   "checkstyle" => \$checkstyle,
   "test-image" => \$test_image,
@@ -1003,6 +1005,10 @@ sub load_config {
 
 sub confirm {
   $message=shift;
+  if ($answeryes) {
+    print "Answering yes for message: ".$message."\n";
+    return;
+  }
   print $message."\nPlease type y to confirm > ";
   $conf = <STDIN>;
   chomp($conf);
