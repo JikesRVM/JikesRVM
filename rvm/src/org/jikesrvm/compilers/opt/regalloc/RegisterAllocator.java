@@ -70,7 +70,8 @@ public final class RegisterAllocator extends OptimizationPlanCompositeElement {
      */
     @Override
     public final void perform(org.jikesrvm.compilers.opt.ir.IR ir) {
-      ir.MIRInfo.regAllocState = new RegisterAllocatorState();
+      int registerCount = ir.regpool.getTotalNumberOfRegisters();
+      ir.MIRInfo.regAllocState = new RegisterAllocatorState(registerCount);
       ir.stackManager.prepare(ir);
     }
   }

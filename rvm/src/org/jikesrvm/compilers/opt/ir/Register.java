@@ -345,10 +345,6 @@ public final class Register {
     return mapsToRegister;
   }
 
-  public int getSpillAllocated() {
-    return scratch;
-  }
-
   @Override
   public int hashCode() {
     return number;

@@ -80,7 +80,7 @@ final class UpdateGCMaps1 extends CompilerPhase {
           if (LinearScan.GC_DEBUG) { VM.sysWrite(ra + "\n"); }
 
         } else if (symbolic.isSpilled()) {
-          int spill = symbolic.getSpillAllocated();
+          int spill = ir.MIRInfo.regAllocState.getSpill(symbolic);
           elem.setSpill(spill);
           if (LinearScan.GC_DEBUG) { VM.sysWrite(spill + "\n"); }
         } else {

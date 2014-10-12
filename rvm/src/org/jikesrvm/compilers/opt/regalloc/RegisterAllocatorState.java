@@ -27,6 +27,12 @@ import org.jikesrvm.compilers.opt.ir.Register;
  */
 public class RegisterAllocatorState {
 
+  private int[] spills;
+
+  RegisterAllocatorState(int registerCount) {
+    spills = new int[registerCount];
+  }
+
   /**
    * Resets the physical register info.
    *
@@ -46,11 +52,11 @@ public class RegisterAllocatorState {
 
   void setSpill(Register reg, int spill) {
     reg.spillRegister();
-    reg.setScratch(spill);
+    spills[reg.number] = spill;
   }
 
   public int getSpill(Register reg) {
-    return reg.getScratch();
+    return spills[reg.number];
   }
 
   /**

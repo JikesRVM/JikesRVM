@@ -52,6 +52,13 @@ public class GenericRegisterPool extends AbstractRegisterPool {
   }
 
   /**
+   * @return the total number of register in the pool, including physical ones
+   */
+  public int getTotalNumberOfRegisters() {
+    return currentNum;
+  }
+
+  /**
    * Get the Framepointer (FP)
    *
    * @return the FP register

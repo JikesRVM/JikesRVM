@@ -158,7 +158,8 @@ public final class UpdateOSRMaps extends CompilerPhase {
     } else if (sym_reg.isPhysical()) {
       setTupleValue(tuple, OSRConstants.PHYREG, sym_reg.number & REG_MASK);
     } else if (sym_reg.isSpilled()) {
-      setTupleValue(tuple, OSRConstants.SPILL, sym_reg.getSpillAllocated());
+      int spillLocation = ir.MIRInfo.regAllocState.getSpill(sym_reg);
+      setTupleValue(tuple, OSRConstants.SPILL, spillLocation);
     } else {
       dumpIR(ir, "PANIC");
       throw new RuntimeException("LinearScan PANIC in OSRMAP, " + sym_reg + " is not alive");
