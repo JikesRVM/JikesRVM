@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt;
 
 import static org.jikesrvm.compilers.opt.ir.Operators.PHI;
 
+import java.util.Arrays;
 import java.util.Enumeration;
 
 import org.jikesrvm.VM;
@@ -46,14 +47,12 @@ public final class DefUse {
     for (Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
       reg.defList = null;
       reg.useList = null;
-      reg.setScratch(-1);
       reg.clearSeenUse();
     }
     for (Enumeration<Register> e = ir.regpool.getPhysicalRegisterSet().enumerateAll(); e.hasMoreElements();) {
       Register reg = e.nextElement();
       reg.defList = null;
       reg.useList = null;
-      reg.setScratch(-1);
       reg.clearSeenUse();
     }
 
@@ -380,9 +379,11 @@ public final class DefUse {
   public static void recomputeSpansBasicBlock(IR ir) {
     // clear fields
     for (Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
-      reg.setScratch(-1);
       reg.clearSpansBasicBlock();
     }
+
+    int[] lastBBNums = new int[ir.regpool.getTotalNumberOfRegisters()];
+    Arrays.fill(lastBBNums, -1);
     // iterate over the basic blocks
     for (BasicBlock bb = ir.firstBasicBlockInCodeOrder(); bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       int bbNum = bb.getNumber();
@@ -400,7 +401,7 @@ public final class DefUse {
             if (reg.spansBasicBlock()) {
               continue;
             }
-            if (seenInDifferentBlock(reg, bbNum)) {
+            if (seenInDifferentBlock(reg, bbNum, lastBBNums)) {
               reg.setSpansBasicBlock();
               continue;
             }
@@ -408,7 +409,7 @@ public final class DefUse {
               reg.setSpansBasicBlock();
               continue;
             }
-            logAppearance(reg, bbNum);
+            logAppearance(reg, bbNum, lastBBNums);
           }
         }
       }
@@ -417,23 +418,25 @@ public final class DefUse {
 
   /**
    * Mark that we have seen a register in a particular
-   * basic block, and whether we saw a use
+   * basic block.
    *
    * @param reg the register
    * @param bbNum the number of the basic block
+   * @param bbNums last block were each register was seen
    */
-  private static void logAppearance(Register reg, int bbNum) {
-    reg.setScratch(bbNum);
+  private static void logAppearance(Register reg, int bbNum, int[] bbNums) {
+    bbNums[reg.number] = bbNum;
   }
 
   /**
    * @param reg the register
    * @param bbNum the number of the basic block
+   * @param bbNums last block were each register was seen
    * @return {@code true} if the register was seen in a different basic block
    *  than the one that was passed to this method
    */
-  private static boolean seenInDifferentBlock(Register reg, int bbNum) {
-    int bb = reg.getScratch();
+  private static boolean seenInDifferentBlock(Register reg, int bbNum, int[] bbNums) {
+    int bb = bbNums[reg.number];
     return (bb != -1) && (bb != bbNum);
   }
 

@@ -384,11 +384,4 @@ public final class Register {
     this.scratchObject = scratchObject;
   }
 
-  public int getScratch() {
-    return scratch;
-  }
-
-  public void setScratch(int scratch) {
-    this.scratch = scratch;
-  }
 }
