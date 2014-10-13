@@ -201,19 +201,6 @@ public final class Instruction {
   private int scratch;
 
   /**
-   * A scratch object to be used as needed by analyses/optimizations to store
-   * information during an optimization.<p>
-   * Cannot be used to communicate information between compiler phases since
-   * any phase is allowed to mutate it.<p>
-   * Cannot safely be assumed to have a particular value at the start of
-   * a phase.<p>
-   * To be used when more than one word of information is needed and
-   * lookaside arrays are not desirable.<p>
-   * Typical uses:  attribute objects or links to shared data
-   */
-  private Object scratchObject;
-
-  /**
    * The operator for this instruction.<p>
    * The preferred idiom is to use the {@link #operator()} accessor method
    * instead of accessing this field directly, but we are still in the process
