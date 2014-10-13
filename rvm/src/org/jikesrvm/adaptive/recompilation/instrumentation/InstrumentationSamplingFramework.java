@@ -785,10 +785,8 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    * @param ir the IR that contains the block
    */
   private static void updateTemps(BasicBlock bb, IR ir) {
-
-    // Need to clear the scratch objects before we start using them
-    clearScratchObjects(bb, ir);
-
+    int capacity = ir.regpool.getNumberOfSymbolicRegisters() * 2;
+    HashMap<Register, Register> duplicates = new HashMap<Register, Register>(capacity);
     // For each instruction in the block
     for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction inst = ie.nextElement();
@@ -802,7 +800,7 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
           if (ro.getRegister().isTemp() && !ro.getRegister().spansBasicBlock()) {
             // This register does not span multiple basic blocks, so
             // replace it with a temp.
-            RegisterOperand newReg = getOrCreateDupReg(ro, ir);
+            RegisterOperand newReg = getOrCreateDupReg(ro, ir, duplicates);
             if (DEBUG2) {
               VM.sysWrite("Was " + ro + " and now it's " + newReg + "\n");
             }
@@ -811,41 +809,6 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
         }
       }
     }
-
-    // Clear them afterward also, otherwise register allocation fails.
-    // (TODO: Shouldn't they just be cleared before use in register
-    // allocation?)
-    clearScratchObjects(bb, ir);
-  }
-
-  /**
-   *  Clears the scratch objects of all statements in a basic block.
-   *
-   *  @param bb the block to process
-   *  @param ir the IR that contains the block
-   */
-  private static void clearScratchObjects(BasicBlock bb, IR ir) {
-    // For each instruction in the block
-    for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
-      Instruction inst = ie.nextElement();
-
-      // Look at each register operand
-      int numOperands = inst.getNumberOfOperands();
-      for (int i = 0; i < numOperands; i++) {
-        Operand op = inst.getOperand(i);
-        if (op instanceof RegisterOperand) {
-          RegisterOperand ro = (RegisterOperand) op;
-          if (ro.getRegister().isTemp() && !ro.getRegister().spansBasicBlock()) {
-
-            // This register does not span multiple basic blocks.  It
-            // will be touched by the register duplication, so clear
-            // its scratch reg.
-            ro.getRegister().setScratchObject(null);
-          }
-        }
-      }
-    }
-
   }
 
   /**
@@ -858,18 +821,23 @@ public final class InstrumentationSamplingFramework extends CompilerPhase {
    *
    * @param ro the register operand to duplicate
    * @param ir the IR that contains the register operand
+   * @param dupMappings the mappings of registers to duplicates
    * @return a duplicated register operand
    */
-  private static RegisterOperand getOrCreateDupReg(RegisterOperand ro, IR ir) {
+  private static RegisterOperand getOrCreateDupReg(RegisterOperand ro, IR ir, Map<Register, Register> dupMappings) {
 
     // Check if the register associated with this regOperand already
     // has a paralles operand
-    if (ro.getRegister().getScratchObject() == null) {
+    Register roReg = ro.getRegister();
+    Register rosDupReg = dupMappings.get(roReg);
+    if (rosDupReg == null) {
       // If no dup register exists, make a new one and remember it.
-      RegisterOperand dupRegOp = ir.regpool.makeTemp(ro.getType());
-      ro.getRegister().setScratchObject(dupRegOp.getRegister());
+      RegisterOperand duplicatedRegOp = ir.regpool.makeTemp(ro.getType());
+      Register regFromDuplicatedRegOp = duplicatedRegOp.getRegister();
+      dupMappings.put(roReg, regFromDuplicatedRegOp);
+      rosDupReg = regFromDuplicatedRegOp;
     }
-    return new RegisterOperand((Register) ro.getRegister().getScratchObject(), ro.getType());
+    return new RegisterOperand(rosDupReg, ro.getType());
   }
 
   /**
