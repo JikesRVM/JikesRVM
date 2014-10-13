@@ -376,12 +376,4 @@ public final class Register {
   }
   /* end of inlined behavior */
 
-  public Object getScratchObject() {
-    return scratchObject;
-  }
-
-  public void setScratchObject(Object scratchObject) {
-    this.scratchObject = scratchObject;
-  }
-
 }
