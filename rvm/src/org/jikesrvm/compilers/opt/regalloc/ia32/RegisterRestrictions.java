@@ -129,7 +129,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
     // restriction for better code.
     for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction s = ie.nextElement();
-      if (s.isPEI() && s.operator != IR_PROLOGUE) {
+      if (s.isPEI() && s.operator() != IR_PROLOGUE) {
         if (bb.hasApplicableExceptionalOut(s) || !SCRATCH_IN_PEI) {
           for (Enumeration<Operand> e = s.getOperands(); e.hasMoreElements();) {
             Operand op = e.nextElement();
@@ -173,7 +173,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
     }
     for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction s = ie.nextElement();
-      if (s.operator == IA32_FNINIT) {
+      if (s.operator() == IA32_FNINIT) {
         // No floating point register survives across an FNINIT
         for (LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
@@ -182,7 +182,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
             }
           }
         }
-      } else if (s.operator == IA32_FCLEAR) {
+      } else if (s.operator() == IA32_FCLEAR) {
         // Only some FPRs survive across an FCLEAR
         for (LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
@@ -443,7 +443,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   public boolean isForbidden(Register symb, Register r, Instruction s) {
 
     // Look at 8-bit restrictions.
-    switch (s.operator.opcode) {
+    switch (s.operator().opcode) {
       case IA32_MOVZX__B_opcode:
       case IA32_MOVSX__B_opcode: {
         if (MIR_Unary.getVal(s).isRegister()) {

@@ -296,7 +296,7 @@ public abstract class NormalizeConstants extends IRTools {
         // LOAD/STORE
         //////////
         case REF_STORE_opcode:
-          s.operator = VM.BuildFor32Addr ? INT_STORE : LONG_STORE;
+          s.changeOperatorTo(VM.BuildFor32Addr ? INT_STORE : LONG_STORE);
           // On PowerPC, the value being stored must be in a register
           Store.setValue(s, asRegPolymorphic(Store.getClearValue(s), s, ir));
           // Supported addressing modes are quite limited.
@@ -323,7 +323,7 @@ public abstract class NormalizeConstants extends IRTools {
           break;
 
         case REF_LOAD_opcode:
-          s.operator = VM.BuildFor32Addr ? INT_LOAD : LONG_LOAD;
+          s.changeOperatorTo(VM.BuildFor32Addr ? INT_LOAD : LONG_LOAD);
           // Supported addressing modes are quite limited.
           Load.setAddress(s, asRegAddress(Load.getClearAddress(s), s, ir));
           Load.setOffset(s, asImmediateOrRegOffset(Load.getClearOffset(s), s, ir, true));
@@ -363,20 +363,20 @@ public abstract class NormalizeConstants extends IRTools {
 
         case LONG_MOVE_opcode:
           if (VM.BuildFor64Addr) {
-            s.operator = REF_MOVE;
+            s.changeOperatorTo(REF_MOVE);
           }
           break;
 
         case INT_MOVE_opcode:
-          s.operator = REF_MOVE;
+          s.changeOperatorTo(REF_MOVE);
           break;
 
         case REF_COND_MOVE_opcode:
-          s.operator = VM.BuildFor32Addr ? INT_COND_MOVE : LONG_COND_MOVE;
+          s.changeOperatorTo(VM.BuildFor32Addr ? INT_COND_MOVE : LONG_COND_MOVE);
           break;
 
         case REF_IFCMP_opcode:
-          s.operator = VM.BuildFor32Addr ? INT_IFCMP : LONG_IFCMP;
+          s.changeOperatorTo(VM.BuildFor32Addr ? INT_IFCMP : LONG_IFCMP);
           // val1 can't be a constant, val2 must be small enough.
           IfCmp.setVal1(s, asRegPolymorphic(IfCmp.getClearVal1(s), s, ir));
           IfCmp.setVal2(s, asImmediateOrRegPolymorphic(IfCmp.getClearVal2(s), s, ir, true));
@@ -422,13 +422,13 @@ public abstract class NormalizeConstants extends IRTools {
 
         case LONG_ADD_opcode:
           if (VM.BuildFor64Addr) {
-            s.operator = REF_ADD;
+            s.changeOperatorTo(REF_ADD);
             Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getVal2(s), s, ir, true));
           }
           break;
 
         case INT_ADD_opcode:
-          s.operator = REF_ADD;
+          s.changeOperatorTo(REF_ADD);
           Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getVal2(s), s, ir, true));
           break;
 
@@ -438,7 +438,7 @@ public abstract class NormalizeConstants extends IRTools {
 
         case LONG_SUB_opcode:
           if (VM.BuildFor64Addr) {
-            s.operator = REF_SUB;
+            s.changeOperatorTo(REF_SUB);
             Binary.setVal1(s, asImmediateOrRegPolymorphic(Binary.getClearVal1(s), s, ir, true));
             // val2 isn't be constant (if it were, Simplifier would have
             // converted this into an ADD of -Val2).
@@ -446,7 +446,7 @@ public abstract class NormalizeConstants extends IRTools {
           break;
 
         case INT_SUB_opcode:
-          s.operator = REF_SUB;
+          s.changeOperatorTo(REF_SUB);
           Binary.setVal1(s, asImmediateOrRegPolymorphic(Binary.getClearVal1(s), s, ir, true));
           // val2 isn't be constant (if it were, Simplifier would have
           // converted this into an ADD of -Val2).
@@ -486,33 +486,33 @@ public abstract class NormalizeConstants extends IRTools {
 
         case LONG_NEG_opcode:
           if (VM.BuildFor64Addr) {
-            s.operator = REF_NEG;
+            s.changeOperatorTo(REF_NEG);
           }
           break;
 
         case INT_NEG_opcode:
-          s.operator = REF_NEG;
+          s.changeOperatorTo(REF_NEG);
           break;
 
         case LONG_NOT_opcode:
           if (VM.BuildFor64Addr) {
-            s.operator = REF_NOT;
+            s.changeOperatorTo(REF_NOT);
           }
           break;
 
         case INT_NOT_opcode:
-          s.operator = REF_NOT;
+          s.changeOperatorTo(REF_NOT);
           break;
 
         case LONG_AND_opcode:
           if (VM.BuildFor64Addr) {
-            s.operator = REF_AND;
+            s.changeOperatorTo(REF_AND);
             Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
           }
           break;
 
         case INT_AND_opcode:
-          s.operator = REF_AND;
+          s.changeOperatorTo(REF_AND);
           Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
           break;
 
@@ -522,13 +522,13 @@ public abstract class NormalizeConstants extends IRTools {
 
         case LONG_OR_opcode:
           if (VM.BuildFor64Addr) {
-            s.operator = REF_OR;
+            s.changeOperatorTo(REF_OR);
             Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
           }
           break;
 
         case INT_OR_opcode:
-          s.operator = REF_OR;
+          s.changeOperatorTo(REF_OR);
           Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
           break;
 
@@ -538,13 +538,13 @@ public abstract class NormalizeConstants extends IRTools {
 
         case LONG_XOR_opcode:
           if (VM.BuildFor64Addr) {
-            s.operator = REF_XOR;
+            s.changeOperatorTo(REF_XOR);
             Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
           }
           break;
 
         case INT_XOR_opcode:
-          s.operator = REF_XOR;
+          s.changeOperatorTo(REF_XOR);
           Binary.setVal2(s, asImmediateOrRegPolymorphic(Binary.getClearVal2(s), s, ir, false)); //unsigned immediate
           break;
 
@@ -553,7 +553,7 @@ public abstract class NormalizeConstants extends IRTools {
           break;
 
         case REF_SHL_opcode:
-          s.operator = (VM.BuildFor32Addr ? INT_SHL : LONG_SHL);
+          s.changeOperatorTo(VM.BuildFor32Addr ? INT_SHL : LONG_SHL);
           // Val2 could be a constant, but Val1 apparently can't be.
           Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
           break;
@@ -571,7 +571,7 @@ public abstract class NormalizeConstants extends IRTools {
           break;
 
         case REF_SHR_opcode:
-          s.operator = (VM.BuildFor32Addr ? INT_SHR : LONG_SHR);
+          s.changeOperatorTo(VM.BuildFor32Addr ? INT_SHR : LONG_SHR);
           // Val2 could be a constant, but Val1 apparently can't be.
           Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
           break;
@@ -589,7 +589,7 @@ public abstract class NormalizeConstants extends IRTools {
           break;
 
         case REF_USHR_opcode:
-          s.operator = (VM.BuildFor32Addr ? INT_USHR : LONG_USHR);
+          s.changeOperatorTo(VM.BuildFor32Addr ? INT_USHR : LONG_USHR);
           // Val2 could be a constant, but Val1 apparently can't be.
           Binary.setVal1(s, asRegPolymorphic(Binary.getClearVal1(s), s, ir));
           break;
@@ -614,24 +614,24 @@ public abstract class NormalizeConstants extends IRTools {
           break;
 
         case ADDR_2INT_opcode:
-          s.operator = (VM.BuildFor32Addr ? REF_MOVE : LONG_2INT);
+          s.changeOperatorTo(VM.BuildFor32Addr ? REF_MOVE : LONG_2INT);
           break;
         case ADDR_2LONG_opcode:
-          s.operator = (VM.BuildFor32Addr ? INT_2LONG : REF_MOVE);
+          s.changeOperatorTo(VM.BuildFor32Addr ? INT_2LONG : REF_MOVE);
           break;
         case INT_2ADDRSigExt_opcode:
-          s.operator = (VM.BuildFor32Addr ? REF_MOVE : INT_2LONG);
+          s.changeOperatorTo(VM.BuildFor32Addr ? REF_MOVE : INT_2LONG);
           break;
 
         case INT_2ADDRZerExt_opcode:
           if (VM.BuildFor32Addr) {
-            s.operator = REF_MOVE;
+            s.changeOperatorTo(REF_MOVE);
           }
           break;
 
         case LONG_2ADDR_opcode:
           if (VM.BuildFor64Addr) {
-            s.operator = REF_MOVE;
+            s.changeOperatorTo(REF_MOVE);
           }
           break;
 

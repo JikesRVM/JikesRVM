@@ -147,7 +147,7 @@ class SSA {
       for (Enumeration<Instruction> e = dictionary.getAllInstructions(bb); e.hasMoreElements();) {
         Instruction s = e.nextElement();
         System.out.print(s.bcIndex + "\t" + s);
-        if (dictionary.defsHeapVariable(s) && s.operator != PHI) {
+        if (dictionary.defsHeapVariable(s) && s.operator() != PHI) {
           System.out.print("  (Implicit Defs: ");
           HeapOperand<?>[] defs = dictionary.getHeapDefs(s);
           if (defs != null) {
@@ -155,7 +155,7 @@ class SSA {
           }
           System.out.print(" )");
         }
-        if (dictionary.usesHeapVariable(s) && s.operator != PHI) {
+        if (dictionary.usesHeapVariable(s) && s.operator() != PHI) {
           System.out.print("  (Implicit Uses: ");
           HeapOperand<?>[] uses = dictionary.getHeapUses(s);
           if (uses != null) {

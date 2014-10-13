@@ -193,11 +193,11 @@ class IndexPropagationSystem extends DF_System {
           processCall(s);
         } else if (Phi.conforms(s)) {
           processPhi(s);
-        } else if (s.operator == READ_CEILING) {
+        } else if (s.operator() == READ_CEILING) {
           processCall(s);
-        } else if (s.operator == WRITE_FLOOR) {
+        } else if (s.operator() == WRITE_FLOOR) {
           processCall(s);
-        } else if (s.operator == FENCE) {
+        } else if (s.operator() == FENCE) {
           processCall(s);
         }
       }

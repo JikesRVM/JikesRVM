@@ -495,8 +495,8 @@ public class EnterSSA extends CompilerPhase {
             s.isPEI() ||
             Label.conforms(s) ||
             BBend.conforms(s) ||
-            s.operator.opcode == UNINT_BEGIN_opcode ||
-            s.operator.opcode == UNINT_END_opcode) {
+            s.operator().opcode == UNINT_BEGIN_opcode ||
+            s.operator().opcode == UNINT_END_opcode) {
           dictionary.registerInstruction(s, b);
         }
       }
@@ -967,7 +967,7 @@ public class EnterSSA extends CompilerPhase {
       Instruction A = a.nextElement();
       if (!dictionary.usesHeapVariable(A) && !dictionary.defsHeapVariable(A)) continue;
       // retrieve the Heap Variables defined by A
-      if (A.operator != PHI) {
+      if (A.operator() != PHI) {
         HeapOperand<Object>[] defs = dictionary.getHeapDefs(A);
         if (defs != null) {
           for (HeapOperand<Object> def : defs) {

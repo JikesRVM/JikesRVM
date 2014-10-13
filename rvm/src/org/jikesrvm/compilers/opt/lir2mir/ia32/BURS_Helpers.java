@@ -2888,7 +2888,7 @@ Operand value, boolean signExtend) {
     RegisterOperand res = Binary.getClearResult(s);
     RegisterOperand temp = burs.ir.regpool.makeTempInt();
     Register FP0 = burs.ir.regpool.getPhysicalRegisterSet().getFPR(0);
-    if ((s.operator == DOUBLE_CMPL) || (s.operator == FLOAT_CMPL)) {
+    if ((s.operator() == DOUBLE_CMPL) || (s.operator() == FLOAT_CMPL)) {
       EMIT(CPOS(s, MIR_Move.create(IA32_MOV, temp, IC(0))));
       // Perform compare
       EMIT(CPOS(s, MIR_Move.create(IA32_FMOV, new RegisterOperand(FP0, TypeReference.Int), one)));

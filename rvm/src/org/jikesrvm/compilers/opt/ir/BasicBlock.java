@@ -728,7 +728,7 @@ public class BasicBlock extends SortedGraphNode {
     if (isEmpty()) return false;
     Instruction s = lastRealInstruction();
 
-    if (VM.BuildForIA32 && Operators.helper.isAdviseESP(s.operator)) {
+    if (VM.BuildForIA32 && Operators.helper.isAdviseESP(s.operator())) {
       s = s.getPrev();
     }
 

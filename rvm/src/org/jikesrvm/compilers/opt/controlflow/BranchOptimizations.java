@@ -250,8 +250,8 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
       // We impose these additional restrictions to avoid getting
       // multiple conditional branches in a single basic block.
       if (!g.prevInstructionInCodeOrder().isBranch() &&
-          (targetInst.nextInstructionInCodeOrder().operator == BBEND ||
-           targetInst.nextInstructionInCodeOrder().operator == GOTO)) {
+          (targetInst.nextInstructionInCodeOrder().operator() == BBEND ||
+           targetInst.nextInstructionInCodeOrder().operator() == GOTO)) {
         Instruction copy = targetInst.copyWithoutLinks();
         g.replace(copy);
         Instruction newGoto = targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
@@ -910,7 +910,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
       Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       // for now, only the following opcodes are legal.
-      switch (s.operator.opcode) {
+      switch (s.operator().opcode) {
         case INT_MOVE_opcode:
         case REF_MOVE_opcode:
         case DOUBLE_MOVE_opcode:
@@ -1185,7 +1185,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
 
     // Delete a potential GOTO after cb.
     Instruction next = cb.nextInstructionInCodeOrder();
-    if (next.operator != BBEND) {
+    if (next.operator() != BBEND) {
       next.remove();
     }
 
@@ -1249,7 +1249,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
     if (ti.operator() != fi.operator()) {
       return false;
     }
-    if (ti.operator != RETURN && ti.operator() != INT_MOVE) {
+    if (ti.operator() != RETURN && ti.operator() != INT_MOVE) {
       return false;
     }
     //

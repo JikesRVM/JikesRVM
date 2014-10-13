@@ -220,7 +220,7 @@ public class LocalCSE extends CompilerPhase {
    */
   private boolean isExpression(Instruction inst) {
     if (inst.isDynamicLinkingPoint()) return false;
-    switch (inst.operator.format) {
+    switch (inst.operator().format) {
       case InstructionFormat.Unary_format:
       case InstructionFormat.GuardedUnary_format:
       case InstructionFormat.Binary_format:
@@ -464,7 +464,7 @@ public class LocalCSE extends CompilerPhase {
       Operator opr = inst.operator();
       Operand[] ops = null;
       LocationOperand location = null;
-      switch (inst.operator.format) {
+      switch (inst.operator().format) {
         case InstructionFormat.GetField_format:
           if (VM.VerifyAssertions) VM._assert(doMemory);
           ops = new Operand[]{GetField.getRef(inst)};
@@ -547,7 +547,7 @@ public class LocalCSE extends CompilerPhase {
       Operand[] ops = null;
       LocationOperand location = null;
 
-      switch (inst.operator.format) {
+      switch (inst.operator().format) {
         case InstructionFormat.GetField_format:
           if (VM.VerifyAssertions) VM._assert(doMemory);
           ops = new Operand[]{GetField.getRef(inst)};

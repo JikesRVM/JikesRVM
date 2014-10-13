@@ -202,13 +202,9 @@ public final class Instruction {
 
   /**
    * The operator for this instruction.<p>
-   * The preferred idiom is to use the {@link #operator()} accessor method
-   * instead of accessing this field directly, but we are still in the process
-   * of updating old code.<p>
    * The same operator object can be shared by many instruction objects.<p>
-   * TODO: finish conversion and make this field private.
    */
-  public Operator operator;
+  private Operator operator;
 
   /**
    * The next instruction in the intra-basic-block list of instructions,
@@ -480,6 +476,10 @@ public final class Instruction {
    */
   public Operator operator() {
     return operator;
+  }
+
+  public void changeOperatorTo(Operator newlySetOperator) {
+    operator = newlySetOperator;
   }
 
   /**

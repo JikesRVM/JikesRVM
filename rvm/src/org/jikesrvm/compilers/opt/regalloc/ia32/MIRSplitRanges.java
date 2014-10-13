@@ -88,7 +88,7 @@ public class MIRSplitRanges extends CompilerPhase {
         // NOTE: Any operator that is an IA32 special case that must have
         //       a particular operand in a register must be mentioned both
         //       here and in RegisterRestrictions!
-        if (s.isPEI() && s.operator != IR_PROLOGUE) {
+        if (s.isPEI() && s.operator() != IR_PROLOGUE) {
           if (bb.hasApplicableExceptionalOut(s) || !RegisterRestrictions.SCRATCH_IN_PEI) {
             splitAllLiveRanges(s, newMap, ir, false);
           }

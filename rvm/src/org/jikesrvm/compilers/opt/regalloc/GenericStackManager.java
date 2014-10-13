@@ -964,13 +964,13 @@ public abstract class GenericStackManager extends IRTools {
     if (VM
         .BuildForIA32 &&
                       r.isFloatingPoint() &&
-                      (Operators.helper.isFNInit(s.operator) || Operators.helper.isFClear(s.operator))) {
+                      (Operators.helper.isFNInit(s.operator()) || Operators.helper.isFClear(s.operator()))) {
       return true;
     }
 
     // Assume that all volatile registers 'appear' in all call
     // instructions
-    return s.isCall() && s.operator != CALL_SAVE_VOLATILE && r.isVolatile();
+    return s.isCall() && s.operator() != CALL_SAVE_VOLATILE && r.isVolatile();
   }
 
   /**
@@ -1075,7 +1075,7 @@ public abstract class GenericStackManager extends IRTools {
         restoreScratchRegistersBefore(s);
 
         // we must spill all scratch registers before leaving this basic block
-        if (s.operator == BBEND || isPEIWithCatch(s, bb) || s.isBranch() || s.isReturn()) {
+        if (s.operator() == BBEND || isPEIWithCatch(s, bb) || s.isBranch() || s.isReturn()) {
           restoreAllScratchRegistersBefore(s);
         }
 
@@ -1145,7 +1145,7 @@ public abstract class GenericStackManager extends IRTools {
                   // replace the register in the target instruction.
                   replaceRegisterWithScratch(s, r, scratch.scratch);
                 } else {
-                  if (s.operator != YIELDPOINT_OSR) {
+                  if (s.operator() != YIELDPOINT_OSR) {
                     if (VM.BuildForIA32) {
                       // No need to use a scratch register here.
                       replaceOperandWithSpillLocation(s, op.asRegister());

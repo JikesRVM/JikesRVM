@@ -178,10 +178,10 @@ public class EscapeTransformations extends CompilerPhase {
     // walk through uses of r
     for (RegisterOperand use = r.useList; use != null; use = use.getNext()) {
       Instruction s = use.instruction;
-      if (s.operator == MONITORENTER) {
+      if (s.operator() == MONITORENTER) {
         return true;
       }
-      if (s.operator == MONITOREXIT) {
+      if (s.operator() == MONITOREXIT) {
         return true;
       }
       // check if this instruction invokes a synchronized method on the

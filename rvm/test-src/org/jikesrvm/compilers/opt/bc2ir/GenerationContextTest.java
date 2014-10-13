@@ -896,7 +896,7 @@ public class GenerationContextTest {
   private void assertMoveOperationIsCorrect(Instruction call,
       Operator moveOperator, RegisterOperand formal, RegisterOperand actual, Instruction move) {
     assertSame(call.position, move.position);
-    assertThat(move.operator, is(moveOperator));
+    assertThat(move.operator(), is(moveOperator));
     assertThat(move.bcIndex, is(PROLOGUE_BCI));
     RegisterOperand moveResult = Move.getResult(move);
     assertTrue(moveResult.sameRegisterPropertiesAs(formal));
@@ -1261,7 +1261,7 @@ public class GenerationContextTest {
 
     Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     Instruction guardMove = prologueRealInstr.nextElement();
-    assertThat(guardMove.operator, is(GUARD_MOVE));
+    assertThat(guardMove.operator(), is(GUARD_MOVE));
     assertThat(guardMove.bcIndex, is(UNKNOWN_BCI));
     RegisterOperand moveResult = Move.getResult(guardMove);
     assertTrue(moveResult.sameRegisterPropertiesAs(expectedNullCheckGuard));
@@ -1305,7 +1305,7 @@ public class GenerationContextTest {
   private void assertMoveOperationIsCorrectForNonRegisterActual(Instruction call,
       Operator moveOperator, RegisterOperand formal, Operand actual, Instruction move) {
     assertSame(call.position, move.position);
-    assertThat(move.operator, is(moveOperator));
+    assertThat(move.operator(), is(moveOperator));
     assertThat(move.bcIndex, is(PROLOGUE_BCI));
     RegisterOperand moveResult = Move.getResult(move);
     assertTrue(moveResult.sameRegisterPropertiesAsExceptForScratchObject(formal));

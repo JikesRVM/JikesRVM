@@ -114,7 +114,7 @@ public abstract class CallingConvention extends IRTools
 
     // 1. Clear the floating-point stack if dirty.
     if (!ArchConstants.SSE2_FULL) {
-      if (call.operator != CALL_SAVE_VOLATILE) {
+      if (call.operator() != CALL_SAVE_VOLATILE) {
         int FPRRegisterParams = countFPRParams(call);
         FPRRegisterParams = Math.min(FPRRegisterParams, PhysicalRegisterSet.getNumberOfFPRParams());
         call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR, IC(FPRRegisterParams)));
@@ -389,7 +389,7 @@ public abstract class CallingConvention extends IRTools
   public static void saveNonvolatilesAroundSysCall(Instruction call, IR ir) {
     saveNonvolatilesBeforeSysCall(call, ir);
     restoreNonvolatilesAfterSysCall(call, ir);
-    call.operator = IA32_CALL;
+    call.changeOperatorTo(IA32_CALL);
   }
 
   /**
@@ -599,7 +599,7 @@ public abstract class CallingConvention extends IRTools
 
     Instruction p = ir.firstInstructionInCodeOrder().
         nextInstructionInCodeOrder();
-    if (VM.VerifyAssertions) VM._assert(p.operator == IR_PROLOGUE);
+    if (VM.VerifyAssertions) VM._assert(p.operator() == IR_PROLOGUE);
     Instruction start = p.nextInstructionInCodeOrder();
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 

@@ -54,7 +54,7 @@ public abstract class RegisterPreferences extends GenericRegisterPreferences {
   public void initialize(IR ir) {
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
-      switch (s.operator.opcode) {
+      switch (s.operator().opcode) {
         case PPC_MOVE_opcode:
           // add affinities produced by MOVE instructions
           Operand result = MIR_Move.getResult(s);

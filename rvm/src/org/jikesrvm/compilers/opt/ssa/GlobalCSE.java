@@ -259,11 +259,11 @@ public final class GlobalCSE extends CompilerPhase {
         inst.isDynamicLinkingPoint() ||
         inst.isImplicitLoad() ||
         inst.isImplicitStore() ||
-        inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) {
+        inst.operator().opcode >= ARCH_INDEPENDENT_END_opcode) {
       return false;
     }
 
-    switch (inst.operator.opcode) {
+    switch (inst.operator().opcode) {
       case INT_MOVE_opcode:
       case LONG_MOVE_opcode:
       case CHECKCAST_opcode:

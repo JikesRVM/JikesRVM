@@ -1312,7 +1312,7 @@ public final class IR {
         while (useOperands.hasMoreElements()) {
           Object variable = getVariableUse(where, useOperands.nextElement());
           if ((variable != null) && (!definedVariables.contains(variable))) {
-            if (instruction.operator.toString().indexOf("xor") != -1)
+            if (instruction.operator().toString().indexOf("xor") != -1)
               continue;
             StringBuffer pathString = new StringBuffer();
             for (int i = 0; i < path.size(); i++) {

@@ -259,7 +259,7 @@ public class LoopUnrolling extends CompilerPhase {
     Instruction origBranch = exitBlock.firstBranchInstruction();
     if (origBranch != exitBlock.lastRealInstruction()) {
       Instruction aGoto = origBranch.nextInstructionInCodeOrder();
-      if (aGoto.operator.opcode != GOTO_opcode) {
+      if (aGoto.operator().opcode != GOTO_opcode) {
         report("7 too complex exit\n");
         return true;
       }
@@ -271,8 +271,8 @@ public class LoopUnrolling extends CompilerPhase {
       succBlock = exitBlock.getFallThroughBlock();
     }
 
-    if (origBranch.operator.opcode != INT_IFCMP_opcode) {
-      report("8 branch isn't int_ifcmp: " + origBranch.operator + ".\n");
+    if (origBranch.operator().opcode != INT_IFCMP_opcode) {
+      report("8 branch isn't int_ifcmp: " + origBranch.operator() + ".\n");
       return true;
     }
 
@@ -344,9 +344,9 @@ public class LoopUnrolling extends CompilerPhase {
       return true;
     }
 
-    if (iterator.operator.opcode != INT_ADD_opcode) {
+    if (iterator.operator().opcode != INT_ADD_opcode) {
       //dumpIR (ir, "malformed");
-      report("16 iterator is no addition: " + iterator.operator + "\n");
+      report("16 iterator is no addition: " + iterator.operator() + "\n");
       return true;
     }
 
@@ -810,7 +810,7 @@ public class LoopUnrolling extends CompilerPhase {
         if (CFGTransformations.inLoop(inst.getBasicBlock(), nloop)) {
           if (Move.conforms(inst)) {
             invariant &= printDefs(Move.getVal(inst), nloop, depth - 1);
-          } else if (inst.operator.opcode == ARRAYLENGTH_opcode) {
+          } else if (inst.operator().opcode == ARRAYLENGTH_opcode) {
             invariant &= printDefs(GuardedUnary.getVal(inst), nloop, depth);
           } else {
             invariant = false;

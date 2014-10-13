@@ -160,7 +160,7 @@ public final class OPTYPE.NAME extends InstructionFormat {
    *         if it is not.
    */
   public static boolean conforms(Instruction i) {
-    return conforms(i.operator);
+    return conforms(i.operator());
   }
   /**
    * InstructionFormat identification method for OPTYPE.NAME.
@@ -641,7 +641,7 @@ $$$$ LET DOLLARS "$$$$"
 
     $$$$ END IF
   $$$$ END IF
-    i.operator = o;
+    i.changeOperatorTo(o);
   $$$$ LOOP PARAM OPTYPE.SIG
   $$$$ SPLIT "PARAM" " " USDF NAME TYPE
       DOLLARS IF "I_PARAM.INDEX" != ""
@@ -700,7 +700,7 @@ $$$$ LET DOLLARS "$$$$"
     i.resizeNumberOfOperands(NUMOPERANDS);
     $$$$ END IF
     $$$$ END LET
-    i.operator = o;
+    i.changeOperatorTo(o);
     $$$$ LOOP PARAM OPTYPE.SIG
     $$$$ SPLIT "PARAM" " " USDF NAME TYPE
       DOLLARS IF "I_PARAM.INDEX" != ""
@@ -787,7 +787,7 @@ public final class CNAMECarrier extends InstructionFormat {
    *         <code>false</code> if it does not.
    */
   public static boolean conforms(Instruction i) {
-    return conforms(i.operator);
+    return conforms(i.operator());
   }
   /**
    * Does the operator belong to an instruction format that
@@ -810,7 +810,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static CTYPE getCNAME(Instruction i) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    int index = _index[i.operator.format];
+    int index = _index[i.operator().format];
     return (CTYPE) i.getOperand(index);
   }
   /**
@@ -822,7 +822,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static CTYPE getClearCNAME(Instruction i) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    int index = _index[i.operator.format];
+    int index = _index[i.operator().format];
     return (CTYPE) i.getClearOperand(index);
   }
   /**
@@ -835,7 +835,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static void setCNAME(Instruction i, CTYPE op) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    int index = _index[i.operator.format];
+    int index = _index[i.operator().format];
     i.putOperand(index, op);
   }
   /**
@@ -847,7 +847,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static int indexOfCNAME(Instruction i) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    return _index[i.operator.format];
+    return _index[i.operator().format];
   }
   /**
    * Does the argument instruction have a non-null
@@ -859,7 +859,7 @@ public final class CNAMECarrier extends InstructionFormat {
    */
   public static boolean hasCNAME(Instruction i) {
     if (Configuration.ExtremeAssertions && !conforms(i)) fail(i, "CNAMECarrier");
-    int index = _index[i.operator.format];
+    int index = _index[i.operator().format];
     return i.getOperand(index) != null;
   }
 }

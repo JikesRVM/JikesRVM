@@ -364,7 +364,7 @@ public final class PiNodes extends CompilerPhase {
   static void cleanUp(IR ir) {
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
-      if (s.operator == PI) {
+      if (s.operator() == PI) {
         RegisterOperand result = GuardedUnary.getResult(s);
         Operator mv = IRTools.getMoveOp(result.getType());
         Operand val = GuardedUnary.getVal(s);
@@ -382,7 +382,7 @@ public final class PiNodes extends CompilerPhase {
    * <strong>PRECONDITION: </strong> register lists computed and valid.
    */
   public static Instruction getGenerator(Instruction def) {
-    if (def.operator != PI) {
+    if (def.operator() != PI) {
       throw new OptimizingCompilerException("Not a PI Node!");
     }
     Operand g = GuardedUnary.getGuard(def);
@@ -397,7 +397,7 @@ public final class PiNodes extends CompilerPhase {
    * a conditional branch instruction?
    */
   public static boolean isNotTakenPi(Instruction def) {
-    if (def.operator != PI) {
+    if (def.operator() != PI) {
       return false;
     }
     Operand g = GuardedUnary.getGuard(def);
@@ -411,7 +411,7 @@ public final class PiNodes extends CompilerPhase {
    * a conditional branch instruction?
    */
   public static boolean isTakenPi(Instruction def) {
-    if (def.operator != PI) {
+    if (def.operator() != PI) {
       return false;
     }
     Operand g = GuardedUnary.getGuard(def);
@@ -424,7 +424,7 @@ public final class PiNodes extends CompilerPhase {
    * Is an instruction a Pi node linked to a bounds-check?
    */
   public static boolean isBoundsCheckPi(Instruction def) {
-    if (def.operator != PI) {
+    if (def.operator() != PI) {
       return false;
     }
     Operand g = GuardedUnary.getGuard(def);
@@ -437,7 +437,7 @@ public final class PiNodes extends CompilerPhase {
    * Is an instruction a Pi node linked to a null-check?
    */
   public static boolean isNullCheckPi(Instruction def) {
-    if (def.operator != PI) {
+    if (def.operator() != PI) {
       return false;
     }
     Operand g = GuardedUnary.getGuard(def);

@@ -123,7 +123,7 @@ public abstract class GenericRegisterRestrictions {
     // case.
     for (Enumeration<Instruction> ie = bb.forwardInstrEnumerator(); ie.hasMoreElements();) {
       Instruction s = ie.nextElement();
-      if (s.operator.isCall() && s.operator != CALL_SAVE_VOLATILE) {
+      if (s.operator().isCall() && s.operator() != CALL_SAVE_VOLATILE) {
         for (LiveIntervalElement symb : symbolic) {
           if (contains(symb, s.getScratch())) {
             forbidAllVolatiles(symb.getRegister());
@@ -135,7 +135,7 @@ public abstract class GenericRegisterRestrictions {
       // On OptExecStateExtractor, all GPRs have to be recovered,
       // but not FPRS.
       //
-      if (s.operator == YIELDPOINT_OSR) {
+      if (s.operator() == YIELDPOINT_OSR) {
         for (LiveIntervalElement symb : symbolic) {
           if (symb.getRegister().isFloatingPoint()) {
             if (contains(symb, s.getScratch())) {

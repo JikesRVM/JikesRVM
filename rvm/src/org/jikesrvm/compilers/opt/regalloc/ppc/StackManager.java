@@ -765,7 +765,7 @@ public abstract class StackManager extends GenericStackManager {
       boolean removed = false;
       boolean unloaded = false;
       if (definedIn(scratch.scratch, s) ||
-          (s.isCall() && s.operator != CALL_SAVE_VOLATILE && scratch.scratch.isVolatile())) {
+          (s.isCall() && s.operator() != CALL_SAVE_VOLATILE && scratch.scratch.isVolatile())) {
         // s defines the scratch register, so save its contents before they
         // are killed.
         if (VERBOSE_DEBUG) {
@@ -846,7 +846,7 @@ public abstract class StackManager extends GenericStackManager {
    * Is a particular instruction a system call?
    */
   public boolean isSysCall(Instruction s) {
-    return s.operator == PPC_BCTRL_SYS || s.operator == PPC_BL_SYS;
+    return s.operator() == PPC_BCTRL_SYS || s.operator() == PPC_BL_SYS;
   }
 
   /**
@@ -855,7 +855,7 @@ public abstract class StackManager extends GenericStackManager {
    */
   @Override
   public boolean needScratch(Register r, Instruction s) {
-    if (s.operator == YIELDPOINT_OSR) return false;
+    if (s.operator() == YIELDPOINT_OSR) return false;
 
     // PowerPC does not support memory operands.
     return true;

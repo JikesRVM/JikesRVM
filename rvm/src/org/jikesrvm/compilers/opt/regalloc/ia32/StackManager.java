@@ -700,10 +700,10 @@ public abstract class StackManager extends GenericStackManager {
   public boolean needScratch(Register r, Instruction s) {
     // We never need a scratch register for a floating point value in an
     // FMOV instruction.
-    if (r.isFloatingPoint() && s.operator == IA32_FMOV) return false;
+    if (r.isFloatingPoint() && s.operator() == IA32_FMOV) return false;
 
     // never need a scratch register for a YIELDPOINT_OSR
-    if (s.operator == YIELDPOINT_OSR) return false;
+    if (s.operator() == YIELDPOINT_OSR) return false;
 
     // Some MOVEs never need scratch registers
     if (isScratchFreeMove(s)) return false;
@@ -753,7 +753,7 @@ public abstract class StackManager extends GenericStackManager {
     if (PhysicalDefUse.definesEFLAGS(s.operator())) {
       return true;
     }
-    if (s.operator == BBEND) return true;
+    if (s.operator() == BBEND) return true;
     return canModifyEFLAGS(s.nextInstructionInCodeOrder());
   }
 
@@ -932,9 +932,9 @@ public abstract class StackManager extends GenericStackManager {
       boolean removed = false;
       boolean unloaded = false;
       if (definedIn(scratch.scratch, s) ||
-          (s.isCall() && s.operator != CALL_SAVE_VOLATILE && scratch.scratch.isVolatile()) ||
-          (s.operator == IA32_FNINIT && scratch.scratch.isFloatingPoint()) ||
-          (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
+          (s.isCall() && s.operator() != CALL_SAVE_VOLATILE && scratch.scratch.isVolatile()) ||
+          (s.operator() == IA32_FNINIT && scratch.scratch.isFloatingPoint()) ||
+          (s.operator() == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // s defines the scratch register, so save its contents before they
         // are killed.
         if (VERBOSE_DEBUG) {
@@ -962,7 +962,7 @@ public abstract class StackManager extends GenericStackManager {
 
       if (usedIn(scratch.scratch, s) ||
           !isLegal(scratch.currentContents, scratch.scratch, s) ||
-          (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
+          (s.operator() == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
         // first spill the currents contents of the scratch register to
         // memory
         if (!unloaded) {
@@ -1018,6 +1018,6 @@ public abstract class StackManager extends GenericStackManager {
 
   @Override
   public boolean isSysCall(Instruction s) {
-    return s.operator == IA32_SYSCALL;
+    return s.operator() == IA32_SYSCALL;
   }
 }

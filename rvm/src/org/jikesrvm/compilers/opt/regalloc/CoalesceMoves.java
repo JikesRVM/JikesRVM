@@ -89,7 +89,7 @@ public class CoalesceMoves extends CompilerPhase {
     // for each Move instruction ...
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
-      if (s.operator.isMove()) {
+      if (s.operator().isMove()) {
         Register r = Move.getResult(s).asRegister().getRegister();
         if (r.isSymbolic()) {
           Operand val = Move.getVal(s);

@@ -281,7 +281,7 @@ public final class SSADictionary {
    */
   boolean defsHeapVariable(Instruction s) {
     // special case code for Phi instructions
-    if (s.operator == PHI) {
+    if (s.operator() == PHI) {
       Operand result = Phi.getResult(s);
       return (result instanceof HeapOperand);
     }
@@ -296,7 +296,7 @@ public final class SSADictionary {
    * @return an array of the heap operands this instruction uses
    */
   public HeapOperand<Object>[] getHeapUses(Instruction s) {
-    if (s.operator == PHI) {
+    if (s.operator() == PHI) {
       if (!usesHeapVariable(s)) return null;
       HeapOperand<Object>[] result = new HeapOperand[Phi.getNumberOfValues(s)];
       for (int i = 0; i < result.length; i++) {
@@ -315,7 +315,7 @@ public final class SSADictionary {
    * @return an array of the heap operands this instruction defs
    */
   public HeapOperand<Object>[] getHeapDefs(Instruction s) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     return defs.get(s);
   }
 
@@ -684,7 +684,7 @@ public final class SSADictionary {
    * @param H the set of heap operands which s uses
    */
   void replaceUses(Instruction s, HeapOperand<Object>[] H) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     uses.put(s, H);
     for (HeapOperand<Object> aH : H) {
       aH.setInstruction(s);
@@ -737,7 +737,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   void registerUnknown(Instruction s, BasicBlock b) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     // setup an array of all heap variables
     // TODO: for efficiency, cache a copy of 'all'
     Iterator vars = heapVariables.values().iterator();
@@ -770,8 +770,8 @@ public final class SSADictionary {
           (s.isPEI() ||
            Label.conforms(s) ||
            BBend.conforms(s) ||
-           s.operator.opcode == UNINT_BEGIN_opcode ||
-           s.operator.opcode == UNINT_END_opcode))) {
+           s.operator().opcode == UNINT_BEGIN_opcode ||
+           s.operator().opcode == UNINT_END_opcode))) {
       return;
     }
     // handled by registerUnknown
@@ -1179,7 +1179,7 @@ public final class SSADictionary {
    * @param t the type of the heap variable the instruction modifies
    */
   private void registerDef(Instruction s, BasicBlock b, TypeReference t) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1204,7 +1204,7 @@ public final class SSADictionary {
    * @param fr the field heap variable the instruction uses
    */
   private void registerUse(Instruction s, FieldReference fr) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     RVMField f = fr.peekResolvedField();
     HeapOperand<Object> H;
     if (f == null) {
@@ -1238,7 +1238,7 @@ public final class SSADictionary {
    * @param fr the field heap variable the instruction modifies
    */
   private void registerDef(Instruction s, BasicBlock b, FieldReference fr) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     RVMField f = fr.peekResolvedField();
     HeapOperand<Object> H;
     if (f == null) {
@@ -1273,7 +1273,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   private void registerUse(Instruction s, String a) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1299,7 +1299,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   private void registerDef(Instruction s, BasicBlock b, String a) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
@@ -1347,7 +1347,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   void addExceptionStateToDefs(Instruction s, BasicBlock b) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     HeapVariable<Object> H = findOrCreateHeapVariable(exceptionState);
     H.registerDef(b);
     HeapOperand<Object>[] Hprime = extendHArray(defs.get(s));
@@ -1363,7 +1363,7 @@ public final class SSADictionary {
    */
   @SuppressWarnings("unchecked")
   void addExceptionStateToUses(Instruction s) {
-    if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
+    if (VM.VerifyAssertions) VM._assert(s.operator() != PHI);
     HeapVariable<Object> H = findOrCreateHeapVariable(exceptionState);
     HeapOperand<Object>[] Hprime = extendHArray(uses.get(s));
     Hprime[0] = new HeapOperand<Object>(H);

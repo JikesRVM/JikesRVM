@@ -210,7 +210,7 @@ final class ValueGraph {
       processCall(s);
     } else if (Move.conforms(s)) {
       processMove(s);
-    } else if (s.operator == PI) {
+    } else if (s.operator() == PI) {
       processPi(s);
     } else if (New.conforms(s)) {
       processNew(s);
@@ -800,7 +800,7 @@ final class ValueGraph {
       //   We can't simply bypass this move, since it may lead to
       //   infinite mutual recursion.
       return op;
-    } else if (def.operator == PI) {
+    } else if (def.operator() == PI) {
       return bypassMoves(GuardedUnary.getVal(def));
     } else {
       return op;

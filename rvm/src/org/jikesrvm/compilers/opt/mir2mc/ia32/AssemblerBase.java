@@ -649,7 +649,7 @@ abstract class AssemblerBase extends Assembler
    */
   boolean isByte(Instruction inst) {
     for(Operator opr : byteSizeOperators){
-      if (opr == inst.operator) {
+      if (opr == inst.operator()) {
         return true;
       }
     }
@@ -678,7 +678,7 @@ abstract class AssemblerBase extends Assembler
    */
   boolean isWord(Instruction inst) {
     for(Operator opr : wordSizeOperators){
-      if (opr == inst.operator) {
+      if (opr == inst.operator()) {
         return true;
       }
     }
@@ -707,7 +707,7 @@ abstract class AssemblerBase extends Assembler
    */
   boolean isQuad(Instruction inst) {
     for(Operator opr : quadSizeOperators){
-      if (opr == inst.operator) {
+      if (opr == inst.operator()) {
         return true;
       }
     }

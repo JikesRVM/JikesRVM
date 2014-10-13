@@ -126,7 +126,7 @@ final class ShortArrayReplacer implements AggregateReplacer {
    * @return the object, or {@code null} if illegal
    */
   public static ShortArrayReplacer getReplacer(Instruction inst, IR ir) {
-    if (inst.operator != NEWARRAY) {
+    if (inst.operator() != NEWARRAY) {
       return null;
     }
     Operand size = NewArray.getSize(inst);

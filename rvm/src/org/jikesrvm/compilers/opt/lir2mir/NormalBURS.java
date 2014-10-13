@@ -588,9 +588,9 @@ final class NormalBURS extends BURS {
 
   private void readySetInsert(BURS_TreeNode node) {
     Instruction s = node.getInstruction();
-    if (s.operator == GUARD_COMBINE ||
-        s.operator == GUARD_COND_MOVE ||
-        s.operator == GUARD_MOVE ||
+    if (s.operator() == GUARD_COMBINE ||
+        s.operator() == GUARD_COND_MOVE ||
+        s.operator() == GUARD_MOVE ||
         !ResultCarrier.conforms(s)) {
       // Adjust numRegisters to bias away from picking trees that
       // are rooted in result carriers, since they start a new live

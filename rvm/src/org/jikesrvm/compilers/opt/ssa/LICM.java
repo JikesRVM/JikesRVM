@@ -156,7 +156,7 @@ public class LICM extends CompilerPhase {
    *  the properties of the IR (is it in heapSSA form or not?)
    */
   public static boolean shouldMove(Instruction inst, IR ir) {
-    if ((inst.isAllocation()) || inst.isDynamicLinkingPoint() || inst.operator.opcode >= ARCH_INDEPENDENT_END_opcode) {
+    if ((inst.isAllocation()) || inst.isDynamicLinkingPoint() || inst.operator().opcode >= ARCH_INDEPENDENT_END_opcode) {
       return false;
     }
 
@@ -165,7 +165,7 @@ public class LICM extends CompilerPhase {
       return false;
     }
 
-    switch (inst.operator.opcode) {
+    switch (inst.operator().opcode) {
       case INT_MOVE_opcode:
       case LONG_MOVE_opcode:
       case INT_COND_MOVE_opcode:
@@ -749,8 +749,8 @@ public class LICM extends CompilerPhase {
       relocated.add(inst);
     }
 
-    if (DEBUG && moved.add(inst.operator)) {
-      VM.sysWrite("m(" + (ir.IRStage == IR.LIR ? "l" : "h") + ") " + inst.operator + "\n");
+    if (DEBUG && moved.add(inst.operator())) {
+      VM.sysWrite("m(" + (ir.IRStage == IR.LIR ? "l" : "h") + ") " + inst.operator() + "\n");
     }
     if (VERBOSE) {
       VM.sysWrite(ir.IRStage == IR.LIR ? "%" : "#");
@@ -1036,7 +1036,7 @@ public class LICM extends CompilerPhase {
             workList.insert(z);
           }
         }
-      } else if ((y.isPEI()) || !LocationCarrier.conforms(y) || y.operator.isAcquire() || y.operator.isRelease()) {
+      } else if ((y.isPEI()) || !LocationCarrier.conforms(y) || y.operator().isAcquire() || y.operator().isRelease()) {
         return CL_COMPLEX;
       } else {
         // check for access to volatile field

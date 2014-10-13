@@ -251,8 +251,8 @@ public class FinalMIRExpansion extends IRTools {
             // Calculate what flags are defined in coming instructions before a use of a flag or BBend
             Instruction x = next;
             int futureDefs = 0;
-            while(!BBend.conforms(x) && !PhysicalDefUse.usesEFLAGS(x.operator)) {
-              futureDefs |= x.operator.implicitDefs;
+            while(!BBend.conforms(x) && !PhysicalDefUse.usesEFLAGS(x.operator())) {
+              futureDefs |= x.operator().implicitDefs;
               x = x.nextInstructionInCodeOrder();
             }
             // If the flags will be destroyed prior to use or we reached the end of the basic block
@@ -286,8 +286,8 @@ public class FinalMIRExpansion extends IRTools {
                   break outer;
                 }
               }
-              if (PhysicalDefUse.definesEFLAGS(x.operator) &&
-                  !PhysicalDefUse.usesEFLAGS(x.operator)) {
+              if (PhysicalDefUse.definesEFLAGS(x.operator()) &&
+                  !PhysicalDefUse.usesEFLAGS(x.operator())) {
                 // we found a <cmp> that doesn't use the result or the flags
                 // that would be clobbered by the xor
                 foundCmp = true;
@@ -319,8 +319,8 @@ public class FinalMIRExpansion extends IRTools {
             // Calculate what flags are defined in coming instructions before a use of a flag or BBend
             Instruction x = next;
             int futureDefs = 0;
-            while(!BBend.conforms(x) && !PhysicalDefUse.usesEFLAGS(x.operator)) {
-              futureDefs |= x.operator.implicitDefs;
+            while(!BBend.conforms(x) && !PhysicalDefUse.usesEFLAGS(x.operator())) {
+              futureDefs |= x.operator().implicitDefs;
               x = x.nextInstructionInCodeOrder();
             }
             // If the flags will be destroyed prior to use or we reached the end of the basic block
@@ -381,17 +381,17 @@ public class FinalMIRExpansion extends IRTools {
           break;
 
         case CALL_SAVE_VOLATILE_opcode:
-          p.operator = IA32_CALL;
+          p.changeOperatorTo(IA32_CALL);
           break;
 
         case IA32_LOCK_CMPXCHG_opcode:
           p.insertBefore(MIR_Empty.create(IA32_LOCK));
-          p.operator = IA32_CMPXCHG;
+          p.changeOperatorTo(IA32_CMPXCHG);
           break;
 
         case IA32_LOCK_CMPXCHG8B_opcode:
           p.insertBefore(MIR_Empty.create(IA32_LOCK));
-          p.operator = IA32_CMPXCHG8B;
+          p.changeOperatorTo(IA32_CMPXCHG8B);
           break;
 
         case YIELDPOINT_PROLOGUE_opcode:

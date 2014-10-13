@@ -1333,9 +1333,9 @@ public final class LoopVersioning extends CompilerPhase {
     Operand result = null;
     if (op.isRegister()) {
       Instruction opInstr = AnnotatedLSTNode.definingInstruction(op);
-      if (opInstr.operator.opcode == ARRAYLENGTH_opcode) {
+      if (opInstr.operator().opcode == ARRAYLENGTH_opcode) {
         result = GuardedUnary.getVal(opInstr);
-      } else if ((opInstr.operator.opcode == INT_ADD_opcode) || (opInstr.operator.opcode == INT_SUB_opcode)) {
+      } else if ((opInstr.operator().opcode == INT_ADD_opcode) || (opInstr.operator().opcode == INT_SUB_opcode)) {
         Operand val1 = Binary.getVal1(opInstr);
         Operand val2 = Binary.getVal2(opInstr);
         if (val1.isConstant()) {
@@ -1357,9 +1357,9 @@ public final class LoopVersioning extends CompilerPhase {
    */
   private int getConstantAdjustedArrayLengthDistance(Operand op) {
     Instruction opInstr = AnnotatedLSTNode.definingInstruction(op);
-    if (opInstr.operator.opcode == ARRAYLENGTH_opcode) {
+    if (opInstr.operator().opcode == ARRAYLENGTH_opcode) {
       return 0;
-    } else if (opInstr.operator.opcode == INT_ADD_opcode) {
+    } else if (opInstr.operator().opcode == INT_ADD_opcode) {
       Operand val1 = Binary.getVal1(opInstr);
       Operand val2 = Binary.getVal2(opInstr);
       if (val1.isConstant()) {
@@ -1368,7 +1368,7 @@ public final class LoopVersioning extends CompilerPhase {
         if (VM.VerifyAssertions) VM._assert(val2.isConstant());
         return getConstantAdjustedArrayLengthDistance(val1) + val2.asIntConstant().value;
       }
-    } else if (opInstr.operator.opcode == INT_SUB_opcode) {
+    } else if (opInstr.operator().opcode == INT_SUB_opcode) {
       Operand val1 = Binary.getVal1(opInstr);
       Operand val2 = Binary.getVal2(opInstr);
       if (val1.isConstant()) {

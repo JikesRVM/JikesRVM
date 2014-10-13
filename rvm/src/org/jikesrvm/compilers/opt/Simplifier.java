@@ -650,7 +650,7 @@ public abstract class Simplifier extends IRTools {
       else
         return DefUseEffect.MOVE_REDUCED;
     } else if (ref.isConstant()) {
-      s.operator = CHECKCAST_NOTNULL;
+      s.changeOperatorTo(CHECKCAST_NOTNULL);
       return checkcastNotNull(s, opts);
     } else {
       TypeReference lhsType = TypeCheck.getType(s).getTypeRef();
@@ -699,7 +699,7 @@ public abstract class Simplifier extends IRTools {
       Move.mutate(s, INT_MOVE, InstanceOf.getClearResult(s), IC(0));
       return DefUseEffect.MOVE_FOLDED;
     } else if (ref.isConstant()) {
-      s.operator = INSTANCEOF_NOTNULL;
+      s.changeOperatorTo(INSTANCEOF_NOTNULL);
       return instanceOfNotNull(s, opts);
     } else {
       TypeReference lhsType = InstanceOf.getType(s).getTypeRef();

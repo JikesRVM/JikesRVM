@@ -132,7 +132,7 @@ class Coalesce {
     for (Enumeration<RegisterOperand> e = DefUse.defs(r1); e.hasMoreElements();) {
       RegisterOperand def = e.nextElement();
       Instruction s = def.instruction;
-      if (s.operator == SPLIT) {
+      if (s.operator() == SPLIT) {
         Operand rhs = Unary.getVal(s);
         if (rhs.similar(def)) return true;
       }
@@ -140,7 +140,7 @@ class Coalesce {
     for (Enumeration<RegisterOperand> e = DefUse.defs(r2); e.hasMoreElements();) {
       RegisterOperand def = e.nextElement();
       Instruction s = def.instruction;
-      if (s.operator == SPLIT) {
+      if (s.operator() == SPLIT) {
         Operand rhs = Unary.getVal(s);
         if (rhs.similar(def)) return true;
       }

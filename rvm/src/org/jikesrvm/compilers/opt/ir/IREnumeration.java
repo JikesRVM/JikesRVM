@@ -336,7 +336,7 @@ public abstract class IREnumeration {
       } else {
         implicitDefs = null;
       }
-      if (ir.inSSAForm() && (instr.operator != PHI)) {
+      if (ir.inSSAForm() && (instr.operator() != PHI)) {
         // Phi instructions store the heap SSA in the actual
         // instruction
         heapOperands = ir.HIRInfo.dictionary.getHeapDefs(instr);
@@ -420,7 +420,7 @@ public abstract class IREnumeration {
       } else {
         implicitUses = null;
       }
-      if (ir.inSSAForm() && (instr.operator != PHI)) {
+      if (ir.inSSAForm() && (instr.operator() != PHI)) {
         // Phi instructions store the heap SSA in the actual
         // instruction
         heapOperands = ir.HIRInfo.dictionary.getHeapUses(instr);
