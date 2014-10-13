@@ -221,11 +221,6 @@ public final class Register {
    */
   public int useCount;
 
-  /**
-   * A field optimizations can use as they choose
-   */
-  private int scratch;
-
   public Register(int Number) {
     number = Number;
   }
