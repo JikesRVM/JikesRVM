@@ -110,7 +110,7 @@ public class RegisterAllocatorState {
    *  @param reg the register
    *  @return the live interval or {@code null}
    */
-  static CompoundInterval getInterval(Register reg) {
+  CompoundInterval getInterval(Register reg) {
     return (CompoundInterval) reg.getScratchObject();
   }
 
@@ -121,7 +121,7 @@ public class RegisterAllocatorState {
    *  @param reg the register
    *  @param interval the live interval
    */
-  static void setInterval(Register reg, CompoundInterval interval) {
+  void setInterval(Register reg, CompoundInterval interval) {
     reg.setScratchObject(interval);
   }
 }

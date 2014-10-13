@@ -167,11 +167,11 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
                                " " +
                                container +
                                " phys interval " +
-                               RegisterAllocatorState.getInterval(phys));
+                               regAllocState.getInterval(phys));
           }
           updatePhysicalInterval(phys, newInterval);
           if (LinearScan.VERBOSE_DEBUG) {
-            System.out.println(" now phys interval " + RegisterAllocatorState.getInterval(phys));
+            System.out.println(" now phys interval " + regAllocState.getInterval(phys));
           }
           // Mark the physical register as currently allocated
           phys.allocateRegister();
@@ -209,19 +209,19 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
             if (LinearScan.VERBOSE_DEBUG) {
               System.out.println("Spilled " + toSpill + " from " + p);
             }
-            CompoundInterval physInterval = RegisterAllocatorState.getInterval(p);
+            CompoundInterval physInterval = regAllocState.getInterval(p);
             physInterval.removeAll(toSpill);
-            if (LinearScan.VERBOSE_DEBUG) System.out.println("  after spill phys" + RegisterAllocatorState.getInterval(p));
+            if (LinearScan.VERBOSE_DEBUG) System.out.println("  after spill phys" + regAllocState.getInterval(p));
             if (toSpill != container) updatePhysicalInterval(p, newInterval);
             if (LinearScan.VERBOSE_DEBUG) {
-              System.out.println(" now phys interval " + RegisterAllocatorState.getInterval(p));
+              System.out.println(" now phys interval " + regAllocState.getInterval(p));
             }
           } else {
             // found a free register for container! use it!
             if (LinearScan.DEBUG) {
               System.out.println("Switch container " + container + "from " + phys + " to " + freeR);
             }
-            CompoundInterval physInterval = RegisterAllocatorState.getInterval(phys);
+            CompoundInterval physInterval = regAllocState.getInterval(phys);
             if (LinearScan.DEBUG) {
               System.out.println("Before switch phys interval" + physInterval);
             }
@@ -233,7 +233,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
             container.assign(freeR);
             updatePhysicalInterval(freeR, container, newInterval);
             if (LinearScan.VERBOSE_DEBUG) {
-              System.out.println("Intervals of " + freeR + " now " + RegisterAllocatorState.getInterval(freeR));
+              System.out.println("Intervals of " + freeR + " now " + regAllocState.getInterval(freeR));
             }
             // mark the free register found as currently allocated.
             freeR.allocateRegister();
@@ -250,7 +250,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
             System.out.println("First allocation " + phys + " " + container);
           }
           updatePhysicalInterval(phys, newInterval);
-          if (LinearScan.VERBOSE_DEBUG) System.out.println("  now phys" + RegisterAllocatorState.getInterval(phys));
+          if (LinearScan.VERBOSE_DEBUG) System.out.println("  now phys" + regAllocState.getInterval(phys));
           // Mark the physical register as currently allocated.
           phys.allocateRegister();
         } else {
@@ -275,15 +275,15 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
             if (LinearScan.VERBOSE_DEBUG) {
               System.out.println("Spilled " + spillCandidate + " from " + phys);
             }
-            CompoundInterval physInterval = RegisterAllocatorState.getInterval(phys);
+            CompoundInterval physInterval = regAllocState.getInterval(phys);
             if (LinearScan.VERBOSE_DEBUG) {
               System.out.println(" assigned " + phys + " to " + container);
             }
             physInterval.removeAll(spillCandidate);
-            if (LinearScan.VERBOSE_DEBUG) System.out.println("  after spill phys" + RegisterAllocatorState.getInterval(phys));
+            if (LinearScan.VERBOSE_DEBUG) System.out.println("  after spill phys" + regAllocState.getInterval(phys));
             updatePhysicalInterval(phys, newInterval);
             if (LinearScan.VERBOSE_DEBUG) {
-              System.out.println(" now phys interval " + RegisterAllocatorState.getInterval(phys));
+              System.out.println(" now phys interval " + regAllocState.getInterval(phys));
             }
             container.assign(phys);
           } else {
@@ -306,10 +306,10 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
    */
   private void updatePhysicalInterval(Register p, BasicInterval i) {
     // Get a representation of the intervals already assigned to p.
-    CompoundInterval physInterval = RegisterAllocatorState.getInterval(p);
+    CompoundInterval physInterval = regAllocState.getInterval(p);
     if (physInterval == null) {
       // no interval yet.  create one.
-      RegisterAllocatorState.setInterval(p, new CompoundInterval(i, p));
+      regAllocState.setInterval(p, new CompoundInterval(i, p));
     } else {
       // incorporate i into the set of intervals assigned to p
       CompoundInterval ci = new CompoundInterval(i, p);
@@ -329,10 +329,10 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
    */
   private void updatePhysicalInterval(Register p, CompoundInterval c, BasicInterval stop) {
     // Get a representation of the intervals already assigned to p.
-    CompoundInterval physInterval = RegisterAllocatorState.getInterval(p);
+    CompoundInterval physInterval = regAllocState.getInterval(p);
     if (physInterval == null) {
       // no interval yet.  create one.
-      RegisterAllocatorState.setInterval(p, c.copy(p, stop));
+      regAllocState.setInterval(p, c.copy(p, stop));
     } else {
       // incorporate c into the set of intervals assigned to p
       if (VM.VerifyAssertions) VM._assert(!c.intersects(physInterval));
@@ -669,7 +669,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
     }
 
     if ((p != null) && p.isAvailable() && !restrict.isForbidden(r, p)) {
-      CompoundInterval pInterval = RegisterAllocatorState.getInterval(p);
+      CompoundInterval pInterval = regAllocState.getInterval(p);
       if (pInterval == null) {
         // no assignment to p yet
         return true;
@@ -808,7 +808,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
     if (restrict.isForbidden(i.getRegister(), r)) return false;
 
     // 1. Speculatively simulate the spill.
-    CompoundInterval rI = RegisterAllocatorState.getInterval(r);
+    CompoundInterval rI = regAllocState.getInterval(r);
     CompoundInterval cache = rI.removeIntervalsAndCache(spill);
 
     // 2. Check the fit.
@@ -831,7 +831,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
    *  multiple intervals, the first one will be returned.
    */
   BasicInterval getBasicInterval(Register r, Instruction s) {
-    CompoundInterval c = RegisterAllocatorState.getInterval(r);
+    CompoundInterval c = regAllocState.getInterval(r);
     if (c == null) return null;
     return c.getBasicInterval(s);
   }

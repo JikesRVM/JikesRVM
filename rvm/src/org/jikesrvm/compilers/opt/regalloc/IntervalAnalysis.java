@@ -35,7 +35,9 @@ public final class IntervalAnalysis extends CompilerPhase {
   /**
    * the governing ir
    */
-  IR ir;
+  private IR ir;
+
+  private RegisterAllocatorState regAllocState;
 
   /**
    * a list of basic blocks in topological order
@@ -95,6 +97,7 @@ public final class IntervalAnalysis extends CompilerPhase {
   @Override
   public void perform(IR ir) {
     this.ir = ir;
+    this.regAllocState = ir.MIRInfo.regAllocState;
 
     ControlFlowGraph cfg = ir.cfg;
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -209,7 +212,7 @@ public final class IntervalAnalysis extends CompilerPhase {
     RegisterAllocatorState regAllocState = ir.MIRInfo.regAllocState;
 
     for (Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; reg = reg.getNext()) {
-      RegisterAllocatorState.setInterval(reg, null);
+      regAllocState.setInterval(reg, null);
       regAllocState.setSpill(reg, 0);
       // clear the 'long' type if it's persisted to here.
       if (VM.BuildFor32Addr && reg.isLong()) {
@@ -241,14 +244,14 @@ public final class IntervalAnalysis extends CompilerPhase {
     }
 
     // check for an existing live interval for this register
-    CompoundInterval existingInterval = RegisterAllocatorState.getInterval(reg);
+    CompoundInterval existingInterval = regAllocState.getInterval(reg);
     if (existingInterval == null) {
       // create a new live interval
       CompoundInterval newInterval = new CompoundInterval(dfnbegin, dfnend, reg);
       if (LinearScan.VERBOSE_DEBUG) System.out.println("created a new interval " + newInterval);
 
       // associate the interval with the register
-      RegisterAllocatorState.setInterval(reg, newInterval);
+      regAllocState.setInterval(reg, newInterval);
 
       // add the new interval to the sorted set of intervals.
       BasicInterval b = newInterval.first();
