@@ -29,8 +29,11 @@ public class RegisterAllocatorState {
 
   private int[] spills;
 
+  private CompoundInterval[] intervals;
+
   RegisterAllocatorState(int registerCount) {
     spills = new int[registerCount];
+    intervals = new CompoundInterval[registerCount];
   }
 
   /**
@@ -111,7 +114,7 @@ public class RegisterAllocatorState {
    *  @return the live interval or {@code null}
    */
   CompoundInterval getInterval(Register reg) {
-    return (CompoundInterval) reg.getScratchObject();
+    return intervals[reg.number];
   }
 
   /**
@@ -122,6 +125,6 @@ public class RegisterAllocatorState {
    *  @param interval the live interval
    */
   void setInterval(Register reg, CompoundInterval interval) {
-    reg.setScratchObject(interval);
+    intervals[reg.number] = interval;
   }
 }
