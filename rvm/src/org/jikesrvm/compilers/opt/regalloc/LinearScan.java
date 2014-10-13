@@ -20,7 +20,6 @@ import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Register;
 
 /**
  * Main driver for linear scan register allocation.
@@ -70,26 +69,6 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
-  }
-
-  /**
-   *  Associates the passed live interval with the passed register, using
-   *  the scratchObject field of Register.
-   *
-   *  @param reg the register
-   *  @param interval the live interval
-   */
-  static void setInterval(Register reg, CompoundInterval interval) {
-    reg.setScratchObject(interval);
-  }
-
-  /**
-   *  Returns the interval associated with the passed register.
-   *  @param reg the register
-   *  @return the live interval or {@code null}
-   */
-  static CompoundInterval getInterval(Register reg) {
-    return (CompoundInterval) reg.getScratchObject();
   }
 
   /**

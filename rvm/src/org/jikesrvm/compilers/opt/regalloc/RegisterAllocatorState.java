@@ -104,4 +104,24 @@ public class RegisterAllocatorState {
       r.mapsToRegister = null;
     }
   }
+
+  /**
+   *  Returns the interval associated with the passed register.
+   *  @param reg the register
+   *  @return the live interval or {@code null}
+   */
+  static CompoundInterval getInterval(Register reg) {
+    return (CompoundInterval) reg.getScratchObject();
+  }
+
+  /**
+   *  Associates the passed live interval with the passed register, using
+   *  the scratchObject field of Register.
+   *
+   *  @param reg the register
+   *  @param interval the live interval
+   */
+  static void setInterval(Register reg, CompoundInterval interval) {
+    reg.setScratchObject(interval);
+  }
 }
