@@ -279,7 +279,7 @@ public abstract class ComplexLIR2MIRExpansion extends IRTools {
     PowerPCConditionOperand firstCond = PowerPCConditionOperand.LESS_EQUAL();
     int firstConst = 1;
 
-    switch (s.operator().opcode) {
+    switch (s.getOpcode()) {
       case DOUBLE_CMPG_opcode:
       case FLOAT_CMPG_opcode:
         firstCond = PowerPCConditionOperand.GREATER_EQUAL();

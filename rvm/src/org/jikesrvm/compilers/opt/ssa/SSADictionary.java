@@ -770,8 +770,8 @@ public final class SSADictionary {
           (s.isPEI() ||
            Label.conforms(s) ||
            BBend.conforms(s) ||
-           s.operator().opcode == UNINT_BEGIN_opcode ||
-           s.operator().opcode == UNINT_END_opcode))) {
+           s.getOpcode() == UNINT_BEGIN_opcode ||
+           s.getOpcode() == UNINT_END_opcode))) {
       return;
     }
     // handled by registerUnknown

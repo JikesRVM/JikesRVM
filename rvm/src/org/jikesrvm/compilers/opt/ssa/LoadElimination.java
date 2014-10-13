@@ -528,7 +528,7 @@ public final class LoadElimination extends OptimizationPlanCompositeElement {
       if (!ir.options.FREQ_FOCUS_EFFORT || !bb.getInfrequent()) {
         for (Enumeration<Instruction> e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
           Instruction s = e.nextElement();
-          switch (s.operator().opcode) {
+          switch (s.getOpcode()) {
             case GETFIELD_opcode: {
               Operand ref = GetField.getRef(s);
               FieldReference fr = GetField.getLocation(s).getFieldRef();

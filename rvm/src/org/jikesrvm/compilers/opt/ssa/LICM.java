@@ -156,7 +156,7 @@ public class LICM extends CompilerPhase {
    *  the properties of the IR (is it in heapSSA form or not?)
    */
   public static boolean shouldMove(Instruction inst, IR ir) {
-    if ((inst.isAllocation()) || inst.isDynamicLinkingPoint() || inst.operator().opcode >= ARCH_INDEPENDENT_END_opcode) {
+    if ((inst.isAllocation()) || inst.isDynamicLinkingPoint() || inst.getOpcode() >= ARCH_INDEPENDENT_END_opcode) {
       return false;
     }
 
@@ -165,7 +165,7 @@ public class LICM extends CompilerPhase {
       return false;
     }
 
-    switch (inst.operator().opcode) {
+    switch (inst.getOpcode()) {
       case INT_MOVE_opcode:
       case LONG_MOVE_opcode:
       case INT_COND_MOVE_opcode:

@@ -910,7 +910,7 @@ public final class BranchOptimizations extends BranchOptimizationDriver {
       Instruction s = e.nextElement();
       if (s.isBranch()) continue;
       // for now, only the following opcodes are legal.
-      switch (s.operator().opcode) {
+      switch (s.getOpcode()) {
         case INT_MOVE_opcode:
         case REF_MOVE_opcode:
         case DOUBLE_MOVE_opcode:

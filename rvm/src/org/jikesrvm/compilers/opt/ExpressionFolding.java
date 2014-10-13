@@ -574,7 +574,7 @@ public class ExpressionFolding extends IRTools {
       }
     }
 
-    switch (s.operator().opcode) {
+    switch (s.getOpcode()) {
       // Foldable operators
       case INT_ADD_opcode: {
         if (FOLD_INTS && FOLD_ADDS) {
@@ -1907,7 +1907,7 @@ public class ExpressionFolding extends IRTools {
           Operand falseValue = CondMove.getFalseValue(s);
           ConditionOperand cond = (ConditionOperand) CondMove.getCond(s).copy();
           boolean isEqualityTest = cond.isEQUAL() || cond.isNOT_EQUAL();
-          switch (def.operator().opcode) {
+          switch (def.getOpcode()) {
             case INT_ADD_opcode:
               if (isEqualityTest) {
                 int c1 = getIntValue(Binary.getVal2(def));
@@ -2564,7 +2564,7 @@ public class ExpressionFolding extends IRTools {
    */
   private static Register isCandidateExpression(Instruction s, boolean ssa) {
 
-    switch (s.operator().opcode) {
+    switch (s.getOpcode()) {
       // Foldable operators
       case BOOLEAN_NOT_opcode:
       case INT_NOT_opcode:

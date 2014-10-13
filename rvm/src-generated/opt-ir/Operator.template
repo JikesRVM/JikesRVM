@@ -48,7 +48,7 @@ public final class Operator {
    * The operators opcode.
    * This value serves as a unique id suitable for use in switches
    */
-  public final char opcode;
+  final char opcode;
 
   /**
    * Encoding of the operator's InstructionFormat.

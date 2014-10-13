@@ -443,7 +443,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
   public boolean isForbidden(Register symb, Register r, Instruction s) {
 
     // Look at 8-bit restrictions.
-    switch (s.operator().opcode) {
+    switch (s.getOpcode()) {
       case IA32_MOVZX__B_opcode:
       case IA32_MOVSX__B_opcode: {
         if (MIR_Unary.getVal(s).isRegister()) {

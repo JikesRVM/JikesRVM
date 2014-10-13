@@ -1039,7 +1039,7 @@ public final class IR {
           startingInstructionsPassed = true;
         }
         // main instruction location test
-        switch (instruction.operator().opcode) {
+        switch (instruction.getOpcode()) {
           // Label and phi nodes must be at the start of a BB
           case PHI_opcode:
           case LABEL_opcode:

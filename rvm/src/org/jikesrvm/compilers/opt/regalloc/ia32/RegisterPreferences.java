@@ -30,7 +30,7 @@ public class RegisterPreferences extends GenericRegisterPreferences {
 
     for (Enumeration<Instruction> e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       Instruction s = e.nextElement();
-      switch (s.operator().opcode) {
+      switch (s.getOpcode()) {
         case IA32_MOV_opcode:
           // add affinities produced by MOVE instructions
           Operand result = MIR_Move.getResult(s);

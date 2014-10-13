@@ -208,7 +208,7 @@ public final class AnnotatedLSTNode extends LSTNode {
            (strideValue != null) &&
            isConstant(strideValue) &&
            (iteratorInstr != null) &&
-           ((iteratorInstr.operator().opcode == INT_ADD_opcode) || (iteratorInstr.operator().opcode == INT_SUB_opcode));
+           ((iteratorInstr.getOpcode() == INT_ADD_opcode) || (iteratorInstr.getOpcode() == INT_SUB_opcode));
   }
 
   /**
@@ -238,7 +238,7 @@ public final class AnnotatedLSTNode extends LSTNode {
            (strideValue != null) &&
            isLoopInvariant(strideValue, loop, header) &&
            (iteratorInstr != null) &&
-           ((iteratorInstr.operator().opcode == INT_ADD_opcode) || (iteratorInstr.operator().opcode == INT_SUB_opcode));
+           ((iteratorInstr.getOpcode() == INT_ADD_opcode) || (iteratorInstr.getOpcode() == INT_SUB_opcode));
   }
 
   /**
@@ -301,9 +301,9 @@ public final class AnnotatedLSTNode extends LSTNode {
    * @return the constant stride value
    */
   public int getMonotonicStrideValue() {
-    if (iteratorInstr.operator().opcode == INT_SUB_opcode) {
+    if (iteratorInstr.getOpcode() == INT_SUB_opcode) {
       return -((IntConstantOperand) strideValue).value;
-    } else if (iteratorInstr.operator().opcode == INT_ADD_opcode) {
+    } else if (iteratorInstr.getOpcode() == INT_ADD_opcode) {
       return ((IntConstantOperand) strideValue).value;
     } else {
       throw new Error("Error reading stride value");
@@ -534,7 +534,7 @@ public final class AnnotatedLSTNode extends LSTNode {
       return true;
     } else {
       Instruction opInstr = definingInstruction(op);
-      if ((opInstr.operator().opcode == INT_ADD_opcode) || (opInstr.operator().opcode == INT_SUB_opcode)) {
+      if ((opInstr.getOpcode() == INT_ADD_opcode) || (opInstr.getOpcode() == INT_SUB_opcode)) {
         Operand val1 = Binary.getVal1(opInstr);
         Operand val2 = Binary.getVal2(opInstr);
         return ((val1.isConstant() && isFixedDistanceFromPhiIterator(val2)) ||
@@ -556,7 +556,7 @@ public final class AnnotatedLSTNode extends LSTNode {
       return 0;
     } else {
       Instruction opInstr = definingInstruction(op);
-      if (opInstr.operator().opcode == INT_ADD_opcode) {
+      if (opInstr.getOpcode() == INT_ADD_opcode) {
         Operand val1 = Binary.getVal1(opInstr);
         Operand val2 = Binary.getVal2(opInstr);
         if (val1.isConstant()) {
@@ -565,7 +565,7 @@ public final class AnnotatedLSTNode extends LSTNode {
           if (VM.VerifyAssertions) VM._assert(val2.isConstant());
           return getFixedDistanceFromPhiIterator(val1) + val2.asIntConstant().value;
         }
-      } else if (opInstr.operator().opcode == INT_SUB_opcode) {
+      } else if (opInstr.getOpcode() == INT_SUB_opcode) {
         Operand val1 = Binary.getVal1(opInstr);
         Operand val2 = Binary.getVal2(opInstr);
         if (val1.isConstant()) {
@@ -632,7 +632,7 @@ public final class AnnotatedLSTNode extends LSTNode {
                   break;
                 } else if (itrInst.isAllocation() ||
                            itrInst.isDynamicLinkingPoint() ||
-                           (itrInst.operator().opcode >= ARCH_INDEPENDENT_END_opcode) ||
+                           (itrInst.getOpcode() >= ARCH_INDEPENDENT_END_opcode) ||
                            itrInst.isPEI() ||
                            itrInst.isThrow() ||
                            itrInst.isImplicitLoad() ||
@@ -690,7 +690,7 @@ public final class AnnotatedLSTNode extends LSTNode {
                   break;
                 } else if (itrInst.isAllocation() ||
                            itrInst.isDynamicLinkingPoint() ||
-                           (itrInst.operator().opcode >= ARCH_INDEPENDENT_END_opcode) ||
+                           (itrInst.getOpcode() >= ARCH_INDEPENDENT_END_opcode) ||
                            itrInst.isPEI() ||
                            itrInst.isThrow() ||
                            itrInst.isImplicitLoad() ||
@@ -1086,7 +1086,7 @@ public final class AnnotatedLSTNode extends LSTNode {
       ifCmpInstr = exit.firstBranchInstruction();
       if (ifCmpInstr == null) {
         throw new NonRegularLoopException("Exit block branch doesn't have a (1st) branching instruction.");
-      } else if (ifCmpInstr.operator().opcode != INT_IFCMP_opcode) {
+      } else if (ifCmpInstr.getOpcode() != INT_IFCMP_opcode) {
         throw new NonRegularLoopException("branch is int_ifcmp but " + ifCmpInstr.operator() + "\n");
       } else {
         // Get the terminal and iterator operations
@@ -1155,7 +1155,7 @@ public final class AnnotatedLSTNode extends LSTNode {
           // No => error
           throw new NonRegularLoopException("No iterator definition found.");
         } else
-        if ((iteratorInstr.operator().opcode != INT_ADD_opcode) && (iteratorInstr.operator().opcode != INT_SUB_opcode)) {
+        if ((iteratorInstr.getOpcode() != INT_ADD_opcode) && (iteratorInstr.getOpcode() != INT_SUB_opcode)) {
           // Is it an instruction we recognise?
           // TODO: support more iterator instructions
           throw new NonRegularLoopException("Unrecognized iterator operator " + iteratorInstr.operator());

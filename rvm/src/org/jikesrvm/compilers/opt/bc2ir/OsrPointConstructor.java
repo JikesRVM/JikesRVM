@@ -306,7 +306,7 @@ public class OsrPointConstructor extends CompilerPhase {
     Enumeration<Instruction> instenum = ir.forwardInstrEnumerator();
     while (instenum.hasMoreElements()) {
       Instruction inst = instenum.nextElement();
-      if (inst.operator().opcode == OSR_BARRIER_opcode) {
+      if (inst.getOpcode() == OSR_BARRIER_opcode) {
         VM.sysWriteln(" NOT SANE");
         VM.sysWriteln(inst.toString());
         if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
