@@ -75,6 +75,8 @@ public class DepGraph extends SpaceEffGraph {
    */
   private final IR ir;
 
+  private DepGraphNode[] depGraphNodes;
+
   /**
    * Constructor (computes the dependence graph!).
    *
@@ -86,12 +88,25 @@ public class DepGraph extends SpaceEffGraph {
   public DepGraph(IR ir, Instruction start, Instruction end, BasicBlock currentBlock) {
     this.currentBlock = currentBlock;
     this.ir = ir;
+    this.depGraphNodes = new DepGraphNode[ir.regpool.getTotalNumberOfRegisters()];
     handlerLiveSet = new LiveSet();
     computeHandlerLiveSet();
     createNodes(start, end);
     computeForwardDependences(start, end);
     computeBackwardDependences(start, end);
     computeControlAndBarrierDependences(start, end);
+  }
+
+  private DepGraphNode getDepGraphNode(Register r) {
+    return depGraphNodes[r.number];
+  }
+
+  private void setDepGraphNodeForRegister(DepGraphNode dNode, Register r) {
+    depGraphNodes[r.number] = dNode;
+  }
+
+  private void clearDepGraphNodeForRegister(Register r) {
+    setDepGraphNodeForRegister(null, r);
   }
 
   /**
@@ -359,7 +374,7 @@ public class DepGraph extends SpaceEffGraph {
                                             DepGraphNode lastExceptionNode) {
     if (!(op instanceof RegisterOperand)) return;
     RegisterOperand regOp = (RegisterOperand) op;
-    DepGraphNode sourceNode = regOp.getRegister().dNode();
+    DepGraphNode sourceNode = getDepGraphNode(regOp.getRegister());
 
     // if there is an element in the regTableDef[regNum] slot, set
     // the flow dependence edge.
@@ -390,7 +405,7 @@ public class DepGraph extends SpaceEffGraph {
                                             DepGraphNode lastExceptionNode) {
     if (!(op instanceof RegisterOperand)) return;
     RegisterOperand regOp = (RegisterOperand)op;
-    DepGraphNode sourceNode = regOp.getRegister().dNode();
+    DepGraphNode sourceNode = getDepGraphNode(regOp.getRegister());
 
     if (sourceNode != null) {
       // create output dependence edge from sourceNode to destNode.
@@ -406,8 +421,7 @@ public class DepGraph extends SpaceEffGraph {
       }
     }
 
-    // update depGraphNode information in register.
-    regOp.getRegister().setdNode(destNode);
+    setDepGraphNodeForRegister(destNode, regOp.getRegister());
   }
 
   /**
@@ -420,7 +434,7 @@ public class DepGraph extends SpaceEffGraph {
                                              DepGraphNode lastExceptionNode) {
     if (!(op instanceof RegisterOperand)) return;
     RegisterOperand regOp = (RegisterOperand) op;
-    DepGraphNode sourceNode = regOp.getRegister().dNode();
+    DepGraphNode sourceNode = getDepGraphNode(regOp.getRegister());
     if (sourceNode != null) {
       int type = regOp.getRegister().isValidation() ? GUARD_ANTI : REG_ANTI;
       // create antidependence edge.
@@ -447,7 +461,7 @@ public class DepGraph extends SpaceEffGraph {
         destNode.insertOutEdge(lastExceptionNode, EXCEPTION_R);
       }
     }
-    regOp.getRegister().setdNode(destNode);
+    setDepGraphNodeForRegister(destNode, regOp.getRegister());
   }
 
   /**
@@ -457,7 +471,7 @@ public class DepGraph extends SpaceEffGraph {
    * @param destNode destination node
    */
   private void computeImplicitForwardDependencesUse(Register r, DepGraphNode destNode) {
-    DepGraphNode sourceNode = r.dNode();
+    DepGraphNode sourceNode = getDepGraphNode(r);
     if (sourceNode != null) {
       for (PhysicalDefUse.PDUEnumeration e =
           PhysicalDefUse.enumerate(PhysicalDefUse.maskTSPDefs, ir); e.hasMoreElements();) {
@@ -478,11 +492,11 @@ public class DepGraph extends SpaceEffGraph {
    * @param destNode destination node
    */
   private void computeImplicitForwardDependencesDef(Register r, DepGraphNode destNode) {
-    DepGraphNode sourceNode = r.dNode();
+    DepGraphNode sourceNode = getDepGraphNode(r);
     if (sourceNode != null) {
       sourceNode.insertOutEdge(destNode, REG_OUTPUT);
     }
-    r.setdNode(destNode);
+    setDepGraphNodeForRegister(destNode, r);
   }
 
   /**
@@ -492,7 +506,7 @@ public class DepGraph extends SpaceEffGraph {
    * @param destNode destination node
    */
   private void computeImplicitBackwardDependencesUse(Register r, DepGraphNode destNode) {
-    DepGraphNode sourceNode = r.dNode();
+    DepGraphNode sourceNode = getDepGraphNode(r);
     if (sourceNode != null) {
       // create antidependence edge.
       // NOTE: sourceNode contains the def and destNode contains the use.
@@ -507,7 +521,7 @@ public class DepGraph extends SpaceEffGraph {
    * @param destNode destination node
    */
   private void computeImplicitBackwardDependencesDef(Register r, DepGraphNode destNode) {
-    r.setdNode(destNode);
+    setDepGraphNodeForRegister(destNode, r);
   }
 
   /**
@@ -536,7 +550,7 @@ public class DepGraph extends SpaceEffGraph {
         Operand op = ops.nextElement();
         if (op instanceof RegisterOperand) {
           RegisterOperand rOp = (RegisterOperand) op;
-          rOp.getRegister().setdNode(null);
+          clearDepGraphNodeForRegister(rOp.getRegister());
         }
       }
       if (p == end) break;
@@ -544,7 +558,7 @@ public class DepGraph extends SpaceEffGraph {
     for (PhysicalDefUse.PDUEnumeration e = PhysicalDefUse.enumerateAllImplicitDefUses(ir); e.hasMoreElements();)
     {
       Register r = e.nextElement();
-      r.setdNode(null);
+      clearDepGraphNodeForRegister(r);
     }
   }
 

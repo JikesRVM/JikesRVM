@@ -186,16 +186,6 @@ public final class Register {
 
   public void clearValidation() { flags &= ~VALIDATION; }
 
-  private Object scratchObject;
-
-  public void setdNode(org.jikesrvm.compilers.opt.depgraph.DepGraphNode a) {
-    scratchObject = a;
-  }
-
-  public org.jikesrvm.compilers.opt.depgraph.DepGraphNode dNode() {
-    return (org.jikesrvm.compilers.opt.depgraph.DepGraphNode) scratchObject;
-  }
-
   /**
    * Used to store register lists.
    * Computed on demand by IR.computeDU().
