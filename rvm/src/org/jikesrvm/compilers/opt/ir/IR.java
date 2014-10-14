@@ -584,27 +584,6 @@ public final class IR {
   }
 
   /**
-   * Set the scratch word on all instructions currently in this
-   * IR to a given value.
-   *
-   * @param value value to store in all instruction scratch words
-   */
-  public void setInstructionScratchWord(int value) {
-    for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
-        instr.nextInstructionInCodeOrder()) {
-      instr.setScratch(value);
-    }
-  }
-
-  /**
-   * Clear (set to zero) the scratch word on all
-   * instructions currently in this IR.
-   */
-  public void clearInstructionScratchWord() {
-    setInstructionScratchWord(0);
-  }
-
-  /**
    * Returns the number of symbolic registers for this IR.
    *
    * @return number of symbolic registers that were allocated

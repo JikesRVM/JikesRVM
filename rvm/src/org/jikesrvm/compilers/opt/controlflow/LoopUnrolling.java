@@ -60,6 +60,8 @@ public class LoopUnrolling extends CompilerPhase {
   static final int MAX_BLOCKS_FOR_NAIVE_UNROLLING = 20;
 
   private final Map<BasicBlock, BasicBlock> copiedBlocks;
+  private int theVisit = 1;
+  private Map<Instruction, Integer> visitInts;
 
   public LoopUnrolling() {
     copiedBlocks = new HashMap<BasicBlock, BasicBlock>();
@@ -112,7 +114,12 @@ public class LoopUnrolling extends CompilerPhase {
     new DominatorsPhase(true).perform(ir);
     DefUse.computeDU(ir);
 
-    ir.setInstructionScratchWord(0);
+    visitInts = new HashMap<Instruction, Integer>();
+    Enumeration<Instruction> instEnum = ir.forwardInstrEnumerator();
+    while (instEnum.hasMoreElements()) {
+      Instruction inst = instEnum.nextElement();
+      visitInts.put(inst, Integer.valueOf(0));
+    }
 
     unrollLoops(ir);
 
@@ -742,8 +749,6 @@ public class LoopUnrolling extends CompilerPhase {
     if (DEBUG) VM.sysWrite("] " + s);
   }
 
-  private int theVisit = 1;
-
   private Operand follow(Operand use) {
     theVisit++;
     return _follow(use);
@@ -759,8 +764,11 @@ public class LoopUnrolling extends CompilerPhase {
       if (!Move.conforms(def)) return use;
       if (defs.hasMoreElements()) {return use;}
 
-      if (def.getScratch() == theVisit) return use;
-      def.setScratch(theVisit);
+      Integer defInt = visitInts.get(def);
+      if (defInt.intValue() == theVisit) {
+        return use;
+      }
+      visitInts.put(def, Integer.valueOf(theVisit));
 
       use = Move.getVal(def);
     }
@@ -985,10 +993,10 @@ public class LoopUnrolling extends CompilerPhase {
 
       res = defs.nextElement();
       Instruction inst = res.instruction;
-      if (!(Move.conforms(inst)) || inst.getScratch() == theVisit) {
+      if (!(Move.conforms(inst)) || visitInts.get(inst).intValue() == theVisit) {
         return res;
       }
-      inst.setScratch(theVisit);
+      visitInts.put(inst, Integer.valueOf(theVisit));
 
       others = new RealDefs(Move.getVal(inst), theVisit);
       if (!(others.hasMoreElements())) return res;
