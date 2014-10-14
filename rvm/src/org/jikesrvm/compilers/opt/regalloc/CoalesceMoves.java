@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Map;
 
 import org.jikesrvm.compilers.opt.DefUse;
 import org.jikesrvm.compilers.opt.OptOptions;
@@ -80,8 +81,8 @@ public class CoalesceMoves extends CompilerPhase {
     // Compute def-use information.
     DefUse.computeDU(ir);
 
-    // Number the instructions
-    ir.numberInstructions();
+    Map<Instruction, Integer> instNumbers = ir.numberInstructionsViaMap();
+    Coalesce coalesce = new Coalesce(instNumbers);
 
     // Maintain a set of dead move instructions.
     HashSet<Instruction> dead = new HashSet<Instruction>(5);
@@ -96,7 +97,7 @@ public class CoalesceMoves extends CompilerPhase {
           if (val != null && val.isRegister()) {
             Register r2 = val.asRegister().getRegister();
             if (r2.isSymbolic()) {
-              if (Coalesce.attempt(live, r, r2)) {
+              if (coalesce.attempt(live, r, r2)) {
                 if (DEBUG) System.out.println("COALESCED " + r + " " + r2);
                 dead.add(s);
               }
