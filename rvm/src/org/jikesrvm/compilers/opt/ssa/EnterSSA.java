@@ -25,6 +25,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -1035,30 +1036,33 @@ public class EnterSSA extends CompilerPhase {
     }
   }
 
+  private enum PhiTypeInformation {
+    NO_NULL_TYPE, FOUND_NULL_TYPE
+  }
+
   /*
    * Compute type information for operands in each phi instruction.
    *
    * PRECONDITION: Def-use chains computed.
    * SIDE EFFECT: empties the scalarPhis set
-   * SIDE EFFECT: bashes the Instruction scratch field.
    */
-  private static final int NO_NULL_TYPE = 0;
-  private static final int FOUND_NULL_TYPE = 1;
-
   private void rectifyPhiTypes() {
     if (DEBUG) System.out.println("Rectify phi types.");
     removeAllUnreachablePhis(scalarPhis);
+    int noRehashCapacity = (int) (scalarPhis.size() * 1.5f);
+    HashMap<Instruction, PhiTypeInformation> phiTypes =
+        new HashMap<Instruction, PhiTypeInformation>(noRehashCapacity) ;
     while (!scalarPhis.isEmpty()) {
       boolean didSomething = false;
       for (Iterator<Instruction> i = scalarPhis.iterator(); i.hasNext();) {
         Instruction phi = i.next();
-        phi.setScratch(NO_NULL_TYPE);
+        phiTypes.put(phi, PhiTypeInformation.NO_NULL_TYPE);
         if (DEBUG) System.out.println("PHI: " + phi);
-        TypeReference meet = meetPhiType(phi);
+        TypeReference meet = meetPhiType(phi, phiTypes);
         if (DEBUG) System.out.println("MEET: " + meet);
         if (meet != null) {
           didSomething = true;
-          if (phi.getScratch() == NO_NULL_TYPE) i.remove();
+          if (phiTypes.get(phi) == PhiTypeInformation.NO_NULL_TYPE) i.remove();
           RegisterOperand result = (RegisterOperand) Phi.getResult(phi);
           result.setType(meet);
           for (Enumeration<RegisterOperand> e = DefUse.uses(result.getRegister()); e.hasMoreElements();) {
@@ -1138,21 +1142,19 @@ public class EnterSSA extends CompilerPhase {
 
   /**
    * Return the meet of the types on the rhs of a phi instruction
-   * <p>
-   * SIDE EFFECT: bashes the Instruction scratch field.
    *
    * @param s phi instruction
+   * @param phiTypes TODO
    * @return the meet of the types
    */
-  private static TypeReference meetPhiType(Instruction s) {
-
+  private static TypeReference meetPhiType(Instruction s, Map<Instruction, PhiTypeInformation> phiTypes) {
     TypeReference result = null;
     for (int i = 0; i < Phi.getNumberOfValues(s); i++) {
       Operand val = Phi.getValue(s, i);
       if (val instanceof UnreachableOperand) continue;
       TypeReference t = val.getType();
       if (t == null) {
-        s.setScratch(FOUND_NULL_TYPE);
+        phiTypes.put(s, PhiTypeInformation.FOUND_NULL_TYPE);
       } else if (result == null) {
         result = t;
       } else {
