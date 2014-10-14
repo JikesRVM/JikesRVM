@@ -202,7 +202,7 @@ public final class Instruction {
 
   /**
    * The operator for this instruction.<p>
-   * The same operator object can be shared by many instruction objects.<p>
+   * The same operator object can be shared by many instruction objects.
    */
   private Operator operator;
 
