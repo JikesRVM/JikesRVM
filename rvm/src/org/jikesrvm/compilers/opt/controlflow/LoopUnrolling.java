@@ -742,14 +742,14 @@ public class LoopUnrolling extends CompilerPhase {
     if (DEBUG) VM.sysWrite("] " + s);
   }
 
-  private static int theVisit = 1;
+  private int theVisit = 1;
 
-  private static Operand follow(Operand use) {
+  private Operand follow(Operand use) {
     theVisit++;
     return _follow(use);
   }
 
-  private static Operand _follow(Operand use) {
+  private Operand _follow(Operand use) {
     while (true) {
       if (!(use instanceof RegisterOperand)) return use;
       RegisterOperand rop = (RegisterOperand) use;
@@ -825,7 +825,7 @@ public class LoopUnrolling extends CompilerPhase {
 
   @SuppressWarnings("unused")
   // For debugging
-  private static void _printDefs(Operand op) {
+  private void _printDefs(Operand op) {
     if (op instanceof RegisterOperand) {
       Register reg = ((RegisterOperand) op).getRegister();
       Enumeration<RegisterOperand> defs = DefUse.defs(reg);
@@ -942,7 +942,7 @@ public class LoopUnrolling extends CompilerPhase {
     }
   }
 
-  static final class RealDefs implements Enumeration<Operand> {
+  final class RealDefs implements Enumeration<Operand> {
     private Enumeration<RegisterOperand> defs = null;
     private Operand use;
     private RealDefs others = null;
