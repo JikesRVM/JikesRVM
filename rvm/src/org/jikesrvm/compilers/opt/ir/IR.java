@@ -33,7 +33,9 @@ import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Stack;
 
 import org.jikesrvm.VM;
@@ -581,6 +583,23 @@ public final class IR {
       instr.setScratch(num);
     }
     return num;
+  }
+
+  /**
+   * Densely numbers all the instructions currently in this IR
+   * from 0...numInstr-1.
+   *
+   * @return a map that maps each instruction to its number
+   */
+  public Map<Instruction, Integer> numberInstructionsViaMap() {
+    HashMap<Instruction, Integer> instructionNumbers = new HashMap<Instruction, Integer>();
+
+    int num = 0;
+    for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
+        instr.nextInstructionInCodeOrder(), num++) {
+      instructionNumbers.put(instr, Integer.valueOf(num));
+    }
+    return instructionNumbers;
   }
 
   /**

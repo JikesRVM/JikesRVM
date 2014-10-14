@@ -18,6 +18,7 @@ import java.lang.reflect.Constructor;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.DefUse;
@@ -58,6 +59,8 @@ public class LICM extends CompilerPhase {
   private static final boolean DEBUG = false;
   /** Generate verbose debug output? */
   private static boolean VERBOSE = false;
+
+  private Map<Instruction, Integer> instructionNumbers;
 
   /**
    * Constructor for this compiler phase
@@ -785,27 +788,27 @@ public class LICM extends CompilerPhase {
   }
 
   BasicBlock getBlock(Instruction inst) {
-    return block[inst.getScratch()];
+    return block[instructionNumbers.get(inst)];
   }
 
   void setBlock(Instruction inst, BasicBlock b) {
-    block[inst.getScratch()] = b;
+    block[instructionNumbers.get(inst)] = b;
   }
 
   Instruction getEarlyPos(Instruction inst) {
-    return earlyPos[inst.getScratch()];
+    return earlyPos[instructionNumbers.get(inst)];
   }
 
   void setEarlyPos(Instruction inst, Instruction pos) {
-    earlyPos[inst.getScratch()] = pos;
+    earlyPos[instructionNumbers.get(inst)] = pos;
   }
 
   BasicBlock getOrigBlock(Instruction inst) {
-    return origBlock[inst.getScratch()];
+    return origBlock[instructionNumbers.get(inst)];
   }
 
   void setOrigBlock(Instruction inst, BasicBlock b) {
-    origBlock[inst.getScratch()] = b;
+    origBlock[instructionNumbers.get(inst)] = b;
   }
 
   /**
@@ -814,7 +817,7 @@ public class LICM extends CompilerPhase {
    * @return the instruction's state
    */
   int getState(Instruction inst) {
-    return state[inst.getScratch()];
+    return state[instructionNumbers.get(inst)];
   }
 
   /**
@@ -823,7 +826,7 @@ public class LICM extends CompilerPhase {
    * @param s the state
    */
   void setState(Instruction inst, int s) {
-    state[inst.getScratch()] = s;
+    state[instructionNumbers.get(inst)] = s;
   }
 
   //------------------------------------------------------------
@@ -841,10 +844,14 @@ public class LICM extends CompilerPhase {
     ir.setDominators(dominators);
     dominator = ir.HIRInfo.dominatorTree;
     if (DEBUG) VM.sysWrite("" + dominator.toString() + "\n");
-    int instructions = ir.numberInstructions();
+
+    instructionNumbers = ir.numberInstructionsViaMap();
+    int instructions = instructionNumbers.size();
+
     ssad = ir.HIRInfo.dictionary;
     DefUse.computeDU(ir);
     ssad.recomputeArrayDU();
+
     // also number implicit heap phis
     Enumeration<BasicBlock> e = ir.getBasicBlocks();
     while (e.hasMoreElements()) {
@@ -852,7 +859,7 @@ public class LICM extends CompilerPhase {
       Iterator<Instruction> pe = ssad.getHeapPhiInstructions(b);
       while (pe.hasNext()) {
         Instruction inst = pe.next();
-        inst.setScratch(instructions++);
+        instructionNumbers.put(inst, Integer.valueOf(instructions++));
       }
     }
     state = new int[instructions];
