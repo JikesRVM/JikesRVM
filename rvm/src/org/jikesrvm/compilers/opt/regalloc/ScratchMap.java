@@ -54,7 +54,8 @@ public final class ScratchMap {
    */
   void beginSymbolicInterval(Register r, Register scratch, Instruction begin) {
     if (DEBUG) {
-      System.out.println("beginSymbolicInterval " + r + " " + scratch + " " + begin.getScratch());
+      System.out.println("beginSymbolicInterval " + r + " " + scratch + " " +
+          LinearScan.getDFN(begin));
     }
 
     SymbolicInterval i = new SymbolicInterval(r, scratch);
@@ -72,7 +73,8 @@ public final class ScratchMap {
    */
   public void endSymbolicInterval(Register r, Instruction end) {
     if (DEBUG) {
-      System.out.println("endSymbolicInterval " + r + " " + end.getScratch());
+      System.out.println("endSymbolicInterval " + r + " " +
+          LinearScan.getDFN(end));
     }
 
     SymbolicInterval i = (SymbolicInterval) pending.get(r);
@@ -89,7 +91,8 @@ public final class ScratchMap {
    */
   void beginScratchInterval(Register r, Instruction begin) {
     if (DEBUG) {
-      System.out.println("beginScratchInterval " + r + " " + begin.getScratch());
+      System.out.println("beginScratchInterval " + r + " " +
+          LinearScan.getDFN(begin));
     }
     PhysicalInterval p = new PhysicalInterval(r);
     p.begin = begin;
@@ -107,7 +110,8 @@ public final class ScratchMap {
    */
   public void endScratchInterval(Register r, Instruction end) {
     if (DEBUG) {
-      System.out.println("endScratchInterval " + r + " " + end.getScratch());
+      System.out.println("endScratchInterval " + r + " " +
+          LinearScan.getDFN(end));
     }
     PhysicalInterval p = (PhysicalInterval) pending.get(r);
     p.end = end;
@@ -244,7 +248,8 @@ public final class ScratchMap {
      *   given number is contained n this interval
      */
     protected final boolean contains(int n) {
-      return (begin.getScratch() <= n && end.getScratch() > n);
+      return (LinearScan.getDFN(begin) <= n &&
+          LinearScan.getDFN(end) > n);
     }
   }
 
@@ -273,7 +278,8 @@ public final class ScratchMap {
      */
     @Override
     public String toString() {
-      return "SI: " + symbolic + " " + scratch + " [" + begin.getScratch() + "," + end.getScratch() + "]";
+      return "SI: " + symbolic + " " + scratch + " [" +
+          LinearScan.getDFN(begin) + "," + LinearScan.getDFN(end) + "]";
     }
   }
 
@@ -297,7 +303,8 @@ public final class ScratchMap {
      */
     @Override
     public String toString() {
-      return "PI: " + scratch + " [" + begin.getScratch() + "," + end.getScratch() + "]";
+      return "PI: " + scratch + " [" + LinearScan.getDFN(begin) +
+          "," + LinearScan.getDFN(end) + "]";
     }
   }
 }

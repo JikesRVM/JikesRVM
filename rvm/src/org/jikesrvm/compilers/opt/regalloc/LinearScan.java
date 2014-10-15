@@ -76,7 +76,7 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
    *  @param inst the instruction
    *  @return the associated dfn
    */
-  static int getDFN(Instruction inst) {
+  public static int getDFN(Instruction inst) {
     return inst.getScratch();
   }
 
