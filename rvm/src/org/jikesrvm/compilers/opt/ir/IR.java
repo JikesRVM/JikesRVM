@@ -564,23 +564,14 @@ public final class IR {
   }
 
   /**
-   * Densely number all the instructions currently in this IR
-   * from 0...numInstr-1.
-   * Returns the number of instructions in the IR.
-   * Intended style of use:
-   * <pre>
-   *    passInfo = new passInfoObjects[ir.numberInstructions()];
-   *    ...do analysis using passInfo as a look aside
-   *            array holding pass specific info...
-   * </pre>
+   * Counts all the instructions currently in this IR.
    *
    * @return the number of instructions
    */
-  public int numberInstructions() {
+  public int countInstructions() {
     int num = 0;
     for (Instruction instr = firstInstructionInCodeOrder(); instr != null; instr =
         instr.nextInstructionInCodeOrder(), num++) {
-      instr.setScratch(num);
     }
     return num;
   }

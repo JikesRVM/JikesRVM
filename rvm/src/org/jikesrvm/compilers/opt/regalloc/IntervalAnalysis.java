@@ -184,7 +184,7 @@ public final class IntervalAnalysis extends CompilerPhase {
    */
   void assignDepthFirstNumbers(ControlFlowGraph cfg) {
 
-    int curDfn = ir.numberInstructions() - 1;
+    int curDfn = ir.countInstructions() - 1;
 
     listOfBlocks = null;
     for (BasicBlock bb = reverseTopFirst; bb != null; bb = (BasicBlock) bb.sortedPrev) {
