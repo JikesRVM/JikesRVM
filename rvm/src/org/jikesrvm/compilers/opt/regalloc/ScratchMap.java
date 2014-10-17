@@ -44,6 +44,12 @@ public final class ScratchMap {
   private final HashMap<Instruction, HashSet<Register>> dirtyMap =
       new HashMap<Instruction, HashSet<Register>>();
 
+  private final RegisterAllocatorState regAllocState;
+
+  public ScratchMap(RegisterAllocatorState regAllocState) {
+    this.regAllocState = regAllocState;
+  }
+
   /**
    * Begin a new interval of scratch-ness for a symbolic register.
    *
@@ -55,7 +61,7 @@ public final class ScratchMap {
   void beginSymbolicInterval(Register r, Register scratch, Instruction begin) {
     if (DEBUG) {
       System.out.println("beginSymbolicInterval " + r + " " + scratch + " " +
-          RegisterAllocatorState.getDFN(begin));
+          regAllocState.getDFN(begin));
     }
 
     SymbolicInterval i = new SymbolicInterval(r, scratch);
@@ -74,7 +80,7 @@ public final class ScratchMap {
   public void endSymbolicInterval(Register r, Instruction end) {
     if (DEBUG) {
       System.out.println("endSymbolicInterval " + r + " " +
-          RegisterAllocatorState.getDFN(end));
+          regAllocState.getDFN(end));
     }
 
     SymbolicInterval i = (SymbolicInterval) pending.get(r);
@@ -92,7 +98,7 @@ public final class ScratchMap {
   void beginScratchInterval(Register r, Instruction begin) {
     if (DEBUG) {
       System.out.println("beginScratchInterval " + r + " " +
-          RegisterAllocatorState.getDFN(begin));
+          regAllocState.getDFN(begin));
     }
     PhysicalInterval p = new PhysicalInterval(r);
     p.begin = begin;
@@ -111,7 +117,7 @@ public final class ScratchMap {
   public void endScratchInterval(Register r, Instruction end) {
     if (DEBUG) {
       System.out.println("endScratchInterval " + r + " " +
-          RegisterAllocatorState.getDFN(end));
+          regAllocState.getDFN(end));
     }
     PhysicalInterval p = (PhysicalInterval) pending.get(r);
     p.end = end;
@@ -222,7 +228,7 @@ public final class ScratchMap {
   /**
    * Super class of physical and symbolic intervals
    */
-  private abstract static class Interval {
+  private abstract class Interval {
     /**
      * The instruction before which the scratch range begins.
      */
@@ -248,8 +254,8 @@ public final class ScratchMap {
      *   given number is contained n this interval
      */
     protected final boolean contains(int n) {
-      return (RegisterAllocatorState.getDFN(begin) <= n &&
-          RegisterAllocatorState.getDFN(end) > n);
+      return (regAllocState.getDFN(begin) <= n &&
+          regAllocState.getDFN(end) > n);
     }
   }
 
@@ -259,7 +265,7 @@ public final class ScratchMap {
    *
    * Note that this interval must not span a basic block.
    */
-  private static final class SymbolicInterval extends Interval {
+  private final class SymbolicInterval extends Interval {
     /**
      * The symbolic register
      */
@@ -279,7 +285,7 @@ public final class ScratchMap {
     @Override
     public String toString() {
       return "SI: " + symbolic + " " + scratch + " [" +
-          RegisterAllocatorState.getDFN(begin) + "," + RegisterAllocatorState.getDFN(end) + "]";
+          regAllocState.getDFN(begin) + "," + regAllocState.getDFN(end) + "]";
     }
   }
 
@@ -290,7 +296,7 @@ public final class ScratchMap {
    *
    * Note that this interval must not span a basic block.
    */
-  private static final class PhysicalInterval extends Interval {
+  private final class PhysicalInterval extends Interval {
     PhysicalInterval(Register scratch) {
       super(scratch);
     }
@@ -303,8 +309,8 @@ public final class ScratchMap {
      */
     @Override
     public String toString() {
-      return "PI: " + scratch + " [" + RegisterAllocatorState.getDFN(begin) +
-          "," + RegisterAllocatorState.getDFN(end) + "]";
+      return "PI: " + scratch + " [" + regAllocState.getDFN(begin) +
+          "," + regAllocState.getDFN(end) + "]";
     }
   }
 }

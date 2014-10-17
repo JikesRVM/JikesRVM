@@ -140,7 +140,7 @@ public abstract class GenericStackManager extends IRTools {
    * An object used to track adjustments to the GC maps induced by scratch
    * registers
    */
-  protected final ScratchMap scratchMap = new ScratchMap();
+  protected ScratchMap scratchMap;
 
   ScratchMap getScratchMap() { return scratchMap; }
 
@@ -489,7 +489,7 @@ public abstract class GenericStackManager extends IRTools {
     } else {
       // If the basic interval begins at s, then r is dead before
       // s.
-      return bi.getBegin() == RegisterAllocatorState.getDFN(s);
+      return bi.getBegin() == regAllocState.getDFN(s);
     }
   }
 
@@ -641,7 +641,7 @@ public abstract class GenericStackManager extends IRTools {
         phys = getFirstGPRNotUsedIn(r, s, reservedScratch);
       }
     }
-    return createScratchBefore(s, phys, r);
+    return createScratchBefore(regAllocState, s, phys, r);
   }
 
   /**
@@ -664,7 +664,7 @@ public abstract class GenericStackManager extends IRTools {
     } else {
       phys = getFirstGPRNotUsedIn(r, s, reservedScratch);
     }
-    return createScratchBefore(s, phys, r);
+    return createScratchBefore(regAllocState, s, phys, r);
   }
 
   /**
@@ -716,13 +716,14 @@ public abstract class GenericStackManager extends IRTools {
    * Make physicals register r available to be used as a scratch register
    * before instruction s.  In instruction s, r will hold the value of
    * register symb.
-   *
+   * @param regAllocState TODO
    * @param s the instruction before which the scratch register will be created
    * @param r the physical register to be used as scratch
    * @param symb the symbolic register which needs a scratch register
+   *
    * @return the scratch register that will hold the value
    */
-  private ScratchRegister createScratchBefore(Instruction s, Register r, Register symb) {
+  private ScratchRegister createScratchBefore(RegisterAllocatorState regAllocState, Instruction s, Register r, Register symb) {
     int type = PhysicalRegisterSet.getPhysicalRegisterType(r);
     int spillLocation = regAllocState.getSpill(r);
     if (spillLocation <= 0) {
@@ -1387,6 +1388,7 @@ public abstract class GenericStackManager extends IRTools {
     // (3) initialization
     this.ir = ir;
     this.regAllocState = ir.MIRInfo.regAllocState;
+    this.scratchMap = new ScratchMap(regAllocState);
     pref.initialize(ir);
     frameSize = spillPointer;
     initForArch(ir);

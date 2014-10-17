@@ -136,7 +136,7 @@ public class RegisterAllocatorState {
    *  @param inst the instruction
    *  @param dfn the dfn number
    */
-  static void setDFN(Instruction inst, int dfn) {
+  void setDFN(Instruction inst, int dfn) {
     inst.setScratch(dfn);
   }
 
@@ -145,7 +145,7 @@ public class RegisterAllocatorState {
    *  @param inst the instruction
    *  @return the associated dfn
    */
-  public static int getDFN(Instruction inst) {
+  public int getDFN(Instruction inst) {
     return inst.getScratch();
   }
 
@@ -154,7 +154,7 @@ public class RegisterAllocatorState {
    *
    *  @param ir the IR that contains the instructions
    */
-  static void printDfns(IR ir) {
+  void printDfns(IR ir) {
     System.out.println("DFNS: **** " + ir.getMethod() + "****");
     for (Instruction inst = ir.firstInstructionInCodeOrder(); inst != null; inst =
         inst.nextInstructionInCodeOrder()) {
@@ -169,7 +169,7 @@ public class RegisterAllocatorState {
    * interval is open-ended, the dfn for the beginning of the basic block will
    * be returned instead.
    */
-  static int getDfnBegin(LiveIntervalElement live, BasicBlock bb) {
+  int getDfnBegin(LiveIntervalElement live, BasicBlock bb) {
     Instruction begin = live.getBegin();
     int dfnBegin;
     if (begin != null) {
@@ -187,7 +187,7 @@ public class RegisterAllocatorState {
    * interval is open-ended, the dfn for the end of the basic block will
    * be returned instead.
    */
-  static int getDfnEnd(LiveIntervalElement live, BasicBlock bb) {
+  int getDfnEnd(LiveIntervalElement live, BasicBlock bb) {
     Instruction end = live.getEnd();
     int dfnEnd;
     if (end != null) {

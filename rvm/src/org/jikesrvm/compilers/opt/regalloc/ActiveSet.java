@@ -833,7 +833,7 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
   BasicInterval getBasicInterval(Register r, Instruction s) {
     CompoundInterval c = regAllocState.getInterval(r);
     if (c == null) return null;
-    return c.getBasicInterval(s);
+    return c.getBasicInterval(regAllocState, s);
   }
 
 }

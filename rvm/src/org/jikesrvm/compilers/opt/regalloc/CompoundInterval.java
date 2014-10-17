@@ -130,21 +130,21 @@ class CompoundInterval extends IncreasingStartIntervalSet {
 
   /**
    * Add a new live range to this compound interval.
-   *
+   * @param regAllocState depth-first numbers for for instructions
    * @param live the new live range
    * @param bb the basic block for live
+   *
    * @return the new basic interval if one was created; null otherwise
    */
-  BasicInterval addRange(LiveIntervalElement live, BasicBlock bb) {
-
-    if (shouldConcatenate(live, bb)) {
+  BasicInterval addRange(RegisterAllocatorState regAllocState, LiveIntervalElement live, BasicBlock bb) {
+    if (shouldConcatenate(regAllocState, live, bb)) {
       // concatenate with the last basic interval
       BasicInterval last = last();
-      last.setEnd(RegisterAllocatorState.getDfnEnd(live, bb));
+      last.setEnd(regAllocState.getDfnEnd(live, bb));
       return null;
     } else {
       // create a new basic interval and append it to the list.
-      BasicInterval newInterval = new MappedBasicInterval(RegisterAllocatorState.getDfnBegin(live, bb), RegisterAllocatorState.getDfnEnd(live, bb), this);
+      BasicInterval newInterval = new MappedBasicInterval(regAllocState.getDfnBegin(live, bb), regAllocState.getDfnEnd(live, bb), this);
       add(newInterval);
       return newInterval;
     }
@@ -153,22 +153,23 @@ class CompoundInterval extends IncreasingStartIntervalSet {
   /**
    * Should we simply merge the live interval <code>live</code> into a
    *  previous BasicInterval?
-   *
+   * @param regAllocState depth-first numbers for for instructions
    * @param live the live interval being queried
    * @param bb the basic block in which live resides.
+   *
    * @return {@code true} if the interval should be concatenated, {@code false}
    *  if it should'nt
    */
-  private boolean shouldConcatenate(LiveIntervalElement live, BasicBlock bb) {
+  private boolean shouldConcatenate(RegisterAllocatorState regAllocState, LiveIntervalElement live, BasicBlock bb) {
 
     BasicInterval last = last();
 
     // Make sure the new live range starts after the last basic interval
     if (VM.VerifyAssertions) {
-      VM._assert(last.getEnd() <= RegisterAllocatorState.getDfnBegin(live, bb));
+      VM._assert(last.getEnd() <= regAllocState.getDfnBegin(live, bb));
     }
 
-    int dfnBegin = RegisterAllocatorState.getDfnBegin(live, bb);
+    int dfnBegin = regAllocState.getDfnBegin(live, bb);
     if (live.getBegin() != null) {
       if (live.getBegin() == bb.firstRealInstruction()) {
         // live starts the basic block.  Now make sure it is contiguous
@@ -183,7 +184,7 @@ class CompoundInterval extends IncreasingStartIntervalSet {
     } else {
       // live.getBegin == null.
       // Merge if it is contiguous with the last interval.
-      int dBegin = RegisterAllocatorState.getDFN(bb.firstInstruction());
+      int dBegin = regAllocState.getDFN(bb.firstInstruction());
       return last.getEnd() + 1 >= dBegin;
     }
   }
@@ -410,13 +411,14 @@ class CompoundInterval extends IncreasingStartIntervalSet {
   }
 
   /**
+   * @param regAllocState depth-first numbers for for instructions
    * @param s   The instruction in question
    * @return the first basic interval that contains a given
    * instruction, {@code null} if there is no such interval
 
    */
-  BasicInterval getBasicInterval(Instruction s) {
-    return getBasicInterval(RegisterAllocatorState.getDFN(s));
+  BasicInterval getBasicInterval(RegisterAllocatorState regAllocState, Instruction s) {
+    return getBasicInterval(regAllocState.getDFN(s));
   }
 
   /**

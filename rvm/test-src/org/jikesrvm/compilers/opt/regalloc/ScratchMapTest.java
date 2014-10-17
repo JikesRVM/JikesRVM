@@ -34,16 +34,19 @@ import org.junit.runner.RunWith;
 @RunWith(VMRequirements.class)
 public class ScratchMapTest {
 
+  private static final int REGISTER_COUNT = 100;
+  private RegisterAllocatorState regAllocState;
   private ScratchMap scratchMap;
 
   @Before
   public void createNewScratchMap() {
-    scratchMap = new ScratchMap();
+    regAllocState = new RegisterAllocatorState(REGISTER_COUNT);
+    scratchMap = new ScratchMap(regAllocState);
   }
 
   @Test
   public void newMapIsEmpty() {
-    ScratchMap scratchMap = new ScratchMap();
+    ScratchMap scratchMap = new ScratchMap(regAllocState);
     assertThat(scratchMap.isEmpty(), is(true));
   }
 
@@ -143,10 +146,10 @@ public class ScratchMapTest {
     Register scratch = createRegister(0);
     Instruction begin = createInstruction();
     int instNumber = 2;
-    RegisterAllocatorState.setDFN(begin, instNumber);
+    regAllocState.setDFN(begin, instNumber);
     scratchMap.beginScratchInterval(scratch, begin);
     Instruction end = createInstruction();
-    RegisterAllocatorState.setDFN(end, instNumber + 1);
+    regAllocState.setDFN(end, instNumber + 1);
     scratchMap.endScratchInterval(scratch, end);
 
     Register scratchReg = scratchMap.getScratch(scratch, instNumber);

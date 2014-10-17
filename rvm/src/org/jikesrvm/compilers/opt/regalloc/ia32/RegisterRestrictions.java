@@ -102,7 +102,6 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.BURSManagedFPROperand;
 import org.jikesrvm.compilers.opt.regalloc.GenericRegisterRestrictions;
 import org.jikesrvm.compilers.opt.regalloc.LiveIntervalElement;
-import org.jikesrvm.compilers.opt.regalloc.RegisterAllocatorState;
 
 /**
  * An instance of this class encapsulates restrictions on register
@@ -178,7 +177,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
         // No floating point register survives across an FNINIT
         for (LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb, RegisterAllocatorState.getDFN(s))) {
+            if (contains(symb, regAllocState.getDFN(s))) {
               addRestrictions(symb.getRegister(), phys.getFPRs());
             }
           }
@@ -187,7 +186,7 @@ public class RegisterRestrictions extends GenericRegisterRestrictions
         // Only some FPRs survive across an FCLEAR
         for (LiveIntervalElement symb : symbolics) {
           if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb, RegisterAllocatorState.getDFN(s))) {
+            if (contains(symb, regAllocState.getDFN(s))) {
               int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
               for (int i = nSave; i < NUM_FPRS; i++) {
                 addRestriction(symb.getRegister(), phys.getFPR(i));
