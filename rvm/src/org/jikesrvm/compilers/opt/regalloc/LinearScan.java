@@ -17,9 +17,6 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanAtomicElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanCompositeElement;
 import org.jikesrvm.compilers.opt.driver.OptimizationPlanElement;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.Instruction;
 
 /**
  * Main driver for linear scan register allocation.
@@ -69,72 +66,5 @@ public final class LinearScan extends OptimizationPlanCompositeElement {
   @Override
   public boolean printingEnabled(OptOptions options, boolean before) {
     return false;
-  }
-
-  /**
-   *  returns the dfn associated with the passed instruction
-   *  @param inst the instruction
-   *  @return the associated dfn
-   */
-  public static int getDFN(Instruction inst) {
-    return inst.getScratch();
-  }
-
-  /**
-   *  Associates the passed dfn number with the instruction
-   *  @param inst the instruction
-   *  @param dfn the dfn number
-   */
-  static void setDFN(Instruction inst, int dfn) {
-    inst.setScratch(dfn);
-  }
-
-  /**
-   *  Prints the DFN numbers associated with each instruction.
-   *
-   *  @param ir the IR that contains the instructions
-   */
-  static void printDfns(IR ir) {
-    System.out.println("DFNS: **** " + ir.getMethod() + "****");
-    for (Instruction inst = ir.firstInstructionInCodeOrder(); inst != null; inst =
-        inst.nextInstructionInCodeOrder()) {
-      System.out.println(getDFN(inst) + " " + inst);
-    }
-  }
-
-  /**
-   * @param live the live interval
-   * @param bb the basic block for the live interval
-   * @return the Depth-first-number of the end of the live interval. If the
-   * interval is open-ended, the dfn for the end of the basic block will
-   * be returned instead.
-   */
-  static int getDfnEnd(LiveIntervalElement live, BasicBlock bb) {
-    Instruction end = live.getEnd();
-    int dfnEnd;
-    if (end != null) {
-      dfnEnd = getDFN(end);
-    } else {
-      dfnEnd = getDFN(bb.lastInstruction());
-    }
-    return dfnEnd;
-  }
-
-  /**
-   * @param live the live interval
-   * @param bb the basic block for the live interval
-   * @return the Depth-first-number of the beginning of the live interval. If the
-   * interval is open-ended, the dfn for the beginning of the basic block will
-   * be returned instead.
-   */
-  static int getDfnBegin(LiveIntervalElement live, BasicBlock bb) {
-    Instruction begin = live.getBegin();
-    int dfnBegin;
-    if (begin != null) {
-      dfnBegin = getDFN(begin);
-    } else {
-      dfnBegin = getDFN(bb.firstInstruction());
-    }
-    return dfnBegin;
   }
 }

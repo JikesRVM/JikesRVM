@@ -140,11 +140,11 @@ class CompoundInterval extends IncreasingStartIntervalSet {
     if (shouldConcatenate(live, bb)) {
       // concatenate with the last basic interval
       BasicInterval last = last();
-      last.setEnd(LinearScan.getDfnEnd(live, bb));
+      last.setEnd(RegisterAllocatorState.getDfnEnd(live, bb));
       return null;
     } else {
       // create a new basic interval and append it to the list.
-      BasicInterval newInterval = new MappedBasicInterval(LinearScan.getDfnBegin(live, bb), LinearScan.getDfnEnd(live, bb), this);
+      BasicInterval newInterval = new MappedBasicInterval(RegisterAllocatorState.getDfnBegin(live, bb), RegisterAllocatorState.getDfnEnd(live, bb), this);
       add(newInterval);
       return newInterval;
     }
@@ -165,10 +165,10 @@ class CompoundInterval extends IncreasingStartIntervalSet {
 
     // Make sure the new live range starts after the last basic interval
     if (VM.VerifyAssertions) {
-      VM._assert(last.getEnd() <= LinearScan.getDfnBegin(live, bb));
+      VM._assert(last.getEnd() <= RegisterAllocatorState.getDfnBegin(live, bb));
     }
 
-    int dfnBegin = LinearScan.getDfnBegin(live, bb);
+    int dfnBegin = RegisterAllocatorState.getDfnBegin(live, bb);
     if (live.getBegin() != null) {
       if (live.getBegin() == bb.firstRealInstruction()) {
         // live starts the basic block.  Now make sure it is contiguous
@@ -183,7 +183,7 @@ class CompoundInterval extends IncreasingStartIntervalSet {
     } else {
       // live.getBegin == null.
       // Merge if it is contiguous with the last interval.
-      int dBegin = LinearScan.getDFN(bb.firstInstruction());
+      int dBegin = RegisterAllocatorState.getDFN(bb.firstInstruction());
       return last.getEnd() + 1 >= dBegin;
     }
   }
@@ -416,7 +416,7 @@ class CompoundInterval extends IncreasingStartIntervalSet {
 
    */
   BasicInterval getBasicInterval(Instruction s) {
-    return getBasicInterval(LinearScan.getDFN(s));
+    return getBasicInterval(RegisterAllocatorState.getDFN(s));
   }
 
   /**

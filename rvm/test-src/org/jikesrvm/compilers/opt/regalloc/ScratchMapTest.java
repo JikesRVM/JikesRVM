@@ -143,10 +143,10 @@ public class ScratchMapTest {
     Register scratch = createRegister(0);
     Instruction begin = createInstruction();
     int instNumber = 2;
-    LinearScan.setDFN(begin, instNumber);
+    RegisterAllocatorState.setDFN(begin, instNumber);
     scratchMap.beginScratchInterval(scratch, begin);
     Instruction end = createInstruction();
-    LinearScan.setDFN(end, instNumber + 1);
+    RegisterAllocatorState.setDFN(end, instNumber + 1);
     scratchMap.endScratchInterval(scratch, end);
 
     Register scratchReg = scratchMap.getScratch(scratch, instNumber);

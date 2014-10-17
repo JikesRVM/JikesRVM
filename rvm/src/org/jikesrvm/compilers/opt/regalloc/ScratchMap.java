@@ -55,7 +55,7 @@ public final class ScratchMap {
   void beginSymbolicInterval(Register r, Register scratch, Instruction begin) {
     if (DEBUG) {
       System.out.println("beginSymbolicInterval " + r + " " + scratch + " " +
-          LinearScan.getDFN(begin));
+          RegisterAllocatorState.getDFN(begin));
     }
 
     SymbolicInterval i = new SymbolicInterval(r, scratch);
@@ -74,7 +74,7 @@ public final class ScratchMap {
   public void endSymbolicInterval(Register r, Instruction end) {
     if (DEBUG) {
       System.out.println("endSymbolicInterval " + r + " " +
-          LinearScan.getDFN(end));
+          RegisterAllocatorState.getDFN(end));
     }
 
     SymbolicInterval i = (SymbolicInterval) pending.get(r);
@@ -92,7 +92,7 @@ public final class ScratchMap {
   void beginScratchInterval(Register r, Instruction begin) {
     if (DEBUG) {
       System.out.println("beginScratchInterval " + r + " " +
-          LinearScan.getDFN(begin));
+          RegisterAllocatorState.getDFN(begin));
     }
     PhysicalInterval p = new PhysicalInterval(r);
     p.begin = begin;
@@ -111,7 +111,7 @@ public final class ScratchMap {
   public void endScratchInterval(Register r, Instruction end) {
     if (DEBUG) {
       System.out.println("endScratchInterval " + r + " " +
-          LinearScan.getDFN(end));
+          RegisterAllocatorState.getDFN(end));
     }
     PhysicalInterval p = (PhysicalInterval) pending.get(r);
     p.end = end;
@@ -248,8 +248,8 @@ public final class ScratchMap {
      *   given number is contained n this interval
      */
     protected final boolean contains(int n) {
-      return (LinearScan.getDFN(begin) <= n &&
-          LinearScan.getDFN(end) > n);
+      return (RegisterAllocatorState.getDFN(begin) <= n &&
+          RegisterAllocatorState.getDFN(end) > n);
     }
   }
 
@@ -279,7 +279,7 @@ public final class ScratchMap {
     @Override
     public String toString() {
       return "SI: " + symbolic + " " + scratch + " [" +
-          LinearScan.getDFN(begin) + "," + LinearScan.getDFN(end) + "]";
+          RegisterAllocatorState.getDFN(begin) + "," + RegisterAllocatorState.getDFN(end) + "]";
     }
   }
 
@@ -303,8 +303,8 @@ public final class ScratchMap {
      */
     @Override
     public String toString() {
-      return "PI: " + scratch + " [" + LinearScan.getDFN(begin) +
-          "," + LinearScan.getDFN(end) + "]";
+      return "PI: " + scratch + " [" + RegisterAllocatorState.getDFN(begin) +
+          "," + RegisterAllocatorState.getDFN(end) + "]";
     }
   }
 }

@@ -489,7 +489,7 @@ public abstract class GenericStackManager extends IRTools {
     } else {
       // If the basic interval begins at s, then r is dead before
       // s.
-      return bi.getBegin() == LinearScan.getDFN(s);
+      return bi.getBegin() == RegisterAllocatorState.getDFN(s);
     }
   }
 

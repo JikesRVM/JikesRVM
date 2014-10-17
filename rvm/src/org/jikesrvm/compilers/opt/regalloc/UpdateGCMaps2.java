@@ -75,7 +75,7 @@ final class UpdateGCMaps2 extends CompilerPhase {
 
       Instruction GCinst = GCelement.getInstruction();
 
-      int dfn = LinearScan.getDFN(GCinst);
+      int dfn = RegisterAllocatorState.getDFN(GCinst);
 
       if (LinearScan.GC_DEBUG) {
         VM.sysWrite("GCelement at " + dfn + " , " + GCelement);

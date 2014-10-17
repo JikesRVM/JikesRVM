@@ -126,7 +126,7 @@ public final class IntervalAnalysis extends CompilerPhase {
         // check that we process live intervals in order of increasing
         // begin.
         if (VM.VerifyAssertions) {
-          int begin = LinearScan.getDfnBegin(live, bb);
+          int begin = RegisterAllocatorState.getDfnBegin(live, bb);
           VM._assert(begin >= lastBeginSeen);
           lastBeginSeen = begin;
         }
@@ -197,12 +197,12 @@ public final class IntervalAnalysis extends CompilerPhase {
       Enumeration<Instruction> e = bb.reverseInstrEnumerator();
       while (e.hasMoreElements()) {
         Instruction inst = e.nextElement();
-        LinearScan.setDFN(inst, curDfn);
+        RegisterAllocatorState.setDFN(inst, curDfn);
         curDfn--;
       }
     }
 
-    if (LinearScan.DEBUG) { LinearScan.printDfns(ir); }
+    if (LinearScan.DEBUG) { RegisterAllocatorState.printDfns(ir); }
   }
 
   /**
@@ -236,8 +236,8 @@ public final class IntervalAnalysis extends CompilerPhase {
 
     // get the reg and (adjusted) begin, end pair for this interval
     Register reg = live.getRegister();
-    int dfnend = LinearScan.getDfnEnd(live, bb);
-    int dfnbegin = LinearScan.getDfnBegin(live, bb);
+    int dfnend = RegisterAllocatorState.getDfnEnd(live, bb);
+    int dfnbegin = RegisterAllocatorState.getDfnBegin(live, bb);
 
     if (LinearScan.MUTATE_FMOV && reg.isFloatingPoint()) {
       Operators.helper.mutateFMOVs(live, reg, dfnbegin, dfnend);

@@ -125,7 +125,7 @@ public abstract class GenericRegisterRestrictions {
       Instruction s = ie.nextElement();
       if (s.operator().isCall() && s.operator() != CALL_SAVE_VOLATILE) {
         for (LiveIntervalElement symb : symbolic) {
-          if (contains(symb, LinearScan.getDFN(s))) {
+          if (contains(symb, RegisterAllocatorState.getDFN(s))) {
             forbidAllVolatiles(symb.getRegister());
           }
         }
@@ -138,7 +138,7 @@ public abstract class GenericRegisterRestrictions {
       if (s.operator() == YIELDPOINT_OSR) {
         for (LiveIntervalElement symb : symbolic) {
           if (symb.getRegister().isFloatingPoint()) {
-            if (contains(symb, LinearScan.getDFN(s))) {
+            if (contains(symb, RegisterAllocatorState.getDFN(s))) {
               forbidAllVolatiles(symb.getRegister());
             }
           }
@@ -177,10 +177,10 @@ public abstract class GenericRegisterRestrictions {
     int begin = -1;
     int end = Integer.MAX_VALUE;
     if (R.getBegin() != null) {
-      begin = LinearScan.getDFN(R.getBegin());
+      begin = RegisterAllocatorState.getDFN(R.getBegin());
     }
     if (R.getEnd() != null) {
-      end = LinearScan.getDFN(R.getEnd());
+      end = RegisterAllocatorState.getDFN(R.getEnd());
     }
 
     return ((begin <= n) && (n <= end));
@@ -209,18 +209,18 @@ public abstract class GenericRegisterRestrictions {
     int end2 = -1;
 
     if (li1.getBegin() != null) {
-      begin1 = LinearScan.getDFN(li1.getBegin());
+      begin1 = RegisterAllocatorState.getDFN(li1.getBegin());
     }
     if (li2.getEnd() != null) {
-      end2 = LinearScan.getDFN(li2.getEnd());
+      end2 = RegisterAllocatorState.getDFN(li2.getEnd());
     }
     if (end2 <= begin1 && end2 > -1) return false;
 
     if (li1.getEnd() != null) {
-      end1 = LinearScan.getDFN(li1.getEnd());
+      end1 = RegisterAllocatorState.getDFN(li1.getEnd());
     }
     if (li2.getBegin() != null) {
-      begin2 = LinearScan.getDFN(li2.getBegin());
+      begin2 = RegisterAllocatorState.getDFN(li2.getBegin());
     }
     return end1 > begin2 || end1 <= -1;
 
