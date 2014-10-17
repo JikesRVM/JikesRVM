@@ -2005,12 +2005,4 @@ public final class Instruction {
     return false;
   }
 
-  public int getScratch() {
-    return scratch;
-  }
-
-  public void setScratch(int scratch) {
-    this.scratch = scratch;
-  }
-
 }

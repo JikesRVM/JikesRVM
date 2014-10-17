@@ -13,6 +13,8 @@
 package org.jikesrvm.compilers.opt.regalloc;
 
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -33,6 +35,8 @@ public class RegisterAllocatorState {
   private int[] spills;
 
   private CompoundInterval[] intervals;
+
+  private Map<Instruction, Integer> depthFirstNumbers;
 
   RegisterAllocatorState(int registerCount) {
     spills = new int[registerCount];
@@ -121,6 +125,15 @@ public class RegisterAllocatorState {
   }
 
   /**
+   * Initializes data structures for depth first numbering.
+   * @param instructionCount an estimate of the total number of instructions.
+   */
+  void initializeDepthFirstNumbering(int instructionCount) {
+    int noRehashCapacity = (int) (instructionCount * 1.5f);
+    depthFirstNumbers = new HashMap<Instruction, Integer>(noRehashCapacity);
+  }
+
+  /**
    *  Associates the passed live interval with the passed register, using
    *  the scratchObject field of Register.
    *
@@ -137,7 +150,7 @@ public class RegisterAllocatorState {
    *  @param dfn the dfn number
    */
   void setDFN(Instruction inst, int dfn) {
-    inst.setScratch(dfn);
+    depthFirstNumbers.put(inst, Integer.valueOf(dfn));
   }
 
   /**
@@ -146,7 +159,7 @@ public class RegisterAllocatorState {
    *  @return the associated dfn
    */
   public int getDFN(Instruction inst) {
-    return inst.getScratch();
+    return depthFirstNumbers.get(inst);
   }
 
   /**

@@ -183,9 +183,10 @@ public final class IntervalAnalysis extends CompilerPhase {
    *  @param cfg the control flow graph
    */
   void assignDepthFirstNumbers(ControlFlowGraph cfg) {
+    int instructionCount = ir.countInstructions();
+    regAllocState.initializeDepthFirstNumbering(instructionCount);
 
-    int curDfn = ir.countInstructions() - 1;
-
+    int curDfn = instructionCount - 1;
     listOfBlocks = null;
     for (BasicBlock bb = reverseTopFirst; bb != null; bb = (BasicBlock) bb.sortedPrev) {
 

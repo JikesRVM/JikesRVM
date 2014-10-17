@@ -145,6 +145,8 @@ public class ScratchMapTest {
   public void beginScratchIntervalSavesInformationAboutScratchRegister() {
     Register scratch = createRegister(0);
     Instruction begin = createInstruction();
+    int instructionCount = 10;
+    regAllocState.initializeDepthFirstNumbering(instructionCount);
     int instNumber = 2;
     regAllocState.setDFN(begin, instNumber);
     scratchMap.beginScratchInterval(scratch, begin);
