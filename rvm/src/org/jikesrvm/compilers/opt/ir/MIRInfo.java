@@ -13,6 +13,7 @@
 package org.jikesrvm.compilers.opt.ir;
 
 import org.jikesrvm.ArchitectureSpecific.CodeArray;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.compilers.opt.regalloc.LinearScanState;
 import org.jikesrvm.compilers.opt.regalloc.RegisterAllocatorState;
 import org.jikesrvm.osr.VariableMap;
@@ -80,6 +81,8 @@ public final class MIRInfo {
   public LinearScanState linearScanState = null;
 
   public RegisterAllocatorState regAllocState = null;
+
+  public MachineCodeOffsets mcOffsets = null;
 
   public MIRInfo(IR ir) {
     ir.compiledMethod.setSaveVolatile(ir.method.getDeclaringClass().hasSaveVolatileAnnotation());

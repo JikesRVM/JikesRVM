@@ -19,7 +19,9 @@ import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.ExceptionHandlerBasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
+import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 
 /**
  * Encoding of try ranges in the final machinecode and the
@@ -38,6 +40,7 @@ final class OptExceptionTable extends ExceptionTable {
     int tableSize = countExceptionTableSize(ir);
     int[] eTable = new int[tableSize * 4];
 
+    MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
     // For each basic block
     //   See if it has code associated with it and if it has
     //   any reachable exception handlers.
@@ -56,8 +59,8 @@ final class OptExceptionTable extends ExceptionTable {
     for (BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); bblock != null;) {
       // Iteration is explicit in loop
 
-      int startOff = bblock.firstInstruction().getmcOffset();
-      int endOff = bblock.lastInstruction().getmcOffset();
+      int startOff = mcOffsets.getMachineCodeOffset(bblock.firstInstruction());
+      int endOff = mcOffsets.getMachineCodeOffset(bblock.lastInstruction());
       if (endOff > startOff) {
         if (!bblock.hasExceptionHandlers()) {
           bblock = bblock.nextBasicBlockInCodeOrder();
@@ -82,8 +85,8 @@ final class OptExceptionTable extends ExceptionTable {
 
         for (followonBB = bblock.nextBasicBlockInCodeOrder(); followonBB != null; followonBB =
             followonBB.nextBasicBlockInCodeOrder()) {
-          int fStartOff = followonBB.firstInstruction().getmcOffset();
-          int fEndOff = followonBB.lastInstruction().getmcOffset();
+          int fStartOff = mcOffsets.getMachineCodeOffset(followonBB.firstInstruction());
+          int fEndOff = mcOffsets.getMachineCodeOffset(followonBB.lastInstruction());
           // See if followon Block has any code
           if (fEndOff > fStartOff) {
             // See if followon Block has matching handler block bag
@@ -108,7 +111,13 @@ final class OptExceptionTable extends ExceptionTable {
           ExceptionHandlerBasicBlock eBlock = (ExceptionHandlerBasicBlock) e.nextElement();
           for (java.util.Enumeration<TypeOperand> ets = eBlock.getExceptionTypes(); ets.hasMoreElements();) {
             TypeOperand type = ets.nextElement();
-            int catchOffset = eBlock.firstInstruction().getmcOffset();
+            Instruction label = eBlock.firstInstruction();
+            if (mcOffsets.lacksMachineCodeOffset(label)) {
+              // handler block was removed from the IR and is unreachable, so
+              // skip it
+              continue;
+            }
+            int catchOffset = mcOffsets.getMachineCodeOffset(label);
             eTable[index + TRY_START] = currStartOff;
             eTable[index + TRY_END] = currEndOff;
             eTable[index + CATCH_START] = catchOffset;

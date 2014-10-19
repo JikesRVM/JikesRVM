@@ -186,21 +186,6 @@ public final class Instruction {
   public InlineSequence position;
 
   /**
-   * A scratch word to be used as needed by analyses/optimizations to store
-   * information during an optimization.<p>
-   * Cannot be used to communicate information between compiler phases since
-   * any phase is allowed to mutate it.<p>
-   * Cannot safely be assumed to have a particular value at the start of
-   * a phase.<p>
-   * Typical uses:
-   * <ul>
-   *   <li>scratch bits to encode true/false or numbering
-   *   <li>store an index into a lookaside array of other information.
-   * </ul>
-   */
-  private int scratch;
-
-  /**
    * The operator for this instruction.<p>
    * The same operator object can be shared by many instruction objects.
    */
@@ -443,30 +428,6 @@ public final class Instruction {
    */
   public void setBytecodeIndex(int bci) {
     bcIndex = bci;
-  }
-
-  /**
-   * Get the offset into the machine code array (in bytes) that
-   * corresponds to the first byte after this instruction.<p>
-   * This method only returns a valid value after it has been set as a
-   * side-effect of {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode final assembly}.<p>
-   * To get the offset in INSTRUCTIONs you must shift by LG_INSTURUCTION_SIZE.
-   *
-   * @return the offset (in bytes) of the machinecode instruction
-   *         generated for this IR instruction in the final machinecode
-   */
-  public int getmcOffset() {
-    return scratch;
-  }
-
-  /**
-   * Only for use by {@link org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt#generateCode}; sets the machine
-   * code offset of the instruction as described in {@link #getmcOffset}.
-   *
-   * @param mcOffset the offset (in bytes) for this instruction.
-   */
-  public void setmcOffset(int mcOffset) {
-    scratch = mcOffset;
   }
 
   /**

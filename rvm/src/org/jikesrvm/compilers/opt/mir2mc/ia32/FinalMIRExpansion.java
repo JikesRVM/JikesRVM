@@ -82,6 +82,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE_opcode;
+
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalDefUse;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
@@ -94,6 +95,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
@@ -121,10 +123,11 @@ public class FinalMIRExpansion extends IRTools {
    */
   public static int expand(IR ir) {
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
 
     for (Instruction next, p = ir.firstInstructionInCodeOrder(); p != null; p = next) {
       next = p.nextInstructionInCodeOrder();
-      p.setmcOffset(-1);
+      mcOffsets.setMachineCodeOffset(p, -1);
 
       switch (p.getOpcode()) {
         case IA32_TEST_opcode:
@@ -159,7 +162,7 @@ public class FinalMIRExpansion extends IRTools {
           thisBlock.insertOut(trap);
           TrapCodeOperand tc = MIR_TrapIf.getClearTrapCode(p);
           p.remove();
-          nextBlock.firstInstruction().setmcOffset(-1);
+          mcOffsets.setMachineCodeOffset(nextBlock.firstInstruction(), -1);
           // add code to thisBlock to conditionally jump to trap
           Instruction cmp = MIR_Compare.create(IA32_CMP, MIR_TrapIf.getVal1(p), MIR_TrapIf.getVal2(p));
           if (p.isMarkedAsPEI()) {

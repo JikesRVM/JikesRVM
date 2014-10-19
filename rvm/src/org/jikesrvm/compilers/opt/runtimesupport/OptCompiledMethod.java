@@ -29,6 +29,7 @@ import org.jikesrvm.compilers.common.ExceptionTable;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.InlineGuard;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.osr.EncodedOSRMap;
 import org.jikesrvm.runtime.DynamicLink;
 import org.jikesrvm.runtime.ExceptionDeliverer;
@@ -238,7 +239,7 @@ public final class OptCompiledMethod extends CompiledMethod {
 
   @Interruptible
   public void createFinalOSRMap(IR ir) {
-    this._osrMap = EncodedOSRMap.makeMap(ir.MIRInfo.osrVarMap);
+    this._osrMap = EncodedOSRMap.makeMap(ir.MIRInfo.osrVarMap, ir.MIRInfo.mcOffsets);
   }
 
   public EncodedOSRMap getOSRMap() {
@@ -454,11 +455,12 @@ public final class OptCompiledMethod extends CompiledMethod {
     // (2) if we have patch points, create the map.
     if (patchPoints != 0) {
       patchMap = new int[patchPoints * 2];
+      MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
       int idx = 0;
       for (Instruction s = ir.firstInstructionInCodeOrder(); s != null; s = s.nextInstructionInCodeOrder()) {
         if (s.operator() == IG_PATCH_POINT) {
-          int patchPoint = s.getmcOffset();
-          int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
+          int patchPoint = mcOffsets.getMachineCodeOffset(s);
+          int newTarget = mcOffsets.getMachineCodeOffset(InlineGuard.getTarget(s).target);
           // A patch map is the offset of the last byte of the patch point
           // and the new branch immediate to lay down if the code is ever patched.
           if (VM.BuildForIA32) {

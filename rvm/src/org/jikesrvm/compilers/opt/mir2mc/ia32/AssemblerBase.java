@@ -89,7 +89,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 
 import org.jikesrvm.ArchitectureSpecific.Assembler;
-import org.jikesrvm.ArchitectureSpecificOpt.AssemblerOpt;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.assembler.ForwardReference;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -110,13 +109,13 @@ import org.jikesrvm.compilers.opt.ir.Operator;
 import org.jikesrvm.compilers.opt.ir.Operators;
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrapCodeOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ia32.IA32ConditionOperand;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants;
 import org.jikesrvm.ia32.TrapConstants;
 import org.vmmagic.pragma.NoInline;
@@ -162,6 +161,10 @@ abstract class AssemblerBase extends Assembler
    */
   private static final Operator[] quadSizeOperators;
 
+  protected final MachineCodeOffsets mcOffsets;
+
+  protected final IR ir;
+
   static {
     ArrayList<Operator> temp = new ArrayList<Operator>();
     for (Operator opr : Operator.OperatorArray) {
@@ -198,6 +201,8 @@ abstract class AssemblerBase extends Assembler
     super(bytecodeSize, shouldPrint);
     EBP = ir.regpool.getPhysicalRegisterSet().getEBP();
     ESP = ir.regpool.getPhysicalRegisterSet().getESP();
+    mcOffsets = ir.MIRInfo.mcOffsets;
+    this.ir = ir;
   }
 
   /**
@@ -221,9 +226,11 @@ abstract class AssemblerBase extends Assembler
    * @return true if op represents an immediate
    */
   boolean isImm(Operand op) {
+    boolean isKnownJumpTarget = op.isBranch() &&
+        mcOffsets.getMachineCodeOffset(op.asBranch().target) >= 0;
     return (op instanceof IntConstantOperand) ||
            (op instanceof TrapCodeOperand) ||
-           (op instanceof BranchOperand && op.asBranch().target.getmcOffset() >= 0);
+           isKnownJumpTarget;
   }
 
   /**
@@ -246,7 +253,7 @@ abstract class AssemblerBase extends Assembler
       return op.asIntConstant().value;
     } else if (op.isBranch()) {
       // used by ImmOrLabel stuff
-      return op.asBranch().target.getmcOffset();
+      return mcOffsets.getMachineCodeOffset(op.asBranch().target);
     } else {
       return ((TrapCodeOperand) op).getTrapCode() + TrapConstants.RVM_TRAP_BASE;
     }
@@ -600,8 +607,9 @@ abstract class AssemblerBase extends Assembler
       // used by ImmOrLabel stuff
       return 0;
     } else {
-      if (op.asBranch().target.getmcOffset() < 0) {
-        return -op.asBranch().target.getmcOffset();
+      int offset = mcOffsets.getMachineCodeOffset(op.asBranch().target);
+      if (offset < 0) {
+        return -offset;
       } else {
         return -1;
       }
@@ -617,7 +625,11 @@ abstract class AssemblerBase extends Assembler
    * @return true if it represents a branch requiring a label target
    */
   boolean isLabel(Operand op) {
-    return (op instanceof BranchOperand && op.asBranch().target.getmcOffset() < 0);
+    if (op.isBranch()) {
+      return mcOffsets.getMachineCodeOffset(op.asBranch().target) < 0;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -736,7 +748,7 @@ abstract class AssemblerBase extends Assembler
     int offset = 0;
     while (true) {
       if (offset <= budget) return false;
-      if (inst.getmcOffset() == target) {
+      if (mcOffsets.getMachineCodeOffset(inst) == target) {
         return true;
       }
       offset += estimateSize(inst, offset);
@@ -1004,7 +1016,7 @@ abstract class AssemblerBase extends Assembler
         String msg = inst.toString();
         VM._assert(VM.NOT_REACHED, msg);
       }
-      int sourceLabel = -inst.getmcOffset();
+      int sourceLabel = -mcOffsets.getMachineCodeOffset(inst);
       int targetLabel = getLabel(MIR_CondBranch.getTarget(inst));
       int delta = targetLabel - sourceLabel;
       if (VM.VerifyAssertions) VM._assert(delta >= 0);
@@ -1032,7 +1044,7 @@ abstract class AssemblerBase extends Assembler
     if (isImm(MIR_Branch.getTarget(inst))) {
       emitJMP_Imm(getImm(MIR_Branch.getTarget(inst)));
     } else if (isLabel(MIR_Branch.getTarget(inst))) {
-      int sourceLabel = -inst.getmcOffset();
+      int sourceLabel = -mcOffsets.getMachineCodeOffset(inst);
       int targetLabel = getLabel(MIR_Branch.getTarget(inst));
       int delta = targetLabel - sourceLabel;
       if (VM.VerifyAssertions) VM._assert(delta >= 0);
@@ -1115,21 +1127,24 @@ abstract class AssemblerBase extends Assembler
   }
 
   /**
+   * Assembles the given instruction.
+   *
+   * @param inst the instruction to assemble
+   */
+  public abstract void doInst(Instruction inst);
+
+  /**
    * generate machine code into ir.machinecode.
-   * @param ir the IR to generate
-   * @param shouldPrint should we print the machine code?
    * @return the number of machinecode instructions generated
    */
-  public static int generateCode(IR ir, boolean shouldPrint) {
+  public int generateCode() {
     int count = 0;
-    AssemblerOpt asm = new AssemblerOpt(count, shouldPrint, ir);
-
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       // Set the mc offset of all instructions to their negative position.
       // A positive value in their position means they have been created
       // by the assembler.
       count++;
-      p.setmcOffset(-count);
+      mcOffsets.setMachineCodeOffset(p, -count);
       if (p.operator() == Operators.MIR_LOWTABLESWITCH) {
         // Table switch kludge, as these will occupy multiple slots in the
         // generated assembler
@@ -1139,22 +1154,22 @@ abstract class AssemblerBase extends Assembler
 
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
       if (DEBUG_ESTIMATE) {
-        int start = asm.getMachineCodeIndex();
-        int estimate = asm.estimateSize(p, start);
-        asm.doInst(p);
-        int end = asm.getMachineCodeIndex();
+        int start = getMachineCodeIndex();
+        int estimate = estimateSize(p, start);
+        doInst(p);
+        int end = getMachineCodeIndex();
         if (end - start > estimate) {
           VM.sysWriteln("Bad estimate: " + (end - start) + " " + estimate + " " + p);
           VM.sysWrite("\tMachine code: ");
-          asm.writeLastInstruction(start);
+          writeLastInstruction(start);
           VM.sysWriteln();
         }
       } else {
-        asm.doInst(p);
+        doInst(p);
       }
     }
 
-    ir.MIRInfo.machinecode = asm.getMachineCodes();
+    ir.MIRInfo.machinecode = getMachineCodes();
 
     return ir.MIRInfo.machinecode.length();
   }

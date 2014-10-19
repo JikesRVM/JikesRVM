@@ -33,6 +33,7 @@ import org.jikesrvm.ArchitectureSpecificOpt.OptGCMapIteratorConstants;
 import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.inlining.CallSiteTree;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.unboxed.Offset;
 
@@ -91,8 +92,10 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
   /**
    * @param varMap the variable map to use for building
    *  the EncodedOSRMap
+   * @param mcOffsets the machine code offsets for the
+   *  instructions
    */
-  private EncodedOSRMap(VariableMap varMap) {
+  private EncodedOSRMap(VariableMap varMap, MachineCodeOffsets mcOffsets) {
     int entries = varMap.getNumberOfElements();
 
     this.lastEntry = entries - 1;
@@ -100,7 +103,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
     if (VM.VerifyAssertions) VM._assert(entries > 0);
     this.mapEntries = new long[entries];
     ArrayList<Integer> tempOsrMaps = new ArrayList<Integer>();
-    translateMap(tempOsrMaps, varMap.list);
+    translateMap(tempOsrMaps, varMap.list, mcOffsets);
     this.osrMaps = new int[tempOsrMaps.size()];
     for (int i=0; i < tempOsrMaps.size(); i++) {
       this.osrMaps[i] = tempOsrMaps.get(i);
@@ -115,12 +118,13 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
    * Encodes the given variable map as OSRMap.
    *
    * @param varMap the variable map to encode
+   * @param mcOffsets machine code offsets for the instructions
    * @return the canonical empty map if the map
    * is empty, an encoded osr map otherwise
    */
-  public static EncodedOSRMap makeMap(VariableMap varMap) {
+  public static EncodedOSRMap makeMap(VariableMap varMap, MachineCodeOffsets mcOffsets) {
     if (varMap.getNumberOfElements() > 0) {
-      return new EncodedOSRMap(varMap);
+      return new EncodedOSRMap(varMap, mcOffsets);
     } else {
       return emptyMap;
     }
@@ -135,8 +139,11 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
    * @param tempOsrMaps an empty list that will hold temporary
    *  OSR map information
    * @param osrlist information about instructions and variables
+   * @param mcOffsets machine code offsets for the
+   *  instructions
    */
-  private void translateMap(ArrayList<Integer> tempOsrMaps, LinkedList<VariableMapElement> osrlist) {
+  private void translateMap(ArrayList<Integer> tempOsrMaps,
+      LinkedList<VariableMapElement> osrlist, final MachineCodeOffsets mcOffsets) {
 
     /* sort the list, use the mc offset of the index instruction
      * as the key.
@@ -159,7 +166,8 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
         new Comparator<VariableMapElement>() {
           @Override
           public int compare(VariableMapElement a, VariableMapElement b) {
-            return a.osr.getmcOffset() - b.osr.getmcOffset();
+            return mcOffsets.getMachineCodeOffset(a.osr) -
+                mcOffsets.getMachineCodeOffset(b.osr);
           }
         });
     }
@@ -185,7 +193,7 @@ public final class EncodedOSRMap implements OptGCMapIteratorConstants {
       int osrMapIndex = generateOsrMaps(tempOsrMaps, mVarList);
 
       // use this offset, and adjust on extractState
-      int mcOffset = instr.getmcOffset();
+      int mcOffset = mcOffsets.getMachineCodeOffset(instr);
       setMCOffset(i, mcOffset);
       setOSRMapIndex(i, osrMapIndex);
       setBCIndex(i, instr.getBytecodeIndex());

@@ -1243,15 +1243,7 @@ public class GenerateAssembler {
     emit("private int instructionCount = 0;\n\n");
 
     emitTab(1);
-    emit("/**\n");
-    emitTab(1);
-    emit(" *  Assemble the given instruction\n");
-    emitTab(1);
-    emit(" *\n");
-    emitTab(1);
-    emit(" * @param inst the instruction to assemble\n");
-    emitTab(1);
-    emit(" */\n");
+    emit("@Override\n");
     emitTab(1);
     emit("public void doInst(Instruction inst) {\n");
     emitTab(2);
@@ -1338,11 +1330,10 @@ public class GenerateAssembler {
       emitTab(4);
       emit("throw new OptimizingCompilerException(inst + \" has unimplemented IA32 opcode (check excludedOpcodes)\");\n");
     }
-
     emitTab(2);
     emit("}\n");
     emitTab(2);
-    emit("inst.setmcOffset( mi );\n");
+    emit("mcOffsets.setMachineCodeOffset(inst, mi);\n");
     emitTab(1);
     emit("}\n\n");
 

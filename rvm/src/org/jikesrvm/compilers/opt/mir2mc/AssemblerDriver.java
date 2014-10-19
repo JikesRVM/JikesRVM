@@ -58,9 +58,10 @@ final class AssemblerDriver extends CompilerPhase {
     //////////
     // STEP 2: Generate the machinecode array.
     // As part of the generation, the machinecode offset
-    // of every instruction will be set by calling setmcOffset.
+    // of every instruction will be set.
     //////////
-    int codeLength = AssemblerOpt.generateCode(ir, shouldPrint);
+    AssemblerOpt asm = new AssemblerOpt(0, shouldPrint, ir);
+    int codeLength = asm.generateCode();
 
     //////////
     // STEP 3: Generate all the mapping information

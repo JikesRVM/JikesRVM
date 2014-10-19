@@ -32,6 +32,7 @@ import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IRTools;
 import org.jikesrvm.compilers.opt.ir.Instruction;
+
 import static org.jikesrvm.compilers.opt.ir.Operators.BBEND_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.LABEL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.MIR_LOWTABLESWITCH_opcode;
@@ -63,12 +64,16 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE_opcode
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE_opcode;
+
 import org.jikesrvm.compilers.opt.ir.Register;
 import org.jikesrvm.compilers.opt.ir.operand.MethodOperand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.ppc.PowerPCConditionOperand;
 import org.jikesrvm.compilers.opt.ir.ppc.PhysicalRegisterSet;
+import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
+
 import static org.jikesrvm.compilers.opt.regalloc.ppc.PhysicalRegisterConstants.LAST_SCRATCH_GPR;
+
 import org.jikesrvm.compilers.opt.util.Bits;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.RVMThread;
@@ -93,15 +98,16 @@ public abstract class FinalMIRExpansion extends IRTools {
     int machinecodeLength = 0;
 
     PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
+    MachineCodeOffsets mcOffsets = ir.MIRInfo.mcOffsets;
     for (Instruction p = ir.firstInstructionInCodeOrder(); p != null; p = p.nextInstructionInCodeOrder()) {
-      p.setmcOffset(-1);
+      mcOffsets.setMachineCodeOffset(p, -1);
 
       switch (p.getOpcode()) {
         case MIR_LOWTABLESWITCH_opcode: {
 
           BasicBlock tableBlock = p.getBasicBlock();
           BasicBlock nextBlock = tableBlock.splitNodeWithLinksAt(p.prevInstructionInCodeOrder(), ir);
-          nextBlock.firstInstruction().setmcOffset(-1);
+          mcOffsets.setMachineCodeOffset(nextBlock.firstInstruction(), -1);
           Register regI = MIR_LowTableSwitch.getIndex(p).getRegister();
           int NumTargets = MIR_LowTableSwitch.getNumberOfTargets(p);
           tableBlock.appendInstruction(MIR_Call.create0(PPC_BL, null, null, nextBlock.makeJumpTarget()));
