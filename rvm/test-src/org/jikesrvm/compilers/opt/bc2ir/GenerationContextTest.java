@@ -862,7 +862,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
     RegisterOperand expectedLocalForObjectParam = child.makeLocal(0, objectParam);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
@@ -925,12 +925,12 @@ public class GenerationContextTest {
 
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
     Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, outermostCaller);
-    GenerationContext nextInnerContext = GenerationContext.createChildContext(outermostContext, ebag, callee, noCheckStoreInstr);
+    GenerationContext nextInnerContext = outermostContext.createChildContext(ebag, callee, noCheckStoreInstr);
     assertThat(nextInnerContext.getOriginalMethod(), is(outermostCaller));
 
     NormalMethod nextInnerCallee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
     Instruction noNullCheckInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nextInnerCallee);
-    GenerationContext innermostContext = GenerationContext.createChildContext(nextInnerContext, ebag, nextInnerCallee, noNullCheckInstr);
+    GenerationContext innermostContext = nextInnerContext.createChildContext(ebag, nextInnerCallee, noNullCheckInstr);
     assertThat(innermostContext.getOriginalMethod(), is(outermostCaller));
   }
 
@@ -966,7 +966,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1107,7 +1107,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1224,7 +1224,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1338,7 +1338,7 @@ public class GenerationContextTest {
     callInstr.position = new InlineSequence(nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
-    GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    gc.createChildContext(ebag, callee, callInstr);
   }
 
   private static class InvalidReceiverOperand extends Operand {
@@ -1382,7 +1382,7 @@ public class GenerationContextTest {
     int nodeNumber = 12345;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1444,21 +1444,21 @@ public class GenerationContextTest {
 
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoBoundCheckAnnotation");
     Instruction noBoundsInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
-    GenerationContext noBoundsContext = GenerationContext.createChildContext(gc, ebag, callee, noBoundsInstr);
+    GenerationContext noBoundsContext = gc.createChildContext(ebag, callee, noBoundsInstr);
     assertTrue(noBoundsContext.noBoundsChecks());
     assertFalse(noBoundsContext.noNullChecks());
     assertFalse(noBoundsContext.noCheckStoreChecks());
 
     callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
     Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
-    GenerationContext noCheckStoreContext = GenerationContext.createChildContext(gc, ebag, callee, noCheckStoreInstr);
+    GenerationContext noCheckStoreContext = gc.createChildContext(ebag, callee, noCheckStoreInstr);
     assertFalse(noCheckStoreContext.noBoundsChecks());
     assertFalse(noCheckStoreContext.noNullChecks());
     assertTrue(noCheckStoreContext.noCheckStoreChecks());
 
     callee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
     Instruction noNullChecks = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
-    GenerationContext noNullCheckContext = GenerationContext.createChildContext(gc, ebag, callee, noNullChecks);
+    GenerationContext noNullCheckContext = gc.createChildContext(ebag, callee, noNullChecks);
     assertFalse(noNullCheckContext.noBoundsChecks());
     assertTrue(noNullCheckContext.noNullChecks());
     assertFalse(noNullCheckContext.noCheckStoreChecks());
@@ -1484,7 +1484,7 @@ public class GenerationContextTest {
     NormalMethod callee = getNormalMethodForTest("emptySynchronizedStaticMethod");
     Instruction callInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
     ExceptionHandlerBasicBlockBag ebag = gc.getEnclosingHandlers();
-    GenerationContext childContext = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext childContext = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatExceptionHandlersWereGenerated(childContext);
 
@@ -1598,7 +1598,7 @@ public class GenerationContextTest {
     int nodeNumber = 23456;
     gc.getCfg().setNumberOfNodes(nodeNumber);
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, callee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, callee, callInstr);
 
     assertThatStateIsCopiedFromParentToChild(gc, callee, child, ebag);
 
@@ -1632,7 +1632,7 @@ public class GenerationContextTest {
     Instruction callInstr = buildCallInstructionForStaticMethodWithoutReturn(interruptibleCallee, nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
-    GenerationContext child = GenerationContext.createChildContext(gc, ebag, interruptibleCallee, callInstr);
+    GenerationContext child = gc.createChildContext(ebag, interruptibleCallee, callInstr);
 
     Enumeration<Instruction> prologueRealInstr = child.getPrologue().forwardRealInstrEnumerator();
     assertThatNoMoreInstructionsExist(prologueRealInstr);
@@ -1666,7 +1666,7 @@ public class GenerationContextTest {
     Instruction callInstr = buildCallInstructionForStaticMethodWithoutReturn(interruptibleCallee, nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
-    GenerationContext child = GenerationContext.createChildContext(parent, ebag, interruptibleCallee, callInstr);
+    GenerationContext child = parent.createChildContext(ebag, interruptibleCallee, callInstr);
     setTransferableProperties(targetNumberOfNodes, child);
 
     child.transferStateToParent();
@@ -2026,11 +2026,11 @@ public class GenerationContextTest {
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithNoCheckStoreAnnotation");
     Instruction noCheckStoreInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nm);
-    GenerationContext nextInnerContext = GenerationContext.createChildContext(gc, ebag, callee, noCheckStoreInstr);
+    GenerationContext nextInnerContext = gc.createChildContext(ebag, callee, noCheckStoreInstr);
 
     NormalMethod nextInnerCallee = getNormalMethodForTest("emptyStaticMethodWithNoNullCheckAnnotation");
     Instruction noNullCheckInstr = buildCallInstructionForStaticMethodWithoutReturn(callee, nextInnerCallee);
-    GenerationContext innermostContext = GenerationContext.createChildContext(nextInnerContext, ebag, nextInnerCallee, noNullCheckInstr);
+    GenerationContext innermostContext = nextInnerContext.createChildContext(ebag, nextInnerCallee, noNullCheckInstr);
 
     assertThat(innermostContext.methodIsSelectedForDebuggingWithMethodToPrint(), is(true));
   }
@@ -2076,13 +2076,13 @@ public class GenerationContextTest {
     callInstr.position = new InlineSequence(nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
-    GenerationContext child = GenerationContext.createChildContext(outermost, ebag, callee, callInstr);
+    GenerationContext child = outermost.createChildContext(ebag, callee, callInstr);
     Instruction osrBarrier = createMockOSRBarrier();
     Instruction call = createMockCall();
     child.saveOSRBarrierForInst(osrBarrier, call);
     assertThat(outermost.getOSRBarrierFromInst(call), is(osrBarrier));
 
-    GenerationContext child2 = GenerationContext.createChildContext(child, ebag, callee, callInstr);
+    GenerationContext child2 = child.createChildContext(ebag, callee, callInstr);
     Instruction osrBarrier2 = createMockOSRBarrier();
     Instruction call2 = createMockCall();
     child2.saveOSRBarrierForInst(osrBarrier2, call2);
@@ -2110,14 +2110,14 @@ public class GenerationContextTest {
     callInstr.position = new InlineSequence(nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
 
-    GenerationContext child = GenerationContext.createChildContext(outermost, ebag, callee, callInstr);
+    GenerationContext child = outermost.createChildContext(ebag, callee, callInstr);
     Instruction osrBarrier = createMockOSRBarrier();
     Instruction call = createMockCall();
     child.saveOSRBarrierForInst(osrBarrier, call);
     assertThat(outermost.getOSRBarrierFromInst(call), is(osrBarrier));
     assertThat(child.getOSRBarrierFromInst(call), is(osrBarrier));
 
-    GenerationContext child2 = GenerationContext.createChildContext(outermost, ebag, callee, callInstr);
+    GenerationContext child2 = outermost.createChildContext(ebag, callee, callInstr);
     assertThat(child2.getOSRBarrierFromInst(call), is(osrBarrier));
   }
 

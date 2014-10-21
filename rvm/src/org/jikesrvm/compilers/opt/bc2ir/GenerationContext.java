@@ -97,10 +97,10 @@ public final class GenerationContext {
   //////////
 
   /**
-   * The parent of this context is the context that called
-   * {@link #createChildContext(GenerationContext, ExceptionHandlerBasicBlockBag, NormalMethod, Instruction)}
-   * to create this context. This field is {@code null} if this context is the outermost
-   * one.
+   * The parent of this context is the context that the method
+   * {@link #createChildContext(ExceptionHandlerBasicBlockBag, NormalMethod, Instruction)}
+   * was called upon in order to create this context. This field is {@code null}
+   * if this context is the outermost one.
    */
   private GenerationContext parent;
 
@@ -334,33 +334,34 @@ public final class GenerationContext {
   }
 
   /**
-   * Create a child generation context from parent &amp; callerBB to
-   * generate IR for callsite.
-   * Make this 'static' to avoid confusing parent/child fields.
+   * Creates a child generation context from this context
+   * and callerBB to generate IR for callsite.
    *
-   * @param parent the parent gc
    * @param ebag the enclosing exception handlers (null if none)
    * @param callee the callee method to be inlined
    *        (may _not_ be equal to Call.getMethod(callSite).method)
    * @param callSite the Call instruction to be inlined.
    * @return the child context
    */
-  public static GenerationContext createChildContext(GenerationContext parent, ExceptionHandlerBasicBlockBag ebag,
+  public GenerationContext createChildContext(ExceptionHandlerBasicBlockBag ebag,
                                                   NormalMethod callee, Instruction callSite) {
+    // Note: In this method, use "this" explicitly to refer to parent fields in order
+    // to avoid confusing parent/child fields.
+
     GenerationContext child = new GenerationContext();
     child.method = callee;
-    if (parent.options.frequencyCounters() || parent.options.inverseFrequencyCounters()) {
+    if (this.options.frequencyCounters() || this.options.inverseFrequencyCounters()) {
       child.branchProfiles = EdgeCounts.getBranchProfiles(callee);
     }
-    child.parent = parent;
-    child.original_cm = parent.original_cm;
+    child.parent = this;
+    child.original_cm = this.original_cm;
 
     // Some state gets directly copied to the child
-    child.options = parent.options;
-    child.temps = parent.temps;
-    child._ncGuards = parent._ncGuards;
-    child.exit = parent.exit;
-    child.inlinePlan = parent.inlinePlan;
+    child.options = this.options;
+    child.temps = this.temps;
+    child._ncGuards = this._ncGuards;
+    child.exit = this.exit;
+    child.inlinePlan = this.inlinePlan;
 
     // Now inherit state based on callSite
     child.inlineSequence = new InlineSequence(child.method, callSite.position, callSite);
@@ -376,7 +377,7 @@ public final class GenerationContext {
     }
 
     // Initialize the child CFG, prologue, and epilogue blocks
-    child.cfg = new ControlFlowGraph(parent.cfg.numberOfNodes());
+    child.cfg = new ControlFlowGraph(this.cfg.numberOfNodes());
     child.prologue = new BasicBlock(PROLOGUE_BCI, child.inlineSequence, child.cfg);
     child.prologue.exceptionHandlers = ebag;
     child.epilogue = new BasicBlock(EPILOGUE_BCI, child.inlineSequence, child.cfg);

@@ -163,7 +163,7 @@ public class Inliner {
                       " at bytecode " + callSite.bcIndex + "\n");
         }
         // (b)
-        children[i] = GenerationContext.createChildContext(parent, ebag, callee, callSite);
+        children[i] = parent.createChildContext(ebag, callee, callSite);
         BC2IR.generateHIR(children[i]);
         children[i].transferStateToParent();
       }
@@ -441,8 +441,7 @@ public class Inliner {
                     " into " + callSite.position.getMethod() +
                     " at bytecode " + callSite.bcIndex + "\n");
       }
-      GenerationContext child = GenerationContext.
-          createChildContext(parent, ebag, callee, callSite);
+      GenerationContext child = parent.createChildContext(ebag, callee, callSite);
       BC2IR.generateHIR(child);
       child.transferStateToParent();
       return child;
