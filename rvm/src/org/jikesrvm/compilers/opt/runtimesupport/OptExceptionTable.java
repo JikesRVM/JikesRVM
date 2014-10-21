@@ -30,6 +30,17 @@ import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
 final class OptExceptionTable extends ExceptionTable {
 
   /**
+   * Marker for catch blocks that have no associated code. This happens
+   * when the optimizing compiler deems the catch block to be unreachable
+   * and removes it from the IR.
+   * <p>
+   * The only constraint on the concrete value for this marker is that
+   * it must be negative to ensure that the non-existent catch block
+   * is never found when exceptions are delivered.
+   */
+  private static final int UNREACHABLE_CATCH_BLOCK = 0xDEADC0DE;
+
+  /**
    * Encode an exception table
    * @param ir the IR to encode the exception table for
    * @return the encoded exception table
@@ -112,15 +123,19 @@ final class OptExceptionTable extends ExceptionTable {
           for (java.util.Enumeration<TypeOperand> ets = eBlock.getExceptionTypes(); ets.hasMoreElements();) {
             TypeOperand type = ets.nextElement();
             Instruction label = eBlock.firstInstruction();
+            int catchOffset;
             if (mcOffsets.lacksMachineCodeOffset(label)) {
-              // handler block was removed from the IR and is unreachable, so
-              // skip it
-              continue;
+              // handler block was removed from the IR and is unreachable.
+              // Make sure that we can recognize this as an error at runtime
+              // if the catch block is actually reachable.
+              catchOffset = UNREACHABLE_CATCH_BLOCK;
+            } else {
+              catchOffset = mcOffsets.getMachineCodeOffset(label);
             }
-            int catchOffset = mcOffsets.getMachineCodeOffset(label);
             eTable[index + TRY_START] = currStartOff;
             eTable[index + TRY_END] = currEndOff;
             eTable[index + CATCH_START] = catchOffset;
+
             try {
               eTable[index + EX_TYPE] = type.getTypeRef().resolve().getId();
             } catch (NoClassDefFoundError except) {
@@ -173,6 +188,11 @@ final class OptExceptionTable extends ExceptionTable {
     }
     return tSize;
   }
+
+  static boolean belongsToUnreachableCatchBlock(int catchOffset) {
+    return catchOffset == UNREACHABLE_CATCH_BLOCK;
+  }
+
 }
 
 

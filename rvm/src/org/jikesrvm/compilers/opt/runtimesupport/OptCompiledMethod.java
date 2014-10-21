@@ -84,9 +84,41 @@ public final class OptCompiledMethod extends CompiledMethod {
     if (eTable == null) {
       return -1;
     } else {
-      return ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
+      int catchOffset = ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
+      dealWithPossibleRemovalOfCatchBlockByTheOptCompiler(instructionOffset,
+          exceptionType, catchOffset);
+      return catchOffset;
     }
   }
+
+  private void dealWithPossibleRemovalOfCatchBlockByTheOptCompiler(
+      Offset instructionOffset, RVMType exceptionType, int catchOffset) {
+    if (OptExceptionTable.belongsToUnreachableCatchBlock(catchOffset)) {
+      if (VM.VerifyAssertions) {
+        VM.sysWriteln("Attempted to use a catch block that was determined to be unreachable" +
+            " by the optimizing compiler and thus removed from the IR before " +
+            "code was generated for it.");
+        VM.sysWrite("Instruction offset: ");
+        VM.sysWrite(instructionOffset);
+        VM.sysWriteln();
+        VM.sysWrite("Exception type: ");
+        VM.sysWrite(exceptionType.getDescriptor());
+        VM.sysWriteln();
+        ExceptionTable.printExceptionTable(eTable);
+        VM._assert(VM.NOT_REACHED,
+            "Attempted to use catch block that was removed from the code by the opt compiler!");
+      } else {
+        if (VM.TraceExceptionDelivery) {
+          VM.sysWriteln("Found a catch block that was determined by the optimizing" +
+              " compiler to be unreachable (and thus removed), ignoring it.");
+        }
+        // Nothing more to do. The unreachable catch block marker is negative which
+        // will cause the exception delivery code to ignore the catch block.
+      }
+    }
+  }
+
+
 
   /**
    * Fetch symbolic reference to a method that's called
