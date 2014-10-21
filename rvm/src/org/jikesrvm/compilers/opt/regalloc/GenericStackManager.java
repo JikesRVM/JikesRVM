@@ -63,8 +63,8 @@ public abstract class GenericStackManager extends IRTools {
 
   protected IR ir;
   protected RegisterAllocatorState regAllocState;
-  protected int frameSize;      // = 0;  (by default)
-  protected boolean allocFrame; // = false;  (by default)
+  protected int frameSize;
+  protected boolean allocFrame;
 
   /**
    * Object holding register preferences
@@ -1298,14 +1298,16 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * Called as part of the register allocator startup.
-   * (1) examine the IR to determine whether or not we need to
-   *     allocate a stack frame
-   * (2) given that decison, determine whether or not we need to have
+   * <ol>
+   *   <li>examine the IR to determine whether or not we need to
+   *     allocate a stack frame</li>
+   *   <li>given that decison, determine whether or not we need to have
    *     prologue/epilogue yieldpoints.  If we don't need them, remove them.
-   *     Set up register preferences.
-   * (3) initialization code for the old RegisterManager.
-   * (4) save caughtExceptionOffset where the exception deliverer can find it
-   * (5) initialize the restrictions object
+   *     Set up register preferences.</li>
+   *   <li>initialization code for the old RegisterManager</li>
+   *   <li>save caughtExceptionOffset where the exception deliverer can find it</li>
+   *   <li>initialize the restrictions object</li>
+   * </ol>
    * @param ir the IR
    */
   public void prepare(IR ir) {
@@ -1363,7 +1365,7 @@ public abstract class GenericStackManager extends IRTools {
     boolean removeYieldpoints = isSingleBlock && !preventYieldPointRemoval;
 
     // In adaptive systems if we require a frame, we don't remove
-    //  any yield poits
+    //  any yield points
     if (VM.BuildForAdaptiveSystem && frameRequired) {
       removeYieldpoints = false;
     }
@@ -1458,10 +1460,10 @@ public abstract class GenericStackManager extends IRTools {
   }
 
   /**
-   *  Find a nonvolatile register to allocate starting at the reg corresponding
-   *  to the symbolic register passed
-   *
-   *  TODO: Clean up this interface.
+   * Find a nonvolatile register to allocate starting at the reg corresponding
+   * to the symbolic register passed.
+   * <p>
+   * TODO: Clean up this interface.
    *
    *  @param symbReg the place to start the search
    *  @return the allocated register or null
