@@ -41,7 +41,7 @@ public class LocalRegPair {
    */
   public final Operand operand;
 
-  /* rest part only available after updated by LinearScan.updateOSRMaps. */
+  /* rest part only available after the OSR maps were updated */
 
   /**
    * A reg value could be
