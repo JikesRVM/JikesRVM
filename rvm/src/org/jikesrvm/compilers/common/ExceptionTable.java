@@ -17,6 +17,7 @@ import org.jikesrvm.Services;
 import org.jikesrvm.classloader.DynamicTypeCheck;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.objectmodel.TIB;
+import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.unboxed.Offset;
 
@@ -72,19 +73,61 @@ public abstract class ExceptionTable {
    * @param eTable the encoded exception table to print.
    */
   public static void printExceptionTable(int[] eTable) {
+    writeExceptionTableHeader();
     int length = eTable.length;
+    for (int i = 0; i < length; i += 4) {
+      printNicelyFormattedAndInterruptible(eTable, i);
+    }
+  }
+
+  @Uninterruptible
+  private static void writeExceptionTableHeader() {
     VM.sysWriteln("Exception Table:");
     VM.sysWriteln("    trystart   tryend    catch    type");
+  }
+
+  private static void printNicelyFormattedAndInterruptible(int[] eTable, int i) {
+    VM.sysWriteln("    " +
+                  Services.getHexString(eTable[i + TRY_START], true) +
+                  " " +
+                  Services.getHexString(eTable[i + TRY_END], true) +
+                  " " +
+                  Services.getHexString(eTable[i + CATCH_START], true) +
+                  "    " +
+                  RVMType.getType(eTable[i + EX_TYPE]));
+  }
+
+
+  /**
+   * Prints an exception table.
+   * <p>
+   * This method does the same thing as {@link #printExceptionTable(int[])} but
+   * with less nicely formatted output because of the constraints imposed by
+   * the requirements for uninterruptible code.
+   *
+   * @param eTable the exception table to print
+   */
+  @Uninterruptible
+  public static void printExceptionTableUninterruptible(int[] eTable) {
+    writeExceptionTableHeader();
+    int length = eTable.length;
     for (int i = 0; i < length; i += 4) {
-      VM.sysWriteln("    " +
-                    Services.getHexString(eTable[i + TRY_START], true) +
-                    " " +
-                    Services.getHexString(eTable[i + TRY_END], true) +
-                    " " +
-                    Services.getHexString(eTable[i + CATCH_START], true) +
-                    "    " +
-                    RVMType.getType(eTable[i + EX_TYPE]));
+      printLessNicelyFormattedAndUninterruptible(eTable, i);
     }
+  }
+
+  @Uninterruptible
+  private static void printLessNicelyFormattedAndUninterruptible(int[] eTable,
+      int i) {
+    VM.sysWrite("    ");
+    VM.sysWriteHex(eTable[i + TRY_START]);
+    VM.sysWrite(" ");
+    VM.sysWriteHex(eTable[i + TRY_END]);
+    VM.sysWrite(" ");
+    VM.sysWriteHex(eTable[i + CATCH_START]);
+    VM.sysWrite("    ");
+    VM.sysWrite(RVMType.getType(eTable[i + EX_TYPE]).getDescriptor());
+    VM.sysWriteln();
   }
 }
 

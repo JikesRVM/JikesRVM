@@ -22,6 +22,7 @@ import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.compilers.opt.mir2mc.MachineCodeOffsets;
+import org.vmmagic.pragma.Uninterruptible;
 
 /**
  * Encoding of try ranges in the final machinecode and the
@@ -189,6 +190,7 @@ final class OptExceptionTable extends ExceptionTable {
     return tSize;
   }
 
+  @Uninterruptible
   static boolean belongsToUnreachableCatchBlock(int catchOffset) {
     return catchOffset == UNREACHABLE_CATCH_BLOCK;
   }

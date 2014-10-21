@@ -91,6 +91,7 @@ public final class OptCompiledMethod extends CompiledMethod {
     }
   }
 
+  @Uninterruptible
   private void dealWithPossibleRemovalOfCatchBlockByTheOptCompiler(
       Offset instructionOffset, RVMType exceptionType, int catchOffset) {
     if (OptExceptionTable.belongsToUnreachableCatchBlock(catchOffset)) {
@@ -104,7 +105,7 @@ public final class OptCompiledMethod extends CompiledMethod {
         VM.sysWrite("Exception type: ");
         VM.sysWrite(exceptionType.getDescriptor());
         VM.sysWriteln();
-        ExceptionTable.printExceptionTable(eTable);
+        ExceptionTable.printExceptionTableUninterruptible(eTable);
         VM._assert(VM.NOT_REACHED,
             "Attempted to use catch block that was removed from the code by the opt compiler!");
       } else {
