@@ -34,6 +34,7 @@
   <property name="test.results.file" value="${test.results.dir}/Results.xml"/>
   <property name="build.results.file" value="${test.results.dir}/BuildResults.xml"/>
   <property name="test.report.file" value="${test.results.dir}/Report.xml"/>
+  <property name="test.report-minimal.file" value="${test.results.dir}/MinimalReport-JUnitFormat.xml"/>
   <property name="test.report.html" value="${test.results.dir}/Report.html"/>
   <property name="test.report.dna.xml" value="${test.results.dir}/CompilerDNA.xml"/>
   <property name="temp.aggregate.file" value="${test.results.dir}/Aggregate.xml"/>
@@ -362,6 +363,16 @@
       <outputproperty name="omit-xml-declaration" value="yes"/>
     </xslt>
     <delete file="${temp.aggregate.file}"/>
+
+    <!-- Generate report in Ant JUnit Task format -->
+    <xslt in="${test.results.file}"
+          out="${test.report-minimal.file}"
+          style="${jikesrvm.dir}/build/results2JUnitReport.xsl"
+          force="true">
+      <outputproperty name="method" value="xml"/>
+      <outputproperty name="encoding" value="US-ASCII"/>
+      <outputproperty name="indent" value="yes"/>
+    </xslt>
   </target>
 
   <!-- **************************************************************************** -->
@@ -374,6 +385,8 @@
     <mkdir dir="${results.archive}"/>
     <property name="archive.filename" value="${local.hostname}_${test-run.variant}_${test-run.start.time-stamp}_r${hg.revision}_${target.name}_Report.xml"/>
     <gzip src="${test.report.file}" destfile="${results.archive}/${archive.filename}.gz"/>
+    <property name="archive.filename-junit-report" value="${local.hostname}_${test-run.variant}_${test-run.start.time-stamp}_r${hg.revision}_${target.name}_MinimalReport-JUnitFormat.xml"/>
+    <gzip src="${test.report-minimal.file}" destfile="${results.archive}/${archive.filename-junit-report}.gz"/>
   </target>
 
   <!-- **************************************************************************** -->
