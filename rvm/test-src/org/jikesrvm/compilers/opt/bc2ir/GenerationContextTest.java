@@ -1235,7 +1235,7 @@ public class GenerationContextTest {
     RegisterOperand expectedLocalForReceiverParam = child.makeLocal(0, thisArg.getType());
     expectedLocalForReceiverParam.setPreciseType();
     RegisterOperand expectedNullCheckGuard = child.makeNullCheckGuard(expectedLocalForReceiverParam.getRegister());
-    BC2IR.setGuard(expectedLocalForReceiverParam, expectedNullCheckGuard);
+    BC2IR.setGuardForRegOp(expectedLocalForReceiverParam, expectedNullCheckGuard);
     assertNotNull(expectedNullCheckGuard);
 
     RegisterOperand firstArg = child.getArguments()[1].asRegister();

@@ -2294,7 +2294,7 @@ public final class BC2IR {
           } else {
             TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
             if (isNonNull(op2)) {
-              s = TypeCheck.create(CHECKCAST_NOTNULL, refinedOp2, op2.copy(), typeOp, getGuard(op2));
+              s = TypeCheck.create(CHECKCAST_NOTNULL, refinedOp2, op2.copy(), typeOp, copyGuardFromOperand(op2));
             } else {
               s = TypeCheck.create(CHECKCAST, refinedOp2, op2.copy(), typeOp);
             }
@@ -2340,7 +2340,7 @@ public final class BC2IR {
           } else {
             TypeOperand typeOp = makeTypeOperand(typeRef.peekType());
             if (isNonNull(op2)) {
-              s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, getGuard(op2));
+              s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, copyGuardFromOperand(op2));
             } else {
               s = InstanceOf.create(INSTANCEOF, t, typeOp, op2);
             }
@@ -2857,7 +2857,7 @@ public final class BC2IR {
       if (val.isRegister()) {
         returningRegister = true;
         ret.setInheritableFlags(val.asRegister());
-        setGuard(ret, getGuard(val));
+        setGuardForRegOp(ret, copyGuardFromOperand(val));
       }
       appendInstruction(Move.create(operator, ret, val));
       // pass analysis facts about val back to our caller
@@ -3209,8 +3209,8 @@ public final class BC2IR {
       op0 = gc.makeLocal(index, rop1);
       if (hasGuard(rop1)) {
         RegisterOperand g0 = gc.makeNullCheckGuard(op0.getRegister());
-        appendInstruction(Move.create(GUARD_MOVE, g0.copyRO(), getGuard(rop1)));
-        setGuard(op0, g0);
+        appendInstruction(Move.create(GUARD_MOVE, g0.copyRO(), copyGuardFromOperand(rop1)));
+        setGuardForRegOp(op0, g0);
       }
     } else {
       op0 = gc.makeLocal(index, type);
@@ -3585,8 +3585,8 @@ public final class BC2IR {
     }
     if (rop1.getGuard() instanceof Operand) {
       if (rop2.getGuard() instanceof Operand) {
-        Operand op1 = (Operand) rop1.getGuard();
-        Operand op2 = (Operand) rop2.getGuard();
+        Operand op1 = rop1.getGuard();
+        Operand op2 = rop2.getGuard();
         if (op2 instanceof TrueGuardOperand) {
           // rop2 is top therefore rop1 can't be less conservative!
           return false;
@@ -3608,7 +3608,7 @@ public final class BC2IR {
     rop.setGuard(g.copy());
   }
 
-  public static Operand getGuard(Operand op) {
+  public static Operand copyGuardFromOperand(Operand op) {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
@@ -3619,7 +3619,7 @@ public final class BC2IR {
       if (rop.getGuard() == null) {
         return null;
       } else {
-        return ((Operand) rop.getGuard()).copy();
+        return rop.getGuard().copy();
       }
     }
     if (VM.VerifyAssertions) {
@@ -3628,7 +3628,7 @@ public final class BC2IR {
     return new TrueGuardOperand();
   }
 
-  public static void setGuard(RegisterOperand rop, Operand guard) {
+  public static void setGuardForRegOp(RegisterOperand rop, Operand guard) {
     rop.setGuard(guard);
   }
 
@@ -3678,7 +3678,7 @@ public final class BC2IR {
     if (ref instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) ref;
       if (hasGuard(rop)) {
-        Operand guard = getGuard(rop);
+        Operand guard = copyGuardFromOperand(rop);
         setCurrentGuard(guard);
         if (DBG_ELIMNULL) {
           db("null check of " + ref + " is not necessary; guarded by " + guard);
@@ -3691,7 +3691,7 @@ public final class BC2IR {
       appendInstruction(NullCheck.create(NULL_CHECK, guard, ref.copy()));
       rectifyStateWithNullPtrExceptionHandler();
       setCurrentGuard(guard);
-      setGuard(rop, guard);
+      setGuardForRegOp(rop, guard);
       if (DBG_ELIMNULL) db(rop + " is guarded by " + guard);
       // Now, try to leverage this null check by updating
       // other unguarded (and thus potentially null)
@@ -3712,7 +3712,7 @@ public final class BC2IR {
             if (DBG_ELIMNULL) {
               db("setting local #" + number + "(" + loc + ") to non-null");
             }
-            setGuard((RegisterOperand) loc, guard);
+            setGuardForRegOp((RegisterOperand) loc, guard);
           }
           setLocal(number, loc);
         }
@@ -3731,13 +3731,13 @@ public final class BC2IR {
           if (sreg.getRegister() == rop.getRegister()) {
             if (hasGuard(sreg)) {
               if (DBG_ELIMNULL) {
-                db(sreg + " on stack already with guard " + getGuard(sreg));
+                db(sreg + " on stack already with guard " + copyGuardFromOperand(sreg));
               }
             } else {
               if (DBG_ELIMNULL) {
                 db("setting " + sreg + " on stack to be guarded by " + guard);
               }
-              setGuard(sreg, guard);
+              setGuardForRegOp(sreg, guard);
             }
           }
         }
@@ -3880,7 +3880,7 @@ public final class BC2IR {
     RegisterOperand guard = gc.getTemps().makeTempValidation();
     if (isNonNull(elem)) {
       RegisterOperand newGuard = gc.getTemps().makeTempValidation();
-      appendInstruction(Binary.create(GUARD_COMBINE, newGuard, getGuard(elem), getCurrentGuard()));
+      appendInstruction(Binary.create(GUARD_COMBINE, newGuard, copyGuardFromOperand(elem), getCurrentGuard()));
       appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK_NOTNULL,
                                           guard,
                                           ref.copy(),
@@ -4022,7 +4022,7 @@ public final class BC2IR {
                   RegisterOperand locr = (RegisterOperand) loc;
                   RegisterOperand tlocr = locr.copyU2U();
                   guard = gc.makeNullCheckGuard(tlocr.getRegister());
-                  setGuard(tlocr, guard.copyD2U());
+                  setGuardForRegOp(tlocr, guard.copyD2U());
                   tlocr.clearDeclaredType();
                   tlocr.clearPreciseType();
                   tlocr.setType(type2);
@@ -4054,7 +4054,7 @@ public final class BC2IR {
                   }
                   RegisterOperand locr = (RegisterOperand) loc;
                   guard = gc.makeNullCheckGuard(locr.getRegister());
-                  setGuard(locr, guard.copyD2U());
+                  setGuardForRegOp(locr, guard.copyD2U());
                   locr.clearDeclaredType();
                   locr.clearPreciseType();
                   locr.setType(type2);
@@ -4325,7 +4325,7 @@ public final class BC2IR {
           if (loc instanceof RegisterOperand) {
             RegisterOperand locr = (RegisterOperand) loc;
             guard = gc.makeNullCheckGuard(locr.getRegister());
-            setGuard(locr, guard.copyD2U());
+            setGuardForRegOp(locr, guard.copyD2U());
             setLocal(locNum, loc);
           }
         }
@@ -4340,7 +4340,7 @@ public final class BC2IR {
             RegisterOperand locr = (RegisterOperand) loc;
             RegisterOperand tlocr = locr.copyU2U();
             guard = gc.makeNullCheckGuard(locr.getRegister());
-            setGuard(tlocr, guard.copyD2U());
+            setGuardForRegOp(tlocr, guard.copyD2U());
             setLocal(locNum, tlocr);
             branch = generateTarget(offset);
             generated = true;

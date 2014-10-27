@@ -286,7 +286,7 @@ final class BBSet {
           if (rop.getRegister().isLocal()) {
             RegisterOperand temp = gc.getTemps().makeTemp(rop);
             temp.setInheritableFlags(rop);
-            BC2IR.setGuard(temp, BC2IR.getGuard(rop));
+            BC2IR.setGuardForRegOp(temp, BC2IR.copyGuardFromOperand(rop));
             Instruction move = Move.create(IRTools.getMoveOp(rop.getType()), temp, rop.copyRO());
             move.bcIndex = RECTIFY_BCI;
             move.position = gc.getInlineSequence();

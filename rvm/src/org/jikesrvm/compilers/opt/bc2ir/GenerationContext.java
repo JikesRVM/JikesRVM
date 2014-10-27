@@ -293,7 +293,7 @@ public final class GenerationContext {
       RegisterOperand thisOp = makeLocal(localNum, thisType);
       // The this param of a virtual method is by definition non null
       RegisterOperand guard = makeNullCheckGuard(thisOp.getRegister());
-      BC2IR.setGuard(thisOp, guard);
+      BC2IR.setGuardForRegOp(thisOp, guard);
       appendInstruction(prologue, Move.create(GUARD_MOVE, guard.copyRO(), new TrueGuardOperand()), PROLOGUE_BCI);
       thisOp.setDeclaredType();
       thisOp.setExtant();
@@ -415,7 +415,7 @@ public final class GenerationContext {
         local.setPreciseType();
         // Constants trivially non-null
         RegisterOperand guard = child.makeNullCheckGuard(local.getRegister());
-        BC2IR.setGuard(local, guard);
+        BC2IR.setGuardForRegOp(local, guard);
         child.prologue.appendInstruction(Move.create(GUARD_MOVE, guard.copyRO(), new TrueGuardOperand()));
       } else {
         OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
@@ -618,7 +618,7 @@ public final class GenerationContext {
   RegisterOperand makeLocal(int i, RegisterOperand props) {
     RegisterOperand local = makeLocal(i, props.getType());
     local.setInheritableFlags(props);
-    BC2IR.setGuard(local, BC2IR.getGuard(props));
+    BC2IR.setGuardForRegOp(local, BC2IR.copyGuardFromOperand(props));
     return local;
   }
 
