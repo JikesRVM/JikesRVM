@@ -89,7 +89,7 @@ public class Inliner {
     for (int i = 0; i < Call.getNumberOfParams(callSite); i++) {
       Operand arg = Call.getParam(callSite, i);
       if (arg instanceof RegisterOperand) {
-        ((RegisterOperand) arg).setGuard(null);
+        ir.gc.setGuardForRegOp(arg.asRegister(), null);
       }
     }
     // We need to ensure that inlining the CALL instruction does not

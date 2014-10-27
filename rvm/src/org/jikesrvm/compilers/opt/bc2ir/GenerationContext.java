@@ -683,18 +683,22 @@ public final class GenerationContext {
     rop.setGuard(guard);
   }
 
+  public Operand getGuardForRegOp(RegisterOperand rop) {
+    return rop.getGuard();
+  }
   public Operand copyGuardFromOperand(Operand op) {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
+      Operand ropGuard = getGuardForRegOp(rop);
       if (VM.VerifyAssertions) {
-        VM._assert((rop.getGuard() == null) ||
-                   (rop.getGuard() instanceof RegisterOperand) ||
-                   (rop.getGuard() instanceof TrueGuardOperand));
+        VM._assert((ropGuard == null) ||
+                   (ropGuard instanceof RegisterOperand) ||
+                   (ropGuard instanceof TrueGuardOperand));
       }
-      if (rop.getGuard() == null) {
+      if (ropGuard == null) {
         return null;
       } else {
-        return rop.getGuard().copy();
+        return ropGuard.copy();
       }
     }
     if (VM.VerifyAssertions) {
@@ -707,25 +711,28 @@ public final class GenerationContext {
   public boolean isNonNull(Operand op) {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
+      Operand ropGuard = getGuardForRegOp(rop);
       if (VM.VerifyAssertions) {
-        VM._assert((rop.getGuard() == null) ||
-                   (rop.getGuard() instanceof RegisterOperand) ||
-                   (rop.getGuard() instanceof TrueGuardOperand));
+        VM._assert((ropGuard == null) ||
+                   (ropGuard instanceof RegisterOperand) ||
+                   (ropGuard instanceof TrueGuardOperand));
       }
-      return rop.getGuard() != null;
+      return ropGuard != null;
     } else {
       return op.isConstant();
     }
   }
 
   public boolean hasLessConservativeGuard(RegisterOperand rop1, RegisterOperand rop2) {
-    if (rop1.getGuard() == rop2.getGuard()) {
+    Operand rop1Guard = getGuardForRegOp(rop1);
+    Operand rop2Guard = getGuardForRegOp(rop2);
+    if (rop1Guard == rop2Guard) {
       return false;
     }
-    if (rop1.getGuard() instanceof Operand) {
-      if (rop2.getGuard() instanceof Operand) {
-        Operand op1 = rop1.getGuard();
-        Operand op2 = rop2.getGuard();
+    if (rop1Guard instanceof Operand) {
+      if (rop2Guard instanceof Operand) {
+        Operand op1 = rop1Guard;
+        Operand op2 = rop2Guard;
         if (op2 instanceof TrueGuardOperand) {
           // rop2 is top therefore rop1 can't be less conservative!
           return false;

@@ -3563,7 +3563,7 @@ public final class BC2IR {
   public void markGuardlessNonNull(RegisterOperand rop) {
     RegisterOperand g = gc.makeNullCheckGuard(rop.getRegister());
     appendInstruction(Move.create(GUARD_MOVE, g, new TrueGuardOperand()));
-    rop.setGuard(g.copy());
+    gc.setGuardForRegOp(rop, g.copy());
   }
 
   private void setCurrentGuard(Operand guard) {

@@ -1851,7 +1851,7 @@ public class GenerationContextTest {
     TypeReference localType = nm.getDeclaringClass().getTypeRef();
     RegisterOperand regOp = gc.makeLocal(localNumber, localType);
     TrueGuardOperand guard = new TrueGuardOperand();
-    regOp.setGuard(guard);
+    gc.setGuardForRegOp(regOp, guard);
 
     regOp.setParameter();
     regOp.setNonVolatile();
@@ -1861,8 +1861,8 @@ public class GenerationContextTest {
     regOp.setPositiveInt();
 
     RegisterOperand newRegOpWithInheritance = gc.makeLocal(localNumber, regOp);
-    Operand scratchObject = newRegOpWithInheritance.getGuard();
-    assertTrue(scratchObject.isTrueGuard());
+    Operand newRegOpGuard = gc.getGuardForRegOp(newRegOpWithInheritance);
+    assertTrue(newRegOpGuard.isTrueGuard());
     assertTrue(newRegOpWithInheritance.isParameter());
     assertTrue(newRegOpWithInheritance.isNonVolatile());
     assertTrue(newRegOpWithInheritance.isExtant());
@@ -1941,11 +1941,11 @@ public class GenerationContextTest {
     Register reg = regOp.getRegister();
 
     RegisterOperand expectedNullCheckGuard = gc.makeNullCheckGuard(reg);
-    expectedNullCheckGuard.setGuard(new TrueGuardOperand());
+    gc.setGuardForRegOp(expectedNullCheckGuard, new TrueGuardOperand());
 
     RegisterOperand actual = gc.makeNullCheckGuard(reg);
     assertTrue(actual.sameRegisterPropertiesAsExceptForScratchObject(expectedNullCheckGuard));
-    assertNull(actual.getGuard());
+    assertNull(gc.getGuardForRegOp(actual));
   }
 
 
