@@ -177,7 +177,7 @@ public class Inliner {
         container.setResult(children[0].getResult());
         for (int i = 1; i < targets.length; i++) {
           if (children[i].getResult() != null) {
-            container.setResult((container.getResult() == null) ? children[i].getResult() : Operand.meet(container.getResult(), children[i].getResult(), reg));
+            container.setResult((container.getResult() == null) ? children[i].getResult() : Operand.meet(parent, container.getResult(), children[i].getResult(), reg));
           }
         }
 
@@ -185,7 +185,7 @@ public class Inliner {
         if (!inlDec.OSRTestFailed()) {
           // Account for the non-predicted case as well...
           RegisterOperand failureCaseResult = Call.getResult(callSite).copyRO();
-          container.setResult((container.getResult() == null) ?  failureCaseResult : Operand.meet(container.getResult(), failureCaseResult, reg));
+          container.setResult((container.getResult() == null) ?  failureCaseResult : Operand.meet(parent, container.getResult(), failureCaseResult, reg));
         }
       }
 

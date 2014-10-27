@@ -536,7 +536,7 @@ public class GenerateMagic {
       // The object being specialized
       Operand objectOperand = bc2ir.pop(types[1]);
       Call.setParam(call, 0, objectOperand);
-      Operand guard = GenerationContext.copyGuardFromOperand(objectOperand);
+      Operand guard = gc.copyGuardFromOperand(objectOperand);
       if (guard == null) {
         // it's magic, so assume that it's OK....
         guard = new TrueGuardOperand();
@@ -639,7 +639,7 @@ public class GenerateMagic {
       if(val.isObjectConstant()) {
         bc2ir.push(new ObjectConstantOperand(val.getType().peekType(), Offset.zero()));
       } else {
-        Operand guard = GenerationContext.copyGuardFromOperand(val);
+        Operand guard = gc.copyGuardFromOperand(val);
         if (guard == null) {
           // it's magic, so assume that it's OK....
           guard = new TrueGuardOperand();

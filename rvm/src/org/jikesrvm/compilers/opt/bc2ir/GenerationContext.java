@@ -293,7 +293,7 @@ public final class GenerationContext {
       RegisterOperand thisOp = makeLocal(localNum, thisType);
       // The this param of a virtual method is by definition non null
       RegisterOperand guard = makeNullCheckGuard(thisOp.getRegister());
-      GenerationContext.setGuardForRegOp(thisOp, guard);
+      setGuardForRegOp(thisOp, guard);
       appendInstruction(prologue, Move.create(GUARD_MOVE, guard.copyRO(), new TrueGuardOperand()), PROLOGUE_BCI);
       thisOp.setDeclaredType();
       thisOp.setExtant();
@@ -415,7 +415,7 @@ public final class GenerationContext {
         local.setPreciseType();
         // Constants trivially non-null
         RegisterOperand guard = child.makeNullCheckGuard(local.getRegister());
-        GenerationContext.setGuardForRegOp(local, guard);
+        setGuardForRegOp(local, guard);
         child.prologue.appendInstruction(Move.create(GUARD_MOVE, guard.copyRO(), new TrueGuardOperand()));
       } else {
         OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
@@ -618,7 +618,7 @@ public final class GenerationContext {
   RegisterOperand makeLocal(int i, RegisterOperand props) {
     RegisterOperand local = makeLocal(i, props.getType());
     local.setInheritableFlags(props);
-    GenerationContext.setGuardForRegOp(local, GenerationContext.copyGuardFromOperand(props));
+    setGuardForRegOp(local, copyGuardFromOperand(props));
     return local;
   }
 
@@ -679,11 +679,11 @@ public final class GenerationContext {
     return guard;
   }
 
-  public static void setGuardForRegOp(RegisterOperand rop, Operand guard) {
+  public void setGuardForRegOp(RegisterOperand rop, Operand guard) {
     rop.setGuard(guard);
   }
 
-  public static Operand copyGuardFromOperand(Operand op) {
+  public Operand copyGuardFromOperand(Operand op) {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
@@ -704,7 +704,7 @@ public final class GenerationContext {
   }
 
   //// GENERATE CHECK INSTRUCTIONS.
-  public static boolean isNonNull(Operand op) {
+  public boolean isNonNull(Operand op) {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
       if (VM.VerifyAssertions) {
@@ -718,7 +718,7 @@ public final class GenerationContext {
     }
   }
 
-  public static boolean hasLessConservativeGuard(RegisterOperand rop1, RegisterOperand rop2) {
+  public boolean hasLessConservativeGuard(RegisterOperand rop1, RegisterOperand rop2) {
     if (rop1.getGuard() == rop2.getGuard()) {
       return false;
     }
@@ -741,7 +741,7 @@ public final class GenerationContext {
     }
   }
 
-  public static boolean hasGuard(RegisterOperand rop) {
+  public boolean hasGuard(RegisterOperand rop) {
     return rop.getGuard() != null;
   }
 

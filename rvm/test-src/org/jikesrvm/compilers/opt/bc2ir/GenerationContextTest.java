@@ -1235,7 +1235,7 @@ public class GenerationContextTest {
     RegisterOperand expectedLocalForReceiverParam = child.makeLocal(0, thisArg.getType());
     expectedLocalForReceiverParam.setPreciseType();
     RegisterOperand expectedNullCheckGuard = child.makeNullCheckGuard(expectedLocalForReceiverParam.getRegister());
-    GenerationContext.setGuardForRegOp(expectedLocalForReceiverParam, expectedNullCheckGuard);
+    child.setGuardForRegOp(expectedLocalForReceiverParam, expectedNullCheckGuard);
     assertNotNull(expectedNullCheckGuard);
 
     RegisterOperand firstArg = child.getArguments()[1].asRegister();
@@ -1861,7 +1861,7 @@ public class GenerationContextTest {
     regOp.setPositiveInt();
 
     RegisterOperand newRegOpWithInheritance = gc.makeLocal(localNumber, regOp);
-    Operand scratchObject = (Operand) newRegOpWithInheritance.getGuard();
+    Operand scratchObject = newRegOpWithInheritance.getGuard();
     assertTrue(scratchObject.isTrueGuard());
     assertTrue(newRegOpWithInheritance.isParameter());
     assertTrue(newRegOpWithInheritance.isNonVolatile());

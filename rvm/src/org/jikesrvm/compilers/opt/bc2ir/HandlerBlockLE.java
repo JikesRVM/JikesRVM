@@ -55,9 +55,10 @@ final class HandlerBlockLE extends BasicBlockLE {
    * @param exprStackSize max size of expression stack
    * @param cfg ControlFlowGraph into which the block
    *            will eventually be inserted
+   * @param gc generation context that contains guard information
    */
   HandlerBlockLE(int loc, InlineSequence position, TypeOperand eType, RegisterPool temps,
-                 int exprStackSize, ControlFlowGraph cfg) {
+                 int exprStackSize, ControlFlowGraph cfg, GenerationContext gc) {
     super(loc);
     entryBlock = new ExceptionHandlerBasicBlock(SYNTH_CATCH_BCI, position, eType, cfg);
     block = new BasicBlock(loc, position, cfg);
@@ -67,7 +68,7 @@ final class HandlerBlockLE extends BasicBlockLE {
     // the performance of code in exception handling blocks, this
     // should be the right tradeoff.
     exceptionObject = temps.makeTemp(TypeReference.JavaLangThrowable);
-    GenerationContext.setGuardForRegOp(exceptionObject, new TrueGuardOperand());    // know not null
+    gc.setGuardForRegOp(exceptionObject, new TrueGuardOperand());    // know not null
     high = loc;
     // Set up expression stack on entry to have the caught exception operand.
     stackState = new OperandStack(exprStackSize);

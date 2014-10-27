@@ -286,7 +286,7 @@ final class BBSet {
           if (rop.getRegister().isLocal()) {
             RegisterOperand temp = gc.getTemps().makeTemp(rop);
             temp.setInheritableFlags(rop);
-            GenerationContext.setGuardForRegOp(temp, GenerationContext.copyGuardFromOperand(rop));
+            gc.setGuardForRegOp(temp, gc.copyGuardFromOperand(rop));
             Instruction move = Move.create(IRTools.getMoveOp(rop.getType()), temp, rop.copyRO());
             move.bcIndex = RECTIFY_BCI;
             move.position = gc.getInlineSequence();
@@ -373,7 +373,7 @@ final class BBSet {
           temp.setRegister(rmop.getRegister());
           injectMove(block, temp, rsop.copyRO());
         }
-        Operand meet = Operand.meet(rmop, rsop, rmop.getRegister());
+        Operand meet = Operand.meet(gc, rmop, rsop, rmop.getRegister());
         if (DBG_STACK || BC2IR.DBG_SELECTED) db("Meet of " + rmop + " and " + rsop + " is " + meet);
         if (meet != rmop) {
           if (generated) {
@@ -432,7 +432,7 @@ final class BBSet {
         }
       } else {
         boolean untyped = (pOP == null || pOP == BC2IR.DUMMY || pOP instanceof ReturnAddressOperand);
-        Operand mOP = Operand.meet(pOP, iOP, untyped ? null : gc.localReg(i, pOP.getType()));
+        Operand mOP = Operand.meet(gc, pOP, iOP, untyped ? null : gc.localReg(i, pOP.getType()));
         if (DBG_LOCAL || BC2IR.DBG_SELECTED) db("Meet of " + pOP + " and " + iOP + " is " + mOP);
         if (mOP != pOP) {
           if (generated) {
@@ -766,7 +766,7 @@ final class BBSet {
           }
           if (DBG_INLINE_JSR) db("simStack operand " + i + " is " + op);
           Operand cop = candBBLE.stackState.getFromTop(i);
-          if (!Operand.conservativelyApproximates(cop, op)) {
+          if (!Operand.conservativelyApproximates(gc, cop, op)) {
             if (DBG_INLINE_JSR) db("Not Matching: " + cop + " and " + op);
             return false;
           } else {
@@ -785,7 +785,7 @@ final class BBSet {
           }
           if (DBG_INLINE_JSR) db("simLocal " + i + " is " + op);
           Operand cop = candBBLE.localState[i];
-          if (!Operand.conservativelyApproximates(cop, op)) {
+          if (!Operand.conservativelyApproximates(gc, cop, op)) {
             if (DBG_INLINE_JSR) db("Not Matching: " + cop + " and " + op);
             return false;
           } else {
@@ -945,7 +945,8 @@ final class BBSet {
                                    exceptionTypes[i],
                                    gc.getTemps(),
                                    gc.getMethod().getOperandWords(),
-                                   gc.getCfg());
+                                   gc.getCfg(),
+                                   gc);
             ((HandlerBlockLE) newBBLE).entryBlock.firstRealInstruction().
                 position = gc.getInlineSequence();
           } else {
