@@ -19,6 +19,7 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
+import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.bc2ir.ReturnAddressOperand;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -693,7 +694,7 @@ public abstract class Operand {
               VM.sysWrite("Operands are registers of identical type, but incompatible flags\n");
             }
             return false;
-          } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
+          } else if (GenerationContext.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
               VM.sysWrite("Operands are registers of identical type, but with incompatible non-null guards\n");
             }
@@ -712,7 +713,7 @@ public abstract class Operand {
               VM.sysWrite("Flag mismatch between type compatible register operands\n");
             }
             return false;
-          } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
+          } else if (GenerationContext.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
               VM.sysWrite("Non-null guard mismatch between type compatible register operands\n");
             }
@@ -925,7 +926,7 @@ public abstract class Operand {
             }
             res.meetInheritableFlags(rop2);
             return res;
-          } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
+          } else if (GenerationContext.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
               VM.sysWrite(
                   "Operands are registers of identical type with compatible flags but with incompatible non-null guards\n");
@@ -959,7 +960,7 @@ public abstract class Operand {
               res.setGuard(rop1.getGuard());
             }
             return res;
-          } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
+          } else if (GenerationContext.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
               VM.sysWrite("Operands are registers of compatible type and flags but with incompatible non-null guards\n");
             }

@@ -67,7 +67,7 @@ final class HandlerBlockLE extends BasicBlockLE {
     // the performance of code in exception handling blocks, this
     // should be the right tradeoff.
     exceptionObject = temps.makeTemp(TypeReference.JavaLangThrowable);
-    BC2IR.setGuardForRegOp(exceptionObject, new TrueGuardOperand());    // know not null
+    GenerationContext.setGuardForRegOp(exceptionObject, new TrueGuardOperand());    // know not null
     high = loc;
     // Set up expression stack on entry to have the caught exception operand.
     stackState = new OperandStack(exprStackSize);

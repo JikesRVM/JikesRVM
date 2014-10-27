@@ -293,7 +293,7 @@ public final class GenerationContext {
       RegisterOperand thisOp = makeLocal(localNum, thisType);
       // The this param of a virtual method is by definition non null
       RegisterOperand guard = makeNullCheckGuard(thisOp.getRegister());
-      BC2IR.setGuardForRegOp(thisOp, guard);
+      GenerationContext.setGuardForRegOp(thisOp, guard);
       appendInstruction(prologue, Move.create(GUARD_MOVE, guard.copyRO(), new TrueGuardOperand()), PROLOGUE_BCI);
       thisOp.setDeclaredType();
       thisOp.setExtant();
@@ -415,7 +415,7 @@ public final class GenerationContext {
         local.setPreciseType();
         // Constants trivially non-null
         RegisterOperand guard = child.makeNullCheckGuard(local.getRegister());
-        BC2IR.setGuardForRegOp(local, guard);
+        GenerationContext.setGuardForRegOp(local, guard);
         child.prologue.appendInstruction(Move.create(GUARD_MOVE, guard.copyRO(), new TrueGuardOperand()));
       } else {
         OptimizingCompilerException.UNREACHABLE("Unexpected receiver operand");
@@ -618,7 +618,7 @@ public final class GenerationContext {
   RegisterOperand makeLocal(int i, RegisterOperand props) {
     RegisterOperand local = makeLocal(i, props.getType());
     local.setInheritableFlags(props);
-    BC2IR.setGuardForRegOp(local, BC2IR.copyGuardFromOperand(props));
+    GenerationContext.setGuardForRegOp(local, GenerationContext.copyGuardFromOperand(props));
     return local;
   }
 
@@ -677,6 +677,72 @@ public final class GenerationContext {
       guard = guard.copyRO();
     }
     return guard;
+  }
+
+  public static void setGuardForRegOp(RegisterOperand rop, Operand guard) {
+    rop.setGuard(guard);
+  }
+
+  public static Operand copyGuardFromOperand(Operand op) {
+    if (op instanceof RegisterOperand) {
+      RegisterOperand rop = (RegisterOperand) op;
+      if (VM.VerifyAssertions) {
+        VM._assert((rop.getGuard() == null) ||
+                   (rop.getGuard() instanceof RegisterOperand) ||
+                   (rop.getGuard() instanceof TrueGuardOperand));
+      }
+      if (rop.getGuard() == null) {
+        return null;
+      } else {
+        return rop.getGuard().copy();
+      }
+    }
+    if (VM.VerifyAssertions) {
+      VM._assert(op.isConstant());
+    }
+    return new TrueGuardOperand();
+  }
+
+  //// GENERATE CHECK INSTRUCTIONS.
+  public static boolean isNonNull(Operand op) {
+    if (op instanceof RegisterOperand) {
+      RegisterOperand rop = (RegisterOperand) op;
+      if (VM.VerifyAssertions) {
+        VM._assert((rop.getGuard() == null) ||
+                   (rop.getGuard() instanceof RegisterOperand) ||
+                   (rop.getGuard() instanceof TrueGuardOperand));
+      }
+      return rop.getGuard() != null;
+    } else {
+      return op.isConstant();
+    }
+  }
+
+  public static boolean hasLessConservativeGuard(RegisterOperand rop1, RegisterOperand rop2) {
+    if (rop1.getGuard() == rop2.getGuard()) {
+      return false;
+    }
+    if (rop1.getGuard() instanceof Operand) {
+      if (rop2.getGuard() instanceof Operand) {
+        Operand op1 = rop1.getGuard();
+        Operand op2 = rop2.getGuard();
+        if (op2 instanceof TrueGuardOperand) {
+          // rop2 is top therefore rop1 can't be less conservative!
+          return false;
+        } else {
+          return !(op1.similar(op2));
+        }
+      } else {
+        return true;
+      }
+    } else {
+      // rop1 is bottom, therefore is most conservative guard possible
+      return false;
+    }
+  }
+
+  public static boolean hasGuard(RegisterOperand rop) {
+    return rop.getGuard() != null;
   }
 
   ///////////
