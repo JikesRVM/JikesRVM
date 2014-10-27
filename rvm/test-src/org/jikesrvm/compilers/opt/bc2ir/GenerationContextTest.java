@@ -1725,6 +1725,8 @@ public class GenerationContextTest {
     assertThat(synthethicContext.getCfg().firstInCodeOrder(), is(synthethicContext.getPrologue()));
     assertThat(synthethicContext.getCfg().lastInCodeOrder(), is(synthethicContext.getEpilogue()));
 
+    assertNotNull(synthethicContext.getOriginalMethod());
+
     assertFalse(synthethicContext.requiresStackFrame());
     assertNull(synthethicContext.getArguments());
     assertNull(synthethicContext.getBranchProfiles());
@@ -1736,7 +1738,6 @@ public class GenerationContextTest {
     assertNull(synthethicContext.getMethod());
     assertNull(synthethicContext.getOptions());
     assertNull(synthethicContext.getOriginalCompiledMethod());
-    assertNull(synthethicContext.getOriginalMethod());
     assertNull(synthethicContext.getResult());
     assertNull(synthethicContext.getResultReg());
     assertNull(synthethicContext.getTemps());
@@ -2146,6 +2147,85 @@ public class GenerationContextTest {
     gc.saveOSRBarrierForInst(osrBarrier, call);
     gc.discardOSRBarrierInformation();
     gc.getOSRBarrierFromInst(call);
+  }
+
+  @Test
+  public void canSaveInformationAboutGuards() throws Exception {
+    GenerationContext gc = createMostlyEmptyContext("emptyStaticMethodWithoutAnnotations");
+    Register minus9 = new Register(-9);
+    RegisterOperand regOp = new RegisterOperand(minus9, TypeReference.Int);
+    Operand guard = new TrueGuardOperand();
+    gc.setGuardForRegOp(regOp, guard);
+    assertThat(gc.getGuardForRegOp(regOp), is(guard));
+  }
+
+  @Test
+  public void childContextsSaveGuardInformationInOutermostParent() throws Exception {
+    NormalMethod nm = getNormalMethodForTest("methodForInliningTests");
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = new OptOptions();
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext outermost = new GenerationContext(nm, null, cm, opts, io);
+
+    Class<?>[] classArgs = {Object.class};
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
+
+    MethodOperand methOp = MethodOperand.STATIC(callee);
+    Register regMinus1 = new Register(-1);
+    RegisterOperand result = new RegisterOperand(regMinus1, TypeReference.JavaLangObject);
+    Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
+    Register regMinus2 = new Register(-2);
+    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    Call.setParam(callInstr, 0, objectParam);
+    callInstr.position = new InlineSequence(nm);
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+
+    GenerationContext child = outermost.createChildContext(ebag, callee, callInstr);
+    Register minus10 = new Register(-10);
+    RegisterOperand newRop = new RegisterOperand(minus10, TypeReference.Int);
+    Operand guard = new TrueGuardOperand();
+    child.setGuardForRegOp(newRop, guard);
+    assertThat(outermost.getGuardForRegOp(newRop), is(guard));
+
+    GenerationContext child2 = child.createChildContext(ebag, callee, callInstr);
+    Register minus11 = new Register(-11);
+    RegisterOperand newRop2 = new RegisterOperand(minus11, TypeReference.Int);
+    Operand guard2 = new TrueGuardOperand();
+    child2.setGuardForRegOp(newRop2, guard2);
+    assertThat(outermost.getGuardForRegOp(newRop2), is(guard2));
+  }
+
+  @Test
+  public void childContextsQueryGuardInformationInOutermostParent() throws Exception {
+    NormalMethod nm = getNormalMethodForTest("methodForInliningTests");
+    CompiledMethod cm = new OptCompiledMethod(-1, nm);
+    OptOptions opts = new OptOptions();
+    InlineOracle io = new DefaultInlineOracle();
+    GenerationContext outermost = new GenerationContext(nm, null, cm, opts, io);
+
+    Register minus12 = new Register(-12);
+    RegisterOperand newRop = new RegisterOperand(minus12, TypeReference.Int);
+    Operand guard = new TrueGuardOperand();
+    outermost.setGuardForRegOp(newRop, guard);
+
+    Class<?>[] classArgs = {Object.class};
+    NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
+
+    MethodOperand methOp = MethodOperand.STATIC(callee);
+    Register regMinus1 = new Register(-1);
+    RegisterOperand result = new RegisterOperand(regMinus1, TypeReference.JavaLangObject);
+    Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
+    Register regMinus2 = new Register(-2);
+    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    Call.setParam(callInstr, 0, objectParam);
+    callInstr.position = new InlineSequence(nm);
+    ExceptionHandlerBasicBlockBag ebag = getMockEbag();
+
+    GenerationContext child = outermost.createChildContext(ebag, callee, callInstr);
+    assertThat(child.getGuardForRegOp(newRop), is(guard));
+
+    GenerationContext child2 = child.createChildContext(ebag, callee, callInstr);
+    assertThat(child2.getGuardForRegOp(newRop), is(guard));
   }
 
 }
