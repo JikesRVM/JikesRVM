@@ -105,11 +105,6 @@ public final class GenerationContext {
   private GenerationContext parent;
 
   /**
-   * The outermost context, i.e. the root of the inlining tree.
-   */
-  private GenerationContext outermostContext;
-
-  /**
    * The compiled method assigned for this compilation of original_method
    */
   private CompiledMethod original_cm;
@@ -269,7 +264,6 @@ public final class GenerationContext {
     options = opts;
     inlinePlan = ip;
     inlineSequence = new InlineSequence(meth);
-    outermostContext = this;
 
     // Create the CFG. Initially contains prologue, epilogue, and exit.
     cfg = new ControlFlowGraph(0);
@@ -283,7 +277,6 @@ public final class GenerationContext {
     // Create register pool, initialize arguments, resultReg.
     temps = new RegisterPool(meth);
     _ncGuards = new HashMap<Register, RegisterOperand>();
-    regOpGuards = new HashMap<RegisterOperand, Operand>();
     initLocalPool();
     TypeReference[] definedParams = meth.getParameterTypes();
     if (params == null) params = definedParams;
@@ -361,7 +354,6 @@ public final class GenerationContext {
       child.branchProfiles = EdgeCounts.getBranchProfiles(callee);
     }
     child.parent = this;
-    child.outermostContext = this.outermostContext;
     child.original_cm = this.original_cm;
 
     // Some state gets directly copied to the child
@@ -497,9 +489,6 @@ public final class GenerationContext {
     child.epilogue.exceptionHandlers = ebag;
     child.cfg.addLastInCodeOrder(child.prologue);
     child.cfg.addLastInCodeOrder(child.epilogue);
-
-    // Need access to the outermost context for guards
-    child.outermostContext = parent.outermostContext;
 
     // All other fields are intentionally left null.
     // We are only really using this context to transfer a synthetic CFG
@@ -673,14 +662,6 @@ public final class GenerationContext {
   private HashMap<Register, RegisterOperand> _ncGuards;
 
   /**
-   * Guards for register operands.
-   * <p>
-   * Child contexts save this information in their outermost parent
-   * context, so this field will be {@code null} for child contexts.
-   */
-  private HashMap<RegisterOperand, Operand> regOpGuards;
-
-  /**
    * Makes a register operand to use as a null check guard for the
    * given register.
    *
@@ -699,13 +680,12 @@ public final class GenerationContext {
   }
 
   public void setGuardForRegOp(RegisterOperand rop, Operand guard) {
-    outermostContext.regOpGuards.put(rop, guard);
+    rop.setGuard(guard);
   }
 
   public Operand getGuardForRegOp(RegisterOperand rop) {
-    return outermostContext.regOpGuards.get(rop);
+    return rop.getGuard();
   }
-
   public Operand copyGuardFromOperand(Operand op) {
     if (op instanceof RegisterOperand) {
       RegisterOperand rop = (RegisterOperand) op;
@@ -769,7 +749,7 @@ public final class GenerationContext {
   }
 
   public boolean hasGuard(RegisterOperand rop) {
-    return outermostContext.getGuardForRegOp(rop) != null;
+    return rop.getGuard() != null;
   }
 
   ///////////
@@ -1047,11 +1027,11 @@ public final class GenerationContext {
           "Unexpected operator for instruction that has a barrier");
     }
 
-    outermostContext.instToOSRBarriers.put(inst, osrBarrier);
+    getOutermostContext().instToOSRBarriers.put(inst, osrBarrier);
   }
 
   public Instruction getOSRBarrierFromInst(Instruction inst) {
-    return outermostContext.instToOSRBarriers.get(inst);
+    return getOutermostContext().instToOSRBarriers.get(inst);
   }
 
   public void discardOSRBarrierInformation() {
@@ -1115,7 +1095,7 @@ public final class GenerationContext {
    * @return the original method (root of the calling context tree)
    */
   NormalMethod getOriginalMethod() {
-    return outermostContext.method;
+    return getOutermostContext().method;
   }
 
   CompiledMethod getOriginalCompiledMethod() {
@@ -1144,6 +1124,14 @@ public final class GenerationContext {
 
   InlineOracle getInlinePlan() {
     return inlinePlan;
+  }
+
+  private GenerationContext getOutermostContext() {
+    GenerationContext outermostContext = this;
+    while (outermostContext.parent != null) {
+      outermostContext = outermostContext.parent;
+    }
+    return outermostContext;
   }
 
 }

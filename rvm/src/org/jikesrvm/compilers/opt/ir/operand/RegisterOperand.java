@@ -529,4 +529,11 @@ public final class RegisterOperand extends Operand {
         this.flags2 == other.flags2 && this.info == other.info;
   }
 
+  public Operand getGuard() {
+    return (Operand) scratchObject;
+  }
+
+  public void setGuard(Operand guard) {
+    this.scratchObject = guard;
+  }
 }
