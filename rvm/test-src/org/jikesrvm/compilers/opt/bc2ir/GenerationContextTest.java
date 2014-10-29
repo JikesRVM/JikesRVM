@@ -1235,7 +1235,7 @@ public class GenerationContextTest {
     RegisterOperand expectedLocalForReceiverParam = child.makeLocal(0, thisArg.getType());
     expectedLocalForReceiverParam.setPreciseType();
     RegisterOperand expectedNullCheckGuard = child.makeNullCheckGuard(expectedLocalForReceiverParam.getRegister());
-    child.setGuardForRegOp(expectedLocalForReceiverParam, expectedNullCheckGuard);
+    BC2IR.setGuardForRegOp(expectedLocalForReceiverParam, expectedNullCheckGuard);
     assertNotNull(expectedNullCheckGuard);
 
     RegisterOperand firstArg = child.getArguments()[1].asRegister();
@@ -1851,7 +1851,7 @@ public class GenerationContextTest {
     TypeReference localType = nm.getDeclaringClass().getTypeRef();
     RegisterOperand regOp = gc.makeLocal(localNumber, localType);
     TrueGuardOperand guard = new TrueGuardOperand();
-    gc.setGuardForRegOp(regOp, guard);
+    regOp.setGuard(guard);
 
     regOp.setParameter();
     regOp.setNonVolatile();
@@ -1861,8 +1861,8 @@ public class GenerationContextTest {
     regOp.setPositiveInt();
 
     RegisterOperand newRegOpWithInheritance = gc.makeLocal(localNumber, regOp);
-    Operand newRegOpGuard = gc.getGuardForRegOp(newRegOpWithInheritance);
-    assertTrue(newRegOpGuard.isTrueGuard());
+    Operand scratchObject = (Operand) newRegOpWithInheritance.getGuard();
+    assertTrue(scratchObject.isTrueGuard());
     assertTrue(newRegOpWithInheritance.isParameter());
     assertTrue(newRegOpWithInheritance.isNonVolatile());
     assertTrue(newRegOpWithInheritance.isExtant());
@@ -1941,11 +1941,11 @@ public class GenerationContextTest {
     Register reg = regOp.getRegister();
 
     RegisterOperand expectedNullCheckGuard = gc.makeNullCheckGuard(reg);
-    gc.setGuardForRegOp(expectedNullCheckGuard, new TrueGuardOperand());
+    expectedNullCheckGuard.setGuard(new TrueGuardOperand());
 
     RegisterOperand actual = gc.makeNullCheckGuard(reg);
     assertTrue(actual.sameRegisterPropertiesAsExceptForScratchObject(expectedNullCheckGuard));
-    assertNull(gc.getGuardForRegOp(actual));
+    assertNull(actual.getGuard());
   }
 
 

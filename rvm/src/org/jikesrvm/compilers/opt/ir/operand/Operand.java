@@ -19,7 +19,6 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.ClassLoaderProxy;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.bc2ir.BC2IR;
-import org.jikesrvm.compilers.opt.bc2ir.GenerationContext;
 import org.jikesrvm.compilers.opt.bc2ir.ReturnAddressOperand;
 import org.jikesrvm.compilers.opt.driver.OptConstants;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -632,14 +631,12 @@ public abstract class Operand {
    * possible for both conservativelyApproximates(op1, op2)
    * and conservativelyApproximates(op2, op1) to return false.
    *
-   * @param gc the generation context that has the guard information for
-   *  the operands
    * @param op1 the first operand to compare
    * @param op2 the second operand to compare
    * @return <code>true</code> if op1 conservatively approximates op2 or
    *         <code>false</code> if it does not.
    */
-  public static boolean conservativelyApproximates(GenerationContext gc, Operand op1, Operand op2) {
+  public static boolean conservativelyApproximates(Operand op1, Operand op2) {
     // Step 1: Handle pointer equality and bottom
     if (op1 == op2) {
       if (DBG_OPERAND_LATTICE) {
@@ -696,7 +693,7 @@ public abstract class Operand {
               VM.sysWrite("Operands are registers of identical type, but incompatible flags\n");
             }
             return false;
-          } else if (gc.hasLessConservativeGuard(rop1, rop2)) {
+          } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
               VM.sysWrite("Operands are registers of identical type, but with incompatible non-null guards\n");
             }
@@ -715,7 +712,7 @@ public abstract class Operand {
               VM.sysWrite("Flag mismatch between type compatible register operands\n");
             }
             return false;
-          } else if (gc.hasLessConservativeGuard(rop1, rop2)) {
+          } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
               VM.sysWrite("Non-null guard mismatch between type compatible register operands\n");
             }
@@ -752,7 +749,7 @@ public abstract class Operand {
             }
             return false;
           }
-          if ((gc.getGuardForRegOp(rop1) instanceof Operand) &&
+          if ((rop1.getGuard() instanceof Operand) &&
               ((type2 == TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
                (type2.isWordLikeType() && op2.asAddressConstant().value.EQ(Address.zero())) ||
@@ -806,8 +803,6 @@ public abstract class Operand {
    * {@link #meet}, but factoring out the common control logic
    * is a non-trivial task.
    *
-   * @param gc  the generation context that has the guard information
-   *  for the operands
    * @param op1  the first operand to meet
    * @param op2  the second operand to meet
    * @param reg  the <code>Register</code> to use to
@@ -819,7 +814,7 @@ public abstract class Operand {
    *         op1 when conservativelyApproximates(op1, op2)
    *         evaluates to <code>true</code>.
    */
-  public static Operand meet(GenerationContext gc, Operand op1, Operand op2, Register reg) {
+  public static Operand meet(Operand op1, Operand op2, Register reg) {
     // Step 1: Handler pointer equality and bottom
     if (op1 == op2) {
       if (DBG_OPERAND_LATTICE) {
@@ -923,17 +918,14 @@ public abstract class Operand {
               VM.sysWrite("mismatch\n");
             }
             RegisterOperand res = new RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
-            Operand rop1Guard = gc.getGuardForRegOp(rop1);
-            Operand rop2Guard = gc.getGuardForRegOp(rop2);
-            if (rop1Guard instanceof Operand &&
-                rop2Guard instanceof Operand &&
-                rop1Guard.similar((rop2Guard))) {
-              // compatible, so preserve onto res
-              gc.setGuardForRegOp(res, rop1Guard);
+            if (rop1.getGuard() instanceof Operand &&
+                rop2.getGuard() instanceof Operand &&
+                (((Operand) rop1.getGuard()).similar(((Operand) rop2.getGuard())))) {
+              res.setGuard(rop1.getGuard()); // compatible, so preserve onto res
             }
             res.meetInheritableFlags(rop2);
             return res;
-          } else if (gc.hasLessConservativeGuard(rop1, rop2)) {
+          } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
               VM.sysWrite(
                   "Operands are registers of identical type with compatible flags but with incompatible non-null guards\n");
@@ -960,16 +952,14 @@ public abstract class Operand {
             // even if both op1 & op2 are precise,
             // op1.type != op2.type, so clear it on res
             res.clearPreciseType();
-            Operand rop1Guard = gc.getGuardForRegOp(rop1);
-            Operand rop2Guard = gc.getGuardForRegOp(rop2);
-            if (rop1Guard instanceof Operand &&
-                rop2Guard instanceof Operand &&
-                rop1Guard.similar((rop2Guard))) {
+            if (rop1.getGuard() instanceof Operand &&
+                rop2.getGuard() instanceof Operand &&
+                (((Operand) rop1.getGuard()).similar(((Operand) rop2.getGuard())))) {
               // it matched, so preserve onto res.
-              gc.setGuardForRegOp(res, gc.getGuardForRegOp(rop1));
+              res.setGuard(rop1.getGuard());
             }
             return res;
-          } else if (gc.hasLessConservativeGuard(rop1, rop2)) {
+          } else if (BC2IR.hasLessConservativeGuard(rop1, rop2)) {
             if (DBG_OPERAND_LATTICE) {
               VM.sysWrite("Operands are registers of compatible type and flags but with incompatible non-null guards\n");
             }
@@ -998,13 +988,11 @@ public abstract class Operand {
             res.meetInheritableFlags(rop2);
             res.clearPreciseType();     // invalid on res
             res.clearDeclaredType();    // invalid on res
-            Operand rop1Guard = gc.getGuardForRegOp(rop1);
-            Operand rop2Guard = gc.getGuardForRegOp(rop2);
-            if (rop1Guard instanceof Operand &&
-                rop2Guard instanceof Operand &&
-                rop1Guard.similar((rop2Guard))) {
+            if (rop1.getGuard() instanceof Operand &&
+                rop2.getGuard() instanceof Operand &&
+                (((Operand) rop1.getGuard()).similar(((Operand) rop2.getGuard())))) {
               // it matched, so preserve onto res.
-              gc.setGuardForRegOp(res, gc.getGuardForRegOp(rop1));
+              res.setGuard(rop1.getGuard());
             }
             return res;
           }
@@ -1028,13 +1016,13 @@ public abstract class Operand {
             res = res.copyU2U();
             res.clearPreciseType();
           }
-          if ((gc.getGuardForRegOp(rop1) instanceof Operand) &&
+          if ((rop1.getGuard() instanceof Operand) &&
               ((type2 == TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
                (type2.isWordLikeType() && op2.asAddressConstant().value.isZero()) ||
                (type2.isLongType() && op2.asLongConstant().value == 0L))) {
             res = res.copyU2U();
-            gc.setGuardForRegOp(res, null);
+            res.setGuard(null);
           }
           if (DBG_OPERAND_LATTICE) {
             if (res == rop1) {
