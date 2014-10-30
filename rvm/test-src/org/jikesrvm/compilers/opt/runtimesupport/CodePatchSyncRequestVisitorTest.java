@@ -132,7 +132,9 @@ public class CodePatchSyncRequestVisitorTest {
     @Override
     protected void idleImpl() throws InterruptedException {
       while (true) {
-        waitOnMe.wait();
+        synchronized (waitOnMe) {
+          waitOnMe.wait();
+        }
       }
     }
   }
