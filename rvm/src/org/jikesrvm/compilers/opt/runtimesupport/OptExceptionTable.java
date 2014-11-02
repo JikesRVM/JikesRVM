@@ -196,6 +196,3 @@ final class OptExceptionTable extends ExceptionTable {
   }
 
 }
-
-
-

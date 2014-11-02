@@ -489,4 +489,3 @@ public abstract class OptGenericGCMapIterator extends GCMapIterator
     }
   }
 }
-
