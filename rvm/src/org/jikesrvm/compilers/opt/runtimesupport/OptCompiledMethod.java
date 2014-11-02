@@ -500,8 +500,6 @@ public final class OptCompiledMethod extends CompiledMethod {
             patchMap[idx++] = patchPoint - 1;
             patchMap[idx++] = newTarget - patchPoint;
           } else if (VM.BuildForPowerPC) {
-
-            // otherwise, it must be RFOR_POWERPC
             /* since currently we use only one NOP scheme, the offset
             * is adjusted for one word
             */
