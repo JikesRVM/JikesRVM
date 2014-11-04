@@ -1263,8 +1263,8 @@ public class GenerationContextTest {
     Instruction guardMove = prologueRealInstr.nextElement();
     assertThat(guardMove.operator(), is(GUARD_MOVE));
     assertThat(guardMove.bcIndex, is(UNKNOWN_BCI));
-    RegisterOperand moveResult = Move.getResult(guardMove);
-    assertTrue(moveResult.sameRegisterPropertiesAs(expectedNullCheckGuard));
+    RegisterOperand guardMoveResult = Move.getResult(guardMove);
+    assertTrue(guardMoveResult.sameRegisterPropertiesAs(expectedNullCheckGuard));
     Operand moveValue = Move.getVal(guardMove);
     assertTrue(moveValue.isTrueGuard());
     assertNull(guardMove.position);
@@ -1272,7 +1272,13 @@ public class GenerationContextTest {
     Instruction receiverMove = prologueRealInstr.nextElement();
     Operand expectedReceiver = receiver.copy();
     //TODO definite non-nullness of constant operand is not being verified
-    assertMoveOperationIsCorrectForNonRegisterActual(callInstr, REF_MOVE, expectedLocalForReceiverParam, expectedReceiver, receiverMove);
+    assertSame(callInstr.position, receiverMove.position);
+    assertThat(receiverMove.operator(), is(REF_MOVE));
+    assertThat(receiverMove.bcIndex, is(PROLOGUE_BCI));
+    RegisterOperand receiverMoveResult = Move.getResult(receiverMove);
+    assertTrue(receiverMoveResult.sameRegisterPropertiesAsExceptForGuardWhichIsSimilar(expectedLocalForReceiverParam));
+    Operand receiverMoveValue = Move.getVal(receiverMove);
+    assertTrue(receiverMoveValue.similar(expectedReceiver));
 
     Instruction objectMove = prologueRealInstr.nextElement();
     RegisterOperand objectParamCopy = objectParam.copy().asRegister();
@@ -1300,17 +1306,6 @@ public class GenerationContextTest {
     assertThatNoRethrowBlockExists(child);
 
     assertThatChecksWontBeSkipped(gc);
-  }
-
-  private void assertMoveOperationIsCorrectForNonRegisterActual(Instruction call,
-      Operator moveOperator, RegisterOperand formal, Operand actual, Instruction move) {
-    assertSame(call.position, move.position);
-    assertThat(move.operator(), is(moveOperator));
-    assertThat(move.bcIndex, is(PROLOGUE_BCI));
-    RegisterOperand moveResult = Move.getResult(move);
-    assertTrue(moveResult.sameRegisterPropertiesAsExceptForScratchObject(formal));
-    Operand moveValue = Move.getVal(move);
-    assertTrue(moveValue.similar(actual));
   }
 
   private RegisterOperand prepareCallWithObjectParam(Instruction callInstr) {
@@ -1939,10 +1934,11 @@ public class GenerationContextTest {
     Register reg = regOp.getRegister();
 
     RegisterOperand expectedNullCheckGuard = gc.makeNullCheckGuard(reg);
+    RegisterOperand copiedGuard = expectedNullCheckGuard.copy().asRegister();
     expectedNullCheckGuard.setGuard(new TrueGuardOperand());
 
     RegisterOperand actual = gc.makeNullCheckGuard(reg);
-    assertTrue(actual.sameRegisterPropertiesAsExceptForScratchObject(expectedNullCheckGuard));
+    assertTrue(actual.sameRegisterPropertiesAs(copiedGuard));
     assertNull(actual.getGuard());
   }
 
@@ -1963,7 +1959,7 @@ public class GenerationContextTest {
     gc.resync();
 
     RegisterOperand newNullCheckGuard = gc.makeNullCheckGuard(thisReg);
-    assertFalse(newNullCheckGuard.sameRegisterPropertiesAsExceptForScratchObject(thisNullCheckGuard));
+    assertFalse(newNullCheckGuard.sameRegisterPropertiesAs(thisNullCheckGuard));
   }
 
   @Test
@@ -1980,7 +1976,7 @@ public class GenerationContextTest {
     gc.resync();
 
     RegisterOperand newNullCheckGuard = gc.makeNullCheckGuard(thisReg);
-    assertTrue(newNullCheckGuard.sameRegisterPropertiesAsExceptForScratchObject(thisNullCheckGuard));
+    assertTrue(newNullCheckGuard.sameRegisterPropertiesAs(thisNullCheckGuard));
   }
 
   @Test(expected = NullPointerException.class)

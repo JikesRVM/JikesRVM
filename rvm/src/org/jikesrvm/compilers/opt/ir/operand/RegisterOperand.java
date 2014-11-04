@@ -49,6 +49,13 @@ public final class RegisterOperand extends Operand {
   private Object scratchObject;
 
   /**
+   * The guard associated with a RegisterOperand.
+   * <p>
+   * Used in the construction of the high-level intermediate representation.
+   */
+  private Operand guard;
+
+  /**
    * 16bit scratch word that can be used for different optimizations.
    */
   private short info;
@@ -164,6 +171,7 @@ public final class RegisterOperand extends Operand {
     temp.flags = flags;
     temp.flags2 = flags2;
     temp.scratchObject = scratchObject;
+    temp.guard = guard;
     if (VM.VerifyAssertions) verifyPreciseType();
     return temp;
   }
@@ -511,29 +519,32 @@ public final class RegisterOperand extends Operand {
   public boolean sameRegisterPropertiesAs(RegisterOperand other) {
     return this.register == other.register && this.flags == other.flags &&
         this.flags2 == other.flags2 && this.info == other.info &&
-        this.scratchObject == other.scratchObject;
+        this.guard == other.guard && this.scratchObject == other.scratchObject;
   }
 
   /**
    * Note: This method is currently used only by test cases.<p>
    *
    * Does this operand have the same properties as the given Operand? This method
-   * checks only the properties specific to RegisterOperand.
+   * checks only the properties specific to RegisterOperand. For guards, similarity
+   * of operands is sufficient.
    *
    * @param other the operand to compare with
    * @return whether the given RegisterOperand could be seen as a copy of this one
-   *  if {@link #scratchObject} can be ignored
    */
-  public boolean sameRegisterPropertiesAsExceptForScratchObject(RegisterOperand other) {
+  public boolean sameRegisterPropertiesAsExceptForGuardWhichIsSimilar(RegisterOperand other) {
+    boolean guardsSimilar = this.guard == other.guard ||
+         this.guard != null && this.guard.similar(other.guard);
     return this.register == other.register && this.flags == other.flags &&
-        this.flags2 == other.flags2 && this.info == other.info;
+        this.flags2 == other.flags2 && this.info == other.info &&
+        this.scratchObject == other.scratchObject && guardsSimilar;
   }
 
   public Operand getGuard() {
-    return (Operand) scratchObject;
+    return guard;
   }
 
   public void setGuard(Operand guard) {
-    this.scratchObject = guard;
+    this.guard = guard;
   }
 }

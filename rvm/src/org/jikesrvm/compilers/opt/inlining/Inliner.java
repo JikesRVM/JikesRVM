@@ -82,16 +82,6 @@ public class Inliner {
     BasicBlock bb = callSite.getBasicBlock().segregateInstruction(callSite, ir);
     BasicBlock in = bb.prevBasicBlockInCodeOrder();
     BasicBlock out = bb.nextBasicBlockInCodeOrder();
-    // Clear the sratch object of any register operands being
-    // passed as parameters.
-    // BC2IR uses this field for its own purposes, and will be confused
-    // if the scratch object has been used by someone else and not cleared.
-    for (int i = 0; i < Call.getNumberOfParams(callSite); i++) {
-      Operand arg = Call.getParam(callSite, i);
-      if (arg instanceof RegisterOperand) {
-        ((RegisterOperand) arg).setGuard(null);
-      }
-    }
     // We need to ensure that inlining the CALL instruction does not
     // insert any new exceptional edges into the CFG that were not
     // present before the inlining.  Note that inlining the CALL may
