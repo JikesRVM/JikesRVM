@@ -99,6 +99,8 @@ import org.vmmagic.unboxed.Offset;
 @Category(RequiresJikesRVM.class)
 public class GenerationContextTest {
 
+  private int currentRegisterNumber = -1;
+
   @Test
   public void constructorIsCorrectForTheSimplestMethods() throws Exception {
     NormalMethod nm = getNormalMethodForTest("emptyStaticMethodWithoutAnnotations");
@@ -838,6 +840,11 @@ public class GenerationContextTest {
     assertThatChecksWontBeSkipped(gc);
   }
 
+  private RegisterOperand createMockRegisterOperand(TypeReference tr) {
+    Register r = new Register(currentRegisterNumber--);
+    return new RegisterOperand(r, tr);
+  }
+
   @Test
   public void basicChildContextsWorkCorrectly() throws Exception {
     NormalMethod nm = getNormalMethodForTest("methodForInliningTests");
@@ -850,11 +857,9 @@ public class GenerationContextTest {
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
 
     MethodOperand methOp = MethodOperand.STATIC(callee);
-    Register regMinus1 = new Register(-1);
-    RegisterOperand result = new RegisterOperand(regMinus1, TypeReference.JavaLangObject);
+    RegisterOperand result = createMockRegisterOperand(TypeReference.JavaLangObject);
     Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
-    Register regMinus2 = new Register(-2);
-    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     Call.setParam(callInstr, 0, objectParam);
     callInstr.position = new InlineSequence(nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
@@ -948,8 +953,7 @@ public class GenerationContextTest {
     MethodOperand methOp = MethodOperand.VIRTUAL(callee.getMemberRef().asMethodReference(), callee);
     Instruction callInstr = Call.create(CALL, null, null, methOp, 5);
 
-    Register regIntMin = new Register(Integer.MIN_VALUE);
-    RegisterOperand receiver = new RegisterOperand(regIntMin, TypeReference.JavaLangObject);
+    RegisterOperand receiver = createMockRegisterOperand(TypeReference.JavaLangObject);
     assertFalse(receiver.isPreciseType());
     assertFalse(receiver.isDeclaredType());
     receiver.setPreciseType();
@@ -1089,8 +1093,7 @@ public class GenerationContextTest {
     MethodOperand methOp = MethodOperand.VIRTUAL(callee.getMemberRef().asMethodReference(), callee);
     Instruction callInstr = Call.create(CALL, null, null, methOp, 5);
 
-    Register regIntMin = new Register(Integer.MIN_VALUE);
-    RegisterOperand receiver = new RegisterOperand(regIntMin, callee.getDeclaringClass().getTypeRef());
+    RegisterOperand receiver = createMockRegisterOperand(callee.getDeclaringClass().getTypeRef());
     assertFalse(receiver.isPreciseType());
     assertFalse(receiver.isDeclaredType());
     receiver.setPreciseType();
@@ -1176,22 +1179,19 @@ public class GenerationContextTest {
   }
 
   private RegisterOperand prepareCallWithLongParam(Instruction callInstr) {
-    Register regMinus5 = new Register(-5);
-    RegisterOperand longParam = new RegisterOperand(regMinus5, TypeReference.Long);
+    RegisterOperand longParam = createMockRegisterOperand(TypeReference.Long);
     Call.setParam(callInstr, 4, longParam);
     return longParam;
   }
 
   private RegisterOperand prepareCallWithIntParam(Instruction callInstr) {
-    Register regMinus4 = new Register(-4);
-    RegisterOperand intParam = new RegisterOperand(regMinus4, TypeReference.Int);
+    RegisterOperand intParam = createMockRegisterOperand(TypeReference.Int);
     Call.setParam(callInstr, 3, intParam);
     return intParam;
   }
 
   private RegisterOperand prepareCallWithDoubleParam(Instruction callInstr) {
-    Register regMinus3 = new Register(-3);
-    RegisterOperand doubleParam = new RegisterOperand(regMinus3, TypeReference.Double);
+    RegisterOperand doubleParam = createMockRegisterOperand(TypeReference.Double);
     Call.setParam(callInstr, 2, doubleParam);
     return doubleParam;
   }
@@ -1314,8 +1314,7 @@ public class GenerationContextTest {
   }
 
   private RegisterOperand prepareCallWithObjectParam(Instruction callInstr) {
-    Register regMinus2 = new Register(-2);
-    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     Call.setParam(callInstr, 1, objectParam);
     return objectParam;
   }
@@ -1368,8 +1367,7 @@ public class GenerationContextTest {
     MethodOperand methOp = MethodOperand.VIRTUAL(callee.getMemberRef().asMethodReference(), callee);
     Instruction callInstr = Call.create(CALL, null, null, methOp, 1);
 
-    Register regIntMin = new Register(Integer.MIN_VALUE);
-    RegisterOperand objectParam = new RegisterOperand(regIntMin, TypeReference.JavaLangObject);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     assertFalse(objectParam.isPreciseType());
     assertFalse(objectParam.isDeclaredType());
     objectParam.setPreciseType();
@@ -1861,7 +1859,7 @@ public class GenerationContextTest {
     regOp.setPositiveInt();
 
     RegisterOperand newRegOpWithInheritance = gc.makeLocal(localNumber, regOp);
-    Operand scratchObject = (Operand) newRegOpWithInheritance.getGuard();
+    Operand scratchObject = newRegOpWithInheritance.getGuard();
     assertTrue(scratchObject.isTrueGuard());
     assertTrue(newRegOpWithInheritance.isParameter());
     assertTrue(newRegOpWithInheritance.isNonVolatile());
@@ -1874,7 +1872,7 @@ public class GenerationContextTest {
   @Test
   public void getLocalNumberForRegisterReturnsMinusOneIfNotALocal() throws Exception {
     GenerationContext gc = createMostlyEmptyContext("emptyInstanceMethodWithoutAnnotations");
-    Register reg = new Register(-1);
+    Register reg = new Register(currentRegisterNumber--);
     reg.setLong();
     reg.setLocal();
     int localNumber = gc.getLocalNumberFor(reg, TypeReference.Long);
@@ -2067,11 +2065,9 @@ public class GenerationContextTest {
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
 
     MethodOperand methOp = MethodOperand.STATIC(callee);
-    Register regMinus1 = new Register(-1);
-    RegisterOperand result = new RegisterOperand(regMinus1, TypeReference.JavaLangObject);
+    RegisterOperand result = createMockRegisterOperand(TypeReference.JavaLangObject);
     Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
-    Register regMinus2 = new Register(-2);
-    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     Call.setParam(callInstr, 0, objectParam);
     callInstr.position = new InlineSequence(nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
@@ -2101,11 +2097,9 @@ public class GenerationContextTest {
     NormalMethod callee = getNormalMethodForTest("emptyStaticMethodWithObjectParamAndReturnValue", classArgs);
 
     MethodOperand methOp = MethodOperand.STATIC(callee);
-    Register regMinus1 = new Register(-1);
-    RegisterOperand result = new RegisterOperand(regMinus1, TypeReference.JavaLangObject);
+    RegisterOperand result = createMockRegisterOperand(TypeReference.JavaLangObject);
     Instruction callInstr = Call.create(CALL, result, null, methOp, 1);
-    Register regMinus2 = new Register(-2);
-    RegisterOperand objectParam = new RegisterOperand(regMinus2, TypeReference.JavaLangObject);
+    RegisterOperand objectParam = createMockRegisterOperand(TypeReference.JavaLangObject);
     Call.setParam(callInstr, 0, objectParam);
     callInstr.position = new InlineSequence(nm);
     ExceptionHandlerBasicBlockBag ebag = getMockEbag();
