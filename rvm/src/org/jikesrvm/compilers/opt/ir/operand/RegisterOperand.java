@@ -43,10 +43,9 @@ public final class RegisterOperand extends Operand {
   private TypeReference type;
 
   /**
-   * Optimizations can use it for different purposes, as long as they
-   * are not used simultaneously
+   * Used to maintain def and use lists.
    */
-  private Object scratchObject;
+  private RegisterOperand nextInDefUseList;
 
   /**
    * The guard associated with a RegisterOperand.
@@ -155,9 +154,7 @@ public final class RegisterOperand extends Operand {
   /**
    * Returns a copy of this register operand as a register operand.<p>
    *
-   * NOTE: preserves the flags, info and scratchObject.  Preserving is
-   * required in all cases as several phases also depend on scratch
-   * and/or scratchObject being copied
+   * NOTE: preserves the flags, guards and def/use lists.
    *
    * @return a copy of this register operand
    */
@@ -165,7 +162,7 @@ public final class RegisterOperand extends Operand {
     RegisterOperand temp = new RegisterOperand(register, type);
     temp.flags = flags;
     temp.flags2 = flags2;
-    temp.scratchObject = scratchObject;
+    temp.nextInDefUseList = nextInDefUseList;
     temp.guard = guard;
     if (VM.VerifyAssertions) verifyPreciseType();
     return temp;
@@ -404,31 +401,31 @@ public final class RegisterOperand extends Operand {
   public void clearNullCheck() { flags2 &= ~NULL_CHECK; }
 
   /**
-   * Sets scratch object of the register operand to parameter. (sic)
-   * Since there is not multiple inheritance in Java, I am copying the
-   * accessor functions &amp; fields of LinkedListElement.  This field
-   * is used to maintain lists of USEs and DEFs
+   * Sets the next register operand in the def/use list.
+   * <p>
+   * TODO this method does the same as {@link #append(RegisterOperand)}.
+   * Remove this redundancy.
    *
-   * @param Next next register operand in the list
+   * @param next next register operand in the list
    */
-  public void setNext(RegisterOperand Next) {
-    scratchObject = Next;
+  public void setNext(RegisterOperand next) {
+    nextInDefUseList = next;
   }
 
   /**
-   * Sets scratch object of the register operand to parameter.
+   * Appends a register operand to the def/use list.
    *
    * @param next next register operand in the list
    */
   public void append(RegisterOperand next) {
-    scratchObject = next;
+    nextInDefUseList = next;
   }
 
   /**
-   * @return the scratch object of the register operand
+   * @return the next operand in the def/use list
    */
   public RegisterOperand getNext() {
-    return (RegisterOperand) scratchObject;
+    return nextInDefUseList;
   }
 
   @Override
@@ -514,7 +511,7 @@ public final class RegisterOperand extends Operand {
   public boolean sameRegisterPropertiesAs(RegisterOperand other) {
     return this.register == other.register && this.flags == other.flags &&
         this.flags2 == other.flags2 && this.guard == other.guard &&
-        this.scratchObject == other.scratchObject;
+        this.nextInDefUseList == other.nextInDefUseList;
   }
 
   /**
@@ -531,7 +528,7 @@ public final class RegisterOperand extends Operand {
     boolean guardsSimilar = this.guard == other.guard ||
         this.guard != null && this.guard.similar(other.guard);
     return this.register == other.register && this.flags == other.flags &&
-        this.flags2 == other.flags2 && this.scratchObject == other.scratchObject &&
+        this.flags2 == other.flags2 && this.nextInDefUseList == other.nextInDefUseList &&
         guardsSimilar;
   }
 
