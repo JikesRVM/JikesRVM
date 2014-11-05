@@ -24,9 +24,6 @@ import org.jikesrvm.compilers.opt.OptimizingCompilerException;
  */
 public class SpaceEffGraphNode implements GraphNode {
 
-  /** scratch field: optimizations use as they wish */
-  private Object scratchObject;
-
   /**
    * The following word is used for various purposes. The first
    * 8 bits are used for flags, and the remaining 24 bits for any
