@@ -89,9 +89,6 @@ public final class IntervalAnalysis extends CompilerPhase {
    * the result is a sorted (by beginning point) set of compound
    * intervals, stored in the private 'intervals' field.
    *
-   * note: this implementation bashes the 'scratchobject' field on all
-   * registers and the 'scratch' field on instructions.
-   *
    * @param ir the ir
    */
   @Override

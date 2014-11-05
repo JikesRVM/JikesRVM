@@ -134,8 +134,7 @@ public class RegisterAllocatorState {
   }
 
   /**
-   *  Associates the passed live interval with the passed register, using
-   *  the scratchObject field of Register.
+   *  Associates the passed live interval with the passed register.
    *
    *  @param reg the register
    *  @param interval the live interval

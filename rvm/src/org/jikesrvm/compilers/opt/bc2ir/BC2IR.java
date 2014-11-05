@@ -4677,8 +4677,7 @@ public final class BC2IR {
     }
 
     // Insert OsrBarrier point before the callsite which is going to be
-    // inlined, attach the OsrBarrier instruction to callsite's scratch
-    // object, then the callee can find this barrier
+    // inlined. The callee can find this barrier via its generation context.
 
     // verify it
     if (this.osrGuardedInline) {

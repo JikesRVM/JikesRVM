@@ -920,7 +920,7 @@ public abstract class Operand {
             RegisterOperand res = new RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
             if (rop1.getGuard() instanceof Operand &&
                 rop2.getGuard() instanceof Operand &&
-                (((Operand) rop1.getGuard()).similar(((Operand) rop2.getGuard())))) {
+                (rop1.getGuard().similar((rop2.getGuard())))) {
               res.setGuard(rop1.getGuard()); // compatible, so preserve onto res
             }
             res.meetInheritableFlags(rop2);
@@ -930,7 +930,7 @@ public abstract class Operand {
               VM.sysWrite(
                   "Operands are registers of identical type with compatible flags but with incompatible non-null guards\n");
             }
-            // by not setting scratchObject we mark as possible null
+            // by not setting guard we mark as possible null
             return new RegisterOperand(reg, type1, rop1.getFlags(), rop1.isPreciseType(), rop1.isDeclaredType());
           } else {
             if (DBG_OPERAND_LATTICE) {
@@ -954,7 +954,7 @@ public abstract class Operand {
             res.clearPreciseType();
             if (rop1.getGuard() instanceof Operand &&
                 rop2.getGuard() instanceof Operand &&
-                (((Operand) rop1.getGuard()).similar(((Operand) rop2.getGuard())))) {
+                (rop1.getGuard().similar((rop2.getGuard())))) {
               // it matched, so preserve onto res.
               res.setGuard(rop1.getGuard());
             }
@@ -990,7 +990,7 @@ public abstract class Operand {
             res.clearDeclaredType();    // invalid on res
             if (rop1.getGuard() instanceof Operand &&
                 rop2.getGuard() instanceof Operand &&
-                (((Operand) rop1.getGuard()).similar(((Operand) rop2.getGuard())))) {
+                (rop1.getGuard().similar((rop2.getGuard())))) {
               // it matched, so preserve onto res.
               res.setGuard(rop1.getGuard());
             }

@@ -65,8 +65,7 @@ public abstract class GenericRegisterRestrictions {
    * Records all the register restrictions dictated by an IR.
    *
    * PRECONDITION: the instructions in each basic block are numbered in
-   * increasing order before calling this.  The number for each
-   * instruction is stored in its <code>scratch</code> field.
+   * increasing order before calling this.
    *
    * @param ir the IR to process
    */
@@ -86,8 +85,7 @@ public abstract class GenericRegisterRestrictions {
    * particular basic block.<p>
    *
    * PRECONDITION: the instructions in each basic block are numbered in
-   * increasing order before calling this.  The number for each
-   * instruction is stored in its <code>scratch</code> field.
+   * increasing order before calling this.
    *
    * @param bb the bb to process
    * @param liveness liveness information for the IR
@@ -167,8 +165,7 @@ public abstract class GenericRegisterRestrictions {
    * Does a live range R contain an instruction with number n?<p>
    *
    * PRECONDITION: the instructions in each basic block are numbered in
-   * increasing order before calling this.  The number for each
-   * instruction is stored in its <code>scratch</code> field.
+   * increasing order before calling this.
    *
    * @param R the live range
    * @param n the instruction number
@@ -193,8 +190,7 @@ public abstract class GenericRegisterRestrictions {
    * Do two live ranges overlap?<p>
    *
    * PRECONDITION: the instructions in each basic block are numbered in
-   * increasing order before calling this.  The number for each
-   * instruction is stored in its <code>scratch</code> field.
+   * increasing order before calling this.
    *
    * @param li1 first live range
    * @param li2 second live range
