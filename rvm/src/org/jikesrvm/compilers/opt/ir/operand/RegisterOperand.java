@@ -402,22 +402,10 @@ public final class RegisterOperand extends Operand {
 
   /**
    * Sets the next register operand in the def/use list.
-   * <p>
-   * TODO this method does the same as {@link #append(RegisterOperand)}.
-   * Remove this redundancy.
    *
    * @param next next register operand in the list
    */
   public void setNext(RegisterOperand next) {
-    nextInDefUseList = next;
-  }
-
-  /**
-   * Appends a register operand to the def/use list.
-   *
-   * @param next next register operand in the list
-   */
-  public void append(RegisterOperand next) {
     nextInDefUseList = next;
   }
 

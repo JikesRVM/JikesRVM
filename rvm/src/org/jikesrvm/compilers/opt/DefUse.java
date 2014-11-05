@@ -113,7 +113,7 @@ public final class DefUse {
    */
   public static void recordUse(RegisterOperand regOp) {
     Register reg = regOp.getRegister();
-    regOp.append(reg.useList);
+    regOp.setNext(reg.useList);
     reg.useList = regOp;
     reg.useCount++;
   }
@@ -127,7 +127,7 @@ public final class DefUse {
   public static void recordDefUse(RegisterOperand regOp) {
     Register reg = regOp.getRegister();
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
-    regOp.append(reg.useList);
+    regOp.setNext(reg.useList);
     reg.useList = regOp;
   }
 
@@ -138,7 +138,7 @@ public final class DefUse {
   public static void recordDef(RegisterOperand regOp) {
     Register reg = regOp.getRegister();
     if (SUPRESS_DU_FOR_PHYSICALS && reg.isPhysical()) return;
-    regOp.append(reg.defList);
+    regOp.setNext(reg.defList);
     reg.defList = regOp;
   }
 
