@@ -56,11 +56,6 @@ public final class RegisterOperand extends Operand {
   private Operand guard;
 
   /**
-   * 16bit scratch word that can be used for different optimizations.
-   */
-  private short info;
-
-  /**
    * Type of a RegisterOperand can be in one of three states:
    *
    * <ol>
@@ -518,8 +513,8 @@ public final class RegisterOperand extends Operand {
    */
   public boolean sameRegisterPropertiesAs(RegisterOperand other) {
     return this.register == other.register && this.flags == other.flags &&
-        this.flags2 == other.flags2 && this.info == other.info &&
-        this.guard == other.guard && this.scratchObject == other.scratchObject;
+        this.flags2 == other.flags2 && this.guard == other.guard &&
+        this.scratchObject == other.scratchObject;
   }
 
   /**
@@ -534,10 +529,10 @@ public final class RegisterOperand extends Operand {
    */
   public boolean sameRegisterPropertiesAsExceptForGuardWhichIsSimilar(RegisterOperand other) {
     boolean guardsSimilar = this.guard == other.guard ||
-         this.guard != null && this.guard.similar(other.guard);
+        this.guard != null && this.guard.similar(other.guard);
     return this.register == other.register && this.flags == other.flags &&
-        this.flags2 == other.flags2 && this.info == other.info &&
-        this.scratchObject == other.scratchObject && guardsSimilar;
+        this.flags2 == other.flags2 && this.scratchObject == other.scratchObject &&
+        guardsSimilar;
   }
 
   public Operand getGuard() {
