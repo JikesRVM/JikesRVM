@@ -154,12 +154,10 @@ public final class Instruction {
   private static final byte OI_GC_VALID = 0x04;
   /** BITFIELD used to encode {@link #operatorInfo}. */
   private static final byte OI_GC = 0x08;
-  /** BITFIELD used to encode {@link #operatorInfo}. */
-  private static final byte MARK1 = 0x20;
-  /** BITFIELD used to encode {@link #operatorInfo}. */
-  private static final byte MARK2 = 0x40;
+
   /*
-   * NOTE: There are currently two free bits: 0x10 and 0x80.
+   * NOTE: There are currently several free bits: 0x10, 0x20,
+   * 0x40 and 0x80.
    */
 
   /**
@@ -1164,54 +1162,6 @@ public final class Instruction {
     if (VM.VerifyAssertions) VM._assert(getOpcode() > MIR_START_opcode);
     operatorInfo &= ~(OI_PEI | OI_GC);
     operatorInfo |= (OI_PEI_VALID | OI_GC_VALID);
-  }
-
-  /**
-   * Is the first mark bit of the instruction set?
-   *
-   * @return <code>true</code> if the first mark bit is set
-   *         or <code>false</code> if it is not.
-   */
-  boolean isMarked1() {
-    return (operatorInfo & MARK1) != 0;
-  }
-
-  /**
-   * Is the second mark bit of the instruction set?
-   *
-   * @return <code>true</code> if the first mark bit is set
-   *         or <code>false</code> if it is not.
-   */
-  boolean isMarked2() {
-    return (operatorInfo & MARK2) != 0;
-  }
-
-  /**
-   * Set the first mark bit of the instruction.
-   */
-  void setMark1() {
-    operatorInfo |= MARK1;
-  }
-
-  /**
-   * Set the second mark bit of the instruction.
-   */
-  void setMark2() {
-    operatorInfo |= MARK2;
-  }
-
-  /**
-   * Clear the first mark bit of the instruction.
-   */
-  void clearMark1() {
-    operatorInfo &= ~MARK1;
-  }
-
-  /**
-   * Clear the second mark bit of the instruction.
-   */
-  void clearMark2() {
-    operatorInfo &= ~MARK2;
   }
 
   /**
