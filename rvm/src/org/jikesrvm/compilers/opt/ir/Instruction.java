@@ -145,8 +145,6 @@ public final class Instruction {
    * BITFIELD used to encode {@link #operatorInfo}.
    * NB: OI_INVALID must be default value!
    */
-  @SuppressWarnings("unused")
-  // FIXME use it or lose it!
   private static final byte OI_INVALID = 0x00;
   /** BITFIELD used to encode {@link #operatorInfo}. */
   private static final byte OI_PEI_VALID = 0x01;
@@ -208,7 +206,7 @@ public final class Instruction {
    * information.
    * @see Operator
    */
-  private byte operatorInfo;
+  private byte operatorInfo = OI_INVALID;
 
   /**
    * The operands of this instruction.
