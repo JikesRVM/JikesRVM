@@ -16,7 +16,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import org.jikesrvm.junit.runners.VMRequirements;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -208,7 +207,6 @@ public class BasicIntervalTest {
     assertThat(bi.equals(bi2), is(true));
   }
 
-  @Ignore("hashCode and equals contract is violated")
   @Test
   public void equalObjectsHaveTheSameHashcode() {
     BasicInterval bi = new BasicInterval(1, 2);

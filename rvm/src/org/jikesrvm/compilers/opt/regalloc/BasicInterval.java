@@ -99,11 +99,24 @@ class BasicInterval {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof BasicInterval)) return false;
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + begin;
+    result = prime * result + end;
+    return result;
+  }
 
-    BasicInterval i = (BasicInterval) o;
-    return sameRange(i);
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    BasicInterval other = (BasicInterval) obj;
+    return sameRange(other);
   }
 
   @Override
