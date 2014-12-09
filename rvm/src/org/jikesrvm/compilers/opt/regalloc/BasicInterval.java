@@ -68,6 +68,14 @@ class BasicInterval {
     return begin < dfn;
   }
 
+  final boolean endsBefore(int dfn) {
+    return end < dfn;
+  }
+
+  final boolean endsAfter(int dfn) {
+    return end > dfn;
+  }
+
   final boolean contains(int dfn) {
     return begin <= dfn && end >= dfn;
   }
@@ -84,26 +92,18 @@ class BasicInterval {
     return begin == i.begin && end == i.end;
   }
 
+  final boolean intersects(BasicInterval i) {
+    int iBegin = i.getBegin();
+    int iEnd = i.getEnd();
+    return !(endsBefore(iBegin + 1) || startsAfter(iEnd - 1));
+  }
+
   @Override
   public boolean equals(Object o) {
     if (!(o instanceof BasicInterval)) return false;
 
     BasicInterval i = (BasicInterval) o;
     return sameRange(i);
-  }
-
-  final boolean endsBefore(int dfn) {
-    return end < dfn;
-  }
-
-  final boolean endsAfter(int dfn) {
-    return end > dfn;
-  }
-
-  final boolean intersects(BasicInterval i) {
-    int iBegin = i.getBegin();
-    int iEnd = i.getEnd();
-    return !(endsBefore(iBegin + 1) || startsAfter(iEnd - 1));
   }
 
   @Override
