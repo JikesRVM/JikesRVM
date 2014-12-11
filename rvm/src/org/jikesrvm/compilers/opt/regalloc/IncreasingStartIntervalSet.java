@@ -16,12 +16,20 @@ import java.util.Comparator;
 
 /**
  * Implements a set of Basic Intervals, sorted by start number.
+ * <p>
  * This version does NOT use container-mapping as a function in the comparator.
  */
 class IncreasingStartIntervalSet extends IntervalSet {
   /** Support for Set serialization */
   static final long serialVersionUID = -7086728932911844728L;
 
+  /**
+   * Imposes an ascending ordering based on the start points of basic intervals.
+   * <p>
+   * Note that this ordering is inconsistent with equals for objects of type
+   * {@link MappedBasicInterval}. It would consider two MappedBasicIntervals
+   * with different containers the same if begin and end would match.
+   */
   private static class StartComparator implements Comparator<BasicInterval> {
     @Override
     public int compare(BasicInterval b1, BasicInterval b2) {

@@ -16,12 +16,23 @@ import java.util.Comparator;
 
 /**
  * Implements a set of Basic Intervals, sorted by end number.
+ * <p>
  * This version uses container-mapping as a function in the comparator.
  */
 class IncreasingEndMappedIntervalSet extends IntervalSet {
   /** Support for Set serialization */
   static final long serialVersionUID = -3121737650157210290L;
 
+  /**
+   * Imposes an ascending ordering based on the end points of basic intervals.
+   * For mapped basic intervals, the register numbers are also compared.
+   * <p>
+   * Note that this ordering would be inconsistent with equals if both objects
+   * of type {@link BasicInterval} and {@link MappedBasicInterval} were contained
+   * in the set. A comparison of a MappedBasicInterval with a BasicInterval may
+   * consider both to be the same because their begin and end are the same but
+   * the equals methods would not consider the objects as equal.
+   */
   private static class EndComparator implements Comparator<BasicInterval> {
     @Override
     public int compare(BasicInterval b1, BasicInterval b2) {

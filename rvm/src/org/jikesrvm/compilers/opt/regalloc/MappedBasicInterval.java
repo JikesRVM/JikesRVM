@@ -38,6 +38,10 @@ class MappedBasicInterval extends BasicInterval {
     }
   }
 
+  // Note that it is not necessary to overwrite hashCode() because
+  // it need only be the case that equal objects have equal hash codes
+  // which is already handled by BasicInterval.
+
   @Override
   public String toString() {
     return "<" + container.getRegister() + ">:" + super.toString();
