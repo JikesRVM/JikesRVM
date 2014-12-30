@@ -322,36 +322,8 @@ class CompoundInterval extends IncreasingStartIntervalSet {
       }
     }
 
-    // SJF: the loop as written is slightly more efficient than calling
-    // removeAll().  However, for some reason, replacing the loop with
-    // the call to removeAll breaks the compiler on OptTestHarness
-    // -oc:O2 -method RVMMethod replaceCharWithString -.  This is deeply
-    // disturbing.  TODO: fix it.  (Hope the problem goes away if/when
-    // we migrate to classpath libraries).
-    // removeAll(result);
-    for (BasicInterval b : result) {
-      remove(b);
-    }
-
+    removeAll(result);
     return result;
-  }
-
-  /**
-   * SJF: Apparently our java.util implementation of removeAll()
-   * doesn't work.  Perhaps I've somehow screwed up the comparator with
-   * the "consistent with equals" property?
-   * It breaks javalex on BaseOptMarkSweep on IA32
-   * Hopefully this problem will go away if/when we switch to classpath.
-   * Else, perhaps I'll ditch use of java.util Collections and write my
-   * own collection classes.
-   * In the meantime, here's an ugly hack to get around the problem.
-   *
-   * @param c container for the intervals that should be removed
-   */
-  void removeAll(CompoundInterval c) {
-    for (BasicInterval b : c) {
-      remove(b);
-    }
   }
 
   /**
