@@ -20,7 +20,6 @@ import java.util.Map;
 import org.jikesrvm.VM;
 import org.jikesrvm.ArchitectureSpecificOpt.PhysicalRegisterSet;
 import org.jikesrvm.ArchitectureSpecificOpt.RegisterRestrictions;
-import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.Instruction;
@@ -58,27 +57,13 @@ final class ActiveSet extends IncreasingEndMappedIntervalSet {
    */
   private boolean spilled;
 
-  ActiveSet(IR ir, SpillLocationManager sm) {
+  ActiveSet(IR ir, SpillLocationManager sm, SpillCostEstimator cost) {
     super();
     spilled = false;
     this.ir = ir;
     this.regAllocState = ir.MIRInfo.regAllocState;
     this.spillManager = sm;
-
-    switch (ir.options.REGALLOC_SPILL_COST_ESTIMATE) {
-      case OptOptions.REGALLOC_SIMPLE_SPILL_COST:
-        spillCost = new SimpleSpillCost(ir);
-        break;
-      case OptOptions.REGALLOC_BRAINDEAD_SPILL_COST:
-        spillCost = new BrainDeadSpillCost(ir);
-        break;
-      case OptOptions.REGALLOC_BLOCK_COUNT_SPILL_COST:
-        spillCost = new BlockCountSpillCost(ir);
-        break;
-      default:
-        OptimizingCompilerException.UNREACHABLE("unsupported spill cost");
-        spillCost = null;
-    }
+    this.spillCost = cost;
   }
 
   boolean spilledSomething() {
