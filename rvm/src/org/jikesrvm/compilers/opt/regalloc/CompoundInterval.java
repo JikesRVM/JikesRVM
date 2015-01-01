@@ -21,8 +21,13 @@ import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.Register;
 
 /**
- * Implements a live interval with holes; ie; a list of basic live
- * intervals.
+ * Implements a live interval with holes; i.e. an ordered set of basic live
+ * intervals. There is exactly one instance of this class for each
+ * Register.
+ * <p>
+ * The order that this set imposes is inconsistent with equals.
+ * <p>
+ * This class is designed for use by a single thread.
  */
 class CompoundInterval extends IncreasingStartIntervalSet {
   /** Support for Set serialization */
@@ -37,7 +42,9 @@ class CompoundInterval extends IncreasingStartIntervalSet {
   final boolean isInfrequent() { return _infrequent; }
 
   /**
-   * The register this compound interval represents
+   * The register this compound interval represents or {@code null}
+   * if this interval is not associated with a register (i.e. if it
+   * represents a spill location).
    */
   private final Register reg;
 
@@ -60,7 +67,7 @@ class CompoundInterval extends IncreasingStartIntervalSet {
    *
    * @param dfnBegin interval's begin
    * @param dfnEnd interval's end
-   * @param register the register for the compund interval
+   * @param register the register for the compound interval
    */
   CompoundInterval(int dfnBegin, int dfnEnd, Register register) {
     BasicInterval newInterval = new MappedBasicInterval(dfnBegin, dfnEnd, this);
@@ -292,8 +299,14 @@ class CompoundInterval extends IncreasingStartIntervalSet {
    * Removes some basic intervals from this compound interval, and returns
    * the intervals actually removed.
    * <p>
-   * PRECONDITION: all basic intervals in i must appear in this compound
-   * interval, unless they end after the end of this interval
+   * PRECONDITION: All basic intervals in the other interval that have the
+   * same begin as an interval in this compound interval must have the same
+   * end. For example, for a compound interval {@code [(1,2)(2,3)]},
+   * the other interval would be allowed to contain {@code (1,2)} and/or
+   * {@code (2,2)} but not {@code (1,3)}.
+   * <p>
+   * A violation of the precondition that would have an effect will trigger
+   * an assertion failure in assertion-enabled builds.
    *
    * @param other interval to check for intervals that we want to remove
    *  from this
@@ -327,7 +340,7 @@ class CompoundInterval extends IncreasingStartIntervalSet {
   }
 
   /**
-   * @return the lowest DFN in this compound interval
+   * @return the lowest DFN in this compound interval at this time
    */
   int getLowerBound() {
     BasicInterval b = first();
@@ -335,7 +348,7 @@ class CompoundInterval extends IncreasingStartIntervalSet {
   }
 
   /**
-   * @return the highest DFN in this compound interval
+   * @return the highest DFN in this compound interval at this time
    */
   int getUpperBound() {
     BasicInterval b = last();
