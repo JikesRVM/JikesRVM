@@ -383,14 +383,14 @@ class CompoundInterval extends IncreasingStartIntervalSet {
   }
 
   /**
-   * @param regAllocState depth-first numbers for for instructions
+   * @param dfnNumbers depth-first numbers for for instructions
    * @param s   The instruction in question
    * @return the first basic interval that contains a given
    * instruction, {@code null} if there is no such interval
 
    */
-  BasicInterval getBasicInterval(RegisterAllocatorState regAllocState, Instruction s) {
-    return getBasicInterval(regAllocState.getDFN(s));
+  BasicInterval getBasicInterval(RegisterAllocatorState dfnNumbers, Instruction s) {
+    return getBasicInterval(dfnNumbers.getDFN(s));
   }
 
   /**
