@@ -14,8 +14,6 @@ package org.jikesrvm.compilers.opt.lir2mir;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.jikesrvm.compilers.opt.driver.OptConstants.EPILOGUE_BLOCK_BCI;
-import static org.jikesrvm.compilers.opt.driver.OptConstants.PROLOGUE_BLOCK_BCI;
 import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP;
 import static org.junit.Assert.assertThat;
@@ -27,12 +25,12 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.ControlFlowGraph;
 import org.jikesrvm.compilers.opt.ir.Empty;
 import org.jikesrvm.compilers.opt.ir.IR;
 import org.jikesrvm.compilers.opt.ir.IfCmp;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.junit.runners.VMRequirements;
+import org.jikesrvm.tests.util.TestingTools;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -94,13 +92,7 @@ public class SplitBasicBlockTest {
     OptOptions opts = new OptOptions();
     IR ir = new IR(null, null, opts);
     opts.L2M_MAX_BLOCK_SIZE = maxInstPerBlock;
-    ir.cfg = new ControlFlowGraph(0);
-    BasicBlock prologue = new BasicBlock(PROLOGUE_BLOCK_BCI, null, ir.cfg);
-    BasicBlock epilogue = new BasicBlock(EPILOGUE_BLOCK_BCI, null, ir.cfg);
-    ir.cfg.addLastInCodeOrder(prologue);
-    ir.cfg.addLastInCodeOrder(epilogue);
-    BasicBlock exit = ir.cfg.exit();
-    epilogue.insertOut(exit);
+    TestingTools.addEmptyCFGToIR(ir);
     return ir;
   }
 
