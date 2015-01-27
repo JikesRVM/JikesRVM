@@ -20,7 +20,6 @@ import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.HeaderByte;
 import org.mmtk.utility.deque.ObjectReferenceDeque;
-import org.mmtk.vm.VM;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -60,7 +59,6 @@ public final class StickyImmixNurseryTraceLocal extends TraceLocal {
     if (object.isNull()) return false;
     if (Space.isInSpace(StickyImmix.IMMIX, object))
       return PREFER_COPY_ON_NURSERY_GC ? StickyImmix.immixSpace.copyNurseryIsLive(object) : StickyImmix.immixSpace.fastIsLive(object);
-    if (VM.VERIFY_ASSERTIONS) VM.assertions._assert(super.isLive(object));
     return true;
   }
 
