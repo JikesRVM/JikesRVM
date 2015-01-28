@@ -1490,6 +1490,7 @@ public abstract class Assembler extends AbstractAssembler implements RegisterCon
   @Inline(value=Inline.When.ArgumentsAreConstant, arguments={2})
   public final void emitSET_Cond_Reg_Byte(byte cond, GPR dst) {
     int miStart = mi;
+    if (VM.VerifyAssertions) VM._assert(dst.isValidAs8bitRegister());
     generateREXprefix(false, null, null, dst);
     setMachineCodes(mi++, (byte) 0x0F);
     emitCondOpByte((byte)0x90, cond);

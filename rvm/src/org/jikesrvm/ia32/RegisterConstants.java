@@ -103,6 +103,19 @@ public interface RegisterConstants {
       }
     }
     /**
+     * Intel have two flavours of 8bit opcodes, ones that operate on 32bit
+     * registers and ones that operate on 8bit registers. As the high half of
+     * 8bit registers doesn't allow ESI, EDI, EBP, ESP to be encoded, this
+     * routine returns true if this register is one of those unencodable
+     * registers.
+     * @return can this register be encoded as an 8byte register?
+     */
+    @Pure
+    public boolean isValidAs8bitRegister() {
+      byte v = value();
+      return (v < 4) || (!VM.buildFor32Addr() && v > 7);
+    }
+    /**
      * Convert encoded value into the GPR it represents
      * @param num encoded value
      * @return represented GPR
