@@ -712,6 +712,17 @@ public abstract class StackManager extends GenericStackManager {
     // another.
     if (s.hasMemoryOperand()) return true;
 
+    // If r appears more than once in the instruction, we can't
+    // use a memory operand for all occurrences, so we will need a scratch
+    int count = 0;
+    for (Enumeration<Operand> ops = s.getOperands(); ops.hasMoreElements();) {
+      Operand op = ops.nextElement();
+      if (op.isRegister() && op.asRegister().getRegister() == r) {
+        count++;
+      }
+    }
+    if (count > 1) return true;
+
     // Check the architecture restrictions.
     if (RegisterRestrictions.mustBeInRegister(r, s)) return true;
 
