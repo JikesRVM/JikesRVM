@@ -14,6 +14,7 @@ package org.jikesrvm.compilers.opt.ir.operand;
 
 import static org.jikesrvm.compilers.opt.driver.OptConstants.NO;
 
+import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.FieldReference;
 import org.jikesrvm.classloader.RVMField;
@@ -288,7 +289,7 @@ public final class LocationOperand extends Operand {
       case ARRAY_ACCESS:
         return "<mem loc: array " + arrayElementType + "[]>";
       case JTOC_ACCESS:
-        return "<mem loc: JTOC @" + VM.addressAsHexString(JTOCoffset.toWord().toAddress()) + ">";
+        return "<mem loc: JTOC @" + Services.addressAsHexString(JTOCoffset.toWord().toAddress()) + ">";
       case SPILL_ACCESS:
         return "<mem loc: spill FP " + spillOffset + ">";
       case ALENGTH_ACCESS:

@@ -283,7 +283,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       Address varargAddress = gluefp.plus(spillAreaOffset);
 
       // VM.sysWrite("pushVarArgToSpillArea:  var arg at " +
-      //             VM.intAsHexString(varargAddress) + "\n");
+      //             Services.intAsHexString(varargAddress) + "\n");
 
       RVMMethod targetMethod = MemberReference.getMemberRef(methodID).asMethodReference().resolve();
       TypeReference[] argTypes = targetMethod.getParameterTypes();
@@ -346,7 +346,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       // skipping the args which are not part of the arguments for the target method
 
       // VM.sysWrite("pushVarArgToSpillArea:  var arg at " +
-      //             VM.intAsHexString(varargAddress) + "\n");
+      //             Services.intAsHexString(varargAddress) + "\n");
 
       RVMMethod targetMethod = MemberReference.getMemberRef(methodID).asMethodReference().resolve();
       TypeReference[] argTypes = targetMethod.getParameterTypes();
@@ -483,7 +483,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
                                         boolean skip4Args, int argtype) throws Exception {
 
     // VM.sysWrite("JNI CallXXXMethod:  method ID " + methodID + " with args at " +
-    //             VM.intAsHexString(argAddress) + "\n");
+    //             Services.intAsHexString(argAddress) + "\n");
 
     RVMMethod targetMethod = MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     TypeReference returnType = targetMethod.getReturnType();
@@ -871,7 +871,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       long hiword = VM.BuildFor64Addr ? addr.loadLong() : (long) addr.loadInt();
 
       // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + hiword +
-      // " or " + VM.intAsHexString(hiword) + "\n");
+      // " or " + Services.intAsHexString(hiword) + "\n");
 
       addr = addr.plus(BYTES_IN_ADDRESS);
 
@@ -953,7 +953,7 @@ public abstract class JNIHelpers extends JNIGenericHelpers
       long hiword = VM.BuildFor64Addr ? addr.loadLong() : (long) addr.loadInt();
 
       // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + hiword +
-      //          " or " + VM.intAsHexString(hiword) + "\n");
+      //          " or " + Services.intAsHexString(hiword) + "\n");
 
       // convert and wrap the argument according to the expected type
 

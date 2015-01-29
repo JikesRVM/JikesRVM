@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.ir.operand;
 
-import org.jikesrvm.VM;
+import org.jikesrvm.Services;
 import org.jikesrvm.SizeConstants;
 import org.jikesrvm.classloader.TypeReference;
 import org.vmmagic.unboxed.Address;
@@ -114,6 +114,6 @@ public final class AddressConstantOperand extends ConstantOperand {
    */
   @Override
   public String toString() {
-    return "Addr " + VM.addressAsHexString(value);
+    return "Addr " + Services.addressAsHexString(value);
   }
 }

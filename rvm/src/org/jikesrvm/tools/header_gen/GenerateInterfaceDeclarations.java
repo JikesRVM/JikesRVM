@@ -31,6 +31,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 
 import org.jikesrvm.ArchitectureSpecific;
+import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
@@ -75,7 +76,7 @@ public class GenerateInterfaceDeclarations {
     if (VM.BuildFor64Addr) {
       out.print(s + off.toLong());
     } else {
-      out.print(s + VM.addressAsHexString(off.toWord().toAddress()));
+      out.print(s + Services.addressAsHexString(off.toWord().toAddress()));
     }
   }
 
@@ -84,11 +85,11 @@ public class GenerateInterfaceDeclarations {
   }
 
   static void pln(String s, Address addr) {
-    out.print("const Address " + s + VM.addressAsHexString(addr) + ";\n");
+    out.print("const Address " + s + Services.addressAsHexString(addr) + ";\n");
   }
 
   static void pln(String s, Offset off) {
-    out.print("const Offset " + s + VM.addressAsHexString(off.toWord().toAddress()) + ";\n");
+    out.print("const Offset " + s + Services.addressAsHexString(off.toWord().toAddress()) + ";\n");
   }
 
   static void pln() {

@@ -1996,7 +1996,7 @@ public abstract class TemplateCompilerFramework
               }
               default:
                 if (VM.TraceOnStackReplacement) {
-                  VM.sysWrite("Unexpected PSEUDO code " + VM.intAsHexString(pseudo_opcode) + "\n");
+                  VM.sysWrite("Unexpected PSEUDO code " + Services.intAsHexString(pseudo_opcode) + "\n");
                 }
                 if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
                 break;

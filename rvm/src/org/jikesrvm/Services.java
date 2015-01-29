@@ -12,6 +12,7 @@
  */
 package org.jikesrvm;
 
+import static org.jikesrvm.SizeConstants.BITS_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_ADDRESS;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_CHAR;
 import static org.jikesrvm.SizeConstants.LOG_BYTES_IN_INT;
@@ -25,6 +26,7 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -338,6 +340,72 @@ public class Services {
   }
 
   /**
+   * Format a 32 bit number as "0x" followed by 8 hex digits.
+   * Do this without referencing Integer or Character classes,
+   * in order to avoid dynamic linking.
+   *
+   * @param number the number to format
+   * @return a String with the hex representation of the integer
+   */
+  @Interruptible
+  public static String intAsHexString(int number) {
+    char[] buf = new char[10];
+    int index = 10;
+    while (--index > 1) {
+      int digit = number & 0x0000000f;
+      buf[index] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
+      number >>= 4;
+    }
+    buf[index--] = 'x';
+    buf[index] = '0';
+    return new String(buf);
+  }
+
+  /**
+   * Format a 64 bit number as "0x" followed by 16 hex digits.
+   * Do this without referencing Long or Character classes,
+   * in order to avoid dynamic linking.
+   *
+   * @param number the number to format
+   * @return a String with the hex representation of the long
+   */
+  @Interruptible
+  public static String longAsHexString(long number) {
+    char[] buf = new char[18];
+    int index = 18;
+    while (--index > 1) {
+      int digit = (int) (number & 0x000000000000000fL);
+      buf[index] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
+      number >>= 4;
+    }
+    buf[index--] = 'x';
+    buf[index] = '0';
+    return new String(buf);
+  }
+
+  /**
+   * Format a 32/64 bit number as "0x" followed by 8/16 hex digits.
+   * Do this without referencing Integer or Character classes,
+   * in order to avoid dynamic linking.
+   *
+   * @param addr  The 32/64 bit number to format.
+   * @return a String with the hex representation of an Address
+   */
+  @Interruptible
+  public static String addressAsHexString(Address addr) {
+    int len = 2 + (BITS_IN_ADDRESS >> 2);
+    char[] buf = new char[len];
+    while (--len > 1) {
+      int digit = addr.toInt() & 0x0F;
+      buf[len] = digit <= 9 ? (char) ('0' + digit) : (char) ('a' + digit - 10);
+      addr = addr.toWord().rshl(4).toAddress();
+    }
+    buf[len--] = 'x';
+    buf[len] = '0';
+    return new String(buf);
+  }
+
+  /**
    * Sets an element of a object array without possibly losing control.
    * NB doesn't perform checkstore or array index checking.
    *
@@ -450,4 +518,5 @@ public class Services {
     else
       return src[index];
   }
+
 }

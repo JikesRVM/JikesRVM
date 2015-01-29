@@ -11,7 +11,7 @@
  *  regarding copyright ownership.
  */
 
-import org.jikesrvm.VM;
+import org.jikesrvm.Services;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Address;
 
@@ -57,8 +57,8 @@ class TestGC {
 
         Address oldAddress1 = Magic.objectAsAddress(str1);
         Address oldAddress2 = Magic.objectAsAddress(str2);
-        printVerbose("  str1 address = " + VM.addressAsHexString(oldAddress1));
-        printVerbose("  str2 address = " + VM.addressAsHexString(oldAddress2));
+        printVerbose("  str1 address = " + Services.addressAsHexString(oldAddress1));
+        printVerbose("  str2 address = " + Services.addressAsHexString(oldAddress2));
 
         returnobj = testgc(str1, str2);
         printVerbose("TestGC After native call:");
@@ -70,9 +70,9 @@ class TestGC {
         } else {
             printVerbose("Objects have NOT been moved by GC:");
         }
-        printVerbose("  str1 address = " + VM.addressAsHexString(newAddress1));
-        printVerbose("  str2 address = " + VM.addressAsHexString(newAddress2));
-        printVerbose("  returnobj address = " + VM.addressAsHexString(Magic.objectAsAddress(returnobj)));
+        printVerbose("  str1 address = " + Services.addressAsHexString(newAddress1));
+        printVerbose("  str2 address = " + Services.addressAsHexString(newAddress2));
+        printVerbose("  returnobj address = " + Services.addressAsHexString(Magic.objectAsAddress(returnobj)));
     } else {
         returnobj = testgc(str1, str2);
         printVerbose("TestGC After native call:");

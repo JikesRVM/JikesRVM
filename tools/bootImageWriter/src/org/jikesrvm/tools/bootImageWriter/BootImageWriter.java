@@ -61,6 +61,7 @@ import org.jikesrvm.ArchitectureSpecific.CodeArray;
 import org.jikesrvm.ArchitectureSpecific.LazyCompilationTrampoline;
 import org.jikesrvm.ArchitectureSpecific.OutOfLineMachineCode;
 import org.jikesrvm.Callbacks;
+import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
@@ -990,7 +991,7 @@ public class BootImageWriter extends BootImageWriterMessages {
     }
     Address jtocPtr = jtocImageAddress.plus(Statics.middleOfTable << LOG_BYTES_IN_INT);
     if (jtocPtr.NE(bootRecord.tocRegister))
-      fail("mismatch in JTOC placement "+VM.addressAsHexString(jtocPtr)+" != "+ VM.addressAsHexString(bootRecord.tocRegister));
+      fail("mismatch in JTOC placement "+Services.addressAsHexString(jtocPtr)+" != "+ Services.addressAsHexString(bootRecord.tocRegister));
 
     //
     // Now, copy all objects reachable from jtoc, replacing each object id
@@ -1760,7 +1761,7 @@ public class BootImageWriter extends BootImageWriterMessages {
             // field is reference type
             final Object o = jdkFieldAcc.get(null);
             if (verbose >= 3)
-              say("       setting with ", VM.addressAsHexString(Magic.objectAsAddress(o)));
+              say("       setting with ", Services.addressAsHexString(Magic.objectAsAddress(o)));
             Statics.setSlotContents(rvmFieldOffset, o);
           }
         }
@@ -1805,7 +1806,7 @@ public class BootImageWriter extends BootImageWriterMessages {
     Word high = Word.fromIntZeroExtend(0x10000000);  // we shouldn't have that many objects
     if (value.GT(low) && value.LT(high) && !value.EQ(Word.fromIntZeroExtend(32767)) &&
         (value.LT(Word.fromIntZeroExtend(4088)) || value.GT(Word.fromIntZeroExtend(4096)))) {
-      say("Warning: Suspicious Address value of ", VM.addressAsHexString(value.toAddress()),
+      say("Warning: Suspicious Address value of ", Services.addressAsHexString(value.toAddress()),
           " written for " + msg);
     }
   }
@@ -3324,20 +3325,20 @@ public class BootImageWriter extends BootImageWriterMessages {
         if ((field == null) && (field2 == null)) {
           category = "literal      ";
           long lval = Statics.getSlotContentsAsLong(jtocOff);
-          contents = VM.intAsHexString((int) (lval >> 32)) +
-            VM.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
+          contents = Services.intAsHexString((int) (lval >> 32)) +
+            Services.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
           details  = lval + "L";
         } else if ((field == null) && (field2 != null)) {
           category = "literal/field";
           long lval = Statics.getSlotContentsAsLong(jtocOff);
-          contents = VM.intAsHexString((int) (lval >> 32)) +
-            VM.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
+          contents = Services.intAsHexString((int) (lval >> 32)) +
+            Services.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
           details  = lval + "L / " + field2.toString();
         } else if ((field != null) && (field2 == null)) {
           category = "literal/field";
           long lval = Statics.getSlotContentsAsLong(jtocOff);
-          contents = VM.intAsHexString((int) (lval >> 32)) +
-            VM.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
+          contents = Services.intAsHexString((int) (lval >> 32)) +
+            Services.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
           details  = lval + "L / " + field.toString();
         } else {
           throw new Error("Unreachable");
@@ -3347,12 +3348,12 @@ public class BootImageWriter extends BootImageWriterMessages {
         if (field != null) {
           category = "literal/field";
           int ival = Statics.getSlotContentsAsInt(jtocOff);
-          contents = VM.intAsHexString(ival) + pad;
+          contents = Services.intAsHexString(ival) + pad;
           details  = Integer.toString(ival) + " / " + field.toString();
         } else {
           category = "literal      ";
           int ival = Statics.getSlotContentsAsInt(jtocOff);
-          contents = VM.intAsHexString(ival) + pad;
+          contents = Services.intAsHexString(ival) + pad;
           details  = Integer.toString(ival);
         }
       } else {
@@ -3362,11 +3363,11 @@ public class BootImageWriter extends BootImageWriterMessages {
           TypeReference type = field.getType();
           if (type.isIntLikeType()) {
             int ival = Statics.getSlotContentsAsInt(jtocOff);
-            contents = VM.intAsHexString(ival) + pad;
+            contents = Services.intAsHexString(ival) + pad;
           } else if(type.isLongType()) {
             long lval= Statics.getSlotContentsAsLong(jtocOff);
-            contents = VM.intAsHexString((int) (lval >> 32)) +
-              VM.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
+            contents = Services.intAsHexString((int) (lval >> 32)) +
+              Services.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
             jtocSlot++;
           } else if(type.isFloatType()) {
             int ival = Statics.getSlotContentsAsInt(jtocOff);
@@ -3378,11 +3379,11 @@ public class BootImageWriter extends BootImageWriterMessages {
           } else if (type.isWordLikeType()) {
             if (VM.BuildFor32Addr) {
               int ival = Statics.getSlotContentsAsInt(jtocOff);
-              contents = VM.intAsHexString(ival) + pad;
+              contents = Services.intAsHexString(ival) + pad;
             } else {
               long lval= Statics.getSlotContentsAsLong(jtocOff);
-              contents = VM.intAsHexString((int) (lval >> 32)) +
-                VM.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
+              contents = Services.intAsHexString((int) (lval >> 32)) +
+                Services.intAsHexString((int) (lval & 0xffffffffL)).substring(2);
               jtocSlot++;
             }
           } else {
@@ -3390,18 +3391,18 @@ public class BootImageWriter extends BootImageWriterMessages {
             int ival = Statics.getSlotContentsAsInt(jtocOff);
             category = "<? - field>  ";
             details  = "<? - " + field.toString() + ">";
-            contents = VM.intAsHexString(ival) + pad;
+            contents = Services.intAsHexString(ival) + pad;
           }
         } else {
           // Unknown?
           int ival = Statics.getSlotContentsAsInt(jtocOff);
           category = "<?>        ";
           details  = "<?>";
-          contents = VM.intAsHexString(ival) + pad;
+          contents = Services.intAsHexString(ival) + pad;
         }
       }
       out.println((jtocSlot + "        ").substring(0,8) +
-                  VM.addressAsHexString(jtocOff.toWord().toAddress()) + " " +
+                  Services.addressAsHexString(jtocOff.toWord().toAddress()) + " " +
                   category + "  " + contents + "  " + details);
     }
 
@@ -3414,7 +3415,7 @@ public class BootImageWriter extends BootImageWriterMessages {
       Object obj     = BootImageMap.getObject(getIVal(jtocOff));
       String category;
       String details;
-      String contents = VM.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;
+      String contents = Services.addressAsHexString(getReferenceAddr(jtocOff, false)) + pad;
       RVMField field = getRvmStaticField(jtocOff);
       if (Statics.isReferenceLiteral(jtocSlot)) {
         if (field != null) {
@@ -3465,7 +3466,7 @@ public class BootImageWriter extends BootImageWriterMessages {
         }
       }
       out.println((jtocSlot + "        ").substring(0,8) +
-                  VM.addressAsHexString(jtocOff.toWord().toAddress()) + " " +
+                  Services.addressAsHexString(jtocOff.toWord().toAddress()) + " " +
                   category + "  " + contents + "  " + details);
     }
 
@@ -3482,7 +3483,7 @@ public class BootImageWriter extends BootImageWriterMessages {
         if (m != null && compiledMethod.isCompiled()) {
           CodeArray instructions = compiledMethod.getEntryCodeArray();
           Address code = BootImageMap.getImageAddress(instructions.getBacking(), true);
-          out.println(".     .          code     " + VM.addressAsHexString(code) +
+          out.println(".     .          code     " + Services.addressAsHexString(code) +
                       "          " + compiledMethod.getMethod());
         }
       }
@@ -3510,7 +3511,7 @@ public class BootImageWriter extends BootImageWriterMessages {
       for (Iterator<BootImageMap.Entry> i = set.iterator(); i.hasNext();) {
         BootImageMap.Entry entry = i.next();
         Address data = entry.imageAddress;
-        out.println(".     .          data     " + VM.addressAsHexString(data) +
+        out.println(".     .          data     " + Services.addressAsHexString(data) +
                     "          " + entry.jdkObject.getClass());
       }
     }

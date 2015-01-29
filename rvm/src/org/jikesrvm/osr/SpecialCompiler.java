@@ -13,6 +13,7 @@
 package org.jikesrvm.osr;
 
 import org.jikesrvm.ArchitectureSpecific.BaselineCompilerImpl;
+import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.adaptive.controller.ControllerMemory;
 import org.jikesrvm.adaptive.controller.ControllerPlan;
@@ -116,7 +117,7 @@ public class SpecialCompiler {
       VM.sysWriteln("BASE : done, CMID 0x" +
                     Integer.toHexString(newCompiledMethod.getId()) +
                     "(" + newCompiledMethod.getId() + ") JTOC offset " +
-                    VM.addressAsHexString(newCompiledMethod.getOsrJTOCoffset().toWord().toAddress()));
+                    Services.addressAsHexString(newCompiledMethod.getOsrJTOCoffset().toWord().toAddress()));
     }
 
     return newCompiledMethod;

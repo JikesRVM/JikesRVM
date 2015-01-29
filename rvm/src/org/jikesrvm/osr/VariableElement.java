@@ -21,6 +21,7 @@ import static org.jikesrvm.osr.OSRConstants.REF;
 import static org.jikesrvm.osr.OSRConstants.RET_ADDR;
 import static org.jikesrvm.osr.OSRConstants.WORD;
 
+import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.unboxed.Word;
@@ -278,7 +279,7 @@ public class VariableElement {
         if (ref == null) {
           buf.append("null");
         } else {
-          buf.append(VM.addressAsHexString(Magic.objectAsAddress(ref)));
+          buf.append(Services.addressAsHexString(Magic.objectAsAddress(ref)));
           buf.append(" ");
 //      buf.append(ref.toString());
         }
