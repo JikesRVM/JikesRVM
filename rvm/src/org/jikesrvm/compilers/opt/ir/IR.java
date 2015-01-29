@@ -1105,7 +1105,7 @@ public final class IR {
     resetBasicBlockMap();
     verifyAllBlocksAreReachable(where, cfg.entry(), reachableNormalBlocks, reachableExceptionBlocks, false);
     boolean hasUnreachableBlocks = false;
-    StringBuffer unreachablesString = new StringBuffer();
+    StringBuilder unreachablesString = new StringBuilder();
     for (int j = 0; j < cfg.numberOfNodes(); j++) {
       if (!reachableNormalBlocks.get(j) && !reachableExceptionBlocks.get(j)) {
         hasUnreachableBlocks = true;
@@ -1284,7 +1284,7 @@ public final class IR {
             // variable should be defined
             Object variable = getVariableUse(where, Phi.getValue(instruction, i));
             if ((variable != null) && (!definedVariables.contains(variable))) {
-              StringBuffer pathString = new StringBuffer();
+              StringBuilder pathString = new StringBuilder();
               for (int j = 0; j < path.size(); j++) {
                 pathString.append(path.get(j).getNumber());
                 if (j < (path.size() - 1)) {
@@ -1303,7 +1303,7 @@ public final class IR {
           if ((variable != null) && (!definedVariables.contains(variable))) {
             if (instruction.operator().toString().indexOf("xor") != -1)
               continue;
-            StringBuffer pathString = new StringBuffer();
+            StringBuilder pathString = new StringBuilder();
             for (int i = 0; i < path.size(); i++) {
               pathString.append(path.get(i).getNumber());
               if (i < (path.size() - 1)) {

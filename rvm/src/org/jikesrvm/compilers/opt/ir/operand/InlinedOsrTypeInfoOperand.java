@@ -82,7 +82,7 @@ public final class InlinedOsrTypeInfoOperand extends Operand {
    */
   @Override
   public String toString() {
-    StringBuffer buf = new StringBuffer("(");
+    StringBuilder buf = new StringBuilder("(");
 
     for (int i = 0, n = methodids.length; i < n; i++) {
       buf.append(bcindexes[i]).append('@').append(MemberReference.getMemberRef(methodids[i]).getName()).append(" : ");
@@ -101,6 +101,6 @@ public final class InlinedOsrTypeInfoOperand extends Operand {
       }
     }
     buf.append(')');
-    return new String(buf);
+    return buf.toString();
   }
 }

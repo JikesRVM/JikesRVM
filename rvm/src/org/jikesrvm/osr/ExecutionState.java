@@ -492,7 +492,7 @@ public class ExecutionState {
 
   @Override
   public String toString() {
-    StringBuffer buf = new StringBuffer("Execution state " + this.bcIndex + "@" + this.meth + " " + this.thread);
+    StringBuilder buf = new StringBuilder("Execution state " + this.bcIndex + "@" + this.meth + " " + this.thread);
     for (int i = 0, n = varElms.size(); i < n; i++) {
       VariableElement var = varElms.get(i);
       buf.append("\n  ");
