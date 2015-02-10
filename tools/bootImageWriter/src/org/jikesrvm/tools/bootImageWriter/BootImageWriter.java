@@ -298,7 +298,7 @@ public class BootImageWriter extends BootImageWriterMessages {
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !aRef.isResolved()) || (aRef == bRef)) {
+      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
         return identicalSizeComparator.compare(a, b);
       } else if (!aRef.isResolved()) {
         return -1;
@@ -329,7 +329,7 @@ public class BootImageWriter extends BootImageWriterMessages {
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !aRef.isResolved()) || (aRef == bRef)) {
+      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
         return identicalSizeComparator.compare(a, b);
       } else if (!aRef.isResolved()) {
         return 1;
@@ -360,7 +360,7 @@ public class BootImageWriter extends BootImageWriterMessages {
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !aRef.isResolved()) || (aRef == bRef)) {
+      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
         return identicalSizeComparator.compare(a, b);
       } else if (!aRef.isResolved()) {
         return 1;
@@ -391,7 +391,7 @@ public class BootImageWriter extends BootImageWriterMessages {
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !aRef.isResolved()) || (aRef == bRef)) {
+      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
         return identicalSizeComparator.compare(a, b);
       } else if (!aRef.isResolved()) {
         return 1;
@@ -423,7 +423,7 @@ public class BootImageWriter extends BootImageWriterMessages {
     public int compare(BootImageMap.Entry a, BootImageMap.Entry b) {
       TypeReference aRef = TypeReference.findOrCreate(a.jdkObject.getClass());
       TypeReference bRef = TypeReference.findOrCreate(b.jdkObject.getClass());
-      if ((!aRef.isResolved() && !aRef.isResolved()) || (aRef == bRef)) {
+      if ((!aRef.isResolved() && !bRef.isResolved()) || (aRef == bRef)) {
         return identicalSizeComparator.compare(a, b);
       } else if (!aRef.isResolved()) {
         return 1;
