@@ -332,7 +332,7 @@ public class ClassFileReader {
    */
   static RVMClass readClass(TypeReference typeRef, DataInputStream input) throws ClassFormatError, IOException {
 
-    if (RVMClass.classLoadingDisabled) {
+    if (RVMClass.isClassLoadingDisabled()) {
       throw new RuntimeException("ClassLoading Disabled : " + typeRef);
     }
 

@@ -56,7 +56,7 @@ import org.vmmagic.unboxed.Offset;
 public final class RVMClass extends RVMType {
 
   /** Flag for closed world testing */
-  public static boolean classLoadingDisabled = false;
+  private static boolean classLoadingDisabled = false;
 
   /**
    * The constant pool holds constants used by the class and the Java
@@ -1911,6 +1911,22 @@ public final class RVMClass extends RVMType {
   @Uninterruptible
   public boolean isUnboxedType() {
     return false;
+  }
+
+  public static boolean isClassLoadingDisabled() {
+    return classLoadingDisabled;
+  }
+
+  /**
+   * Provides a way to disable and re-enable classloading for testing purposes.
+   * <p>
+   * Note: General clients must not call this method.
+   *
+   * @param classLoadingDisabled {@code true} if classloading is to be disabled,
+   *  {@code false} if it is to be enabled
+   */
+  public static void setClassLoadingDisabled(boolean classLoadingDisabled) {
+    RVMClass.classLoadingDisabled = classLoadingDisabled;
   }
 
   /**

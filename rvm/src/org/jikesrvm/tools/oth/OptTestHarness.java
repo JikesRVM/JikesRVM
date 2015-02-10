@@ -156,7 +156,7 @@ class OptTestHarness {
   RVMMethod findDeclaredOrFirstMethod(RVMClass klass, String methname, String methdesc) {
     if (klass == null) return null;
     Atom methodName = Atom.findOrCreateAsciiAtom(methname);
-    Atom methodDesc = methdesc.equals("-") ? null : Atom.findOrCreateAsciiAtom(methdesc);
+    Atom methodDesc = "-".equals(methdesc) ? null : Atom.findOrCreateAsciiAtom(methdesc);
 
     for (RVMMethod method : klass.getDeclaredMethods()) {
       if (method.getName() == methodName && ((methodDesc == null) || (methodDesc == method.getDescriptor()))) {
@@ -187,8 +187,7 @@ class OptTestHarness {
       s = s.substring(1, s.length() - 1);
     }
 
-    s = s.replace('.', '/');
-    return s;
+    return s.replace('.', '/');
   }
 
   void printFormatString() {
@@ -231,19 +230,22 @@ class OptTestHarness {
         String arg = args[i];
         if (arg.startsWith("-oc:") && options.processAsOption("-X:irc:", arg.substring(4))) {
           // handled in processAsOption
-        } else if (arg.equals("-useBootOptions")) {
+        } else if ("-useBootOptions".equals(arg)) {
           OptimizingCompiler.setBootOptions(options);
-        } else if (arg.equals("-longcommandline")) {
+        } else if ("-longcommandline".equals(arg)) {
           // the -longcommandline option reads options from a file.
           // use for cases when the command line is too long for AIX
           i++;
           BufferedReader in = new BufferedReader(new FileReader(args[i]));
           StringBuilder s = new StringBuilder();
           while (in.ready()) {
-            String line = in.readLine().trim();
-            if (!line.startsWith("#")) {
-              s.append(line);
-              s.append(" ");
+            String line = in.readLine();
+            if (line != null) {
+              line = line.trim();
+              if (!line.startsWith("#")) {
+                s.append(line);
+                s.append(" ");
+              }
             }
           }
           in.close();
@@ -253,24 +255,24 @@ class OptTestHarness {
             av[j] = t.nextToken();
           }
           processOptionString(av);
-        } else if (arg.equals("+baseline")) {
+        } else if ("+baseline".equals(arg)) {
           useBaselineCompiler = true;
-        } else if (arg.equals("-baseline")) {
+        } else if ("-baseline".equals(arg)) {
           useBaselineCompiler = false;
-        } else if (arg.equals("-load")) {
+        } else if ("-load".equals(arg)) {
           loadClass(args[++i]);
-        } else if (arg.equals("-class")) {
+        } else if ("-class".equals(arg)) {
           RVMClass klass = loadClass(args[++i]);
           processClass(klass, options);
           duplicateOptions();
-        } else if (arg.equals("-method") || arg.equals("-methodOpt") || arg.equals("-methodBase")) {
+        } else if ("-method".equals(arg) || "-methodOpt".equals(arg) || "-methodBase".equals(arg)) {
           // Default for this method is determined by BASELINE var
           boolean isBaseline = useBaselineCompiler;
           // Unless specified by these options
-          if (arg.equals("-methodOpt")) {
+          if ("-methodOpt".equals(arg)) {
             isBaseline = false;
           }
-          if (arg.equals("-methodBase")) {
+          if ("-methodBase".equals(arg)) {
             isBaseline = true;
           }
 
@@ -290,11 +292,11 @@ class OptTestHarness {
             processMethod(method, options, isBaseline);
           }
           duplicateOptions();
-        } else if (arg.equals("-performance")) {
+        } else if ("-performance".equals(arg)) {
           perf = new Performance();
-        } else if (arg.equals("-disableClassLoading")) {
+        } else if ("-disableClassLoading".equals(arg)) {
           disableClassloading = true;
-        } else if (arg.equals("-er")) {
+        } else if ("-er".equals(arg)) {
           executeWithReflection = true;
           RVMClass klass = loadClass(args[++i]);
           String name = args[++i];
@@ -326,7 +328,7 @@ class OptTestHarness {
           reflectMethodVector.add(method);
           reflectMethodArgsVector.add(reflectMethodArgs);
           duplicateOptions();
-        } else if (arg.equals("-main")) {
+        } else if ("-main".equals(arg)) {
           executeMainMethod = true;
           i++;
           mainClass = loadClass(args[i]);
@@ -398,7 +400,7 @@ class OptTestHarness {
       } catch (OptimizingCompilerException e) {
         if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
-          VM.sysFail("Internal vm error: " + e.toString());
+          VM.sysFail("Internal vm error: " + e);
         } else {
           System.err.println("SKIPPING opt-compilation of " + method + ":\n  " + e.getMessage());
           if (opts.PRINT_METHOD) {
@@ -415,7 +417,7 @@ class OptTestHarness {
     if (executeWithReflection) {
 
       if (disableClassloading) {
-        RVMClass.classLoadingDisabled = true;
+        RVMClass.setClassLoadingDisabled(true);
       }
 
       int size = reflectoidVector.size();
