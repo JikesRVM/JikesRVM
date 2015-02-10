@@ -214,7 +214,7 @@ public class OptTestHarnessTest {
     OptTestHarness oth = executeOptTestHarness(arguments);
     assertThatErrorForUnrecognizedArgumentOccurred(unknownArgument);
     assertThatNoAdditionalErrorsHaveOccurred();
-    assertThat(oth.BASELINE, is(true));
+    assertThat(oth.useBaselineCompiler, is(true));
   }
 
   @Test
@@ -386,10 +386,10 @@ public class OptTestHarnessTest {
   public void baselineCompilationCanBeSwitchedOnAndOff() throws Exception {
     String[] args = { "+baseline" };
     OptTestHarness oth = executeOptTestHarness(args);
-    assertThat(oth.BASELINE, is(true));
+    assertThat(oth.useBaselineCompiler, is(true));
     String[] useOpt = { "+baseline" , "-baseline" };
     oth = executeOptTestHarness(useOpt);
-    assertThat(oth.BASELINE, is(false));
+    assertThat(oth.useBaselineCompiler, is(false));
   }
 
   @Test
@@ -603,7 +603,7 @@ public class OptTestHarnessTest {
     String[] longCommandLine = {"-longcommandline", f.getAbsolutePath()};
     OptTestHarness oth = executeOptTestHarness(longCommandLine);
     assertThatNoAdditionalErrorsHaveOccurred();
-    assertThat(oth.BASELINE, is(false));
+    assertThat(oth.useBaselineCompiler, is(false));
   }
 
   private void createFileWriter(String fileName) throws IOException {
@@ -681,7 +681,7 @@ public class OptTestHarnessTest {
     assertThatNoAdditionalErrorsHaveOccurred();
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(2);
-    assertThat(oth.BASELINE, is(true));
+    assertThat(oth.useBaselineCompiler, is(true));
   }
 
 }

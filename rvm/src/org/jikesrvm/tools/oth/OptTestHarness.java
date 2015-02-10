@@ -70,17 +70,17 @@ import org.vmmagic.unboxed.Address;
  * </pre>
  */
 class OptTestHarness {
-  boolean DISABLE_CLASS_LOADING = false;
-  boolean EXECUTE_WITH_REFLECTION = false;
-  boolean EXECUTE_MAIN = false;
+  boolean disableClassloading = false;
+  boolean executeWithReflection = false;
+  boolean executeMainMethod = false;
   /** Default value for for compiling opt/baseline */
-  boolean BASELINE = false;
+  boolean useBaselineCompiler = false;
 
  /**
    * Should we print the address of compiled methods (useful for
    * debugging)
    */
-  boolean PRINT_CODE_ADDRESS = true;
+  boolean printCodeAddress = true;
 
   /** Record and show performance of executed methods, if any */
   Performance perf;
@@ -206,7 +206,7 @@ class OptTestHarness {
 
   // Wrapper applying default decision regarding opt/baseline
   private void processMethod(RVMMethod method, OptOptions opts) {
-    processMethod(method, opts, BASELINE);
+    processMethod(method, opts, useBaselineCompiler);
   }
 
   private void processMethod(RVMMethod method, OptOptions opts, boolean isBaseline) {
@@ -254,9 +254,9 @@ class OptTestHarness {
           }
           processOptionString(av);
         } else if (arg.equals("+baseline")) {
-          BASELINE = true;
+          useBaselineCompiler = true;
         } else if (arg.equals("-baseline")) {
-          BASELINE = false;
+          useBaselineCompiler = false;
         } else if (arg.equals("-load")) {
           loadClass(args[++i]);
         } else if (arg.equals("-class")) {
@@ -265,7 +265,7 @@ class OptTestHarness {
           duplicateOptions();
         } else if (arg.equals("-method") || arg.equals("-methodOpt") || arg.equals("-methodBase")) {
           // Default for this method is determined by BASELINE var
-          boolean isBaseline = BASELINE;
+          boolean isBaseline = useBaselineCompiler;
           // Unless specified by these options
           if (arg.equals("-methodOpt")) {
             isBaseline = false;
@@ -293,15 +293,15 @@ class OptTestHarness {
         } else if (arg.equals("-performance")) {
           perf = new Performance();
         } else if (arg.equals("-disableClassLoading")) {
-          DISABLE_CLASS_LOADING = true;
+          disableClassloading = true;
         } else if (arg.equals("-er")) {
-          EXECUTE_WITH_REFLECTION = true;
+          executeWithReflection = true;
           RVMClass klass = loadClass(args[++i]);
           String name = args[++i];
           String desc = args[++i];
           NormalMethod method = (NormalMethod) findDeclaredOrFirstMethod(klass, name, desc);
           CompiledMethod cm = null;
-          if (BASELINE) {
+          if (useBaselineCompiler) {
             cm = BaselineCompiler.compile(method);
           } else {
             CompilationPlan cp =
@@ -314,7 +314,7 @@ class OptTestHarness {
           }
           if (cm != null) {
             method.replaceCompiledMethod(cm);
-            if (PRINT_CODE_ADDRESS) {
+            if (printCodeAddress) {
               System.out.println(compiledMethodMessage(method));
             }
           }
@@ -327,7 +327,7 @@ class OptTestHarness {
           reflectMethodArgsVector.add(reflectMethodArgs);
           duplicateOptions();
         } else if (arg.equals("-main")) {
-          EXECUTE_MAIN = true;
+          executeMainMethod = true;
           i++;
           mainClass = loadClass(args[i]);
           i++;
@@ -375,7 +375,7 @@ class OptTestHarness {
       CompiledMethod cm = null;
       cm = BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
-      if (PRINT_CODE_ADDRESS) {
+      if (printCodeAddress) {
         System.out.println(compiledMethodMessage(method));
       }
     }
@@ -392,7 +392,7 @@ class OptTestHarness {
             new CompilationPlan(method, OptimizationPlanner.createOptimizationPlan(opts), null, opts);
         cm = OptimizingCompiler.compile(cp);
         method.replaceCompiledMethod(cm);
-        if (PRINT_CODE_ADDRESS) {
+        if (printCodeAddress) {
           System.out.println(compiledMethodMessage(method));
         }
       } catch (OptimizingCompilerException e) {
@@ -412,9 +412,9 @@ class OptTestHarness {
   private void executeCommand() throws InvocationTargetException, IllegalAccessException {
     compileMethodsInVector();
 
-    if (EXECUTE_WITH_REFLECTION) {
+    if (executeWithReflection) {
 
-      if (DISABLE_CLASS_LOADING) {
+      if (disableClassloading) {
         RVMClass.classLoadingDisabled = true;
       }
 
@@ -431,10 +431,10 @@ class OptTestHarness {
         System.out.println(endOfExecutionString(method));
         System.out.println(resultString(result));
       }
-      EXECUTE_WITH_REFLECTION = false;
+      executeWithReflection = false;
     }
 
-    if (EXECUTE_MAIN) {
+    if (executeMainMethod) {
       RVMMethod mainMethod = mainClass.findMainMethod();
       if (mainMethod == null) {
         // no such method
@@ -478,7 +478,7 @@ class OptTestHarness {
     if (VM.BuildForOptCompiler && !OptimizingCompiler.isInitialized()) {
       OptimizingCompiler.init(options);
     } else if (!VM.BuildForOptCompiler) {
-      BASELINE = true;
+      useBaselineCompiler = true;
     }
     processOptionString(args);
     if (perf != null) {
