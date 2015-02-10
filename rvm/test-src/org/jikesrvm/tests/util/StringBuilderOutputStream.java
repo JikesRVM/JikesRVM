@@ -18,7 +18,7 @@ import java.io.OutputStream;
 /**
  * Provides access to the received output in the form of a {@link StringBuilder}.
  */
-public class StringBuilderOutputStream extends OutputStream{
+public class StringBuilderOutputStream extends OutputStream {
 
   private final StringBuilder output = new StringBuilder();
 

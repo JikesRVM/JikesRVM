@@ -25,8 +25,10 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.opt.inlining.InlineSequence;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Call;
@@ -72,6 +74,18 @@ public class TestingTools {
     Method m = declaringClass.getMethod(name, argumentTypes);
     RVMMethod rvmm = JikesRVMSupport.getMethodOf(m);
     return (NormalMethod) rvmm;
+  }
+
+  public static NormalMethod getNoArgumentConstructor(Class<?> declaringClass) throws Exception {
+    RVMType type = java.lang.JikesRVMSupport.getTypeForClass(declaringClass);
+    RVMClass clazz = type.asClass();
+    RVMMethod[] constructors = clazz.getConstructorMethods();
+    for (RVMMethod method : constructors) {
+      if (method.getParameterTypes().length == 0) {
+        return (NormalMethod) method;
+      }
+    }
+    throw new NoSuchMethodException("Did not find a no-argument constructor!");
   }
 
   private static Instruction setByteCodeIndex(int byteCodeIndex) {

@@ -18,6 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.Callbacks;
 import org.jikesrvm.classloader.Atom;
@@ -75,7 +76,7 @@ class OptTestHarness {
   /** Default value for for compiling opt/baseline */
   static boolean BASELINE = false;
 
-  /**
+ /**
    * Should we print the address of compiled methods (useful for
    * debugging)
    */
@@ -261,7 +262,7 @@ class OptTestHarness {
         } else if (arg.equals("-class")) {
           RVMClass klass = loadClass(args[++i]);
           processClass(klass, options);
-          options = options.dup();
+          duplicateOptions();
         } else if (arg.equals("-method") || arg.equals("-methodOpt") || arg.equals("-methodBase")) {
           // Default for this method is determined by BASELINE var
           boolean isBaseline = BASELINE;
@@ -288,7 +289,7 @@ class OptTestHarness {
           } else {
             processMethod(method, options, isBaseline);
           }
-          options = options.dup();
+          duplicateOptions();
         } else if (arg.equals("-performance")) {
           perf = new Performance();
         } else if (arg.equals("-disableClassLoading")) {
@@ -314,8 +315,7 @@ class OptTestHarness {
           if (cm != null) {
             method.replaceCompiledMethod(cm);
             if (PRINT_CODE_ADDRESS) {
-              Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
-              System.out.println("Method: " + method + " compiled code: " + addrToString(addr));
+              System.out.println(compiledMethodMessage(method));
             }
           }
           TypeReference[] argDesc = method.getDescriptor().parseForParameterTypes(klass.getClassLoader());
@@ -325,7 +325,7 @@ class OptTestHarness {
           reflectoidVector.add(reflectoid);
           reflectMethodVector.add(method);
           reflectMethodArgsVector.add(reflectMethodArgs);
-          options = options.dup();
+          duplicateOptions();
         } else if (arg.equals("-main")) {
           EXECUTE_MAIN = true;
           i++;
@@ -353,6 +353,18 @@ class OptTestHarness {
     }
   }
 
+  private static void duplicateOptions() {
+    if (VM.BuildForOptCompiler) {
+      options = options.dup();
+    }
+  }
+
+  static String compiledMethodMessage(NormalMethod method) {
+    CompiledMethod cm = method.getCurrentCompiledMethod();
+    Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
+    return "Method: " + method + " compiled code: " + addrToString(addr);
+  }
+
   private static void compileMethodsInVector() {
     // Compile all baseline methods first
     int size = baselineMethodVector.size();
@@ -364,8 +376,7 @@ class OptTestHarness {
       cm = BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
       if (PRINT_CODE_ADDRESS) {
-        Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
-        System.out.println("Method: " + method + " compiled code: " + addrToString(addr));
+        System.out.println(compiledMethodMessage(method));
       }
     }
 
@@ -382,8 +393,7 @@ class OptTestHarness {
         cm = OptimizingCompiler.compile(cp);
         method.replaceCompiledMethod(cm);
         if (PRINT_CODE_ADDRESS) {
-          Address addr = Magic.objectAsAddress(cm.getEntryCodeArray());
-          System.out.println("Method: " + method + " compiled code: " + addrToString(addr));
+          System.out.println(compiledMethodMessage(method));
         }
       } catch (OptimizingCompilerException e) {
         if (e.isFatal && VM.ErrorsFatal) {
@@ -413,13 +423,13 @@ class OptTestHarness {
         reflectoid = reflectoidVector.get(i);
         reflectMethodArgs = reflectMethodArgsVector.get(i);
         RVMMethod method = reflectMethodVector.get(i);
-        System.out.println("**** START OF EXECUTION of " + method + " ****.");
+        System.out.println(startOfExecutionString(method));
         Object result = null;
         if (perf != null) perf.reset();
         result = reflectoid.invoke(null, reflectMethodArgs);
         if (perf != null) perf.stop();
-        System.out.println("**** END OF EXECUTION of " + method + " ****.");
-        System.out.println("**** RESULT: " + result);
+        System.out.println(endOfExecutionString(method));
+        System.out.println(resultString(result));
       }
       EXECUTE_WITH_REFLECTION = false;
     }
@@ -431,10 +441,25 @@ class OptTestHarness {
         System.err.println(mainClass + " doesn't have a \"public static void main(String[])\" method to execute\n");
         return;
       }
-      System.out.println("**** START OF EXECUTION of " + mainMethod + " ****.");
+      System.out.println(startOfExecutionString(mainMethod));
       Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
-      System.out.println("**** END OF EXECUTION of " + mainMethod + " ****.");
+      System.out.println(endOfExecutionString(mainMethod));
     }
+  }
+
+
+  static String resultString(Object result) {
+    return "**** RESULT: " + result;
+  }
+
+
+  static String endOfExecutionString(RVMMethod method) {
+    return "**** END OF EXECUTION of " + method + " ****.";
+  }
+
+
+  static String startOfExecutionString(RVMMethod method) {
+    return "**** START OF EXECUTION of " + method + " ****.";
   }
 
   public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
@@ -447,6 +472,8 @@ class OptTestHarness {
     reflectMethodArgsVector = new Vector<Object[]>(10);
     if (VM.BuildForOptCompiler && !OptimizingCompiler.isInitialized()) {
       OptimizingCompiler.init(options);
+    } else if (!VM.BuildForOptCompiler) {
+      BASELINE = true;
     }
     processOptionString(args);
     if (perf != null) {
@@ -489,4 +516,14 @@ class OptTestHarness {
     @Override
     public void notifyExit(int discard) { show(); }
   }
+
+  public static void resetToDefaults() {
+    DISABLE_CLASS_LOADING = false;
+    EXECUTE_WITH_REFLECTION = false;
+    EXECUTE_MAIN = false;
+    BASELINE = false;
+    PRINT_CODE_ADDRESS = true;
+    perf = null;
+  }
+
 }

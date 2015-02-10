@@ -16,5 +16,9 @@ package org.jikesrvm.tools.oth;
  * The solo purpose of this class is to be loaded via a test case for the
  * OptTestHarness.
  */
-public class TestClass1 {
+public abstract class AbstractClassWithEmptyMethod {
+
+  public void emptyMethod() {
+  }
+
 }
