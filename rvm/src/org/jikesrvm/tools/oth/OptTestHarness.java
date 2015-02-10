@@ -82,6 +82,8 @@ class OptTestHarness {
    */
   boolean printCodeAddress = true;
 
+  boolean addCallbackForPerformancePrintout = true;
+
   /** Record and show performance of executed methods, if any */
   Performance perf;
 
@@ -483,7 +485,7 @@ class OptTestHarness {
       useBaselineCompiler = true;
     }
     processOptionString(args);
-    if (perf != null) {
+    if (perf != null && addCallbackForPerformancePrintout) {
       Callbacks.addExitMonitor(perf);
     }
     executeCommand();

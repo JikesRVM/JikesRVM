@@ -54,8 +54,6 @@ public class OptTestHarnessTest {
   // TODO convertToClassName has some bugs and quirks
 
   // Tests
-  // TODO supportsPerformanceMeasurements has output on standard out that's not being
-  //  redirected
   // TODO some error cases are still missing tests
   // TODO "-disableClassloading" has no tests
 
@@ -616,7 +614,9 @@ public class OptTestHarnessTest {
   @Test
   public void supportsPerformanceMeasurements() throws Exception {
     String[] args = { "-performance"};
-    executeOptTestHarness(args);
+    OptTestHarness oth = new OptTestHarness();
+    oth.addCallbackForPerformancePrintout = false;
+    oth.mainMethod(args);
     assertThatNoAdditionalErrorsHaveOccurred();
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(0);
