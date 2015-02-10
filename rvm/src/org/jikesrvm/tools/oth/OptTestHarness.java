@@ -70,39 +70,39 @@ import org.vmmagic.unboxed.Address;
  * </pre>
  */
 class OptTestHarness {
-  static boolean DISABLE_CLASS_LOADING = false;
-  static boolean EXECUTE_WITH_REFLECTION = false;
-  static boolean EXECUTE_MAIN = false;
+  boolean DISABLE_CLASS_LOADING = false;
+  boolean EXECUTE_WITH_REFLECTION = false;
+  boolean EXECUTE_MAIN = false;
   /** Default value for for compiling opt/baseline */
-  static boolean BASELINE = false;
+  boolean BASELINE = false;
 
  /**
    * Should we print the address of compiled methods (useful for
    * debugging)
    */
-  static boolean PRINT_CODE_ADDRESS = true;
+  boolean PRINT_CODE_ADDRESS = true;
 
   /** Record and show performance of executed methods, if any */
-  static Performance perf;
+  Performance perf;
 
-  static ClassLoader cl;
+  ClassLoader cl;
 
   // Keep baseline and opt methods separate in list of methods
   // to be compiled
-  static Vector<RVMMethod> optMethodVector = null;
-  static Vector<OptOptions> optOptionsVector = null;
-  static Vector<RVMMethod> baselineMethodVector = null;
+  Vector<RVMMethod> optMethodVector = null;
+  Vector<OptOptions> optOptionsVector = null;
+  Vector<RVMMethod> baselineMethodVector = null;
 
-  static java.lang.reflect.Method reflectoid;
-  static Object[] reflectMethodArgs;
-  static Vector<Method> reflectoidVector;
-  static Vector<RVMMethod> reflectMethodVector;
-  static Vector<Object[]> reflectMethodArgsVector;
+  java.lang.reflect.Method reflectoid;
+  Object[] reflectMethodArgs;
+  Vector<Method> reflectoidVector;
+  Vector<RVMMethod> reflectMethodVector;
+  Vector<Object[]> reflectMethodArgsVector;
 
-  static RVMClass mainClass;
-  static String[] mainArgs;
+  RVMClass mainClass;
+  String[] mainArgs;
 
-  static int parseMethodArgs(TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
+  int parseMethodArgs(TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
     try {
       for (int argNum = 0; argNum < argDesc.length; ++argNum) {
         if (argDesc[argNum].isBooleanType()) {
@@ -153,7 +153,7 @@ class OptTestHarness {
    *  method is desired or "-" to find the first method with the given name
    * @return the method or {@code null} if no method was found
    */
-  static RVMMethod findDeclaredOrFirstMethod(RVMClass klass, String methname, String methdesc) {
+  RVMMethod findDeclaredOrFirstMethod(RVMClass klass, String methname, String methdesc) {
     if (klass == null) return null;
     Atom methodName = Atom.findOrCreateAsciiAtom(methname);
     Atom methodDesc = methdesc.equals("-") ? null : Atom.findOrCreateAsciiAtom(methdesc);
@@ -171,7 +171,7 @@ class OptTestHarness {
     return null;
   }
 
-  static RVMClass loadClass(String s) throws ClassNotFoundException {
+  RVMClass loadClass(String s) throws ClassNotFoundException {
     String className = convertToClassName(s);
     Class<?> clazz = Class.forName(className, true, cl);
     return (RVMClass) java.lang.JikesRVMSupport.getTypeForClass(clazz);
@@ -191,11 +191,11 @@ class OptTestHarness {
     return s;
   }
 
-  static void printFormatString() {
+  void printFormatString() {
     System.err.println("Format: rvm org.jikesrvm.tools.oth.OptTestHarness { <command> }");
   }
 
-  private static void processClass(RVMClass klass, OptOptions opts) {
+  private void processClass(RVMClass klass, OptOptions opts) {
     RVMMethod[] methods = klass.getDeclaredMethods();
     for (RVMMethod method : methods) {
       if (!method.isAbstract() && !method.isNative()) {
@@ -205,11 +205,11 @@ class OptTestHarness {
   }
 
   // Wrapper applying default decision regarding opt/baseline
-  private static void processMethod(RVMMethod method, OptOptions opts) {
+  private void processMethod(RVMMethod method, OptOptions opts) {
     processMethod(method, opts, BASELINE);
   }
 
-  private static void processMethod(RVMMethod method, OptOptions opts, boolean isBaseline) {
+  private void processMethod(RVMMethod method, OptOptions opts, boolean isBaseline) {
     if (isBaseline) {
       // Method to be baseline compiled
       if (!baselineMethodVector.contains(method)) {
@@ -223,9 +223,9 @@ class OptTestHarness {
   }
 
   // process the command line option
-  static OptOptions options = new OptOptions();
+  OptOptions options = new OptOptions();
 
-  private static void processOptionString(String[] args) {
+  private void processOptionString(String[] args) {
     for (int i = 0, n = args.length; i < n; i++) {
       try {
         String arg = args[i];
@@ -353,7 +353,7 @@ class OptTestHarness {
     }
   }
 
-  private static void duplicateOptions() {
+  private void duplicateOptions() {
     if (VM.BuildForOptCompiler) {
       options = options.dup();
     }
@@ -365,7 +365,7 @@ class OptTestHarness {
     return "Method: " + method + " compiled code: " + addrToString(addr);
   }
 
-  private static void compileMethodsInVector() {
+  private void compileMethodsInVector() {
     // Compile all baseline methods first
     int size = baselineMethodVector.size();
     System.out.println("Compiling " + size + " methods baseline");
@@ -409,7 +409,7 @@ class OptTestHarness {
     }
   }
 
-  private static void executeCommand() throws InvocationTargetException, IllegalAccessException {
+  private void executeCommand() throws InvocationTargetException, IllegalAccessException {
     compileMethodsInVector();
 
     if (EXECUTE_WITH_REFLECTION) {
@@ -463,6 +463,11 @@ class OptTestHarness {
   }
 
   public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
+    OptTestHarness oth = new OptTestHarness();
+    oth.mainMethod(args);
+  }
+
+  public void mainMethod(String[] args) throws InvocationTargetException, IllegalAccessException {
     cl = RVMClassLoader.getApplicationClassLoader();
     optMethodVector = new Vector<RVMMethod>(50);
     optOptionsVector = new Vector<OptOptions>(50);
@@ -515,15 +520,6 @@ class OptTestHarness {
 
     @Override
     public void notifyExit(int discard) { show(); }
-  }
-
-  public static void resetToDefaults() {
-    DISABLE_CLASS_LOADING = false;
-    EXECUTE_WITH_REFLECTION = false;
-    EXECUTE_MAIN = false;
-    BASELINE = false;
-    PRINT_CODE_ADDRESS = true;
-    perf = null;
   }
 
 }

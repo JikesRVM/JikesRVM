@@ -29,7 +29,6 @@ import org.jikesrvm.classloader.ApplicationClassLoader;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
-import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.tests.util.StringBuilderOutputStream;
@@ -96,7 +95,6 @@ public class OptTestHarnessTest {
   @After
   public void cleanup() {
     resetStandardStreams();
-    OptTestHarness.resetToDefaults();
   }
 
   private void resetStandardStreams() {
@@ -111,9 +109,11 @@ public class OptTestHarnessTest {
     executeOptTestHarness(emptyArgs);
   }
 
-  private void executeOptTestHarness(String[] commandLineArguments)
+  private OptTestHarness executeOptTestHarness(String[] commandLineArguments)
       throws InvocationTargetException, IllegalAccessException {
-    OptTestHarness.main(commandLineArguments);
+    OptTestHarness oth = new OptTestHarness();
+    oth.mainMethod(commandLineArguments);
+    return oth;
   }
 
   @Test
@@ -209,13 +209,12 @@ public class OptTestHarnessTest {
   @Test
   public void knownArgumentsAreProcessedEvenIfUnknownArgumentsAppear() throws Exception {
     assumeThat(VM.BuildForOptCompiler, is(true));
-    assertThat(OptTestHarness.BASELINE, is(false));
     String unknownArgument = "-foo";
     String[] arguments = {unknownArgument, "+baseline"};
-    executeOptTestHarness(arguments);
+    OptTestHarness oth = executeOptTestHarness(arguments);
     assertThatErrorForUnrecognizedArgumentOccurred(unknownArgument);
     assertThatNoAdditionalErrorsHaveOccurred();
-    assertThat(OptTestHarness.BASELINE, is(true));
+    assertThat(oth.BASELINE, is(true));
   }
 
   @Test
@@ -385,13 +384,12 @@ public class OptTestHarnessTest {
 
   @Test
   public void baselineCompilationCanBeSwitchedOnAndOff() throws Exception {
-    assertThat(OptTestHarness.BASELINE, is(false));
     String[] args = { "+baseline" };
-    executeOptTestHarness(args);
-    assertThat(OptTestHarness.BASELINE, is(true));
-    String[] useOpt = { "-baseline" };
-    executeOptTestHarness(useOpt);
-    assertThat(OptTestHarness.BASELINE, is(false));
+    OptTestHarness oth = executeOptTestHarness(args);
+    assertThat(oth.BASELINE, is(true));
+    String[] useOpt = { "+baseline" , "-baseline" };
+    oth = executeOptTestHarness(useOpt);
+    assertThat(oth.BASELINE, is(false));
   }
 
   @Test
@@ -603,9 +601,9 @@ public class OptTestHarnessTest {
     fw.write("+baseline\n");
     fw.close();
     String[] longCommandLine = {"-longcommandline", f.getAbsolutePath()};
-    executeOptTestHarness(longCommandLine);
+    OptTestHarness oth = executeOptTestHarness(longCommandLine);
     assertThatNoAdditionalErrorsHaveOccurred();
-    assertThat(OptTestHarness.BASELINE, is(false));
+    assertThat(oth.BASELINE, is(false));
   }
 
   private void createFileWriter(String fileName) throws IOException {
@@ -636,14 +634,10 @@ public class OptTestHarnessTest {
   @Test
   public void usesSameOptionsAsBootimageCompilerWhenRequested() throws Exception {
     assumeThat(VM.BuildForOptCompiler, is(true));
-    OptTestHarness.options.INLINE_GUARDED = false;
-    OptTestHarness.options.INLINE_GUARD_KIND = OptOptions.INLINE_GUARD_CODE_PATCH;
-
     String[] useBootimageCompilerOptions = {"-useBootOptions"};
-    executeOptTestHarness(useBootimageCompilerOptions);
-
+    OptTestHarness oth = executeOptTestHarness(useBootimageCompilerOptions);
     assertThatNoAdditionalErrorsHaveOccurred();
-    assertThat(OptTestHarness.options.INLINE_GUARDED, is(true));
+    assertThat(oth.options.INLINE_GUARDED, is(true));
   }
 
   @Test
@@ -683,11 +677,11 @@ public class OptTestHarnessTest {
     assumeThat(VM.BuildForOptCompiler, is(true));
 
     String[] args = { "-class", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "+baseline" };
-    executeOptTestHarness(args);
+    OptTestHarness oth = executeOptTestHarness(args);
     assertThatNoAdditionalErrorsHaveOccurred();
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(2);
-    assertThat(OptTestHarness.BASELINE, is(true));
+    assertThat(oth.BASELINE, is(true));
   }
 
 }
