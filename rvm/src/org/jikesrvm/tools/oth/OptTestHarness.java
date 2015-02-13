@@ -186,16 +186,20 @@ class OptTestHarness {
   }
 
   static String convertToClassName(String s) {
-    if (s.startsWith("./")) s = s.substring(2, s.length());
-    if (s.endsWith(".java")) s = s.substring(0, s.length() - 5);
-    if (s.endsWith(".class")) s = s.substring(0, s.length() - 6);
-
-    // parse the class signature
-    if (s.startsWith("L") && s.endsWith(";")) {
+    if (s.startsWith("./")) {
+      s = s.substring(2, s.length());
+    } else if (s.startsWith("L") && s.endsWith(";")) {
+      // parse the class signature
       s = s.substring(1, s.length() - 1);
     }
 
-    return s.replace('.', '/');
+    if (s.endsWith(".java")) {
+      s = s.substring(0, s.length() - 5);
+    } else if (s.endsWith(".class")) {
+      s = s.substring(0, s.length() - 6);
+    }
+
+    return s;
   }
 
   void printFormatString() {

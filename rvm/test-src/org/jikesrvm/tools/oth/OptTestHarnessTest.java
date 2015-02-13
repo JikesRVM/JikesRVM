@@ -45,9 +45,6 @@ public class OptTestHarnessTest {
   //  a separate class. After that, check if TestClass1 can be eliminated.
   // TODO testing -longcommandline currently requires creating a file
 
-  // Bugs
-  // TODO convertToClassName has some bugs and quirks
-
   // Tests
   // TODO some error cases are still missing tests
   // TODO "-disableClassloading" has no tests
@@ -250,6 +247,12 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  public void convertToClassNameWorksForFullyQualifiedClassNames() throws Exception {
+    String result = "org.jikesrvm.tools.oth.TestClass2";
+    assertThat(OptTestHarness.convertToClassName(result), is(result));
+  }
+
+  @Test
   public void convertToClassNameWorksForSourceFileNames() throws Exception {
     String className = "TestClass3";
     String classSourcefile = className + ".java";
@@ -271,18 +274,10 @@ public class OptTestHarnessTest {
   }
 
   @Test
-  public void convertToClassNameSupportsSenselessCombinations() throws Exception {
-    String result = replacePointsWithSlashes("org.jikesrvm.tools.oth.TestClass6");
-    String strangeString = "./Lorg/jikesrvm/tools/oth/TestClass6;.class";
-    assertThat(OptTestHarness.convertToClassName(strangeString),is(result));
-  }
-
-  @Test
   public void convertToClassNameDoesNotWorkForComplexPathstrings() throws Exception {
     String className = "org.jikesrvm.tools.oth.TestClass7";
     String pathOfClass = "../.." + className;
-    String result = replacePointsWithSlashes(pathOfClass);
-    assertThat(OptTestHarness.convertToClassName(pathOfClass),is(result));
+    assertThat(OptTestHarness.convertToClassName(pathOfClass),is(pathOfClass));
   }
 
   private String replacePointsWithSlashes(String s) {
