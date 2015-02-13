@@ -28,6 +28,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.ApplicationClassLoader;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
@@ -47,7 +48,6 @@ public class OptTestHarnessTest {
 
   // Tests
   // TODO some error cases are still missing tests
-  // TODO "-disableClassloading" has no tests
 
   private static final String lineEnd = System.getProperty("line.separator");
 
@@ -674,6 +674,21 @@ public class OptTestHarnessTest {
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(2);
     assertThat(oth.useBaselineCompiler, is(true));
+  }
+
+  @Test
+  public void disableClassLoadingWorksOnlyInConjunctionWithExecuteAndRun() throws Exception {
+    String[] args = { "-er", "org.jikesrvm.tools.oth.OptTestHarness",
+        "convertToClassName", "-", "LTest;", "-disableClassLoading"};
+    assertThat(RVMClass.isClassLoadingDisabled(), is(false));
+    try {
+      executeOptTestHarness(args);
+      assertThat(RVMClass.isClassLoadingDisabled(), is(true));
+    } catch (Exception ignore) {
+      // exceptions don't matter in this test, we care only about the assertions
+    } finally {
+      RVMClass.setClassLoadingDisabled(false);
+    }
   }
 
 }
