@@ -12,11 +12,8 @@
  */
 package org.jikesrvm.tools.oth;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.jikesrvm.VM;
@@ -105,10 +102,12 @@ class OptTestHarness {
   String[] mainArgs;
 
   private OptTestHarnessOutput output;
+  private FileAccess fileAccess;
 
-  OptTestHarness(OptTestHarnessOutput output, OptOptions optOptions) {
+  OptTestHarness(OptTestHarnessOutput output, OptOptions optOptions, FileAccess fileAccess) {
     this.output = output;
     options = optOptions;
+    this.fileAccess = fileAccess;
   }
 
   int parseMethodArgs(TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
@@ -248,26 +247,9 @@ class OptTestHarness {
         } else if ("-longcommandline".equals(arg)) {
           // the -longcommandline option reads options from a file.
           // use for cases when the command line is too long for AIX
-          i++;
-          BufferedReader in = new BufferedReader(new FileReader(args[i]));
-          StringBuilder s = new StringBuilder();
-          while (in.ready()) {
-            String line = in.readLine();
-            if (line != null) {
-              line = line.trim();
-              if (!line.startsWith("#")) {
-                s.append(line);
-                s.append(" ");
-              }
-            }
-          }
-          in.close();
-          StringTokenizer t = new StringTokenizer(s.toString());
-          String[] av = new String[t.countTokens()];
-          for (int j = 0; j < av.length; j++) {
-            av[j] = t.nextToken();
-          }
-          processOptionString(av);
+          String fileName = args[++i];
+          String[] optionString = fileAccess.readOptionStringFromFile(fileName);
+          processOptionString(optionString);
         } else if ("+baseline".equals(arg)) {
           useBaselineCompiler = true;
         } else if ("-baseline".equals(arg)) {
@@ -475,7 +457,7 @@ class OptTestHarness {
   }
 
   public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
-    OptTestHarness oth = new OptTestHarness(new DefaultOutput(), new OptOptions());
+    OptTestHarness oth = new OptTestHarness(new DefaultOutput(), new OptOptions(), new DefaultFileAccess());
     oth.mainMethod(args);
   }
 

@@ -16,9 +16,6 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.assumeThat;
 import static org.hamcrest.CoreMatchers.*;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.regex.Matcher;
@@ -45,7 +42,6 @@ public class OptTestHarnessTest {
   // Design
   // TODO encapsulate VM specific functionality (e.g. class loading, compilers) in
   //  a separate class. After that, check if TestClass1 can be eliminated.
-  // TODO testing -longcommandline currently requires creating a file
 
   // Tests
   // TODO some error cases are still missing tests
@@ -66,10 +62,7 @@ public class OptTestHarnessTest {
 
 
   private TestOutput output;
-
-  private File f;
-
-  private FileWriter fw;
+  private TestFileAccess fileAccess;
 
   private void redirectStandardStreams() {
     System.setOut(output.getSystemOut());
@@ -91,7 +84,8 @@ public class OptTestHarnessTest {
   private OptTestHarness executeOptTestHarness(String[] commandLineArguments)
       throws InvocationTargetException, IllegalAccessException {
     output = new TestOutput();
-    OptTestHarness oth = new OptTestHarness(output, new OptOptions());
+    fileAccess = new TestFileAccess();
+    OptTestHarness oth = new OptTestHarness(output, new OptOptions(), fileAccess);
     oth.mainMethod(commandLineArguments);
     return oth;
   }
@@ -492,8 +486,9 @@ public class OptTestHarnessTest {
       throws InvocationTargetException, IllegalAccessException {
     try {
       output = new TestOutput();
+      fileAccess = new TestFileAccess();
       redirectStandardStreams();
-      OptTestHarness oth = new OptTestHarness(output, new OptOptions());
+      OptTestHarness oth = new OptTestHarness(output, new OptOptions(), fileAccess);
       oth.mainMethod(othArguments);
     } finally {
       resetStandardStreams();
@@ -545,23 +540,30 @@ public class OptTestHarnessTest {
   @Test
   public void canReadCommandLineArgumentsFromFile() throws Exception {
     String fileName = "commandLineArgsForLongCommandLineTest";
-    createFileWriter(fileName);
-    fw.write("-er\n");
-    fw.write(CLASS_WITH_STATIC_METHOD);
-    fw.write(lineEnd);
-    fw.write("printMessage\n");
-    fw.write("-\n");
-    fw.close();
-    String[] longCommandLine = {"-longcommandline", f.getAbsolutePath()};
-    executeOTHWithStreamRedirection(longCommandLine);
+    fileAccess = new TestFileAccess();
+    String fileContent = "-er\n" + CLASS_WITH_STATIC_METHOD + lineEnd +
+        "printMessage\n" + "-\n";
+    fileAccess.putContentForFile(fileName, fileContent);
+    String[] longCommandLine = {"-longcommandline", fileName};
+    try {
+      output = new TestOutput();
+      redirectStandardStreams();
+      OptTestHarness oth = new OptTestHarness(output, new OptOptions(), fileAccess);
+      oth.mainMethod(longCommandLine);
+    } finally {
+      resetStandardStreams();
+    }
     assertThatNoAdditionalErrorsHaveOccurred();
   }
 
   @Test
   public void readingNonExistingFileCausesError() throws Exception {
     String fileName = "fileWhichWillNeverExist";
+    fileAccess = new TestFileAccess();
     String[] longCommandLine = {"-longcommandline", fileName};
-    executeOptTestHarness(longCommandLine);
+    output = new TestOutput();
+    OptTestHarness oth = new OptTestHarness(output, new OptOptions(), fileAccess);
+    oth.mainMethod(longCommandLine);
     String fileNotFoundLineStart = "java.io.FileNotFoundException: ";
     String firstLineOfStackTrace = fileNotFoundLineStart + fileName + lineEnd;
     assertThat(getErrorOutput().startsWith(firstLineOfStackTrace), is(true));
@@ -570,11 +572,12 @@ public class OptTestHarnessTest {
   @Test
   public void readingEmptyFilesDoesNotCauseProblems() throws Exception {
     String fileName = "emptyFile";
-    f = new File(fileName);
-    assertThat(f.createNewFile(), is(true));
-    f.deleteOnExit();
-    String[] longCommandLine = {"-longcommandline", f.getAbsolutePath()};
-    executeOptTestHarness(longCommandLine);
+    fileAccess = new TestFileAccess();
+    fileAccess.putContentForFile(fileName, "");
+    String[] longCommandLine = {"-longcommandline", fileName};
+    output = new TestOutput();
+    OptTestHarness oth = new OptTestHarness(output, new OptOptions(), fileAccess);
+    oth.mainMethod(longCommandLine);
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(0);
     assertThatRemainingOutputIsEmptyWhenTrimmed();
@@ -584,30 +587,23 @@ public class OptTestHarnessTest {
   @Test
   public void commandLineArgumentFileSupportsComments() throws Exception {
     assumeThat(VM.BuildForOptCompiler, is(true));
+    fileAccess = new TestFileAccess();
     String fileName = "commandLineArgsForLongCommandLineTestWithComments";
-    createFileWriter(fileName);
-    fw.write("-baseline\n");
-    fw.write("#");
-    fw.write("+baseline\n");
-    fw.close();
-    String[] longCommandLine = {"-longcommandline", f.getAbsolutePath()};
-    OptTestHarness oth = executeOptTestHarness(longCommandLine);
+    String fileContent = "-baseline\n" + "#" + "+baseline\n";
+    fileAccess.putContentForFile(fileName, fileContent);
+    String[] longCommandLine = {"-longcommandline", fileName};
+    output = new TestOutput();
+    OptTestHarness oth = new OptTestHarness(output, new OptOptions(), fileAccess);
+    oth.mainMethod(longCommandLine);
     assertThatNoAdditionalErrorsHaveOccurred();
     assertThat(oth.useBaselineCompiler, is(false));
-  }
-
-  private void createFileWriter(String fileName) throws IOException {
-    f = new File(fileName);
-    assertThat(f.createNewFile(), is(true));
-    f.deleteOnExit();
-    fw = new FileWriter(f);
   }
 
   @Test
   public void supportsPerformanceMeasurements() throws Exception {
     String[] args = { "-performance"};
     output = new TestOutput();
-    OptTestHarness oth = new OptTestHarness(output, new OptOptions());
+    OptTestHarness oth = new OptTestHarness(output, new OptOptions(), new TestFileAccess());
     oth.addCallbackForPerformancePrintout = false;
     oth.mainMethod(args);
     assertThatNoAdditionalErrorsHaveOccurred();
@@ -631,7 +627,7 @@ public class OptTestHarnessTest {
     output = new TestOutput();
     OptOptions optOptions = new OptOptions();
     optOptions.INLINE_GUARDED = !optOptions.guardWithCodePatch();
-    OptTestHarness oth = new OptTestHarness(output, optOptions);
+    OptTestHarness oth = new OptTestHarness(output, optOptions, new TestFileAccess());
     oth.mainMethod(useBootimageCompilerOptions);
     assertThatNoAdditionalErrorsHaveOccurred();
     assertThat(oth.options.INLINE_GUARDED, is(optOptions.guardWithCodePatch()));
