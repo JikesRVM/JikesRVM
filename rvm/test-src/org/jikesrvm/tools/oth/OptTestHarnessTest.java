@@ -30,6 +30,7 @@ import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.tests.util.TestingTools;
@@ -90,7 +91,7 @@ public class OptTestHarnessTest {
   private OptTestHarness executeOptTestHarness(String[] commandLineArguments)
       throws InvocationTargetException, IllegalAccessException {
     output = new TestOutput();
-    OptTestHarness oth = new OptTestHarness(output);
+    OptTestHarness oth = new OptTestHarness(output, new OptOptions());
     oth.mainMethod(commandLineArguments);
     return oth;
   }
@@ -492,7 +493,7 @@ public class OptTestHarnessTest {
     try {
       output = new TestOutput();
       redirectStandardStreams();
-      OptTestHarness oth = new OptTestHarness(output);
+      OptTestHarness oth = new OptTestHarness(output, new OptOptions());
       oth.mainMethod(othArguments);
     } finally {
       resetStandardStreams();
@@ -606,7 +607,7 @@ public class OptTestHarnessTest {
   public void supportsPerformanceMeasurements() throws Exception {
     String[] args = { "-performance"};
     output = new TestOutput();
-    OptTestHarness oth = new OptTestHarness(output);
+    OptTestHarness oth = new OptTestHarness(output, new OptOptions());
     oth.addCallbackForPerformancePrintout = false;
     oth.mainMethod(args);
     assertThatNoAdditionalErrorsHaveOccurred();
@@ -623,13 +624,17 @@ public class OptTestHarnessTest {
     assertThat(m.matches(), is(true));
   }
 
-  @Test
+  @Test // Note: this test will break when the bootimage options change
   public void usesSameOptionsAsBootimageCompilerWhenRequested() throws Exception {
     assumeThat(VM.BuildForOptCompiler, is(true));
     String[] useBootimageCompilerOptions = {"-useBootOptions"};
-    OptTestHarness oth = executeOptTestHarness(useBootimageCompilerOptions);
+    output = new TestOutput();
+    OptOptions optOptions = new OptOptions();
+    optOptions.INLINE_GUARDED = !optOptions.guardWithCodePatch();
+    OptTestHarness oth = new OptTestHarness(output, optOptions);
+    oth.mainMethod(useBootimageCompilerOptions);
     assertThatNoAdditionalErrorsHaveOccurred();
-    assertThat(oth.options.INLINE_GUARDED, is(true));
+    assertThat(oth.options.INLINE_GUARDED, is(optOptions.guardWithCodePatch()));
   }
 
   @Test

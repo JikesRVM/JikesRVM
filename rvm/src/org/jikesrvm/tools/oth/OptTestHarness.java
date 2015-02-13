@@ -106,8 +106,9 @@ class OptTestHarness {
 
   private OptTestHarnessOutput output;
 
-  OptTestHarness(OptTestHarnessOutput output) {
+  OptTestHarness(OptTestHarnessOutput output, OptOptions optOptions) {
     this.output = output;
+    options = optOptions;
   }
 
   int parseMethodArgs(TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
@@ -234,7 +235,7 @@ class OptTestHarness {
   }
 
   // process the command line option
-  OptOptions options = new OptOptions();
+  OptOptions options;
 
   private void processOptionString(String[] args) {
     for (int i = 0, n = args.length; i < n; i++) {
@@ -474,7 +475,7 @@ class OptTestHarness {
   }
 
   public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
-    OptTestHarness oth = new OptTestHarness(new DefaultOutput());
+    OptTestHarness oth = new OptTestHarness(new DefaultOutput(), new OptOptions());
     oth.mainMethod(args);
   }
 
