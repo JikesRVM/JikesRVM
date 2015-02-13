@@ -104,6 +104,12 @@ class OptTestHarness {
   RVMClass mainClass;
   String[] mainArgs;
 
+  private OptTestHarnessOutput output;
+
+  OptTestHarness(OptTestHarnessOutput output) {
+    this.output = output;
+  }
+
   int parseMethodArgs(TypeReference[] argDesc, String[] args, int i, Object[] methodArgs) {
     try {
       for (int argNum = 0; argNum < argDesc.length; ++argNum) {
@@ -125,7 +131,7 @@ class OptTestHarness {
           methodArgs[argNum] = args[++i].charAt(0);
         } else if (argDesc[argNum].isClassType()) {
           // TODO
-          System.err.println("Parsing args of type " + argDesc[argNum] + " not implemented");
+          output.sysErrPrintln("Parsing args of type " + argDesc[argNum] + " not implemented");
         } else if (argDesc[argNum].isArrayType()) {
           TypeReference element = argDesc[argNum].getArrayElementType();
           if (element.equals(TypeReference.JavaLangString)) {
@@ -135,7 +141,7 @@ class OptTestHarness {
             }
             methodArgs[argNum] = array;
           } else {// TODO
-            System.err.println("Parsing args of array of " + element + " not implemented");
+            output.sysErrPrintln("Parsing args of array of " + element + " not implemented");
           }
         }
       }
@@ -166,9 +172,9 @@ class OptTestHarness {
       }
     }
     if (methodDesc == null) {
-      System.err.println("No method named " + methodName + " found in class " + klass);
+      output.sysErrPrintln("No method named " + methodName + " found in class " + klass);
     } else {
-      System.err.println("No method matching " + methodName + " " + methodDesc + " found in class " + klass);
+      output.sysErrPrintln("No method matching " + methodName + " " + methodDesc + " found in class " + klass);
     }
     return null;
   }
@@ -193,7 +199,7 @@ class OptTestHarness {
   }
 
   void printFormatString() {
-    System.err.println("Format: rvm org.jikesrvm.tools.oth.OptTestHarness { <command> }");
+    output.sysErrPrintln("Format: rvm org.jikesrvm.tools.oth.OptTestHarness { <command> }");
   }
 
   private void processClass(RVMClass klass, OptOptions opts) {
@@ -282,20 +288,20 @@ class OptTestHarness {
           try {
             klass = loadClass(args[++i]);
           } catch (Exception e) {
-            System.err.println("WARNING: Skipping method from " + args[i - 1]);
+            output.sysErrPrintln("WARNING: Skipping method from " + args[i - 1]);
           }
           if (klass == null) continue;
           String name = args[++i];
           String desc = args[++i];
           RVMMethod method = findDeclaredOrFirstMethod(klass, name, desc);
           if (method == null || method.isAbstract() || method.isNative()) {
-            System.err.println("WARNING: Skipping method " + args[i - 2] + "." + name);
+            output.sysErrPrintln("WARNING: Skipping method " + args[i - 2] + "." + name);
           } else {
             processMethod(method, options, isBaseline);
           }
           duplicateOptions();
         } else if ("-performance".equals(arg)) {
-          perf = new Performance();
+          perf = new Performance(output);
         } else if ("-disableClassLoading".equals(arg)) {
           disableClassloading = true;
         } else if ("-er".equals(arg)) {
@@ -313,13 +319,13 @@ class OptTestHarness {
             try {
               cm = OptimizingCompiler.compile(cp);
             } catch (Throwable e) {
-              System.err.println("SKIPPING method:" + method + "Due to exception: " + e);
+              output.sysErrPrintln("SKIPPING method:" + method + "Due to exception: " + e);
             }
           }
           if (cm != null) {
             method.replaceCompiledMethod(cm);
             if (printCodeAddress) {
-              System.out.println(compiledMethodMessage(method));
+              output.sysOutPrintln(compiledMethodMessage(method));
             }
           }
           TypeReference[] argDesc = method.getDescriptor().parseForParameterTypes(klass.getClassLoader());
@@ -341,17 +347,17 @@ class OptTestHarness {
           }
           break;
         } else {
-          System.err.println("Unrecognized argument: " + arg + " - ignored");
+          output.sysErrPrintln("Unrecognized argument: " + arg + " - ignored");
         }
       } catch (ArrayIndexOutOfBoundsException e) {
-        System.err.println("Uncaught ArrayIndexOutOfBoundsException, possibly" +
+        output.sysErrPrintln("Uncaught ArrayIndexOutOfBoundsException, possibly" +
                            " not enough command-line arguments - aborting");
         printFormatString();
-        e.printStackTrace(System.err);
+        e.printStackTrace(output.getSystemErr());
         break;
       } catch (Exception e) {
-        System.err.println(e);
-        e.printStackTrace(System.err);
+        output.sysErrPrintln(e.toString());
+        e.printStackTrace(output.getSystemErr());
         break;
       }
     }
@@ -372,7 +378,7 @@ class OptTestHarness {
   private void compileMethodsInVector() {
     // Compile all baseline methods first
     int size = baselineMethodVector.size();
-    System.out.println("Compiling " + size + " methods baseline");
+    output.sysOutPrintln("Compiling " + size + " methods baseline");
     // Compile all methods in baseline vector
     for (int i = 0; i < size; i++) {
       NormalMethod method = (NormalMethod) baselineMethodVector.get(i);
@@ -380,13 +386,13 @@ class OptTestHarness {
       cm = BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
       if (printCodeAddress) {
-        System.out.println(compiledMethodMessage(method));
+        output.sysOutPrintln(compiledMethodMessage(method));
       }
     }
 
     // Now compile all methods in opt vector
     size = optMethodVector.size();
-    System.out.println("Compiling " + size + " methods opt");
+    output.sysOutPrintln("Compiling " + size + " methods opt");
     for (int i = 0; i < size; i++) {
       NormalMethod method = (NormalMethod) optMethodVector.get(i);
       OptOptions opts = optOptionsVector.get(i);
@@ -397,14 +403,14 @@ class OptTestHarness {
         cm = OptimizingCompiler.compile(cp);
         method.replaceCompiledMethod(cm);
         if (printCodeAddress) {
-          System.out.println(compiledMethodMessage(method));
+          output.sysOutPrintln(compiledMethodMessage(method));
         }
       } catch (OptimizingCompilerException e) {
         if (e.isFatal && VM.ErrorsFatal) {
           e.printStackTrace();
           VM.sysFail("Internal vm error: " + e);
         } else {
-          System.err.println("SKIPPING opt-compilation of " + method + ":\n  " + e.getMessage());
+          output.sysErrPrintln("SKIPPING opt-compilation of " + method + ":\n  " + e.getMessage());
           if (opts.PRINT_METHOD) {
             e.printStackTrace();
           }
@@ -427,13 +433,13 @@ class OptTestHarness {
         reflectoid = reflectoidVector.get(i);
         reflectMethodArgs = reflectMethodArgsVector.get(i);
         RVMMethod method = reflectMethodVector.get(i);
-        System.out.println(startOfExecutionString(method));
+        output.sysOutPrintln(startOfExecutionString(method));
         Object result = null;
         if (perf != null) perf.reset();
         result = reflectoid.invoke(null, reflectMethodArgs);
         if (perf != null) perf.stop();
-        System.out.println(endOfExecutionString(method));
-        System.out.println(resultString(result));
+        output.sysOutPrintln(endOfExecutionString(method));
+        output.sysOutPrintln(resultString(result));
       }
       executeWithReflection = false;
     }
@@ -442,32 +448,29 @@ class OptTestHarness {
       RVMMethod mainMethod = mainClass.findMainMethod();
       if (mainMethod == null) {
         // no such method
-        System.err.println(mainClass + " doesn't have a \"public static void main(String[])\" method to execute\n");
+        output.sysErrPrintln(mainClass + " doesn't have a \"public static void main(String[])\" method to execute\n");
         return;
       }
-      System.out.println(startOfExecutionString(mainMethod));
+      output.sysOutPrintln(startOfExecutionString(mainMethod));
       Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
-      System.out.println(endOfExecutionString(mainMethod));
+      output.sysOutPrintln(endOfExecutionString(mainMethod));
     }
   }
-
 
   static String resultString(Object result) {
     return "**** RESULT: " + result;
   }
 
-
   static String endOfExecutionString(RVMMethod method) {
     return "**** END OF EXECUTION of " + method + " ****.";
   }
-
 
   static String startOfExecutionString(RVMMethod method) {
     return "**** START OF EXECUTION of " + method + " ****.";
   }
 
   public static void main(String[] args) throws InvocationTargetException, IllegalAccessException {
-    OptTestHarness oth = new OptTestHarness();
+    OptTestHarness oth = new OptTestHarness(new DefaultOutput());
     oth.mainMethod(args);
   }
 
@@ -508,18 +511,24 @@ class OptTestHarness {
     private long start = 0;
     private long end = 0;
 
+    private OptTestHarnessOutput output;
+
+    Performance(OptTestHarnessOutput output) {
+      this.output = output;
+    }
+
     void reset() { start = Time.nanoTime(); }
 
     void stop() { if (end == 0) end = Time.nanoTime(); }
 
     void show() {
       stop();  // In case we got here due to a System.exit
-      System.out.println("");
-      System.out.println("Performance of executed method");
-      System.out.println("------------------------------");
-      System.out.print("Elapsed wallclock time: ");
-      System.out.print(Time.nanosToMillis(end - start));
-      System.out.println(" msec");
+      output.sysOutPrintln("");
+      output.sysOutPrintln("Performance of executed method");
+      output.sysOutPrintln("------------------------------");
+      output.sysOutPrint("Elapsed wallclock time: ");
+      output.sysOutPrint(Double.toString(Time.nanosToMillis(end - start)));
+      output.sysOutPrintln(" msec");
     }
 
     @Override

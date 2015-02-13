@@ -31,10 +31,7 @@ import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
-import org.jikesrvm.tests.util.StringBuilderOutputStream;
 import org.jikesrvm.tests.util.TestingTools;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -44,8 +41,6 @@ import org.junit.runner.RunWith;
 public class OptTestHarnessTest {
 
   // Design
-  // TODO use interface for output in OTH to eliminate necessity for
-  //  redirection of streams
   // TODO encapsulate VM specific functionality (e.g. class loading, compilers) in
   //  a separate class. After that, check if TestClass1 can be eliminated.
   // TODO testing -longcommandline currently requires creating a file
@@ -72,27 +67,15 @@ public class OptTestHarnessTest {
   private static final String CLASS_WITH_MAIN_METHOD = "org.jikesrvm.tools.oth.ClassWithMainMethod";
 
 
-  private StringBuilderOutputStream out;
-  private StringBuilderOutputStream err;
+  private TestOutput output;
 
   private File f;
 
   private FileWriter fw;
 
-  @Before
-  public void redirectStandardStreams() {
-    out = new StringBuilderOutputStream();
-    PrintStream newSysOut = new PrintStream(out);
-    System.setOut(newSysOut);
-
-    err = new StringBuilderOutputStream();
-    PrintStream newSysErr = new PrintStream(err);
-    System.setErr(newSysErr);
-  }
-
-  @After
-  public void cleanup() {
-    resetStandardStreams();
+  private void redirectStandardStreams() {
+    System.setOut(output.getSystemOut());
+    System.setErr(output.getSystemErr());
   }
 
   private void resetStandardStreams() {
@@ -109,7 +92,8 @@ public class OptTestHarnessTest {
 
   private OptTestHarness executeOptTestHarness(String[] commandLineArguments)
       throws InvocationTargetException, IllegalAccessException {
-    OptTestHarness oth = new OptTestHarness();
+    output = new TestOutput();
+    OptTestHarness oth = new OptTestHarness(output);
     oth.mainMethod(commandLineArguments);
     return oth;
   }
@@ -159,7 +143,7 @@ public class OptTestHarnessTest {
   }
 
   private StringBuilder getStandardStream() {
-    return out.getOutput();
+    return output.getStandardOutput();
   }
 
   private String getStandardOutput() {
@@ -167,13 +151,13 @@ public class OptTestHarnessTest {
   }
 
   private String getErrorOutput() {
-    return err.getOutput().toString();
+    return output.getStandardError().toString();
   }
 
   private void removeMessageFromErrorOutput(String msg) {
-    int index = err.getOutput().indexOf(msg);
+    int index = getErrorOutput().indexOf(msg);
     assertThat(index, not(is(-1)));
-    err.getOutput().replace(index, index + msg.length(), "");
+    output.getStandardError().replace(index, index + msg.length(), "");
   }
 
   @Test
@@ -339,8 +323,8 @@ public class OptTestHarnessTest {
   }
 
   private void removeMessageFromStandardOutput(String msg) {
-    int index = out.getOutput().indexOf(msg);
-    out.getOutput().replace(index, index + msg.length(), "");
+    int index = output.getStandardOutput().indexOf(msg);
+    output.getStandardOutput().replace(index, index + msg.length(), "");
   }
 
   private void assertThatOutputContainsMessageForCompiledMethod(
@@ -503,15 +487,27 @@ public class OptTestHarnessTest {
   @Test
   public void testHarnessCanExecuteStaticMethods() throws Exception {
     String[] executeMethod = {"-er", CLASS_WITH_STATIC_METHOD, "printMessage", "-"};
-    executeOptTestHarness(executeMethod);
+    executeOTHWithStreamRedirection(executeMethod);
     assertThatNoAdditionalErrorsHaveOccurred();
     assertThat(getStandardOutput().contains(ClassWithStaticMethod.PRINTOUT), is(true));
+  }
+
+  private void executeOTHWithStreamRedirection(String[] othArguments)
+      throws InvocationTargetException, IllegalAccessException {
+    try {
+      output = new TestOutput();
+      redirectStandardStreams();
+      OptTestHarness oth = new OptTestHarness(output);
+      oth.mainMethod(othArguments);
+    } finally {
+      resetStandardStreams();
+    }
   }
 
   @Test
   public void methodsCompiledUsingExecutedAndRunAreNotCounted() throws Exception {
     String[] executeAndRun = {"-er", CLASS_WITH_STATIC_METHOD, "printMessage", "-"};
-    executeOptTestHarness(executeAndRun);
+    executeOTHWithStreamRedirection(executeAndRun);
 
     assertThatNoAdditionalErrorsHaveOccurred();
     assertThatNumberOfBaselineCompiledMethodsIs(0);
@@ -533,7 +529,7 @@ public class OptTestHarnessTest {
     double d = -1.5d;
     String numberString = Double.toString(d);
     String[] compilePrintIntMethod = {"-er", CLASS_OVERLOADED_METHODS, "print", "(D)V", numberString};
-    executeOptTestHarness(compilePrintIntMethod);
+    executeOTHWithStreamRedirection(compilePrintIntMethod);
     assertThatNoAdditionalErrorsHaveOccurred();
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(0);
@@ -561,7 +557,7 @@ public class OptTestHarnessTest {
     fw.write("-\n");
     fw.close();
     String[] longCommandLine = {"-longcommandline", f.getAbsolutePath()};
-    executeOptTestHarness(longCommandLine);
+    executeOTHWithStreamRedirection(longCommandLine);
     assertThatNoAdditionalErrorsHaveOccurred();
   }
 
@@ -614,7 +610,8 @@ public class OptTestHarnessTest {
   @Test
   public void supportsPerformanceMeasurements() throws Exception {
     String[] args = { "-performance"};
-    OptTestHarness oth = new OptTestHarness();
+    output = new TestOutput();
+    OptTestHarness oth = new OptTestHarness(output);
     oth.addCallbackForPerformancePrintout = false;
     oth.mainMethod(args);
     assertThatNoAdditionalErrorsHaveOccurred();
@@ -645,7 +642,7 @@ public class OptTestHarnessTest {
     String firstArg = "abc";
     String secondArg = "123";
     String[] args = { "-main", CLASS_WITH_MAIN_METHOD, firstArg, secondArg };
-    executeOptTestHarness(args);
+    executeOTHWithStreamRedirection(args);
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(0);
     Class<?> classWithMain = Class.forName(CLASS_WITH_MAIN_METHOD);
@@ -662,7 +659,7 @@ public class OptTestHarnessTest {
   @Test
   public void complainsWhenNoMainMethodExists() throws Exception {
     String[] useMainForClassWithoutMain = { "-main", EMPTY_CLASS};
-    executeOptTestHarness(useMainForClassWithoutMain);
+    executeOTHWithStreamRedirection(useMainForClassWithoutMain);
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(0);
     assertThatRemainingOutputIsEmptyWhenTrimmed();
