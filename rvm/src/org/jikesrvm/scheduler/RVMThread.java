@@ -5287,9 +5287,14 @@ public final class RVMThread extends ThreadContext {
           } else {
 
             int compiledMethodId = Magic.getCompiledMethodID(fp);
+            boolean idOutOfRange = compiledMethodId > CompiledMethods.numCompiledMethods() ||
+                compiledMethodId < 1;
             VM.sysWrite("("); VM.sysWrite(fp); VM.sysWrite(" "); VM.sysWrite(compiledMethodId); VM.sysWrite(")");
             if (compiledMethodId == StackframeLayoutConstants.INVISIBLE_METHOD_ID) {
               showMethod("invisible method", fp);
+            } else if (idOutOfRange) {
+                showMethod("invalid compiled method id", fp);
+                break;
             } else {
               // normal java frame(s)
               CompiledMethod compiledMethod = CompiledMethods
@@ -5298,35 +5303,46 @@ public final class RVMThread extends ThreadContext {
                 showMethod(compiledMethodId, fp);
               } else if (compiledMethod.getCompilerType() == CompiledMethod.TRAP) {
                 showMethod("hardware trap", fp);
+              } else if (!isAddressValidFramePointer(fp)) {
+                  VM.sysWrite("Bogus looking frame pointer: ", fp);
+                  VM.sysWriteln(" not dumping stack");
+                  break;
               } else {
                 RVMMethod method = compiledMethod.getMethod();
-                Offset instructionOffset = compiledMethod
-                    .getInstructionOffset(ip);
-                int lineNumber = compiledMethod
-                    .findLineNumberForInstruction(instructionOffset);
-                boolean frameShown = false;
-                if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == CompiledMethod.OPT) {
-                  OptCompiledMethod optInfo = (OptCompiledMethod) compiledMethod;
-                  // Opt stack frames may contain multiple inlined methods.
-                  OptMachineCodeMap map = optInfo.getMCMap();
-                  int iei = map.getInlineEncodingForMCOffset(instructionOffset);
-                  if (iei >= 0) {
-                    int[] inlineEncoding = map.inlineEncoding;
-                    int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-                    for (; iei >= 0; iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
-                      int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-                      method = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
-                      lineNumber = ((NormalMethod) method).getLineNumberForBCIndex(bci);
-                      showMethod(method, lineNumber, fp);
-                      if (iei > 0) {
-                        bci = OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
+                if (compiledMethod.containsReturnAddress(ip)) {
+                  Offset instructionOffset = compiledMethod
+                      .getInstructionOffset(ip);
+                  int lineNumber = compiledMethod
+                      .findLineNumberForInstruction(instructionOffset);
+                  boolean frameShown = false;
+                  if (VM.BuildForOptCompiler && compiledMethod.getCompilerType() == CompiledMethod.OPT) {
+                    OptCompiledMethod optInfo = (OptCompiledMethod) compiledMethod;
+                    // Opt stack frames may contain multiple inlined methods.
+                    OptMachineCodeMap map = optInfo.getMCMap();
+                    int iei = map.getInlineEncodingForMCOffset(instructionOffset);
+                    if (iei >= 0) {
+                      int[] inlineEncoding = map.inlineEncoding;
+                      int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
+                      for (; iei >= 0; iei = OptEncodedCallSiteTree.getParent(iei, inlineEncoding)) {
+                        int mid = OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
+                        method = MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                        lineNumber = ((NormalMethod) method).getLineNumberForBCIndex(bci);
+                        showMethod(method, lineNumber, fp);
+                        if (iei > 0) {
+                          bci = OptEncodedCallSiteTree.getByteCodeOffset(iei, inlineEncoding);
+                        }
                       }
+                      frameShown = true;
                     }
-                    frameShown = true;
                   }
-                }
-                if (!frameShown) {
-                  showMethod(method, lineNumber, fp);
+                  if (!frameShown) {
+                    showMethod(method, lineNumber, fp);
+                  }
+                } else {
+                  VM.sysWrite("    WARNING: Instruction pointer ");
+                  VM.sysWrite(ip);
+                  VM.sysWrite(" not in method code");
+                  showMethod(method, -1, fp);
                 }
               }
             }
