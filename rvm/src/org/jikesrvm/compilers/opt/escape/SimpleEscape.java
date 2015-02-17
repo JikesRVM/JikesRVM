@@ -491,7 +491,7 @@ class SimpleEscape extends CompilerPhase {
         }
         // Assume non-annotated native methods let object escape
         if (mop.getTarget().isNative()) {
-          return false;
+          return true;
         }
         // try to get a method summary for the called method
         MethodSummary summ = findOrCreateMethodSummary(mop.getTarget(), ir.options);

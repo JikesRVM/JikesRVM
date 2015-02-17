@@ -21,27 +21,33 @@ import org.jikesrvm.classloader.RVMMethod;
 class MethodSummary {
 
   /**
+   * Long is 64 bits, but we need to reserve a bit for the result
+   * and we start counting at zero.
+   */
+  private static final int MAXIMUM_PARAMETER_INDEX = 62;
+
+  /**
    * Is this method currently being analyzed?  Used for recursive
    * invocations of the optimizing compiler.
    */
-  private static boolean inProgress = false;
+  private boolean inProgress = false;
+
+  private static final long RESULT_ESCAPES = 0x8000000000000000L;
+
+  private static final long EVERYTHING_ESCAPES = 0xFFFFFFFFFFFFFFFFL;
 
   /**
-   * Default escape result, that the result escapes but that no parameter is
-   * escaping.
+   * Escape result. Top bit is for the result of the method, i.e. the
+   * return value. The this parameter counts as a parameter.
    */
-  private static final long RES_ESCAPE = 0x80000000;
-
-  /**
-   * Escape result, top bit is result of the method bits 0..63 are for
-   * parameters 0..63 respectively
-   */
-  private long escapeInfo = RES_ESCAPE;
+  private long escapeInfo;
 
   /**
    * @param m RVMMethod representing this method.
    */
-  MethodSummary(RVMMethod m) { }
+  MethodSummary(RVMMethod m) {
+    escapeInfo = EVERYTHING_ESCAPES;
+  }
 
   /**
    * Record that a parameter may or may not escape from a thread.
@@ -50,7 +56,7 @@ class MethodSummary {
    * @param b may it escape?
    */
   public void setParameterMayEscapeThread(int p, boolean b) {
-    if (p > 62) return; // all params past 62 escape!
+    if (p > MAXIMUM_PARAMETER_INDEX) return;
     long mask = 1L << p;
     if (b) {
       escapeInfo |= mask;
@@ -62,11 +68,11 @@ class MethodSummary {
   /**
    * Query whether a parameter may escape from a thread.
    * @param p the number of the parameter
-   * @return false iff the parameter <em> must not </em> escape from the
-   * thread. true otherwise.
+   * @return {@code false} iff the parameter <em>cannot</em> escape from the
+   * thread, {@code true} otherwise.
    */
   public boolean parameterMayEscapeThread(int p) {
-    if (p > 62) return true; // all params past 62 escape!
+    if (p > MAXIMUM_PARAMETER_INDEX) return true;
     long mask = 1L << p;
     return (escapeInfo & mask) != 0;
   }
@@ -78,19 +84,19 @@ class MethodSummary {
    */
   public void setResultMayEscapeThread(boolean b) {
     if (b) {
-      escapeInfo |= RES_ESCAPE;
+      escapeInfo |= RESULT_ESCAPES;
     } else {
-      escapeInfo &= ~RES_ESCAPE;
+      escapeInfo &= ~RESULT_ESCAPES;
     }
   }
 
   /**
    * Query whether the result of this method may escape from a thread.
-   * @return {@code false} iff the parameter <em> must not </em> escape from the
-   * thread. true otherwise.
+   * @return {@code false} iff the parameter <em> cannot </em> escape from the
+   * thread, {@code true} otherwise.
    */
   public boolean resultMayEscapeThread() {
-    return (escapeInfo & RES_ESCAPE) != 0L;
+    return (escapeInfo & RESULT_ESCAPES) != 0L;
   }
 
   /**
