@@ -275,7 +275,7 @@ class OptTestHarness {
           try {
             klass = loadClass(args[++i]);
           } catch (Exception e) {
-            output.sysErrPrintln("WARNING: Skipping method from " + args[i - 1]);
+            output.sysErrPrintln("WARNING: Skipping method from " + args[i]);
           }
           if (klass == null) continue;
           String name = args[++i];
@@ -298,6 +298,10 @@ class OptTestHarness {
           String desc = args[++i];
           NormalMethod method = (NormalMethod) findDeclaredOrFirstMethod(klass, name, desc);
           CompiledMethod cm = null;
+          if (method == null) {
+            output.sysErrPrintln("Canceling further option processing to prevent assertion failures.");
+            return;
+          }
           if (useBaselineCompiler) {
             cm = BaselineCompiler.compile(method);
           } else {

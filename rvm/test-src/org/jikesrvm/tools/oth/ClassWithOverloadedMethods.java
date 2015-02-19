@@ -30,4 +30,18 @@ public class ClassWithOverloadedMethods {
     System.out.println(Double.toString(d));
   }
 
+  public static void print(int[] numbers) {
+    if (numbers == null) {
+      return;
+    }
+    for (int i : numbers) {
+      System.out.println(i);
+    }
+  }
+
+  public static void print(String[] messages) {
+    for (String s : messages)
+    System.out.println(s);
+  }
+
 }

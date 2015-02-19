@@ -39,13 +39,6 @@ import org.junit.runner.RunWith;
 @Category(RequiresJikesRVM.class)
 public class OptTestHarnessTest {
 
-  // Design
-  // TODO encapsulate VM specific functionality (e.g. class loading, compilers) in
-  //  a separate class. After that, check if TestClass1 can be eliminated.
-
-  // Tests
-  // TODO some error cases are still missing tests
-
   private static final String lineEnd = System.getProperty("line.separator");
 
   private static final PrintStream standardSysOut = System.out;
@@ -429,6 +422,25 @@ public class OptTestHarnessTest {
   }
 
   @Test
+  public void complainsWhenClassForMethodIsNotFound() throws Exception {
+    String wrongClassName ="com.ibm.jikesrvm.TestClass";
+    String wrongMethodName = "printWithWrongName";
+    String useFirstMethod = "-";
+    String[] compilePrintIntMethod = {"-method", wrongClassName, wrongMethodName,
+        useFirstMethod};
+    executeOptTestHarness(compilePrintIntMethod);
+    assertThatNumberOfBaselineCompiledMethodsIs(0);
+    assertThatNumberOfOptCompiledMethodsIs(0);
+    String expectedErrorOutput = "WARNING: Skipping method from " + wrongClassName +
+        lineEnd;
+    removeMessageFromErrorOutput(expectedErrorOutput);
+    assertThatErrorForUnrecognizedArgumentOccurred(wrongMethodName);
+    assertThatErrorForUnrecognizedArgumentOccurred(useFirstMethod);
+    assertThatNoAdditionalErrorsHaveOccurred();
+    assertThatRemainingOutputIsEmptyWhenTrimmed();
+  }
+
+  @Test
   public void complainsWhenMethodWithNameIsNotFound() throws Exception {
     String wrongMethodName = "printWithWrongName";
     String[] compilePrintIntMethod = {"-method", CLASS_OVERLOADED_METHODS, wrongMethodName, "-"};
@@ -521,7 +533,6 @@ public class OptTestHarnessTest {
     String numberString = Double.toString(d);
     String[] compilePrintIntMethod = {"-er", CLASS_OVERLOADED_METHODS, "print", "(D)V", numberString};
     executeOTHWithStreamRedirection(compilePrintIntMethod);
-    assertThatNoAdditionalErrorsHaveOccurred();
     assertThatNumberOfBaselineCompiledMethodsIs(0);
     assertThatNumberOfOptCompiledMethodsIs(0);
     assertThatNoAdditionalErrorsHaveOccurred();
@@ -536,6 +547,91 @@ public class OptTestHarnessTest {
     assertThat(output, equalTo(expectedOutput));
   }
 
+  @Test
+  public void executeAndRunPrintsErrorMessageWhenMethodIsNotFound() throws Exception {
+    String notExistingMethod = "printDoesNotExist";
+    String[] executeMethodThatDoesNotExist = {"-er", CLASS_OVERLOADED_METHODS,
+        notExistingMethod, "-"};
+    executeOptTestHarness(executeMethodThatDoesNotExist);
+    assertThatNumberOfBaselineCompiledMethodsIs(0);
+    assertThatNumberOfOptCompiledMethodsIs(0);
+    String expectedErrorOutput = "No method named " + notExistingMethod +
+         " found in class " + CLASS_OVERLOADED_METHODS + lineEnd +
+         "Canceling further option processing to prevent assertion failures." + lineEnd;
+    removeMessageFromErrorOutput(expectedErrorOutput);
+    assertThatNoAdditionalErrorsHaveOccurred();
+  }
+
+  @Test
+  public void executeAndRunPrintsErrorMessageWhenMethodWithDescriptorIsNotFound() throws Exception {
+    String existingMethod = "print";
+    String descriptorThatDoesNotMatchAPrintMethod ="(IIII)V";
+    String[] executeMethodThatDoesNotExist = {"-er", CLASS_OVERLOADED_METHODS,
+        existingMethod, descriptorThatDoesNotMatchAPrintMethod};
+    executeOptTestHarness(executeMethodThatDoesNotExist);
+    assertThatNumberOfBaselineCompiledMethodsIs(0);
+    assertThatNumberOfOptCompiledMethodsIs(0);
+    String expectedErrorOutput = "No method matching " + existingMethod + " " +
+         descriptorThatDoesNotMatchAPrintMethod + " found in class " +
+        CLASS_OVERLOADED_METHODS + lineEnd +
+         "Canceling further option processing to prevent assertion failures." +
+        lineEnd;
+    removeMessageFromErrorOutput(expectedErrorOutput);
+    assertThatNoAdditionalErrorsHaveOccurred();
+  }
+
+  @Test
+  public void executeAndRunCannotParseNormalClassTypes() throws Exception {
+    String aString = "aStringPrintout";
+    String[] compilePrintIntMethod = {"-er", CLASS_OVERLOADED_METHODS, "print", "(Ljava/lang/String;)V", aString};
+    executeOTHWithStreamRedirection(compilePrintIntMethod);
+    assertThatNumberOfBaselineCompiledMethodsIs(0);
+    assertThatNumberOfOptCompiledMethodsIs(0);
+    String expectedErrorOutput = "Parsing args of type < BootstrapCL, Ljava/lang/String; > not implemented\n";
+    removeMessageFromErrorOutput(expectedErrorOutput);
+    assertThatErrorForUnrecognizedArgumentOccurred(aString);
+    assertThatNoAdditionalErrorsHaveOccurred();
+  }
+
+  @Test
+  public void executeAndRunCannotParseGeneralArrays() throws Exception {
+    String anInt = "5";
+    String[] compilePrintIntMethod = {"-er", CLASS_OVERLOADED_METHODS, "print", "([I)V", anInt};
+    executeOptTestHarness(compilePrintIntMethod);
+    assertThatNumberOfBaselineCompiledMethodsIs(0);
+    assertThatNumberOfOptCompiledMethodsIs(0);
+    String expectedErrorOutput = "Parsing args of array of < BootstrapCL, I > not implemented\n";
+    removeMessageFromErrorOutput(expectedErrorOutput);
+    assertThatErrorForUnrecognizedArgumentOccurred(anInt);
+    assertThatNoAdditionalErrorsHaveOccurred();
+  }
+
+  @Test
+  public void executeAndRunCanParseStringArrays() throws Exception {
+    String firstString = "test";
+    String secondString = "success";
+    String[] compilePrintIntMethod = {"-er", CLASS_OVERLOADED_METHODS, "print", "([Ljava/lang/String;)V",
+        firstString, secondString};
+    executeOTHWithStreamRedirection(compilePrintIntMethod);
+    assertThatNumberOfBaselineCompiledMethodsIs(0);
+    assertThatNumberOfOptCompiledMethodsIs(0);
+    assertThatNoAdditionalErrorsHaveOccurred();
+    Class<?> classWithOverloadedMethods = Class.forName(CLASS_OVERLOADED_METHODS);
+    NormalMethod printMethod = TestingTools.getNormalMethod(classWithOverloadedMethods, "print", String[].class);
+    assertThatOutputContainsMessageForCompiledMethod(printMethod);
+    removeCompiledMethodMessageFromStandardOutput(printMethod);
+    String output = getStandardOutput();
+    String expectedOutput = lineEnd + OptTestHarness.startOfExecutionString(printMethod) + lineEnd +
+        firstString + lineEnd + secondString + lineEnd + OptTestHarness.endOfExecutionString(printMethod) + lineEnd +
+        OptTestHarness.resultString(null) + lineEnd;
+    assertThat(output, equalTo(expectedOutput));
+  }
+
+  @Test(expected = InternalError.class)
+  public void executeAndRunThrowsInternalErrorWhenNotEnoughArgumentsAreProvided() throws Exception {
+    String[] compilePrintIntMethod = {"-er", CLASS_OVERLOADED_METHODS, "print", "(I)V"};
+    executeOptTestHarness(compilePrintIntMethod);
+  }
 
   @Test
   public void canReadCommandLineArgumentsFromFile() throws Exception {
