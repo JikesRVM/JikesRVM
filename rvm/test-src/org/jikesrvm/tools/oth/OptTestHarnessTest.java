@@ -52,6 +52,8 @@ public class OptTestHarnessTest {
   private static final String CLASS_WITH_STATIC_METHOD = "org.jikesrvm.tools.oth.ClassWithStaticMethod";
   private static final String CLASS_OVERLOADED_METHODS = "org.jikesrvm.tools.oth.ClassWithOverloadedMethods";
   private static final String CLASS_WITH_MAIN_METHOD = "org.jikesrvm.tools.oth.ClassWithMainMethod";
+  private static final String CLASS_WITH_INSTANCE_METHOD = "org.jikesrvm.tools.oth.ClassWithInstanceMethod";
+  private static final String CLASS_WITH_PRIVATE_CONSTRUCTOR = "org.jikesrvm.tools.oth.ClassWithPrivateConstructor";
 
 
   private TestOutput output;
@@ -494,6 +496,14 @@ public class OptTestHarnessTest {
     assertThat(getStandardOutput().contains(ClassWithStaticMethod.PRINTOUT), is(true));
   }
 
+  @Test
+  public void testHarnessCanExecuteInstanceMethods() throws Exception {
+    String[] executeInstanceMethod = {"-er", CLASS_WITH_INSTANCE_METHOD, "printItWorks", "-"};
+    executeOTHWithStreamRedirection(executeInstanceMethod);
+    assertThatNoAdditionalErrorsHaveOccurred();
+    assertThat(getStandardOutput().contains(ClassWithInstanceMethod.PRINTOUT), is(true));
+  }
+
   private void executeOTHWithStreamRedirection(String[] othArguments)
       throws InvocationTargetException, IllegalAccessException {
     try {
@@ -631,6 +641,16 @@ public class OptTestHarnessTest {
   public void executeAndRunThrowsInternalErrorWhenNotEnoughArgumentsAreProvided() throws Exception {
     String[] compilePrintIntMethod = {"-er", CLASS_OVERLOADED_METHODS, "print", "(I)V"};
     executeOptTestHarness(compilePrintIntMethod);
+  }
+
+  @Test
+  public void executeAndRunPrintsErrorMessageWhenExceptionOccursWhenInvokingDefaultConstructor() throws Exception {
+    String[] executeInstanceMethod = {"-er", CLASS_WITH_PRIVATE_CONSTRUCTOR, "printItWorks", "-"};
+    executeOptTestHarness(executeInstanceMethod);
+    assertThatNumberOfBaselineCompiledMethodsIs(0);
+    assertThatNumberOfOptCompiledMethodsIs(0);
+    String invocationFailedMessage = "Invocation of default constructor failed for method";
+    assertThat(getErrorOutput().startsWith(invocationFailedMessage), is(true));
   }
 
   @Test

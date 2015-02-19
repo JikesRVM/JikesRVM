@@ -427,7 +427,14 @@ class OptTestHarness {
         output.sysOutPrintln(startOfExecutionString(method));
         Object result = null;
         if (perf != null) perf.reset();
-        result = reflectoid.invoke(null, reflectMethodArgs);
+        Object receiver = null;
+        if (!method.isStatic()) {
+          receiver = attemptToInvokeDefaultConstructor(method);
+          if (receiver == null) {
+            continue;
+          }
+        }
+        result = reflectoid.invoke(receiver, reflectMethodArgs);
         if (perf != null) perf.stop();
         output.sysOutPrintln(endOfExecutionString(method));
         output.sysOutPrintln(resultString(result));
@@ -446,6 +453,17 @@ class OptTestHarness {
       Reflection.invoke(mainMethod, null, null, new Object[]{mainArgs}, true);
       output.sysOutPrintln(endOfExecutionString(mainMethod));
     }
+  }
+
+  private Object attemptToInvokeDefaultConstructor(RVMMethod method) {
+    Object receiver = null;
+    try {
+      receiver = method.getDeclaringClass().getClassForType().newInstance();
+    } catch (Exception e) {
+      output.sysErrPrintln("Invocation of default constructor failed for method " + method);
+      e.printStackTrace(output.getSystemErr());
+    }
+    return receiver;
   }
 
   static String resultString(Object result) {
