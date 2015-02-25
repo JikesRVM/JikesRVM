@@ -63,6 +63,12 @@ public class VMSystemProperties {
     p.put("java.io.tmpdir", "/tmp");
     p.put("gnu.cpu.endian", Configuration.LittleEndian ? "little" : "big");
 
+    /* Properties for JMX; this lets the implementation know which
+     * features JikesRVM supports */
+    p.put("gnu.java.compiler.name", "JikesRVM");
+    if (VM.MeasureCompilation) {
+      p.put("gnu.java.lang.management.CompilationTimeSupport", "true");
+    }
 
     String s;
     s = BootstrapClassLoader.getBootstrapRepositories();

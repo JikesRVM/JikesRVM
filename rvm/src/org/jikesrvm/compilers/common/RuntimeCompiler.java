@@ -801,4 +801,24 @@ public class RuntimeCompiler implements Callbacks.ExitMonitor {
     return name[compiler];
   }
 
+  /**
+   * @return total compilation time in milliseconds
+   */
+  public static long getTotalCompilationTime() {
+    double baseTime = getTotalCompilationTime(BASELINE_COMPILER);
+    double optTime = getTotalCompilationTime(OPT_COMPILER);
+    double jniTime = getTotalCompilationTime(JNI_COMPILER);
+    return Math.round(baseTime + optTime + jniTime);
+  }
+
+  /**
+   * Returns the total compilation time of compiler number, using the naming scheme
+   * from this class
+   * @param compilerType the compiler of interest
+   * @return the total compilation time for the given compiler in milliseconds
+   */
+  public static double getTotalCompilationTime(byte compilerType) {
+    return totalCompTime[compilerType];
+  }
+
 }
