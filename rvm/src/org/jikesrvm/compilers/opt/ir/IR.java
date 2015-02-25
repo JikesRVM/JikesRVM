@@ -1401,7 +1401,7 @@ public final class IR {
         return null;
       }
     } else {
-      verror(where, "Unknown variable of " + operand.getClass() + " with operand: " + operand);
+      verror(where, "Use: Unknown variable of " + operand.getClass() + " with operand: " + operand);
       return null;
     }
   }
@@ -1430,7 +1430,7 @@ public final class IR {
       // constituent parts :-(
       return null;
     } else {
-      verror(where, "Unknown variable of " + operand.getClass() + " with operand: " + operand);
+      verror(where, "Def: Unknown variable of " + operand.getClass() + " with operand: " + operand);
       return null;
     }
   }
