@@ -18,7 +18,7 @@ import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.Synchronization;
 
 /**
- * Implements functionality to support JMX.
+ * Implements functionality to support JMX classloading beans.
  * <p>
  * Pulling the functionality into the core of the VM will hopefully allow us to
  * support multiple class libraries without having to duplicate a lot of code.

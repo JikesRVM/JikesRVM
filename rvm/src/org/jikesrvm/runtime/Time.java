@@ -20,6 +20,13 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 public class Time {
 
+  /** boot time in milliseconds */
+  private static long bootTime;
+
+  public static void boot() {
+    bootTime = currentTimeMillis();
+  }
+
   /**
    * Convert a long representing a time in nanoseconds into
    * a double representing the same time in milliseconds.
@@ -69,5 +76,9 @@ public class Time {
 
   public static long secsToNanos(double secs) {
     return (long)(secs*1E9);
+  }
+
+  public static long bootTime() {
+    return bootTime;
   }
 }

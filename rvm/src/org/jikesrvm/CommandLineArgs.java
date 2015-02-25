@@ -433,6 +433,27 @@ public class CommandLineArgs {
     return null;
   }
 
+  /**
+   * @return the original arguments specified on the command line, without the
+   *  ones for the main class
+   */
+  public static String[] getInputArgs() {
+    String[] inputArgs = new String[args.length];
+    int lastIndex = 0;
+    for (int i = 0; i < args.length; ++i) {
+      if (arg_types[i] == PrefixType.APPLICATION_ARG) {
+        continue;
+      }
+      if (args[i] == null) {
+        continue;
+      }
+      inputArgs[lastIndex++] = findPrefix(arg_types[i]).value + args[i];
+    }
+    String[] finalArgs = new String[lastIndex];
+    System.arraycopy(inputArgs, 0, finalArgs, 0, lastIndex);
+    return finalArgs;
+  }
+
   private static String getRvmRoot() {
     return null;
   }

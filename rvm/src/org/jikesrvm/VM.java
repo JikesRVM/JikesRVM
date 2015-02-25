@@ -39,6 +39,7 @@ import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.SysCall;
+import org.jikesrvm.runtime.Time;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
@@ -500,6 +501,8 @@ public class VM extends Properties {
     if (VM.AlignmentChecking) {
       SysCall.sysCall.sysEnableAlignmentChecking();
     }
+
+    Time.boot();
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
