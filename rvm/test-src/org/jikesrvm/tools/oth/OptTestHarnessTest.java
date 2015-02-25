@@ -14,7 +14,6 @@ package org.jikesrvm.tools.oth;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsBuildForOptCompiler;
 import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsNotBuildForOptCompiler;
 import static org.junit.Assert.assertNotNull;
@@ -104,7 +103,9 @@ public class OptTestHarnessTest {
     String expected = s.replace("X", Integer.toString(i));
     int expectedLength = expected.length();
     int startIndex = getStandardOutput().indexOf(expected);
-    assertThat(startIndex, not(is(-1)));
+    if (startIndex == -1) {
+      assertThat(getStandardOutput(), equalTo(expected));
+    }
     getStandardStream().replace(startIndex, startIndex + expectedLength, "");
   }
 
@@ -147,7 +148,9 @@ public class OptTestHarnessTest {
 
   private void removeMessageFromErrorOutput(String msg) {
     int index = getErrorOutput().indexOf(msg);
-    assertThat(index, not(is(-1)));
+    if (index == -1) {
+        assertThat(getErrorOutput(), equalTo(msg));
+    }
     output.getStandardError().replace(index, index + msg.length(), "");
   }
 
@@ -313,6 +316,9 @@ public class OptTestHarnessTest {
 
   private void removeMessageFromStandardOutput(String msg) {
     int index = output.getStandardOutput().indexOf(msg);
+    if (index == -1) {
+      assertThat(getStandardOutput(), equalTo(msg));
+    }
     output.getStandardOutput().replace(index, index + msg.length(), "");
   }
 
