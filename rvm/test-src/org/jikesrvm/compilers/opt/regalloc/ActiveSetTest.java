@@ -14,11 +14,10 @@ package org.jikesrvm.compilers.opt.regalloc;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
+import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsBuildForOptCompiler;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeThat;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
@@ -60,7 +59,7 @@ public class ActiveSetTest {
   private ActiveSet createActiveSetFromRegisterAllocatorState(
       RegisterAllocatorState state) throws Exception {
     // IR creation will fail for builds without the optimizing compiler
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
 
     NormalMethod nm = TestingTools.getNormalMethod(MethodsForTests.class, "emptyStaticMethodWithoutAnnotations");
     OptOptions opts = new OptOptions();
@@ -217,7 +216,7 @@ public class ActiveSetTest {
   @Test
   public void findAvailableRegisterIgnoresInfrequentIntervalsWhenDesired() throws Exception {
     // IR creation will fail for builds without the optimizing compiler
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
 
     NormalMethod nm = TestingTools.getNormalMethod(MethodsForTests.class, "emptyStaticMethodWithoutAnnotations");
     OptOptions opts = new OptOptions();

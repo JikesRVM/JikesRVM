@@ -16,12 +16,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
 import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP;
+import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsBuildForOptCompiler;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeThat;
 
 import java.util.Enumeration;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.compilers.opt.OptimizingCompilerException;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
@@ -87,7 +86,7 @@ public class SplitBasicBlockTest {
   private IR createIRWithEmptyCFG(int maxInstPerBlock) {
     // The IR constructor will fail if the optimizing compiler isn't available
     // and assertions are enabled
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
 
     OptOptions opts = new OptOptions();
     IR ir = new IR(null, null, opts);

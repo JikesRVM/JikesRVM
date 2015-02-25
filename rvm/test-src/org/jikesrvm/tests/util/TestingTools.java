@@ -12,8 +12,10 @@
  */
 package org.jikesrvm.tests.util;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.EPILOGUE_BLOCK_BCI;
 import static org.jikesrvm.compilers.opt.driver.OptConstants.PROLOGUE_BLOCK_BCI;
+import static org.junit.Assume.assumeThat;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.JikesRVMSupport;
@@ -24,6 +26,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
@@ -114,6 +117,14 @@ public class TestingTools {
 
   public static RVMField getRVMFieldForField(Field field) {
     return JikesRVMSupport.getFieldOf(field);
+  }
+
+  public static void assumeThatVMIsBuildForOptCompiler() {
+    assumeThat(VM.BuildForOptCompiler, is(Boolean.TRUE));
+  }
+
+  public static void assumeThatVMIsNotBuildForOptCompiler() {
+    assumeThat(VM.BuildForOptCompiler, is(Boolean.FALSE));
   }
 
 }

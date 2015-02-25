@@ -12,16 +12,20 @@
  */
 package org.jikesrvm.tools.oth;
 
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeThat;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsBuildForOptCompiler;
+import static org.jikesrvm.tests.util.TestingTools.assumeThatVMIsNotBuildForOptCompiler;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.classloader.ApplicationClassLoader;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.NormalMethod;
@@ -71,7 +75,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void doesNotCrashWhenNoOptCompilerIsAvailable() throws InvocationTargetException, IllegalAccessException{
-    assumeThat(VM.BuildForOptCompiler, is(false));
+    assumeThatVMIsNotBuildForOptCompiler();
     String[] emptyArgs = {};
     executeOptTestHarness(emptyArgs);
   }
@@ -177,7 +181,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void knownArgumentsAreProcessedEvenIfUnknownArgumentsAppear() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
     String unknownArgument = "-foo";
     String[] arguments = {unknownArgument, "+baseline"};
     OptTestHarness oth = executeOptTestHarness(arguments);
@@ -285,7 +289,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void methodsAreOptCompiledByDefault() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"-class", ABSTRACT_CLASS_WITH_EMPTY_METHOD};
     executeOptTestHarness(compileClass);
 
@@ -320,7 +324,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void methodsAreBaselineCompiledIfRequested() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"+baseline", "-class", ABSTRACT_CLASS_WITH_EMPTY_METHOD};
     executeOptTestHarness(compileClass);
     assertThatBothMethodsOfTestClass2HaveBeenBaselineCompiled();
@@ -328,7 +332,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void defaultCompilerIsBaselineWhenVMIsBuildWithoutOptCompiler() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(false));
+    assumeThatVMIsNotBuildForOptCompiler();
     String[] compileClass = {"-class", ABSTRACT_CLASS_WITH_EMPTY_METHOD};
     executeOptTestHarness(compileClass);
     assertThatBothMethodsOfTestClass2HaveBeenBaselineCompiled();
@@ -361,7 +365,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void methodsAreOptCompiledByDefaultWhenSingleMethodIsCompiled() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"-method", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "emptyMethod", "-"};
     executeOptTestHarness(compileClass);
 
@@ -377,7 +381,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void methodsWillBeBaselineCompiledIfRequested() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"-methodBase", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "emptyMethod", "-"};
     executeOptTestHarness(compileClass);
 
@@ -393,7 +397,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void methodsWillOptCompiledIfRequested() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
     String[] compileClass = {"+baseline", "-methodOpt", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "emptyMethod", "-"};
     executeOptTestHarness(compileClass);
 
@@ -409,7 +413,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void defaultCompilerForMethodsIsBaselineWhenVMIsBuildWithoutOptCompiler() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(false));
+    assumeThatVMIsNotBuildForOptCompiler();
     String[] compileClass = {"-method", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "emptyMethod", "-"};
     executeOptTestHarness(compileClass);
 
@@ -702,7 +706,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void commandLineArgumentFileSupportsComments() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
     fileAccess = new TestFileAccess();
     String fileName = "commandLineArgsForLongCommandLineTestWithComments";
     String fileContent = "-baseline\n" + "#" + "+baseline\n";
@@ -738,7 +742,7 @@ public class OptTestHarnessTest {
 
   @Test // Note: this test will break when the bootimage options change
   public void usesSameOptionsAsBootimageCompilerWhenRequested() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
     String[] useBootimageCompilerOptions = {"-useBootOptions"};
     output = new TestOutput();
     OptOptions optOptions = new OptOptions();
@@ -783,7 +787,7 @@ public class OptTestHarnessTest {
 
   @Test
   public void argumentsAreEagerlyEvaluatedFromLeftToRight() throws Exception {
-    assumeThat(VM.BuildForOptCompiler, is(true));
+    assumeThatVMIsBuildForOptCompiler();
 
     String[] args = { "-class", ABSTRACT_CLASS_WITH_EMPTY_METHOD, "+baseline" };
     OptTestHarness oth = executeOptTestHarness(args);
