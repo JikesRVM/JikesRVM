@@ -14,7 +14,7 @@ package gnu.java.lang.management;
 
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 
-public final class VMCompilationMXBeanImpl {
+final class VMCompilationMXBeanImpl {
 
   static long getTotalCompilationTime() {
     return RuntimeCompiler.getTotalCompilationTime();

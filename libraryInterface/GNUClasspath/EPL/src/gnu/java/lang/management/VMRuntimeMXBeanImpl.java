@@ -14,7 +14,7 @@ package gnu.java.lang.management;
 
 import org.jikesrvm.JMXSupport;
 
-public final class VMRuntimeMXBeanImpl {
+final class VMRuntimeMXBeanImpl {
 
   static String[] getInputArguments() {
     return JMXSupport.getInputArguments();

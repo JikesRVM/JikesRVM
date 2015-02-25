@@ -14,7 +14,7 @@ package gnu.java.lang.management;
 
 import org.jikesrvm.classloader.JMXSupport;
 
-public final class VMClassLoadingMXBeanImpl {
+final class VMClassLoadingMXBeanImpl {
 
   /**
    * @return count of number of classes currently loaded
