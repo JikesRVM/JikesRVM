@@ -51,7 +51,7 @@ class BasicBlockLE {
   BasicBlockLE fallThrough;
 
   /**
-   * The exception handler BBLE's for this block (null if none)
+   * The exception handler BBLE's for this block ({@code null} if none)
    */
   HandlerBlockLE[] handlers;
 

@@ -179,16 +179,16 @@ final class BBSet {
 
   /**
    * Get or create a block at the specified target.
-   * If simStack is non-null, rectifies stack state with target stack state.
-   * If simLocals is non-null, rectifies local state with target local state.
+   * If simStack is non-{@code null}, rectifies stack state with target stack state.
+   * If simLocals is non-{@code null}, rectifies local state with target local state.
    * Any instructions needed to rectify stack/local state are appended to
    * from.
    *
    * @param target target index
    * @param from the block from which control is being transfered
    *                  and to which rectification instructions are added.
-   * @param simStack stack state to rectify, or null
-   * @param simLocals local state to rectify, or null
+   * @param simStack stack state to rectify, or {@code null}
+   * @param simLocals local state to rectify, or {@code null}
    * @return a block, never {@code null}
    */
   BasicBlockLE getOrCreateBlock(int target, BasicBlockLE from, OperandStack simStack, Operand[] simLocals) {
@@ -801,8 +801,8 @@ final class BBSet {
 
   /**
    * Get or create a block at the specified target.
-   * If simStack is non-null, rectifies stack state with target stack state.
-   * If simLocals is non-null, rectifies local state with target local state.
+   * If simStack is non-{@code null}, rectifies stack state with target stack state.
+   * If simLocals is non-{@code null}, rectifies local state with target local state.
    * Any instructions needed to rectify stack/local state are appended to
    * from.
    * As blocks are created, they are added to the red/black tree below x.

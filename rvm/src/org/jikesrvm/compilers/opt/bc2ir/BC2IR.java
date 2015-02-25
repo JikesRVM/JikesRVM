@@ -3458,7 +3458,7 @@ public final class BC2IR {
   //// GET TYPE OF AN OPERAND.
   /**
    * Returns the data type of the given operand, assuming that the operand is
-   * an array reference. (and not a null constant.)
+   * an array reference. (and not a {@code null} constant.)
    *
    * @param op operand to get type of
    * @return operand's data type
@@ -3470,7 +3470,7 @@ public final class BC2IR {
 
   /**
    * Returns the data type of the given operand, assuming that the operand is
-   * a reference. (and not a null constant.)
+   * a reference. (and not a {@code null} constant.)
    *
    * @param op operand to get type of
    * @return operand's data type
