@@ -21,6 +21,7 @@ import org.jikesrvm.adaptive.controller.Controller;
 import org.jikesrvm.adaptive.util.CompilerAdvice;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.JMXSupport;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMMember;
@@ -214,6 +215,7 @@ public class VM extends Properties {
     //
     String bootstrapClasses = CommandLineArgs.getBootstrapClasses();
     if (verboseBoot >= 1) VM.sysWriteln("Initializing bootstrap class loader: ", bootstrapClasses);
+    Callbacks.addClassLoadedMonitor(JMXSupport.CLASS_LOADING_JMX_SUPPORT);
     RVMClassLoader.boot();      // Wipe out cached application class loader
     BootstrapClassLoader.boot(bootstrapClasses);
 

@@ -65,6 +65,7 @@ import org.jikesrvm.Services;
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.BootstrapClassLoader;
+import org.jikesrvm.classloader.JMXSupport;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMField;
@@ -1377,7 +1378,9 @@ public class BootImageWriter extends BootImageWriterMessages {
         System.out.println("PROF: \tloading types "+(stopTime-startTime)+" ms");
       }
 
-      if (verbose >= 1) say(String.valueOf(bootImageTypes.size()), " types");
+      int typeCount = bootImageTypes.size();
+      JMXSupport.CLASS_LOADING_JMX_SUPPORT.setClassLoadedCountForBootimage(typeCount);
+      if (verbose >= 1) say(String.valueOf(typeCount), " types");
 
       //
       // Lay out fields and method tables.
@@ -1471,7 +1474,7 @@ public class BootImageWriter extends BootImageWriterMessages {
       //
       if (verbose >= 1) say("field info gathering");
       if (profile) startTime = System.currentTimeMillis();
-      bootImageTypeFields = new HashMap<Key,FieldInfo>(bootImageTypes.size());
+      bootImageTypeFields = new HashMap<Key,FieldInfo>(typeCount);
       HashSet<String> invalidEntrys = new HashSet<String>();
 
       // First retrieve the jdk Field table for each class of interest

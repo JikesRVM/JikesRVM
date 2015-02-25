@@ -450,6 +450,9 @@ public class Entrypoints {
   public static final RVMField edgeCountersField =
       getField(org.jikesrvm.compilers.baseline.EdgeCounts.class, "data", int[][].class);
 
+  public static final RVMField classLoadedCountField =
+      getField(org.jikesrvm.classloader.JMXSupport.class, "classLoadedCount", int.class);
+
   //////////////////
   // Entrypoints that are valid only when the opt compiler is included in the build
   //////////////////
