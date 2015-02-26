@@ -772,4 +772,19 @@ public abstract class Space {
     Extent rtn = mb.lsh(LOG_BYTES_IN_MBYTE).toExtent();
     return chunkAlign(rtn, false);
   }
+
+  /** @return the actual number of spaces in the space array */
+  public static int getSpaceCount() {
+    return spaceCount;
+  }
+
+  /**
+   * @return the spaces array. Note that the array is partially empty:
+   * use {@link #getSpaceCount()} to determine the maximum index that
+   * is still filled.
+   */
+  public static Space[] getSpaces() {
+    return spaces;
+  }
+
 }

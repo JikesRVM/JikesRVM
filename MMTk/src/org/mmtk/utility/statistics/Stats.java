@@ -23,7 +23,10 @@ import org.mmtk.vm.VM;
 import org.vmmagic.pragma.*;
 
 /**
- * This class implements basic statistics functionality
+ * This class implements basic statistics functionality.
+ * <p>
+ * In general, statistics are only available if gathering has been enabled.
+ * The sole exception is the count of collections which is always available.
  */
 @Uninterruptible
 public class Stats {
@@ -381,7 +384,14 @@ public class Stats {
     Xml.closeTag("mmtk-stats-per-gc");
   }
 
-  /** @return The GC count (inclusive of any in-progress GC) */
+  /**
+   * Returns the total count of collections.
+   * <p>
+   * Note: This count is available even when gathering of statistics
+   * is disabled.
+   *
+   * @return The GC count (inclusive of any in-progress GC)
+   */
   public static int gcCount() { return gcCount; }
 
   /** @return {@code true} if currently gathering stats */

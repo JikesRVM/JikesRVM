@@ -571,8 +571,11 @@ public abstract class Plan {
     if (gcStatus == NOT_IN_GC) {
       /* From NOT_IN_GC to any phase */
       stacksPrepared = false;
+      // Need to call this method to get a correct collection
+      // count (which we need for JMX). This call won't cause
+      // gathering of additional stats unless stats are enabled.
+      Stats.startGC();
       if (Stats.gatheringStats()) {
-        Stats.startGC();
         VM.activePlan.global().printPreStats();
       }
     }

@@ -416,6 +416,7 @@ public class VM extends Properties {
     // Inform interested subsystems that VM is fully booted.
     VM.fullyBooted = true;
     MemoryManager.fullyBootedVM();
+    org.jikesrvm.mm.mminterface.JMXSupport.fullyBootedVM();
     BaselineCompiler.fullyBootedVM();
     TraceEngine.engine.fullyBootedVM();
 
