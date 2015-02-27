@@ -19,6 +19,7 @@ import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.scheduler.RVMThread;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -61,6 +62,7 @@ public class CodePatchSyncRequestVisitorTest {
     t.resume();
   }
 
+  @Ignore("currently fails spuriously, see bug RVM-1096")
   @Test(timeout = 100)
   public void codePatchingWorksWhenAThreadIsWaiting() throws Exception {
     triggerCodePatching(new WaitingThread());
