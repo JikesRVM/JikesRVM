@@ -34,6 +34,7 @@ import org.jikesrvm.compilers.opt.OptOptions;
 import org.jikesrvm.junit.runners.RequiresJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
 import org.jikesrvm.tests.util.TestingTools;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -803,6 +804,7 @@ public class OptTestHarnessTest {
     assertThat(oth.useBaselineCompiler, is(true));
   }
 
+  @Ignore("not enabled by default because it may interfere with other tests")
   @Test
   public void disableClassLoadingWorksOnlyInConjunctionWithExecuteAndRun() throws Exception {
     String[] args = { "-er", "org.jikesrvm.tools.oth.OptTestHarness",
