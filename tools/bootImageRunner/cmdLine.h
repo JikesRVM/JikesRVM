@@ -12,7 +12,7 @@
  */
 
 // Definitions of constants for handling C command-line arguments
-// These are actually only included by one caller, RunBootImage.C
+// These are actually only included by one caller, RunBootImage.cpp
 
 #ifndef CMDLINE_H
 #define CMDLINE_H

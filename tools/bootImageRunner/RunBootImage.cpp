@@ -17,7 +17,7 @@
  * This file deals with loading of the vm boot image into a memory segment,
  * basic processing of command line arguments, and branching to VM.boot.
  *
- * The file "sys.C" contains the o/s support services to match
+ * The file "sys.cpp" contains the o/s support services to match
  * the entrypoints declared by SysCall.java
  *
  * 17 Oct 2000 The system code (everything except command line parsing in main)

@@ -16,7 +16,7 @@
  *
  * This file deals with loading of the vm boot image into a memory segment and
  * branching to its startoff code. It also deals with interrupt and exception handling.
- * The file "sys.C" contains the o/s support services required by the java class libraries.
+ * The file "sys.cpp" contains the o/s support services required by the java class libraries.
  *
  * IA32 version for Linux
  */
@@ -317,7 +317,7 @@ static unsigned char alignCheckHandlerInstBuf[100]; // ought to be enough to hol
 // if enabled, print a character for each alignment trap (whether or not we ignore it)
 static int alignCheckVerbose = 0;
 
-// statistics defined in sys.C
+// statistics defined in sys.cpp
 extern volatile int numNativeAlignTraps;
 extern volatile int numEightByteAlignTraps;
 extern volatile int numBadAlignTraps;
@@ -1034,7 +1034,7 @@ createVM(void)
     bootRecord->bootImageRMapEnd     = (Address) bootRMapRegion + roundedRMapRegionSize;
     bootRecord->verboseBoot      = verboseBoot;
 
-    /* write sys.C linkage information into boot record */
+    /* write sys.cpp linkage information into boot record */
 
     setLinkage(bootRecord);
     if (lib_verbose) {

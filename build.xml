@@ -1743,7 +1743,7 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
 
-    <property name="rvm.src" value="${bl.dir}/RunBootImage.C ${bl.dir}/sys.C ${rvm.arch.src}"/>
+    <property name="rvm.src" value="${bl.dir}/RunBootImage.cpp ${bl.dir}/sys.cpp ${rvm.arch.src}"/>
   </target>
 
   <target name="build-ppc-bootThread" depends="check-bootloader-properties" if="gen-ppc-bootThread">
@@ -1785,7 +1785,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg line="${rvm.c++.args} -lpthread ${c++.librt}"/>
       <arg value="-o"/>
       <arg value="${build.base}/${rvm.dll}"/>
-      <arg value="${bl.dir}/jvm.C"/>
+      <arg value="${bl.dir}/jvm.cpp"/>
     </exec>
 
     <!-- create vmi shared library -->
