@@ -780,10 +780,6 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     *(int *) sp = (Address)*(unsigned *) (localNativeThreadAddress + Thread_arrayIndexTrapParam_offset);
     IA32_EDX(context) = *(int *)sp; // also pass second param in EDX.
     sp = sp - __SIZEOF_POINTER__; /* return address - looks like called from failing instruction */
-    sp = sp - __SIZEOF_POINTER__; /* next parameter is info for array bounds trap */
-    ((int *)sp)[0] = ((unsigned *)(localNativeThreadAddress + Thread_arrayIndexTrapParam_offset))[0];
-    IA32_EDX(context) = ((int *)sp)[0]; // also pass second param in EDX.
-    sp = sp - __SIZEOF_POINTER__; /* return address - looks like called from failing instruction */
     *(Address *) sp = instructionFollowing;
 
     /* store instructionFollowing and fp in Registers,ip and Registers.fp */
