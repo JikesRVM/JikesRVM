@@ -124,11 +124,6 @@ static void vwriteFmt(int fd, const char fmt[], va_list ap)
     NONNULL(2) __attribute__((format (printf, 2, 0)));
 static void vwriteFmt(int fd, size_t bufsz, const char fmt[], va_list ap)
     NONNULL(3) __attribute__((format (printf, 3, 0)));
-#if 0                           // this isn't needed right now, but may be in
-                                // the future.
-static void writeTrace(const char fmt[], ...)
-    NONNULL(1) __attribute__((format (printf, 1, 2)));
-#endif
 static void writeErr(const char fmt[], ...)
     NONNULL(1) __attribute__((format (printf, 1, 2)));
 
@@ -250,19 +245,6 @@ isVmSignal(Address ip, Address vpAddress)
 {
     return inRVMAddressSpace(ip) && inRVMAddressSpace(vpAddress);
 }
-
-#if 0                           // this isn't needed right now, but may be in
-                                // the future.
-static void
-writeTrace(const char fmt[], ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vwriteFmt(SysTraceFd, fmt, ap);
-    va_end(ap);
-}
-#endif
-
 
 static void
 writeErr(const char fmt[], ...)
