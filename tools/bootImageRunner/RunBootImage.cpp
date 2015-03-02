@@ -56,7 +56,6 @@
 #include "RunBootImage.h"       // Automatically generated for us by
                                 // jbuild.linkBooter
 #include "bootImageRunner.h"    // In tools/bootImageRunner
-#include "cmdLine.h"            // Command line args.
 
 // Interface to VM data structures.
 //
@@ -78,6 +77,91 @@ static const unsigned BYTES_IN_PAGE = MMTk_Constants_BYTES_IN_PAGE;
 
 static bool strequal(const char *s1, const char *s2);
 static bool strnequal(const char *s1, const char *s2, size_t n);
+
+// Definitions of constants for handling C command-line arguments
+
+/* These definitions must remain in sync with nonStandardArgs, the array
+ * immediately below. */
+static const int HELP_INDEX                    = 0;
+static const int VERBOSE_INDEX                 = HELP_INDEX+1;
+static const int VERBOSE_BOOT_INDEX            = VERBOSE_INDEX+1;
+static const int MS_INDEX                      = VERBOSE_BOOT_INDEX+1;
+static const int MX_INDEX                      = MS_INDEX+1;
+static const int SYSLOGFILE_INDEX              = MX_INDEX+1;
+static const int BOOTIMAGE_CODE_FILE_INDEX     = SYSLOGFILE_INDEX+1;
+static const int BOOTIMAGE_DATA_FILE_INDEX     = BOOTIMAGE_CODE_FILE_INDEX+1;
+static const int BOOTIMAGE_RMAP_FILE_INDEX     = BOOTIMAGE_DATA_FILE_INDEX+1;
+static const int INDEX                      = BOOTIMAGE_RMAP_FILE_INDEX+1;
+static const int GC_INDEX                      = INDEX+1;
+static const int AOS_INDEX                     = GC_INDEX+1;
+static const int IRC_INDEX                     = AOS_INDEX+1;
+static const int RECOMP_INDEX                  = IRC_INDEX+1;
+static const int BASE_INDEX                    = RECOMP_INDEX+1;
+static const int OPT_INDEX                     = BASE_INDEX+1;
+static const int VMCLASSES_INDEX               = OPT_INDEX+1;
+static const int BOOTCLASSPATH_P_INDEX         = VMCLASSES_INDEX+1;
+static const int BOOTCLASSPATH_A_INDEX         = BOOTCLASSPATH_P_INDEX+1;
+static const int PROCESSORS_INDEX              = BOOTCLASSPATH_A_INDEX+1;
+
+static const int numNonstandardArgs      = PROCESSORS_INDEX+1;
+
+static const char* nonStandardArgs[numNonstandardArgs] = {
+   "-X",
+   "-X:verbose",
+   "-X:verboseBoot=",
+   "-Xms",
+   "-Xmx",
+   "-X:sysLogfile=",
+   "-X:ic=",
+   "-X:id=",
+   "-X:ir=",
+   "-X:vm",
+   "-X:gc",
+   "-X:aos",
+   "-X:irc",
+   "-X:recomp",
+   "-X:base",
+   "-X:opt",
+   "-X:vmClasses=",
+   "-Xbootclasspath/p:",
+   "-Xbootclasspath/a:",
+   "-X:availableProcessors=",
+};
+
+// a NULL-terminated list.
+static const char* nonStandardUsage[] = {
+   "  -X                         Print usage on nonstandard options",
+   "  -X:verbose                 Print out additional lowlevel information",
+   "  -X:verboseBoot=<number>    Print out messages while booting VM",
+   "  -Xms<number><unit>         Initial size of heap",
+   "  -Xmx<number><unit>         Maximum size of heap",
+   "  -X:sysLogfile=<filename>   Write standard error message to <filename>",
+   "  -X:ic=<filename>           Read boot image code from <filename>",
+   "  -X:id=<filename>           Read boot image data from <filename>",
+   "  -X:ir=<filename>           Read boot image ref map from <filename>",
+   "  -X:vm:<option>             Pass <option> to virtual machine",
+   "        :help                Print usage choices for -X:vm",
+   "  -X:gc:<option>             Pass <option> on to GC subsystem",
+   "        :help                Print usage choices for -X:gc",
+   "  -X:aos:<option>            Pass <option> on to adaptive optimization system",
+   "        :help                Print usage choices for -X:aos",
+   "  -X:irc:<option>            Pass <option> on to the initial runtime compiler",
+   "        :help                Print usage choices for -X:irc",
+   "  -X:recomp:<option>         Pass <option> on to the recompilation compiler(s)",
+   "        :help                Print usage choices for -X:recomp",
+   "  -X:base:<option>           Pass <option> on to the baseline compiler",
+   "        :help                print usage choices for -X:base",
+   "  -X:opt:<option>            Pass <option> on to the optimizing compiler",
+   "        :help                Print usage choices for -X:opt",
+   "  -X:vmClasses=<path>        Load the org.jikesrvm.* and java.* classes",
+   "                             from <path>, a list like one would give to the",
+   "                             -classpath argument.",
+   "  -Xbootclasspath/p:<cp>     (p)repend bootclasspath with specified classpath",
+   "  -Xbootclasspath/a:<cp>     (a)ppend specified classpath to bootclasspath",
+   "  -X:availableProcessors=<n> desired level of application parallelism (set",
+   "                             -X:gc:threads to control gc parallelism)",
+   NULL                         /* End of messages */
+};
 
 /*
  * What standard command line arguments are supported?
